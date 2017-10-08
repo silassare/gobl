@@ -34,7 +34,7 @@
 		public function __construct()
 		{
 			$this->db          = \<%$.db_provider%>::getInstance();
-			$this->table       = $this->db->getTable('<%$.table.fullName%>');
+			$this->table       = $this->db->getTable('<%$.table.name%>');
 			$this->table_alias = $this->getUniqueAlias();
 		}
 
