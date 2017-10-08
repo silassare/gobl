@@ -1,0 +1,2 @@
+# Authors sorted by whether or not they're me
+Emile Silas Sare <emile.silas@gmail.com>

@@ -1,0 +1,552 @@
+<?php
+	/**
+	 * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+	 *
+	 * This file is part of the Gobl package.
+	 *
+	 * For the full copyright and license information, please view the LICENSE
+	 * file that was distributed with this source code.
+	 */
+
+	namespace Gobl\DBAL\Generators;
+
+	use Gobl\DBAL\Column;
+	use Gobl\DBAL\QueryBuilder;
+	use Gobl\DBAL\Table;
+
+	/**
+	 * Class BaseSQLGenerator
+	 *
+	 * Thanks to Contributors of Doctrine DBAL
+	 * some concept and code form Doctrine DBAL query builder
+	 * are fully or partially used here.
+	 *
+	 * @package Gobl\DBAL\Generators
+	 */
+	abstract class BaseSQLGenerator implements Generator
+	{
+		/** @var \Gobl\DBAL\QueryBuilder */
+		protected $query;
+
+		/** @var array */
+		protected $options;
+
+		/**
+		 * BaseSQLGenerator constructor.
+		 *
+		 * @param \Gobl\DBAL\QueryBuilder $query
+		 */
+		public function __construct(QueryBuilder $query)
+		{
+			$this->query   = $query;
+			$this->options = $query->getOptions();
+		}
+
+		/**
+		 * Gets bool column definition query string.
+		 *
+		 * @param \Gobl\DBAL\Column $column
+		 *
+		 * @return string
+		 */
+		protected function getBoolColumnDefinition(Column $column)
+		{
+			$column_name = $column->getFullName();
+			$options     = $column->getOptions();
+			$null        = $options['null'];
+			$default     = $options['default'];
+
+			$sql[] = "`$column_name` tinyint(1)";
+
+			if (!$null) {
+				$sql[] = 'NOT NULL';
+
+				if (!is_null($default)) {
+					$sql[] = sprintf('DEFAULT %s', self::quote($default));
+				}
+			} elseif ($null AND is_null($options['default'])) {
+				$sql[] = 'DEFAULT NULL';
+			}
+
+			return implode(' ', $sql);
+		}
+
+		/**
+		 * Gets int column definition query string.
+		 *
+		 * @param \Gobl\DBAL\Column $column
+		 *
+		 * @return string
+		 */
+		protected function getIntColumnDefinition(Column $column)
+		{
+			$column_name = $column->getFullName();
+			$options     = $column->getOptions();
+			$null        = $options['null'];
+			$unsigned    = $options['unsigned'];
+			$default     = $options['default'];
+			$min         = isset($options['min']) ? $options['min'] : -INF;
+			$max         = isset($options['max']) ? $options['max'] : INF;
+
+			$sql[] = "`$column_name`";
+
+			if ($unsigned) {
+				if ($max <= 255) {
+					$sql[] = "tinyint";
+				} elseif ($max <= 65535) {
+					$sql[] = "smallint";
+				} else {
+					$sql[] = 'int(11)';
+				}
+
+				$sql[] = 'unsigned';
+			} else {
+				if ($min >= -128 AND $max <= 127) {
+					$sql[] = "tinyint";
+				} elseif ($min >= -32768 AND $max <= 32767) {
+					$sql[] = "smallint";
+				} else {
+					$sql[] = 'integer(11)';
+				}
+			}
+
+			if (!$null) {
+				$sql[] = 'NOT NULL';
+
+				if (!is_null($default)) {
+					$sql[] = sprintf('DEFAULT %s', self::quote($default));
+				}
+			} elseif ($null AND is_null($options['default'])) {
+				$sql[] = 'DEFAULT NULL';
+			}
+
+			if ($options['auto_increment']) {
+				$sql[] = 'AUTO_INCREMENT';
+			}
+
+			return implode(' ', $sql);
+		}
+
+		/**
+		 * Gets bigint column definition query string.
+		 *
+		 * @param \Gobl\DBAL\Column $column
+		 *
+		 * @return string
+		 */
+		protected function getBigintColumnDefinition(Column $column)
+		{
+			$column_name = $column->getFullName();
+			$options     = $column->getOptions();
+			$null        = $options['null'];
+			$unsigned    = $options['unsigned'];
+			$default     = $options['default'];
+
+			$sql[] = "`$column_name` bigint(20)";
+
+			if ($unsigned) {
+				$sql[] = 'unsigned';
+			}
+
+			if (!$null) {
+				$sql[] = 'NOT NULL';
+
+				if (!is_null($default)) {
+					$sql[] = sprintf('DEFAULT %s', self::quote($default));
+				}
+			} elseif ($null AND is_null($options['default'])) {
+				$sql[] = 'DEFAULT NULL';
+			}
+
+			if ($options['auto_increment']) {
+				$sql[] = 'AUTO_INCREMENT';
+			}
+
+			return implode(' ', $sql);
+		}
+
+		/**
+		 * Gets float column definition query string.
+		 *
+		 * @param \Gobl\DBAL\Column $column
+		 *
+		 * @return string
+		 */
+		protected function getFloatColumnDefinition(Column $column)
+		{
+			$column_name = $column->getFullName();
+			$options     = $column->getOptions();
+			$null        = $options['null'];
+			$unsigned    = $options['unsigned'];
+			$default     = $options['default'];
+			$mantissa    = isset($options['mantissa']) ? $options['mantissa'] : 53;
+
+			$sql[] = "`$column_name` float($mantissa)";
+
+			if ($unsigned) {
+				$sql[] = 'unsigned';
+			}
+
+			if (!$null) {
+				$sql[] = 'NOT NULL';
+
+				if (!is_null($default)) {
+					$sql[] = sprintf('DEFAULT %s', self::quote($default));
+				}
+			} elseif ($null AND is_null($options['default'])) {
+				$sql[] = 'DEFAULT NULL';
+			}
+
+			return implode(' ', $sql);
+		}
+
+		/**
+		 * Gets string column definition query string.
+		 *
+		 * @param \Gobl\DBAL\Column $column
+		 *
+		 * @return string
+		 */
+		protected function getStringColumnDefinition(Column $column)
+		{
+			$column_name = $column->getFullName();
+			$options     = $column->getOptions();
+			$null        = $options['null'];
+			$default     = $options['default'];
+			$min         = isset($options['min']) ? $options['min'] : 0;
+			$max         = isset($options['max']) ? $options['max'] : INF;
+			// char(c) c in range(0,255);
+			// varchar(c) c in range(0,65535);
+			$c     = $max;
+			$sql[] = "`$column_name`";
+
+			if ($c <= 255 AND $min === $max) {
+				$sql[] = "char($c)";
+			} elseif ($c <= 65535) {
+				$sql[] = "varchar($c)";
+			} else {
+				$sql[] = 'text';
+			}
+
+			if (!$null) {
+				$sql[] = 'NOT NULL';
+
+				if (!is_null($default)) {
+					$sql[] = sprintf('DEFAULT %s', self::quote($default));
+				}
+			} elseif ($null AND is_null($options['default'])) {
+				$sql[] = 'DEFAULT NULL';
+			}
+
+			return implode(' ', $sql);
+		}
+
+		/**
+		 * Gets unique constraint definition query string.
+		 *
+		 * @param \Gobl\DBAL\Table $table           the table
+		 * @param array                   $columns         the columns
+		 * @param string                  $constraint_name the constraint name to use
+		 * @param bool                    $alter           use alter syntax
+		 *
+		 * @return string
+		 */
+		protected function getUniqueConstraintDefinition(Table $table, array $columns, $constraint_name, $alter = true)
+		{
+			$table_name = $table->getFullName();
+			$columns    = self::quoteCols($columns);
+			$sql        = $alter ? 'ALTER' . ' TABLE `' . $table_name . '` ADD ' : '';
+			$sql        .= 'CONSTRAINT ' . $constraint_name . ' UNIQUE (' . $columns . ');';
+
+			return $sql;
+		}
+
+		/**
+		 * Gets primary key constraint definition query string.
+		 *
+		 * @param \Gobl\DBAL\Table $table           the table
+		 * @param array                   $columns         the columns
+		 * @param string                  $constraint_name the constraint name to use
+		 * @param bool                    $alter           use alter syntax
+		 *
+		 * @return string
+		 */
+		protected function getPrimaryKeyConstraintDefinition(Table $table, array $columns, $constraint_name, $alter = true)
+		{
+			$columns    = self::quoteCols($columns);
+			$table_name = $table->getFullName();
+			$sql        = $alter ? 'ALTER' . ' TABLE `' . $table_name . '` ADD ' : '';
+			$sql        .= 'CONSTRAINT ' . $constraint_name . ' PRIMARY KEY (' . $columns . ')';
+
+			return $sql;
+		}
+
+		/**
+		 * Gets foreign key constraint definition query string.
+		 *
+		 * @param \Gobl\DBAL\Table $table           the table
+		 * @param \Gobl\DBAL\Table $reference_table the foreign key reference table
+		 * @param array                   $columns         the columns
+		 * @param string                  $constraint_name the constraint name to use
+		 * @param bool                    $alter           use alter syntax
+		 *
+		 * @return string
+		 */
+		protected function getForeignKeyConstraintDefinition(Table $table, Table $reference_table, array $columns, $constraint_name, $alter = true)
+		{
+			$table_name           = $table->getFullName();
+			$reference_table_name = $reference_table->getFullName();
+			$columns_list         = self::quoteCols(array_keys($columns));
+			$references           = self::quoteCols(array_values($columns));
+			$sql                  = $alter ? 'ALTER' . ' TABLE `' . $table_name . '` ADD ' : '';
+			$sql                  .= 'CONSTRAINT ' . $constraint_name . ' FOREIGN KEY (' . $columns_list . ') REFERENCES ' . $reference_table_name . ' (' . $references . ');';
+
+			return $sql;
+		}
+
+		/**
+		 * Quote columns name in a given list.
+		 *
+		 * @param array $list
+		 *
+		 * @return string
+		 */
+		protected static function quoteCols(array $list)
+		{
+			return '`' . implode('` , `', $list) . '`';
+		}
+
+		/**
+		 * Wrap string, int... in single quote.
+		 *
+		 * @param mixed $value
+		 *
+		 * @return string
+		 */
+		protected static function quote($value)
+		{
+			return "'" . str_replace("'", "''", $value) . "'";
+		}
+
+		/**
+		 * Returns sql SELECT query.
+		 *
+		 * @return string
+		 */
+		protected function getSelectQuery()
+		{
+			$columns = $this->getSelectedColumnsQuery();
+			$where   = $this->getWhereQuery();
+			$from    = $this->getFromQuery();
+			$groupBy = $this->getGroupByQuery();
+			$having  = $this->getHavingQuery();
+			$orderBy = $this->getOrderByQuery();
+			$limit   = $this->getLimitQuery();
+			$sql     = 'SELECT ' . $columns . ' FROM ' . $from . ' WHERE ' . $where
+					   . $groupBy . $having . $orderBy . $limit;
+
+			return $sql;
+		}
+
+		/**
+		 * Returns sql HAVING query part.
+		 *
+		 * @return string
+		 */
+		protected function getHavingQuery()
+		{
+			$having = (string)$this->options['having'];
+			if (!empty($having)) {
+				return ' HAVING ' . $having;
+			}
+
+			return '';
+		}
+
+		/**
+		 * Returns sql LIMIT query part.
+		 *
+		 * @return string
+		 */
+		protected function getLimitQuery()
+		{
+			$offset = $this->options['limitOffset'];
+			$max    = $this->options['limitMax'];
+			$sql    = '';
+			if (is_int($max)) {
+				$sql = ' LIMIT ' . $max;
+				if (is_int($offset)) {
+					$sql .= ' OFFSET ' . $offset;
+				}
+			}
+
+			return $sql;
+		}
+
+		/**
+		 * Returns sql SET query part for table UPDATE.
+		 *
+		 * @return string
+		 */
+		protected function getSetQuery()
+		{
+			$x = [];
+			foreach ($this->options['columns'] as $column => $key_bind_name) {
+				$x[] = $column . ' = ' . $key_bind_name;
+			}
+
+			return implode(' , ', $x);
+		}
+
+		/**
+		 * Returns sql UPDATE query.
+		 *
+		 * @return string
+		 */
+		protected function getUpdateQuery()
+		{
+			$set   = $this->getSetQuery();
+			$where = $this->getWhereQuery();
+			$sql   = 'UPDATE ' . $this->options['table'] . ' ' . $this->options['updateTableAlias'] . ' SET ' . $set . ' WHERE ' . $where;
+
+			return $sql;
+		}
+
+		/**
+		 * Returns sql DELETE query.
+		 *
+		 * @return string
+		 */
+		protected function getDeleteQuery()
+		{
+			$where = $this->getWhereQuery();
+			$sql   = 'DELETE' . ' FROM ' . $this->options['table'] . ' WHERE ' . $where;
+
+			return $sql;
+		}
+
+		/**
+		 * Returns sql INSERT query.
+		 *
+		 * @return string
+		 */
+		protected function getInsertQuery()
+		{
+			$columns = implode(' , ', array_keys($this->options['columns']));
+			$values  = implode(' , ', $this->options['columns']);
+			$sql     = 'INSERT' . ' INTO ' . $this->options['table'] . ' (' . $columns . ') VALUES(' . $values . ')';
+
+			return $sql;
+		}
+
+		/**
+		 * Returns sql WHERE query part.
+		 *
+		 * @return string
+		 */
+		protected function getWhereQuery()
+		{
+			$rule = $this->options['where'];
+
+			if (!is_null($rule)) {
+				return (string)$rule;
+			}
+
+			return '1 = 1';
+		}
+
+		/**
+		 * Returns sql selected columns.
+		 *
+		 * @return string
+		 */
+		protected function getSelectedColumnsQuery()
+		{
+			$columns = array_unique($this->options['select']);
+			if (count($columns)) {
+				return implode(' , ', $columns);
+			} else {
+				return '*';
+			}
+		}
+
+		/**
+		 * Returns sql FROM query part.
+		 *
+		 * @return string
+		 */
+		protected function getFromQuery()
+		{
+			$from = $this->options['from'];
+			$x    = [];
+			foreach ($from as $table => $alias) {
+				if (is_null($alias)) {
+					$x[] = $table . $this->getJoinQueryFor($table);
+				} else {
+					$x[] = $table . ' ' . $alias . ' ' . $this->getJoinQueryFor($alias);
+				}
+			}
+
+			return implode(' , ', $x);
+		}
+
+		/**
+		 * Returns sql GROUP BY query part.
+		 *
+		 * @return string
+		 */
+		protected function getGroupByQuery()
+		{
+			$groupBy = $this->options['groupBy'];
+
+			if (count($groupBy)) {
+				return ' GROUP BY ' . implode(' , ', $groupBy);
+			}
+
+			return '';
+		}
+
+		/**
+		 * Returns sql ORDER BY query part.
+		 *
+		 * @return string
+		 */
+		protected function getOrderByQuery()
+		{
+			$orderBy = $this->options['orderBy'];
+
+			if (count($orderBy)) {
+				return ' ORDER BY ' . implode(' , ', $orderBy);
+			}
+
+			return '';
+		}
+
+		/**
+		 * Returns sql JOIN for a given table.
+		 *
+		 * @param string $table the table name.
+		 *
+		 * @return string
+		 */
+		protected function getJoinQueryFor($table)
+		{
+			$sql = '';
+			if (isset($this->options['joins'][$table])) {
+				$joins = $this->options['joins'][$table];
+				foreach ($joins as $join) {
+					$type      = $join['type'];
+					$condition = (string)$join['condition'];
+					$sql       .= ' ' . $type
+								  . ' JOIN ' . $join['secondTable'] . ' ' . $join['secondTableAlias']
+								  . ' ON ' . (!empty($condition) ? $condition : '1 = 1');
+				}
+
+				foreach ($joins as $join) {
+					$sql .= $this->getJoinQueryFor($join['secondTableAlias']);
+				}
+			}
+
+			return $sql;
+		}
+	}

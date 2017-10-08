@@ -1,0 +1,347 @@
+<?php
+<%if(@length($.header)){%>
+<%$.header%>
+<%} else {%>	/**
+	 * Auto generated file, please don't edit.
+	 *
+	 * With: Gobl v1.0.0
+	 * Time: <%$.time%>
+	 */
+<%}%>
+	namespace <%$.namespace%>;
+
+	use Gobl\DBAL\Db;
+	use Gobl\DBAL\QueryBuilder;
+	use Gobl\DBAL\Table;
+	use Gobl\ORM\Exceptions\ORMException;
+
+	class <%$.class.table%>
+    {
+		/** @var \Gobl\DBAL\Table */
+		private $table;
+		/** @var string */
+		private $table_alias;
+		/** @var \Gobl\DBAL\Db */
+		private $db;
+		/** @var  \Gobl\DBAL\QueryBuilder */
+		private $current_query;
+		/** @var int */
+		private $alias_counter = 0;
+
+		/**
+		 * <%$.class.table%> constructor.
+		 */
+		public function __construct()
+		{
+			$this->db          = \<%$.db_provider%>::getInstance();
+			$this->table       = $this->db->getTable('<%$.table.fullName%>');
+			$this->table_alias = $this->getUniqueAlias();
+		}
+
+		/**
+		 * Add row to table <%$.table.name%>.
+		 *
+		 * @param array $row     the new values.
+		 *
+		 * @return \<%$.namespace%>\<%$.class.table%>
+		 */
+		public function addRow(array $row)
+		{
+			$q = new QueryBuilder($this->db);
+			$q->insert()
+			  ->into($this->table->getFullName(), array_keys($row))
+			  ->bindArray(array_values($row));
+
+			return $this->setCurrentQuery($q);
+		}
+
+		/**
+		 * Update rows in table <%$.table.name%>.
+		 *
+		 * @param array $filters filters for rows to update.
+		 * @param array $set     new values map.
+		 *
+		 * @return \<%$.namespace%>\<%$.class.table%>
+		 */
+		public function updateRow(array $filters, array $set)
+		{
+			$q = new QueryBuilder($this->db);
+			$q->update($this->table->getFullName(), $this->table_alias)
+			  ->set(array_keys($set));
+			$values = array_values($set);
+
+			if (count($filters)) {
+				$params = $this->getPositionalParams($this->table, $this->table_alias, $filters, $values);
+				$q->where($q->rule()
+							->eq($params));
+			}
+
+			$q->bindArray($values);
+
+			return $this->setCurrentQuery($q);
+		}
+
+		/**
+		 * Adds row if not exists or update otherwise.
+		 *
+		 * @param array $row
+		 * @param array $keys
+		 *
+		 * @return \<%$.namespace%>\<%$.class.table%>
+		 */
+		public function addOrUpdateRow(array $row, array $keys)
+		{
+			$keys_values     = [];
+			$non_keys_values = $row;
+			foreach ($keys as $key) {
+				$val = null;
+				if (isset($row[$key])) {
+					$val = $row[$key];
+					unset($non_keys_values[$key]);
+				}
+				$keys_values[$key] = $val;
+			}
+
+			$req = $this->findRows($keys_values, 1)
+						->getCurrentQuery();
+			if ($req->execute()
+					->rowCount() === 0) {
+				$r = $this->addRow($row);
+
+				return $r;
+			} else {
+				$r = $this->updateRow($keys_values, $non_keys_values);
+
+				return $r;
+			}
+		}
+
+		/**
+		 * Delete rows in table <%$.table.name%>.
+		 *
+		 * @param array $filters
+		 *
+		 * @return \<%$.namespace%>\<%$.class.table%>
+		 */
+		public function deleteRows(array $filters = [])
+		{
+			$q    = new QueryBuilder($this->db);
+			$name = $this->table->getFullName();
+			$q->delete($name);
+
+			if (count($filters)) {
+				$rules = $this->getNamedParams($this->table, $name, $filters);
+				$q->where($q->rule()
+							->eq($rules))
+				  ->bindArray($filters);
+			}
+
+			return $this->setCurrentQuery($q);
+		}
+
+		/**
+		 * Finds in the current table rows that satisfy search.
+		 *
+		 * @param array $search the search parameters.
+		 * @param null  $max    maximum row to retrieve.
+		 * @param int   $offset first row offset.
+		 *
+		 * @return \<%$.namespace%>\<%$.class.table%>
+		 */
+		public function findRows(array $search = [], $max = null, $offset = 0)
+		{
+			$q = new QueryBuilder($this->db);
+			$q->select()
+			  ->from($this->table->getFullName(), $this->table_alias);
+
+			if (count($search)) {
+				$rules = $this->getNamedParams($this->table, $this->table_alias, $search);
+				$q->where($q->rule()
+							->eq($rules))
+				  ->bindArray($search);
+			}
+
+			if (!is_null($max)) {
+				$q->limit($max, $offset);
+			}
+
+			return $this->setCurrentQuery($q);
+		}
+
+		/**
+		 * Runs the current query and returns <%$.class.results%> instance.
+		 *
+		 * @returns \<%$.namespace%>\<%$.class.results%>
+		 */
+		public function find()
+		{
+			$this->assertSelectQuery();
+
+			$statement = $this->getCurrentQuery()->execute();
+			$results = new <%$.class.results%>(\<%$.db_provider%>::getInstance(),$this,$statement);
+
+			return $results;
+		}
+
+		/**
+		 * Search for rows in this table and in another table.
+		 *
+		 * @param string $table   the target table name
+		 * @param array  $map     map this table fields to the target table fields
+		 * @param array  $filters add filters for specific rows
+		 *
+		 * @return $this
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 */
+		public function alsoIn($table, array $map, array $filters = [])
+		{
+			$this->assertSelectQuery();
+
+			$this->db->assertHasTable($table);
+
+			$t1      = $this->table;
+			$t2      = $this->db->getTable($table);
+			$t2_name = $t2->getFullName();
+			$q       = $this->current_query;
+
+			if (empty($map)) {
+				throw new ORMException(sprintf('You should map at least one column in "%s" to a column in "%s".', $t1->getFullName(), $t2_name));
+			}
+
+			$t2_alias = $this->getUniqueAlias();
+
+			$q->alias([
+				$t2_alias => $t2_name
+			]);
+
+			$t1_columns = $q->prefixColumnsArray($this->table_alias, array_keys($map), true);
+			$t2_columns = $q->prefixColumnsArray($t2_alias, array_values($map), true);
+
+			$on = array_combine($t1_columns, $t2_columns);
+
+			if (!empty($filters)) {
+				$filters = $this->getNamedParams($t2, $t2_alias, $filters);
+				$on      = array_merge($on, $filters);
+				$q->bindArray($filters);
+			}
+
+			$condition = $q->rule()
+						   ->eq($on);
+			$q->leftJoin($this->table_alias, $t2_name, $t2_alias, $condition);
+
+			return $this;
+		}
+
+		/**
+		 * Sets the current query.
+		 *
+		 * @param \Gobl\DBAL\QueryBuilder $q
+		 *
+		 * @return $this
+		 */
+		private function setCurrentQuery(QueryBuilder $q)
+		{
+			$this->current_query = $q;
+
+			return $this;
+		}
+
+		/**
+		 * Gets the current query.
+		 *
+		 * @return \Gobl\DBAL\QueryBuilder
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 */
+		public function getCurrentQuery()
+		{
+			if ($this->current_query === null) {
+				throw new ORMException(sprintf('There is no current query in "%s" table manager.', $this->table->getName()));
+			}
+
+			return $this->current_query;
+		}
+
+		/**
+		 * Asserts if the current query is for a selection.
+		 *
+		 * @return bool
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 */
+		protected function assertSelectQuery()
+		{
+			if (isset($this->current_query)) {
+				$type = $this->current_query->getType();
+				if ($type === QueryBuilder::QUERY_TYPE_SELECT) {
+					return true;
+				}
+			}
+
+			throw new ORMException('You should make a selection first by calling "TableManager#findRows".');
+		}
+
+		/**
+		 * @param \Gobl\DBAL\Table $table  the table instance
+		 * @param string                  $alias  the table alias to use
+		 * @param array                   $search map table columns to values
+		 *
+		 * @return array
+		 */
+		private function getNamedParams(Table $table, $alias, array $search)
+		{
+			$params = [];
+
+			foreach ($search as $column => $value) {
+				$table->assertHasColumn($column);
+				$params[$alias . '.' . $column] = ':' . $column;
+			}
+
+			return $params;
+		}
+
+		/**
+		 * @param \Gobl\DBAL\Table $table     the table instance
+		 * @param string                  $alias     the table alias to use
+		 * @param array                   $search    map table columns to values
+		 * @param array                   $collector positional params collector
+		 *
+		 * @return array
+		 */
+		private function getPositionalParams(Table $table, $alias, array $search, array &$collector)
+		{
+			$params = [];
+
+			foreach ($search as $column => $value) {
+				$table->assertHasColumn($column);
+				$params[$alias . '.' . $column] = '?';
+				$collector[]                    = $value;
+			}
+
+			return $params;
+		}
+
+		/**
+		 * Returns unique alias.
+		 *
+		 * infinite possibilities, lol
+		 * a,  b  ... z
+		 * aa, ab ... az
+		 * ba, bb ... bz
+		 *
+		 * @return string
+		 */
+		private function getUniqueAlias()
+		{
+			$x    = $this->alias_counter++;
+			$list = range('a', 'z');
+			$len  = count($list);
+			$a    = '';
+			do {
+				$r = ($x % $len);
+				$n = ($x - $r) / $len;
+				$x = $n - 1;
+				$a = $list[$r] . $a;
+			} while ($n);
+
+			return '_' . $a . '_';
+		}
+    }

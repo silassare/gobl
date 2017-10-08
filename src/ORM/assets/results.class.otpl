@@ -1,0 +1,235 @@
+<?php
+<%if(@length($.header)){%>
+<%$.header%>
+<%} else {%>	/**
+	 * Auto generated file, please don't edit.
+	 *
+	 * With: Gobl v1.0.0
+	 * Time: <%$.time%>
+	 */
+<%}%>
+	namespace <%$.namespace%>;
+
+	use Gobl\DBAL\Db;
+	use Gobl\ORM\Exceptions\ORMException;
+
+	class <%$.class.results%> implements \Countable, \Iterator
+	{
+		/** @var \Gobl\DBAL\Db */
+		protected $db;
+		/** @var \<%$.namespace%>\<%$.class.table%> */
+		protected $table_manager;
+		/** @var \PDOStatement */
+		protected $statement;
+		/** @var int */
+		protected $index = 0;
+		/** @var array|null|\<%$.namespace%>\<%$.class.entity%> */
+		protected $current = null;
+		/** @var  int */
+		protected $count_cache = null;
+		/** @var bool */
+		protected $trust_row_count = true;
+		/** @var \<%$.namespace%>\<%$.class.entity%> */
+		protected $entity = null;
+		/** @var int */
+		protected $fetch_style = \PDO::FETCH_ASSOC;
+		/** @var int */
+		protected $foreach_count = 0;
+		/** @var bool */
+		protected $iterate_class = true;
+
+		/**
+		 * <%$.class.results%> constructor.
+		 *
+		 * @param \Gobl\DBAL\Db          $db
+		 * @param \<%$.namespace%>\<%$.class.table%> $table_manager
+		 * @param \PDOStatement                 $statement
+		 */
+		public function __construct(Db $db, <%$.class.table%> $table_manager, \PDOStatement $statement)
+		{
+			$this->db            = $db;
+			$this->table_manager = $table_manager;
+			$this->statement     = $statement;
+			$driver              = $db->getConnection()
+									  ->getAttribute(\PDO::ATTR_DRIVER_NAME);
+			// TODO search and verify source
+			// reads somewhere that
+			//  - we should not trust rowCount
+			//  - sqlite 3.x does not support rowCount
+			$this->trust_row_count = ($driver === 'sqlite' ? false : true);
+		}
+
+		/**
+		 * Will disable iteration on entity class.
+		 *
+		 * @return $this
+		 */
+		public function iterateAssoc()
+		{
+			$this->iterate_class = false;
+
+			return $this;
+		}
+
+		/**
+		 * Fetches the next row in foreach mode.
+		 *
+		 * @return mixed
+		 */
+		protected function runFetch()
+		{
+			if ($this->iterate_class) {
+				return $this->fetchClass();
+			}
+
+			return $this->fetch();
+		}
+
+		/**
+		 * Fetches the next row into table <%$.class.entity%> class instance.
+		 *
+		 * @return \<%$.namespace%>\<%$.class.entity%>
+		 */
+		public function fetchClass()
+		{
+			if ($this->entity === null) {
+                $this->entity = new <%$.class.entity%>();
+            }
+
+            if ($this->fetch_style !== \PDO::FETCH_INTO) {
+                $this->statement->setFetchMode(\PDO::FETCH_INTO, $this->entity);
+            }
+
+            return $this->statement->fetch();
+		}
+
+		/**
+		 * Fetches all rows and return array of <%$.class.entity%> class instance.
+		 *
+		 * @return \<%$.namespace%>\<%$.class.entity%>[]
+		 */
+		public function fetchAllClass()
+		{
+			$this->fetch_style = \PDO::FETCH_CLASS | \PDO::FETCH_PROPS_LATE;
+            $entity_class      = '<%$.class.entity%>';
+
+            return $this->statement->fetchAll($this->fetch_style, $entity_class);
+		}
+
+		/**
+		 * Fetches the next row.
+		 *
+		 * @param int $fetch_style
+		 *
+		 * @return mixed
+		 */
+		public function fetch($fetch_style = \PDO::FETCH_ASSOC)
+		{
+			$this->fetch_style = $fetch_style;
+
+			return $this->statement->fetch($fetch_style);
+		}
+
+		/**
+		 * Returns an array containing all of the result set rows.
+		 *
+		 * @param int $fetch_style
+		 *
+		 * @return array
+		 */
+		public function fetchAll($fetch_style = \PDO::FETCH_ASSOC)
+		{
+			$this->fetch_style = $fetch_style;
+
+			return $this->statement->fetchAll($fetch_style);
+		}
+
+		/**
+		 * Return the current element.
+		 *
+		 * @link  http://php.net/manual/en/iterator.current.php
+		 * @return array|null|\<%$.namespace%>\<%$.class.entity%>
+		 */
+		public function current()
+		{
+			return $this->current;
+		}
+
+		/**
+		 * Move forward to next element.
+		 *
+		 * @link  http://php.net/manual/en/iterator.next.php
+		 */
+		public function next()
+		{
+			$this->current = $this->runFetch();
+
+			if ($this->current) {
+				$this->index++;
+			}
+		}
+
+		/**
+		 * Return the key of the current element.
+		 *
+		 * @link  http://php.net/manual/en/iterator.key.php
+		 * @return mixed scalar on success, or null on failure.
+		 */
+		public function key()
+		{
+			return $this->index;
+		}
+
+		/**
+		 * Checks if current position is valid.
+		 *
+		 * @link  http://php.net/manual/en/iterator.valid.php
+		 * @return boolean Returns true on success or false on failure.
+		 */
+		public function valid()
+		{
+			return !($this->current === null OR $this->current === false);
+		}
+
+		/**
+		 * Rewind the Iterator to the first element.
+		 *
+		 * @link  http://php.net/manual/en/iterator.rewind.php
+		 * @return void Any returned value is ignored.
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 */
+		public function rewind()
+		{
+			// not supported
+			if ($this->foreach_count) {
+				throw new ORMException('You cannot use the same result set in multiple foreach.');
+			}
+
+			$this->current = $this->runFetch();
+
+			$this->foreach_count++;
+		}
+
+		/**
+		 * Count elements of an object.
+		 *
+		 * @link  http://php.net/manual/en/countable.count.php
+		 * @return int The custom count as an integer.
+		 */
+		public function count()
+		{
+			if ($this->count_cache === null) {
+				if ($this->trust_row_count === false) {
+					$query             = $this->table_manager->getCurrentQuery();
+					$sql               = $query->getSqlQuery();
+					$sql               = 'SELECT ' . 'COUNT(*) FROM (' . $sql . ')';
+					$req               = $this->db->execute($sql, $query->getBoundValues(), $query->getBoundValuesTypes());
+					$this->count_cache = (int)$req->fetchColumn();
+				} else {
+					$this->count_cache = $this->statement->rowCount();
+				}
+			}
+
+			return $this->count_cache;
+		}
+	}

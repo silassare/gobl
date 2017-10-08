@@ -1,0 +1,147 @@
+<?php
+<%if(@length($.header)){%>
+<%$.header%>
+<%} else {%>	/**
+	 * Auto generated file, please don't edit.
+	 *
+	 * With: Gobl v1.0.0
+	 * Time: <%$.time%>
+	 */
+<%}%>
+	namespace <%$.namespace%>;
+
+	use Gobl\ORM\Exceptions\ORMException;
+
+	class <%$.class.entity%> implements \JsonSerializable
+	{
+		/** @var \Gobl\DBAL\Table */
+		private $table;
+
+		/** @var  array */
+		private $row;
+
+		/**
+		 * To prevent unnecessary database request.
+		 *
+		 * @var bool
+		 */
+		private $modified = false;
+
+		/**
+		 * <%$.class.entity%> constructor.
+		 */
+		public function __construct()
+		{
+			$this->table = \<%$.db_provider%>::getInstance()->getTable('<%$.table.name%>');
+			$columns     = $this->table->getColumns();
+
+			// we initialise row with default value
+			foreach ($columns as $column) {
+				$options                           = $column->getOptions();
+				$this->row[$column->getFullName()] = $options['default'];
+			}
+		}
+<%loop($.columns : $column){%>
+		/**
+		 * Getter for column <%$column.name%>.
+		 *
+		 * @return <%$column.returnType%> the real type is <%$column.columnType%>
+		 */
+		public function get<%$column.methodName%>()
+		{
+			return $this->_getValue('<%$column.fullName%>');
+		}
+
+		/**
+		 * Getter for column <%$column.name%>.
+		 *
+		 * @param <%$column.argType%> $<%$column.argName%>
+		 */
+		public function set<%$column.methodName%>($<%$column.argName%>)
+		{
+			$this->_setValue('<%$column.fullName%>', $<%$column.argName%>);
+		}
+<%}%>
+		/**
+		 * @param array $row
+		 *
+		 * @return \<%$.namespace%>\<%$.class.entity%>
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 */
+		public function fetched(array $row)
+		{
+			$diff = array_diff(array_keys($this->row), array_keys($row));
+
+			if (!empty($diff)) {
+				throw new ORMException(sprintf('Missing column(s) (%s) of table "%s" in row.', implode(', ', $diff), $this->table->getName()));
+			}
+
+			$this->modified = false;
+			$this->row      = $row;
+
+			return $this;
+		}
+
+		/**
+		 * Saves modifications to database.
+		 *
+		 * @return \<%$.namespace%>\<%$.class.entity%>
+		 */
+		public function save()
+		{
+			if ($this->modified) {
+			    $this->modified = false;
+			}
+
+			return $this;
+		}
+
+		/**
+		 * Gets a column value.
+		 *
+		 * @param string $name the column name.
+		 *
+		 * @return mixed
+		 */
+		protected function _getValue($name)
+		{
+			if (isset($this->row[$name])) {
+				return $this->row[$name];
+			}
+
+			return null;
+		}
+
+		/**
+		 * Sets a column value.
+		 *
+		 * @param string $name the column name.
+		 * @param mixed $value the column new value.
+		 *
+		 * @return \<%$.namespace%>\<%$.class.entity%>
+		 */
+		protected function _setValue($name, $value)
+		{
+			if (isset($this->row[$name])) {
+				$value = $this->table->getColumn($name)
+									 ->getTypeObject()
+									 ->validate($value);
+				if ($this->row[$name] !== $value) {
+					$this->row[$name] = $value;
+					$this->modified   = true;
+				}
+			}
+
+			return $this;
+		}
+
+		/**
+		 * Specify data which should be serialized to JSON.
+		 *
+		 * @return array
+		 */
+		public function jsonSerialize()
+		{
+			return $this->row;
+		}
+	}
