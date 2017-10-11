@@ -196,7 +196,7 @@
 			$items = array_unique($items);
 
 			foreach ($items as $item) {
-				$list = $this->qb->quote($item);
+				$list[] = $this->qb->quote($item);
 			}
 
 			return '(' . implode(', ', $list) . ')';
