@@ -139,7 +139,7 @@
 		 * @param array|null $params       Your sql params
 		 * @param array      $params_types Your sql params types
 		 *
-		 * @return int    Affected row count.
+		 * @return int Affected row count.
 		 */
 		private function query($sql, array $params = null, array $params_types = [])
 		{
@@ -183,7 +183,7 @@
 		 * @param array|null $params       Your sql select params
 		 * @param array      $params_types Your sql params types
 		 *
-		 * @return int    The last inserted row id
+		 * @return string The last insert id
 		 */
 		public function insert($sql, array $params = null, array $params_types = [])
 		{
@@ -232,16 +232,15 @@
 		public static function parseColumnReference($str)
 		{
 			if (is_string($str)) {
-				$parts = explode('.', $str);
-				if (count($parts) === 2) {
-					$clone = ($str[0] === ':') ? false : true;
-					$tbl   = ($clone === false) ? substr($parts[0], 1) : $parts[0];
-					$col   = $parts[1];
+				$reg = '#^(ref|cp)[:]([a-zA-Z0-9_]+)[.]([a-zA-Z0-9_]+)$#';
+				if (preg_match($reg, $str, $parts)) {
+					$head  = $parts[1];
+					$clone = ($head === 'cp' ? true : false);
 
 					return [
 						'clone'  => $clone,
-						'table'  => $tbl,
-						'column' => $col
+						'table'  => $parts[2],
+						'column' => $parts[3]
 					];
 				}
 			}
@@ -312,8 +311,8 @@
 				}
 
 				if (is_array($_col)) {
-					if (!$clone) {
-						$_col['auto_increment'] = false;
+					if ($clone === false AND isset($_col['auto_increment'])) {
+						unset($_col['auto_increment']);
 					}
 
 					return $_col;
