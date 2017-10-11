@@ -65,11 +65,11 @@
 
 			foreach ($tables as $table) {
 				$columns            = $table->getColumns();
-				$table_class_name   = $table->getPluralName();
+				$table_class_name   = $this->toCamelCase($table->getPluralName().'_table');
 				$table_class_path   = $path . $ds . $table_class_name . '.php';
-				$entity_class_name  = $table->getSingularName();
+				$entity_class_name  = $this->toCamelCase($table->getSingularName());
 				$entity_class_path  = $path . $ds . $entity_class_name . '.php';
-				$results_class_name = $table_class_name . 'Results';
+				$results_class_name = $this->toCamelCase($table->getPluralName() . '_results');
 				$results_class_path = $path . $ds . $results_class_name . '.php';
 
 				$inject = [
@@ -82,8 +82,7 @@
 						'results'   => $results_class_name
 					],
 					'table'       => [
-						'name'     => $table->getName(),
-						'fullName' => $table->getFullName()
+						'name'     => $table->getName()
 					],
 					'db_provider' => get_class($this->db)
 				];
@@ -95,7 +94,7 @@
 					$c               = [];
 					$c['name']       = $name;
 					$c['fullName']   = $column->getFullName();
-					$c['methodName'] = $this->asMethodName($name);
+					$c['methodName'] = $this->toCamelCase($name);
 					$c['columnType'] = $this->types_map[$type_const][0];
 					$c['returnType'] = $this->types_map[$type_const][1];
 					$c['argName']    = $name;
@@ -113,7 +112,7 @@
 		}
 
 		/**
-		 * Converts string to php class or method name.
+		 * Converts string to CamelCase.
 		 *
 		 * example:
 		 *    my_table_name => MyTableName
@@ -123,7 +122,7 @@
 		 *
 		 * @return string
 		 */
-		private function asMethodName($str)
+		private function toCamelCase($str)
 		{
 			return implode('', array_map('ucfirst', explode('_', $str)));
 		}

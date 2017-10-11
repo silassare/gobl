@@ -100,6 +100,7 @@
 			$pk          = $table->getPrimaryKeyConstraints();
 			$fk          = $table->getForeignKeyConstraints();
 
+			// only one primary key per table
 			foreach ($pk as $name => $columns) {
 				$sql[] = $this->getPrimaryKeyConstraintDefinition($table, $columns, $name, false);
 			}

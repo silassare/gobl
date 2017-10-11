@@ -85,7 +85,12 @@
 		/**
 		 * Executes the query with current .
 		 *
-		 * @return int|\PDOStatement
+		 * Returns type
+		 * 		int: affected rows count (for DELETE, UPDATE)
+		 *		string: last insert id (for INSERT)
+		 *      PDOStatement: the statement (for SELECT ...)
+		 *
+		 * @return string|int|\PDOStatement
 		 * @throws \Exception
 		 */
 		public function execute()

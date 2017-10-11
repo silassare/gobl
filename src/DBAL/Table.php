@@ -206,10 +206,9 @@
 			$primary_keys = &$this->constraints[Constraint::PRIMARY_KEY];
 
 			if (count($primary_keys)) {
-				$keys = array_keys($primary_keys);
-				$name = $keys[0];
+				$name = key($primary_keys);
 				if (!empty($constraint_name) AND $name != $constraint_name) {
-					throw new \Exception(sprintf('they should be only one primary key in table "%s".', $this->name));
+					throw new \Exception(sprintf('only one primary key should be defined in table "%s".', $this->name));
 				} else {
 					$constraint_name = $name;
 				}
