@@ -10,6 +10,7 @@
 
 	namespace Gobl\DBAL\Drivers;
 
+	use Gobl\DBAL\Constraints\PrimaryKey;
 	use Gobl\DBAL\QueryBuilder;
 	use Gobl\DBAL\Generators\BaseSQLGenerator;
 	use Gobl\DBAL\Types\Type;
@@ -60,7 +61,7 @@
 		}
 
 		/**
-		 * Get table definition query string.
+		 * Gets table definition query string.
 		 *
 		 * @return string
 		 */
@@ -76,8 +77,7 @@
 				$c    = $type->getTypeConstant();
 
 				switch ($c) {
-					case
-					Type::TYPE_INT:
+					case Type::TYPE_INT:
 						$sql[] = $this->getIntColumnDefinition($column);
 						break;
 					case Type::TYPE_BIGINT:
@@ -96,23 +96,21 @@
 			}
 
 			$table_alter = [];
-			$uc          = $table->getUniqueConstraints();
-			$pk          = $table->getPrimaryKeyConstraints();
-			$fk          = $table->getForeignKeyConstraints();
+			$uc_list     = $table->getUniqueConstraints();
+			$pk          = $table->getPrimaryKeyConstraint();
+			$fk_list     = $table->getForeignKeyConstraints();
 
 			// only one primary key per table
-			foreach ($pk as $name => $columns) {
-				$sql[] = $this->getPrimaryKeyConstraintDefinition($table, $columns, $name, false);
+			if ($pk instanceof PrimaryKey) {
+				$sql[] = $this->getPrimaryKeySQL($table, $pk, false);
 			}
 
-			foreach ($uc as $name => $columns) {
-				$table_alter[] = $this->getUniqueConstraintDefinition($table, $columns, $name);
+			foreach ($uc_list as $name => $uc) {
+				$table_alter[] = $this->getUniqueSQL($table, $uc, $name);
 			}
 
-			foreach ($fk as $name => $rule) {
-				$reference     = $rule['reference'];
-				$map           = $rule['map'];
-				$table_alter[] = $this->getForeignKeyConstraintDefinition($table, $reference, $map, $name);
+			foreach ($fk_list as $name => $fk) {
+				$table_alter[] = $this->getForeignKeySQL($table, $fk, $name);
 			}
 
 			$table_name  = $table->getFullName();

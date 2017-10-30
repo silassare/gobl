@@ -49,7 +49,7 @@
 		}
 
 		/**
-		 * Set number max value.
+		 * Sets number max value.
 		 *
 		 * @param int $value the maximum
 		 *
@@ -78,7 +78,7 @@
 		}
 
 		/**
-		 * Set number min value.
+		 * Sets number min value.
 		 *
 		 * @param int $value the minimum
 		 *
@@ -107,7 +107,7 @@
 		}
 
 		/**
-		 * Set the number of digits following the decimal point.
+		 * Sets the number of digits following the decimal point.
 		 *
 		 * @param int $value the mantissa
 		 *
@@ -164,10 +164,10 @@
 				throw new TypesInvalidValueException('invalid_unsigned_float_type', $debug);
 
 			if (isset($this->min) AND $value < $this->min)
-				throw new TypesInvalidValueException('value_number_lt_min', $debug);
+				throw new TypesInvalidValueException('number_value_lt_min', $debug);
 
 			if (isset($this->max) AND $value > $this->max)
-				throw new TypesInvalidValueException('value_number_gt_max', $debug);
+				throw new TypesInvalidValueException('number_value_gt_max', $debug);
 
 			return (float)$value;
 		}
@@ -218,8 +218,8 @@
 		/**
 		 * {@inheritdoc}
 		 */
-		public function getTypeConstant()
+		final public function getTypeConstant()
 		{
-			return Type::TYPE_BIGINT;
+			return Type::TYPE_FLOAT;
 		}
 	}

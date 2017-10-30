@@ -11,6 +11,9 @@
 	namespace Gobl\DBAL\Generators;
 
 	use Gobl\DBAL\Column;
+	use Gobl\DBAL\Constraints\ForeignKey;
+	use Gobl\DBAL\Constraints\PrimaryKey;
+	use Gobl\DBAL\Constraints\Unique;
 	use Gobl\DBAL\QueryBuilder;
 	use Gobl\DBAL\Table;
 
@@ -64,8 +67,13 @@
 				if (!is_null($default)) {
 					$sql[] = sprintf('DEFAULT %s', self::quote($default));
 				}
-			} elseif ($null AND is_null($options['default'])) {
-				$sql[] = 'DEFAULT NULL';
+			} else {
+				$sql[] = 'NULL';
+				if (is_null($options['default'])) {
+					$sql[] = 'DEFAULT NULL';
+				} else {
+					$sql[] = sprintf('DEFAULT %s', self::quote($default));
+				}
 			}
 
 			return implode(' ', $sql);
@@ -116,8 +124,13 @@
 				if (!is_null($default)) {
 					$sql[] = sprintf('DEFAULT %s', self::quote($default));
 				}
-			} elseif ($null AND is_null($options['default'])) {
-				$sql[] = 'DEFAULT NULL';
+			} else {
+				$sql[] = 'NULL';
+				if (is_null($options['default'])) {
+					$sql[] = 'DEFAULT NULL';
+				} else {
+					$sql[] = sprintf('DEFAULT %s', self::quote($default));
+				}
 			}
 
 			if ($options['auto_increment']) {
@@ -154,8 +167,13 @@
 				if (!is_null($default)) {
 					$sql[] = sprintf('DEFAULT %s', self::quote($default));
 				}
-			} elseif ($null AND is_null($options['default'])) {
-				$sql[] = 'DEFAULT NULL';
+			} else {
+				$sql[] = 'NULL';
+				if (is_null($options['default'])) {
+					$sql[] = 'DEFAULT NULL';
+				} else {
+					$sql[] = sprintf('DEFAULT %s', self::quote($default));
+				}
 			}
 
 			if ($options['auto_increment']) {
@@ -193,8 +211,13 @@
 				if (!is_null($default)) {
 					$sql[] = sprintf('DEFAULT %s', self::quote($default));
 				}
-			} elseif ($null AND is_null($options['default'])) {
-				$sql[] = 'DEFAULT NULL';
+			} else {
+				$sql[] = 'NULL';
+				if (is_null($options['default'])) {
+					$sql[] = 'DEFAULT NULL';
+				} else {
+					$sql[] = sprintf('DEFAULT %s', self::quote($default));
+				}
 			}
 
 			return implode(' ', $sql);
@@ -234,8 +257,13 @@
 				if (!is_null($default)) {
 					$sql[] = sprintf('DEFAULT %s', self::quote($default));
 				}
-			} elseif ($null AND is_null($options['default'])) {
-				$sql[] = 'DEFAULT NULL';
+			} else {
+				$sql[] = 'NULL';
+				if (is_null($options['default'])) {
+					$sql[] = 'DEFAULT NULL';
+				} else {
+					$sql[] = sprintf('DEFAULT %s', self::quote($default));
+				}
 			}
 
 			return implode(' ', $sql);
@@ -244,19 +272,18 @@
 		/**
 		 * Gets unique constraint definition query string.
 		 *
-		 * @param \Gobl\DBAL\Table $table           the table
-		 * @param array                   $columns         the columns
-		 * @param string                  $constraint_name the constraint name to use
-		 * @param bool                    $alter           use alter syntax
+		 * @param \Gobl\DBAL\Table              $table the table
+		 * @param \Gobl\DBAL\Constraints\Unique $uc    the unique constraint
+		 * @param bool                          $alter use alter syntax
 		 *
 		 * @return string
 		 */
-		protected function getUniqueConstraintDefinition(Table $table, array $columns, $constraint_name, $alter = true)
+		protected function getUniqueSQL(Table $table, Unique $uc, $alter = true)
 		{
-			$table_name = $table->getFullName();
-			$columns    = self::quoteCols($columns);
-			$sql        = $alter ? 'ALTER' . ' TABLE `' . $table_name . '` ADD ' : '';
-			$sql        .= 'CONSTRAINT ' . $constraint_name . ' UNIQUE (' . $columns . ');';
+			$table_name   = $table->getFullName();
+			$columns_list = self::quoteCols($uc->getConstraintColumns());
+			$sql          = $alter ? 'ALTER' . ' TABLE `' . $table_name . '` ADD ' : '';
+			$sql          .= 'CONSTRAINT ' . $uc->getName() . ' UNIQUE (' . $columns_list . ');';
 
 			return $sql;
 		}
@@ -264,19 +291,18 @@
 		/**
 		 * Gets primary key constraint definition query string.
 		 *
-		 * @param \Gobl\DBAL\Table $table           the table
-		 * @param array                   $columns         the columns
-		 * @param string                  $constraint_name the constraint name to use
-		 * @param bool                    $alter           use alter syntax
+		 * @param \Gobl\DBAL\Table                  $table the table
+		 * @param \Gobl\DBAL\Constraints\PrimaryKey $pk    the primary key constraint
+		 * @param bool                              $alter use alter syntax
 		 *
 		 * @return string
 		 */
-		protected function getPrimaryKeyConstraintDefinition(Table $table, array $columns, $constraint_name, $alter = true)
+		protected function getPrimaryKeySQL(Table $table, PrimaryKey $pk, $alter = true)
 		{
-			$columns    = self::quoteCols($columns);
-			$table_name = $table->getFullName();
-			$sql        = $alter ? 'ALTER' . ' TABLE `' . $table_name . '` ADD ' : '';
-			$sql        .= 'CONSTRAINT ' . $constraint_name . ' PRIMARY KEY (' . $columns . ')';
+			$columns_list = self::quoteCols($pk->getConstraintColumns());
+			$table_name   = $table->getFullName();
+			$sql          = $alter ? 'ALTER' . ' TABLE `' . $table_name . '` ADD ' : '';
+			$sql          .= 'CONSTRAINT ' . $pk->getName() . ' PRIMARY KEY (' . $columns_list . ')';
 
 			return $sql;
 		}
@@ -284,22 +310,21 @@
 		/**
 		 * Gets foreign key constraint definition query string.
 		 *
-		 * @param \Gobl\DBAL\Table $table           the table
-		 * @param \Gobl\DBAL\Table $reference_table the foreign key reference table
-		 * @param array                   $columns         the columns
-		 * @param string                  $constraint_name the constraint name to use
-		 * @param bool                    $alter           use alter syntax
+		 * @param \Gobl\DBAL\Table                  $table the table
+		 * @param \Gobl\DBAL\Constraints\ForeignKey $fk    the foreign key constraint
+		 * @param bool                              $alter use alter syntax
 		 *
 		 * @return string
 		 */
-		protected function getForeignKeyConstraintDefinition(Table $table, Table $reference_table, array $columns, $constraint_name, $alter = true)
+		protected function getForeignKeySQL(Table $table, ForeignKey $fk, $alter = true)
 		{
-			$table_name           = $table->getFullName();
-			$reference_table_name = $reference_table->getFullName();
-			$columns_list         = self::quoteCols(array_keys($columns));
-			$references           = self::quoteCols(array_values($columns));
-			$sql                  = $alter ? 'ALTER' . ' TABLE `' . $table_name . '` ADD ' : '';
-			$sql                  .= 'CONSTRAINT ' . $constraint_name . ' FOREIGN KEY (' . $columns_list . ') REFERENCES ' . $reference_table_name . ' (' . $references . ');';
+			$table_name   = $table->getFullName();
+			$columns      = $fk->getConstraintColumns();
+			$columns_list = self::quoteCols(array_keys($columns));
+			$references   = self::quoteCols(array_values($columns));
+			$sql          = $alter ? 'ALTER' . ' TABLE `' . $table_name . '` ADD ' : '';
+			$sql          .= 'CONSTRAINT ' . $fk->getName() . ' FOREIGN KEY (' . $columns_list . ') REFERENCES ' . $fk->getReferenceTable()
+																													  ->getFullName() . ' (' . $references . ');';
 
 			return $sql;
 		}
@@ -420,7 +445,17 @@
 		protected function getDeleteQuery()
 		{
 			$where = $this->getWhereQuery();
-			$sql   = 'DELETE' . ' FROM ' . $this->options['table'] . ' WHERE ' . $where;
+			$from  = $this->getFromQuery();
+
+			$x = [];
+			foreach ($this->options['from'] as $table => $alias) {
+				if (!is_null($alias)) {
+					$x[] = $alias;
+				}
+			}
+			$delete_alias = implode(' , ', $x);
+
+			$sql = 'DELETE ' . $delete_alias . ' FROM ' . $from . ' WHERE ' . $where;
 
 			return $sql;
 		}

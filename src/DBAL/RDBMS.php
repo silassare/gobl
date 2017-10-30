@@ -45,7 +45,7 @@
 		public function buildDatabase(Db $db, $namespace = null);
 
 		/**
-		 * get this rdbms query generator.
+		 * Gets this rdbms query generator.
 		 *
 		 * @param \Gobl\DBAL\QueryBuilder $query
 		 *

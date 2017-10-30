@@ -10,6 +10,8 @@
 
 	namespace Gobl\DBAL;
 
+	use Gobl\DBAL\Exceptions\DBALException;
+
 	/**
 	 * Class Rule
 	 *
@@ -17,6 +19,19 @@
 	 */
 	class Rule
 	{
+		const OP_EQ          = 1;
+		const OP_NEQ         = 2;
+		const OP_LT          = 3;
+		const OP_LTE         = 4;
+		const OP_GT          = 5;
+		const OP_GTE         = 6;
+		const OP_LIKE        = 7;
+		const OP_NOT_LIKE    = 8;
+		const OP_IS_NULL     = 9;
+		const OP_IS_NOT_NULL = 10;
+		const OP_IN          = 11;
+		const OP_NOT_IN      = 12;
+
 		/** @var string */
 		private $expr = '';
 
@@ -57,7 +72,7 @@
 		 * @param string $part
 		 *
 		 * @return $this
-		 * @throws \Exception
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		private function add($part)
 		{
@@ -68,7 +83,7 @@
 			} elseif (empty($this->expr)) {
 				$this->expr = $part;
 			} else {
-				throw new \Exception('Ambiguous nested conditions.');
+				throw new DBALException('Ambiguous nested conditions.');
 			}
 
 			return $this;
@@ -99,7 +114,7 @@
 		 * @param array  $list
 		 *
 		 * @return $this
-		 * @throws \Exception
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		private function multiple($glue, array $list)
 		{
@@ -124,7 +139,7 @@
 					$this->last_used_glue = $glue;
 				}
 			} else {
-				throw new \Exception('Ambiguous nested conditions.');
+				throw new DBALException('Ambiguous nested conditions.');
 			}
 
 			return $this;
@@ -139,7 +154,7 @@
 		 */
 		private function prefixOperand($a)
 		{
-			if (is_string($a) AND strlen($a) > 2) {
+			if (is_string($a) AND strlen($a) > 2 AND $a[0] !== ':') {
 				$parts = explode('.', $a);
 				if (count($parts) === 2 AND !empty($parts[0]) AND !empty($parts[1])) {
 					try {
@@ -152,35 +167,6 @@
 			}
 
 			return $a;
-		}
-
-		/**
-		 * Join a list of operation.
-		 *
-		 * @param array  $list     map left operand to right operand
-		 * @param string $operator the operator
-		 * @param bool   $use_and  whether to join multiple operations with 'and' or 'or'
-		 *
-		 * @return $this
-		 */
-		private function operator($list, $operator, $use_and = true)
-		{
-			$c = 0;
-			foreach ($list as $left => $right) {
-				$left  = $this->prefixOperand($left);
-				$right = $this->prefixOperand($right);
-				if ($c) {
-					if ($use_and) {
-						$this->andX();
-					} else {
-						$this->orX();
-					}
-				}
-				$this->add($left . $operator . $right);
-				$c++;
-			}
-
-			return $this;
 		}
 
 		/**
@@ -223,6 +209,77 @@
 		}
 
 		/**
+		 * Adds a list of conditions.
+		 *
+		 * @param array $items    map left operand to right operand
+		 * @param int   $operator the operator to use, Rule::OP_* constants
+		 * @param bool  $use_and  whether to join multiple operations with 'and' or 'or'
+		 *
+		 * @return $this
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 */
+		public function conditions(array $items, $operator, $use_and = true)
+		{
+			$map = [
+				Rule::OP_EQ          => ['=', true],
+				Rule::OP_NEQ         => ['<>', true],
+				Rule::OP_LT          => ['<', true],
+				Rule::OP_LTE         => ['<=', true],
+				Rule::OP_GT          => ['>', true],
+				Rule::OP_GTE         => ['>=', true],
+				Rule::OP_LIKE        => ['LIKE', true],
+				Rule::OP_NOT_LIKE    => ['NOT LIKE', true],
+				Rule::OP_IN          => ['IN', true],
+				Rule::OP_NOT_IN      => ['NOT IN', true],
+				Rule::OP_IS_NULL     => ['IS NULL', false],
+				Rule::OP_IS_NOT_NULL => ['IS NOT NULL', false]
+			];
+
+			if (!isset($map[$operator])) {
+				throw new DBALException('unknown operator used in query rule.');
+			}
+
+			$op           = $map[$operator][0];
+			$two_operands = $map[$operator][1];
+			$counter      = 0;
+
+			if ($two_operands === true) {
+				foreach ($items as $left => $right) {
+					$left = $this->prefixOperand($left);
+					if ($operator !== Rule::OP_IN AND $operator !== Rule::OP_NOT_IN) {
+						$right = $this->prefixOperand($right);
+					}
+
+					if ($counter) {
+						if ($use_and) {
+							$this->andX();
+						} else {
+							$this->orX();
+						}
+					}
+
+					$this->add($left . ' ' . $op . ' ' . $right);
+					$counter++;
+				}
+			} else {
+				foreach ($items as $item) {
+					$item = $this->prefixOperand($item);
+					if ($counter) {
+						if ($use_and) {
+							$this->andX();
+						} else {
+							$this->orX();
+						}
+					}
+					$this->add($item . ' ' . $op);
+					$counter++;
+				}
+			}
+
+			return $this;
+		}
+
+		/**
 		 * Adds equal condition.
 		 *
 		 * @param string|array $a
@@ -234,7 +291,7 @@
 		{
 			$items = is_array($a) ? $a : [$a => $b];
 
-			return $this->operator($items, ' = ');
+			return $this->conditions($items, Rule::OP_EQ);
 		}
 
 		/**
@@ -249,7 +306,7 @@
 		{
 			$items = is_array($a) ? $a : [$a => $b];
 
-			return $this->operator($items, ' <> ');
+			return $this->conditions($items, Rule::OP_NEQ);
 		}
 
 		/**
@@ -264,7 +321,7 @@
 		{
 			$items = is_array($a) ? $a : [$a => $b];
 
-			return $this->operator($items, ' LIKE ');
+			return $this->conditions($items, Rule::OP_LIKE);
 		}
 
 		/**
@@ -279,7 +336,7 @@
 		{
 			$items = is_array($a) ? $a : [$a => $b];
 
-			return $this->operator($items, ' NOT LIKE ');
+			return $this->conditions($items, Rule::OP_NOT_LIKE);
 		}
 
 		/**
@@ -294,7 +351,7 @@
 		{
 			$items = is_array($a) ? $a : [$a => $b];
 
-			return $this->operator($items, ' < ');
+			return $this->conditions($items, Rule::OP_LT);
 		}
 
 		/**
@@ -309,7 +366,7 @@
 		{
 			$items = is_array($a) ? $a : [$a => $b];
 
-			return $this->operator($items, ' <= ');
+			return $this->conditions($items, Rule::OP_LTE);
 		}
 
 		/**
@@ -324,7 +381,7 @@
 		{
 			$items = is_array($a) ? $a : [$a => $b];
 
-			return $this->operator($items, ' > ');
+			return $this->conditions($items, Rule::OP_GT);
 		}
 
 		/**
@@ -339,7 +396,7 @@
 		{
 			$items = is_array($a) ? $a : [$a => $b];
 
-			return $this->operator($items, ' >= ');
+			return $this->conditions($items, Rule::OP_GTE);
 		}
 
 		/**
@@ -351,9 +408,9 @@
 		 */
 		public function isNull($a)
 		{
-			$a = $this->prefixOperand($a);
+			$items = is_array($a) ? $a : [$a];
 
-			return $this->add($a . ' IS NULL');
+			return $this->conditions($items, Rule::OP_IS_NULL);
 		}
 
 		/**
@@ -365,9 +422,9 @@
 		 */
 		public function isNotNull($a)
 		{
-			$a = $this->prefixOperand($a);
+			$items = is_array($a) ? $a : [$a];
 
-			return $this->add($a . ' IS NOT NULL');
+			return $this->conditions($items, Rule::OP_IS_NOT_NULL);
 		}
 
 		/**
@@ -377,12 +434,21 @@
 		 * @param array  $b
 		 *
 		 * @return $this
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function in($a, array $b)
 		{
-			$a = $this->prefixOperand($a);
+			if (!is_string($a) OR !strlen($a)) {
+				throw new DBALException('the left operand must be a non-empty string.');
+			}
 
-			return $this->add($a . ' IN ' . $this->listItems($b));
+			if (!count($b)) {
+				throw new DBALException('the right operand should be a non-empty array.');
+			}
+
+			$items = [$a => $this->listItems($b)];
+
+			return $this->conditions($items, Rule::OP_IN);
 		}
 
 		/**
@@ -392,12 +458,21 @@
 		 * @param array  $b
 		 *
 		 * @return $this
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function notIn($a, array $b)
 		{
-			$a = $this->prefixOperand($a);
+			if (!is_string($a) OR !strlen($a)) {
+				throw new DBALException('the left operand must be a non-empty string.');
+			}
 
-			return $this->add($a . ' NOT IN ' . $this->listItems($b));
+			if (!count($b)) {
+				throw new DBALException('the right operand should be a non-empty array.');
+			}
+
+			$items = [$a => $this->listItems($b)];
+
+			return $this->conditions($items, Rule::OP_NOT_IN);
 		}
 
 		/**

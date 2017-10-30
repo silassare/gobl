@@ -24,7 +24,7 @@
 		 *
 		 * @param \Gobl\DBAL\QueryBuilder $query
 		 */
-		function __construct(QueryBuilder $query);
+		public function __construct(QueryBuilder $query);
 
 		/**
 		 * Converts query object into sql.

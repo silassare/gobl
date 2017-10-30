@@ -10,6 +10,8 @@
 
 	namespace Gobl\DBAL;
 
+	use Gobl\DBAL\Exceptions\DBALException;
+
 	/**
 	 * Class QueryBuilder
 	 *
@@ -86,12 +88,12 @@
 		 * Executes the query with current .
 		 *
 		 * Returns type
-		 * 		int: affected rows count (for DELETE, UPDATE)
-		 *		string: last insert id (for INSERT)
+		 *        int: affected rows count (for DELETE, UPDATE)
+		 *        string: last insert id (for INSERT)
 		 *      PDOStatement: the statement (for SELECT ...)
 		 *
-		 * @return string|int|\PDOStatement
-		 * @throws \Exception
+		 * @return int|\PDOStatement|string
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function execute()
 		{
@@ -107,14 +109,14 @@
 			];
 
 			if (!isset($this->type)) {
-				throw new \Exception('no query to execute.');
+				throw new DBALException('no query to execute.');
 			}
 
 			return call_user_func_array([$this->db, $routines[$this->type]], [$sql, $values, $types]);
 		}
 
 		/**
-		 * Get query rule instance.
+		 * Gets query rule instance.
 		 *
 		 * @return \Gobl\DBAL\Rule
 		 */
@@ -124,7 +126,7 @@
 		}
 
 		/**
-		 * Get query type.
+		 * Gets query type.
 		 *
 		 * @return int
 		 */
@@ -134,7 +136,7 @@
 		}
 
 		/**
-		 * Get options.
+		 * Gets options.
 		 *
 		 * @return array
 		 */
@@ -163,7 +165,6 @@
 		 * @param string $column the column to auto prefix
 		 *
 		 * @return string
-		 * @throws \Exception
 		 */
 		public function prefix($table, $column)
 		{
@@ -188,7 +189,6 @@
 		 * @param bool   $absolute
 		 *
 		 * @return array
-		 * @throws \Exception
 		 */
 		public function prefixColumnsArray($table, array $columns, $absolute = false)
 		{
@@ -222,7 +222,7 @@
 				$table = substr($table, 1);
 
 				if (!$this->db->hasTable($table)) {
-					throw new \Exception(sprintf('The table "%s" is not defined.', $table));
+					throw new DBALException(sprintf('The table "%s" is not defined.', $table));
 				}
 
 				return $this->db->getTable($table)
@@ -253,17 +253,17 @@
 		 * @param string $table
 		 * @param string $alias
 		 *
-		 * @throws \Exception
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		private function useAlias($table, $alias)
 		{
 			if (empty($alias) OR !is_string($alias)) {
-				throw new \Exception(sprintf('invalid alias "%s".', $alias));
+				throw new DBALException(sprintf('invalid alias "%s".', $alias));
 			}
 
 			if (isset($this->alias_map[$alias])) {
 				if ($this->alias_map[$alias] !== $table) {
-					throw new \Exception(sprintf('alias "%s" is already in use by "%s".', $alias, $this->alias_map[$alias]));
+					throw new DBALException(sprintf('alias "%s" is already in use by "%s".', $alias, $this->alias_map[$alias]));
 				}
 			} else {
 				$this->alias_map[$alias] = $table;
@@ -288,7 +288,7 @@
 		 * @param bool       $overwrite To overwrite positional parameter
 		 *
 		 * @return $this
-		 * @throws \Exception
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		private function bind($param, $value, $type = null, $overwrite = false)
 		{
@@ -321,7 +321,7 @@
 			}
 
 			if ($dirty === true) {
-				throw new \Exception('You should not use named and positional parameters in the same query.');
+				throw new DBALException('You should not use both named and positional parameters in the same query.');
 			}
 
 			return $this;
@@ -334,6 +334,7 @@
 		 * @param array $types  The params types
 		 *
 		 * @return $this
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function bindArray(array $params, array $types = [])
 		{
@@ -353,6 +354,7 @@
 		 * @param int|null $type  Any \PDO::PARAM_* constants
 		 *
 		 * @return $this
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function bindNamed($name, $value, $type = null)
 		{
@@ -369,6 +371,7 @@
 		 * @param int|null $type   Any \PDO::PARAM_* constants
 		 *
 		 * @return $this
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function bindPositional($offset, $value, $type = null)
 		{
@@ -460,14 +463,11 @@
 		}
 
 		/**
-		 * @param string $table
-		 *
 		 * @return $this
 		 */
-		public function delete($table)
+		public function delete()
 		{
-			$this->type             = QueryBuilder::QUERY_TYPE_DELETE;
-			$this->options['table'] = $this->prefixTable($table);
+			$this->type = QueryBuilder::QUERY_TYPE_DELETE;
 
 			return $this;
 		}
@@ -477,12 +477,12 @@
 		 * @param bool  $auto_prefix
 		 *
 		 * @return $this
-		 * @throws \Exception
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function set(array $columns, $auto_prefix = true)
 		{
 			if ($this->type !== QueryBuilder::QUERY_TYPE_UPDATE) {
-				throw new \Exception('You should call "QueryBuilder#update" first.');
+				throw new DBALException('You should call "QueryBuilder#update" first.');
 			}
 
 			$table                    = $this->options['table'];
@@ -497,12 +497,12 @@
 		 * @param bool   $auto_prefix
 		 *
 		 * @return $this
-		 * @throws \Exception
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function into($table, array $columns = [], $auto_prefix = true)
 		{
 			if ($this->type !== QueryBuilder::QUERY_TYPE_INSERT) {
-				throw new \Exception('You should call "QueryBuilder#insert" first.');
+				throw new DBALException('You should call "QueryBuilder#insert" first.');
 			}
 
 			$this->options['table']   = $this->prefixTable($table);
@@ -561,16 +561,19 @@
 		 * QueryBuilder#from('*users');
 		 * QueryBuilder#from('*users','u');
 		 * QueryBuilder#from(['*users', '*articles' => 'a', 'another_table']);
-		 *
 		 * ```
 		 *
 		 * @return $this
-		 * @throws \Exception
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function from($table, $alias = null)
 		{
-			if ($this->type !== QueryBuilder::QUERY_TYPE_SELECT) {
-				throw new \Exception('You should call "QueryBuilder#select" first.');
+			if ($this->type !== QueryBuilder::QUERY_TYPE_SELECT AND $this->type !== QueryBuilder::QUERY_TYPE_DELETE) {
+				throw new DBALException('You should call "QueryBuilder#select" or "QueryBuilder#delete" first.');
+			}
+
+			if ($this->type === QueryBuilder::QUERY_TYPE_DELETE AND (count($this->options['from']) OR (is_array($table) AND count($table) > 1))) {
+				throw new DBALException('You cannot delete from multiple tables at once.');
 			}
 
 			if (is_array($table)) {
@@ -666,7 +669,7 @@
 		 * @param int $offset offset of the first result
 		 *
 		 * @return $this
-		 * @throws \Exception
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function limit($max, $offset = 0)
 		{
@@ -676,23 +679,23 @@
 				if (is_int($offset)) {
 					$this->options['limitOffset'] = $offset;
 				} else {
-					throw new \Exception(sprintf('invalid limit offset "%s".', $offset));
+					throw new DBALException(sprintf('invalid limit offset "%s".', $offset));
 				}
 			} else {
-				throw new \Exception(sprintf('invalid limit max "%s".', $max));
+				throw new DBALException(sprintf('invalid limit max "%s".', $max));
 			}
 
 			return $this;
 		}
 
 		/**
-		 * @param string                             $firstTableAlias
-		 * @param string                             $secondTable
-		 * @param string                             $secondTableAlias
+		 * @param string                      $firstTableAlias
+		 * @param string                      $secondTable
+		 * @param string                      $secondTableAlias
 		 * @param \Gobl\DBAL\Rule|string|null $condition
 		 *
 		 * @return $this
-		 * @throws \Exception
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function innerJoin($firstTableAlias, $secondTable, $secondTableAlias, $condition = null)
 		{
@@ -700,13 +703,13 @@
 		}
 
 		/**
-		 * @param string                             $firstTableAlias
-		 * @param string                             $secondTable
-		 * @param string                             $secondTableAlias
+		 * @param string                      $firstTableAlias
+		 * @param string                      $secondTable
+		 * @param string                      $secondTableAlias
 		 * @param \Gobl\DBAL\Rule|string|null $condition
 		 *
 		 * @return $this
-		 * @throws \Exception
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function leftJoin($firstTableAlias, $secondTable, $secondTableAlias, $condition = null)
 		{
@@ -714,13 +717,13 @@
 		}
 
 		/**
-		 * @param string                             $firstTableAlias
-		 * @param string                             $secondTable
-		 * @param string                             $secondTableAlias
+		 * @param string                      $firstTableAlias
+		 * @param string                      $secondTable
+		 * @param string                      $secondTableAlias
 		 * @param \Gobl\DBAL\Rule|string|null $condition
 		 *
 		 * @return $this
-		 * @throws \Exception
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function rightJoin($firstTableAlias, $secondTable, $secondTableAlias, $condition = null)
 		{
@@ -728,19 +731,24 @@
 		}
 
 		/**
-		 * @param string                             $type
-		 * @param string                             $firstTableAlias
-		 * @param string                             $secondTable
-		 * @param string                             $secondTableAlias
+		 * @param string                      $type
+		 * @param string                      $firstTableAlias
+		 * @param string                      $secondTable
+		 * @param string                      $secondTableAlias
 		 * @param \Gobl\DBAL\Rule|string|null $condition
 		 *
 		 * @return $this
-		 * @throws \Exception
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		private function join($type, $firstTableAlias, $secondTable, $secondTableAlias, $condition = null)
 		{
 			if (!isset($this->alias_map[$firstTableAlias])) {
-				throw new \Exception(sprintf('alias "%s" is not defined.', $firstTableAlias));
+				throw new DBALException(sprintf('alias "%s" is not defined.', $firstTableAlias));
+			}
+
+			$from_table = $this->alias_map[$firstTableAlias];
+			if (!isset($this->options['from'][$from_table])) {
+				throw new DBALException(sprintf('The table "%s" alias "%s" is not in the "from" part of the query.', $from_table, $firstTableAlias));
 			}
 
 			$secondTable = $this->prefixTable($secondTable);

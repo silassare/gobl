@@ -10,19 +10,53 @@
 
 	namespace Gobl\ORM;
 
+	use Gobl\DBAL\Db;
+	use Gobl\ORM\Exceptions\ORMException;
 	use Gobl\ORM\Generators\Generator;
 
 	class ORM
 	{
+		/** @var  \Gobl\DBAL\Db */
+		private static $db;
+
 		/**
-		 * @param \Gobl\ORM\ORMDbProvider $provider
+		 * Returns class generator instance.
 		 *
 		 * @return \Gobl\ORM\Generators\Generator
 		 */
-		public static function getClassGenerator(ORMDbProvider $provider)
+		public static function getClassGenerator()
 		{
-			$db = $provider::getInstance();
+			return new Generator(self::getDatabase());
+		}
 
-			return new Generator($db);
+		/**
+		 * Database setter.
+		 *
+		 * @param \Gobl\DBAL\Db $db the database to use
+		 *
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 */
+		public static function setDatabase(Db $db)
+		{
+			if (isset(self::$db)) {
+				throw new ORMException('You cannot reset the database.');
+			}
+
+			self::$db = $db;
+		}
+
+		/**
+		 * Database getter.
+		 *
+		 * @return \Gobl\DBAL\Db
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 */
+		public static function getDatabase()
+		{
+			if (!isset(self::$db)) {
+				throw new ORMException('No database defined.');
+			}
+
+			return self::$db;
 		}
 	}

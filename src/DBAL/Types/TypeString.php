@@ -39,7 +39,7 @@
 		}
 
 		/**
-		 * Set the string pattern.
+		 * Sets the string pattern.
 		 *
 		 * @param string $pattern the pattern (regular expression)
 		 *
@@ -57,7 +57,7 @@
 		}
 
 		/**
-		 * Set maximum string length.
+		 * Sets maximum string length.
 		 *
 		 * @param int $value the maximum string length
 		 *
@@ -79,7 +79,7 @@
 		}
 
 		/**
-		 * Set minimum string length.
+		 * Sets minimum string length.
 		 *
 		 * @param int $value the minimum string length
 		 *
@@ -131,16 +131,16 @@
 				return $this->default;
 
 			if (!is_string($value))
-				throw new TypesInvalidValueException('OZ_INVALID_STRING_TYPE', $debug);
+				throw new TypesInvalidValueException('invalid_string_type', $debug);
 
 			if (isset($this->min) AND strlen($value) < $this->min)
-				throw new TypesInvalidValueException('OZ_VALUE_LENGTH_LT_MIN', $debug);
+				throw new TypesInvalidValueException('string_length_lt_min', $debug);
 
 			if (isset($this->max) AND strlen($value) > $this->max)
-				throw new TypesInvalidValueException('OZ_VALUE_LENGTH_GT_MAX', $debug);
+				throw new TypesInvalidValueException('string_length_gt_max', $debug);
 
 			if (isset($this->pattern) AND !preg_match($this->pattern, $value))
-				throw new TypesInvalidValueException('OZ_VALUE_PATTERN_CHECK_FAILS', $debug);
+				throw new TypesInvalidValueException('string_pattern_check_fails', $debug);
 
 			return $value;
 		}
@@ -190,9 +190,8 @@
 		/**
 		 * {@inheritdoc}
 		 */
-		public function getTypeConstant()
+		final public function getTypeConstant()
 		{
 			return Type::TYPE_STRING;
 		}
-
 	}

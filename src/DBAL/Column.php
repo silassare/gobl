@@ -10,6 +10,7 @@
 
 	namespace Gobl\DBAL;
 
+	use Gobl\DBAL\Exceptions\DBALException;
 	use Gobl\DBAL\Types\Type;
 	use Gobl\DBAL\Types\TypeBigint;
 	use Gobl\DBAL\Types\TypeBool;
@@ -49,36 +50,41 @@
 		protected $type;
 
 		/**
-		 * Allowed column types list.
+		 * Maps available type names to type class names.
 		 *
 		 * @var array
 		 */
-		private static $allowed_types = ['string', 'int', 'bigint', 'float', 'bool'];
+		private static $columns_types = [
+			'int'    => TypeInt::class,
+			'bigint' => TypeBigint::class,
+			'string' => TypeString::class,
+			'float'  => TypeFloat::class,
+			'bool'   => TypeBool::class
+		];
 
 		/**
 		 * Column constructor.
 		 *
-		 * @param string $name   the column name
-		 * @param string $prefix the column prefix
+		 * @param string      $name   the column name
+		 * @param string|null $prefix the column prefix
 		 *
-		 * @throws \Exception
+		 * @throws \InvalidArgumentException
 		 */
-		public function __construct($name, $prefix = '')
+		public function __construct($name, $prefix = null)
 		{
 			if (!preg_match(Column::NAME_REG, $name))
-				throw new \Exception(sprintf('Invalid column name "%s".', $name));
+				throw new \InvalidArgumentException(sprintf('Invalid column name "%s".', $name));
 
-			if (!empty($prefix)) {
+			if (!is_null($prefix)) {
 				if (!preg_match(Column::PREFIX_REG, $prefix))
-					throw new \Exception(sprintf('Invalid column prefix name "%s".', $prefix));
+					throw new \InvalidArgumentException(sprintf('Invalid column prefix name "%s".', $prefix));
 			}
-
 			$this->name   = strtolower($name);
 			$this->prefix = strtolower($prefix);
 		}
 
 		/**
-		 * Set column type.
+		 * Sets column type.
 		 *
 		 * @param \Gobl\DBAL\Types\Type $type the column type object.
 		 *
@@ -93,33 +99,27 @@
 		}
 
 		/**
-		 * Set column options.
+		 * Sets column options.
 		 *
 		 * @param array $options
 		 *
 		 * @return $this
-		 * @throws \Exception
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function setOptions(array $options)
 		{
 			if (!isset($options['type']))
-				throw new \Exception(sprintf('you should define a column type for "%s".', $this->name));
+				throw new DBALException(sprintf('you should define a column type for "%s".', $this->name));
 
 			$type = $options['type'];
 
-			if (!in_array($type, self::$allowed_types))
-				throw new \Exception(sprintf('unsupported column type "%s" defined for "%s".', $type, $this->name));
-
-			if ($type === 'int')
-				$t = TypeInt::getInstance($options);
-			elseif ($type === 'bigint')
-				$t = TypeBigint::getInstance($options);
-			elseif ($type === 'float')
-				$t = TypeFloat::getInstance($options);
-			elseif ($type === 'bool')
-				$t = TypeBool::getInstance($options);
-			else // if ($type === 'string')
-				$t = TypeString::getInstance($options);
+			if (isset(self::$columns_types[$type])) {
+				$class = self::$columns_types[$type];
+				/** @var Type $t */
+				$t = call_user_func([$class, 'getInstance'], $options);
+			} else {
+				throw new DBALException(sprintf('unsupported column type "%s" defined for "%s".', $type, $this->name));
+			}
 
 			$this->type = $t;
 
@@ -177,5 +177,32 @@
 				return $this->name;
 
 			return $this->prefix . '_' . $this->name;
+		}
+
+		/**
+		 * Adds custom column type.
+		 *
+		 * @param string $type_name  The custom type name
+		 * @param string $type_class The custom type class fully qualified name
+		 *
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 */
+		public static function addCustomType($type_name, $type_class)
+		{
+			if (isset(self::$columns_types[$type_name])) {
+				throw new DBALException(sprintf('You cannot overwrite column type "%s".', $type_name, $type_class));
+			}
+
+			$ok = is_subclass_of($type_class, TypeString::class)
+			OR is_subclass_of($type_class, TypeInt::class)
+			OR is_subclass_of($type_class, TypeBigint::class)
+			OR is_subclass_of($type_class, TypeFloat::class)
+			OR is_subclass_of($type_class, TypeBool::class);
+
+			if (!$ok) {
+				throw new DBALException(sprintf('Your custom column type "%s"("%s") should extends one of the standard column types.', $type_name, $type_class));
+			}
+
+			self::$columns_types[$type_name] = $type_class;
 		}
 	}

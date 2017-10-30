@@ -45,7 +45,7 @@
 		}
 
 		/**
-		 * Set number max value.
+		 * Sets number max value.
 		 *
 		 * @param int $value the maximum
 		 *
@@ -72,7 +72,7 @@
 		}
 
 		/**
-		 * Set number min value.
+		 * Sets number min value.
 		 *
 		 * @param int $value the minimum
 		 *
@@ -165,8 +165,14 @@
 		{
 			$debug = ['value' => $value, 'min' => $this->min, 'max' => $this->max, 'default' => $this->default];
 
-			if (is_null($value) AND $this->null)
-				return $this->default;
+			if (is_null($value)) {
+				if ($this->auto_increment) {
+					return null;
+				}
+				if ($this->null) {
+					return $this->default;
+				}
+			}
 
 			if (!is_numeric($value))
 				throw new TypesInvalidValueException('invalid_number_type', $debug);
@@ -178,10 +184,10 @@
 				throw new TypesInvalidValueException('invalid_unsigned_bigint_type', $debug);
 
 			if (isset($this->min) AND !self::isLt($this->min, $value))
-				throw new TypesInvalidValueException('value_number_lt_min', $debug);
+				throw new TypesInvalidValueException('number_value_lt_min', $debug);
 
 			if (isset($this->max) AND !self::isLt($value, $this->max))
-				throw new TypesInvalidValueException('value_number_gt_max', $debug);
+				throw new TypesInvalidValueException('number_value_gt_max', $debug);
 
 			return $value;
 		}
@@ -232,7 +238,7 @@
 		/**
 		 * {@inheritdoc}
 		 */
-		public function getTypeConstant()
+		final public function getTypeConstant()
 		{
 			return Type::TYPE_BIGINT;
 		}

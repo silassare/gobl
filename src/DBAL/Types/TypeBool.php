@@ -116,7 +116,7 @@
 		/**
 		 * {@inheritdoc}
 		 */
-		public function getTypeConstant()
+		final public function getTypeConstant()
 		{
 			return Type::TYPE_BOOL;
 		}

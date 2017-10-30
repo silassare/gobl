@@ -10,6 +10,12 @@
 
 	namespace Gobl\DBAL;
 
+	use Gobl\DBAL\Constraints\ForeignKey;
+	use Gobl\DBAL\Constraints\PrimaryKey;
+	use Gobl\DBAL\Constraints\Unique;
+	use Gobl\DBAL\Exceptions\DBALException;
+	use Gobl\DBAL\Relations\Relation;
+
 	/**
 	 * Class Table
 	 *
@@ -68,15 +74,25 @@
 		protected $col_full_name_map = [];
 
 		/**
-		 * Constraints list map.
+		 * Foreign keys constraints.
 		 *
-		 * @var array
+		 * @var \Gobl\DBAL\Constraints\ForeignKey[]
 		 */
-		protected $constraints = [
-			Constraint::PRIMARY_KEY => [],
-			Constraint::UNIQUE      => [],
-			Constraint::FOREIGN_KEY => []
-		];
+		protected $fk_constraints = [];
+
+		/**
+		 * Primary key constraint.
+		 *
+		 * @var \Gobl\DBAL\Constraints\PrimaryKey
+		 */
+		protected $pk_constraint = null;
+
+		/**
+		 * Unique constraints.
+		 *
+		 * @var \Gobl\DBAL\Constraints\Unique[]
+		 */
+		protected $uc_constraints = [];
 
 		/**
 		 * Constraints counter, used to generate
@@ -85,6 +101,13 @@
 		 * @var int
 		 */
 		protected $constraints_counter = 1;
+
+		/**
+		 * Table relations list
+		 *
+		 * @var \Gobl\DBAL\Relations\Relation[]
+		 */
+		protected $relations = [];
 
 		/**
 		 * Table constructor.
@@ -97,30 +120,33 @@
 		 *    plural class   ------> Users
 		 *    singular class ------> User
 		 *
-		 * @param string $name          the table name
-		 * @param string $plural_name   the plural name
-		 * @param string $singular_name the singular name
-		 * @param string $namespace     the table namespace
-		 * @param string $prefix        the table prefix
+		 * @param string      $name          the table name
+		 * @param string      $plural_name   the plural name
+		 * @param string      $singular_name the singular name
+		 * @param string      $namespace     the table namespace
+		 * @param string|null $prefix        the table prefix
 		 *
-		 * @throws \Exception
+		 * @throws \InvalidArgumentException
 		 */
-		public function __construct($name, $plural_name, $singular_name, $namespace = '', $prefix = '')
+		public function __construct($name, $plural_name, $singular_name, $namespace, $prefix = null)
 		{
 			if (!preg_match(Table::NAME_REG, $name))
-				throw new \Exception(sprintf('Invalid table name "%s".', $name));
+				throw new \InvalidArgumentException(sprintf('Invalid table name "%s".', $name));
 
-			if (!empty($prefix)) {
+			if (!is_string($namespace) OR empty($namespace))
+				throw new \InvalidArgumentException(sprintf('You should provide namespace for table "%s".', $name));
+
+			if (!is_null($prefix)) {
 				if (!preg_match(Table::PREFIX_REG, $prefix))
-					throw new \Exception(sprintf('Invalid table prefix name "%s".', $prefix));
+					throw new \InvalidArgumentException(sprintf('Invalid table prefix name "%s".', $prefix));
 			}
 
 			if (empty($plural_name) OR empty($singular_name)) {
-				throw new \Exception(sprintf('Plural and singular name for table "%s" should not be empty.', $name));
+				throw new \InvalidArgumentException(sprintf('Plural and singular name for table "%s" should not be empty.', $name));
 			}
 
 			if ($plural_name === $singular_name) {
-				throw new \Exception(sprintf('Plural and singular name for table "%s" should not be the same.', $name));
+				throw new \InvalidArgumentException(sprintf('Plural and singular name for table "%s" should not be the same.', $name));
 			}
 
 			$this->name          = strtolower($name);
@@ -136,7 +162,7 @@
 		 * @param \Gobl\DBAL\Column $column the column to add
 		 *
 		 * @return $this
-		 * @throws \Exception
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function addColumn(Column $column)
 		{
@@ -144,13 +170,13 @@
 			$full_name = $column->getFullName();
 
 			if ($this->hasColumn($name)) {
-				throw new \Exception(sprintf('the column "%s" is already defined in table "%s".', $name, $this->name));
+				throw new DBALException(sprintf('The column "%s" is already defined in table "%s".', $name, $this->name));
 			}
 
 			// prevent column full name conflict
 			if ($this->hasColumn($full_name)) {
 				$c = $this->col_full_name_map[$full_name];
-				throw new \Exception(sprintf('the columns "%s" and "%s" has the same full name "%s" in table "%s".', $name, $c, $full_name, $this->getName()));
+				throw new DBALException(sprintf('The columns "%s" and "%s" has the same full name "%s" in table "%s".', $name, $c, $full_name, $this->getName()));
 			}
 
 			$this->columns[$name]                = $column;
@@ -160,114 +186,103 @@
 		}
 
 		/**
-		 * Define a unique constraint on columns.
+		 * Adds relation to this table.
 		 *
-		 * @param array  $columns         the columns
-		 * @param string $constraint_name the constraint name
+		 * @param \Gobl\DBAL\Relations\Relation $relation
+		 *
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 */
+		public function addRelation(Relation $relation)
+		{
+			$name = $relation->getName();
+
+			if (isset($this->relations[$name])) {
+				throw new DBALException(sprintf('Cannot override relation "%s" in table "%s".', $name, $this->getName()));
+			}
+
+			if ($this->hasColumn($name)) {
+				throw new DBALException(sprintf('Cannot use "%s" as relation name, column "%s" exists in table "%s".', $name, $name, $this->getName()));
+			}
+			$master_name = $relation->getMasterTable()
+									->getName();
+			$slave_name  = $relation->getSlaveTable()
+									->getName();
+			if ($master_name !== $this->name AND $slave_name !== $this->name) {
+				throw new DBALException(sprintf('Trying to add relation "%s" between ("%s","%s") to table "%s".', $relation->getName(), $master_name, $slave_name, $this->name));
+			}
+
+			$this->relations[$name] = $relation;
+		}
+
+		/**
+		 * Adds a unique constraint on columns.
+		 *
+		 * @param array $columns the columns
 		 *
 		 * @return $this
-		 * @throws \Exception
 		 */
-		public function addUniqueConstraint(array $columns, $constraint_name = '')
+		public function addUniqueConstraint(array $columns)
 		{
-			if (count($columns) < 1)
-				throw new \Exception('columns should not be empty.');
+			if (count($columns)) {
+				$count           = count($this->uc_constraints) + 1;
+				$constraint_name = sprintf('uc_%s_%d', $this->getFullName(), $count);
+				$uc              = new Unique($constraint_name, $this);
 
-			if (empty($constraint_name))
-				$constraint_name = sprintf('uc_%s_%d', $this->name, $this->constraints_counter++);
+				foreach ($columns as $column_name) {
+					$uc->addColumn($column_name);
+				}
 
-			$unique_keys = &$this->constraints[Constraint::UNIQUE];
-
-			foreach ($columns as $column_name) {
-				if (!$this->hasColumn($column_name))
-					throw new \Exception(sprintf('the column "%s" is not defined in table "%s"', $column_name, $this->name));
-
-				$unique_keys[$constraint_name] = $this->getColumn($column_name)
-													  ->getFullName();
+				$this->uc_constraints[$constraint_name] = $uc;
 			}
 
 			return $this;
 		}
 
 		/**
-		 * Define a primary key constraint on columns.
+		 * Adds a primary key constraint on columns.
 		 *
-		 * @param array  $columns         the columns
-		 * @param string $constraint_name the constraint name
+		 * @param array $columns the columns
 		 *
 		 * @return $this
-		 * @throws \Exception
 		 */
-		public function addPrimaryKeyConstraint(array $columns, $constraint_name = null)
+		public function addPrimaryKeyConstraint(array $columns)
 		{
-			if (count($columns) < 1)
-				throw new \Exception('columns should not be empty.');
+			if (count($columns)) {
+				if (!isset($this->pk_constraint)) {
+					$constraint_name     = sprintf('pk_%s', $this->getFullName());
+					$this->pk_constraint = new PrimaryKey($constraint_name, $this);
+				}
 
-			$primary_keys = &$this->constraints[Constraint::PRIMARY_KEY];
-
-			if (count($primary_keys)) {
-				$name = key($primary_keys);
-				if (!empty($constraint_name) AND $name != $constraint_name) {
-					throw new \Exception(sprintf('only one primary key should be defined in table "%s".', $this->name));
-				} else {
-					$constraint_name = $name;
+				foreach ($columns as $column_name) {
+					$this->pk_constraint->addColumn($column_name);
 				}
 			}
 
-			if (empty($constraint_name))
-				$constraint_name = sprintf('pk_%s_%d', $this->name, $this->constraints_counter++);
-
-			foreach ($columns as $column_name) {
-				if (!$this->hasColumn($column_name))
-					throw new \Exception(sprintf('the column "%s" is not defined in table "%s"', $column_name, $this->name));
-
-				$cols_options = $this->getColumn($column_name)
-									 ->getOptions();
-
-				if ($cols_options['null'] === true)
-					throw new \Exception(sprintf('all parts of a PRIMARY KEY must be NOT NULL; if you need NULL in a key, use UNIQUE instead; check column "%s" in table "%s".', $column_name, $this->name));
-
-				$primary_keys[$constraint_name][] = $this->getColumn($column_name)
-														 ->getFullName();
-			}
-
 			return $this;
 		}
 
 		/**
-		 * Define a foreign key constraint on columns.
+		 * Adds a foreign key constraint on columns.
 		 *
 		 * @param \Gobl\DBAL\Table $reference_table the reference table
-		 * @param array                   $columns         the columns
-		 * @param string                  $constraint_name the constraint name
+		 * @param array            $columns         the columns
 		 *
 		 * @return $this
-		 * @throws \Exception
 		 */
-		public function addForeignKeyConstraint(Table $reference_table, array $columns, $constraint_name = null)
+		public function addForeignKeyConstraint(Table $reference_table, array $columns)
 		{
-			if (count($columns) < 1)
-				throw new \Exception('columns should not be empty.');
+			if (count($columns)) {
+				$constraint_name = sprintf('fk_%s_%s', $this->getName(), $reference_table->getName());
 
-			if (empty($constraint_name))
-				$constraint_name = sprintf('fk_%s_%d', $this->name, $this->constraints_counter++);
+				if (!isset($this->fk_constraints[$constraint_name])) {
+					$this->fk_constraints[$constraint_name] = new ForeignKey($constraint_name, $this, $reference_table);
+				}
 
-			$foreign_keys = &$this->constraints[Constraint::FOREIGN_KEY];
+				$fk = $this->fk_constraints[$constraint_name];
 
-			$foreign_keys[$constraint_name]['reference'] = $reference_table;
-
-			foreach ($columns as $column_name => $reference) {
-				if (!$this->hasColumn($column_name))
-					throw new \Exception(sprintf('the column "%s" is not defined in table "%s"', $column_name, $this->name));
-
-				if (!$reference_table->hasColumn($reference))
-					throw new \Exception(sprintf('the column "%s" is not defined in table "%s"', $column_name, $reference_table->getName()));
-
-				$column_name                                         = $this->getColumn($column_name)
-																			->getFullName();
-				$reference                                           = $reference_table->getColumn($reference)
-																					   ->getFullName();
-				$foreign_keys[$constraint_name]['map'][$column_name] = $reference;
+				foreach ($columns as $column_name => $reference_column) {
+					$fk->addColumn($column_name, $reference_column);
+				}
 			}
 
 			return $this;
@@ -367,12 +382,12 @@
 		 *
 		 * @param string $name the column name or full name
 		 *
-		 * @throws \Exception
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function assertHasColumn($name)
 		{
 			if (!$this->hasColumn($name)) {
-				throw new \Exception(sprintf('The column "%s" does not exists in the table "%s".', $name, $this->getFullName()));
+				throw new DBALException(sprintf('The column "%s" does not exists in the table "%s".', $name, $this->getName()));
 			}
 		}
 
@@ -397,42 +412,193 @@
 		}
 
 		/**
-		 * Gets constraints.
+		 * Gets relations.
 		 *
-		 * @return array
+		 * @return \Gobl\DBAL\Relations\Relation[]
 		 */
-		public function getConstraints()
+		public function getRelations()
 		{
-			return $this->constraints;
+			return $this->relations;
 		}
 
 		/**
 		 * Gets unique constraints.
 		 *
-		 * @return array
+		 * @return \Gobl\DBAL\Constraints\Unique[]
 		 */
 		public function getUniqueConstraints()
 		{
-			return $this->constraints[Constraint::UNIQUE];
+			return $this->uc_constraints;
 		}
 
 		/**
-		 * Gets primary key constraints.
+		 * Gets primary key constraint.
 		 *
-		 * @return array
+		 * @return null|\Gobl\DBAL\Constraints\PrimaryKey
 		 */
-		public function getPrimaryKeyConstraints()
+		public function getPrimaryKeyConstraint()
 		{
-			return $this->constraints[Constraint::PRIMARY_KEY];
+			return $this->pk_constraint;
 		}
 
 		/**
 		 * Gets foreign key constraints.
 		 *
-		 * @return array
+		 * @return \Gobl\DBAL\Constraints\ForeignKey[]
 		 */
 		public function getForeignKeyConstraints()
 		{
-			return $this->constraints[Constraint::FOREIGN_KEY];
+			return $this->fk_constraints;
+		}
+
+		/**
+		 * Gets foreign key constraint that have a given reference table.
+		 *
+		 * @param \Gobl\DBAL\Table $reference the reference table
+		 *
+		 * @return \Gobl\DBAL\Constraints\ForeignKey
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 */
+		public function getForeignKeyConstraintFrom(Table $reference)
+		{
+			$fk_name = sprintf('fk_%s_%s', $this->getName(), $reference->getName());
+			if (isset($this->fk_constraints[$fk_name])) {
+				return $this->fk_constraints[$fk_name];
+			} else {
+				throw new DBALException(sprintf('Foreign key from table "%s" not found in table "%s".', $reference->getName(), $this->name));
+			}
+		}
+
+		/**
+		 * Check if the current table has foreign key that refer
+		 * to columns in the reference table.
+		 *
+		 * @param \Gobl\DBAL\Table $reference the reference table
+		 * @param array            $columns   the foreign columns
+		 *
+		 * @return bool
+		 */
+		public function hasForeignColumns(Table $reference, array $columns)
+		{
+			$fk_name = sprintf('fk_%s_%s', $this->getName(), $reference->getName());
+			$x       = count($columns);
+			if ($x) {
+				if (isset($this->fk_constraints[$fk_name])) {
+					$fk         = $this->fk_constraints[$fk_name];
+					$fk_columns = array_flip($fk->getConstraintColumns());
+					$y          = 0;
+					foreach ($columns as $column) {
+						if (isset($fk_columns[$column])) {
+							$y++;
+						}
+					}
+
+					return $x === $y;
+				}
+			}
+
+			return false;
+		}
+
+		/**
+		 * Check if the table has foreign key constraint with column from a given reference table.
+		 *
+		 * @param \Gobl\DBAL\Table $reference the reference table
+		 *
+		 * @return bool
+		 */
+		public function hasForeignKeyConstraint(Table $reference)
+		{
+			$fk_name = sprintf('fk_%s_%s', $this->getName(), $reference->getName());
+
+			return isset($this->fk_constraints[$fk_name]);
+		}
+
+		/**
+		 * Check if the table has primary key constraint.
+		 *
+		 * @return bool
+		 */
+		public function hasPrimaryKeyConstraint()
+		{
+			return !is_null($this->pk_constraint);
+		}
+
+		/**
+		 * Check if the table has unique constraint.
+		 *
+		 * @return bool
+		 */
+		public function hasUniqueConstraint()
+		{
+			return count($this->uc_constraints);
+		}
+
+		/**
+		 * Check if a given columns list are the primary key of this table.
+		 *
+		 * @param array $columns columns full name list
+		 *
+		 * @return bool
+		 */
+		public function isPrimaryKey(array $columns)
+		{
+			$x = count($columns);
+			if ($x AND $this->hasPrimaryKeyConstraint()) {
+				$pk_columns = $this->pk_constraint->getConstraintColumns();
+				$y          = count($pk_columns);
+
+				return ($x === $y AND !count(array_diff($pk_columns, $columns)));
+			}
+
+			return false;
+		}
+
+		/**
+		 * Check if a given columns list are foreign key in this table.
+		 *
+		 * @param array $columns columns full name list
+		 *
+		 * @return bool
+		 */
+		public function isForeignKey(array $columns)
+		{
+			$x = count($columns);
+			if ($x) {
+				foreach ($this->fk_constraints as $fk) {
+					$fk_columns = array_keys($fk->getConstraintColumns());
+
+					$y = count($fk_columns);
+					if ($x === $y AND !count(array_diff($fk_columns, $columns))) {
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+
+		/**
+		 * Check if a given columns list are unique in this table.
+		 *
+		 * @param array $columns columns full name list
+		 *
+		 * @return bool
+		 */
+		public function isUnique(array $columns)
+		{
+			$x = count($columns);
+			if ($x) {
+				foreach ($this->uc_constraints as $uc) {
+					$uc_columns = $uc->getConstraintColumns();
+					$y          = count($uc_columns);
+
+					if ($x === $y AND !count(array_diff($uc_columns, $columns))) {
+						return true;
+					}
+				}
+			}
+
+			return false;
 		}
 	}

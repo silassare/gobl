@@ -10,6 +10,12 @@
 
 	namespace Gobl\DBAL;
 
+	use Gobl\DBAL\Exceptions\DBALException;
+	use Gobl\DBAL\Relations\ManyToMany;
+	use Gobl\DBAL\Relations\ManyToOne;
+	use Gobl\DBAL\Relations\OneToMany;
+	use Gobl\DBAL\Relations\OneToOne;
+
 	/**
 	 * Class Db
 	 *
@@ -55,24 +61,27 @@
 		 *
 		 * @param \Gobl\DBAL\RDBMS $rdbms
 		 */
-		public function __construct(RDBMS $rdbms)
+		protected function __construct(RDBMS $rdbms)
 		{
 			$this->rdbms = $rdbms;
 		}
+
+		/**
+		 * Prevent external clone.
+		 */
+		private function __clone() { }
 
 		/**
 		 * Db destructor.
 		 */
 		public function __destruct()
 		{
-			if (isset($this->rdbms)) {
-				$this->db_connection = null;
-				$this->rdbms         = null;
-			}
+			$this->db_connection = null;
+			$this->rdbms         = null;
 		}
 
 		/**
-		 * Get the rdbms.
+		 * Gets the rdbms.
 		 *
 		 * @return \Gobl\DBAL\RDBMS
 		 */
@@ -82,7 +91,7 @@
 		}
 
 		/**
-		 * Get database connection.
+		 * Gets database connection.
 		 *
 		 * @return \PDO
 		 */
@@ -260,13 +269,13 @@
 		 * @param array  $circle   Contains all references, to prevent infinite loop
 		 *
 		 * @return array|null
-		 * @throws \Exception
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function resolveReferenceColumn($ref_name, array $tables = [], array $circle = [])
 		{
 			if (in_array($ref_name, $circle)) {
 				$circle[] = $ref_name;
-				throw new \Exception(sprintf('Possible cyclic reference found for column "%s": "%s".', $circle[0], implode(' > ', $circle)));
+				throw new DBALException(sprintf('Possible cyclic reference found for column "%s": "%s".', $circle[0], implode(' > ', $circle)));
 			}
 
 			$circle[] = $ref_name;
@@ -328,7 +337,7 @@
 		 * @param \Gobl\DBAL\Table $table The table to add
 		 *
 		 * @return $this
-		 * @throws \Exception
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function addTable(Table $table)
 		{
@@ -336,13 +345,13 @@
 			$full_name = $table->getFullname();
 
 			if ($this->hasTable($name)) {
-				throw new \Exception(sprintf('The table "%s" is already added.', $name));
+				throw new DBALException(sprintf('The table "%s" is already added.', $name));
 			}
 
 			// prevent table full name conflict
 			if ($this->hasTable($full_name)) {
 				$t = $this->tbl_full_name_map[$full_name];
-				throw new \Exception(sprintf('The tables "%s" and "%s" has the same full name "%s".', $name, $t, $full_name));
+				throw new DBALException(sprintf('The tables "%s" and "%s" has the same full name "%s".', $name, $t, $full_name));
 			}
 
 			$this->tbl_full_name_map[$full_name] = $name;
@@ -355,22 +364,22 @@
 		 * Adds table from options.
 		 *
 		 * @param array  $tables        The tables options
-		 * @param string $tables_prefix The tables prefix to use
 		 * @param string $namespace     The namespace to use
+		 * @param string $tables_prefix The tables prefix to use
 		 *
 		 * @return $this
-		 * @throws \Exception
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
-		public function addTablesFromOptions(array $tables, $tables_prefix = '', $namespace = '')
+		public function addTablesFromOptions(array $tables, $namespace, $tables_prefix = '')
 		{
 			// we add tables and columns first
 			foreach ($tables as $table_name => $table) {
 				if (empty($table['columns']) OR !is_array($table['columns'])) {
-					throw new \Exception(sprintf('You should define columns for table "%s".', $table_name));
+					throw new DBALException(sprintf('You should define columns for table "%s".', $table_name));
 				}
 
 				if (empty($table['plural_name']) OR empty($table['singular_name'])) {
-					throw new \Exception(sprintf('You should define "plural_name" and "singular_name" for table "%s".', $table_name));
+					throw new DBALException(sprintf('You should define "plural_name" and "singular_name" for table "%s".', $table_name));
 				}
 
 				$plural_name   = (string)$table['plural_name'];
@@ -392,7 +401,7 @@
 						$col = new Column($column_name, $col_prefix);
 						$col->setOptions($column);
 					} else {
-						throw new \Exception(sprintf('Invalid column "%s" options in table "%s".', $column_name, $table_name));
+						throw new DBALException(sprintf('Invalid column "%s" options in table "%s".', $column_name, $table_name));
 					}
 
 					$tbl->addColumn($col);
@@ -411,37 +420,73 @@
 				$constraints = $table['constraints'];
 
 				foreach ($constraints as $constraint) {
-					$name = isset($constraint['name']) ? $constraint['name'] : null;
 					if (!isset($constraint['type']))
-						throw new \Exception(sprintf('You should declare constraint "type" in table "%s".', $table_name));
-					if (!isset($constraint['columns']) OR !is_array($constraint['columns']))
-						throw new \Exception(sprintf('You should declare constraint "columns" list in table "%s".', $table_name));
+						throw new DBALException(sprintf('You should define constraint "type" in table "%s".', $table_name));
+					if (!isset($constraint['columns']) OR !is_array($constraint['columns']) OR !count($constraint['columns']))
+						throw new DBALException(sprintf('Constraint "columns" is not defined or is empty (in the table "%s").', $table_name));
+
+					$columns = $constraint['columns'];
 
 					$type = $constraint['type'];
 					switch ($type) {
 						case 'unique':
 
-							$tbl->addUniqueConstraint($constraint['columns'], $name);
+							$tbl->addUniqueConstraint($columns);
 							break;
 						case 'primary_key':
 
-							$tbl->addPrimaryKeyConstraint($constraint['columns'], $name);
+							$tbl->addPrimaryKeyConstraint($columns);
 							break;
 						case 'foreign_key':
 							if (!isset($constraint['reference']))
-								throw new \Exception(sprintf('You should declare foreign key "reference" table in table "%s".', $table_name));
+								throw new DBALException(sprintf('You should declare foreign key "reference" table in table "%s".', $table_name));
 
-							$c_ref = $constraint['reference'];
+							$reference = $constraint['reference'];
 
-							if (!isset($this->tables[$c_ref]))
-								throw new \Exception(sprintf('Reference table "%s" for foreign key in table "%s" is not defined.', $c_ref, $table_name));
+							if (!isset($this->tables[$reference]))
+								throw new DBALException(sprintf('Reference table "%s" for foreign key in table "%s" is not defined.', $reference, $table_name));
 
-							$c_ref_tbl = $this->tables[$c_ref];
-							$tbl->addForeignKeyConstraint($c_ref_tbl, $constraint['columns'], $name);
+							$reference_table = $this->tables[$reference];
+							$tbl->addForeignKeyConstraint($reference_table, $constraint['columns']);
 
 							break;
 						default:
-							throw new \Exception(sprintf('Unknown constraint type "%s" defined in table "%s".', $type, $table_name));
+							throw new DBALException(sprintf('Unknown constraint type "%s" defined in table "%s".', $type, $table_name));
+					}
+				}
+			}
+
+			// we could now add relations
+			foreach ($tables as $table_name => $table) {
+				if (isset($table['relations']) AND is_array($table['relations']) AND count($table['relations'])) {
+					$relations = $table['relations'];
+					foreach ($relations as $relation_name => $options) {
+						$r = null;
+
+						if (is_array($options) AND isset($options['type']) AND isset($options['target'])) {
+							$type    = $options['type'];
+							$target  = $options['target'];
+							$columns = isset($options['columns']) ? $options['columns'] : null;
+
+							$this->assertHasTable($target);
+
+							if ($type === 'one-to-one') {
+								$r = new OneToOne($relation_name, $this->getTable($table_name), $this->getTable($target), $columns);
+							} elseif ($type === 'one-to-many') {
+								$r = new OneToMany($relation_name, $this->getTable($table_name), $this->getTable($target), $columns);
+							} elseif ($type === 'many-to-one') {
+								$r = new ManyToOne($relation_name, $this->getTable($table_name), $this->getTable($target), $columns);
+							} elseif ($type === 'many-to-many') {
+								$r = new ManyToMany($relation_name, $this->getTable($table_name), $this->getTable($target), $columns);
+							}
+						}
+
+						if (is_null($r)) {
+							throw new DBALException(sprintf('Invalid relation "%s" in table "%s".', $relation_name, $table_name));
+						}
+
+						$this->getTable($table_name)
+							 ->addRelation($r);
 					}
 				}
 			}
@@ -458,14 +503,32 @@
 		 * @param string|null $namespace the table namespace to generate
 		 *
 		 * @return string
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function generateDatabaseQuery($namespace = null)
 		{
-			return $this->rdbms->buildDatabase($this, $namespace);
+			// check all foreign key constraints
+			$tables = $this->getTables($namespace);
+			foreach ($tables as $table) {
+				$fk_list = $table->getForeignKeyConstraints();
+				foreach ($fk_list as $fk) {
+					$columns = $fk->getConstraintColumns();
+					if (!$fk->getReferenceTable()
+							->isPrimaryKey($columns)) {
+						$message  = 'Foreign key "%s" of table "%s" should be primary key in the reference table "%s".';
+						$ref_name = $fk->getReferenceTable()
+									   ->getName();
+						throw new DBALException(sprintf($message, implode(',', $columns), $table->getName(), $ref_name));
+					}
+				}
+			}
+
+			return $this->getRDBMS()
+						->buildDatabase($this, $namespace);
 		}
 
 		/**
-		 * Get tables.
+		 * Gets tables.
 		 *
 		 * @param string|null $namespace
 		 *
@@ -473,7 +536,7 @@
 		 */
 		public function getTables($namespace = null)
 		{
-			if (!empty($namespace)) {
+			if (!is_null($namespace)) {
 				$results = [];
 				foreach ($this->tables as $name => $table) {
 					if ($namespace !== $table->getNamespace()) {
@@ -509,12 +572,12 @@
 		 *
 		 * @param string $name the table name or full name
 		 *
-		 * @throws \Exception
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function assertHasTable($name)
 		{
 			if (!$this->hasTable($name)) {
-				throw new \Exception(sprintf('The table "%s" is not defined.', $name));
+				throw new DBALException(sprintf('The table "%s" is not defined.', $name));
 			}
 		}
 
@@ -539,7 +602,7 @@
 		}
 
 		/**
-		 * Get a unique bind param id.
+		 * Gets a unique bind param id.
 		 *
 		 * @return int
 		 */
@@ -553,12 +616,12 @@
 		 * @param array &$bind_values where to store bind value
 		 *
 		 * @return string
-		 * @throws \Exception
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public static function getQueryBindForArray(array $list, array &$bind_values)
 		{
 			if (!count($list)) {
-				throw new \Exception('Your list should not be empty array.');
+				throw new DBALException('Your list should not be empty array.');
 			}
 
 			$list      = array_values($list);
