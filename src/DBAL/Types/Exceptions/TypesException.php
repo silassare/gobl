@@ -18,11 +18,9 @@
 	class TypesException extends \Exception
 	{
 		/**
-		 * Debug data.
-		 *
 		 * @var array
 		 */
-		protected $debug_data;
+		private $_data;
 
 		/**
 		 * TypesException constructor.
@@ -33,16 +31,16 @@
 		public function __construct($message, array $data = [])
 		{
 			parent::__construct($message);
-			$this->debug_data = $data;
+			$this->_data = $data;
 		}
 
 		/**
-		 * Gets debug data.
+		 * Gets data.
 		 *
 		 * @return array
 		 */
-		public function getDebugData()
+		public function getData()
 		{
-			return $this->debug_data;
+			return $this->_data;
 		}
 	}
