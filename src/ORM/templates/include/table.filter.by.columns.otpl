@@ -1,0 +1,14 @@
+<%loop($.columns : $column){%>
+		/**
+		 * Filters rows with condition on column `<%$column.name%>` in the table `<%$.table.name%>`.
+		 *
+		 * @param mixed  $value    the filter value
+		 * @param int    $operator the operator to use
+		 *
+		 * @return $this|\<%$.namespace%>\<%$.class.table%>
+		 */
+		public function filterBy<%$column.methodName%>($value, $operator = Rule::OP_EQ)
+		{
+		    return $this->filterBy('<%$column.name%>', $value, $operator);
+		}
+<%}%>

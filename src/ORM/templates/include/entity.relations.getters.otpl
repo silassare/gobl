@@ -1,0 +1,55 @@
+<%loop($.relations : $relation){%>
+<%if($relation.type === 'one-to-one'){%>
+        /**
+         * OneToOne relation between `<%$relation.host.table.name%>` and `<%$relation.target.table.name%>`.
+         *
+         * @return null|\<%$relation.target.namespace%>\<%$relation.target.class.entity%>
+         */
+        public function get<%$relation.methodName%>()
+        {
+            if (!isset($this->r_<%$relation.name%>)) {
+                $m = new <%$relation.target.class.table%>();
+                <%loop ($relation.filters : $filterMethod : $valueMethod){%>
+                $m->filterBy<%$filterMethod%>($this->get<%$valueMethod%>());
+                <%}%>
+                $this->r_<%$relation.name%> = $m->find()->fetchClass();
+            }
+
+            return $this->r_<%$relation.name%>;
+        }
+<%} else if($relation.type === 'one-to-many'){%>
+        /**
+         * OneToMany relation between `<%$relation.host.table.name%>` and `<%$relation.target.table.name%>`.
+         *
+		 * @param null|int $max    maximum row to retrieve
+		 * @param int      $offset first row offset
+		 *
+         * @return \<%$relation.target.namespace%>\<%$relation.target.class.entity%>[]
+         */
+        public function get<%$relation.methodName%>($max = null, $offset = 0)
+        {
+            $m = new <%$relation.target.class.table%>();
+            <%loop ($relation.filters : $filterMethod : $valueMethod){%>
+            $m->filterBy<%$filterMethod%>($this->get<%$valueMethod%>());
+            <%}%>
+            return $m->find($max, $offset)->fetchAllClass();
+        }
+<%} else if($relation.type === 'many-to-one'){%>
+        /**
+         * ManyToOne relation between `<%$relation.host.table.name%>` and `<%$relation.target.table.name%>`.
+         *
+         * @return null|\<%$relation.target.namespace%>\<%$relation.target.class.entity%>
+         */
+        public function get<%$relation.methodName%>()
+        {
+            if (!isset($this->r_<%$relation.name%>)) {
+                $m = new <%$relation.target.class.table%>();
+                <%loop ($relation.filters : $filterMethod : $valueMethod){%>
+                $m->filterBy<%$filterMethod%>($this->get<%$valueMethod%>());
+                <%}%>
+                $this->r_<%$relation.name%> = $m->find()->fetchClass();
+            }
+
+            return $this->r_<%$relation.name%>;
+        }
+<%}%><%}%>

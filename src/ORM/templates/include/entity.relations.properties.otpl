@@ -1,0 +1,8 @@
+<%loop($.relations : $relation){%>
+<%if($relation.type === 'one-to-one' || $relation.type === 'many-to-one'){%>
+		/**
+		 * @var \<%$relation.target.namespace%>\<%$relation.target.class.entity%>
+		 */
+		protected $r_<%$relation.name%>;
+<%}%>
+<%}%>
