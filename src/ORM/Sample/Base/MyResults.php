@@ -7,11 +7,16 @@
 	use Gobl\DBAL\QueryBuilder;
 	use Gobl\ORM\Exceptions\ORMException;
 
+	/**
+	 * Class MyResults
+	 *
+	 * @package MY_PROJECT_NS\Base
+	 */
 	abstract class MyResults implements \Countable, \Iterator
 	{
 		/** @var \Gobl\DBAL\Db */
 		protected $db;
-		/** @var \MY_PROJECT_NS\Base\MyTable */
+		/** @var \MY_PROJECT_NS\Base\MyTableQuery */
 		protected $table_manager;
 		/** @var \Gobl\DBAL\QueryBuilder */
 		protected $query;
@@ -39,12 +44,12 @@
 		 * MyResults constructor.
 		 *
 		 * @param \Gobl\DBAL\Db               $db
-		 * @param \MY_PROJECT_NS\Base\MyTable $table_manager
+		 * @param \MY_PROJECT_NS\Base\MyTableQuery $table_manager
 		 * @param \Gobl\DBAL\QueryBuilder     $query
 		 *
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
-		public function __construct(Db $db, MyTable $table_manager, QueryBuilder $query)
+		public function __construct(Db $db, MyTableQuery $table_manager, QueryBuilder $query)
 		{
 			if ($query->getType() !== QueryBuilder::QUERY_TYPE_SELECT) {
 				throw new ORMException('The query should be a selection.');

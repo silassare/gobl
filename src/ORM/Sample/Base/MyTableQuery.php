@@ -8,7 +8,12 @@
 	use Gobl\DBAL\Rule;
 	use Gobl\ORM\ORM;
 
-	abstract class MyTable
+	/**
+	 * Class MyTableQuery
+	 *
+	 * @package MY_PROJECT_NS\Base
+	 */
+	abstract class MyTableQuery
 	{
 		/** @var \Gobl\DBAL\Table */
 		protected $table;
@@ -26,7 +31,7 @@
 		protected $params = [];
 
 		/**
-		 * MyTable constructor.
+		 * MyTableQuery constructor.
 		 */
 		public function __construct()
 		{
@@ -57,10 +62,8 @@
 				$this->qb->where($rule);
 			}
 
-			if (!is_null($max)) {
-				$this->qb->limit($max, $offset);
-			}
-			$this->qb->bindArray($this->params);
+			$this->qb->limit($max, $offset)
+					 ->bindArray($this->params);
 
 			return new \MY_PROJECT_NS\MyResults($this->db, $this, $this->resetQuery());
 		}
@@ -210,7 +213,7 @@
 		 * @param mixed  $value    the filter value
 		 * @param int    $operator the operator to use
 		 *
-		 * @return $this|\MY_PROJECT_NS\MyTable
+		 * @return $this|\MY_PROJECT_NS\MyTableQuery
 		 */
 		public function filterBy($column, $value, $operator = Rule::OP_EQ)
 		{
@@ -240,7 +243,7 @@
 			return $this;
 		}
 
-//__GOBL_TABLE_FILTER_BY_COLUMNS__
+//__GOBL_QUERY_FILTER_BY_COLUMNS__
 
 		/**
 		 * Creates new query builder and returns the old query builder.
