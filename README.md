@@ -4,7 +4,8 @@ Gobl allows you to use a Database Abstraction Layer (DBAL) and Object-Relational
 ## Dependencies
  - [otpl](https://github.com/silassare/otpl/)
 
-## [`Types`](./src/DBAL/Types) Directives
+## Directives
+[`Types`](./src/DBAL/Types)
  - Only basic types defined in SQL should be supported
  - Enum, Set, and customs types of MySQL and Co should not be supported
  - Before adding a column type we should be sure that:
