@@ -63,35 +63,53 @@
 				mkdir($path_base);
 			}
 
-			$base_table_class_tpl   = $this->getTemplate($templates_dir . 'base.table.class.otpl');
-			$base_entity_class_tpl  = $this->getTemplate($templates_dir . 'base.entity.class.otpl');
-			$base_results_class_tpl = $this->getTemplate($templates_dir . 'base.results.class.otpl');
+			$base_query_class_tpl      = $this->getTemplate($templates_dir . 'base.query.class.otpl');
+			$base_entity_class_tpl     = $this->getTemplate($templates_dir . 'base.entity.class.otpl');
+			$base_results_class_tpl    = $this->getTemplate($templates_dir . 'base.results.class.otpl');
+			$base_controller_class_tpl = $this->getTemplate($templates_dir . 'base.controller.class.otpl');
 
-			$table_class_tpl   = $this->getTemplate($templates_dir . 'table.class.otpl');
-			$entity_class_tpl  = $this->getTemplate($templates_dir . 'entity.class.otpl');
-			$results_class_tpl = $this->getTemplate($templates_dir . 'results.class.otpl');
+			$query_class_tpl      = $this->getTemplate($templates_dir . 'query.class.otpl');
+			$entity_class_tpl     = $this->getTemplate($templates_dir . 'entity.class.otpl');
+			$results_class_tpl    = $this->getTemplate($templates_dir . 'results.class.otpl');
+			$controller_class_tpl = $this->getTemplate($templates_dir . 'controller.class.otpl');
 
 			foreach ($tables as $table) {
-				$inject              = $this->getTableInject($table);
-				$inject['header']    = $header;
-				$inject['time']      = time();
-				$inject['use']       = [];
-				$inject['columns']   = $this->columnsProperties($table);
-				$inject['relations'] = $this->relationsProperties($table);
-				$table_class         = $inject['class']['table'];
-				$entity_class        = $inject['class']['entity'];
-				$results_class       = $inject['class']['results'];
+				$inject           = $this->describeTable($table);
+				$inject['header'] = $header;
+				$inject['time']   = time();
+				$query_class      = $inject['class']['query'];
+				$entity_class     = $inject['class']['entity'];
+				$results_class    = $inject['class']['results'];
+				$controller_class = $inject['class']['controller'];
 
-				$this->writeFile($path_base . $ds . $table_class . '.php', $base_table_class_tpl->runGet($inject));
+				$this->writeFile($path_base . $ds . $query_class . '.php', $base_query_class_tpl->runGet($inject));
 				$this->writeFile($path_base . $ds . $entity_class . '.php', $base_entity_class_tpl->runGet($inject));
 				$this->writeFile($path_base . $ds . $results_class . '.php', $base_results_class_tpl->runGet($inject));
+				$this->writeFile($path_base . $ds . $controller_class . '.php', $base_controller_class_tpl->runGet($inject));
 
-				$this->writeFile($path . $ds . $table_class . '.php', $table_class_tpl->runGet($inject), false);
+				$this->writeFile($path . $ds . $query_class . '.php', $query_class_tpl->runGet($inject), false);
 				$this->writeFile($path . $ds . $entity_class . '.php', $entity_class_tpl->runGet($inject), false);
 				$this->writeFile($path . $ds . $results_class . '.php', $results_class_tpl->runGet($inject), false);
+				$this->writeFile($path . $ds . $controller_class . '.php', $controller_class_tpl->runGet($inject), false);
 			}
 
 			return $this;
+		}
+
+		/**
+		 * Returns array that can be used to generate file.
+		 *
+		 * @param \Gobl\DBAL\Table $table
+		 *
+		 * @return array
+		 */
+		private function describeTable(Table $table)
+		{
+			$inject              = $this->getTableInject($table);
+			$inject['columns']   = $this->columnsProperties($table);
+			$inject['relations'] = $this->relationsProperties($table);
+
+			return $inject;
 		}
 
 		/**
@@ -227,18 +245,20 @@
 		 *
 		 * @return array
 		 */
-		private function getTableInject(Table $table)
+		public function getTableInject(Table $table)
 		{
-			$table_class_name   = $this->toCamelCase($table->getPluralName() . '_table');
-			$entity_class_name  = $this->toCamelCase($table->getSingularName());
-			$results_class_name = $this->toCamelCase($table->getPluralName() . '_results');
+			$query_class_name      = $this->toCamelCase($table->getPluralName() . '_query');
+			$entity_class_name     = $this->toCamelCase($table->getSingularName());
+			$results_class_name    = $this->toCamelCase($table->getPluralName() . '_results');
+			$controller_class_name = $this->toCamelCase($table->getPluralName() . '_controller');
 
 			return [
 				'namespace' => $table->getNamespace(),
 				'class'     => [
-					'table'   => $table_class_name,
-					'entity'  => $entity_class_name,
-					'results' => $results_class_name
+					'query'      => $query_class_name,
+					'entity'     => $entity_class_name,
+					'results'    => $results_class_name,
+					'controller' => $controller_class_name
 				],
 				'table'     => [
 					'name' => $table->getName()
@@ -250,8 +270,8 @@
 		 * Converts string to CamelCase.
 		 *
 		 * example:
-		 *    my_table_name => MyTableName
-		 *    my_column_name => MyColumnName
+		 *    my_table_query_name    => MyTableQueryName
+		 *    my_column_name        => MyColumnName
 		 *
 		 * @param string $str the table or column name
 		 *
