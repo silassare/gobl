@@ -127,6 +127,42 @@
 		}
 
 		/**
+		 * Check if this column is auto incremented.
+		 *
+		 * @return bool
+		 */
+		public function isAutoIncrement()
+		{
+			$options = $this->getOptions();
+
+			return isset($options['auto_increment']) AND $options['auto_increment'] === true;
+		}
+
+		/**
+		 * Check if this column accept null value.
+		 *
+		 * @return bool
+		 */
+		public function isNullAble()
+		{
+			$options = $this->getOptions();
+
+			return (bool)$options['null'];
+		}
+
+		/**
+		 * Returns this column default value.
+		 *
+		 * @return mixed
+		 */
+		public function getDefaultValue()
+		{
+			$options = $this->getOptions();
+
+			return $options['default'];
+		}
+
+		/**
 		 * Gets column options.
 		 *
 		 * @return array

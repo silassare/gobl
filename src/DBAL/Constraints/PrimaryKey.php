@@ -42,14 +42,13 @@
 		public function addColumn($name)
 		{
 			$this->table->assertHasColumn($name);
-			$options = $this->table->getColumn($name)
-								   ->getOptions();
+			$column = $this->table->getColumn($name);
 
-			if ($options['null'] === true)
+			if ($column->isNullAble()) {
 				throw new DBALException(sprintf('All parts of a PRIMARY KEY must be NOT NULL; if you need NULL in a key, use UNIQUE instead; check column "%s" in table "%s".', $name, $this->table->getName()));
+			}
 
-			$this->columns[] = $this->table->getColumn($name)
-										   ->getFullName();
+			$this->columns[] = $column->getFullName();
 
 			return $this;
 		}

@@ -7,10 +7,15 @@
 	use Gobl\ORM\ArrayCapable;
 	use Gobl\ORM\Exceptions\ORMException;
 	use Gobl\ORM\ORM;
-	use MY_PROJECT_NS\MyTable as RealMyTable;
+	use MY_PROJECT_NS\MyTableQuery as MyTableQueryReal;
 
 //__GOBL_RELATIONS_USE_CLASS__
 
+	/**
+	 * Class MyEntity
+	 *
+	 * @package MY_PROJECT_NS\Base
+	 */
 	abstract class MyEntity extends ArrayCapable
 	{
 //__GOBL_COLUMNS_CONSTANTS__
@@ -63,10 +68,10 @@
 			// we initialise row with default value
 			foreach ($columns as $column) {
 				$full_name             = $column->getFullName();
-				$options               = $column->getOptions();
-				$this->row[$full_name] = $options['default'];
+				$this->row[$full_name] = $column->getDefaultValue();
 
-				if (isset($options['auto_increment']) AND $options['auto_increment'] === true) {
+				// the auto_increment column
+				if ($column->isAutoIncrement()) {
 					$this->auto_increment_column = $full_name;
 				}
 			}
@@ -130,7 +135,7 @@
 			if ($this->isSaved()) {
 				if ($this->isModified()) {
 					// update
-					$t       = new RealMyTable();
+					$t       = new MyTableQueryReal();
 					$returns = $t->safeUpdate($this->row_saved, $this->row);
 				} else {
 					$returns = 0;
