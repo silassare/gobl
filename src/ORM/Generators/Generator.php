@@ -10,10 +10,12 @@
 
 	namespace Gobl\ORM\Generators;
 
+	use Gobl\DBAL\Column;
 	use Gobl\DBAL\Db;
 	use Gobl\DBAL\Relations\Relation;
 	use Gobl\DBAL\Table;
 	use Gobl\DBAL\Types\Type;
+	use Gobl\ORM\Exceptions\ORMException;
 
 	class Generator
 	{
@@ -39,22 +41,22 @@
 		}
 
 		/**
-		 * Generate all classes for tables with a given namespace in the database.
+		 * Generate classes for tables with a given namespace in the database.
 		 *
-		 * @param string $namespace the classes php namespace
+		 * @param string $namespace the classes namespace
 		 * @param string $path      the destination folder path
 		 * @param string $header    the source header to use
 		 *
 		 * @return $this
 		 */
-		public function generateClasses($namespace, $path, $header = '')
+		public function generateORMClasses($namespace, $path, $header = '')
 		{
 			if (!file_exists($path) OR !is_dir($path)) {
 				throw new \InvalidArgumentException(sprintf('"%s" is not a valid directory path.', $path));
 			}
 
 			$ds            = DIRECTORY_SEPARATOR;
-			$templates_dir = __DIR__ . $ds . '..' . $ds . 'templates' . $ds;
+			$templates_dir = $this->getTemplateDir();
 			$tables        = $this->db->getTables($namespace);
 
 			$path_base = $path . $ds . 'Base';
@@ -97,6 +99,80 @@
 		}
 
 		/**
+		 * Generate ozone class for a given table.
+		 *
+		 * @param \Gobl\DBAL\Table $table             the table
+		 * @param string           $service_namespace the service class namespace
+		 * @param string           $service_dir       the destination folder path
+		 * @param string           $service_name      the service name
+		 * @param string           $service_class     the service class name to use
+		 * @param string           $header            the source header to use
+		 *
+		 * @return array the ozone setting for the service
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 */
+		public function generateOZServiceClass(Table $table, $service_namespace, $service_dir, $service_name, $service_class = '', $header = '')
+		{
+			if (!file_exists($service_dir) OR !is_dir($service_dir)) {
+				throw new \InvalidArgumentException(sprintf('"%s" is not a valid directory path.', $service_dir));
+			}
+
+			if (!$table->hasPrimaryKeyConstraint()) {
+				throw new ORMException(sprintf('There is no primary key in the table "%s".', $table->getName()));
+			}
+
+			$pk      = $table->getPrimaryKeyConstraint();
+			$columns = $pk->getConstraintColumns();
+
+			if (count($columns) !== 1) {
+				throw new ORMException('You can generate ozone service only for tables with one column as primary key.');
+			}
+
+			if (empty($service_class)) {
+				$service_class = $this->toCamelCase($table->getName() . '_service');
+			}
+
+			$templates_dir                  = $this->getTemplateDir();
+			$controller_class_tpl           = $this->getTemplate($templates_dir . 'ozone.service.class.otpl');
+			$inject                         = $this->describeTable($table);
+			$inject['header']               = $header;
+			$inject['time']                 = time();
+			$inject['service']['name']      = $service_name;
+			$inject['service']['namespace'] = $service_namespace;
+			$inject['service']['class']     = $service_class;
+			$inject['pk']                   = $this->columnProperties($table->getColumn($columns[0]));
+			$qualified_class                = $service_namespace . '\\' . $inject['service']['class'];
+			$class_path                     = $service_dir . DIRECTORY_SEPARATOR . $service_class . '.php';
+
+			if (file_exists($class_path)) {
+				rename($class_path, $class_path . '.old');
+			}
+
+			$this->writeFile($class_path, $controller_class_tpl->runGet($inject));
+
+			return [
+				"service_class"   => $qualified_class,
+				"is_file_service" => false,
+				"can_serve_resp"  => false,
+				"cross_site"      => false,
+				"require_client"  => true,
+				"req_methods"     => ['POST', 'GET', 'PUT', 'DELETE']
+			];
+		}
+
+		/**
+		 * Gets templates directory absolute path.
+		 *
+		 * @return string
+		 */
+		private function getTemplateDir()
+		{
+			$ds = DIRECTORY_SEPARATOR;
+
+			return __DIR__ . $ds . '..' . $ds . 'templates' . $ds;
+		}
+
+		/**
 		 * Returns array that can be used to generate file.
 		 *
 		 * @param \Gobl\DBAL\Table $table
@@ -106,7 +182,7 @@
 		private function describeTable(Table $table)
 		{
 			$inject              = $this->getTableInject($table);
-			$inject['columns']   = $this->columnsProperties($table);
+			$inject['columns']   = $this->getTableColumnsProperties($table);
 			$inject['relations'] = $this->relationsProperties($table);
 
 			return $inject;
@@ -150,28 +226,40 @@
 		 *
 		 * @return array
 		 */
-		private function columnsProperties(Table $table)
+		private function getTableColumnsProperties(Table $table)
 		{
 			$columns = $table->getColumns();
 			$list    = [];
 			foreach ($columns as $column) {
-				$name       = $column->getName();
-				$type_const = $column->getTypeObject()
-									 ->getTypeConstant();
-
-				$c['name']       = $name;
-				$c['fullName']   = $column->getFullName();
-				$c['methodName'] = $this->toCamelCase($name);
-				$c['const']      = 'COL_' . strtoupper($name);
-				$c['columnType'] = $this->types_map[$type_const][0];
-				$c['returnType'] = $this->types_map[$type_const][1];
-				$c['argName']    = $name;
-				$c['argType']    = $c['returnType'];
-
-				$list[] = $c;
+				$list[] = $this->columnProperties($column);
 			}
 
 			return $list;
+		}
+
+		/**
+		 * Gets column data to be used in template file
+		 *
+		 * @param \Gobl\DBAL\Column $column
+		 *
+		 * @return array
+		 */
+		private function columnProperties(Column $column)
+		{
+			$name       = $column->getName();
+			$type_const = $column->getTypeObject()
+								 ->getTypeConstant();
+
+			$c['name']       = $name;
+			$c['fullName']   = $column->getFullName();
+			$c['methodName'] = $this->toCamelCase($name);
+			$c['const']      = 'COL_' . strtoupper($name);
+			$c['columnType'] = $this->types_map[$type_const][0];
+			$c['returnType'] = $this->types_map[$type_const][1];
+			$c['argName']    = $name;
+			$c['argType']    = $c['returnType'];
+
+			return $c;
 		}
 
 		/**
@@ -245,7 +333,7 @@
 		 *
 		 * @return array
 		 */
-		public function getTableInject(Table $table)
+		private function getTableInject(Table $table)
 		{
 			$query_class_name      = $this->toCamelCase($table->getPluralName() . '_query');
 			$entity_class_name     = $this->toCamelCase($table->getSingularName());
