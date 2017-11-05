@@ -1,0 +1,2 @@
+<%loop($.columns : $column){%>
+			'<%$column.name%>' => <%$.class.entity%>::<%$column.const%>,<%}%>

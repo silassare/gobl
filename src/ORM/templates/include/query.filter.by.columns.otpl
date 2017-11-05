@@ -5,7 +5,7 @@
 		 * @param mixed  $value    the filter value
 		 * @param int    $operator the operator to use
 		 *
-		 * @return $this|\<%$.namespace%>\<%$.class.table%>
+		 * @return $this|\<%$.namespace%>\<%$.class.query%>
 		 */
 		public function filterBy<%$column.methodName%>($value, $operator = Rule::OP_EQ)
 		{

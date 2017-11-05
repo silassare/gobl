@@ -8,7 +8,7 @@
         public function get<%$relation.methodName%>()
         {
             if (!isset($this->r_<%$relation.name%>)) {
-                $m = new <%$relation.target.class.table%>();
+                $m = new <%$relation.target.class.query%>();
                 <%loop ($relation.filters : $filterMethod : $valueMethod){%>
                 $m->filterBy<%$filterMethod%>($this->get<%$valueMethod%>());
                 <%}%>
@@ -28,7 +28,7 @@
          */
         public function get<%$relation.methodName%>($max = null, $offset = 0)
         {
-            $m = new <%$relation.target.class.table%>();
+            $m = new <%$relation.target.class.query%>();
             <%loop ($relation.filters : $filterMethod : $valueMethod){%>
             $m->filterBy<%$filterMethod%>($this->get<%$valueMethod%>());
             <%}%>
@@ -43,7 +43,7 @@
         public function get<%$relation.methodName%>()
         {
             if (!isset($this->r_<%$relation.name%>)) {
-                $m = new <%$relation.target.class.table%>();
+                $m = new <%$relation.target.class.query%>();
                 <%loop ($relation.filters : $filterMethod : $valueMethod){%>
                 $m->filterBy<%$filterMethod%>($this->get<%$valueMethod%>());
                 <%}%>

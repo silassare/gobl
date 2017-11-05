@@ -1,0 +1,324 @@
+<?php
+<%@import('include/head.comment.otpl',$)%>
+
+	namespace <%$.service.namespace%>;
+
+	use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
+	use Gobl\ORM\Exceptions\ORMControllerFormException;
+	use <%$.namespace%>\<%$.class.controller%>;
+	use <%$.namespace%>\<%$.class.entity%>;
+	use OZONE\OZ\Core\Assert;
+	use OZONE\OZ\Core\RequestHandler;
+	use OZONE\OZ\Core\BaseService;
+	use OZONE\OZ\Core\URIHelper;
+	use OZONE\OZ\Exceptions\BadRequestException;
+	use OZONE\OZ\Exceptions\ForbiddenException;
+	use OZONE\OZ\Exceptions\InvalidFieldException;
+	use OZONE\OZ\Exceptions\InvalidFormException;
+	use OZONE\OZ\Exceptions\NotFoundException;
+
+	/**
+	 * Class <%$.service.class%>
+	 *
+	 * to add item to <%$.service.name%>
+	 * - POST    /<%$.service.name%>
+	 *
+	 * to update property(ies) of the item with the given :<%$.pk.name%>
+	 * - PUT     /<%$.service.name%>/:<%$.pk.name%>
+	 *
+	 * to delete item with the given :<%$.pk.name%>
+	 * - DELETE  /<%$.service.name%>/:<%$.pk.name%>
+	 *
+	 * to delete all items in `<%$.table.name%>`
+	 * - DELETE  /<%$.service.name%>
+	 *
+	 * to get the item with the given :<%$.pk.name%>
+	 * - GET     /<%$.service.name%>/:<%$.pk.name%>
+	 *
+	 * to get all items in <%$.table.name%>
+	 * - GET     /<%$.service.name%>
+	 *
+	 * to get item(s) from relation for the item in `<%$.table.name%>` with the given :<%$.pk.name%>
+	 * - GET     /<%$.service.name%>/:<%$.pk.name%>/relation
+	 *
+	 * @package <%$.namespace%>\App\Services
+	 */
+	final class <%$.service.class%> extends BaseService
+	{
+		// for url like /<%$.service.name%>/:<%$.pk.name%>
+		private static $IDENTIFIED_EXTRA_REG = '#^([a-zA-Z0-9]+)/?$#';
+
+		// for url like /<%$.service.name%>/:<%$.pk.name%>/relation
+		private static $IDENTIFIED_RELATION_EXTRA_REG = '#^([a-zA-Z0-9]+)/([a-zA-Z0-9]+)/?$#';
+
+		/**
+		 * maps form fields to columns
+		 *
+		 * @var array
+		 */
+		private static $<%$.table.name%>_fields_map = [
+<%@import('include/ozone/fields.to.columns.map.otpl',$)%>
+		];
+
+		public function execute(array $request = [])
+		{
+			$success = true;
+			$error   = null;
+
+			try {
+				$this->executeSub($request);
+			} catch (ORMControllerFormException $e) {
+				$success = false;
+				$error   = $e;
+			} catch (TypesInvalidValueException $e) {
+				$success = false;
+				$error   = $e;
+			}
+
+			if (!$success) {
+				// TODO change message to ozone error message, add the invalid field name in data
+				if ($error instanceof ORMControllerFormException) {
+					throw new InvalidFormException($error->getMessage(), $error->getData());
+				}
+				if ($error instanceof TypesInvalidValueException) {
+					throw new InvalidFieldException($error->getMessage(), $error->getData());
+				}
+			}
+		}
+
+		private function executeSub(array $request)
+		{
+			// make sure to have required permission
+			Assert::assertIsAdmin();
+
+			if ($this->noExtra()) {
+				if (RequestHandler::isPost()) {
+					$this->actionCreateEntity($request);
+				} elseif (RequestHandler::isDelete()) {
+					$this->actionDeleteAll($request);
+				} elseif (RequestHandler::isGet()) {
+					$this->actionGetAll($request);
+				} else {
+					throw new ForbiddenException();
+				}
+			} elseif ($extra = $this->getIdentifiedExtra()) {
+				if (RequestHandler::isDelete()) {
+					$this->actionDeleteEntity($request, $extra);
+				} elseif (RequestHandler::isGet()) {
+					$this->actionGetEntity($request, $extra);
+				} elseif (RequestHandler::isPatch()) {
+					$this->actionUpdateEntity($request, $extra);
+				} else {
+					throw new ForbiddenException();
+				}
+			} elseif ($extra = $this->getIdentifiedRelationExtra()) {
+				if (RequestHandler::isPost()) {
+					$this->actionAddRelation($request, $extra);
+				} elseif (RequestHandler::isDelete()) {
+					$this->actionDeleteRelation($request, $extra);
+				} elseif (RequestHandler::isGet()) {
+					$this->actionGetRelation($request, $extra);
+				} elseif (RequestHandler::isPatch()) {
+					$this->actionUpdateRelation($request, $extra);
+				} else {
+					throw new ForbiddenException();
+				}
+			} else {
+				// invalid url
+				throw new NotFoundException();
+			}
+		}
+
+		private function noExtra()
+		{
+			return empty(URIHelper::getUriExtra());
+		}
+
+		private function getIdentifiedExtra()
+		{
+			$extra_map = [<%$.class.entity%>::<%$.pk.const%>];
+			$extra     = [];
+			$extra_ok  = URIHelper::parseUriExtra(self::$IDENTIFIED_EXTRA_REG, $extra_map, $extra);
+
+			if ($extra_ok) {
+				return $extra;
+			}
+
+			return false;
+		}
+
+		private function getIdentifiedRelationExtra()
+		{
+			$extra_map = [<%$.class.entity%>::<%$.pk.const%>, 'relation'];
+			$extra     = [];
+			$extra_ok  = URIHelper::parseUriExtra(self::$IDENTIFIED_RELATION_EXTRA_REG, $extra_map, $extra);
+
+			if ($extra_ok) {
+				return $extra;
+			}
+
+			return false;
+		}
+
+		/**
+		 * @param array $request
+		 *
+		 * @return array
+		 */
+		private function requestFieldsToColumns(array $request)
+		{
+			$values = [];
+
+			foreach ($request as $field => $value) {
+				if (isset(self::$<%$.table.name%>_fields_map[$field])) {
+					$column          = self::$<%$.table.name%>_fields_map[$field];
+					$values[$column] = $value;
+				}
+			}
+
+			return $values;
+		}
+
+//========================================================
+//=	POST REQUEST METHOD
+//========================================================
+
+		private function actionCreateEntity(array $request)
+		{
+			$form_values   = self::requestFieldsToColumns($request);
+			$my_controller = new <%$.class.controller%>();
+			$my_entity     = $my_controller->addItem($form_values);
+
+			$this->getResponseHolder()
+				 ->setDone('CREATED')
+				 ->setData($my_entity->asArray());
+		}
+
+		private function actionAddRelation(array $request, array $extra)
+		{
+			// TODO
+			$this->getResponseHolder()
+				 ->setDone('RELATION_ADDED')
+				 ->setData(['added relation', $request, $extra]);
+		}
+
+//========================================================
+//=	PUT REQUEST METHOD
+//========================================================
+
+		private function actionUpdateEntity(array $request, array $extra)
+		{
+			$form_values   = self::requestFieldsToColumns($request);
+			$my_controller = new <%$.class.controller%>();
+			$my_entity     = $my_controller->updateOneItem($extra, $form_values);
+
+			if ($my_entity instanceof <%$.class.entity%>) {
+				$this->getResponseHolder()
+					 ->setDone('UPDATED')
+					 ->setData($my_entity->asArray());
+			} else {
+				throw new NotFoundException();
+			}
+		}
+
+		private function actionUpdateRelation(array $request, array $extra)
+		{
+			// TODO
+			$this->getResponseHolder()
+				 ->setDone('UPDATED')
+				 ->setData(['updated relation', $request, $extra]);
+		}
+
+//========================================================
+//=	DELETE REQUEST METHOD
+//========================================================
+
+		private function actionDeleteEntity(array $request, array $extra)
+		{
+			$my_controller = new <%$.class.controller%>();
+			$my_entity     = $my_controller->deleteOneItem($extra);
+
+			if ($my_entity instanceof <%$.class.entity%>) {
+				$this->getResponseHolder()
+					 ->setDone('DELETED')
+					 ->setData($my_entity->asArray());
+			} else {
+				throw new NotFoundException();
+			}
+		}
+
+		private function actionDeleteAll($request = [])
+		{
+			$my_controller = new <%$.class.controller%>();
+			$count         = $my_controller->deleteAllItem($request);
+
+			$this->getResponseHolder()
+				 ->setDone('DELETED')
+				 ->setData(['affected' => $count]);
+		}
+
+		private function actionDeleteRelation(array $request, array $extra)
+		{
+			// TODO
+			$this->getResponseHolder()
+				 ->setDone('DELETED')
+				 ->setData(['deleted relation items count', $request, $extra]);
+		}
+
+//========================================================
+//=	GET REQUEST METHOD
+//========================================================
+
+		private function actionGetEntity(array $request, array $extra)
+		{
+			$my_controller = new <%$.class.controller%>();
+			$my_entity     = $my_controller->getItem($extra);
+
+			if (!$my_entity) {
+				throw new NotFoundException();
+			}
+
+			$this->getResponseHolder()
+				 ->setDone()
+				 ->setData($my_entity->asArray());
+		}
+
+		private function actionGetAll(array $request)
+		{
+			$filters = isset($request['filters']) ? isset($request['filters']) : [];
+			$max     = 10;
+			$offset  = 0;
+			$page    = 1;
+
+			if (isset($request['max'])) {
+				$max = isset($request['max']);
+				if (!is_int($max) OR $max <= 0) {
+					throw new BadRequestException();
+				}
+			}
+
+			if (isset($request['page'])) {
+				$page = isset($request['page']);
+				if (!is_int($page) OR $page <= 0) {
+					throw new BadRequestException();
+				}
+
+				$offset = ($page - 1) * $max;
+			}
+
+			$my_controller = new <%$.class.controller%>();
+			$results       = $my_controller->getAllItems($filters, $max, $offset);
+
+			$this->getResponseHolder()
+				 ->setDone()
+				 ->setData(['items' => $results, 'max' => $max, 'page' => $page]);
+		}
+
+		private function actionGetRelation(array $request, array $extra)
+		{
+			// TODO
+			$this->getResponseHolder()
+				 ->setDone()
+				 ->setData(['item' => [$extra], 'relation' => [$request]]);
+		}
+	}
