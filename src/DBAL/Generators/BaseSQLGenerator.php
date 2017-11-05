@@ -283,7 +283,7 @@
 			$table_name   = $table->getFullName();
 			$columns_list = self::quoteCols($uc->getConstraintColumns());
 			$sql          = $alter ? 'ALTER' . ' TABLE `' . $table_name . '` ADD ' : '';
-			$sql          .= 'CONSTRAINT ' . $uc->getName() . ' UNIQUE (' . $columns_list . ');';
+			$sql          .= 'CONSTRAINT ' . $uc->getName() . ' UNIQUE (' . $columns_list . ')' . ($alter ? ';' : '');
 
 			return $sql;
 		}
@@ -302,7 +302,7 @@
 			$columns_list = self::quoteCols($pk->getConstraintColumns());
 			$table_name   = $table->getFullName();
 			$sql          = $alter ? 'ALTER' . ' TABLE `' . $table_name . '` ADD ' : '';
-			$sql          .= 'CONSTRAINT ' . $pk->getName() . ' PRIMARY KEY (' . $columns_list . ')';
+			$sql          .= 'CONSTRAINT ' . $pk->getName() . ' PRIMARY KEY (' . $columns_list . ')' . ($alter ? ';' : '');
 
 			return $sql;
 		}
@@ -324,7 +324,7 @@
 			$references   = self::quoteCols(array_values($columns));
 			$sql          = $alter ? 'ALTER' . ' TABLE `' . $table_name . '` ADD ' : '';
 			$sql          .= 'CONSTRAINT ' . $fk->getName() . ' FOREIGN KEY (' . $columns_list . ') REFERENCES ' . $fk->getReferenceTable()
-																													  ->getFullName() . ' (' . $references . ');';
+																													  ->getFullName() . ' (' . $references . ')' . ($alter ? ';' : '');
 
 			return $sql;
 		}
