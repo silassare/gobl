@@ -1,20 +1,20 @@
 <?php
 //__GOBL_HEAD_COMMENT__
 
-	namespace MY_PROJECT_NS\Base;
+	namespace MY_PROJECT_DB_NS\Base;
 
 	use Gobl\DBAL\QueryBuilder;
 	use Gobl\ORM\ArrayCapable;
 	use Gobl\ORM\Exceptions\ORMException;
 	use Gobl\ORM\ORM;
-	use MY_PROJECT_NS\MyTableQuery as MyTableQueryReal;
+	use MY_PROJECT_DB_NS\MyTableQuery as MyTableQueryReal;
 
 //__GOBL_RELATIONS_USE_CLASS__
 
 	/**
 	 * Class MyEntity
 	 *
-	 * @package MY_PROJECT_NS\Base
+	 * @package MY_PROJECT_DB_NS\Base
 	 */
 	abstract class MyEntity extends ArrayCapable
 	{
@@ -83,7 +83,7 @@
 		 *
 		 * @param array $row map column name to column value
 		 *
-		 * @return $this|\MY_PROJECT_NS\MyEntity
+		 * @return $this|\MY_PROJECT_DB_NS\MyEntity
 		 */
 		public function hydrate(array $row)
 		{
@@ -197,7 +197,7 @@
 		 * @param string $name  the column name or full name.
 		 * @param mixed  $value the column new value.
 		 *
-		 * @return $this|\MY_PROJECT_NS\MyEntity
+		 * @return $this|\MY_PROJECT_DB_NS\MyEntity
 		 */
 		protected function _setValue($name, $value)
 		{

@@ -1,7 +1,7 @@
 <?php
 //__GOBL_HEAD_COMMENT__
 
-	namespace MY_PROJECT_NS\Base;
+	namespace MY_PROJECT_DB_NS\Base;
 
 	use Gobl\DBAL\Exceptions\DBALException;
 	use Gobl\DBAL\QueryBuilder;
@@ -11,7 +11,7 @@
 	/**
 	 * Class MyTableQuery
 	 *
-	 * @package MY_PROJECT_NS\Base
+	 * @package MY_PROJECT_DB_NS\Base
 	 */
 	abstract class MyTableQuery
 	{
@@ -50,7 +50,7 @@
 		 * @param null|int $max    maximum row to retrieve
 		 * @param int      $offset first row offset
 		 *
-		 * @return \MY_PROJECT_NS\MyResults
+		 * @return \MY_PROJECT_DB_NS\MyResults
 		 */
 		public function find($max = null, $offset = 0)
 		{
@@ -65,7 +65,7 @@
 			$this->qb->limit($max, $offset)
 					 ->bindArray($this->params);
 
-			return new \MY_PROJECT_NS\MyResults($this->db, $this, $this->resetQuery());
+			return new \MY_PROJECT_DB_NS\MyResults($this->db, $this, $this->resetQuery());
 		}
 
 		/**
@@ -200,7 +200,7 @@
 				}
 			}
 
-			$entity = new \MY_PROJECT_NS\MyEntity($is_new);
+			$entity = new \MY_PROJECT_DB_NS\MyEntity($is_new);
 			$entity->hydrate($row);
 
 			return $entity->save();
@@ -213,7 +213,7 @@
 		 * @param mixed  $value    the filter value
 		 * @param int    $operator the operator to use
 		 *
-		 * @return $this|\MY_PROJECT_NS\MyTableQuery
+		 * @return $this|\MY_PROJECT_DB_NS\MyTableQuery
 		 */
 		public function filterBy($column, $value, $operator = Rule::OP_EQ)
 		{

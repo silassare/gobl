@@ -1,18 +1,18 @@
 <?php
 //__GOBL_HEAD_COMMENT__
 
-	namespace MY_PROJECT_NS\Base;
+	namespace MY_PROJECT_DB_NS\Base;
 
 	use Gobl\DBAL\Rule;
 	use Gobl\ORM\Exceptions\ORMControllerFormException;
 	use Gobl\ORM\ORM;
-	use MY_PROJECT_NS\MyEntity as MyEntityReal;
-	use MY_PROJECT_NS\MyTableQuery;
+	use MY_PROJECT_DB_NS\MyEntity as MyEntityReal;
+	use MY_PROJECT_DB_NS\MyTableQuery;
 
 	/**
 	 * Class MyController
 	 *
-	 * @package MY_PROJECT_NS\Base
+	 * @package MY_PROJECT_DB_NS\Base
 	 */
 	abstract class MyController
 	{
@@ -136,7 +136,7 @@
 		 *
 		 * (name = value1 OR name = value2) AND (age < 40 OR age > 50) AND (valid = 1)
 		 *
-		 * @param \MY_PROJECT_NS\MyTableQuery $query
+		 * @param \MY_PROJECT_DB_NS\MyTableQuery $query
 		 * @param array                       $item_filters
 		 *
 		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
@@ -204,7 +204,7 @@
 		 *
 		 * @param array $form
 		 *
-		 * @return \MY_PROJECT_NS\MyEntity
+		 * @return \MY_PROJECT_DB_NS\MyEntity
 		 */
 		public function addItem(array $form = [])
 		{
@@ -231,7 +231,7 @@
 		 * @param array $item_filters the item filters
 		 * @param array $new_values   the item new values
 		 *
-		 * @return bool|\MY_PROJECT_NS\MyEntity
+		 * @return bool|\MY_PROJECT_DB_NS\MyEntity
 		 */
 		public function updateOneItem(array $item_filters, array $new_values)
 		{
@@ -260,7 +260,7 @@
 		 *
 		 * @param array $item_filters the item filters
 		 *
-		 * @return bool|\MY_PROJECT_NS\MyEntity
+		 * @return bool|\MY_PROJECT_DB_NS\MyEntity
 		 */
 		public function deleteOneItem(array $item_filters)
 		{
@@ -310,7 +310,7 @@
 		 *
 		 * @param array $item_filters
 		 *
-		 * @return \MY_PROJECT_NS\MyEntity|null
+		 * @return \MY_PROJECT_DB_NS\MyEntity|null
 		 */
 		public function getItem(array $item_filters)
 		{
@@ -327,7 +327,7 @@
 		 * @param int   $max
 		 * @param int   $offset
 		 *
-		 * @return \MY_PROJECT_NS\MyEntity[]
+		 * @return \MY_PROJECT_DB_NS\MyEntity[]
 		 */
 		public function getAllItems(array $item_filters = [], $max = null, $offset = 0)
 		{
@@ -344,7 +344,7 @@
 		 * @param int   $max
 		 * @param int   $offset
 		 *
-		 * @return \MY_PROJECT_NS\MyResults
+		 * @return \MY_PROJECT_DB_NS\MyResults
 		 */
 		public function findAllItems(array $item_filters = [], $max = null, $offset = 0)
 		{

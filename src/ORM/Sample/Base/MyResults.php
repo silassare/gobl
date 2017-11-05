@@ -1,7 +1,7 @@
 <?php
 //__GOBL_HEAD_COMMENT__
 
-	namespace MY_PROJECT_NS\Base;
+	namespace MY_PROJECT_DB_NS\Base;
 
 	use Gobl\DBAL\Db;
 	use Gobl\DBAL\QueryBuilder;
@@ -10,25 +10,25 @@
 	/**
 	 * Class MyResults
 	 *
-	 * @package MY_PROJECT_NS\Base
+	 * @package MY_PROJECT_DB_NS\Base
 	 */
 	abstract class MyResults implements \Countable, \Iterator
 	{
 		/** @var \Gobl\DBAL\Db */
 		protected $db;
-		/** @var \MY_PROJECT_NS\Base\MyTableQuery */
+		/** @var \MY_PROJECT_DB_NS\Base\MyTableQuery */
 		protected $table_manager;
 		/** @var \Gobl\DBAL\QueryBuilder */
 		protected $query;
 		/** @var int */
 		protected $index = 0;
-		/** @var array|null|\MY_PROJECT_NS\MyEntity */
+		/** @var array|null|\MY_PROJECT_DB_NS\MyEntity */
 		protected $current = null;
 		/** @var  int */
 		protected $count_cache = null;
 		/** @var bool */
 		protected $trust_row_count = true;
-		/** @var \MY_PROJECT_NS\MyEntity */
+		/** @var \MY_PROJECT_DB_NS\MyEntity */
 		protected $entity = null;
 		/** @var int */
 		protected $fetch_style = \PDO::FETCH_ASSOC;
@@ -44,7 +44,7 @@
 		 * MyResults constructor.
 		 *
 		 * @param \Gobl\DBAL\Db               $db
-		 * @param \MY_PROJECT_NS\Base\MyTableQuery $table_manager
+		 * @param \MY_PROJECT_DB_NS\Base\MyTableQuery $table_manager
 		 * @param \Gobl\DBAL\QueryBuilder     $query
 		 *
 		 * @throws \Gobl\ORM\Exceptions\ORMException
@@ -85,7 +85,7 @@
 		/**
 		 * Will disable iteration on entity class.
 		 *
-		 * @return $this|\MY_PROJECT_NS\MyResults
+		 * @return $this|\MY_PROJECT_DB_NS\MyResults
 		 */
 		public function iterateAssoc()
 		{
@@ -97,7 +97,7 @@
 		/**
 		 * Fetches the next row in foreach mode.
 		 *
-		 * @return array|null|\MY_PROJECT_NS\MyEntity
+		 * @return array|null|\MY_PROJECT_DB_NS\MyEntity
 		 */
 		protected function runFetch()
 		{
@@ -111,12 +111,12 @@
 		/**
 		 * Fetches the next row into table MyEntity class instance.
 		 *
-		 * @return null|\MY_PROJECT_NS\MyEntity
+		 * @return null|\MY_PROJECT_DB_NS\MyEntity
 		 */
 		public function fetchClass()
 		{
 			if ($this->entity === null) {
-				$this->entity = new \MY_PROJECT_NS\MyEntity(false);
+				$this->entity = new \MY_PROJECT_DB_NS\MyEntity(false);
 			}
 
 			if ($this->fetch_style !== \PDO::FETCH_INTO) {
@@ -131,12 +131,12 @@
 		/**
 		 * Fetches all rows and return array of MyEntity class instance.
 		 *
-		 * @return \MY_PROJECT_NS\MyEntity[]
+		 * @return \MY_PROJECT_DB_NS\MyEntity[]
 		 */
 		public function fetchAllClass()
 		{
 			$this->fetch_style = \PDO::FETCH_CLASS | \PDO::FETCH_PROPS_LATE;
-			$entity_class      = \MY_PROJECT_NS\MyEntity::class;
+			$entity_class      = \MY_PROJECT_DB_NS\MyEntity::class;
 
 			return $this->getStatement()
 						->fetchAll($this->fetch_style, $entity_class, [false]);
@@ -175,7 +175,7 @@
 		/**
 		 * Return the current element.
 		 *
-		 * @return array|null|\MY_PROJECT_NS\MyEntity
+		 * @return array|null|\MY_PROJECT_DB_NS\MyEntity
 		 */
 		public function current()
 		{
