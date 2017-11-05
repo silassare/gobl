@@ -180,7 +180,7 @@
 			if (!preg_match(self::BIGINT_REG, "$value"))
 				throw new TypesInvalidValueException('invalid_bigint_type', $debug);
 
-			if ($this->unsigned AND preg_match(self::BIGINT_UNSIGNED_REG, "$value"))
+			if ($this->unsigned AND !preg_match(self::BIGINT_UNSIGNED_REG, "$value"))
 				throw new TypesInvalidValueException('invalid_unsigned_bigint_type', $debug);
 
 			if (isset($this->min) AND !self::isLt($this->min, $value))
