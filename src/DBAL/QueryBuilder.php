@@ -671,18 +671,17 @@
 		 * @return $this
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
-		public function limit($max, $offset = 0)
+		public function limit($max = null, $offset = 0)
 		{
-			if (is_int($max) AND $max > 0) {
-				$this->options['limitMax'] = $max;
-
-				if (is_int($offset)) {
-					$this->options['limitOffset'] = $offset;
-				} else {
+			if (!is_null($max)) {
+				if (!is_int($max) OR $max <= 0) {
+					throw new DBALException(sprintf('invalid limit max "%s".', $max));
+				}
+				if (!is_int($offset) OR $offset < 0) {
 					throw new DBALException(sprintf('invalid limit offset "%s".', $offset));
 				}
-			} else {
-				throw new DBALException(sprintf('invalid limit max "%s".', $max));
+				$this->options['limitMax']    = $max;
+				$this->options['limitOffset'] = $offset;
 			}
 
 			return $this;
