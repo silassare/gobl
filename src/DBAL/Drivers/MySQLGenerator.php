@@ -106,11 +106,11 @@
 			}
 
 			foreach ($uc_list as $name => $uc) {
-				$table_alter[] = $this->getUniqueSQL($table, $uc, $name);
+				$table_alter[] = $this->getUniqueSQL($table, $uc);
 			}
 
 			foreach ($fk_list as $name => $fk) {
-				$table_alter[] = $this->getForeignKeySQL($table, $fk, $name);
+				$table_alter[] = $this->getForeignKeySQL($table, $fk);
 			}
 
 			$table_name  = $table->getFullName();
