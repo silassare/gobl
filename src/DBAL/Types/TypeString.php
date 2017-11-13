@@ -127,7 +127,11 @@
 				'default' => $this->default
 			];
 
-			if (is_null($value) AND $this->null)
+			if (is_numeric($value)) { // accept numeric value
+				$value .= '';
+			}
+
+			if ((is_null($value) OR $value === '') AND $this->null)
 				return $this->default;
 
 			if (!is_string($value))
