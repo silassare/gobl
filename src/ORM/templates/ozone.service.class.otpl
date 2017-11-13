@@ -62,6 +62,11 @@
 
 		public function execute(array $request = [])
 		{
+			// uncomment the next line to allow administrator only
+			Assert::assertIsAdmin();
+			// or uncomment the next line to allow verified user only
+			// Assert::assertUserVerified();
+
 			$success = true;
 			$error   = null;
 
@@ -78,19 +83,16 @@
 			if (!$success) {
 				// TODO change message to ozone error message, add the invalid field name in data
 				if ($error instanceof ORMControllerFormException) {
-					throw new InvalidFormException($error->getMessage(), $error->getData());
+					throw new InvalidFormException($error->getMessage(), $error->getData(), $error);
 				}
 				if ($error instanceof TypesInvalidValueException) {
-					throw new InvalidFieldException($error->getMessage(), $error->getData());
+					throw new InvalidFieldException($error->getMessage(), $error->getData(), $error);
 				}
 			}
 		}
 
 		private function executeSub(array $request)
 		{
-			// make sure to have required permission
-			Assert::assertIsAdmin();
-
 			if ($this->noExtra()) {
 				if (RequestHandler::isPost()) {
 					$this->actionCreateEntity($request);
@@ -185,17 +187,28 @@
 
 		private function actionCreateEntity(array $request)
 		{
-			$form_values   = self::requestFieldsToColumns($request);
-			$my_controller = new <%$.class.controller%>();
-			$my_entity     = $my_controller->addItem($form_values);
+			// uncomment the next line to allow administrator only
+			// Assert::assertIsAdmin();
+			// or uncomment the next line to allow verified user only
+			// Assert::assertUserVerified();
+
+			$form_values = self::requestFieldsToColumns($request);
+
+			$controller = new <%$.class.controller%>();
+			$entity     = $controller->addItem($form_values);
 
 			$this->getResponseHolder()
 				 ->setDone('CREATED')
-				 ->setData($my_entity->asArray());
+				 ->setData($entity->asArray());
 		}
 
 		private function actionAddRelation(array $request, array $extra)
 		{
+			// uncomment the next line to allow administrator only
+			// Assert::assertIsAdmin();
+			// or uncomment the next line to allow verified user only
+			// Assert::assertUserVerified();
+
 			// TODO
 			$this->getResponseHolder()
 				 ->setDone('RELATION_ADDED')
@@ -208,14 +221,20 @@
 
 		private function actionUpdateEntity(array $request, array $extra)
 		{
-			$form_values   = self::requestFieldsToColumns($request);
-			$my_controller = new <%$.class.controller%>();
-			$my_entity     = $my_controller->updateOneItem($extra, $form_values);
+			// uncomment the next line to allow administrator only
+			// Assert::assertIsAdmin();
+			// or uncomment the next line to allow verified user only
+			// Assert::assertUserVerified();
 
-			if ($my_entity instanceof <%$.class.entity%>) {
+			$form_values = self::requestFieldsToColumns($request);
+
+			$controller = new <%$.class.controller%>();
+			$entity     = $controller->updateOneItem($extra, $form_values);
+
+			if ($entity instanceof <%$.class.entity%>) {
 				$this->getResponseHolder()
 					 ->setDone('UPDATED')
-					 ->setData($my_entity->asArray());
+					 ->setData($entity->asArray());
 			} else {
 				throw new NotFoundException();
 			}
@@ -223,6 +242,11 @@
 
 		private function actionUpdateRelation(array $request, array $extra)
 		{
+			// uncomment the next line to allow administrator only
+			// Assert::assertIsAdmin();
+			// or uncomment the next line to allow verified user only
+			// Assert::assertUserVerified();
+
 			// TODO
 			$this->getResponseHolder()
 				 ->setDone('UPDATED')
@@ -235,13 +259,18 @@
 
 		private function actionDeleteEntity(array $request, array $extra)
 		{
-			$my_controller = new <%$.class.controller%>();
-			$my_entity     = $my_controller->deleteOneItem($extra);
+			// uncomment the next line to allow administrator only
+			// Assert::assertIsAdmin();
+			// or uncomment the next line to allow verified user only
+			// Assert::assertUserVerified();
 
-			if ($my_entity instanceof <%$.class.entity%>) {
+			$controller = new <%$.class.controller%>();
+			$entity     = $controller->deleteOneItem($extra);
+
+			if ($entity instanceof <%$.class.entity%>) {
 				$this->getResponseHolder()
 					 ->setDone('DELETED')
-					 ->setData($my_entity->asArray());
+					 ->setData($entity->asArray());
 			} else {
 				throw new NotFoundException();
 			}
@@ -249,8 +278,13 @@
 
 		private function actionDeleteAll($request = [])
 		{
-			$my_controller = new <%$.class.controller%>();
-			$count         = $my_controller->deleteAllItem($request);
+			// uncomment the next line to allow administrator only
+			// Assert::assertIsAdmin();
+			// or uncomment the next line to allow verified user only
+			// Assert::assertUserVerified();
+
+			$controller = new <%$.class.controller%>();
+			$count      = $controller->deleteAllItem($request);
 
 			$this->getResponseHolder()
 				 ->setDone('DELETED')
@@ -259,6 +293,11 @@
 
 		private function actionDeleteRelation(array $request, array $extra)
 		{
+			// uncomment the next line to allow administrator only
+			// Assert::assertIsAdmin();
+			// or uncomment the next line to allow verified user only
+			// Assert::assertUserVerified();
+
 			// TODO
 			$this->getResponseHolder()
 				 ->setDone('DELETED')
@@ -271,20 +310,30 @@
 
 		private function actionGetEntity(array $request, array $extra)
 		{
-			$my_controller = new <%$.class.controller%>();
-			$my_entity     = $my_controller->getItem($extra);
+			// uncomment the next line to allow administrator only
+			// Assert::assertIsAdmin();
+			// or uncomment the next line to allow verified user only
+			// Assert::assertUserVerified();
 
-			if (!$my_entity) {
+			$controller = new <%$.class.controller%>();
+			$entity     = $controller->getItem($extra);
+
+			if (!$entity) {
 				throw new NotFoundException();
 			}
 
 			$this->getResponseHolder()
 				 ->setDone()
-				 ->setData($my_entity->asArray());
+				 ->setData($entity->asArray());
 		}
 
 		private function actionGetAll(array $request)
 		{
+			// uncomment the next line to allow administrator only
+			// Assert::assertIsAdmin();
+			// or uncomment the next line to allow verified user only
+			// Assert::assertUserVerified();
+
 			$filters = isset($request['filters']) ? isset($request['filters']) : [];
 			$max     = 10;
 			$offset  = 0;
@@ -306,8 +355,8 @@
 				$offset = ($page - 1) * $max;
 			}
 
-			$my_controller = new <%$.class.controller%>();
-			$results       = $my_controller->getAllItems($filters, $max, $offset);
+			$controller = new <%$.class.controller%>();
+			$results    = $controller->getAllItems($filters, $max, $offset);
 
 			$this->getResponseHolder()
 				 ->setDone()
@@ -316,6 +365,11 @@
 
 		private function actionGetRelation(array $request, array $extra)
 		{
+			// uncomment the next line to allow administrator only
+			// Assert::assertIsAdmin();
+			// or uncomment the next line to allow verified user only
+			// Assert::assertUserVerified();
+
 			// TODO
 			$this->getResponseHolder()
 				 ->setDone()
