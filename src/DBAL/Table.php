@@ -266,10 +266,12 @@
 		 *
 		 * @param \Gobl\DBAL\Table $reference_table the reference table
 		 * @param array            $columns         the columns
+		 * @param int              $update_action   the reference column update action
+		 * @param int              $delete_action   the reference column delete action
 		 *
 		 * @return $this
 		 */
-		public function addForeignKeyConstraint(Table $reference_table, array $columns)
+		public function addForeignKeyConstraint(Table $reference_table, array $columns, $update_action, $delete_action)
 		{
 			if (count($columns)) {
 				$constraint_name = sprintf('fk_%s_%s', $this->getName(), $reference_table->getName());
@@ -283,6 +285,9 @@
 				foreach ($columns as $column_name => $reference_column) {
 					$fk->addColumn($column_name, $reference_column);
 				}
+
+				$fk->setUpdateAction($update_action);
+				$fk->setDeleteAction($delete_action);
 			}
 
 			return $this;
