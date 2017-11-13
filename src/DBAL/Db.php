@@ -10,6 +10,7 @@
 
 	namespace Gobl\DBAL;
 
+	use Gobl\DBAL\Constraints\ForeignKey;
 	use Gobl\DBAL\Exceptions\DBALException;
 	use Gobl\DBAL\Relations\ManyToMany;
 	use Gobl\DBAL\Relations\ManyToOne;
@@ -447,7 +448,27 @@
 								throw new DBALException(sprintf('Reference table "%s" for foreign key in table "%s" is not defined.', $reference, $table_name));
 
 							$reference_table = $this->tables[$reference];
-							$tbl->addForeignKeyConstraint($reference_table, $constraint['columns']);
+							$update_action   = ForeignKey::ACTION_NO_ACTION;
+							$delete_action   = ForeignKey::ACTION_NO_ACTION;
+							$map             = [
+								'set_null' => ForeignKey::ACTION_SET_NULL,
+								'cascade'  => ForeignKey::ACTION_CASCADE,
+								'restrict' => ForeignKey::ACTION_RESTRICT,
+							];
+							if (isset($constraint['update'])) {
+								if (!isset($map[$constraint['update']])) {
+									throw new DBALException(sprintf('Invalid update action "%s" for foreign key constraint.', $constraint['update']));
+								}
+								$update_action = $map[$constraint['update']];
+							}
+							if (isset($constraint['delete'])) {
+								if (!isset($map[$constraint['delete']])) {
+									throw new DBALException(sprintf('Invalid delete action "%s" for foreign key constraint.', $constraint['delete']));
+								}
+								$delete_action = $map[$constraint['delete']];
+							}
+
+							$tbl->addForeignKeyConstraint($reference_table, $constraint['columns'], $update_action, $delete_action);
 
 							break;
 						default:

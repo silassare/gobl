@@ -10,6 +10,7 @@
 
 	namespace Gobl\DBAL\Constraints;
 
+	use Gobl\DBAL\Exceptions\DBALException;
 	use Gobl\DBAL\Table;
 
 	/**
@@ -19,8 +20,17 @@
 	 */
 	class ForeignKey extends Constraint
 	{
+		const ACTION_NO_ACTION = 1;
+		const ACTION_SET_NULL  = 2;
+		const ACTION_CASCADE   = 3;
+		const ACTION_RESTRICT  = 4;
+
 		/** @var \Gobl\DBAL\Table */
 		private $reference_table;
+		/** @var int */
+		private $update_action = ForeignKey::ACTION_NO_ACTION;
+		/** @var int */
+		private $delete_action = ForeignKey::ACTION_NO_ACTION;
 
 		/**
 		 * ForeignKey constructor.
@@ -67,5 +77,61 @@
 		public function getReferenceTable()
 		{
 			return $this->reference_table;
+		}
+
+		/**
+		 * Sets on update action.
+		 *
+		 * @param int $action one of ForeignKey::ACTION_* constants
+		 *
+		 * @return $this
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 */
+		public function setUpdateAction($action)
+		{
+			if ($action < self::ACTION_NO_ACTION OR $action > self::ACTION_RESTRICT) {
+				throw new DBALException('Invalid update action for foreign key constraint.');
+			}
+			$this->update_action = $action;
+
+			return $this;
+		}
+
+		/**
+		 * Gets on update action.
+		 *
+		 * @return int
+		 */
+		public function getUpdateAction()
+		{
+			return $this->update_action;
+		}
+
+		/**
+		 * Sets on delete action.
+		 *
+		 * @param int $action one of ForeignKey::ACTION_* constants
+		 *
+		 * @return $this
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 */
+		public function setDeleteAction($action)
+		{
+			if ($action < self::ACTION_NO_ACTION OR $action > self::ACTION_RESTRICT) {
+				throw new DBALException('Invalid delete action for foreign key constraint.');
+			}
+			$this->delete_action = $action;
+
+			return $this;
+		}
+
+		/**
+		 * Gets on delete action.
+		 *
+		 * @return int
+		 */
+		public function getDeleteAction()
+		{
+			return $this->delete_action;
 		}
 	}

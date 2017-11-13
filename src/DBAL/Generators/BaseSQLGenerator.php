@@ -318,13 +318,39 @@
 		 */
 		protected function getForeignKeySQL(Table $table, ForeignKey $fk, $alter = true)
 		{
-			$table_name   = $table->getFullName();
-			$columns      = $fk->getConstraintColumns();
-			$columns_list = self::quoteCols(array_keys($columns));
-			$references   = self::quoteCols(array_values($columns));
-			$sql          = $alter ? 'ALTER' . ' TABLE `' . $table_name . '` ADD ' : '';
-			$sql          .= 'CONSTRAINT ' . $fk->getName() . ' FOREIGN KEY (' . $columns_list . ') REFERENCES ' . $fk->getReferenceTable()
-																													  ->getFullName() . ' (' . $references . ')' . ($alter ? ';' : '');
+			$table_name    = $table->getFullName();
+			$columns       = $fk->getConstraintColumns();
+			$ref_table     = $fk->getReferenceTable();
+			$update_action = $fk->getUpdateAction();
+			$delete_action = $fk->getDeleteAction();
+			$columns_list  = self::quoteCols(array_keys($columns));
+			$references    = self::quoteCols(array_values($columns));
+			$sql           = $alter ? 'ALTER' . ' TABLE `' . $table_name . '` ADD ' : '';
+			$sql           .= 'CONSTRAINT ' . $fk->getName() . ' FOREIGN KEY (' . $columns_list . ') REFERENCES ' . $ref_table->getFullName() . ' (' . $references . ')';
+
+			$sql .= ' ON UPDATE ';
+			if ($update_action === ForeignKey::ACTION_SET_NULL) {
+				$sql .= 'SET NULL';
+			} elseif ($update_action === ForeignKey::ACTION_CASCADE) {
+				$sql .= 'CASCADE';
+			} elseif ($update_action === ForeignKey::ACTION_RESTRICT) {
+				$sql .= 'RESTRICT';
+			} else {
+				$sql .= 'NO ACTION';
+			}
+
+			$sql .= ' ON DELETE ';
+			if ($delete_action === ForeignKey::ACTION_SET_NULL) {
+				$sql .= 'SET NULL';
+			} elseif ($delete_action === ForeignKey::ACTION_CASCADE) {
+				$sql .= 'CASCADE';
+			} elseif ($delete_action === ForeignKey::ACTION_RESTRICT) {
+				$sql .= 'RESTRICT';
+			} else {
+				$sql .= 'NO ACTION';
+			}
+
+			$sql .= ($alter ? ';' : '');
 
 			return $sql;
 		}
