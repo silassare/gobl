@@ -7,7 +7,7 @@
 	use Gobl\ORM\Exceptions\ORMControllerFormException;
 	use Gobl\ORM\ORM;
 	use MY_PROJECT_DB_NS\MyEntity as MyEntityReal;
-	use MY_PROJECT_DB_NS\MyTableQuery;
+	use MY_PROJECT_DB_NS\MyTableQuery as MyTableQueryReal;
 
 	/**
 	 * Class MyController
@@ -18,6 +18,8 @@
 	{
 		/** @var array */
 		protected $form_fields = [];
+		/** @var array */
+		protected $form_fields_mask = [];
 
 		/**
 		 * MyController constructor.
@@ -93,14 +95,14 @@
 		protected static function assertUpdateColumns(array $columns = [])
 		{
 			if (empty($columns)) {
-				throw new ORMControllerFormException('form_no_column_to_update');
+				throw new ORMControllerFormException('form_no_fields_to_update');
 			}
 
 			$table = ORM::getDatabase()
 						->getTable('my_table');
 			foreach ($columns as $column) {
 				if (!$table->hasColumn($column)) {
-					throw new ORMControllerFormException('form_unknown_column', [$column]);
+					throw new ORMControllerFormException('form_unknown_fields', [$column]);
 				}
 			}
 		}
@@ -136,8 +138,8 @@
 		 *
 		 * (name = value1 OR name = value2) AND (age < 40 OR age > 50) AND (valid = 1)
 		 *
-		 * @param \MY_PROJECT_DB_NS\MyTableQuery $query
-		 * @param array                       $item_filters
+		 * @param \MY_PROJECT_DB_NS\Base\MyTableQuery $query
+		 * @param array                               $item_filters
 		 *
 		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
 		 */
@@ -162,7 +164,7 @@
 
 			foreach ($item_filters as $column => $filters) {
 				if (!$table->hasColumn($column)) {
-					throw new ORMControllerFormException('form_filters_unknown_column', [$column]);
+					throw new ORMControllerFormException('form_filters_unknown_fields', [$column]);
 				}
 
 				if (is_array($filters)) {
@@ -268,7 +270,7 @@
 			$my_entity = $this->getItem($item_filters);
 
 			if ($my_entity) {
-				$my_query = new MyTableQuery();
+				$my_query = new MyTableQueryReal();
 
 				self::applyFilters($my_query, $item_filters);
 
@@ -291,7 +293,7 @@
 		public function deleteAllItem(array $item_filters)
 		{
 			self::assertFiltersNotEmpty($item_filters);
-			$my_query = new MyTableQuery();
+			$my_query = new MyTableQueryReal();
 
 			self::applyFilters($my_query, $item_filters);
 
@@ -348,7 +350,7 @@
 		 */
 		public function findAllItems(array $item_filters = [], $max = null, $offset = 0)
 		{
-			$my_query = new MyTableQuery();
+			$my_query = new MyTableQueryReal();
 
 			if (!empty($item_filters)) {
 				self::applyFilters($my_query, $item_filters);
