@@ -156,7 +156,7 @@
 				"can_serve_resp"  => false,
 				"cross_site"      => false,
 				"require_client"  => true,
-				"req_methods"     => ['POST', 'GET', 'PUT', 'DELETE']
+				"request_methods"     => ['POST', 'GET', 'PUT', 'PATCH', 'DELETE']
 			];
 		}
 
