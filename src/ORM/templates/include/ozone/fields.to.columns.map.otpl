@@ -1,2 +1,2 @@
 <%loop($.columns : $column){%>
-			'<%$column.name%>' => <%$.class.entity%>::<%$column.const%>,<%}%>
+			'<%$column.fullName%>' => <%$.class.entity%>::<%$column.const%>,<%}%>
