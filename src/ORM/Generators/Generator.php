@@ -155,7 +155,7 @@
 				"is_file_service" => false,
 				"can_serve_resp"  => false,
 				"cross_site"      => false,
-				"require_client"  => true,
+				"require_session"  => true,
 				"request_methods"     => ['POST', 'GET', 'PUT', 'PATCH', 'DELETE']
 			];
 		}
