@@ -63,7 +63,7 @@
 		public function execute(array $request = [])
 		{
 			// uncomment the next line to allow administrator only
-			Assert::assertIsAdmin();
+			// Assert::assertIsAdmin();
 			// or uncomment the next line to allow verified user only
 			// Assert::assertUserVerified();
 
@@ -188,7 +188,7 @@
 		private function actionCreateEntity(array $request)
 		{
 			// uncomment the next line to allow administrator only
-			// Assert::assertIsAdmin();
+			Assert::assertIsAdmin();
 			// or uncomment the next line to allow verified user only
 			// Assert::assertUserVerified();
 
@@ -208,7 +208,7 @@
 		private function actionAddRelation(array $request, array $extra)
 		{
 			// uncomment the next line to allow administrator only
-			// Assert::assertIsAdmin();
+			Assert::assertIsAdmin();
 			// or uncomment the next line to allow verified user only
 			// Assert::assertUserVerified();
 
@@ -225,7 +225,7 @@
 		private function actionUpdateEntity(array $request, array $extra)
 		{
 			// uncomment the next line to allow administrator only
-			// Assert::assertIsAdmin();
+			Assert::assertIsAdmin();
 			// or uncomment the next line to allow verified user only
 			// Assert::assertUserVerified();
 
@@ -249,7 +249,7 @@
 		private function actionUpdateRelation(array $request, array $extra)
 		{
 			// uncomment the next line to allow administrator only
-			// Assert::assertIsAdmin();
+			Assert::assertIsAdmin();
 			// or uncomment the next line to allow verified user only
 			// Assert::assertUserVerified();
 
@@ -266,7 +266,7 @@
 		private function actionDeleteEntity(array $request, array $extra)
 		{
 			// uncomment the next line to allow administrator only
-			// Assert::assertIsAdmin();
+			Assert::assertIsAdmin();
 			// or uncomment the next line to allow verified user only
 			// Assert::assertUserVerified();
 
@@ -285,7 +285,7 @@
 		private function actionDeleteAll($request = [])
 		{
 			// uncomment the next line to allow administrator only
-			// Assert::assertIsAdmin();
+			Assert::assertIsAdmin();
 			// or uncomment the next line to allow verified user only
 			// Assert::assertUserVerified();
 
@@ -300,7 +300,7 @@
 		private function actionDeleteRelation(array $request, array $extra)
 		{
 			// uncomment the next line to allow administrator only
-			// Assert::assertIsAdmin();
+			Assert::assertIsAdmin();
 			// or uncomment the next line to allow verified user only
 			// Assert::assertUserVerified();
 
@@ -317,7 +317,7 @@
 		private function actionGetEntity(array $request, array $extra)
 		{
 			// uncomment the next line to allow administrator only
-			// Assert::assertIsAdmin();
+			Assert::assertIsAdmin();
 			// or uncomment the next line to allow verified user only
 			// Assert::assertUserVerified();
 
@@ -336,7 +336,7 @@
 		private function actionGetAll(array $request)
 		{
 			// uncomment the next line to allow administrator only
-			// Assert::assertIsAdmin();
+			Assert::assertIsAdmin();
 			// or uncomment the next line to allow verified user only
 			// Assert::assertUserVerified();
 
@@ -372,7 +372,7 @@
 		private function actionGetRelation(array $request, array $extra)
 		{
 			// uncomment the next line to allow administrator only
-			// Assert::assertIsAdmin();
+			Assert::assertIsAdmin();
 			// or uncomment the next line to allow verified user only
 			// Assert::assertUserVerified();
 
