@@ -533,7 +533,12 @@
 			foreach ($tables as $table) {
 				$fk_list = $table->getForeignKeyConstraints();
 				foreach ($fk_list as $fk) {
-					$columns = $fk->getConstraintColumns();
+					$columns = array_values($fk->getConstraintColumns());
+					// necessary when whe have
+					// table_a.col_1 => table_b.col_x
+					// table_a.col_2 => table_b.col_x
+					$columns = array_unique($columns);
+
 					if (!$fk->getReferenceTable()
 							->isPrimaryKey($columns)) {
 						$message  = 'Foreign key "%s" of table "%s" should be primary key in the reference table "%s".';
