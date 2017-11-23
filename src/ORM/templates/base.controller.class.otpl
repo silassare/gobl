@@ -191,7 +191,7 @@
 								]);
 							}
 
-							$query->filterBy($column, $value, $operators_map[$operator]);
+							$query->filterBy($column, $value, $operators_map[$operator], false);
 						}
 					}
 				} else {
