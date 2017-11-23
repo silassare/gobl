@@ -194,12 +194,15 @@
 
 			$form_values = self::requestFieldsToColumns($request);
 
+			// prevent non-null value on auto-increment column
+			$form_values[<%$.class.entity%>::<%$.pk.const%>] = null;
+
 			$controller = new <%$.class.controller%>();
 			$entity     = $controller->addItem($form_values);
 
 			$this->getResponseHolder()
 				 ->setDone('CREATED')
-				 ->setData($entity->asArray());
+				 ->setData(['item' => $entity->asArray()]);
 		}
 
 		private function actionAddRelation(array $request, array $extra)
@@ -228,13 +231,16 @@
 
 			$form_values = self::requestFieldsToColumns($request);
 
+			// primary key value should not be updated
+			unset($form_values[<%$.class.entity%>::<%$.pk.const%>]);
+
 			$controller = new <%$.class.controller%>();
 			$entity     = $controller->updateOneItem($extra, $form_values);
 
 			if ($entity instanceof <%$.class.entity%>) {
 				$this->getResponseHolder()
 					 ->setDone('UPDATED')
-					 ->setData($entity->asArray());
+					 ->setData(['item' => $entity->asArray()]);
 			} else {
 				throw new NotFoundException();
 			}
@@ -270,7 +276,7 @@
 			if ($entity instanceof <%$.class.entity%>) {
 				$this->getResponseHolder()
 					 ->setDone('DELETED')
-					 ->setData($entity->asArray());
+					 ->setData(['item' => $entity->asArray()]);
 			} else {
 				throw new NotFoundException();
 			}
@@ -324,7 +330,7 @@
 
 			$this->getResponseHolder()
 				 ->setDone()
-				 ->setData($entity->asArray());
+				 ->setData(['item' => $entity->asArray()]);
 		}
 
 		private function actionGetAll(array $request)
@@ -334,20 +340,20 @@
 			// or uncomment the next line to allow verified user only
 			// Assert::assertUserVerified();
 
-			$filters = isset($request['filters']) ? isset($request['filters']) : [];
+			$filters = isset($request['filters']) ? $request['filters'] : [];
 			$max     = 10;
 			$offset  = 0;
 			$page    = 1;
 
 			if (isset($request['max'])) {
-				$max = isset($request['max']);
+				$max = intval($request['max']);
 				if (!is_int($max) OR $max <= 0) {
 					throw new BadRequestException();
 				}
 			}
 
 			if (isset($request['page'])) {
-				$page = isset($request['page']);
+				$page = intval($request['page']);
 				if (!is_int($page) OR $page <= 0) {
 					throw new BadRequestException();
 				}
@@ -373,6 +379,6 @@
 			// TODO
 			$this->getResponseHolder()
 				 ->setDone()
-				 ->setData(['item' => [$extra], 'relation' => [$request]]);
+				 ->setData(['item' => $extra, 'relations' => ["relation"=>$request]]);
 		}
 	}
