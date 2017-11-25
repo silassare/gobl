@@ -143,6 +143,43 @@
 		}
 
 		/**
+		 * Executes sql string with multiples query.
+		 *
+		 * @param string $query the sql query string
+		 *
+		 * @return bool
+		 * @throws \Exception
+		 */
+		public function multipleQueryExecute($query)
+		{
+			if (empty($query)) {
+				throw new \Exception('Your query is empty.');
+			}
+
+			$connection = $this->getConnection();
+			$connection->beginTransaction();
+			// the SQLSTATE error code:
+			// '00000' => success
+			// '01000' => success with warning
+
+			try {
+				$statement = $connection->prepare($query);
+				$statement->execute();
+				$i = 0;
+				while ($statement->nextRowset()) {
+					$i++;
+					/* https://bugs.php.net/bug.php?id=61613 */
+				}
+				$connection->commit();
+			} catch (\PDOException $e) {
+				$connection->rollBack();
+				throw $e;
+			}
+
+			return true;
+		}
+
+		/**
 		 * Executes a query and return affected row count.
 		 *
 		 * @param string     $sql          Your sql query
