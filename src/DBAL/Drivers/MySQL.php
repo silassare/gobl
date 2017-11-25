@@ -44,10 +44,14 @@
 			$password = $this->config['db_pass'];
 			$charset  = $this->config['db_charset'];
 
-			$pdo_options[\PDO::ATTR_ERRMODE]            = \PDO::ERRMODE_EXCEPTION;
-			$pdo_options[\PDO::ATTR_DEFAULT_FETCH_MODE] = \PDO::FETCH_ASSOC;
+			$pdo_options = [
+				\PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION,
+				\PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC
+			];
 
-			$db = new \PDO('mysql:host=' . $host . ';dbname=' . $dbname . ';charset=' . $charset, $user, $password, $pdo_options);
+			// DSN => DATA SOURCE NAME
+			$pdo_dsn = 'mysql:host=' . $host . ';dbname=' . $dbname . ';charset=' . $charset;
+			$db      = new \PDO($pdo_dsn, $user, $password, $pdo_options);
 
 			return $db;
 		}
@@ -71,6 +75,7 @@
 			}
 
 			$mysql = implode(PHP_EOL, $parts);
+
 			return <<<GOBL_MySQL
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
