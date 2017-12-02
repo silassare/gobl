@@ -18,6 +18,8 @@
 	 */
 	abstract class MyEntity extends ArrayCapable
 	{
+		const TABLE_NAME = 'my_table';
+
 //__GOBL_COLUMNS_CONSTANTS__
 		/** @var \Gobl\DBAL\Table */
 		protected $table;
@@ -56,7 +58,7 @@
 		public function __construct($is_new = true)
 		{
 			$this->table    = ORM::getDatabase()
-								 ->getTable('my_table');
+								 ->getTable(MyEntity::TABLE_NAME);
 			$columns        = $this->table->getColumns();
 			$this->is_new   = (bool)$is_new;
 			$this->is_saved = !$this->is_new;

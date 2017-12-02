@@ -27,7 +27,7 @@
 		public function __construct()
 		{
 			$table   = ORM::getDatabase()
-						  ->getTable('<%$.table.name%>');
+						  ->getTable(<%$.class.entity%>::TABLE_NAME);
 			$columns = $table->getColumns();
 
 			// we finds all required fields
@@ -99,7 +99,7 @@
 			}
 
 			$table = ORM::getDatabase()
-						->getTable('<%$.table.name%>');
+						->getTable(<%$.class.entity%>::TABLE_NAME);
 			foreach ($columns as $column) {
 				if (!$table->hasColumn($column)) {
 					throw new ORMControllerFormException('form_unknown_fields', [$column]);
@@ -160,7 +160,7 @@
 			];
 
 			$table = ORM::getDatabase()
-						->getTable('<%$.table.name%>');
+						->getTable(<%$.class.entity%>::TABLE_NAME);
 
 			foreach ($item_filters as $column => $filters) {
 				if (!$table->hasColumn($column)) {
