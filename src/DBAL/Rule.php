@@ -124,7 +124,13 @@
 			if (!$len AND !$this->unused_glue AND !empty($this->expr)) {
 				$this->unused_glue = $glue;
 			} elseif ($len === 1 AND !$this->unused_glue) {
-				$this->expr           = $this->getSelf($glue) . ' ' . $glue . ' ' . $x;
+				$this->expr = $this->getSelf($glue);
+
+				if (!empty($this->expr)) {
+					$this->expr .= ' ' . $glue . ' ';
+				}
+
+				$this->expr           .= $x;
 				$this->last_used_glue = $glue;
 			} elseif ($len > 1) {
 				if ($this->unused_glue) {
