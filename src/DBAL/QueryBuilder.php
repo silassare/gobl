@@ -653,7 +653,7 @@
 				} else {
 					$order     = $key;
 					$direction = $value;
-					$order     .= ($direction ? ' ASC' : ' DSC');
+					$order     .= ($direction ? ' ASC' : ' DESC');
 				}
 
 				$this->options['orderBy'][] = $order;
