@@ -23,14 +23,32 @@
 		private        $default       = null;
 		private        $strict;
 		private static $list          = [true, false, 1, 0];
-		private static $extended_list = [true, false, 1, 0, '1', '0', 'true', 'false', 'yes', 'no', 'y', 'n'];
-		private static $map           = [
+		private static $extended_list = [
+			true,
+			false,
+			1,
+			0,
+			'1',
+			'0',
+			'true',
+			'false',
+			'yes',
+			'no',
+			'on',
+			'off',
+			'y',
+			'n'
+		];
+
+		private static $map = [
 			'1'     => 1,
 			'0'     => 0,
 			'true'  => 1,
 			'false' => 0,
 			'yes'   => 1,
 			'no'    => 0,
+			'on'    => 1,
+			'off'   => 0,
 			'y'     => 1,
 			'n'     => 0
 		];
@@ -75,10 +93,18 @@
 			if (is_null($value) AND $this->null)
 				return $this->default;
 
-			if (!in_array($value, ($this->strict ? self::$list : self::$extended_list)))
+			$allowed = $this->strict ? self::$list : self::$extended_list;
+
+			if (!in_array($value, $allowed))
 				throw new TypesInvalidValueException('invalid_bool_type', $debug);
 
-			return (is_string($value) ? self::$map[strtolower($value)] : intval($value));
+			if (is_string($value) AND isset(self::$map[$value])) {
+				$value = strtolower($value);
+
+				return self::$map[$value];
+			}
+
+			return intval(boolval($value));
 		}
 
 		/**
