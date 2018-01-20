@@ -119,7 +119,16 @@
 		private function multiple($glue, array $list)
 		{
 			$len = count($list);
-			$x   = '(' . implode(' ' . $glue . ' ', $list) . ')';
+
+			if ($len > 1) {
+				foreach ($list as $k => $r) {
+					if ($r instanceof Rule) {
+						$list[$k] = '(' . $r . ')';
+					}
+				}
+			}
+
+			$x = '(' . implode(' ' . $glue . ' ', $list) . ')';
 
 			if (!$len AND !$this->unused_glue AND !empty($this->expr)) {
 				$this->unused_glue = $glue;
@@ -173,25 +182,6 @@
 			}
 
 			return $a;
-		}
-
-		/**
-		 * List items to be used in condition(IN and NOT IN).
-		 *
-		 * @param array $items
-		 *
-		 * @return string
-		 */
-		private function listItems(array $items)
-		{
-			$list  = [];
-			$items = array_unique($items);
-
-			foreach ($items as $item) {
-				$list[] = $this->qb->quote($item);
-			}
-
-			return '(' . implode(', ', $list) . ')';
 		}
 
 		/**
@@ -308,7 +298,7 @@
 		 *
 		 * @return $this
 		 */
-		public function neq($a, $b)
+		public function neq($a, $b = null)
 		{
 			$items = is_array($a) ? $a : [$a => $b];
 
@@ -323,7 +313,7 @@
 		 *
 		 * @return $this
 		 */
-		public function like($a, $b)
+		public function like($a, $b = null)
 		{
 			$items = is_array($a) ? $a : [$a => $b];
 
@@ -338,7 +328,7 @@
 		 *
 		 * @return $this
 		 */
-		public function notLike($a, $b)
+		public function notLike($a, $b = null)
 		{
 			$items = is_array($a) ? $a : [$a => $b];
 
@@ -353,7 +343,7 @@
 		 *
 		 * @return $this
 		 */
-		public function lt($a, $b)
+		public function lt($a, $b = null)
 		{
 			$items = is_array($a) ? $a : [$a => $b];
 
@@ -368,7 +358,7 @@
 		 *
 		 * @return $this
 		 */
-		public function lte($a, $b)
+		public function lte($a, $b = null)
 		{
 			$items = is_array($a) ? $a : [$a => $b];
 
@@ -383,7 +373,7 @@
 		 *
 		 * @return $this
 		 */
-		public function gt($a, $b)
+		public function gt($a, $b = null)
 		{
 			$items = is_array($a) ? $a : [$a => $b];
 
@@ -398,7 +388,7 @@
 		 *
 		 * @return $this
 		 */
-		public function gte($a, $b)
+		public function gte($a, $b = null)
 		{
 			$items = is_array($a) ? $a : [$a => $b];
 
@@ -445,14 +435,14 @@
 		public function in($a, array $b)
 		{
 			if (!is_string($a) OR !strlen($a)) {
-				throw new DBALException('the left operand must be a non-empty string.');
+				throw new DBALException('the first argument must be a non-empty string.');
 			}
 
 			if (!count($b)) {
-				throw new DBALException('the right operand should be a non-empty array.');
+				throw new DBALException('the second argument must be a non-empty array.');
 			}
 
-			$items = [$a => $this->listItems($b)];
+			$items = [$a => $this->qb->arrayToListItems($b)];
 
 			return $this->conditions($items, Rule::OP_IN);
 		}
@@ -476,7 +466,7 @@
 				throw new DBALException('the right operand should be a non-empty array.');
 			}
 
-			$items = [$a => $this->listItems($b)];
+			$items = [$a => $this->qb->arrayToListItems($b)];
 
 			return $this->conditions($items, Rule::OP_NOT_IN);
 		}

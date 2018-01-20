@@ -216,6 +216,14 @@
 			return $list;
 		}
 
+		/**
+		 * Automatically prefix a given table name.
+		 *
+		 * @param string $table the table name
+		 *
+		 * @return bool|string
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 */
 		public function prefixTable($table)
 		{
 			if ($table[0] === $this->auto_prefix_char) {
@@ -225,6 +233,9 @@
 					throw new DBALException(sprintf('The table "%s" is not defined.', $table));
 				}
 
+				return $this->db->getTable($table)
+								->getFullName();
+			} elseif ($this->db->hasTable($table)) {
 				return $this->db->getTable($table)
 								->getFullName();
 			}
@@ -428,6 +439,10 @@
 						}
 					}
 				}
+			} else {
+				foreach ($columns as $key => $value) {
+					$this->options['select'][] = is_int($key) ? $value : $key . ' as ' . $value;
+				}
 			}
 
 			return $this;
@@ -594,9 +609,11 @@
 		protected function addFromOptions($table, $alias = null)
 		{
 			$table = $this->prefixTable($table);
+
 			if (!empty($alias)) {
 				$this->useAlias($table, $alias);
 			}
+
 			$this->options['from'][$table] = $alias;
 		}
 
@@ -792,5 +809,24 @@
 		{
 			return $this->db->getConnection()
 							->quote($value, $type);
+		}
+
+		/**
+		 * List items to be used in condition(IN and NOT IN).
+		 *
+		 * @param array $items
+		 *
+		 * @return string
+		 */
+		public function arrayToListItems(array $items)
+		{
+			$list  = [];
+			$items = array_unique($items);
+
+			foreach ($items as $item) {
+				$list[] = $this->quote($item);
+			}
+
+			return '(' . implode(', ', $list) . ')';
 		}
 	}
