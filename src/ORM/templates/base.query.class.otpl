@@ -182,24 +182,22 @@
 		 *                         to combine multiple rules on the same column
 		 *
 		 * @return $this|\<%$.namespace%>\<%$.class.query%>
+		 *
+		 * @throws \Exception
 		 */
 		public function filterBy($column, $value, $operator = Rule::OP_EQ, $use_and = true)
 		{
 			// maybe user make change to the table without regenerating the classes
 			$this->table->assertHasColumn($column);
 
-			$head      = false;
 			$full_name = $this->table->getColumn($column)
 									 ->getFullName();
 
 			if (!isset($this->filters[$full_name])) {
-				$this->filters[$full_name] = new Rule($this->qb);
-				$head                      = true;
-			}
+				$rule = $this->filters[$full_name] = new Rule($this->qb);
+			} else {
+				$rule = $this->filters[$full_name];
 
-			$rule = $this->filters[$full_name];
-
-			if ($head === false) {
 				if ($use_and) {
 					$rule->andX();
 				} else {
@@ -207,11 +205,19 @@
 				}
 			}
 
-			$a = $this->table_alias . '.' . $full_name;
+			if ($operator === Rule::OP_IN OR $operator === Rule::OP_NOT_IN) {
+				if (!is_array($value)) {
+					throw new \Exception("for 'IN' operator, value should be a list.");
+				}
+				$value = $this->qb->arrayToListItems($value);
+			} else {
+				$param_key                = $this->genUniqueParamKey();
+				$this->params[$param_key] = $value;
+				$value                    = ':' . $param_key;
+			}
 
-			$param_key                = $this->genUniqueParamKey();
-			$this->params[$param_key] = $value;
-			$rule->conditions([$a => ':' . $param_key], $operator, false);
+			$a = $this->table_alias . '.' . $full_name;
+			$rule->conditions([$a => $value], $operator, false);
 
 			return $this;
 		}
