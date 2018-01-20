@@ -49,7 +49,7 @@
 		private static $IDENTIFIED_EXTRA_REG = '#^([a-zA-Z0-9]+)/?$#';
 
 		// for url like /my_svc/:my_id/relation
-		private static $IDENTIFIED_RELATION_EXTRA_REG = '#^([a-zA-Z0-9]+)/([a-zA-Z0-9]+)/?$#';
+		private static $IDENTIFIED_RELATION_EXTRA_REG = '#^([a-zA-Z0-9]+)/([a-zA-Z0-9_-]+)/?$#';
 
 		/**
 		 * maps form fields to columns
