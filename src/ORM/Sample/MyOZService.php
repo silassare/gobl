@@ -17,6 +17,8 @@
 	use OZONE\OZ\Exceptions\InvalidFormException;
 	use OZONE\OZ\Exceptions\NotFoundException;
 
+	defined('OZ_SELF_SECURITY_CHECK') or die;
+
 	/**
 	 * Class MyOZService
 	 *
@@ -379,6 +381,6 @@
 			// TODO
 			$this->getResponseHolder()
 				 ->setDone()
-				 ->setData(['item' => $extra, 'relations' => ["relation"=>$request]]);
+				 ->setData(['item' => $extra, 'relations' => ["relation" => $request]]);
 		}
 	}
