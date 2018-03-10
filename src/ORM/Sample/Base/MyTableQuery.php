@@ -70,7 +70,7 @@
 			$this->qb->limit($max, $offset)
 					 ->bindArray($this->params);
 
-			return new \MY_PROJECT_DB_NS\MyResults($this->db, $this, $this->resetQuery());
+			return new \MY_PROJECT_DB_NS\MyResults($this->db, $this->resetQuery());
 		}
 
 		/**
@@ -207,7 +207,7 @@
 
 			if ($operator === Rule::OP_IN OR $operator === Rule::OP_NOT_IN) {
 				if (!is_array($value)) {
-					throw new \Exception("for 'IN' operator, value should be a list.");
+					throw new \Exception("IN and NOT IN operators require an array value.");
 				}
 				$value = $this->qb->arrayToListItems($value);
 			} else {

@@ -3,8 +3,10 @@
 
 	namespace MY_PROJECT_SERVICE_NS;
 
+	use Gobl\DBAL\Relations\Relation;
 	use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 	use Gobl\ORM\Exceptions\ORMControllerFormException;
+	use Gobl\ORM\ORM;
 	use MY_PROJECT_DB_NS\MyController;
 	use MY_PROJECT_DB_NS\MyEntity;
 	use OZONE\OZ\Core\Assert;
@@ -62,6 +64,15 @@
 //__OZONE_FIELDS_TO_COLUMNS_MAP__
 		];
 
+		/**
+		 * maps form fields to columns
+		 *
+		 * @var array
+		 */
+		private static $my_table_relations_map = [
+//__OZONE_RELATIONS_MAP__
+		];
+
 		public function execute(array $request = [])
 		{
 			// uncomment the next line to allow administrator only
@@ -83,12 +94,17 @@
 			}
 
 			if (!$success) {
-				// TODO change message to ozone error message, add the invalid field name in data
 				if ($error instanceof ORMControllerFormException) {
-					throw new InvalidFormException($error->getMessage(), $error->getData(), $error);
+					throw new InvalidFormException(null, [$error->getMessage(), $error->getData()], $error);
 				}
+
 				if ($error instanceof TypesInvalidValueException) {
-					throw new InvalidFieldException($error->getMessage(), $error->getData(), $error);
+					// don't expose debug data to client, may contains sensitive data
+					$debug         = $error->getDebugData();
+					$data          = $error->getData();
+					$data["field"] = self::maskColumn($debug["column_name"]);
+
+					throw new InvalidFieldException($error->getMessage(), $data, $error);
 				}
 			}
 		}
@@ -169,32 +185,99 @@
 		 *
 		 * @return array
 		 */
-		private function requestFieldsToColumns(array $request)
+		private static function removeColumnsMask(array $request)
 		{
 			$values = [];
 
 			foreach ($request as $field => $value) {
 				if (isset(self::$my_table_fields_map[$field])) {
-					$column          = self::$my_table_fields_map[$field];
-					$values[$column] = $value;
+					$column_name          = self::$my_table_fields_map[$field];
+					$values[$column_name] = $value;
 				}
 			}
 
 			return $values;
 		}
 
+		/**
+		 * @param string $column_name
+		 *
+		 * @return string
+		 */
+		private static function maskColumn($column_name)
+		{
+			$flip = array_flip(self::$my_table_fields_map);
+
+			if (isset($flip[$column_name])) {
+				return $flip[$column_name];
+			}
+
+			return $column_name;
+		}
+
+		/**
+		 * @param string $relation_name
+		 *
+		 * @return string
+		 */
+		private static function removeRelationMask($relation_name)
+		{
+			if (isset(self::$my_table_relations_map[$relation_name])) {
+				return self::$my_table_relations_map[$relation_name];
+			}
+
+			return $relation_name;
+		}
+
+		/**
+		 * Returns result pagination.
+		 *
+		 * @param array $request
+		 * @param int   $max default max
+		 *
+		 * @return array
+		 * @throws \OZONE\OZ\Exceptions\BadRequestException
+		 */
+		private static function getPagination(array $request, $max = 10)
+		{
+			$offset = 0;
+			$page   = 1;
+
+			if (isset($request['max'])) {
+				$max = intval($request['max']);
+				if (!is_int($max) OR $max <= 0) {
+					throw new BadRequestException();
+				}
+			}
+
+			if (isset($request['page'])) {
+				$page = intval($request['page']);
+				if (!is_int($page) OR $page <= 0) {
+					throw new BadRequestException();
+				}
+
+				$offset = ($page - 1) * $max;
+			}
+
+			return [
+				"offset" => $offset,
+				"max"    => $max,
+				"page"   => $page
+			];
+		}
+
 //========================================================
 //=	POST REQUEST METHOD
 //========================================================
 
-		private function actionCreateEntity(array $request)
+		public function actionCreateEntity(array $request)
 		{
 			// uncomment the next line to allow administrator only
 			Assert::assertIsAdmin();
 			// or uncomment the next line to allow verified user only
 			// Assert::assertUserVerified();
 
-			$form_values = self::requestFieldsToColumns($request);
+			$form_values = self::removeColumnsMask($request);
 
 			// prevent non-null value on auto-increment column
 			$form_values['my_pk_column_const'] = null;
@@ -207,7 +290,7 @@
 				 ->setData(['item' => $entity->asArray()]);
 		}
 
-		private function actionAddRelation(array $request, array $extra)
+		public function actionAddRelation(array $request, array $extra)
 		{
 			// uncomment the next line to allow administrator only
 			Assert::assertIsAdmin();
@@ -224,14 +307,14 @@
 //=	PUT REQUEST METHOD
 //========================================================
 
-		private function actionUpdateEntity(array $request, array $extra)
+		public function actionUpdateEntity(array $request, array $extra)
 		{
 			// uncomment the next line to allow administrator only
 			Assert::assertIsAdmin();
 			// or uncomment the next line to allow verified user only
 			// Assert::assertUserVerified();
 
-			$form_values = self::requestFieldsToColumns($request);
+			$form_values = self::removeColumnsMask($request);
 
 			// primary key value should not be updated
 			unset($form_values['my_pk_column_const']);
@@ -248,7 +331,7 @@
 			}
 		}
 
-		private function actionUpdateRelation(array $request, array $extra)
+		public function actionUpdateRelation(array $request, array $extra)
 		{
 			// uncomment the next line to allow administrator only
 			Assert::assertIsAdmin();
@@ -265,7 +348,7 @@
 //=	DELETE REQUEST METHOD
 //========================================================
 
-		private function actionDeleteEntity(array $request, array $extra)
+		public function actionDeleteEntity(array $request, array $extra)
 		{
 			// uncomment the next line to allow administrator only
 			Assert::assertIsAdmin();
@@ -284,7 +367,7 @@
 			}
 		}
 
-		private function actionDeleteAll($request = [])
+		public function actionDeleteAll($request = [])
 		{
 			// uncomment the next line to allow administrator only
 			Assert::assertIsAdmin();
@@ -299,7 +382,7 @@
 				 ->setData(['affected' => $count]);
 		}
 
-		private function actionDeleteRelation(array $request, array $extra)
+		public function actionDeleteRelation(array $request, array $extra)
 		{
 			// uncomment the next line to allow administrator only
 			Assert::assertIsAdmin();
@@ -316,7 +399,7 @@
 //=	GET REQUEST METHOD
 //========================================================
 
-		private function actionGetEntity(array $request, array $extra)
+		public function actionGetEntity(array $request, array $extra)
 		{
 			// uncomment the next line to allow administrator only
 			Assert::assertIsAdmin();
@@ -335,52 +418,104 @@
 				 ->setData(['item' => $entity->asArray()]);
 		}
 
-		private function actionGetAll(array $request)
+		public function actionGetAll(array $request)
 		{
 			// uncomment the next line to allow administrator only
 			Assert::assertIsAdmin();
 			// or uncomment the next line to allow verified user only
 			// Assert::assertUserVerified();
 
-			$filters = isset($request['filters']) ? $request['filters'] : [];
-			$max     = 10;
-			$offset  = 0;
-			$page    = 1;
+			$filters = isset($request['filters']) AND is_array($request['filters']) ? $request['filters'] : [];
 
-			if (isset($request['max'])) {
-				$max = intval($request['max']);
-				if (!is_int($max) OR $max <= 0) {
-					throw new BadRequestException();
-				}
-			}
-
-			if (isset($request['page'])) {
-				$page = intval($request['page']);
-				if (!is_int($page) OR $page <= 0) {
-					throw new BadRequestException();
-				}
-
-				$offset = ($page - 1) * $max;
-			}
+			$p9            = self::getPagination($request);
+			$max           = $p9["max"];
+			$offset        = $p9["offset"];
+			$page          = $p9["page"];
+			$total_records = 0;
 
 			$controller = new MyController();
-			$results    = $controller->getAllItems($filters, $max, $offset);
+			$results    = $controller->getAllItems($filters, $max, $offset, [], $total_records);
 
 			$this->getResponseHolder()
 				 ->setDone()
-				 ->setData(['items' => $results, 'max' => $max, 'page' => $page]);
+				 ->setData([
+					 'items' => $results,
+					 'max'   => $max,
+					 'page'  => $page,
+					 "total" => $total_records
+				 ]);
 		}
 
-		private function actionGetRelation(array $request, array $extra)
+		public function actionGetRelation(array $request, array $extra)
 		{
 			// uncomment the next line to allow administrator only
 			Assert::assertIsAdmin();
 			// or uncomment the next line to allow verified user only
 			// Assert::assertUserVerified();
+			$form_values = self::removeColumnsMask($request);
 
-			// TODO
-			$this->getResponseHolder()
-				 ->setDone()
-				 ->setData(['item' => $extra, 'relations' => ["relation" => $request]]);
+			// primary key value should not be updated
+			unset($form_values['my_pk_column_const']);
+
+			$controller = new MyController();
+			$entity     = $controller->updateOneItem($extra, $form_values);
+
+			if (!$entity) {
+				throw new NotFoundException();
+			}
+
+			$relation_name = self::removeRelationMask($extra["relation"]);
+			$table         = ORM::getDatabase()
+								->getTable(MyEntity::TABLE_NAME);
+
+			if (!$table->hasRelation($relation_name)) {
+				throw new NotFoundException();
+			}
+
+			$rel      = $table->getRelation($relation_name);
+			$rel_type = $rel->getType();
+
+			if ($rel_type === Relation::ONE_TO_MANY OR $rel_type === Relation::MANY_TO_MANY) {
+				$results = self::getRelationItemsList($rel, $entity, $request);
+			} else {
+				$results = self::getRelationItem($rel, $entity);
+			}
+
+			return $this->getResponseHolder()
+						->setDone()
+						->setData($results);
+		}
+
+		public static function getRelationItemsList(Relation $relation, MyEntity $entity, array $request)
+		{
+			$filters = isset($request['filters']) AND is_array($request['filters']) ? $request['filters'] : [];
+			$order_by = isset($request['order_by']) AND is_array($request['order_by']) ? $request['order_by'] : [];
+
+			$p9            = self::getPagination($request);
+			$max           = $p9["max"];
+			$offset        = $p9["offset"];
+			$page          = $p9["page"];
+			$total_records = 0;
+
+			$relation_getter = $relation->getGetterName();
+			$args            = [$filters, $max, $offset, $order_by, $total_records];
+			$items           = call_user_func_array([$entity, $relation_getter], $args);
+
+			return [
+				'items' => $items,
+				'max'   => $max,
+				'page'  => $page,
+				'total' => $total_records
+			];
+		}
+
+		public static function getRelationItem(Relation $relation, MyEntity $entity)
+		{
+			$relation_getter = $relation->getGetterName();
+			$item            = call_user_func([$entity, $relation_getter]);
+
+			return [
+				'item' => $item->asArray()
+			];
 		}
 	}

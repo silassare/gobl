@@ -782,7 +782,7 @@
 		}
 
 		/**
-		 * Returns query string to be executed by your rdbms
+		 * Returns query string to be executed by the rdbms
 		 *
 		 * @return string
 		 */
@@ -795,6 +795,42 @@
 			}
 
 			return $this->sql;
+		}
+
+		/**
+		 * Returns query string to be executed by the rdbms
+		 *
+		 * @param bool $preserve_limit
+		 *
+		 * @return int
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 */
+		public function runTotalRowsCount($preserve_limit = true)
+		{
+			if ($this->type !== QueryBuilder::QUERY_TYPE_SELECT) {
+				throw new DBALException('You should call "QueryBuilder#select" first.');
+			}
+
+			$offset = $this->options["limitOffset"];
+			$max    = $this->options["limitMax"];
+
+			if (!$preserve_limit) {
+				$this->options["limitOffset"] = null;
+				$this->options["limitMax"]    = null;
+			}
+
+			$sql = $this->db->getRDBMS()
+							->getQueryGenerator($this)
+							->buildQuery();
+
+			$sql = 'SELECT ' . 'COUNT(1) FROM (' . $sql . ')';
+			$req = $this->db->execute($sql, $this->getBoundValues(), $this->getBoundValuesTypes());
+
+			// restore limit
+			$this->options["limitOffset"] = $offset;
+			$this->options["limitMax"]    = $max;
+
+			return $req->fetchColumn();
 		}
 
 		/**

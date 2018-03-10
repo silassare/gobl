@@ -16,8 +16,6 @@
 	{
 		/** @var \Gobl\DBAL\Db */
 		protected $db;
-		/** @var \MY_PROJECT_DB_NS\Base\MyTableQuery */
-		protected $table_manager;
 		/** @var \Gobl\DBAL\QueryBuilder */
 		protected $query;
 		/** @var int */
@@ -25,7 +23,9 @@
 		/** @var array|null|\MY_PROJECT_DB_NS\MyEntity */
 		protected $current = null;
 		/** @var  int */
-		protected $count_cache = null;
+		protected $limited_count_cache = null;
+		/** @var  int */
+		protected $total_count_cache = null;
 		/** @var bool */
 		protected $trust_row_count = true;
 		/** @var \MY_PROJECT_DB_NS\MyEntity */
@@ -43,23 +43,21 @@
 		/**
 		 * MyResults constructor.
 		 *
-		 * @param \Gobl\DBAL\Db               $db
-		 * @param \MY_PROJECT_DB_NS\Base\MyTableQuery $table_manager
-		 * @param \Gobl\DBAL\QueryBuilder     $query
+		 * @param \Gobl\DBAL\Db           $db
+		 * @param \Gobl\DBAL\QueryBuilder $query
 		 *
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
-		public function __construct(Db $db, MyTableQuery $table_manager, QueryBuilder $query)
+		public function __construct(Db $db, QueryBuilder $query)
 		{
 			if ($query->getType() !== QueryBuilder::QUERY_TYPE_SELECT) {
 				throw new ORMException('The query should be a selection.');
 			}
 
-			$this->db            = $db;
-			$this->table_manager = $table_manager;
-			$this->query         = $query;
-			$driver              = $db->getConnection()
-									  ->getAttribute(\PDO::ATTR_DRIVER_NAME);
+			$this->db    = $db;
+			$this->query = $query;
+			$driver      = $db->getConnection()
+							  ->getAttribute(\PDO::ATTR_DRIVER_NAME);
 			// TODO search and verify source
 			//  - we should not trust rowCount
 			//  - sqlite 3.x does not support rowCount
@@ -111,12 +109,14 @@
 		/**
 		 * Fetches the next row into table MyEntity class instance.
 		 *
+		 * @param bool $strict enable/disable strict mode on class fetch
+		 *
 		 * @return null|\MY_PROJECT_DB_NS\MyEntity
 		 */
-		public function fetchClass()
+		public function fetchClass($strict = true)
 		{
 			if ($this->entity === null) {
-				$this->entity = new \MY_PROJECT_DB_NS\MyEntity(false);
+				$this->entity = new \MY_PROJECT_DB_NS\MyEntity(false, $strict);
 			}
 
 			if ($this->fetch_style !== \PDO::FETCH_INTO) {
@@ -131,15 +131,17 @@
 		/**
 		 * Fetches all rows and return array of MyEntity class instance.
 		 *
+		 * @param bool $strict enable/disable strict mode on class fetch
+		 *
 		 * @return \MY_PROJECT_DB_NS\MyEntity[]
 		 */
-		public function fetchAllClass()
+		public function fetchAllClass($strict = true)
 		{
 			$this->fetch_style = \PDO::FETCH_CLASS | \PDO::FETCH_PROPS_LATE;
 			$entity_class      = \MY_PROJECT_DB_NS\MyEntity::class;
 
 			return $this->getStatement()
-						->fetchAll($this->fetch_style, $entity_class, [false]);
+						->fetchAll($this->fetch_style, $entity_class, [false, $strict]);
 		}
 
 		/**
@@ -239,18 +241,30 @@
 		 */
 		public function count()
 		{
-			if ($this->count_cache === null) {
+			if ($this->limited_count_cache === null) {
 				if ($this->trust_row_count === false) {
-					$sql               = $this->query->getSqlQuery();
-					$sql               = 'SELECT ' . 'COUNT(*) FROM (' . $sql . ')';
-					$req               = $this->db->execute($sql, $this->query->getBoundValues(), $this->query->getBoundValuesTypes());
-					$this->count_cache = (int)$req->fetchColumn();
+					$this->limited_count_cache = $this->query->runTotalRowsCount();
 				} else {
-					$this->count_cache = $this->getStatement()
-											  ->rowCount();
+					$this->limited_count_cache = $this->getStatement()
+													  ->rowCount();
 				}
 			}
 
-			return $this->count_cache;
+			return $this->limited_count_cache;
 		}
+
+		/**
+		 * Count rows without limit.
+		 *
+		 * @return int
+		 */
+		public function totalCount()
+		{
+			if ($this->total_count_cache === null) {
+				$this->total_count_cache = $this->query->runTotalRowsCount(false);
+			}
+
+			return $this->total_count_cache;
+		}
+
 	}
