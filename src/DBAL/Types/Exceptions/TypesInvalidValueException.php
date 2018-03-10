@@ -15,4 +15,25 @@
 	 *
 	 * @package Gobl\DBAL\Types\Exceptions
 	 */
-	class TypesInvalidValueException extends TypesException { }
+	class TypesInvalidValueException extends TypesException {
+		protected $debug_data = [];
+
+		/**
+		 * Gets debug data.
+		 *
+		 * @return array
+		 */
+		public function getDebugData()
+		{
+			return $this->debug_data;
+		}
+
+		/**
+		 * Sets debug data.
+		 *
+		 * @param array $debug
+		 */
+		public function setDebugData(array $debug){
+			$this->debug_data = $debug;
+		}
+	}
