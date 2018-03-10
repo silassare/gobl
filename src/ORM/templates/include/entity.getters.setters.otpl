@@ -20,7 +20,7 @@
 		 *
 		 * @param <%$column.argType%> $<%$column.argName%>
 		 *
-		 * @return \<%$.namespace%>\<%$.class.entity%>
+		 * @return \<%$.class.use_entity%>
 		 */
 		public function set<%$column.methodName%>($<%$column.argName%>)
 		{

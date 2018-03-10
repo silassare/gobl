@@ -1,16 +1,16 @@
-<%loop($.relations : $relation){%>
+<%loop($.relations.list : $relation){%>
 <%if($relation.type === 'one-to-one'){%>
         /**
          * OneToOne relation between `<%$relation.host.table.name%>` and `<%$relation.target.table.name%>`.
          *
-         * @return null|\<%$relation.target.namespace%>\<%$relation.target.class.entity%>
+         * @return null|\<%$relation.target.class.use_entity%>
          */
         public function get<%$relation.methodName%>()
         {
             if (!isset($this->r_<%$relation.name%>)) {
-                $m = new <%$relation.target.class.query%>();
-                <%loop ($relation.filters : $filterMethod : $valueMethod){%>
-                $m->filterBy<%$filterMethod%>($this->get<%$valueMethod%>());
+                $m = new <%$relation.target.class.query%>RealR();
+                <%loop ($relation.filters : $filter){%>
+                $m->filterBy<%$filter.from.methodName%>($this->get<%$filter.to.methodName%>());
                 <%}%>
                 $this->r_<%$relation.name%> = $m->find()->fetchClass();
             }
@@ -21,31 +21,35 @@
         /**
          * OneToMany relation between `<%$relation.host.table.name%>` and `<%$relation.target.table.name%>`.
          *
-		 * @param null|int $max    maximum row to retrieve
-		 * @param int      $offset first row offset
-		 *
-         * @return \<%$relation.target.namespace%>\<%$relation.target.class.entity%>[]
+         * @param array    $filters  the row filters
+         * @param int|null $max      maximum row to retrieve
+         * @param int      $offset   first row offset
+         * @param array    $order_by order by rules
+         * @param int|bool $total    total rows without limit
+         *
+         * @return \<%$relation.target.class.use_entity%>[]
          */
-        public function get<%$relation.methodName%>($max = null, $offset = 0)
+        function get<%$relation.methodName%>($filters = [], $max = null, $offset = 0, $order_by = [], &$total = false)
         {
-            $m = new <%$relation.target.class.query%>();
-            <%loop ($relation.filters : $filterMethod : $valueMethod){%>
-            $m->filterBy<%$filterMethod%>($this->get<%$valueMethod%>());
-            <%}%>
-            return $m->find($max, $offset)->fetchAllClass();
+            <%loop ($relation.filters : $filter){%>
+            $filters[<%$relation.target.class.entity%>RealR::<%$filter.from.const%>] = $this->get<%$filter.to.methodName%>();<%}%>
+
+            $ctrl = new <%$relation.target.class.controller%>RealR();
+
+            return $ctrl->getAllItems($filters, $max, $offset, $order_by, $total);
         }
 <%} else if($relation.type === 'many-to-one'){%>
         /**
          * ManyToOne relation between `<%$relation.host.table.name%>` and `<%$relation.target.table.name%>`.
          *
-         * @return null|\<%$relation.target.namespace%>\<%$relation.target.class.entity%>
+         * @return null|\<%$relation.target.class.use_entity%>
          */
         public function get<%$relation.methodName%>()
         {
             if (!isset($this->r_<%$relation.name%>)) {
-                $m = new <%$relation.target.class.query%>();
-                <%loop ($relation.filters : $filterMethod : $valueMethod){%>
-                $m->filterBy<%$filterMethod%>($this->get<%$valueMethod%>());
+                $m = new <%$relation.target.class.query%>RealR();
+                <%loop ($relation.filters : $filter){%>
+                $m->filterBy<%$filter.from.methodName%>($this->get<%$filter.to.methodName%>());
                 <%}%>
                 $this->r_<%$relation.name%> = $m->find()->fetchClass();
             }

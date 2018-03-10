@@ -15,6 +15,7 @@
 	use Gobl\DBAL\Relations\Relation;
 	use Gobl\DBAL\Table;
 	use Gobl\DBAL\Types\Type;
+	use Gobl\DBAL\Utils;
 	use Gobl\ORM\Exceptions\ORMException;
 
 	class Generator
@@ -129,7 +130,7 @@
 			}
 
 			if (empty($service_class)) {
-				$service_class = $this->toCamelCase($table->getName() . '_service');
+				$service_class = Utils::toCamelCase($table->getName() . '_service');
 			}
 
 			$templates_dir                  = $this->getTemplateDir();
@@ -155,8 +156,8 @@
 				"is_file_service" => false,
 				"can_serve_resp"  => false,
 				"cross_site"      => false,
-				"require_session"  => true,
-				"request_methods"     => ['POST', 'GET', 'PUT', 'PATCH', 'DELETE']
+				"require_session" => true,
+				"request_methods" => ['POST', 'GET', 'PUT', 'PATCH', 'DELETE']
 			];
 		}
 
@@ -252,7 +253,7 @@
 
 			$c['name']       = $name;
 			$c['fullName']   = $column->getFullName();
-			$c['methodName'] = $this->toCamelCase($name);
+			$c['methodName'] = Utils::toCamelCase($name);
 			$c['const']      = 'COL_' . strtoupper($name);
 			$c['columnType'] = $this->types_map[$type_const][0];
 			$c['returnType'] = $this->types_map[$type_const][1];
@@ -271,14 +272,16 @@
 		 */
 		private function relationsProperties(Table $table)
 		{
+			$use            = [];
 			$relation_types = [
 				Relation::ONE_TO_ONE   => 'one-to-one',
 				Relation::ONE_TO_MANY  => 'one-to-many',
 				Relation::MANY_TO_ONE  => 'many-to-one',
 				Relation::MANY_TO_MANY => 'many-to-many'
 			];
-			$relations      = $table->getRelations();
-			$list           = [];
+
+			$relations = $table->getRelations();
+			$list      = [];
 			foreach ($relations as $relation_name => $relation) {
 				$type         = $relation->getType();
 				$master_table = $relation->getMasterTable();
@@ -286,9 +289,8 @@
 				$host_table   = $relation->getHostTable();
 				$target_table = $relation->getTargetTable();
 				$c            = $relation->getRelationColumns();
-
-				$filters    = [];
-				$left_right = true;
+				$filters      = [];
+				$left_right   = true;
 
 				if ($host_table->hasColumn(key($c))) {
 					$left_right = false;
@@ -296,34 +298,41 @@
 
 				foreach ($c as $left => $right) {
 					if ($left_right) {
-						$left           = $this->toCamelCase($target_table->getColumn($left)
-																		  ->getName());
-						$right          = $this->toCamelCase($host_table->getColumn($right)
-																		->getName());
-						$filters[$left] = $right;
+						$left   = $this->columnProperties($target_table->getColumn($left));
+						$right  = $this->columnProperties($host_table->getColumn($right));
+						$filter = ['from' => $left, 'to' => $right];
 					} else {
-						$left            = $this->toCamelCase($host_table->getColumn($left)
-																		 ->getName());
-						$right           = $this->toCamelCase($target_table->getColumn($right)
-																		   ->getName());
-						$filters[$right] = $left;
+						$left   = $this->columnProperties($host_table->getColumn($left));
+						$right  = $this->columnProperties($target_table->getColumn($right));
+						$filter = ['from' => $right, 'to' => $left];
 					}
+
+					$filters[] = $filter;
 				}
 
 				$r['name']       = $relation->getName();
 				$r['type']       = $relation_types[$type];
-				$r['methodName'] = $this->toCamelCase($r['name']);
-				$r['master']     = $this->getTableInject($master_table);
-				$r['slave']      = $this->getTableInject($slave_table);
+				$r['methodName'] = Utils::toCamelCase($r['name']);
 				$r['master']     = $this->getTableInject($master_table);
 				$r['slave']      = $this->getTableInject($slave_table);
 				$r['host']       = $this->getTableInject($host_table);
 				$r['target']     = $this->getTableInject($target_table);
 				$r['filters']    = $filters;
-				$list[]          = $r;
+
+				if ($type === Relation::MANY_TO_MANY OR $type === Relation::ONE_TO_MANY) {
+					$use[] = $r["target"]["class"]["use_entity"] . " as " . $r["target"]["class"]["entity"] . "RealR";
+					$use[] = $r["target"]["class"]["use_controller"] . " as " . $r["target"]["class"]["controller"] . "RealR";
+				} else {
+					$use[] = $r["target"]["class"]["use_query"] . " as " . $r["target"]["class"]["query"] . "RealR";
+				}
+
+				$list[] = $r;
 			}
 
-			return $list;
+			$result["use"]  = array_unique($use);
+			$result["list"] = $list;
+
+			return $result;
 		}
 
 		/**
@@ -335,18 +344,24 @@
 		 */
 		private function getTableInject(Table $table)
 		{
-			$query_class_name      = $this->toCamelCase($table->getPluralName() . '_query');
-			$entity_class_name     = $this->toCamelCase($table->getSingularName());
-			$results_class_name    = $this->toCamelCase($table->getPluralName() . '_results');
-			$controller_class_name = $this->toCamelCase($table->getPluralName() . '_controller');
+			$query_class_name      = Utils::toCamelCase($table->getPluralName() . '_query');
+			$entity_class_name     = Utils::toCamelCase($table->getSingularName());
+			$results_class_name    = Utils::toCamelCase($table->getPluralName() . '_results');
+			$controller_class_name = Utils::toCamelCase($table->getPluralName() . '_controller');
+
+			$ns = $table->getNamespace();
 
 			return [
-				'namespace' => $table->getNamespace(),
+				'namespace' => $ns,
 				'class'     => [
-					'query'      => $query_class_name,
-					'entity'     => $entity_class_name,
-					'results'    => $results_class_name,
-					'controller' => $controller_class_name
+					'query'          => $query_class_name,
+					'entity'         => $entity_class_name,
+					'results'        => $results_class_name,
+					'controller'     => $controller_class_name,
+					'use_query'      => $ns . "\\" . $query_class_name,
+					'use_entity'     => $ns . "\\" . $entity_class_name,
+					'use_results'    => $ns . "\\" . $results_class_name,
+					'use_controller' => $ns . "\\" . $controller_class_name
 				],
 				'table'     => [
 					'name' => $table->getName()
@@ -354,19 +369,4 @@
 			];
 		}
 
-		/**
-		 * Converts string to CamelCase.
-		 *
-		 * example:
-		 *    my_table_query_name    => MyTableQueryName
-		 *    my_column_name        => MyColumnName
-		 *
-		 * @param string $str the table or column name
-		 *
-		 * @return string
-		 */
-		private function toCamelCase($str)
-		{
-			return implode('', array_map('ucfirst', explode('_', $str)));
-		}
 	}

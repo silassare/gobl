@@ -1,2 +1,2 @@
-<%loop($.relations : $relation){%>	use <%$relation.target.namespace%>\<%$relation.target.class.query%>;
+<%loop($.relations.use : $class){%>	use <%$class%>;
 <%}%>
