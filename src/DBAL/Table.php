@@ -196,13 +196,14 @@
 		{
 			$name = $relation->getName();
 
-			if (isset($this->relations[$name])) {
+			if ($this->hasRelation($name)) {
 				throw new DBALException(sprintf('Cannot override relation "%s" in table "%s".', $name, $this->getName()));
 			}
 
 			if ($this->hasColumn($name)) {
 				throw new DBALException(sprintf('Cannot use "%s" as relation name, column "%s" exists in table "%s".', $name, $name, $this->getName()));
 			}
+
 			$master_name = $relation->getMasterTable()
 									->getName();
 			$slave_name  = $relation->getSlaveTable()
@@ -375,11 +376,7 @@
 		 */
 		public function hasColumn($name)
 		{
-			if (isset($this->columns[$name]) OR isset($this->col_full_name_map[$name])) {
-				return true;
-			}
-
-			return false;
+			return isset($this->columns[$name]) OR isset($this->col_full_name_map[$name]);
 		}
 
 		/**
@@ -411,6 +408,34 @@
 				}
 
 				return $this->columns[$name];
+			}
+
+			return null;
+		}
+
+		/**
+		 * Checks if a given relation is defined.
+		 *
+		 * @param string $name the relation name
+		 *
+		 * @return bool
+		 */
+		public function hasRelation($name)
+		{
+			return isset($this->relations[$name]);
+		}
+
+		/**
+		 * Gets a relation by name.
+		 *
+		 * @param string $name the relation name
+		 *
+		 * @return null|\Gobl\DBAL\Relations\Relation
+		 */
+		public function getRelation($name)
+		{
+			if ($this->hasRelation($name)) {
+				return $this->relations[$name];
 			}
 
 			return null;
