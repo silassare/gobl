@@ -320,7 +320,7 @@
 			$info     = self::parseColumnReference($ref_name);
 
 			if ($info) {
-				$_col      = null;
+				$_col_opt  = null;
 				$clone     = $info['clone'];
 				$ref_table = $info['table'];
 				$ref_col   = $info['column'];
@@ -329,22 +329,23 @@
 					/** @var $tbl \Gobl\DBAL\Table */
 					$tbl = $this->tables[$ref_table];
 					if ($tbl->hasColumn($ref_col)) {
-						$_col = $tbl->getColumn($ref_col)
-									->getOptions();
+						$_col_opt = $tbl->getColumn($ref_col)
+										->getTypeObject()
+										->getCleanOptions();
 					}
 				} elseif (isset($tables[$ref_table])) {
 					$cols = $tables[$ref_table]['columns'];
 					if (is_array($cols) AND isset($cols[$ref_col])) {
-						$_col  = $cols[$ref_col];
-						$type  = null;
-						$opt_a = [];
-						$opt_b = null;
+						$_col_opt = $cols[$ref_col];
+						$type     = null;
+						$opt_a    = [];
+						$opt_b    = null;
 
-						if (is_string($_col)) {
-							$type = $_col;
-						} elseif (is_array($_col) AND isset($_col['type'])) {
-							$type  = $_col['type'];
-							$opt_a = $_col;
+						if (is_string($_col_opt)) {
+							$type = $_col_opt;
+						} elseif (is_array($_col_opt) AND isset($_col_opt['type'])) {
+							$type  = $_col_opt['type'];
+							$opt_a = $_col_opt;
 						}
 
 						if ($type AND self::isColumnReference($type)) {
@@ -352,17 +353,17 @@
 						}
 
 						if (is_array($opt_b)) {
-							$_col = array_merge($opt_b, $opt_a, ['type' => $opt_b['type']]);
+							$_col_opt = array_merge($opt_b, $opt_a, ['type' => $opt_b['type']]);
 						}
 					}
 				}
 
-				if (is_array($_col)) {
-					if ($clone === false AND isset($_col['auto_increment'])) {
-						unset($_col['auto_increment']);
+				if (is_array($_col_opt)) {
+					if ($clone === false AND isset($_col_opt['auto_increment'])) {
+						unset($_col_opt['auto_increment']);
 					}
 
-					return $_col;
+					return $_col_opt;
 				}
 			}
 
@@ -427,17 +428,16 @@
 				$tbl           = new Table($table_name, $plural_name, $singular_name, $namespace, $tables_prefix);
 
 				foreach ($columns as $column_name => $value) {
-					$column = is_array($value) ? $value : ['type' => $value];
+					$col_options = is_array($value) ? $value : ['type' => $value];
 
-					if (isset($column['type']) AND self::isColumnReference($column['type'])) {
-						$options        = $this->resolveReferenceColumn($column['type'], $tables);
-						$column         = is_array($value) ? array_merge($options, $value) : $options;
-						$column['type'] = $options['type'];
+					if (isset($col_options['type']) AND self::isColumnReference($col_options['type'])) {
+						$ref_options         = $this->resolveReferenceColumn($col_options['type'], $tables);
+						$col_options         = is_array($value) ? array_merge($ref_options, $value) : $ref_options;
+						$col_options['type'] = $ref_options['type'];
 					}
 
-					if (is_array($column)) {
-						$col = new Column($column_name, $col_prefix);
-						$col->setOptions($column);
+					if (is_array($col_options)) {
+						$col = new Column($column_name, $col_prefix, $col_options);
 					} else {
 						throw new DBALException(sprintf('Invalid column "%s" options in table "%s".', $column_name, $table_name));
 					}
@@ -518,13 +518,13 @@
 			foreach ($tables as $table_name => $table) {
 				if (isset($table['relations']) AND is_array($table['relations']) AND count($table['relations'])) {
 					$relations = $table['relations'];
-					foreach ($relations as $relation_name => $options) {
+					foreach ($relations as $relation_name => $rel_options) {
 						$r = null;
 
-						if (is_array($options) AND isset($options['type']) AND isset($options['target'])) {
-							$type    = $options['type'];
-							$target  = $options['target'];
-							$columns = isset($options['columns']) ? $options['columns'] : null;
+						if (is_array($rel_options) AND isset($rel_options['type']) AND isset($rel_options['target'])) {
+							$type    = $rel_options['type'];
+							$target  = $rel_options['target'];
+							$columns = isset($rel_options['columns']) ? $rel_options['columns'] : null;
 
 							$this->assertHasTable($target);
 

@@ -163,25 +163,25 @@
 		/**
 		 * Prefix operand.
 		 *
-		 * @param mixed $a
+		 * @param mixed $operand
 		 *
 		 * @return string
 		 */
-		private function prefixOperand($a)
+		private function prefixOperand($operand)
 		{
-			if (is_string($a) AND strlen($a) > 2 AND $a[0] !== ':') {
-				$parts = explode('.', $a);
+			if (is_string($operand) AND strlen($operand) > 2 AND $operand[0] !== ':') {
+				$parts = explode('.', $operand);
 				if (count($parts) === 2 AND !empty($parts[0]) AND !empty($parts[1])) {
 					try {
-						$table = $this->qb->prefixTable($parts[0]);
-						$a     = $this->qb->prefix($table, $parts[1]);
+						$table   = $this->qb->prefixTable($parts[0]);
+						$operand = $this->qb->prefix($table, $parts[1]);
 					} catch (\Exception $e) {
-						return $a;
+						return $operand;
 					}
 				}
 			}
 
-			return $a;
+			return $operand;
 		}
 
 		/**
