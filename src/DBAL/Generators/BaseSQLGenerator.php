@@ -55,7 +55,7 @@
 		protected function getBoolColumnDefinition(Column $column)
 		{
 			$column_name = $column->getFullName();
-			$options     = $column->getOptions();
+			$options     = $column->getTypeObject()->getCleanOptions();
 			$null        = $options['null'];
 			$default     = $options['default'];
 
@@ -89,7 +89,7 @@
 		protected function getIntColumnDefinition(Column $column)
 		{
 			$column_name = $column->getFullName();
-			$options     = $column->getOptions();
+			$options     = $column->getTypeObject()->getCleanOptions();
 			$null        = $options['null'];
 			$unsigned    = $options['unsigned'];
 			$default     = $options['default'];
@@ -150,7 +150,7 @@
 		protected function getBigintColumnDefinition(Column $column)
 		{
 			$column_name = $column->getFullName();
-			$options     = $column->getOptions();
+			$options     = $column->getTypeObject()->getCleanOptions();
 			$null        = $options['null'];
 			$unsigned    = $options['unsigned'];
 			$default     = $options['default'];
@@ -193,7 +193,7 @@
 		protected function getFloatColumnDefinition(Column $column)
 		{
 			$column_name = $column->getFullName();
-			$options     = $column->getOptions();
+			$options     = $column->getTypeObject()->getCleanOptions();
 			$null        = $options['null'];
 			$unsigned    = $options['unsigned'];
 			$default     = $options['default'];
@@ -233,7 +233,7 @@
 		protected function getStringColumnDefinition(Column $column)
 		{
 			$column_name = $column->getFullName();
-			$options     = $column->getOptions();
+			$options     = $column->getTypeObject()->getCleanOptions();
 			$null        = $options['null'];
 			$default     = $options['default'];
 			$min         = isset($options['min']) ? $options['min'] : 0;

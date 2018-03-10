@@ -44,7 +44,7 @@
 			$this->table->assertHasColumn($name);
 			$column = $this->table->getColumn($name);
 
-			if ($column->isNullAble()) {
+			if ($column->getTypeObject()->isNullAble()) {
 				throw new DBALException(sprintf('All parts of a PRIMARY KEY must be NOT NULL; if you need NULL in a key, use UNIQUE instead; check column "%s" in table "%s".', $name, $this->table->getName()));
 			}
 

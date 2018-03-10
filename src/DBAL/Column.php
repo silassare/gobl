@@ -65,12 +65,11 @@
 		/**
 		 * Column constructor.
 		 *
-		 * @param string      $name   the column name
-		 * @param string|null $prefix the column prefix
-		 *
-		 * @throws \InvalidArgumentException
+		 * @param string                      $name   the column name
+		 * @param string|null                 $prefix the column prefix
+		 * @param array|\Gobl\DBAL\Types\Type $type   the column type instance or options array
 		 */
-		public function __construct($name, $prefix = null)
+		public function __construct($name, $prefix = null, $type)
 		{
 			if (!preg_match(Column::NAME_REG, $name))
 				throw new \InvalidArgumentException(sprintf('Invalid column name "%s".', $name));
@@ -79,23 +78,17 @@
 				if (!preg_match(Column::PREFIX_REG, $prefix))
 					throw new \InvalidArgumentException(sprintf('Invalid column prefix name "%s".', $prefix));
 			}
+
+			if ($type instanceof Type) {
+				$this->type = $type;
+			} elseif (is_array($type)) {
+				$this->type = $this->arrayOptionsToType($type);
+			} else {
+				throw new \InvalidArgumentException("Invalid column type.");
+			}
+
 			$this->name   = strtolower($name);
 			$this->prefix = strtolower($prefix);
-		}
-
-		/**
-		 * Sets column type.
-		 *
-		 * @param \Gobl\DBAL\Types\Type $type the column type object.
-		 *
-		 * @return $this
-		 *
-		 */
-		public function setType(Type $type)
-		{
-			$this->type = $type;
-
-			return $this;
 		}
 
 		/**
@@ -103,10 +96,10 @@
 		 *
 		 * @param array $options
 		 *
-		 * @return $this
+		 * @return \Gobl\DBAL\Types\Type
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
-		public function setOptions(array $options)
+		private function arrayOptionsToType(array $options)
 		{
 			if (!isset($options['type']))
 				throw new DBALException(sprintf('you should define a column type for "%s".', $this->name));
@@ -121,55 +114,7 @@
 				throw new DBALException(sprintf('unsupported column type "%s" defined for "%s".', $type, $this->name));
 			}
 
-			$this->type = $t;
-
-			return $this;
-		}
-
-		/**
-		 * Check if this column is auto incremented.
-		 *
-		 * @return bool
-		 */
-		public function isAutoIncrement()
-		{
-			$options = $this->getOptions();
-
-			return isset($options['auto_increment']) AND $options['auto_increment'] === true;
-		}
-
-		/**
-		 * Check if this column accept null value.
-		 *
-		 * @return bool
-		 */
-		public function isNullAble()
-		{
-			$options = $this->getOptions();
-
-			return (bool)$options['null'];
-		}
-
-		/**
-		 * Returns this column default value.
-		 *
-		 * @return mixed
-		 */
-		public function getDefaultValue()
-		{
-			$options = $this->getOptions();
-
-			return $options['default'];
-		}
-
-		/**
-		 * Gets column options.
-		 *
-		 * @return array
-		 */
-		public function getOptions()
-		{
-			return $this->type->getCleanOptions();
+			return $t;
 		}
 
 		/**
@@ -236,7 +181,7 @@
 			OR is_subclass_of($type_class, TypeBool::class);
 
 			if (!$ok) {
-				throw new DBALException(sprintf('Your custom column type "%s"("%s") should extends one of the standard column types.', $type_name, $type_class));
+				throw new DBALException(sprintf('Your custom column type "%s => %s" should extends one of the standard column types.', $type_name, $type_class));
 			}
 
 			self::$columns_types[$type_name] = $type_class;
