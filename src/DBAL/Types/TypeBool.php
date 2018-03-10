@@ -17,11 +17,9 @@
 	 *
 	 * @package Gobl\DBAL\Types
 	 */
-	class TypeBool implements Type
+	class TypeBool extends TypeBase
 	{
-		private        $null          = false;
-		private        $default       = null;
-		private        $strict;
+		private        $strict        = true;
 		private static $list          = [true, false, 1, 0];
 		private static $extended_list = [
 			true,
@@ -68,15 +66,7 @@
 		/**
 		 * {@inheritdoc}
 		 */
-		public function nullAble()
-		{
-			$this->null = true;
-		}
-
-		/**
-		 * {@inheritdoc}
-		 */
-		public function def($value)
+		public function setDefault($value)
 		{
 			$this->default = intval(boolval($value));
 
@@ -86,12 +76,14 @@
 		/**
 		 * {@inheritdoc}
 		 */
-		public function validate($value)
+		public function validate($value, $column_name, $table_name)
 		{
-			$debug = ['value' => $value, 'strict' => $this->strict, 'default' => $this->default];
+			$debug = [
+				"value" => $value
+			];
 
-			if (is_null($value) AND $this->null)
-				return $this->default;
+			if (is_null($value) AND $this->isNullAble())
+				return $this->getDefault();
 
 			$allowed = $this->strict ? self::$list : self::$extended_list;
 
@@ -112,14 +104,13 @@
 		 */
 		public static function getInstance(array $options)
 		{
-			$strict   = array_key_exists('strict', $options) ? boolval($options['strict']) : true;
-			$instance = new self($strict);
+			$instance = new self(self::getOptionKey($options, 'strict', true));
 
-			if (isset($options['null']) AND $options['null'])
+			if (self::getOptionKey($options, 'null', false))
 				$instance->nullAble();
 
 			if (array_key_exists('default', $options))
-				$instance->def($options['default']);
+				$instance->setDefault($options['default']);
 
 			return $instance;
 		}
@@ -132,8 +123,8 @@
 			$options = [
 				'type'    => 'bool',
 				'strict'  => $this->strict,
-				'null'    => $this->null,
-				'default' => $this->default
+				'null'    => $this->isNullAble(),
+				'default' => $this->getDefault()
 			];
 
 			return $options;

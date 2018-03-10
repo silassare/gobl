@@ -18,14 +18,11 @@
 	 *
 	 * @package Gobl\DBAL\Types
 	 */
-	class TypeInt implements Type
+	class TypeInt extends TypeBase
 	{
-		private $null           = false;
-		private $default        = null;
-		private $unsigned       = false;
-		private $auto_increment = false;
-		private $min;
-		private $max;
+		private $unsigned = false;
+		private $min      = null;
+		private $max      = null;
 		const INT_SIGNED_MIN   = -2147483648;
 		const INT_SIGNED_MAX   = 2147483647;
 		const INT_UNSIGNED_MIN = 0;
@@ -114,51 +111,20 @@
 		}
 
 		/**
-		 * Auto-increment allows a unique number to be generated,
-		 * when a new record is inserted.
-		 *
-		 * @return $this
-		 */
-		public function autoIncrement()
-		{
-			$this->auto_increment = true;
-
-			return $this;
-		}
-
-		/**
 		 * {@inheritdoc}
 		 */
-		public function nullAble()
+		public function validate($value, $column_name, $table_name)
 		{
-			$this->null = true;
-
-			return $this;
-		}
-
-		/**
-		 * {@inheritdoc}
-		 */
-		public function def($value)
-		{
-			$this->default = $value;
-
-			return $this;
-		}
-
-		/**
-		 * {@inheritdoc}
-		 */
-		public function validate($value)
-		{
-			$debug = ['value' => $value, 'min' => $this->min, 'max' => $this->max, 'default' => $this->default];
+			$debug = [
+				"value" => $value
+			];
 
 			if (is_null($value)) {
-				if ($this->auto_increment) {
+				if ($this->isAutoIncremented()) {
 					return null;
 				}
-				if ($this->null) {
-					return $this->default;
+				if ($this->isNullAble()) {
+					return $this->getDefault();
 				}
 			}
 
@@ -187,22 +153,16 @@
 		 */
 		public static function getInstance(array $options)
 		{
-			$options = array_merge([
-				'min'      => null,
-				'max'      => null,
-				'unsigned' => false
-			], $options);
+			$instance = new self(self::getOptionKey($options, 'min', null), self::getOptionKey($options, 'max', null), self::getOptionKey($options, 'unsigned', false));
 
-			$instance = new self($options['min'], $options['max'], $options['unsigned']);
-
-			if (isset($options['null']) AND $options['null'])
+			if (self::getOptionKey($options, 'null', false))
 				$instance->nullAble();
 
-			if (isset($options['auto_increment']) AND $options['auto_increment'])
+			if (self::getOptionKey($options, 'auto_increment', false))
 				$instance->autoIncrement();
 
 			if (array_key_exists('default', $options))
-				$instance->def($options['default']);
+				$instance->setDefault($options['default']);
 
 			return $instance;
 		}
@@ -217,9 +177,9 @@
 				'min'            => $this->min,
 				'max'            => $this->max,
 				'unsigned'       => $this->unsigned,
-				'auto_increment' => $this->auto_increment,
-				'null'           => $this->null,
-				'default'        => $this->default
+				'auto_increment' => $this->isAutoIncremented(),
+				'null'           => $this->isNullAble(),
+				'default'        => $this->getDefault()
 			];
 
 			return $options;

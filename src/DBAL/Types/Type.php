@@ -31,6 +31,42 @@
 		public function getTypeConstant();
 
 		/**
+		 * Enable null value.
+		 *
+		 * @return \Gobl\DBAL\Types\Type
+		 */
+		public function nullAble();
+
+		/**
+		 * Checks if the type allow null value.
+		 *
+		 * @return bool
+		 */
+		public function isNullAble();
+
+		/**
+		 * Auto-increment allows a unique number to be generated,
+		 * when a new record is inserted.
+		 *
+		 * @return $this
+		 */
+		public function autoIncrement();
+
+		/**
+		 * Checks if the type is auto-incremented.
+		 *
+		 * @return bool
+		 */
+		public function isAutoIncremented();
+
+		/**
+		 * Gets the default value.
+		 *
+		 * @return mixed
+		 */
+		public function getDefault();
+
+		/**
 		 * Explicitly set the default value.
 		 *
 		 * the default should comply with all rules or not ?
@@ -40,25 +76,20 @@
 		 *
 		 * @return \Gobl\DBAL\Types\Type
 		 */
-		public function def($value);
-
-		/**
-		 * Enable null value.
-		 *
-		 * @return \Gobl\DBAL\Types\Type
-		 */
-		public function nullAble();
+		public function setDefault($value);
 
 		/**
 		 * Called to validate a form field value.
 		 *
-		 * @param string $value the value to validate
+		 * @param string $value       the value to validate
+		 * @param string $column_name the column name
+		 * @param string $table_name  the table name
 		 *
-		 * @return mixed    the cleaned value to use.
+		 * @return mixed the cleaned value to use.
+		 * @internal param string $column the column name
 		 *
-		 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
 		 */
-		public function validate($value);
+		public function validate($value, $column_name, $table_name);
 
 		/**
 		 * Gets clean options from type instance.

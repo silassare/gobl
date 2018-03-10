@@ -18,10 +18,8 @@
 	 *
 	 * @package Gobl\DBAL\Types
 	 */
-	class TypeString implements Type
+	class TypeString extends TypeBase
 	{
-		private $null    = false;
-		private $default = null;
 		private $min;
 		private $max;
 		private $pattern;
@@ -29,13 +27,34 @@
 		/**
 		 * TypeString constructor.
 		 *
-		 * @param int|null $min the minimum string length
-		 * @param int|null $max the maximum string length
+		 * @param int         $min     the minimum string length
+		 * @param int         $max     the maximum string length
+		 * @param string|null $pattern the string pattern
 		 */
-		public function __construct($min = null, $max = null)
+		public function __construct($min = 0, $max = PHP_INT_MAX, $pattern = null)
 		{
-			if (isset($min)) $this->min($min);
-			if (isset($max)) $this->max($max);
+			$this->length($min, $max);
+
+			if (isset($pattern)) $this->pattern($pattern);
+		}
+
+		/**
+		 * Sets string length range.
+		 *
+		 * @param int $min the minimum string length
+		 * @param int $max the maximum string length
+		 *
+		 * @return $this
+		 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+		 */
+		public function length($min, $max)
+		{
+			self::assertSafeIntRange($min, $max, 0);
+
+			$this->min = $min;
+			$this->max = $max;
+
+			return $this;
 		}
 
 		/**
@@ -57,82 +76,20 @@
 		}
 
 		/**
-		 * Sets maximum string length.
-		 *
-		 * @param int $value the maximum string length
-		 *
-		 * @return $this
-		 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-		 * @internal param null|string $error_message the error message
-		 *
-		 */
-		public function max($value)
-		{
-			if (!is_int($value) OR $value < 1)
-				throw new TypesException(sprintf('"%s" is not a valid integer(>0).', $value));
-			if (isset($this->min) AND $value < $this->min)
-				throw new TypesException(sprintf('min=%s and max=%s is not a valid condition.', $this->min, $value));
-
-			$this->max = $value;
-
-			return $this;
-		}
-
-		/**
-		 * Sets minimum string length.
-		 *
-		 * @param int $value the minimum string length
-		 *
-		 * @return $this
-		 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-		 */
-		public function min($value)
-		{
-			if (!is_int($value) OR $value < 1)
-				throw new TypesException(sprintf('"%s" is not a valid integer(>0).', $value));
-			if (isset($this->max) AND $value > $this->max)
-				throw new TypesException(sprintf('min=%s and max=%s is not a valid condition.', $value, $this->max));
-
-			$this->min = $value;
-
-			return $this;
-		}
-
-		/**
 		 * {@inheritdoc}
 		 */
-		public function nullAble()
-		{
-			$this->null = true;
-		}
-
-		/**
-		 * {@inheritdoc}
-		 */
-		public function def($value)
-		{
-			$this->default = $value;
-		}
-
-		/**
-		 * {@inheritdoc}
-		 */
-		public function validate($value)
+		public function validate($value, $column_name, $table_name)
 		{
 			$debug = [
-				'value'   => $value,
-				'min'     => $this->min,
-				'max'     => $this->max,
-				'pattern' => $this->pattern,
-				'default' => $this->default
+				"value" => $value
 			];
 
 			if (is_numeric($value)) { // accept numeric value
 				$value .= '';
 			}
 
-			if ((is_null($value) OR $value === '') AND $this->null)
-				return $this->default;
+			if ((is_null($value) OR $value === '') AND $this->isNullAble())
+				return $this->getDefault();
 
 			if (!is_string($value))
 				throw new TypesInvalidValueException('invalid_string_type', $debug);
@@ -155,21 +112,19 @@
 		public static function getInstance(array $options)
 		{
 			$instance = new self;
+			$min      = self::getOptionKey($options, 'min', 0);
+			$max      = self::getOptionKey($options, 'max', PHP_INT_MAX);
 
-			if (isset($options['min']))
-				$instance->min($options['min']);
-
-			if (isset($options['max']))
-				$instance->max($options['max']);
+			$instance->length($min, $max);
 
 			if (isset($options['pattern']))
 				$instance->pattern($options['pattern']);
 
-			if (isset($options['null']) AND $options['null'])
+			if (self::getOptionKey($options, 'null', false))
 				$instance->nullAble();
 
 			if (array_key_exists('default', $options))
-				$instance->def($options['default']);
+				$instance->setDefault($options['default']);
 
 			return $instance;
 		}
@@ -184,8 +139,8 @@
 				'min'     => $this->min,
 				'max'     => $this->max,
 				'pattern' => $this->pattern,
-				'null'    => $this->null,
-				'default' => $this->default
+				'null'    => $this->isNullAble(),
+				'default' => $this->getDefault()
 			];
 
 			return $options;

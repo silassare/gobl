@@ -18,13 +18,11 @@
 	 *
 	 * @package Gobl\DBAL\Types
 	 */
-	class TypeFloat implements Type
+	class TypeFloat extends TypeBase
 	{
-		private $null     = false;
-		private $default  = null;
 		private $unsigned = false;
-		private $min;
-		private $max;
+		private $min = null;
+		private $max = null;
 
 		/**
 		 * The number of digits following the decimal point.
@@ -127,30 +125,14 @@
 		/**
 		 * {@inheritdoc}
 		 */
-		public function nullAble()
+		public function validate($value, $column_name, $table_name)
 		{
-			$this->null = true;
-		}
+			$debug = [
+				"value"       => $value
+			];
 
-		/**
-		 * {@inheritdoc}
-		 */
-		public function def($value)
-		{
-			$this->default = $value;
-
-			return $this;
-		}
-
-		/**
-		 * {@inheritdoc}
-		 */
-		public function validate($value)
-		{
-			$debug = ['value' => $value, 'min' => $this->min, 'max' => $this->max, 'default' => $this->default];
-
-			if (is_null($value) AND $this->null)
-				return $this->default;
+			if (is_null($value) AND $this->isNullAble())
+				return $this->getDefault();
 
 			if (!is_numeric($value))
 				throw new TypesInvalidValueException('invalid_number_type', $debug);
@@ -177,22 +159,16 @@
 		 */
 		public static function getInstance(array $options)
 		{
-			$options = array_merge([
-				'min'      => null,
-				'max'      => null,
-				'unsigned' => false
-			], $options);
-
-			$instance = new self($options['min'], $options['max'], $options['unsigned']);
+			$instance = new self(self::getOptionKey($options,'min', null),self::getOptionKey($options,'max', null),self::getOptionKey($options,'unsigned', false));
 
 			if (isset($options['mantissa']))
 				$instance->mantissa($options['mantissa']);
 
-			if (isset($options['null']) AND $options['null'])
+			if (self::getOptionKey($options,'null', false))
 				$instance->nullAble();
 
 			if (array_key_exists('default', $options))
-				$instance->def($options['default']);
+				$instance->setDefault($options['default']);
 
 			return $instance;
 		}
@@ -208,8 +184,8 @@
 				'max'      => $this->max,
 				'unsigned' => $this->unsigned,
 				'mantissa' => $this->mantissa,
-				'null'     => $this->null,
-				'default'  => $this->default
+				'null'     => $this->isNullAble(),
+				'default'  => $this->getDefault()
 			];
 
 			return $options;
