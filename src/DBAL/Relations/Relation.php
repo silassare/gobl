@@ -12,9 +12,12 @@
 
 	use Gobl\DBAL\Exceptions\DBALException;
 	use Gobl\DBAL\Table;
+	use Gobl\DBAL\Utils;
 
 	abstract class Relation
 	{
+		const NAME_REG = '#^(?:[a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9]|[a-zA-Z])$#';
+
 		const ONE_TO_ONE   = 1;
 		const ONE_TO_MANY  = 2;
 		const MANY_TO_ONE  = 3;
@@ -33,8 +36,22 @@
 		/** @var string */
 		protected $name;
 
+		/**
+		 * Relation constructor.
+		 *
+		 * @param string           $name
+		 * @param \Gobl\DBAL\Table $host_table
+		 * @param \Gobl\DBAL\Table $target_table
+		 * @param array|null       $columns
+		 * @param int              $type
+		 *
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 */
 		public function __construct($name, Table $host_table, Table $target_table, array $columns = null, $type)
 		{
+			if (!preg_match(Relation::NAME_REG, $name))
+				throw new \InvalidArgumentException(sprintf('Invalid relation name "%s".', $name));
+
 			// the relation is based on foreign keys
 			if (is_null($columns)) {
 				// the slave table contains foreign key from the master table
@@ -141,5 +158,15 @@
 		public function getName()
 		{
 			return $this->name;
+		}
+
+		/**
+		 * Gets relation getter function name.
+		 *
+		 * @return string
+		 */
+		public function getGetterName()
+		{
+			return 'get' . Utils::toCamelCase($this->getName());
 		}
 	}
