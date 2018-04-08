@@ -61,7 +61,7 @@
 		 * @var array
 		 */
 		private static $<%$.table.name%>_fields_map = [
-<%@import('include/ozone.fields.to.columns.map.otpl',$)%>
+<%@import('include/ozone.columns.name.map.otpl',$)%>
 		];
 
 		/**
@@ -70,9 +70,14 @@
 		 * @var array
 		 */
 		private static $<%$.table.name%>_relations_map = [
-//__OZONE_RELATIONS_MAP__
+<%@import('include/ozone.relations.name.map.otpl',$)%>
 		];
 
+		/**
+		 * Executes the service.
+		 *
+		 * @param array $request the request parameters
+		 */
 		public function execute(array $request = [])
 		{
 			// uncomment the next line to allow administrator only
@@ -94,21 +99,45 @@
 			}
 
 			if (!$success) {
-				if ($error instanceof ORMControllerFormException) {
-					throw new InvalidFormException(null, [$error->getMessage(), $error->getData()], $error);
-				}
-
-				if ($error instanceof TypesInvalidValueException) {
-					// don't expose debug data to client, may contains sensitive data
-					$debug         = $error->getDebugData();
-					$data          = $error->getData();
-					$data["field"] = self::maskColumn($debug["column_name"]);
-
-					throw new InvalidFieldException($error->getMessage(), $data, $error);
-				}
+				$this->tryConvertException($error);
 			}
 		}
 
+		/**
+		 * Converts Gobl exceptions unto OZone exceptions.
+		 *
+		 * @param \Exception $error the exception
+		 *
+		 * @throws \Exception
+		 * @throws \OZONE\OZ\Exceptions\InvalidFieldException
+		 * @throws \OZONE\OZ\Exceptions\InvalidFormException
+		 */
+		public static function tryConvertException(\Exception $error)
+		{
+			if ($error instanceof ORMControllerFormException) {
+				throw new InvalidFormException(null, [$error->getMessage(), $error->getData()], $error);
+			}
+
+			if ($error instanceof TypesInvalidValueException) {
+				// don't expose debug data to client, may contains sensitive data
+				$debug         = $error->getDebugData();
+				$data          = $error->getData();
+				$data["field"] = self::maskColumn($debug["column_name"]);
+
+				throw new InvalidFieldException($error->getMessage(), $data, $error);
+			}
+
+			throw $error;
+		}
+
+		/**
+		 * Execute request with REST API in minds.
+		 *
+		 * @param array $request
+		 *
+		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
+		 * @throws \OZONE\OZ\Exceptions\NotFoundException
+		 */
 		private function executeSub(array $request)
 		{
 			if ($this->noExtra()) {
@@ -149,11 +178,21 @@
 			}
 		}
 
+		/**
+		 * Checks for request extra.
+		 *
+		 * @return bool
+		 */
 		private function noExtra()
 		{
 			return empty(URIHelper::getUriExtra());
 		}
 
+		/**
+		 * Gets identified extra.
+		 *
+		 * @return array|bool
+		 */
 		private function getIdentifiedExtra()
 		{
 			$extra_map = [<%$.class.entity%>::<%$.pk.const%>];
@@ -167,6 +206,11 @@
 			return false;
 		}
 
+		/**
+		 * Gets identified relation extra.
+		 *
+		 * @return array|bool
+		 */
 		private function getIdentifiedRelationExtra()
 		{
 			$extra_map = [<%$.class.entity%>::<%$.pk.const%>, 'relation'];
@@ -181,6 +225,8 @@
 		}
 
 		/**
+		 * Removes column mask.
+		 *
 		 * @param array $request
 		 *
 		 * @return array
@@ -200,7 +246,9 @@
 		}
 
 		/**
-		 * @param string $column_name
+		 * Mask column name.
+		 *
+		 * @param string $column_name the column name
 		 *
 		 * @return string
 		 */
@@ -216,6 +264,8 @@
 		}
 
 		/**
+		 * Remove relation name mask.
+		 *
 		 * @param string $relation_name
 		 *
 		 * @return string
@@ -425,7 +475,7 @@
 			// or uncomment the next line to allow verified user only
 			// Assert::assertUserVerified();
 
-			$filters = isset($request['filters']) AND is_array($request['filters']) ? $request['filters'] : [];
+			$filters = ( isset($request['filters']) AND is_array($request['filters']) ) ? $request['filters'] : [];
 
 			$p9            = self::getPagination($request);
 			$max           = $p9["max"];
@@ -452,13 +502,9 @@
 			Assert::assertIsAdmin();
 			// or uncomment the next line to allow verified user only
 			// Assert::assertUserVerified();
-			$form_values = self::removeColumnsMask($request);
-
-			// primary key value should not be updated
-			unset($form_values[<%$.class.entity%>::<%$.pk.const%>]);
 
 			$controller = new <%$.class.controller%>();
-			$entity     = $controller->updateOneItem($extra, $form_values);
+			$entity     = $controller->getItem($extra);
 
 			if (!$entity) {
 				throw new NotFoundException();
@@ -488,8 +534,8 @@
 
 		public static function getRelationItemsList(Relation $relation, <%$.class.entity%> $entity, array $request)
 		{
-			$filters = isset($request['filters']) AND is_array($request['filters']) ? $request['filters'] : [];
-			$order_by = isset($request['order_by']) AND is_array($request['order_by']) ? $request['order_by'] : [];
+			$filters = ( isset($request['filters']) AND is_array($request['filters']) ) ? $request['filters'] : [];
+			$order_by = ( isset($request['order_by']) AND is_array($request['order_by']) ) ? $request['order_by'] : [];
 
 			$p9            = self::getPagination($request);
 			$max           = $p9["max"];

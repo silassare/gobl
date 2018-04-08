@@ -33,13 +33,12 @@
 			// we finds all required fields
 			foreach ($columns as $column) {
 				$full_name = $column->getFullName();
-				$required  = false;
+				$required  = true;
 				$type      = $column->getTypeObject();
-				if (!$type->isAutoIncremented()) {
-					if (!$type->isNullAble() AND is_null($type->getDefault())) {
-						$required = true;
-					}
+				if ($type->isAutoIncremented() OR $type->isNullAble() OR !is_null($type->getDefault())) {
+					$required = false;
 				}
+
 				$this->form_fields[$full_name] = $required;
 			}
 		}
@@ -62,21 +61,31 @@
 		}
 
 		/**
-		 * Asserts that all required fields are in the form.
+		 * Complete form by adding missing fields.
 		 *
-		 * @param array $form            The form
-		 * @param array $required_fields Required fields list
+		 * @param array &$form The form
 		 *
 		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
 		 */
-		protected static function assertFormCompleted(array $form, array $required_fields = [])
+		protected function completeForm(array &$form)
 		{
-			$completed = true;
-			$missing   = [];
+			$required_fields = $this->getRequiredFields();
+			$completed       = true;
+			$missing         = [];
+
+			$table = ORM::getDatabase()
+						->getTable(MyEntity::TABLE_NAME);
 			foreach ($required_fields as $field) {
 				if (!isset($form[$field])) {
-					$completed = false;
-					$missing[] = $field;
+					$column  = $table->getColumn($field);
+					$default = $column->getTypeObject()
+									  ->getDefault();
+					if (is_null($default)) {
+						$completed = false;
+						$missing[] = $field;
+					} else {
+						$form[$field] = $default;
+					}
 				}
 			}
 
@@ -223,9 +232,7 @@
 		 */
 		public function addItem(array $values = [])
 		{
-			$required_fields = $this->getRequiredFields();
-
-			self::assertFormCompleted($values, $required_fields);
+			$this->completeForm($values);
 
 			$my_entity = new MyEntityReal();
 

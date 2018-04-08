@@ -27,7 +27,8 @@
 		'my_svc'                                    => '<%$.service.name%>',
 		'my_id'                                     => '<%$.pk.name%>',
 		'\'my_pk_column_const\''                    => '<%$.class.entity%>::<%$.pk.const%>',
-		'//__OZONE_FIELDS_TO_COLUMNS_MAP__'         => '<%@import(\'include/ozone.fields.to.columns.map.otpl\',$)%>'
+		'//__OZONE_COLUMNS_NAME_MAP__'              => '<%@import(\'include/ozone.columns.name.map.otpl\',$)%>',
+		'//__OZONE_RELATIONS_NAME_MAP__'            => '<%@import(\'include/ozone.relations.name.map.otpl\',$)%>'
 	];
 
 	$search      = array_keys($map);

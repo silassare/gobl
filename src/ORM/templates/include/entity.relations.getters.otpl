@@ -38,6 +38,27 @@
 
             return $ctrl->getAllItems($filters, $max, $offset, $order_by, $total);
         }
+<%} else if($relation.type === 'many-to-many'){%>
+        /**
+         * ManyToMany relation between `<%$relation.host.table.name%>` and `<%$relation.target.table.name%>`.
+         *
+         * @param array    $filters  the row filters
+         * @param int|null $max      maximum row to retrieve
+         * @param int      $offset   first row offset
+         * @param array    $order_by order by rules
+         * @param int|bool $total    total rows without limit
+         *
+         * @return \<%$relation.target.class.use_entity%>[]
+         */
+        function get<%$relation.methodName%>($filters = [], $max = null, $offset = 0, $order_by = [], &$total = false)
+        {
+            <%loop ($relation.filters : $filter){%>
+            $filters[<%$relation.target.class.entity%>RealR::<%$filter.from.const%>] = $this->get<%$filter.to.methodName%>();<%}%>
+
+            $ctrl = new <%$relation.target.class.controller%>RealR();
+
+            return $ctrl->getAllItems($filters, $max, $offset, $order_by, $total);
+        }
 <%} else if($relation.type === 'many-to-one'){%>
         /**
          * ManyToOne relation between `<%$relation.host.table.name%>` and `<%$relation.target.table.name%>`.
