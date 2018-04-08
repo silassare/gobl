@@ -79,6 +79,9 @@
 					throw new \InvalidArgumentException(sprintf('Invalid column prefix name "%s".', $prefix));
 			}
 
+			$this->name   = strtolower($name);
+			$this->prefix = strtolower($prefix);
+
 			if ($type instanceof Type) {
 				$this->type = $type;
 			} elseif (is_array($type)) {
@@ -86,9 +89,6 @@
 			} else {
 				throw new \InvalidArgumentException("Invalid column type.");
 			}
-
-			$this->name   = strtolower($name);
-			$this->prefix = strtolower($prefix);
 		}
 
 		/**
@@ -174,13 +174,11 @@
 				throw new DBALException(sprintf('You cannot overwrite column type "%s".', $type_name, $type_class));
 			}
 
-			$ok = is_subclass_of($type_class, TypeString::class)
-			OR is_subclass_of($type_class, TypeInt::class)
-			OR is_subclass_of($type_class, TypeBigint::class)
-			OR is_subclass_of($type_class, TypeFloat::class)
-			OR is_subclass_of($type_class, TypeBool::class);
-
-			if (!$ok) {
+			if (!(is_subclass_of($type_class, TypeString::class)
+				  OR is_subclass_of($type_class, TypeInt::class)
+				  OR is_subclass_of($type_class, TypeBigint::class)
+				  OR is_subclass_of($type_class, TypeFloat::class)
+				  OR is_subclass_of($type_class, TypeBool::class))) {
 				throw new DBALException(sprintf('Your custom column type "%s => %s" should extends one of the standard column types.', $type_name, $type_class));
 			}
 

@@ -823,7 +823,7 @@
 							->getQueryGenerator($this)
 							->buildQuery();
 
-			$sql = 'SELECT ' . 'COUNT(1) FROM (' . $sql . ')';
+			$sql = 'SELECT ' . 'COUNT(1) FROM (' . $sql . ') as __gobl_alias';
 			$req = $this->db->execute($sql, $this->getBoundValues(), $this->getBoundValuesTypes());
 
 			// restore limit

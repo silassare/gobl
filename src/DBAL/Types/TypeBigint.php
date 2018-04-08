@@ -35,10 +35,21 @@
 		 */
 		public function __construct($min = null, $max = null, $unsigned = false)
 		{
-			$this->unsigned = (bool)$unsigned;
-
+			if ($unsigned) $this->unsigned();
 			if (isset($min)) $this->min($min);
 			if (isset($max)) $this->max($max);
+		}
+
+		/**
+		 * Sets as unsigned.
+		 *
+		 * @return $this
+		 */
+		public function unsigned()
+		{
+			$this->unsigned = true;
+
+			return $this;
 		}
 
 		/**

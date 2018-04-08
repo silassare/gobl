@@ -55,9 +55,9 @@
 		protected function getBoolColumnDefinition(Column $column)
 		{
 			$column_name = $column->getFullName();
-			$options     = $column->getTypeObject()->getCleanOptions();
-			$null        = $options['null'];
-			$default     = $options['default'];
+			$type        = $column->getTypeObject();
+			$null        = $type->isNullAble();
+			$default     = $type->getDefault();
 
 			$sql[] = "`$column_name` tinyint(1)";
 
@@ -69,7 +69,7 @@
 				}
 			} else {
 				$sql[] = 'NULL';
-				if (is_null($options['default'])) {
+				if (is_null($default)) {
 					$sql[] = 'DEFAULT NULL';
 				} else {
 					$sql[] = sprintf('DEFAULT %s', self::quote($default));
@@ -89,10 +89,11 @@
 		protected function getIntColumnDefinition(Column $column)
 		{
 			$column_name = $column->getFullName();
-			$options     = $column->getTypeObject()->getCleanOptions();
-			$null        = $options['null'];
+			$type        = $column->getTypeObject();
+			$options     = $type->getCleanOptions();
+			$null        = $type->isNullAble();
+			$default     = $type->getDefault();
 			$unsigned    = $options['unsigned'];
-			$default     = $options['default'];
 			$min         = isset($options['min']) ? $options['min'] : -INF;
 			$max         = isset($options['max']) ? $options['max'] : INF;
 
@@ -126,14 +127,14 @@
 				}
 			} else {
 				$sql[] = 'NULL';
-				if (is_null($options['default'])) {
+				if (is_null($default)) {
 					$sql[] = 'DEFAULT NULL';
 				} else {
 					$sql[] = sprintf('DEFAULT %s', self::quote($default));
 				}
 			}
 
-			if ($options['auto_increment']) {
+			if ($type->isAutoIncremented()) {
 				$sql[] = 'AUTO_INCREMENT';
 			}
 
@@ -150,10 +151,11 @@
 		protected function getBigintColumnDefinition(Column $column)
 		{
 			$column_name = $column->getFullName();
-			$options     = $column->getTypeObject()->getCleanOptions();
-			$null        = $options['null'];
+			$type        = $column->getTypeObject();
+			$options     = $type->getCleanOptions();
+			$null        = $type->isNullAble();
+			$default     = $type->getDefault();
 			$unsigned    = $options['unsigned'];
-			$default     = $options['default'];
 
 			$sql[] = "`$column_name` bigint(20)";
 
@@ -169,14 +171,14 @@
 				}
 			} else {
 				$sql[] = 'NULL';
-				if (is_null($options['default'])) {
+				if (is_null($default)) {
 					$sql[] = 'DEFAULT NULL';
 				} else {
 					$sql[] = sprintf('DEFAULT %s', self::quote($default));
 				}
 			}
 
-			if ($options['auto_increment']) {
+			if ($type->isAutoIncremented()) {
 				$sql[] = 'AUTO_INCREMENT';
 			}
 
@@ -193,10 +195,11 @@
 		protected function getFloatColumnDefinition(Column $column)
 		{
 			$column_name = $column->getFullName();
-			$options     = $column->getTypeObject()->getCleanOptions();
-			$null        = $options['null'];
+			$type        = $column->getTypeObject();
+			$options     = $type->getCleanOptions();
+			$null        = $type->isNullAble();
+			$default     = $type->getDefault();
 			$unsigned    = $options['unsigned'];
-			$default     = $options['default'];
 			$mantissa    = isset($options['mantissa']) ? $options['mantissa'] : 53;
 
 			$sql[] = "`$column_name` float($mantissa)";
@@ -213,7 +216,7 @@
 				}
 			} else {
 				$sql[] = 'NULL';
-				if (is_null($options['default'])) {
+				if (is_null($default)) {
 					$sql[] = 'DEFAULT NULL';
 				} else {
 					$sql[] = sprintf('DEFAULT %s', self::quote($default));
@@ -233,9 +236,10 @@
 		protected function getStringColumnDefinition(Column $column)
 		{
 			$column_name = $column->getFullName();
-			$options     = $column->getTypeObject()->getCleanOptions();
-			$null        = $options['null'];
-			$default     = $options['default'];
+			$type        = $column->getTypeObject();
+			$options     = $type->getCleanOptions();
+			$null        = $type->isNullAble();
+			$default     = $type->getDefault();
 			$min         = isset($options['min']) ? $options['min'] : 0;
 			$max         = isset($options['max']) ? $options['max'] : INF;
 			// char(c) c in range(0,255);
@@ -259,7 +263,7 @@
 				}
 			} else {
 				$sql[] = 'NULL';
-				if (is_null($options['default'])) {
+				if (is_null($default)) {
 					$sql[] = 'DEFAULT NULL';
 				} else {
 					$sql[] = sprintf('DEFAULT %s', self::quote($default));
