@@ -414,7 +414,7 @@
 		public function select($table = null, array $columns = [], $auto_prefix = true)
 		{
 			$this->type = QueryBuilder::QUERY_TYPE_SELECT;
-			if (!empty($table)) {
+			if (is_string($table) AND !empty($table)) {
 				$auto_prefix = ($table[0] === $this->auto_prefix_char ? true : $auto_prefix);
 				$table       = $this->prefixTable($table);
 
