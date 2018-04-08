@@ -475,7 +475,7 @@
 			// or uncomment the next line to allow verified user only
 			// Assert::assertUserVerified();
 
-			$filters = ( isset($request['filters']) AND is_array($request['filters']) ) ? $request['filters'] : [];
+			$filters = (isset($request['filters']) AND is_array($request['filters'])) ? $request['filters'] : [];
 
 			$p9            = self::getPagination($request);
 			$max           = $p9["max"];
@@ -503,8 +503,13 @@
 			// or uncomment the next line to allow verified user only
 			// Assert::assertUserVerified();
 
-			$controller = new MyController();
-			$entity     = $controller->getItem($extra);
+			if (!isset($extra['my_pk_column_const'])) {
+				throw new NotFoundException();
+			}
+
+			$filters['my_pk_column_const'] = $extra['my_pk_column_const'];
+			$controller                    = new MyController();
+			$entity                        = $controller->getItem($filters);
 
 			if (!$entity) {
 				throw new NotFoundException();
@@ -522,9 +527,9 @@
 			$rel_type = $rel->getType();
 
 			if ($rel_type === Relation::ONE_TO_MANY OR $rel_type === Relation::MANY_TO_MANY) {
-				$results = self::getRelationItemsList($rel, $entity, $request);
+				$results = self::getRelationItemsList($rel, $entity, $request, $extra);
 			} else {
-				$results = self::getRelationItem($rel, $entity);
+				$results = self::getRelationItem($rel, $entity, $extra);
 			}
 
 			return $this->getResponseHolder()
@@ -532,10 +537,10 @@
 						->setData($results);
 		}
 
-		public static function getRelationItemsList(Relation $relation, MyEntity $entity, array $request)
+		public static function getRelationItemsList(Relation $relation, MyEntity $entity, array $request, array $extra)
 		{
-			$filters = ( isset($request['filters']) AND is_array($request['filters']) ) ? $request['filters'] : [];
-			$order_by = ( isset($request['order_by']) AND is_array($request['order_by']) ) ? $request['order_by'] : [];
+			$filters  = (isset($request['filters']) AND is_array($request['filters'])) ? $request['filters'] : [];
+			$order_by = (isset($request['order_by']) AND is_array($request['order_by'])) ? $request['order_by'] : [];
 
 			$p9            = self::getPagination($request);
 			$max           = $p9["max"];
@@ -544,24 +549,31 @@
 			$total_records = 0;
 
 			$relation_getter = $relation->getGetterName();
-			$args            = [$filters, $max, $offset, $order_by, $total_records];
-			$items           = call_user_func_array([$entity, $relation_getter], $args);
+			$items           = call_user_func_array([
+				$entity,
+				$relation_getter
+			], [$filters, $max, $offset, $order_by, &$total_records]);
+
+			$relations[$extra['relation']] = $items;
 
 			return [
-				'items' => $items,
-				'max'   => $max,
-				'page'  => $page,
-				'total' => $total_records
+				'item'      => $entity,
+				'relations' => $relations,
+				'max'       => $max,
+				'page'      => $page,
+				'total'     => $total_records
 			];
 		}
 
-		public static function getRelationItem(Relation $relation, MyEntity $entity)
+		public static function getRelationItem(Relation $relation, MyEntity $entity, array $extra)
 		{
-			$relation_getter = $relation->getGetterName();
-			$item            = call_user_func([$entity, $relation_getter]);
+			$relation_getter               = $relation->getGetterName();
+			$item                          = call_user_func([$entity, $relation_getter]);
+			$relations[$extra['relation']] = $item;
 
 			return [
-				'item' => $item->asArray()
+				'item'      => $entity,
+				'relations' => $relations
 			];
 		}
 	}
