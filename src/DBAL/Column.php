@@ -102,7 +102,7 @@
 		private function arrayOptionsToType(array $options)
 		{
 			if (!isset($options['type']))
-				throw new DBALException(sprintf('you should define a column type for "%s".', $this->name));
+				throw new DBALException(sprintf('You should define a column type for "%s".', $this->name));
 
 			$type = $options['type'];
 
@@ -111,7 +111,7 @@
 				/** @var Type $t */
 				$t = call_user_func([$class, 'getInstance'], $options);
 			} else {
-				throw new DBALException(sprintf('unsupported column type "%s" defined for "%s".', $type, $this->name));
+				throw new DBALException(sprintf('Unsupported column type "%s" defined for "%s".', $type, $this->name));
 			}
 
 			return $t;
