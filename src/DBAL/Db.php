@@ -432,8 +432,12 @@
 
 					if (isset($col_options['type']) AND self::isColumnReference($col_options['type'])) {
 						$ref_options         = $this->resolveReferenceColumn($col_options['type'], $tables);
-						$col_options         = is_array($value) ? array_merge($ref_options, $value) : $ref_options;
-						$col_options['type'] = $ref_options['type'];
+						if (is_array($ref_options)){
+							$col_options         = is_array($value) ? array_merge($ref_options, $value) : $ref_options;
+							$col_options['type'] = $ref_options['type'];
+						} else {
+							throw new DBALException(sprintf('Type "%s" not resolved for column "%s" in table "%s".', $col_options['type'], $column_name, $table_name));
+						}
 					}
 
 					if (is_array($col_options)) {
