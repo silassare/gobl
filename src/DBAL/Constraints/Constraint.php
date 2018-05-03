@@ -19,6 +19,7 @@
 	 */
 	abstract class Constraint
 	{
+		const NAME_REG    = '#^(?:[a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9]|[a-zA-Z])$#';
 		const PRIMARY_KEY = 1;
 		const UNIQUE      = 2;
 		const FOREIGN_KEY = 3;
@@ -41,6 +42,9 @@
 		 */
 		public function __construct($name, Table $table, $type)
 		{
+			if (!preg_match(Constraint::NAME_REG, $name))
+				throw new \InvalidArgumentException(sprintf('Invalid constraint name "%s" in table "%s".', $name, $table->getName()));
+
 			$this->table = $table;
 			$this->name  = $name;
 			$this->type  = $type;

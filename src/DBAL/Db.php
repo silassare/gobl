@@ -431,8 +431,8 @@
 					$col_options = is_array($value) ? $value : ['type' => $value];
 
 					if (isset($col_options['type']) AND self::isColumnReference($col_options['type'])) {
-						$ref_options         = $this->resolveReferenceColumn($col_options['type'], $tables);
-						if (is_array($ref_options)){
+						$ref_options = $this->resolveReferenceColumn($col_options['type'], $tables);
+						if (is_array($ref_options)) {
 							$col_options         = is_array($value) ? array_merge($ref_options, $value) : $ref_options;
 							$col_options['type'] = $ref_options['type'];
 						} else {
@@ -496,6 +496,12 @@
 								'cascade'  => ForeignKey::ACTION_CASCADE,
 								'restrict' => ForeignKey::ACTION_RESTRICT,
 							];
+							$name            = null;
+
+							if (isset($constraint['name'])) {
+								$name = $constraint['name'];
+							}
+
 							if (isset($constraint['update'])) {
 								if (!isset($map[$constraint['update']])) {
 									throw new DBALException(sprintf('Invalid update action "%s" for foreign key constraint.', $constraint['update']));
@@ -509,7 +515,7 @@
 								$delete_action = $map[$constraint['delete']];
 							}
 
-							$tbl->addForeignKeyConstraint($reference_table, $constraint['columns'], $update_action, $delete_action);
+							$tbl->addForeignKeyConstraint($name, $reference_table, $constraint['columns'], $update_action, $delete_action);
 
 							break;
 						default:

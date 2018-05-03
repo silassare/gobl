@@ -272,7 +272,7 @@
 		 *
 		 * @return $this
 		 */
-		public function addForeignKeyConstraint(Table $reference_table, array $columns, $update_action, $delete_action)
+		public function addForeignKeyConstraintOld(Table $reference_table, array $columns, $update_action, $delete_action)
 		{
 			if (count($columns)) {
 				$constraint_name = sprintf('fk_%s_%s', $this->getName(), $reference_table->getName());
@@ -282,6 +282,52 @@
 				}
 
 				$fk = $this->fk_constraints[$constraint_name];
+
+				foreach ($columns as $column_name => $reference_column) {
+					$fk->addColumn($column_name, $reference_column);
+				}
+
+				$fk->setUpdateAction($update_action);
+				$fk->setDeleteAction($delete_action);
+			}
+
+			return $this;
+		}
+
+		/**
+		 * Adds a foreign key constraint on columns.
+		 *
+		 * @param string           $constraint_name the constraint name
+		 * @param \Gobl\DBAL\Table $reference_table the reference table
+		 * @param array            $columns         the columns
+		 * @param int              $update_action   the reference column update action
+		 * @param int              $delete_action   the reference column delete action
+		 *
+		 * @return $this
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 */
+		public function addForeignKeyConstraint($constraint_name, Table $reference_table, array $columns, $update_action, $delete_action)
+		{
+			if (count($columns)) {
+				$is_default_fk = false;
+
+				if (empty($constraint_name)) {
+					$constraint_name = sprintf('fk_%s_%s', $this->getName(), $reference_table->getName());
+					$is_default_fk   = true;
+				}
+
+				if (isset($this->fk_constraints[$constraint_name])) {
+					if ($is_default_fk) {
+						// only one unnamed foreign key between two tables is allowed
+						// i.e: only one default foreign key between two tables is allowed
+						// any other foreign key constraint should be named
+						throw new DBALException(sprintf('There is already a default foreign key constraint between the tables "%s" and "%s".', $this->getName(), $reference_table->getName()));
+					} else {
+						throw new DBALException(sprintf('Foreign key "%s" is already defined between the tables "%s" and "%s".', $constraint_name, $this->getName(), $reference_table->getName()));
+					}
+				}
+
+				$fk = $this->fk_constraints[$constraint_name] = new ForeignKey($constraint_name, $this, $reference_table);
 
 				foreach ($columns as $column_name => $reference_column) {
 					$fk->addColumn($column_name, $reference_column);
@@ -482,14 +528,47 @@
 		}
 
 		/**
-		 * Gets foreign key constraint that have a given reference table.
+		 * Check if the current table has foreign key that refer
+		 * to the given columns from the reference table.
+		 *
+		 * @param \Gobl\DBAL\Table $reference the reference table
+		 * @param array            $columns   the foreign columns
+		 *
+		 * @return bool
+		 */
+		public function hasForeignColumns(Table $reference, array $columns)
+		{
+			$x = count($columns);
+			if ($x) {
+				foreach ($this->fk_constraints as $fk_name => $fk) {
+					if ($fk->getReferenceTable()
+						   ->getName() === $reference->getName()) {
+						$fk_columns = array_flip($fk->getConstraintColumns());
+
+						$y = 0;
+						foreach ($columns as $column) {
+							if (isset($fk_columns[$column])) {
+								$y++;
+							}
+						}
+
+						return $x === $y;
+					}
+				}
+			}
+
+			return false;
+		}
+
+		/**
+		 * Gets default foreign key constraint that have the given table as reference table.
 		 *
 		 * @param \Gobl\DBAL\Table $reference the reference table
 		 *
 		 * @return \Gobl\DBAL\Constraints\ForeignKey
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
-		public function getForeignKeyConstraintFrom(Table $reference)
+		public function getDefaultForeignKeyConstraintFrom(Table $reference)
 		{
 			$fk_name = sprintf('fk_%s_%s', $this->getName(), $reference->getName());
 			if (isset($this->fk_constraints[$fk_name])) {
@@ -500,44 +579,13 @@
 		}
 
 		/**
-		 * Check if the current table has foreign key that refer
-		 * to columns in the reference table.
-		 *
-		 * @param \Gobl\DBAL\Table $reference the reference table
-		 * @param array            $columns   the foreign columns
-		 *
-		 * @return bool
-		 */
-		public function hasForeignColumns(Table $reference, array $columns)
-		{
-			$fk_name = sprintf('fk_%s_%s', $this->getName(), $reference->getName());
-			$x       = count($columns);
-			if ($x) {
-				if (isset($this->fk_constraints[$fk_name])) {
-					$fk         = $this->fk_constraints[$fk_name];
-					$fk_columns = array_flip($fk->getConstraintColumns());
-					$y          = 0;
-					foreach ($columns as $column) {
-						if (isset($fk_columns[$column])) {
-							$y++;
-						}
-					}
-
-					return $x === $y;
-				}
-			}
-
-			return false;
-		}
-
-		/**
-		 * Check if the table has foreign key constraint with column from a given reference table.
+		 * Check if the table has a default foreign key constraint with column from a given reference table.
 		 *
 		 * @param \Gobl\DBAL\Table $reference the reference table
 		 *
 		 * @return bool
 		 */
-		public function hasForeignKeyConstraint(Table $reference)
+		public function hasDefaultForeignKeyConstraint(Table $reference)
 		{
 			$fk_name = sprintf('fk_%s_%s', $this->getName(), $reference->getName());
 

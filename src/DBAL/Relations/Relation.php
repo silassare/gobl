@@ -55,13 +55,13 @@
 			// the relation is based on foreign keys
 			if (is_null($columns)) {
 				// the slave table contains foreign key from the master table
-				if ($target_table->hasForeignKeyConstraint($host_table)) {
+				if ($target_table->hasDefaultForeignKeyConstraint($host_table)) {
 					$this->target_is_slave = true;
-					$columns               = $target_table->getForeignKeyConstraintFrom($host_table)
+					$columns               = $target_table->getDefaultForeignKeyConstraintFrom($host_table)
 														  ->getConstraintColumns();
-				} elseif ($host_table->hasForeignKeyConstraint($target_table)) {
+				} elseif ($host_table->hasDefaultForeignKeyConstraint($target_table)) {
 					$this->target_is_slave = false;
-					$columns               = $host_table->getForeignKeyConstraintFrom($target_table)
+					$columns               = $host_table->getDefaultForeignKeyConstraintFrom($target_table)
 														->getConstraintColumns();
 				} else {
 					throw new DBALException(sprintf('Error in relation "%s", there is no columns to link the table "%s" to the table "%s".', $name, $host_table->getName(), $target_table->getName()));
