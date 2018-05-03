@@ -179,6 +179,8 @@
 						return $operand;
 					}
 				}
+			} elseif (is_bool($operand)) {
+				return intval($operand);
 			}
 
 			return $operand;
