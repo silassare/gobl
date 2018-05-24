@@ -425,7 +425,7 @@
 			// Assert::assertUserVerified();
 
 			$controller = new MyController();
-			$count      = $controller->deleteAllItem($request);
+			$count      = $controller->deleteAllItems($request);
 
 			$this->getResponseHolder()
 				 ->setDone('DELETED')
