@@ -121,16 +121,10 @@
 
 			if ($params !== null) {
 				foreach ($params as $key => $value) {
-					$param_type = \PDO::PARAM_STR;
-
 					if (isset($params_types[$key])) {
 						$param_type = $params_types[$key];
-					} elseif (is_int($value)) {
-						$param_type = \PDO::PARAM_INT;
-					} elseif (is_bool($value)) {
-						$param_type = \PDO::PARAM_BOOL;
-					} elseif (is_null($value)) {
-						$param_type = \PDO::PARAM_NULL;
+					} else {
+						$param_type = QueryTokenParser::paramType($value);
 					}
 
 					$stmt->bindValue(is_int($key) ? $key + 1 : $key, $value, $param_type);
