@@ -715,6 +715,10 @@
 		 */
 		public function innerJoin($firstTableAlias, $secondTable, $secondTableAlias, $condition = null)
 		{
+			if (isset($condition) AND !($condition instanceof Rule) AND !is_string($condition)) {
+				throw new DBALException("The condition should be of type: \Gobl\DBAL\Rule|string|null");
+			}
+
 			return $this->join('INNER', $firstTableAlias, $secondTable, $secondTableAlias, $condition);
 		}
 
@@ -729,6 +733,10 @@
 		 */
 		public function leftJoin($firstTableAlias, $secondTable, $secondTableAlias, $condition = null)
 		{
+			if (isset($condition) AND !($condition instanceof Rule) AND !is_string($condition)) {
+				throw new DBALException("The condition should be of type: \Gobl\DBAL\Rule|string|null");
+			}
+
 			return $this->join('LEFT', $firstTableAlias, $secondTable, $secondTableAlias, $condition);
 		}
 
@@ -743,6 +751,10 @@
 		 */
 		public function rightJoin($firstTableAlias, $secondTable, $secondTableAlias, $condition = null)
 		{
+			if (isset($condition) AND !($condition instanceof Rule) AND !is_string($condition)) {
+				throw new DBALException("The condition should be of type: \Gobl\DBAL\Rule|string|null");
+			}
+
 			return $this->join('RIGHT', $firstTableAlias, $secondTable, $secondTableAlias, $condition);
 		}
 
@@ -758,6 +770,10 @@
 		 */
 		private function join($type, $firstTableAlias, $secondTable, $secondTableAlias, $condition = null)
 		{
+			if (isset($condition) AND !($condition instanceof Rule) AND !is_string($condition)) {
+				throw new DBALException("The condition should be of type: \Gobl\DBAL\Rule|string|null");
+			}
+
 			if (!isset($this->alias_map[$firstTableAlias])) {
 				throw new DBALException(sprintf('alias "%s" is not defined.', $firstTableAlias));
 			}
@@ -824,6 +840,7 @@
 							->buildQuery();
 
 			$sql = 'SELECT ' . 'COUNT(1) FROM (' . $sql . ') as __gobl_alias';
+			oz_logger($sql);
 			$req = $this->db->execute($sql, $this->getBoundValues(), $this->getBoundValuesTypes());
 
 			// restore limit
