@@ -161,13 +161,13 @@
 		}
 
 		/**
-		 * Prefix operand.
+		 * Cleans operand.
 		 *
 		 * @param mixed $operand
 		 *
 		 * @return string
 		 */
-		private function prefixOperand($operand)
+		private function cleanOperand($operand)
 		{
 			if (is_string($operand) AND strlen($operand) > 2 AND $operand[0] !== ':') {
 				$parts = explode('.', $operand);
@@ -243,9 +243,9 @@
 
 			if ($two_operands === true) {
 				foreach ($items as $left => $right) {
-					$left = $this->prefixOperand($left);
+					$left = $this->cleanOperand($left);
 					if ($operator !== Rule::OP_IN AND $operator !== Rule::OP_NOT_IN) {
-						$right = $this->prefixOperand($right);
+						$right = $this->cleanOperand($right);
 					}
 
 					if ($counter) {
@@ -261,7 +261,7 @@
 				}
 			} else {
 				foreach ($items as $item) {
-					$item = $this->prefixOperand($item);
+					$item = $this->cleanOperand($item);
 					if ($counter) {
 						if ($use_and) {
 							$this->andX();
