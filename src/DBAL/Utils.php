@@ -13,7 +13,7 @@
 	/**
 	 * Class Utils
 	 *
-	 * @package Gobl\ORM\Utils
+	 * @package Gobl\DBAL
 	 */
 	class Utils
 	{
