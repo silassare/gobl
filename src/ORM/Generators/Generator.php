@@ -44,13 +44,13 @@
 		/**
 		 * Generate classes for tables with a given namespace in the database.
 		 *
-		 * @param string $namespace the classes namespace
-		 * @param string $path      the destination folder path
-		 * @param string $header    the source header to use
+		 * @param Table[] $tables the tables list
+		 * @param string  $path   the destination folder path
+		 * @param string  $header the source header to use
 		 *
 		 * @return $this
 		 */
-		public function generateORMClasses($namespace, $path, $header = '')
+		public function generateORMClasses(array $tables, $path, $header = '')
 		{
 			if (!file_exists($path) OR !is_dir($path)) {
 				throw new \InvalidArgumentException(sprintf('"%s" is not a valid directory path.', $path));
@@ -58,7 +58,6 @@
 
 			$ds            = DIRECTORY_SEPARATOR;
 			$templates_dir = $this->getTemplateDir();
-			$tables        = $this->db->getTables($namespace);
 
 			$path_base = $path . $ds . 'Base';
 
@@ -95,6 +94,56 @@
 				$this->writeFile($path . $ds . $results_class . '.php', $results_class_tpl->runGet($inject), false);
 				$this->writeFile($path . $ds . $controller_class . '.php', $controller_class_tpl->runGet($inject), false);
 			}
+
+			return $this;
+		}
+
+		/**
+		 * Generate Javascript classes for tables with a given namespace in the database.
+		 *
+		 * @param Table[] $tables the tables list
+		 * @param string  $path   the destination folder path
+		 * @param string  $header the source header to use
+		 *
+		 * @return $this
+		 */
+		public function generateJSClasses(array $tables, $path, $header = '')
+		{
+			if (!file_exists($path) OR !is_dir($path)) {
+				throw new \InvalidArgumentException(sprintf('"%s" is not a valid directory path.', $path));
+			}
+
+			$ds            = DIRECTORY_SEPARATOR;
+			$templates_dir = $this->getTemplateDir();
+
+			$path_base = $path;
+
+			if (!file_exists($path_base)) {
+				mkdir($path_base);
+			}
+
+			$js_entity_class_tpl = $this->getTemplate($templates_dir . 'js.entity.class.otpl');
+			$js_bundle_tpl       = $this->getTemplate($templates_dir . 'js.bundle.otpl');
+			$bundle_inject       = [];
+			foreach ($tables as $table) {
+				$inject                 = $this->describeTable($table);
+				$inject['header']       = $header;
+				$inject['time']         = time();
+				$entity_class           = $inject['class']['entity'];
+				$inject['columns_list'] = implode("|", array_keys($inject["columns"]));
+
+				foreach ($inject["columns"] as $column) {
+					$inject['columns_prefix'] = $column['prefix'];
+					break;
+				}
+
+				$bundle_inject["entities"][$entity_class] = $js_entity_class_tpl->runGet($inject);
+			}
+
+			$bundle_inject['header'] = $header;
+			$bundle_inject['time']   = time();
+
+			$this->writeFile($path . $ds . 'gobl.bundle.js', $js_bundle_tpl->runGet($bundle_inject), true);
 
 			return $this;
 		}
@@ -232,7 +281,7 @@
 			$columns = $table->getColumns();
 			$list    = [];
 			foreach ($columns as $column) {
-				$list[] = $this->columnProperties($column);
+				$list[$column->getFullName()] = $this->columnProperties($column);
 			}
 
 			return $list;
@@ -253,6 +302,7 @@
 
 			$c['name']       = $name;
 			$c['fullName']   = $column->getFullName();
+			$c['prefix']     = $column->getPrefix();
 			$c['methodName'] = Utils::toCamelCase($name);
 			$c['const']      = 'COL_' . strtoupper($name);
 			$c['columnType'] = $this->types_map[$type_const][0];
