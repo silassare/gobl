@@ -1,0 +1,3 @@
+<%loop($.entities : $name : $content){%>
+<%$content%>
+<%}%>

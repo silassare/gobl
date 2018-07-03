@@ -1,34 +1,37 @@
 #!/usr/bin/env php
 <?php
 	/**
-	 * This script is used to convert classes in ORM/Sample to template files
+	 * This script is used to convert files in ORM/Sample to template files
 	 */
 	$sample_dir    = __DIR__ . '/../src/ORM/Sample/';
 	$templates_dir = __DIR__ . '/../src/ORM/templates/';
 
 	$map = [
-		'MY_PROJECT_DB_NS'                          => '<%$.namespace%>',
-		'MyTableQuery'                              => '<%$.class.query%>',
-		'MyEntity'                                  => '<%$.class.entity%>',
-		'MyResults'                                 => '<%$.class.results%>',
-		'MyController'                              => '<%$.class.controller%>',
-		'my_table'                                  => '<%$.table.name%>',
-		'//__GOBL_HEAD_COMMENT__'                   => '<%@import(\'include/head.comment.otpl\',$)%>',
-		'//__GOBL_RELATIONS_USE_CLASS__'            => '<%@import(\'include/entity.relations.use.class.otpl\',$)%>',
-		'//__GOBL_COLUMNS_CONSTANTS__'              => '<%@import(\'include/entity.columns.constants.otpl\',$)%>',
-		'//__GOBL_RELATIONS_PROPERTIES__'           => '<%@import(\'include/entity.relations.properties.otpl\',$)%>',
-		'//__GOBL_RELATIONS_GETTERS__'              => '<%@import(\'include/entity.relations.getters.otpl\',$)%>',
-		'//__GOBL_ENTITY_COLUMNS_SETTERS_GETTERS__' => '<%@import(\'include/entity.getters.setters.otpl\',$)%>',
-		'//__GOBL_QUERY_FILTER_BY_COLUMNS__'        => '<%@import(\'include/query.filter.by.columns.otpl\',$)%>',
+		'MY_PROJECT_DB_NS'                      => '<%$.namespace%>',
+		'MyTableQuery'                          => '<%$.class.query%>',
+		'MyEntity'                              => '<%$.class.entity%>',
+		'MyResults'                             => '<%$.class.results%>',
+		'MyController'                          => '<%$.class.controller%>',
+		'my_table'                              => '<%$.table.name%>',
+		'//__GOBL_HEAD_COMMENT__'               => '<%@import(\'include/head.comment.otpl\',$)%>',
+		'//__GOBL_RELATIONS_USE_CLASS__'        => '<%@import(\'include/entity.relations.use.class.otpl\',$)%>',
+		'//__GOBL_COLUMNS_CONST__'              => '<%@import(\'include/entity.columns.const.otpl\',$)%>',
+		'//__GOBL_RELATIONS_PROPERTIES__'       => '<%@import(\'include/entity.relations.properties.otpl\',$)%>',
+		'//__GOBL_RELATIONS_GETTERS__'          => '<%@import(\'include/entity.relations.getters.otpl\',$)%>',
+		'//__GOBL_COLUMNS_GETTERS_SETTERS__'    => '<%@import(\'include/entity.getters.setters.otpl\',$)%>',
+		'//__GOBL_QUERY_FILTER_BY_COLUMNS__'    => '<%@import(\'include/query.filter.by.columns.otpl\',$)%>',
+		'//__GOBL_JS_COLUMNS_CONST__'           => '<%@import(\'include/js.columns.const.otpl\',$)%>',
+		'//__GOBL_JS_COLUMNS_GETTERS_SETTERS__' => '<%@import(\'include/js.getters.setters.otpl\',$)%>',
+		'//__GOBL_JS_ENTITIES_CLASS_LIST__'     => '<%@import(\'include/js.entities.list.otpl\',$)%>',
 
 		// for ozone service usage only
-		'MY_PROJECT_SERVICE_NS'                     => '<%$.service.namespace%>',
-		'MyOZService'                               => '<%$.service.class%>',
-		'my_svc'                                    => '<%$.service.name%>',
-		'my_id'                                     => '<%$.pk.name%>',
-		'\'my_pk_column_const\''                    => '<%$.class.entity%>::<%$.pk.const%>',
-		'//__OZONE_COLUMNS_NAME_MAP__'              => '<%@import(\'include/ozone.columns.name.map.otpl\',$)%>',
-		'//__OZONE_RELATIONS_NAME_MAP__'            => '<%@import(\'include/ozone.relations.name.map.otpl\',$)%>'
+		'MY_PROJECT_SERVICE_NS'                 => '<%$.service.namespace%>',
+		'MyOZService'                           => '<%$.service.class%>',
+		'my_svc'                                => '<%$.service.name%>',
+		'my_id'                                 => '<%$.pk.name%>',
+		'\'my_pk_column_const\''                => '<%$.class.entity%>::<%$.pk.const%>',
+		'//__OZONE_COLUMNS_NAME_MAP__'          => '<%@import(\'include/ozone.columns.name.map.otpl\',$)%>',
+		'//__OZONE_RELATIONS_NAME_MAP__'        => '<%@import(\'include/ozone.relations.name.map.otpl\',$)%>'
 	];
 
 	$search      = array_keys($map);
@@ -52,3 +55,6 @@
 	$toTemplate($sample_dir . 'MyController.php', $templates_dir . 'controller.class.otpl');
 
 	$toTemplate($sample_dir . 'MyOZService.php', $templates_dir . 'ozone.service.class.otpl');
+
+	$toTemplate($sample_dir . 'js/JSBundle.js', $templates_dir . 'js.bundle.otpl');
+	$toTemplate($sample_dir . 'js/MyEntity.js', $templates_dir . 'js.entity.class.otpl');
