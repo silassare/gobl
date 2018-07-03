@@ -66,10 +66,12 @@
 		 * Column constructor.
 		 *
 		 * @param string                      $name   the column name
+		 * @param array|\Gobl\DBAL\Types\Type $type   the column type instance or type options array
 		 * @param string|null                 $prefix the column prefix
-		 * @param array|\Gobl\DBAL\Types\Type $type   the column type instance or options array
+		 *
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
-		public function __construct($name, $prefix = null, $type)
+		public function __construct($name, $type, $prefix = null)
 		{
 			if (!preg_match(Column::NAME_REG, $name))
 				throw new \InvalidArgumentException(sprintf('Invalid column name "%s".', $name));

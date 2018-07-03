@@ -165,6 +165,7 @@
 		 * @param string $column the column to auto prefix
 		 *
 		 * @return string
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function prefix($table, $column)
 		{
@@ -189,6 +190,7 @@
 		 * @param bool   $absolute
 		 *
 		 * @return array
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function prefixColumnsArray($table, array $columns, $absolute = false)
 		{
@@ -249,6 +251,7 @@
 		 * @param array $map aliases map
 		 *
 		 * @return $this
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function alias(array $map)
 		{
@@ -410,6 +413,7 @@
 		 * @param bool        $auto_prefix
 		 *
 		 * @return $this
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function select($table = null, array $columns = [], $auto_prefix = true)
 		{
@@ -463,6 +467,7 @@
 		 * @param string|null $alias
 		 *
 		 * @return $this
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function update($table, $alias = null)
 		{
@@ -532,6 +537,7 @@
 		 * @param string $auto_prefix
 		 *
 		 * @return array
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		protected function setColumnsOption($table, array $columns, $auto_prefix)
 		{
@@ -560,6 +566,7 @@
 		 * @param array $types
 		 *
 		 * @return $this
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function values(array $values, array $types = [])
 		{
@@ -606,6 +613,12 @@
 			return $this;
 		}
 
+		/**
+		 * @param string $table
+		 * @param null   $alias
+		 *
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 */
 		protected function addFromOptions($table, $alias = null)
 		{
 			$table = $this->prefixTable($table);

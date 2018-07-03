@@ -23,6 +23,7 @@
 		 * Returns class generator instance.
 		 *
 		 * @return \Gobl\ORM\Generators\Generator
+		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public static function getClassGenerator()
 		{

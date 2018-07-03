@@ -1,8 +1,8 @@
 <%if(@length($.header)){%>
 <%$.header%>
-<%} else {%>	/**
-	 * Auto generated file, please don't edit.
-	 *
-	 * With: Gobl v1.0.0
-	 * Time: <%$.time%>
-	 */<%}%>
+<%} else {%>/**
+ * Auto generated file, please don't edit.
+ *
+ * With: Gobl v1.0.0
+ * Time: <%$.time%>
+ */<%}%>

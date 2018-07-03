@@ -86,8 +86,7 @@
 		 * @param string $table_name  the table name
 		 *
 		 * @return mixed the cleaned value to use.
-		 * @internal param string $column the column name
-		 *
+		 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
 		 */
 		public function validate($value, $column_name, $table_name);
 

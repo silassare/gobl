@@ -7,13 +7,12 @@
 	use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 	use Gobl\ORM\Exceptions\ORMControllerFormException;
 	use Gobl\ORM\ORM;
+	use Gobl\ORM\ORMServiceBase;
 	use MY_PROJECT_DB_NS\MyController;
 	use MY_PROJECT_DB_NS\MyEntity;
 	use OZONE\OZ\Core\Assert;
 	use OZONE\OZ\Core\RequestHandler;
-	use OZONE\OZ\Core\BaseService;
 	use OZONE\OZ\Core\URIHelper;
-	use OZONE\OZ\Exceptions\BadRequestException;
 	use OZONE\OZ\Exceptions\ForbiddenException;
 	use OZONE\OZ\Exceptions\InvalidFieldException;
 	use OZONE\OZ\Exceptions\InvalidFormException;
@@ -47,7 +46,7 @@
 	 *
 	 * @package MY_PROJECT_DB_NS\App\Services
 	 */
-	final class MyOZService extends BaseService
+	final class MyOZService extends ORMServiceBase
 	{
 		// for url like /my_svc/:my_id
 		private static $IDENTIFIED_EXTRA_REG = '#^([a-zA-Z0-9]+)/?$#';
@@ -56,7 +55,7 @@
 		private static $IDENTIFIED_RELATION_EXTRA_REG = '#^([a-zA-Z0-9]+)/([a-zA-Z0-9_-]+)/?$#';
 
 		/**
-		 * maps form fields to columns
+		 * maps form fields name to columns name
 		 *
 		 * @var array
 		 */
@@ -65,7 +64,7 @@
 		];
 
 		/**
-		 * maps form fields to columns
+		 * maps external relations names to real relations names
 		 *
 		 * @var array
 		 */
@@ -77,6 +76,16 @@
 		 * Executes the service.
 		 *
 		 * @param array $request the request parameters
+		 *
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \OZONE\OZ\Exceptions\BadRequestException
+		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
+		 * @throws \OZONE\OZ\Exceptions\InternalErrorException
+		 * @throws \OZONE\OZ\Exceptions\InvalidFieldException
+		 * @throws \OZONE\OZ\Exceptions\InvalidFormException
+		 * @throws \OZONE\OZ\Exceptions\NotFoundException
+		 * @throws \OZONE\OZ\Exceptions\UnverifiedUserException
 		 */
 		public function execute(array $request = [])
 		{
@@ -122,7 +131,7 @@
 				// don't expose debug data to client, may contains sensitive data
 				$debug         = $error->getDebugData();
 				$data          = $error->getData();
-				$data["field"] = self::maskColumn($debug["column_name"]);
+				$data["field"] = self::maskColumn(self::$my_table_fields_map, $debug["column_name"]);
 
 				throw new InvalidFieldException($error->getMessage(), $data, $error);
 			}
@@ -135,8 +144,15 @@
 		 *
 		 * @param array $request
 		 *
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
+		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \OZONE\OZ\Exceptions\BadRequestException
 		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
+		 * @throws \OZONE\OZ\Exceptions\InternalErrorException
 		 * @throws \OZONE\OZ\Exceptions\NotFoundException
+		 * @throws \OZONE\OZ\Exceptions\UnverifiedUserException
 		 */
 		private function executeSub(array $request)
 		{
@@ -224,102 +240,20 @@
 			return false;
 		}
 
-		/**
-		 * Removes column mask.
-		 *
-		 * @param array $request
-		 *
-		 * @return array
-		 */
-		private static function removeColumnsMask(array $request)
-		{
-			$values = [];
-
-			foreach ($request as $field => $value) {
-				if (isset(self::$my_table_fields_map[$field])) {
-					$column_name          = self::$my_table_fields_map[$field];
-					$values[$column_name] = $value;
-				}
-			}
-
-			return $values;
-		}
-
-		/**
-		 * Mask column name.
-		 *
-		 * @param string $column_name the column name
-		 *
-		 * @return string
-		 */
-		private static function maskColumn($column_name)
-		{
-			$flip = array_flip(self::$my_table_fields_map);
-
-			if (isset($flip[$column_name])) {
-				return $flip[$column_name];
-			}
-
-			return $column_name;
-		}
-
-		/**
-		 * Remove relation name mask.
-		 *
-		 * @param string $relation_name
-		 *
-		 * @return string
-		 */
-		private static function removeRelationMask($relation_name)
-		{
-			if (isset(self::$my_table_relations_map[$relation_name])) {
-				return self::$my_table_relations_map[$relation_name];
-			}
-
-			return $relation_name;
-		}
-
-		/**
-		 * Returns result pagination.
-		 *
-		 * @param array $request
-		 * @param int   $max default max
-		 *
-		 * @return array
-		 * @throws \OZONE\OZ\Exceptions\BadRequestException
-		 */
-		private static function getPagination(array $request, $max = 10)
-		{
-			$offset = 0;
-			$page   = 1;
-
-			if (isset($request['max'])) {
-				$max = intval($request['max']);
-				if (!is_int($max) OR $max <= 0) {
-					throw new BadRequestException();
-				}
-			}
-
-			if (isset($request['page'])) {
-				$page = intval($request['page']);
-				if (!is_int($page) OR $page <= 0) {
-					throw new BadRequestException();
-				}
-
-				$offset = ($page - 1) * $max;
-			}
-
-			return [
-				"offset" => $offset,
-				"max"    => $max,
-				"page"   => $page
-			];
-		}
-
 //========================================================
-//=	POST REQUEST METHOD
+//=	POST REQUEST METHODS
 //========================================================
 
+		/**
+		 * @param array $request
+		 *
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
+		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
+		 * @throws \OZONE\OZ\Exceptions\UnverifiedUserException
+		 */
 		public function actionCreateEntity(array $request)
 		{
 			// uncomment the next line to allow administrator only
@@ -327,7 +261,7 @@
 			// or uncomment the next line to allow verified user only
 			// Assert::assertUserVerified();
 
-			$form_values = self::removeColumnsMask($request);
+			$form_values = self::removeColumnsMask(self::$my_table_fields_map, $request);
 
 			// prevent non-null value on auto-increment column
 			$form_values['my_pk_column_const'] = null;
@@ -340,6 +274,16 @@
 				 ->setData(['item' => $entity->asArray()]);
 		}
 
+		/**
+		 * @param array $request
+		 * @param array $extra
+		 *
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
+		 * @throws \OZONE\OZ\Exceptions\UnverifiedUserException
+		 */
 		public function actionAddRelation(array $request, array $extra)
 		{
 			// uncomment the next line to allow administrator only
@@ -347,16 +291,35 @@
 			// or uncomment the next line to allow verified user only
 			// Assert::assertUserVerified();
 
+			$controller = new MyController();
+			$entity     = $controller->getItem($extra);
+
+			if (!$entity) {
+				throw new ForbiddenException();
+			}
+
 			// TODO
 			$this->getResponseHolder()
 				 ->setDone('RELATION_ADDED')
-				 ->setData(['added relation', $request, $extra]);
+				 ->setData(['item' => $entity, 'relations' => '', 'request' => $request]);
 		}
 
 //========================================================
-//=	PUT REQUEST METHOD
+//=	PUT REQUEST METHODS
 //========================================================
 
+		/**
+		 * @param array $request
+		 * @param array $extra
+		 *
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
+		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
+		 * @throws \OZONE\OZ\Exceptions\NotFoundException
+		 * @throws \OZONE\OZ\Exceptions\UnverifiedUserException
+		 */
 		public function actionUpdateEntity(array $request, array $extra)
 		{
 			// uncomment the next line to allow administrator only
@@ -364,7 +327,7 @@
 			// or uncomment the next line to allow verified user only
 			// Assert::assertUserVerified();
 
-			$form_values = self::removeColumnsMask($request);
+			$form_values = self::removeColumnsMask(self::$my_table_fields_map, $request);
 
 			// primary key value should not be updated
 			unset($form_values['my_pk_column_const']);
@@ -381,6 +344,16 @@
 			}
 		}
 
+		/**
+		 * @param array $request
+		 * @param array $extra
+		 *
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
+		 * @throws \OZONE\OZ\Exceptions\UnverifiedUserException
+		 */
 		public function actionUpdateRelation(array $request, array $extra)
 		{
 			// uncomment the next line to allow administrator only
@@ -388,16 +361,34 @@
 			// or uncomment the next line to allow verified user only
 			// Assert::assertUserVerified();
 
+			$controller = new MyController();
+			$entity     = $controller->getItem($extra);
+
+			if (!$entity) {
+				throw new ForbiddenException();
+			}
+
 			// TODO
 			$this->getResponseHolder()
-				 ->setDone('UPDATED')
-				 ->setData(['updated relation', $request, $extra]);
+				 ->setDone('RELATION_UPDATED')
+				 ->setData(['entity' => $entity, 'relations' => '', 'request' => $request]);
 		}
 
 //========================================================
-//=	DELETE REQUEST METHOD
+//=	DELETE REQUEST METHODS
 //========================================================
 
+		/**
+		 * @param array $request
+		 * @param array $extra
+		 *
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
+		 * @throws \OZONE\OZ\Exceptions\NotFoundException
+		 * @throws \OZONE\OZ\Exceptions\UnverifiedUserException
+		 */
 		public function actionDeleteEntity(array $request, array $extra)
 		{
 			// uncomment the next line to allow administrator only
@@ -417,6 +408,15 @@
 			}
 		}
 
+		/**
+		 * @param array $request
+		 *
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
+		 * @throws \OZONE\OZ\Exceptions\UnverifiedUserException
+		 */
 		public function actionDeleteAll($request = [])
 		{
 			// uncomment the next line to allow administrator only
@@ -432,6 +432,17 @@
 				 ->setData(['affected' => $count]);
 		}
 
+		/**
+		 * @param array $request
+		 * @param array $extra
+		 *
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
+		 * @throws \OZONE\OZ\Exceptions\UnverifiedUserException
+		 * @thows \Gobl\DBAL\Exceptions\DBALException
+		 */
 		public function actionDeleteRelation(array $request, array $extra)
 		{
 			// uncomment the next line to allow administrator only
@@ -439,16 +450,34 @@
 			// or uncomment the next line to allow verified user only
 			// Assert::assertUserVerified();
 
+			$controller = new MyController();
+			$entity     = $controller->getItem($extra);
+
+			if (!$entity) {
+				throw new ForbiddenException();
+			}
+
 			// TODO
 			$this->getResponseHolder()
-				 ->setDone('DELETED')
-				 ->setData(['deleted relation items count', $request, $extra]);
+				 ->setDone('RELATION_DELETED')
+				 ->setData(['item' => $entity, 'relations' => '', 'request' => $request]);
 		}
 
 //========================================================
-//=	GET REQUEST METHOD
+//=	GET REQUEST METHODS
 //========================================================
 
+		/**
+		 * @param array $request
+		 * @param array $extra
+		 *
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
+		 * @throws \OZONE\OZ\Exceptions\NotFoundException
+		 * @throws \OZONE\OZ\Exceptions\UnverifiedUserException
+		 */
 		public function actionGetEntity(array $request, array $extra)
 		{
 			// uncomment the next line to allow administrator only
@@ -468,6 +497,16 @@
 				 ->setData(['item' => $entity->asArray()]);
 		}
 
+		/**
+		 * @param array $request
+		 *
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \OZONE\OZ\Exceptions\BadRequestException
+		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
+		 * @throws \OZONE\OZ\Exceptions\UnverifiedUserException
+		 */
 		public function actionGetAll(array $request)
 		{
 			// uncomment the next line to allow administrator only
@@ -492,10 +531,23 @@
 					 'items' => $results,
 					 'max'   => $max,
 					 'page'  => $page,
-					 "total" => $total_records
+					 'total' => $total_records
 				 ]);
 		}
 
+		/**
+		 * @param array $request
+		 * @param array $extra
+		 *
+		 * @return \OZONE\OZ\Core\ResponseHolder
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \OZONE\OZ\Exceptions\BadRequestException
+		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
+		 * @throws \OZONE\OZ\Exceptions\NotFoundException
+		 * @throws \OZONE\OZ\Exceptions\UnverifiedUserException
+		 */
 		public function actionGetRelation(array $request, array $extra)
 		{
 			// uncomment the next line to allow administrator only
@@ -515,7 +567,7 @@
 				throw new NotFoundException();
 			}
 
-			$relation_name = self::removeRelationMask($extra["relation"]);
+			$relation_name = self::removeRelationMask(self::$my_table_relations_map, $extra["relation"]);
 			$table         = ORM::getDatabase()
 								->getTable(MyEntity::TABLE_NAME);
 
@@ -537,6 +589,15 @@
 						->setData($results);
 		}
 
+		/**
+		 * @param \Gobl\DBAL\Relations\Relation $relation
+		 * @param \MY_PROJECT_DB_NS\MyEntity    $entity
+		 * @param array                         $request
+		 * @param array                         $extra
+		 *
+		 * @return array
+		 * @throws \OZONE\OZ\Exceptions\BadRequestException
+		 */
 		public static function getRelationItemsList(Relation $relation, MyEntity $entity, array $request, array $extra)
 		{
 			$filters  = (isset($request['filters']) AND is_array($request['filters'])) ? $request['filters'] : [];

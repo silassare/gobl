@@ -190,6 +190,7 @@
 		 * Adds AND condition.
 		 *
 		 * @return $this
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function andX()
 		{
@@ -200,6 +201,7 @@
 		 * Adds OR condition.
 		 *
 		 * @return $this
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function orX()
 		{
@@ -284,6 +286,7 @@
 		 * @param string|null  $b
 		 *
 		 * @return $this
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function eq($a, $b = null)
 		{
@@ -299,6 +302,7 @@
 		 * @param string|null  $b
 		 *
 		 * @return $this
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function neq($a, $b = null)
 		{
@@ -314,6 +318,7 @@
 		 * @param string|null  $b
 		 *
 		 * @return $this
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function like($a, $b = null)
 		{
@@ -329,6 +334,7 @@
 		 * @param string|null  $b
 		 *
 		 * @return $this
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function notLike($a, $b = null)
 		{
@@ -344,6 +350,7 @@
 		 * @param string|null  $b
 		 *
 		 * @return $this
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function lt($a, $b = null)
 		{
@@ -359,6 +366,7 @@
 		 * @param string|null  $b
 		 *
 		 * @return $this
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function lte($a, $b = null)
 		{
@@ -374,6 +382,7 @@
 		 * @param string|null  $b
 		 *
 		 * @return $this
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function gt($a, $b = null)
 		{
@@ -389,6 +398,7 @@
 		 * @param string|null  $b
 		 *
 		 * @return $this
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function gte($a, $b = null)
 		{
@@ -403,6 +413,7 @@
 		 * @param string $a
 		 *
 		 * @return $this
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function isNull($a)
 		{
@@ -417,6 +428,7 @@
 		 * @param string $a
 		 *
 		 * @return $this
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function isNotNull($a)
 		{

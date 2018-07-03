@@ -435,7 +435,7 @@
 					}
 
 					if (is_array($col_options)) {
-						$col = new Column($column_name, $col_prefix, $col_options);
+						$col = new Column($column_name, $col_options, $col_prefix);
 					} else {
 						throw new DBALException(sprintf('Invalid column "%s" options in table "%s".', $column_name, $table_name));
 					}

@@ -75,6 +75,7 @@
 
 		/**
 		 * {@inheritdoc}
+		 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
 		 */
 		public function validate($value, $column_name, $table_name)
 		{

@@ -77,6 +77,14 @@
 			return $this;
 		}
 
+		/**
+		 * @param     $min
+		 * @param     $max
+		 * @param int $range_min
+		 * @param int $range_max
+		 *
+		 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+		 */
 		final protected static function assertSafeIntRange($min, $max, $range_min = PHP_INT_MIN, $range_max = PHP_INT_MAX)
 		{
 			if (!is_int($min))

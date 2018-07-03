@@ -21,7 +21,7 @@
 	{
 		const TABLE_NAME = '<%$.table.name%>';
 
-<%@import('include/entity.columns.constants.otpl',$)%>
+<%@import('include/entity.columns.const.otpl',$)%>
 		/** @var \Gobl\DBAL\Table */
 		protected $table;
 
@@ -63,6 +63,8 @@
 		 * @param bool $is_new True for new entity false for entity fetched
 		 *                     from the database, default is true.
 		 * @param bool $strict
+		 *
+		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function __construct($is_new = true, $strict = true)
 		{
@@ -93,6 +95,7 @@
 		 * @param array $row map column name to column value
 		 *
 		 * @return $this|\<%$.namespace%>\<%$.class.entity%>
+		 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
 		 */
 		public function hydrate(array $row)
 		{
@@ -127,6 +130,7 @@
 		 * Saves modifications to database.
 		 *
 		 * @return int|string int for affected row count on update, string for last insert id
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function save()

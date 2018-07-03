@@ -47,7 +47,7 @@
 		 *
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
-		public function __construct($name, Table $host_table, Table $target_table, array $columns = null, $type)
+		public function __construct($name, Table $host_table, Table $target_table, $columns, $type)
 		{
 			if (!preg_match(Relation::NAME_REG, $name))
 				throw new \InvalidArgumentException(sprintf('Invalid relation name "%s".', $name));

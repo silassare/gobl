@@ -221,6 +221,7 @@
 		 * @param array $columns the columns
 		 *
 		 * @return $this
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function addUniqueConstraint(array $columns)
 		{
@@ -245,6 +246,7 @@
 		 * @param array $columns the columns
 		 *
 		 * @return $this
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function addPrimaryKeyConstraint(array $columns)
 		{
@@ -271,6 +273,7 @@
 		 * @param int              $delete_action   the reference column delete action
 		 *
 		 * @return $this
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function addForeignKeyConstraintOld(Table $reference_table, array $columns, $update_action, $delete_action)
 		{

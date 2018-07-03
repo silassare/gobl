@@ -6,6 +6,7 @@
 		 * @param int    $operator the operator to use
 		 *
 		 * @return $this|\<%$.class.use_query%>
+		 * @throws \Exception
 		 */
 		public function filterBy<%$column.methodName%>($value, $operator = Rule::OP_EQ)
 		{

@@ -21,7 +21,7 @@
 	{
 		const TABLE_NAME = 'my_table';
 
-//__GOBL_COLUMNS_CONSTANTS__
+//__GOBL_COLUMNS_CONST__
 		/** @var \Gobl\DBAL\Table */
 		protected $table;
 
@@ -63,6 +63,8 @@
 		 * @param bool $is_new True for new entity false for entity fetched
 		 *                     from the database, default is true.
 		 * @param bool $strict
+		 *
+		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function __construct($is_new = true, $strict = true)
 		{
@@ -86,13 +88,14 @@
 			}
 		}
 //__GOBL_RELATIONS_GETTERS__
-//__GOBL_ENTITY_COLUMNS_SETTERS_GETTERS__
+//__GOBL_COLUMNS_GETTERS_SETTERS__
 		/**
 		 * Hydrate this entity with values from an array.
 		 *
 		 * @param array $row map column name to column value
 		 *
 		 * @return $this|\MY_PROJECT_DB_NS\MyEntity
+		 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
 		 */
 		public function hydrate(array $row)
 		{
@@ -127,6 +130,7 @@
 		 * Saves modifications to database.
 		 *
 		 * @return int|string int for affected row count on update, string for last insert id
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function save()

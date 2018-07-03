@@ -32,6 +32,8 @@
 
 		/**
 		 * MyTableQuery constructor.
+		 *
+		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function __construct()
 		{
@@ -52,6 +54,8 @@
 		 * @param array    $order_by order by rules
 		 *
 		 * @return \MY_PROJECT_DB_NS\MyResults
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function find($max = null, $offset = 0, array $order_by = [])
 		{
@@ -80,6 +84,7 @@
 		 * satisfy the filters are deleted.
 		 *
 		 * @return \Gobl\DBAL\QueryBuilder
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function delete()
 		{
@@ -106,6 +111,7 @@
 		 * @param array $set_columns new values
 		 *
 		 * @return \Gobl\DBAL\QueryBuilder
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function update(array $set_columns)
@@ -143,6 +149,7 @@
 		 *
 		 * @return \Gobl\DBAL\QueryBuilder
 		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \Exception
 		 */
 		public function safeUpdate(array $old_values, array $new_values)
 		{
@@ -242,6 +249,7 @@
 		 * Returns a rule that include all filters rules.
 		 *
 		 * @return \Gobl\DBAL\Rule|null
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		protected function _getFiltersRule()
 		{

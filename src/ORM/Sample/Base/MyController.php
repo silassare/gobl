@@ -23,6 +23,8 @@
 
 		/**
 		 * MyController constructor.
+		 *
+		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function __construct()
 		{
@@ -66,6 +68,7 @@
 		 * @param array &$form The form
 		 *
 		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		protected function completeForm(array &$form)
 		{
@@ -101,6 +104,7 @@
 		 * @param array $columns The columns list
 		 *
 		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		protected static function assertUpdateColumns(array $columns = [])
 		{
@@ -152,6 +156,8 @@
 		 * @param array                               $filters
 		 *
 		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \Exception
 		 */
 		final protected static function applyFilters(MyTableQuery &$query, array $filters)
 		{
@@ -229,6 +235,10 @@
 		 * @param array $values the row values
 		 *
 		 * @return \MY_PROJECT_DB_NS\MyEntity
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
+		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function addItem(array $values = [])
 		{
@@ -254,6 +264,10 @@
 		 * @param array $new_values the new values
 		 *
 		 * @return bool|\MY_PROJECT_DB_NS\MyEntity
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
+		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function updateOneItem(array $filters, array $new_values)
 		{
@@ -279,6 +293,9 @@
 		 * @param array $new_values the new values
 		 *
 		 * @return int Affected row count.
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function updateAllItems(array $filters, array $new_values)
 		{
@@ -304,6 +321,9 @@
 		 * @param array $filters the row filters
 		 *
 		 * @return bool|\MY_PROJECT_DB_NS\MyEntity
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function deleteOneItem(array $filters)
 		{
@@ -330,6 +350,9 @@
 		 * @param array $filters the row filters
 		 *
 		 * @return int Affected row count.
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function deleteAllItems(array $filters)
 		{
@@ -355,6 +378,9 @@
 		 * @param array $order_by order by rules
 		 *
 		 * @return \MY_PROJECT_DB_NS\MyEntity|null
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function getItem(array $filters, array $order_by = [])
 		{
@@ -374,6 +400,9 @@
 		 * @param int|bool $total    total rows without limit
 		 *
 		 * @return \MY_PROJECT_DB_NS\MyEntity[]
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function getAllItems(array $filters = [], $max = null, $offset = 0, array $order_by = [], &$total = false)
 		{
@@ -408,6 +437,9 @@
 		 * @param array    $order_by order by rules
 		 *
 		 * @return \MY_PROJECT_DB_NS\MyResults
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function findAllItems(array $filters = [], $max = null, $offset = 0, array $order_by = [])
 		{

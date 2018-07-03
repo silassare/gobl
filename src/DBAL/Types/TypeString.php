@@ -30,6 +30,8 @@
 		 * @param int         $min     the minimum string length
 		 * @param int         $max     the maximum string length
 		 * @param string|null $pattern the string pattern
+		 *
+		 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 		 */
 		public function __construct($min = 0, $max = PHP_INT_MAX, $pattern = null)
 		{
@@ -77,6 +79,7 @@
 
 		/**
 		 * {@inheritdoc}
+		 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
 		 */
 		public function validate($value, $column_name, $table_name)
 		{

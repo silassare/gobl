@@ -32,6 +32,8 @@
 		 * @param int|null $min      the minimum number
 		 * @param int|null $max      the maximum number
 		 * @param bool     $unsigned as unsigned number
+		 *
+		 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 		 */
 		public function __construct($min = null, $max = null, $unsigned = false)
 		{
@@ -135,6 +137,7 @@
 
 		/**
 		 * {@inheritdoc}
+		 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
 		 */
 		public function validate($value, $column_name, $table_name)
 		{
