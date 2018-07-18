@@ -20,9 +20,12 @@
 		'//__GOBL_RELATIONS_GETTERS__'          => '<%@import(\'include/entity.relations.getters.otpl\',$)%>',
 		'//__GOBL_COLUMNS_GETTERS_SETTERS__'    => '<%@import(\'include/entity.getters.setters.otpl\',$)%>',
 		'//__GOBL_QUERY_FILTER_BY_COLUMNS__'    => '<%@import(\'include/query.filter.by.columns.otpl\',$)%>',
-		'//__GOBL_JS_COLUMNS_CONST__'           => '<%@import(\'include/js.columns.const.otpl\',$)%>',
-		'//__GOBL_JS_COLUMNS_GETTERS_SETTERS__' => '<%@import(\'include/js.getters.setters.otpl\',$)%>',
-		'//__GOBL_JS_ENTITIES_CLASS_LIST__'     => '<%@import(\'include/js.entities.list.otpl\',$)%>',
+        '//__GOBL_JS_COLUMNS_CONST__'           => '<%@import(\'include/js.columns.const.otpl\',$)%>',
+        '//__GOBL_JS_COLUMNS_GETTERS_SETTERS__' => '<%@import(\'include/js.getters.setters.otpl\',$)%>',
+        '//__GOBL_JS_ENTITIES_CLASS_LIST__'     => '<%@import(\'include/js.entities.list.otpl\',$)%>',
+        '//__GOBL_TS_COLUMNS_CONST__'           => '<%@import(\'include/ts.columns.const.otpl\',$)%>',
+        '//__GOBL_TS_COLUMNS_GETTERS_SETTERS__' => '<%@import(\'include/ts.getters.setters.otpl\',$)%>',
+        '//__GOBL_TS_ENTITIES_CLASS_LIST__'     => '<%@import(\'include/ts.entities.list.otpl\',$)%>',
 
 		// for ozone service usage only
 		'MY_PROJECT_SERVICE_NS'                 => '<%$.service.namespace%>',
@@ -58,3 +61,6 @@
 
 	$toTemplate($sample_dir . 'js/JSBundle.js', $templates_dir . 'js.bundle.otpl');
 	$toTemplate($sample_dir . 'js/MyEntity.js', $templates_dir . 'js.entity.class.otpl');
+
+	$toTemplate($sample_dir . 'ts/TSBundle.ts', $templates_dir . 'ts.bundle.otpl');
+	$toTemplate($sample_dir . 'ts/MyEntity.ts', $templates_dir . 'ts.entity.class.otpl');

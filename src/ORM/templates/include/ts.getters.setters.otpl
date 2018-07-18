@@ -1,0 +1,5 @@
+<%loop($.columns : $column){%>
+	get <%$column.name%>(){ return _c_<%$column.returnType%>(this._data[<%$.class.entity%>.<%$column.const%>])}
+	set <%$column.name%>(nVal:any){ this._data[<%$.class.entity%>.<%$column.const%>] = _c_<%$column.returnType%>(nVal)}
+	get<%$column.methodName%>(){ return this.<%$column.name%>}
+	set<%$column.methodName%>(nVal:any):this { this.<%$column.name%> = nVal; return this}<%}%>

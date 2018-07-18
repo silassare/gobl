@@ -7,21 +7,21 @@
 
 	var
 		// convert
-		_c = function (v, type) {
-			if (v !== null) {
-				if (type === "bool") {
-					v = !!parseInt(v);
-				}
-			}
-
-			return v;
+		_c_bool = function(v){
+			return v !== null ? Boolean(v) : null;
+		},
+		_c_int = function(v) {
+			return v !== null ? parseInt(v) : null;
+		},
+		_c_string = function(v){
+			return v !== null ? String(v) : null;
 		},
 		// hydrate
-		_h = function (ctx, data) {
+		_h = function (ctx, prefix, data) {
 			var source_of_truth = ctx.toJSON();
 			Object.keys(data).forEach(function (k) {
 				if (k in source_of_truth) {
-					ctx[k] = data[k];
+					ctx[k.slice(prefix.length+1)] = data[k];
 				}
 			});
 

@@ -1,0 +1,13 @@
+export type t<%$.class.entity%>Data = {};
+
+export class <%$.class.entity%> extends GoblEntity {
+	<%@import('include/ts.columns.const.otpl',$)%>
+	constructor(data: t<%$.class.entity%>Data) {
+		super(data, <%$.class.entity%>.PREFIX, <%$.class.entity%>.COLUMNS);
+	}
+	hydrate(data: t<%$.class.entity%>Data): this {
+		super._hydrate(data);
+		return this;
+	}
+	<%@import('include/ts.getters.setters.otpl',$)%>
+}

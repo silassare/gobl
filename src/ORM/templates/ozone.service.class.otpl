@@ -81,6 +81,7 @@
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 * @throws \OZONE\OZ\Exceptions\BadRequestException
 		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
+		 * @throws \OZONE\OZ\Exceptions\InternalErrorException
 		 * @throws \OZONE\OZ\Exceptions\InvalidFieldException
 		 * @throws \OZONE\OZ\Exceptions\InvalidFormException
 		 * @throws \OZONE\OZ\Exceptions\NotFoundException
@@ -149,6 +150,7 @@
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 * @throws \OZONE\OZ\Exceptions\BadRequestException
 		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
+		 * @throws \OZONE\OZ\Exceptions\InternalErrorException
 		 * @throws \OZONE\OZ\Exceptions\NotFoundException
 		 * @throws \OZONE\OZ\Exceptions\UnverifiedUserException
 		 */
@@ -299,7 +301,7 @@
 			// TODO
 			$this->getResponseHolder()
 				 ->setDone('RELATION_ADDED')
-				 ->setData(['item' => $entity, 'relations' => '']);
+				 ->setData(['item' => $entity, 'relations' => '', 'request' => $request]);
 		}
 
 //========================================================
@@ -369,7 +371,7 @@
 			// TODO
 			$this->getResponseHolder()
 				 ->setDone('RELATION_UPDATED')
-				 ->setData(['entity' => $entity, 'relations' => '']);
+				 ->setData(['entity' => $entity, 'relations' => '', 'request' => $request]);
 		}
 
 //========================================================
@@ -458,7 +460,7 @@
 			// TODO
 			$this->getResponseHolder()
 				 ->setDone('RELATION_DELETED')
-				 ->setData(['item' => $entity, 'relations' => '']);
+				 ->setData(['item' => $entity, 'relations' => '', 'request' => $request]);
 		}
 
 //========================================================

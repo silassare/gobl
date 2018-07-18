@@ -18,8 +18,7 @@
 	use Gobl\DBAL\Utils;
 	use Gobl\ORM\Exceptions\ORMException;
 
-	class Generator
-	{
+	class Generator {
 		private $types_map = [
 			Type::TYPE_INT    => ['int', 'int'],
 			Type::TYPE_BIGINT => ['bigint', 'string'],
@@ -30,15 +29,20 @@
 
 		/** @var \Gobl\DBAL\Db */
 		private $db;
+		private $ignore_private_table;
+		private $ignore_private_column;
 
 		/**
 		 * RowClassGenerator constructor.
 		 *
 		 * @param \Gobl\DBAL\Db $db
+		 * @param bool          $ignore_private_table
+		 * @param bool          $ignore_private_column
 		 */
-		public function __construct(Db $db)
-		{
-			$this->db = $db;
+		public function __construct(Db $db, $ignore_private_table = true, $ignore_private_column = true) {
+			$this->db                    = $db;
+			$this->ignore_private_table  = $ignore_private_table;
+			$this->ignore_private_column = $ignore_private_column;
 		}
 
 		/**
@@ -50,8 +54,7 @@
 		 *
 		 * @return $this
 		 */
-		public function generateORMClasses(array $tables, $path, $header = '')
-		{
+		public function generateORMClasses(array $tables, $path, $header = '') {
 			if (!file_exists($path) OR !is_dir($path)) {
 				throw new \InvalidArgumentException(sprintf('"%s" is not a valid directory path.', $path));
 			}
@@ -99,7 +102,7 @@
 		}
 
 		/**
-		 * Generate Javascript classes for tables with a given namespace in the database.
+		 * Generate JavaScript classes for tables with a given namespace in the database.
 		 *
 		 * @param Table[] $tables the tables list
 		 * @param string  $path   the destination folder path
@@ -107,8 +110,7 @@
 		 *
 		 * @return $this
 		 */
-		public function generateJSClasses(array $tables, $path, $header = '')
-		{
+		public function generateJSClasses(array $tables, $path, $header = '') {
 			if (!file_exists($path) OR !is_dir($path)) {
 				throw new \InvalidArgumentException(sprintf('"%s" is not a valid directory path.', $path));
 			}
@@ -126,24 +128,77 @@
 			$js_bundle_tpl       = $this->getTemplate($templates_dir . 'js.bundle.otpl');
 			$bundle_inject       = [];
 			foreach ($tables as $table) {
-				$inject                 = $this->describeTable($table);
-				$inject['header']       = $header;
-				$inject['time']         = time();
-				$entity_class           = $inject['class']['entity'];
-				$inject['columns_list'] = implode("|", array_keys($inject["columns"]));
+				if (!($table->isPrivate() && $this->ignore_private_table)) {
+					$inject                 = $this->describeTable($table);
+					$inject['header']       = $header;
+					$inject['time']         = time();
+					$entity_class           = $inject['class']['entity'];
+					$inject['columns_list'] = implode("|", array_keys($inject["columns"]));
 
-				foreach ($inject["columns"] as $column) {
-					$inject['columns_prefix'] = $column['prefix'];
-					break;
+					foreach ($inject["columns"] as $column) {
+						$inject['columns_prefix'] = $column['prefix'];
+						break;
+					}
+
+					$bundle_inject["entities"][$entity_class] = $js_entity_class_tpl->runGet($inject);
 				}
-
-				$bundle_inject["entities"][$entity_class] = $js_entity_class_tpl->runGet($inject);
 			}
 
 			$bundle_inject['header'] = $header;
 			$bundle_inject['time']   = time();
 
 			$this->writeFile($path . $ds . 'gobl.bundle.js', $js_bundle_tpl->runGet($bundle_inject), true);
+
+			return $this;
+		}
+
+		/**
+		 * Generate TypeScript classes for tables with a given namespace in the database.
+		 *
+		 * @param Table[] $tables the tables list
+		 * @param string  $path   the destination folder path
+		 * @param string  $header the source header to use
+		 *
+		 * @return $this
+		 */
+		public function generateTSClasses(array $tables, $path, $header = '') {
+			if (!file_exists($path) OR !is_dir($path)) {
+				throw new \InvalidArgumentException(sprintf('"%s" is not a valid directory path.', $path));
+			}
+
+			$ds            = DIRECTORY_SEPARATOR;
+			$templates_dir = $this->getTemplateDir();
+
+			$path_base = $path;
+
+			if (!file_exists($path_base)) {
+				mkdir($path_base);
+			}
+
+			$ts_entity_class_tpl = $this->getTemplate($templates_dir . 'ts.entity.class.otpl');
+			$ts_bundle_tpl       = $this->getTemplate($templates_dir . 'ts.bundle.otpl');
+			$bundle_inject       = [];
+			foreach ($tables as $table) {
+				if (!($table->isPrivate() && $this->ignore_private_table)) {
+					$inject                 = $this->describeTable($table);
+					$inject['header']       = $header;
+					$inject['time']         = time();
+					$entity_class           = $inject['class']['entity'];
+					$inject['columns_list'] = implode("|", array_keys($inject["columns"]));
+
+					foreach ($inject["columns"] as $column) {
+						$inject['columns_prefix'] = $column['prefix'];
+						break;
+					}
+
+					$bundle_inject["entities"][$entity_class] = $ts_entity_class_tpl->runGet($inject);
+				}
+			}
+
+			$bundle_inject['header'] = $header;
+			$bundle_inject['time']   = time();
+
+			$this->writeFile($path . $ds . 'gobl.bundle.ts', $ts_bundle_tpl->runGet($bundle_inject), true);
 
 			return $this;
 		}
@@ -161,8 +216,7 @@
 		 * @return array the ozone setting for the service
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
-		public function generateOZServiceClass(Table $table, $service_namespace, $service_dir, $service_name, $service_class = '', $header = '')
-		{
+		public function generateOZServiceClass(Table $table, $service_namespace, $service_dir, $service_name, $service_class = '', $header = '') {
 			if (!file_exists($service_dir) OR !is_dir($service_dir)) {
 				throw new \InvalidArgumentException(sprintf('"%s" is not a valid directory path.', $service_dir));
 			}
@@ -215,8 +269,7 @@
 		 *
 		 * @return string
 		 */
-		private function getTemplateDir()
-		{
+		private function getTemplateDir() {
 			$ds = DIRECTORY_SEPARATOR;
 
 			return __DIR__ . $ds . '..' . $ds . 'templates' . $ds;
@@ -229,8 +282,7 @@
 		 *
 		 * @return array
 		 */
-		private function describeTable(Table $table)
-		{
+		private function describeTable(Table $table) {
 			$inject              = $this->getTableInject($table);
 			$inject['columns']   = $this->getTableColumnsProperties($table);
 			$inject['relations'] = $this->relationsProperties($table);
@@ -245,8 +297,7 @@
 		 * @param mixed  $content   the file content
 		 * @param bool   $overwrite overwrite file if exists, default is true
 		 */
-		private function writeFile($path, $content, $overwrite = true)
-		{
+		private function writeFile($path, $content, $overwrite = true) {
 			if (!$overwrite AND file_exists($path)) {
 				return;
 			}
@@ -261,8 +312,7 @@
 		 *
 		 * @return \OTpl
 		 */
-		private function getTemplate($source)
-		{
+		private function getTemplate($source) {
 			$o = new \OTpl;
 			$o->parse($source);
 
@@ -276,12 +326,13 @@
 		 *
 		 * @return array
 		 */
-		private function getTableColumnsProperties(Table $table)
-		{
+		private function getTableColumnsProperties(Table $table) {
 			$columns = $table->getColumns();
 			$list    = [];
 			foreach ($columns as $column) {
-				$list[$column->getFullName()] = $this->columnProperties($column);
+				if (!($column->isPrivate() && $this->ignore_private_column)) {
+					$list[$column->getFullName()] = $this->columnProperties($column);
+				}
 			}
 
 			return $list;
@@ -294,8 +345,7 @@
 		 *
 		 * @return array
 		 */
-		private function columnProperties(Column $column)
-		{
+		private function columnProperties(Column $column) {
 			$name       = $column->getName();
 			$type_const = $column->getTypeObject()
 								 ->getTypeConstant();
@@ -320,8 +370,7 @@
 		 *
 		 * @return array
 		 */
-		private function relationsProperties(Table $table)
-		{
+		private function relationsProperties(Table $table) {
 			$use            = [];
 			$relation_types = [
 				Relation::ONE_TO_ONE   => 'one-to-one',
@@ -392,8 +441,7 @@
 		 *
 		 * @return array
 		 */
-		private function getTableInject(Table $table)
-		{
+		private function getTableInject(Table $table) {
 			$query_class_name      = Utils::toCamelCase($table->getPluralName() . '_query');
 			$entity_class_name     = Utils::toCamelCase($table->getSingularName());
 			$results_class_name    = Utils::toCamelCase($table->getPluralName() . '_results');
