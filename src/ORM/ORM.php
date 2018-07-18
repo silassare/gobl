@@ -27,7 +27,7 @@
 		 */
 		public static function getClassGenerator()
 		{
-			return new Generator(self::getDatabase());
+
 		}
 
 		/**
