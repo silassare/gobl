@@ -419,10 +419,12 @@
 				$singular_name = (string)$table['singular_name'];
 				$columns       = $table['columns'];
 				$col_prefix    = isset($table['column_prefix']) ? $table['column_prefix'] : null;
-				$tbl           = new Table($table_name, $plural_name, $singular_name, $namespace, $tables_prefix);
+				$table_private = isset($table['private']) ? $table['private'] : false;
+				$tbl           = new Table($table_name, $plural_name, $singular_name, $namespace, $tables_prefix, $table_private);
 
 				foreach ($columns as $column_name => $value) {
 					$col_options = is_array($value) ? $value : ['type' => $value];
+					$col_private = isset($col_options['private']) ? $col_options['private'] : false;
 
 					if (isset($col_options['type']) AND self::isColumnReference($col_options['type'])) {
 						$ref_options = $this->resolveReferenceColumn($col_options['type'], $tables);
@@ -435,7 +437,7 @@
 					}
 
 					if (is_array($col_options)) {
-						$col = new Column($column_name, $col_options, $col_prefix);
+						$col = new Column($column_name, $col_options, $col_prefix, $col_private);
 					} else {
 						throw new DBALException(sprintf('Invalid column "%s" options in table "%s".', $column_name, $table_name));
 					}
@@ -450,16 +452,19 @@
 			foreach ($tables as $table_name => $table) {
 				$tbl = $this->tables[$table_name];
 
-				if (!isset($table['constraints']))
+				if (!isset($table['constraints'])) {
 					continue;
+				}
 
 				$constraints = $table['constraints'];
 
 				foreach ($constraints as $constraint) {
-					if (!isset($constraint['type']))
+					if (!isset($constraint['type'])) {
 						throw new DBALException(sprintf('You should define constraint "type" in table "%s".', $table_name));
-					if (!isset($constraint['columns']) OR !is_array($constraint['columns']) OR !count($constraint['columns']))
+					}
+					if (!isset($constraint['columns']) OR !is_array($constraint['columns']) OR !count($constraint['columns'])) {
 						throw new DBALException(sprintf('Constraint "columns" is not defined or is empty (in the table "%s").', $table_name));
+					}
 
 					$columns = $constraint['columns'];
 
@@ -474,13 +479,15 @@
 							$tbl->addPrimaryKeyConstraint($columns);
 							break;
 						case 'foreign_key':
-							if (!isset($constraint['reference']))
+							if (!isset($constraint['reference'])) {
 								throw new DBALException(sprintf('You should declare foreign key "reference" table in table "%s".', $table_name));
+							}
 
 							$reference = $constraint['reference'];
 
-							if (!isset($this->tables[$reference]))
+							if (!isset($this->tables[$reference])) {
 								throw new DBALException(sprintf('Reference table "%s" for foreign key in table "%s" is not defined.', $reference, $table_name));
+							}
 
 							$reference_table = $this->tables[$reference];
 							$update_action   = ForeignKey::ACTION_NO_ACTION;
@@ -628,8 +635,9 @@
 		 */
 		public function hasTable($name)
 		{
-			if (isset($this->tables[$name]) OR isset($this->tbl_full_name_map[$name]))
+			if (isset($this->tables[$name]) OR isset($this->tbl_full_name_map[$name])) {
 				return true;
+			}
 
 			return false;
 		}

@@ -110,6 +110,13 @@
 		protected $relations = [];
 
 		/**
+		 * The table is private
+		 *
+		 * @var bool
+		 */
+		protected $private;
+
+		/**
 		 * Table constructor.
 		 *
 		 * Plural and singular class name are used to generate
@@ -125,20 +132,22 @@
 		 * @param string      $singular_name the singular name
 		 * @param string      $namespace     the table namespace
 		 * @param string|null $prefix        the table prefix
-		 *
-		 * @throws \InvalidArgumentException
+		 * @param bool        $private       the table is private
 		 */
-		public function __construct($name, $plural_name, $singular_name, $namespace, $prefix = null)
+		public function __construct($name, $plural_name, $singular_name, $namespace, $prefix = null, $private = false)
 		{
-			if (!preg_match(Table::NAME_REG, $name))
+			if (!preg_match(Table::NAME_REG, $name)) {
 				throw new \InvalidArgumentException(sprintf('Invalid table name "%s".', $name));
+			}
 
-			if (!is_string($namespace) OR empty($namespace))
+			if (!is_string($namespace) OR empty($namespace)) {
 				throw new \InvalidArgumentException(sprintf('You should provide namespace for table "%s".', $name));
+			}
 
 			if (!is_null($prefix)) {
-				if (!preg_match(Table::PREFIX_REG, $prefix))
+				if (!preg_match(Table::PREFIX_REG, $prefix)) {
 					throw new \InvalidArgumentException(sprintf('Invalid table prefix name "%s".', $prefix));
+				}
 			}
 
 			if (empty($plural_name) OR empty($singular_name)) {
@@ -154,6 +163,7 @@
 			$this->plural_name   = $plural_name;
 			$this->singular_name = $singular_name;
 			$this->namespace     = $namespace;
+			$this->private       = $private;
 		}
 
 		/**
@@ -400,8 +410,9 @@
 		 */
 		public function getFullName()
 		{
-			if (empty($this->prefix))
+			if (empty($this->prefix)) {
 				return $this->name;
+			}
 
 			return $this->prefix . '_' . $this->name;
 		}
@@ -681,5 +692,15 @@
 			}
 
 			return false;
+		}
+
+		/**
+		 * Check if the table is private
+		 *
+		 * @return bool
+		 */
+		public function isPrivate()
+		{
+			return $this->private;
 		}
 	}

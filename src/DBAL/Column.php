@@ -63,26 +63,37 @@
 		];
 
 		/**
+		 * The column is private
+		 *
+		 * @var bool
+		 */
+		protected $private;
+
+		/**
 		 * Column constructor.
 		 *
-		 * @param string                      $name   the column name
-		 * @param array|\Gobl\DBAL\Types\Type $type   the column type instance or type options array
-		 * @param string|null                 $prefix the column prefix
+		 * @param string                      $name    the column name
+		 * @param array|\Gobl\DBAL\Types\Type $type    the column type instance or type options array
+		 * @param string|null                 $prefix  the column prefix
+		 * @param bool                        $private the column is private
 		 *
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
-		public function __construct($name, $type, $prefix = null)
+		public function __construct($name, $type, $prefix = null, $private = false)
 		{
-			if (!preg_match(Column::NAME_REG, $name))
+			if (!preg_match(Column::NAME_REG, $name)) {
 				throw new \InvalidArgumentException(sprintf('Invalid column name "%s".', $name));
-
-			if (!is_null($prefix)) {
-				if (!preg_match(Column::PREFIX_REG, $prefix))
-					throw new \InvalidArgumentException(sprintf('Invalid column prefix name "%s".', $prefix));
 			}
 
-			$this->name   = strtolower($name);
-			$this->prefix = strtolower($prefix);
+			if (!is_null($prefix)) {
+				if (!preg_match(Column::PREFIX_REG, $prefix)) {
+					throw new \InvalidArgumentException(sprintf('Invalid column prefix name "%s".', $prefix));
+				}
+			}
+
+			$this->name    = strtolower($name);
+			$this->prefix  = strtolower($prefix);
+			$this->private = $private;
 
 			if ($type instanceof Type) {
 				$this->type = $type;
@@ -103,8 +114,9 @@
 		 */
 		private function arrayOptionsToType(array $options)
 		{
-			if (!isset($options['type']))
+			if (!isset($options['type'])) {
 				throw new DBALException(sprintf('You should define a column type for "%s".', $this->name));
+			}
 
 			$type = $options['type'];
 
@@ -156,8 +168,9 @@
 		 */
 		public function getFullName()
 		{
-			if (empty($this->prefix))
+			if (empty($this->prefix)) {
 				return $this->name;
+			}
 
 			return $this->prefix . '_' . $this->name;
 		}
@@ -185,5 +198,15 @@
 			}
 
 			self::$columns_types[$type_name] = $type_class;
+		}
+
+		/**
+		 * Check if the column is private
+		 *
+		 * @return bool
+		 */
+		public function isPrivate()
+		{
+			return $this->private;
 		}
 	}
