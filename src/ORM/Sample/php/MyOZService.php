@@ -1,5 +1,5 @@
 <?php
-//__GOBL_HEAD_COMMENT__
+	//__GOBL_HEAD_COMMENT__
 
 	namespace MY_PROJECT_SERVICE_NS;
 
@@ -60,7 +60,7 @@
 		 * @var array
 		 */
 		private static $my_table_fields_map = [
-//__OZONE_COLUMNS_NAME_MAP__
+			//__OZONE_COLUMNS_NAME_MAP__
 		];
 
 		/**
@@ -69,7 +69,7 @@
 		 * @var array
 		 */
 		private static $my_table_relations_map = [
-//__OZONE_RELATIONS_NAME_MAP__
+			//__OZONE_RELATIONS_NAME_MAP__
 		];
 
 		/**
@@ -85,6 +85,7 @@
 		 * @throws \OZONE\OZ\Exceptions\InvalidFieldException
 		 * @throws \OZONE\OZ\Exceptions\InvalidFormException
 		 * @throws \OZONE\OZ\Exceptions\NotFoundException
+		 * @throws \OZONE\OZ\Exceptions\RuntimeException
 		 * @throws \OZONE\OZ\Exceptions\UnverifiedUserException
 		 */
 		public function execute(array $request = [])
@@ -152,7 +153,9 @@
 		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
 		 * @throws \OZONE\OZ\Exceptions\InternalErrorException
 		 * @throws \OZONE\OZ\Exceptions\NotFoundException
+		 * @throws \OZONE\OZ\Exceptions\RuntimeException
 		 * @throws \OZONE\OZ\Exceptions\UnverifiedUserException
+		 * @throws \OZONE\OZ\Exceptions\InvalidFormException
 		 */
 		private function executeSub(array $request)
 		{
@@ -163,6 +166,8 @@
 					$this->actionDeleteAll($request);
 				} elseif (RequestHandler::isGet()) {
 					$this->actionGetAll($request);
+				} elseif (RequestHandler::isPatch()) {
+					$this->actionUpdateAll($request);
 				} else {
 					throw new ForbiddenException();
 				}
@@ -240,9 +245,9 @@
 			return false;
 		}
 
-//========================================================
-//=	POST REQUEST METHODS
-//========================================================
+		//========================================================
+		//=	POST REQUEST METHODS
+		//========================================================
 
 		/**
 		 * @param array $request
@@ -301,12 +306,12 @@
 			// TODO
 			$this->getResponseHolder()
 				 ->setDone('RELATION_ADDED')
-				 ->setData(['item' => $entity, 'relations' => '', 'request' => $request]);
+				 ->setData(['item' => $entity, 'relations' => '']);
 		}
 
-//========================================================
-//=	PUT REQUEST METHODS
-//========================================================
+		//========================================================
+		//=	PATCH REQUEST METHODS
+		//========================================================
 
 		/**
 		 * @param array $request
@@ -346,6 +351,43 @@
 
 		/**
 		 * @param array $request
+		 *
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
+		 * @throws \OZONE\OZ\Exceptions\UnverifiedUserException
+		 * @throws \OZONE\OZ\Exceptions\InvalidFormException
+		 */
+		public function actionUpdateAll($request = [])
+		{
+			// uncomment the next line to allow administrator only
+			Assert::assertIsAdmin();
+			// or uncomment the next line to allow verified user only
+			// Assert::assertUserVerified();
+
+			$data        = (isset($request["data"]) AND is_array($request["data"])) ? $request["data"] : [];
+			$form_values = self::removeColumnsMask(self::$my_table_fields_map, $data);
+
+			// primary key value should not be updated
+			unset($form_values['my_pk_column_const']);
+
+			if (empty($form_values)) {
+				throw new InvalidFormException();
+			}
+
+			$filters = (isset($request['filters']) AND is_array($request['filters'])) ? $request['filters'] : [];
+
+			$controller = new MyController();
+			$count      = $controller->updateAllItems($filters, $data);
+
+			$this->getResponseHolder()
+				 ->setDone('UPDATED')
+				 ->setData(['affected' => $count]);
+		}
+
+		/**
+		 * @param array $request
 		 * @param array $extra
 		 *
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
@@ -371,12 +413,12 @@
 			// TODO
 			$this->getResponseHolder()
 				 ->setDone('RELATION_UPDATED')
-				 ->setData(['entity' => $entity, 'relations' => '', 'request' => $request]);
+				 ->setData(['entity' => $entity, 'relations' => '']);
 		}
 
-//========================================================
-//=	DELETE REQUEST METHODS
-//========================================================
+		//========================================================
+		//=	DELETE REQUEST METHODS
+		//========================================================
 
 		/**
 		 * @param array $request
@@ -460,12 +502,12 @@
 			// TODO
 			$this->getResponseHolder()
 				 ->setDone('RELATION_DELETED')
-				 ->setData(['item' => $entity, 'relations' => '', 'request' => $request]);
+				 ->setData(['item' => $entity, 'relations' => '']);
 		}
 
-//========================================================
-//=	GET REQUEST METHODS
-//========================================================
+		//========================================================
+		//=	GET REQUEST METHODS
+		//========================================================
 
 		/**
 		 * @param array $request
@@ -615,26 +657,23 @@
 				$relation_getter
 			], [$filters, $max, $offset, $order_by, &$total_records]);
 
-			$relations[$extra['relation']] = $items;
-
 			return [
-				'item'      => $entity,
-				'relations' => $relations,
-				'max'       => $max,
-				'page'      => $page,
-				'total'     => $total_records
+				'target' => $entity,
+				'items'  => $items,
+				'max'    => $max,
+				'page'   => $page,
+				'total'  => $total_records
 			];
 		}
 
 		public static function getRelationItem(Relation $relation, MyEntity $entity, array $extra)
 		{
-			$relation_getter               = $relation->getGetterName();
-			$item                          = call_user_func([$entity, $relation_getter]);
-			$relations[$extra['relation']] = $item;
+			$relation_getter = $relation->getGetterName();
+			$item            = call_user_func([$entity, $relation_getter]);
 
 			return [
-				'item'      => $entity,
-				'relations' => $relations
+				'target' => $entity,
+				'item'   => $item
 			];
 		}
 	}

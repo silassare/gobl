@@ -5,7 +5,7 @@
 
 	<%$.class.entity%>.prototype = {
 		constructor: <%$.class.entity%>,<%@import('include/js.getters.setters.otpl',$)%>
-		toJSON     : function () { return this._getData();},
+		toJSON     : function () { return JSON.stringify(this._getData());},
 		hydrate    : function (data) { return _h(this, <%$.class.entity%>.PREFIX, data);}
 	};
 

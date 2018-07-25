@@ -47,17 +47,15 @@
 		return file_put_contents($to, $tpl);
 	};
 
-	$toTemplate($sample_dir . 'Base/MyTableQuery.php', $templates_dir . 'base.query.class.otpl');
-	$toTemplate($sample_dir . 'Base/MyEntity.php', $templates_dir . 'base.entity.class.otpl');
-	$toTemplate($sample_dir . 'Base/MyResults.php', $templates_dir . 'base.results.class.otpl');
-	$toTemplate($sample_dir . 'Base/MyController.php', $templates_dir . 'base.controller.class.otpl');
-
-	$toTemplate($sample_dir . 'MyTableQuery.php', $templates_dir . 'query.class.otpl');
-	$toTemplate($sample_dir . 'MyEntity.php', $templates_dir . 'entity.class.otpl');
-	$toTemplate($sample_dir . 'MyResults.php', $templates_dir . 'results.class.otpl');
-	$toTemplate($sample_dir . 'MyController.php', $templates_dir . 'controller.class.otpl');
-
-	$toTemplate($sample_dir . 'MyOZService.php', $templates_dir . 'ozone.service.class.otpl');
+	$toTemplate($sample_dir . 'php/Base/MyTableQuery.php', $templates_dir . 'base.query.class.otpl');
+	$toTemplate($sample_dir . 'php/Base/MyEntity.php', $templates_dir . 'base.entity.class.otpl');
+	$toTemplate($sample_dir . 'php/Base/MyResults.php', $templates_dir . 'base.results.class.otpl');
+	$toTemplate($sample_dir . 'php/Base/MyController.php', $templates_dir . 'base.controller.class.otpl');
+	$toTemplate($sample_dir . 'php/MyTableQuery.php', $templates_dir . 'query.class.otpl');
+	$toTemplate($sample_dir . 'php/MyEntity.php', $templates_dir . 'entity.class.otpl');
+	$toTemplate($sample_dir . 'php/MyResults.php', $templates_dir . 'results.class.otpl');
+	$toTemplate($sample_dir . 'php/MyController.php', $templates_dir . 'controller.class.otpl');
+	$toTemplate($sample_dir . 'php/MyOZService.php', $templates_dir . 'ozone.service.class.otpl');
 
 	$toTemplate($sample_dir . 'js/JSBundle.js', $templates_dir . 'js.bundle.otpl');
 	$toTemplate($sample_dir . 'js/MyEntity.js', $templates_dir . 'js.entity.class.otpl');

@@ -18,7 +18,7 @@
 		},
 		// hydrate
 		_h = function (ctx, prefix, data) {
-			var source_of_truth = ctx.toJSON();
+			var source_of_truth = ctx._getData();
 			Object.keys(data).forEach(function (k) {
 				if (k in source_of_truth) {
 					ctx[k.slice(prefix.length+1)] = data[k];

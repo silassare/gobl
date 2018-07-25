@@ -421,16 +421,18 @@
 		/**
 		 * Returns sql LIMIT query part.
 		 *
+		 * @param bool $ignore_offset To ignore offset as MySql doest not support update|delete with offset
+		 *
 		 * @return string
 		 */
-		protected function getLimitQuery()
+		protected function getLimitQuery($ignore_offset = false)
 		{
 			$offset = $this->options['limitOffset'];
 			$max    = $this->options['limitMax'];
 			$sql    = '';
 			if (is_int($max)) {
 				$sql = ' LIMIT ' . $max;
-				if (is_int($offset)) {
+				if (!$ignore_offset AND is_int($offset)) {
 					$sql .= ' OFFSET ' . $offset;
 				}
 			}

@@ -1,5 +1,5 @@
 <?php
-//__GOBL_HEAD_COMMENT__
+	//__GOBL_HEAD_COMMENT__
 
 	namespace MY_PROJECT_DB_NS\Base;
 
@@ -117,7 +117,7 @@
 		public function update(array $set_columns)
 		{
 			if (!count($set_columns)) {
-				throw new ORMException('Empty columns, cannot update.');
+				throw new ORMException("Empty columns, can't update.");
 			}
 
 			$this->qb->update($this->table->getFullName(), $this->table_alias);
@@ -229,7 +229,7 @@
 			return $this;
 		}
 
-//__GOBL_QUERY_FILTER_BY_COLUMNS__
+		//__GOBL_QUERY_FILTER_BY_COLUMNS__
 
 		/**
 		 * Creates new query builder and returns the old query builder.

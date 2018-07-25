@@ -853,7 +853,6 @@
 							->buildQuery();
 
 			$sql = 'SELECT ' . 'COUNT(1) FROM (' . $sql . ') as __gobl_alias';
-			oz_logger($sql);
 			$req = $this->db->execute($sql, $this->getBoundValues(), $this->getBoundValuesTypes());
 
 			// restore limit

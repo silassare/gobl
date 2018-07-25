@@ -5,7 +5,7 @@
 
 	MyEntity.prototype = {
 		constructor: MyEntity,//__GOBL_JS_COLUMNS_GETTERS_SETTERS__
-		toJSON     : function () { return this._getData();},
+		toJSON     : function () { return JSON.stringify(this._getData());},
 		hydrate    : function (data) { return _h(this, MyEntity.PREFIX, data);}
 	};
 

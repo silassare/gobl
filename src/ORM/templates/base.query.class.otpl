@@ -1,5 +1,5 @@
 <?php
-<%@import('include/head.comment.otpl',$)%>
+	<%@import('include/head.comment.otpl',$)%>
 
 	namespace <%$.namespace%>\Base;
 
@@ -117,7 +117,7 @@
 		public function update(array $set_columns)
 		{
 			if (!count($set_columns)) {
-				throw new ORMException('Empty columns, cannot update.');
+				throw new ORMException("Empty columns, can't update.");
 			}
 
 			$this->qb->update($this->table->getFullName(), $this->table_alias);
@@ -229,7 +229,7 @@
 			return $this;
 		}
 
-<%@import('include/query.filter.by.columns.otpl',$)%>
+		<%@import('include/query.filter.by.columns.otpl',$)%>
 
 		/**
 		 * Creates new query builder and returns the old query builder.
