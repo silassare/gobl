@@ -23,8 +23,8 @@ const win: any = window,
 	ACTION_DELETING = 2,
 	ACTION_UPDATING = 3,
 	realJSONParse = JSON.parse,
-	goblJSONParse = JSON.parse = function(text: any, reviver?: Function) {
-		return realJSONParse(text, function(key, value) {
+	goblJSONParse = function (text: any, reviver?:(key: any, value: any)=> any) {
+		return realJSONParse(text, function (key, value) {
 			if (typeof reviver === "function") {
 				value = reviver(key, value);
 			}
@@ -49,7 +49,7 @@ export class GoblEntity {
 	constructor(_initial_data: any = {}, private readonly _name: string, private readonly _prefix: string, private readonly _columns: string[]) {
 		let ctx = this;
 
-		_columns.forEach(function(col) {
+		_columns.forEach(function (col) {
 			ctx._data[col] = ctx._cache[col] = (col in _initial_data) ? _initial_data[col] : undefined;
 		});
 	}
@@ -103,7 +103,7 @@ export class GoblEntity {
 	doHydrate(data: any, save: boolean = false): this {
 		let ctx = this,
 			source_of_truth = this._data;
-		Object.keys(data).forEach(function(k) {
+		Object.keys(data).forEach(function (k) {
 			if (k in source_of_truth) {
 				(ctx as any)[k.slice(ctx._prefix.length + 1)] = data[k];
 			}
@@ -196,7 +196,10 @@ export abstract class GoblEntityWithId extends GoblEntity {
 
 //__GOBL_TS_ENTITIES_CLASS_LIST__
 
-Object.keys(gobl).forEach(function(entity) {
+Object.keys(gobl).forEach(function (entity) {
 	gobl_class_magic_map[gobl[entity]["COLUMNS"].sort().join("")] = entity;
 });
+
+JSON.parse = goblJSONParse;
+
 console.log("[gobl] ready!");

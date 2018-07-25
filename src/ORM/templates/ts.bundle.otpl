@@ -1,50 +1,50 @@
 <%@import('include/head.comment.otpl',$)%>
 
-const win: any  = window,
-	  gobl: any = win.gobl = win.gobl || {},
-	  _hasOwn                                         = Object.hasOwnProperty,
-	  _isPlainObject                                  = (a: any): boolean => Object.prototype.toString.call(a) === "[object Object]",
-	  _c_bool                                         = (v: any): boolean => {
-		  // @ts-ignore
-		  return v !== null ? Boolean(v) : null;
-	  },
-	  _c_int                                          = (v: any): number => {
-		  // @ts-ignore
-		  return v !== null ? parseInt(v) : null;
-	  },
-	  _c_string                                       = (v: any): string => {
-		  // @ts-ignore
-		  return v !== null ? String(v) : null;
-	  },
-	  gobl_marker                                     = "$_gobl_marker",
-	  gobl_class_magic_map: { [key: string]: string } = {},
-	  ACTION_UNKNOWN                                  = 0,
-	  ACTION_SAVING                                   = 1,
-	  ACTION_DELETING                                 = 2,
-	  ACTION_UPDATING                                 = 3,
-	  realJSONParse                                   = JSON.parse,
-	  goblJSONParse                                   = JSON.parse = function (text: any, reviver?: Function) {
-		  return realJSONParse(text, function (key, value) {
-			  if (typeof reviver === "function") {
-				  value = reviver(key, value);
-			  }
+const win: any = window,
+	gobl: any = win.gobl = win.gobl || {},
+	_hasOwn = Object.hasOwnProperty,
+	_isPlainObject = (a: any): boolean => Object.prototype.toString.call(a) === "[object Object]",
+	_c_bool = (v: any): boolean => {
+		// @ts-ignore
+		return v !== null ? Boolean(v) : null;
+	},
+	_c_int = (v: any): number => {
+		// @ts-ignore
+		return v !== null ? parseInt(v) : null;
+	},
+	_c_string = (v: any): string => {
+		// @ts-ignore
+		return v !== null ? String(v) : null;
+	},
+	gobl_marker = "$_gobl_marker",
+	gobl_class_magic_map: { [key: string]: string } = {},
+	ACTION_UNKNOWN = 0,
+	ACTION_SAVING = 1,
+	ACTION_DELETING = 2,
+	ACTION_UPDATING = 3,
+	realJSONParse = JSON.parse,
+	goblJSONParse = function (text: any, reviver?: Function) {
+		return realJSONParse(text, function (key, value) {
+			if (typeof reviver === "function") {
+				value = reviver(key, value);
+			}
 
-			  if (_isPlainObject(value)) {
-				  let i = GoblEntity.toInstance(value);
-				  if (i) {
-					  return i;
-				  }
-			  }
+			if (_isPlainObject(value)) {
+				let i = GoblEntity.toInstance(value);
+				if (i) {
+					return i;
+				}
+			}
 
-			  return value;
-		  });
-	  };
+			return value;
+		});
+	};
 
 // use only camelCase method name don't use `getSomething` or `setSomething`
 export class GoblEntity {
 	protected readonly _data: any = {};
-	protected _cache: any         = {};
-	protected _action: number     = ACTION_UNKNOWN;
+	protected _cache: any = {};
+	protected _action: number = ACTION_UNKNOWN;
 
 	constructor(_initial_data: any = {}, private readonly _name: string, private readonly _prefix: string, private readonly _columns: string[]) {
 		let ctx = this;
@@ -101,7 +101,7 @@ export class GoblEntity {
 	// so we use camelCase method name
 	// hydrate the entity and save the state when save is true
 	doHydrate(data: any, save: boolean = false): this {
-		let ctx             = this,
+		let ctx = this,
 			source_of_truth = this._data;
 		Object.keys(data).forEach(function (k) {
 			if (k in source_of_truth) {
@@ -159,7 +159,7 @@ export class GoblEntity {
 
 	// JSON helper
 	toJSON(): string {
-		let data          = this.toObject();
+		let data = this.toObject();
 		data[gobl_marker] = this._name;
 
 		return JSON.stringify(data);
@@ -173,7 +173,7 @@ export class GoblEntity {
 			if (entity_name) {
 				entity = gobl[entity_name];
 			} else {
-				magic       = Object.keys(data).sort().join("");
+				magic = Object.keys(data).sort().join("");
 				entity_name = gobl_class_magic_map[magic];
 
 				if (entity_name) {
@@ -198,5 +198,8 @@ export abstract class GoblEntityWithId extends GoblEntity {
 
 Object.keys(gobl).forEach(function (entity) {
 	gobl_class_magic_map[gobl[entity]["COLUMNS"].sort().join("")] = entity;
-	console.log("[gobl] ready!");
 });
+
+JSON.parse = goblJSONParse;
+
+console.log("[gobl] ready!");

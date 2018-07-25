@@ -1,3 +1,0 @@
-<%loop($.columns : $column){%>
-		get<%$column.methodName%>: function(){ return _c_<%$column.returnType%>(this.<%$column.name%>);},
-		set<%$column.methodName%>: function(nVal){ this.<%$column.name%> = nVal; return this;},<%}%>

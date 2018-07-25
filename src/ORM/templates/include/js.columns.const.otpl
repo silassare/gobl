@@ -1,4 +1,0 @@
-<%loop($.columns : $column){%>	<%$.class.entity%>.<%$column.const%> = '<%$column.fullName%>';
-<%}%>
-	<%$.class.entity%>.PREFIX = '<%$.columns_prefix%>';
-	<%$.class.entity%>.COLUMNS = '<%$.columns_list%>'.split('|');
