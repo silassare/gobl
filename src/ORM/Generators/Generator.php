@@ -18,7 +18,8 @@
 	use Gobl\DBAL\Utils;
 	use Gobl\ORM\Exceptions\ORMException;
 
-	class Generator {
+	class Generator
+	{
 		private $types_map = [
 			Type::TYPE_INT    => ['int', 'int'],
 			Type::TYPE_BIGINT => ['bigint', 'string'],
@@ -39,7 +40,8 @@
 		 * @param bool          $ignore_private_table
 		 * @param bool          $ignore_private_column
 		 */
-		public function __construct(Db $db, $ignore_private_table = true, $ignore_private_column = true) {
+		public function __construct(Db $db, $ignore_private_table = true, $ignore_private_column = true)
+		{
 			$this->db                    = $db;
 			$this->ignore_private_table  = $ignore_private_table;
 			$this->ignore_private_column = $ignore_private_column;
@@ -54,7 +56,8 @@
 		 *
 		 * @return $this
 		 */
-		public function generateORMClasses(array $tables, $path, $header = '') {
+		public function generateORMClasses(array $tables, $path, $header = '')
+		{
 			if (!file_exists($path) OR !is_dir($path)) {
 				throw new \InvalidArgumentException(sprintf('"%s" is not a valid directory path.', $path));
 			}
@@ -110,7 +113,8 @@
 		 *
 		 * @return $this
 		 */
-		public function generateTSClasses(array $tables, $path, $header = '') {
+		public function generateTSClasses(array $tables, $path, $header = '')
+		{
 			if (!file_exists($path) OR !is_dir($path)) {
 				throw new \InvalidArgumentException(sprintf('"%s" is not a valid directory path.', $path));
 			}
@@ -153,7 +157,7 @@
 		}
 
 		/**
-		 * Generate ozone class for a given table.
+		 * Generate O'Zone service class for a given table.
 		 *
 		 * @param \Gobl\DBAL\Table $table             the table
 		 * @param string           $service_namespace the service class namespace
@@ -162,10 +166,11 @@
 		 * @param string           $service_class     the service class name to use
 		 * @param string           $header            the source header to use
 		 *
-		 * @return array the ozone setting for the service
+		 * @return array the O'Zone setting for the service
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
-		public function generateOZServiceClass(Table $table, $service_namespace, $service_dir, $service_name, $service_class = '', $header = '') {
+		public function generateOZServiceClass(Table $table, $service_namespace, $service_dir, $service_name, $service_class = '', $header = '')
+		{
 			if (!file_exists($service_dir) OR !is_dir($service_dir)) {
 				throw new \InvalidArgumentException(sprintf('"%s" is not a valid directory path.', $service_dir));
 			}
@@ -178,11 +183,11 @@
 			$columns = $pk->getConstraintColumns();
 
 			if (count($columns) !== 1) {
-				throw new ORMException('You can generate ozone service only for tables with one column as primary key.');
+				throw new ORMException("You can generate O'Zone service only for tables with one column as primary key.");
 			}
 
 			if (empty($service_class)) {
-				$service_class = Utils::toCamelCase($table->getName() . '_service');
+				$service_class = Utils::toClassName($table->getName() . '_service');
 			}
 
 			$templates_dir                  = $this->getTemplateDir();
@@ -193,7 +198,6 @@
 			$inject['service']['name']      = $service_name;
 			$inject['service']['namespace'] = $service_namespace;
 			$inject['service']['class']     = $service_class;
-			$inject['pk']                   = $this->columnProperties($table->getColumn($columns[0]));
 			$qualified_class                = $service_namespace . '\\' . $inject['service']['class'];
 			$class_path                     = $service_dir . DIRECTORY_SEPARATOR . $service_class . '.php';
 
@@ -218,25 +222,11 @@
 		 *
 		 * @return string
 		 */
-		private function getTemplateDir() {
+		private function getTemplateDir()
+		{
 			$ds = DIRECTORY_SEPARATOR;
 
 			return __DIR__ . $ds . '..' . $ds . 'templates' . $ds;
-		}
-
-		/**
-		 * Returns array that can be used to generate file.
-		 *
-		 * @param \Gobl\DBAL\Table $table
-		 *
-		 * @return array
-		 */
-		private function describeTable(Table $table) {
-			$inject              = $this->getTableInject($table);
-			$inject['columns']   = $this->getTableColumnsProperties($table);
-			$inject['relations'] = $this->relationsProperties($table);
-
-			return $inject;
 		}
 
 		/**
@@ -246,7 +236,8 @@
 		 * @param mixed  $content   the file content
 		 * @param bool   $overwrite overwrite file if exists, default is true
 		 */
-		private function writeFile($path, $content, $overwrite = true) {
+		private function writeFile($path, $content, $overwrite = true)
+		{
 			if (!$overwrite AND file_exists($path)) {
 				return;
 			}
@@ -261,11 +252,28 @@
 		 *
 		 * @return \OTpl
 		 */
-		private function getTemplate($source) {
+		private function getTemplate($source)
+		{
 			$o = new \OTpl;
 			$o->parse($source);
 
 			return $o;
+		}
+
+		/**
+		 * Returns array that can be used to generate file.
+		 *
+		 * @param \Gobl\DBAL\Table $table
+		 *
+		 * @return array
+		 */
+		private function describeTable(Table $table)
+		{
+			$inject              = $this->getTableInject($table);
+			$inject['columns']   = $this->describeTableColumns($table);
+			$inject['relations'] = $this->describeTableRelations($table);
+
+			return $inject;
 		}
 
 		/**
@@ -275,12 +283,13 @@
 		 *
 		 * @return array
 		 */
-		private function getTableColumnsProperties(Table $table) {
+		private function describeTableColumns(Table $table)
+		{
 			$columns = $table->getColumns();
 			$list    = [];
 			foreach ($columns as $column) {
 				if (!($column->isPrivate() && $this->ignore_private_column)) {
-					$list[$column->getFullName()] = $this->columnProperties($column);
+					$list[$column->getFullName()] = $this->describeColumn($column);
 				}
 			}
 
@@ -294,22 +303,24 @@
 		 *
 		 * @return array
 		 */
-		private function columnProperties(Column $column) {
+		private function describeColumn(Column $column)
+		{
 			$name       = $column->getName();
 			$type_const = $column->getTypeObject()
 								 ->getTypeConstant();
 
-			$c['name']       = $name;
-			$c['fullName']   = $column->getFullName();
-			$c['prefix']     = $column->getPrefix();
-			$c['methodName'] = Utils::toCamelCase($name);
-			$c['const']      = 'COL_' . strtoupper($name);
-			$c['columnType'] = $this->types_map[$type_const][0];
-			$c['returnType'] = $this->types_map[$type_const][1];
-			$c['argName']    = $name;
-			$c['argType']    = $c['returnType'];
-
-			return $c;
+			return [
+				'private'      => $column->isPrivate(),
+				'name'         => $name,
+				'fullName'     => $column->getFullName(),
+				'prefix'       => $column->getPrefix(),
+				'methodSuffix' => Utils::toClassName($name),
+				'const'        => 'COL_' . strtoupper($name),
+				'columnType'   => $this->types_map[$type_const][0],
+				'returnType'   => $this->types_map[$type_const][1],
+				'argName'      => $name,
+				'argType'      => $this->types_map[$type_const][1]
+			];
 		}
 
 		/**
@@ -319,7 +330,8 @@
 		 *
 		 * @return array
 		 */
-		private function relationsProperties(Table $table) {
+		private function describeTableRelations(Table $table)
+		{
 			$use            = [];
 			$relation_types = [
 				Relation::ONE_TO_ONE   => 'one-to-one',
@@ -346,33 +358,28 @@
 
 				foreach ($c as $left => $right) {
 					if ($left_right) {
-						$left   = $this->columnProperties($target_table->getColumn($left));
-						$right  = $this->columnProperties($host_table->getColumn($right));
+						$left   = $this->describeColumn($target_table->getColumn($left));
+						$right  = $this->describeColumn($host_table->getColumn($right));
 						$filter = ['from' => $left, 'to' => $right];
 					} else {
-						$left   = $this->columnProperties($host_table->getColumn($left));
-						$right  = $this->columnProperties($target_table->getColumn($right));
+						$left   = $this->describeColumn($host_table->getColumn($left));
+						$right  = $this->describeColumn($target_table->getColumn($right));
 						$filter = ['from' => $right, 'to' => $left];
 					}
 
 					$filters[] = $filter;
 				}
 
-				$r['name']       = $relation->getName();
-				$r['type']       = $relation_types[$type];
-				$r['methodName'] = Utils::toCamelCase($r['name']);
-				$r['master']     = $this->getTableInject($master_table);
-				$r['slave']      = $this->getTableInject($slave_table);
-				$r['host']       = $this->getTableInject($host_table);
-				$r['target']     = $this->getTableInject($target_table);
-				$r['filters']    = $filters;
+				$r['name']         = $relation->getName();
+				$r['type']         = $relation_types[$type];
+				$r['methodSuffix'] = Utils::toClassName($r['name']);
+				$r['master']       = $this->getTableInject($master_table);
+				$r['slave']        = $this->getTableInject($slave_table);
+				$r['host']         = $this->getTableInject($host_table);
+				$r['target']       = $this->getTableInject($target_table);
+				$r['filters']      = $filters;
 
-				if ($type === Relation::MANY_TO_MANY OR $type === Relation::ONE_TO_MANY) {
-					$use[] = $r["target"]["class"]["use_entity"] . " as " . $r["target"]["class"]["entity"] . "RealR";
-					$use[] = $r["target"]["class"]["use_controller"] . " as " . $r["target"]["class"]["controller"] . "RealR";
-				} else {
-					$use[] = $r["target"]["class"]["use_query"] . " as " . $r["target"]["class"]["query"] . "RealR";
-				}
+				$use[] = $r["target"]["class"]["use_controller"] . " as " . $r["target"]["class"]["controller"] . "RealR";
 
 				$list[] = $r;
 			}
@@ -390,17 +397,28 @@
 		 *
 		 * @return array
 		 */
-		private function getTableInject(Table $table) {
-			$query_class_name      = Utils::toCamelCase($table->getPluralName() . '_query');
-			$entity_class_name     = Utils::toCamelCase($table->getSingularName());
-			$results_class_name    = Utils::toCamelCase($table->getPluralName() . '_results');
-			$controller_class_name = Utils::toCamelCase($table->getPluralName() . '_controller');
+		private function getTableInject(Table $table)
+		{
+			$query_class_name      = Utils::toClassName($table->getPluralName() . '_query');
+			$entity_class_name     = Utils::toClassName($table->getSingularName());
+			$results_class_name    = Utils::toClassName($table->getPluralName() . '_results');
+			$controller_class_name = Utils::toClassName($table->getPluralName() . '_controller');
 
-			$ns = $table->getNamespace();
+			$ns         = $table->getNamespace();
+			$pk_columns = [];
+
+			if ($table->hasPrimaryKeyConstraint()) {
+				$pk = $table->getPrimaryKeyConstraint();
+				foreach ($pk->getConstraintColumns() as $column_name) {
+					$pk_columns[] = $this->describeColumn($table->getColumn($column_name));
+				}
+			}
 
 			return [
-				'namespace' => $ns,
-				'class'     => [
+				'namespace'  => $ns,
+				'pk_columns' => $pk_columns,
+				'private'    => $table->isPrivate(),
+				'class'      => [
 					'query'          => $query_class_name,
 					'entity'         => $entity_class_name,
 					'results'        => $results_class_name,
@@ -410,7 +428,7 @@
 					'use_results'    => $ns . "\\" . $results_class_name,
 					'use_controller' => $ns . "\\" . $controller_class_name
 				],
-				'table'     => [
+				'table'      => [
 					'name' => $table->getName()
 				]
 			];

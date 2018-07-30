@@ -19,17 +19,18 @@
 		'//__GOBL_RELATIONS_PROPERTIES__'       => '<%@import(\'include/entity.relations.properties.otpl\',$)%>',
 		'//__GOBL_RELATIONS_GETTERS__'          => '<%@import(\'include/entity.relations.getters.otpl\',$)%>',
 		'//__GOBL_COLUMNS_GETTERS_SETTERS__'    => '<%@import(\'include/entity.getters.setters.otpl\',$)%>',
+		'//__GOBL_PRIVATE_COLUMNS__'            => '<%@import(\'include/private.columns.otpl\',$)%>',
 		'//__GOBL_QUERY_FILTER_BY_COLUMNS__'    => '<%@import(\'include/query.filter.by.columns.otpl\',$)%>',
-        '//__GOBL_TS_COLUMNS_CONST__'           => '<%@import(\'include/ts.columns.const.otpl\',$)%>',
-        '//__GOBL_TS_COLUMNS_GETTERS_SETTERS__' => '<%@import(\'include/ts.getters.setters.otpl\',$)%>',
-        '//__GOBL_TS_ENTITIES_CLASS_LIST__'     => '<%@import(\'include/ts.entities.list.otpl\',$)%>',
+		'//__GOBL_TS_COLUMNS_CONST__'           => '<%@import(\'include/ts.columns.const.otpl\',$)%>',
+		'//__GOBL_TS_COLUMNS_GETTERS_SETTERS__' => '<%@import(\'include/ts.getters.setters.otpl\',$)%>',
+		'//__GOBL_TS_ENTITIES_CLASS_LIST__'     => '<%@import(\'include/ts.entities.list.otpl\',$)%>',
 
 		// for ozone service usage only
 		'MY_PROJECT_SERVICE_NS'                 => '<%$.service.namespace%>',
 		'MyOZService'                           => '<%$.service.class%>',
 		'my_svc'                                => '<%$.service.name%>',
-		'my_id'                                 => '<%$.pk.name%>',
-		'\'my_pk_column_const\''                => '<%$.class.entity%>::<%$.pk.const%>',
+		'my_id'                                 => '<%$.pk_columns[0].name%>',
+		'\'my_pk_column_const\''                => '<%$.class.entity%>::<%$.pk_columns[0].const%>',
 		'//__OZONE_COLUMNS_NAME_MAP__'          => '<%@import(\'include/ozone.columns.name.map.otpl\',$)%>',
 		'//__OZONE_RELATIONS_NAME_MAP__'        => '<%@import(\'include/ozone.relations.name.map.otpl\',$)%>'
 	];
@@ -37,7 +38,8 @@
 	$search      = array_keys($map);
 	$replacement = array_values($map);
 
-	$toTemplate = function ($from, $to) use ($search, $replacement) {
+	$toTemplate = function ($from, $to) use ($search, $replacement)
+	{
 		$source = file_get_contents($from);
 		$tpl    = str_replace($search, $replacement, $source);
 

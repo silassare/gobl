@@ -4,15 +4,18 @@
          * OneToOne relation between `<%$relation.host.table.name%>` and `<%$relation.target.table.name%>`.
          *
          * @return null|\<%$relation.target.class.use_entity%>
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
          */
-        public function get<%$relation.methodName%>()
+        public function get<%$relation.methodSuffix%>()
         {
             if (!isset($this->r_<%$relation.name%>)) {
-                $m = new <%$relation.target.class.query%>RealR();
                 <%loop ($relation.filters : $filter){%>
-                $m->filterBy<%$filter.from.methodName%>($this->get<%$filter.to.methodName%>());
-                <%}%>
-                $this->r_<%$relation.name%> = $m->find()->fetchClass();
+                $filters['<%$filter.from.fullName%>'] = $this->get<%$filter.to.methodSuffix%>();<%}%>
+
+                $m = new <%$relation.target.class.controller%>RealR(true);
+                $this->r_<%$relation.name%> = $m->getItem($filters);
             }
 
             return $this->r_<%$relation.name%>;
@@ -28,13 +31,16 @@
          * @param int|bool $total    total rows without limit
          *
          * @return \<%$relation.target.class.use_entity%>[]
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
          */
-        function get<%$relation.methodName%>($filters = [], $max = null, $offset = 0, $order_by = [], &$total = false)
+        function get<%$relation.methodSuffix%>($filters = [], $max = null, $offset = 0, $order_by = [], &$total = false)
         {
             <%loop ($relation.filters : $filter){%>
-            $filters[<%$relation.target.class.entity%>RealR::<%$filter.from.const%>] = $this->get<%$filter.to.methodName%>();<%}%>
+            $filters['<%$filter.from.fullName%>'] = $this->get<%$filter.to.methodSuffix%>();<%}%>
 
-            $ctrl = new <%$relation.target.class.controller%>RealR();
+            $ctrl = new <%$relation.target.class.controller%>RealR(true);
 
             return $ctrl->getAllItems($filters, $max, $offset, $order_by, $total);
         }
@@ -49,13 +55,16 @@
          * @param int|bool $total    total rows without limit
          *
          * @return \<%$relation.target.class.use_entity%>[]
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
          */
-        function get<%$relation.methodName%>($filters = [], $max = null, $offset = 0, $order_by = [], &$total = false)
+        function get<%$relation.methodSuffix%>($filters = [], $max = null, $offset = 0, $order_by = [], &$total = false)
         {
             <%loop ($relation.filters : $filter){%>
-            $filters[<%$relation.target.class.entity%>RealR::<%$filter.from.const%>] = $this->get<%$filter.to.methodName%>();<%}%>
+            $filters['<%$filter.from.fullName%>'] = $this->get<%$filter.to.methodSuffix%>();<%}%>
 
-            $ctrl = new <%$relation.target.class.controller%>RealR();
+            $ctrl = new <%$relation.target.class.controller%>RealR(true);
 
             return $ctrl->getAllItems($filters, $max, $offset, $order_by, $total);
         }
@@ -64,15 +73,18 @@
          * ManyToOne relation between `<%$relation.host.table.name%>` and `<%$relation.target.table.name%>`.
          *
          * @return null|\<%$relation.target.class.use_entity%>
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
          */
-        public function get<%$relation.methodName%>()
+        public function get<%$relation.methodSuffix%>()
         {
             if (!isset($this->r_<%$relation.name%>)) {
-                $m = new <%$relation.target.class.query%>RealR();
                 <%loop ($relation.filters : $filter){%>
-                $m->filterBy<%$filter.from.methodName%>($this->get<%$filter.to.methodName%>());
-                <%}%>
-                $this->r_<%$relation.name%> = $m->find()->fetchClass();
+                $filters['<%$filter.from.fullName%>'] = $this->get<%$filter.to.methodSuffix%>();<%}%>
+
+                $m = new <%$relation.target.class.controller%>RealR(true);
+                $this->r_<%$relation.name%> = $m->getItem($filters);
             }
 
             return $this->r_<%$relation.name%>;

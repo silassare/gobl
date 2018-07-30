@@ -4,7 +4,7 @@
 		 *
 		 * @return <%$column.returnType%> the real type is: <%$column.columnType%>
 		 */
-		public function get<%$column.methodName%>()
+		public function get<%$column.methodSuffix%>()
 		{
 		    $v = $this->_getValue(self::<%$column.const%>);
 
@@ -23,7 +23,7 @@
 		 * @return \<%$.class.use_entity%>
 		 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
 		 */
-		public function set<%$column.methodName%>($<%$column.argName%>)
+		public function set<%$column.methodSuffix%>($<%$column.argName%>)
 		{
 			return $this->_setValue(self::<%$column.const%>, $<%$column.argName%>);
 		}

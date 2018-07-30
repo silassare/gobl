@@ -49,8 +49,9 @@
 		 */
 		public function __construct($name, Table $host_table, Table $target_table, $columns, $type)
 		{
-			if (!preg_match(Relation::NAME_REG, $name))
+			if (!preg_match(Relation::NAME_REG, $name)) {
 				throw new \InvalidArgumentException(sprintf('Invalid relation name "%s".', $name));
+			}
 
 			// the relation is based on foreign keys
 			if (is_null($columns)) {
@@ -161,12 +162,12 @@
 		}
 
 		/**
-		 * Gets relation getter function name.
+		 * Gets relation getter method name.
 		 *
 		 * @return string
 		 */
 		public function getGetterName()
 		{
-			return 'get' . Utils::toCamelCase($this->getName());
+			return 'get' . Utils::toClassName($this->getName());
 		}
 	}

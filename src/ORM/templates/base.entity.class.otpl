@@ -1,5 +1,5 @@
 <?php
-<%@import('include/head.comment.otpl',$)%>
+	<%@import('include/head.comment.otpl',$)%>
 
 	namespace <%$.namespace%>\Base;
 
@@ -10,7 +10,7 @@
 	use Gobl\ORM\ORM;
 	use <%$.namespace%>\<%$.class.query%> as <%$.class.query%>Real;
 
-<%@import('include/entity.relations.use.class.otpl',$)%>
+	<%@import('include/entity.relations.use.class.otpl',$)%>
 
 	/**
 	 * Class <%$.class.entity%>
@@ -21,7 +21,7 @@
 	{
 		const TABLE_NAME = '<%$.table.name%>';
 
-<%@import('include/entity.columns.const.otpl',$)%>
+		<%@import('include/entity.columns.const.otpl',$)%>
 		/** @var \Gobl\DBAL\Table */
 		protected $table;
 
@@ -55,7 +55,16 @@
 		 */
 		protected $strict = true;
 
-<%@import('include/entity.relations.properties.otpl',$)%>
+		/**
+		 * Private columns
+		 *
+		 * @var array
+		 */
+		protected static $private_columns = [
+			<%@import('include/private.columns.otpl',$)%>
+		];
+
+		<%@import('include/entity.relations.properties.otpl',$)%>
 
 		/**
 		 * <%$.class.entity%> constructor.
@@ -87,8 +96,8 @@
 				}
 			}
 		}
-<%@import('include/entity.relations.getters.otpl',$)%>
-<%@import('include/entity.getters.setters.otpl',$)%>
+		<%@import('include/entity.relations.getters.otpl',$)%>
+		<%@import('include/entity.getters.setters.otpl',$)%>
 		/**
 		 * Hydrate this entity with values from an array.
 		 *
@@ -221,9 +230,9 @@
 					$value = $type->validate($value, $column->getName(), $this->table->getName());
 				} catch (TypesInvalidValueException $e) {
 					$debug = [
-						"column_name" => $column->getName(),
-						"table_name"  => $this->table->getName(),
-						"options"     => $type->getCleanOptions()
+						"field"      => $column->getName(),
+						"table_name" => $this->table->getName(),
+						"options"    => $type->getCleanOptions()
 					];
 
 					$e->setDebugData($debug);
@@ -267,8 +276,16 @@
 		/**
 		 * {@inheritdoc}
 		 */
-		public function asArray()
+		public function asArray($hide_private_column = true)
 		{
-			return $this->row;
+			$row = $this->row;
+
+			if ($hide_private_column) {
+				foreach (self::$private_columns as $key => $value) {
+					unset($row[$key]);
+				}
+			}
+
+			return $row;
 		}
 	}

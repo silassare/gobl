@@ -15,9 +15,11 @@
 		/**
 		 * Returns entity in array form.
 		 *
+		 * @param bool $hide_private_column
+		 *
 		 * @return array
 		 */
-		abstract function asArray();
+		abstract function asArray($hide_private_column = true);
 
 		/**
 		 * Specify data which should be serialized to JSON.

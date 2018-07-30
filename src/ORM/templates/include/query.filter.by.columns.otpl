@@ -8,7 +8,7 @@
 		 * @return $this|\<%$.class.use_query%>
 		 * @throws \Exception
 		 */
-		public function filterBy<%$column.methodName%>($value, $operator = Rule::OP_EQ)
+		public function filterBy<%$column.methodSuffix%>($value, $operator = Rule::OP_EQ)
 		{
 		    return $this->filterBy('<%$column.name%>', $value, $operator);
 		}

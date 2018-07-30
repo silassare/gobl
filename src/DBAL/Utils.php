@@ -18,18 +18,25 @@
 	class Utils
 	{
 		/**
-		 * Converts string to CamelCase.
+		 * Converts string to ClassName.
 		 *
 		 * example:
-		 *    my_table_query_name    => MyTableQueryName
-		 *    my_column_name        => MyColumnName
+		 *    a_class_name        => AClassName
+		 *    my_class_name       => MYClassName
+		 *    another_class_name  => AnotherClassName
 		 *
 		 * @param string $str the table or column name
 		 *
 		 * @return string
 		 */
-		public static function toCamelCase($str)
+		public static function toClassName($str)
 		{
-			return implode('', array_map('ucfirst', explode('_', $str)));
+			$result = implode('', array_map('ucfirst', explode('_', $str)));
+
+			if (strlen($str) > 3 AND $str[2] === "_") {
+				$result[1] = strtoupper($result[1]);
+			}
+
+			return $result;
 		}
 	}

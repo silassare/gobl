@@ -1,5 +1,5 @@
 <?php
-//__GOBL_HEAD_COMMENT__
+	//__GOBL_HEAD_COMMENT__
 
 	namespace MY_PROJECT_DB_NS\Base;
 
@@ -10,7 +10,7 @@
 	use Gobl\ORM\ORM;
 	use MY_PROJECT_DB_NS\MyTableQuery as MyTableQueryReal;
 
-//__GOBL_RELATIONS_USE_CLASS__
+	//__GOBL_RELATIONS_USE_CLASS__
 
 	/**
 	 * Class MyEntity
@@ -21,7 +21,7 @@
 	{
 		const TABLE_NAME = 'my_table';
 
-//__GOBL_COLUMNS_CONST__
+		//__GOBL_COLUMNS_CONST__
 		/** @var \Gobl\DBAL\Table */
 		protected $table;
 
@@ -55,7 +55,16 @@
 		 */
 		protected $strict = true;
 
-//__GOBL_RELATIONS_PROPERTIES__
+		/**
+		 * Private columns
+		 *
+		 * @var array
+		 */
+		protected static $private_columns = [
+			//__GOBL_PRIVATE_COLUMNS__
+		];
+
+		//__GOBL_RELATIONS_PROPERTIES__
 
 		/**
 		 * MyEntity constructor.
@@ -87,8 +96,8 @@
 				}
 			}
 		}
-//__GOBL_RELATIONS_GETTERS__
-//__GOBL_COLUMNS_GETTERS_SETTERS__
+		//__GOBL_RELATIONS_GETTERS__
+		//__GOBL_COLUMNS_GETTERS_SETTERS__
 		/**
 		 * Hydrate this entity with values from an array.
 		 *
@@ -221,9 +230,9 @@
 					$value = $type->validate($value, $column->getName(), $this->table->getName());
 				} catch (TypesInvalidValueException $e) {
 					$debug = [
-						"column_name" => $column->getName(),
-						"table_name"  => $this->table->getName(),
-						"options"     => $type->getCleanOptions()
+						"field"      => $column->getName(),
+						"table_name" => $this->table->getName(),
+						"options"    => $type->getCleanOptions()
 					];
 
 					$e->setDebugData($debug);
@@ -267,8 +276,16 @@
 		/**
 		 * {@inheritdoc}
 		 */
-		public function asArray()
+		public function asArray($hide_private_column = true)
 		{
-			return $this->row;
+			$row = $this->row;
+
+			if ($hide_private_column) {
+				foreach (self::$private_columns as $key => $value) {
+					unset($row[$key]);
+				}
+			}
+
+			return $row;
 		}
 	}

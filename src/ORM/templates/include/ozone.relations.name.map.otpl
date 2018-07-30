@@ -1,2 +1,2 @@
 <%loop($.relations.list : $relation){%>
-			'<%$relation.name%>' => '<%$relation.name%>',<%}%>
+			'<%$relation.name%>' => 1,<%}%>

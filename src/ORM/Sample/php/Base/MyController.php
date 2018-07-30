@@ -1,8 +1,9 @@
 <?php
-//__GOBL_HEAD_COMMENT__
+	//__GOBL_HEAD_COMMENT__
 
 	namespace MY_PROJECT_DB_NS\Base;
 
+	use Gobl\CRUD\CRUD;
 	use Gobl\DBAL\Rule;
 	use Gobl\ORM\Exceptions\ORMControllerFormException;
 	use Gobl\ORM\ORM;
@@ -22,11 +23,18 @@
 		protected $form_fields_mask = [];
 
 		/**
+		 * @var \Gobl\CRUD\CRUD
+		 */
+		protected $crud;
+
+		/**
 		 * MyController constructor.
+		 *
+		 * @param bool $as_relation
 		 *
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
-		public function __construct()
+		public function __construct($as_relation = false)
 		{
 			$table   = ORM::getDatabase()
 						  ->getTable(MyEntity::TABLE_NAME);
@@ -43,6 +51,8 @@
 
 				$this->form_fields[$full_name] = $required;
 			}
+
+			$this->crud = new CRUD($table, $as_relation);
 		}
 
 		/**
@@ -235,6 +245,7 @@
 		 * @param array $values the row values
 		 *
 		 * @return \MY_PROJECT_DB_NS\MyEntity
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
 		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
@@ -242,6 +253,8 @@
 		 */
 		public function addItem(array $values = [])
 		{
+			$this->crud->assertCreate($values);
+
 			$this->completeForm($values);
 
 			$my_entity = new MyEntityReal();
@@ -268,15 +281,22 @@
 		 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
 		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 */
 		public function updateOneItem(array $filters, array $new_values)
 		{
+			$this->crud->assertUpdate($filters, $new_values);
+
 			self::assertFiltersNotEmpty($filters);
 			self::assertUpdateColumns(array_keys($new_values));
 
-			$my_entity = self::getItem($filters);
+			$results = $this->findAllItems($filters, 1, 0);
+
+			$my_entity = $results->fetchClass();
 
 			if ($my_entity) {
+				$this->crud->assertUpdateEntity($my_entity);
+
 				$my_entity->hydrate($new_values);
 				$my_entity->save();
 
@@ -296,10 +316,14 @@
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 */
 		public function updateAllItems(array $filters, array $new_values)
 		{
+			$this->crud->assertUpdateAll($filters, $new_values);
+
 			self::assertFiltersNotEmpty($filters);
+
 			$my_query = new MyTableQueryReal();
 
 			self::applyFilters($my_query, $filters);
@@ -324,13 +348,22 @@
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 */
 		public function deleteOneItem(array $filters)
 		{
+			$this->crud->assertDelete($filters);
+
 			self::assertFiltersNotEmpty($filters);
-			$my_entity = $this->getItem($filters);
+
+			$results = $this->findAllItems($filters, 1, 0);
+
+			$my_entity = $results->fetchClass();
 
 			if ($my_entity) {
+
+				$this->crud->assertDeleteEntity($my_entity);
+
 				$my_query = new MyTableQueryReal();
 
 				self::applyFilters($my_query, $filters);
@@ -353,10 +386,14 @@
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 */
 		public function deleteAllItems(array $filters)
 		{
+			$this->crud->assertDeleteAll($filters);
+
 			self::assertFiltersNotEmpty($filters);
+
 			$my_query = new MyTableQueryReal();
 
 			self::applyFilters($my_query, $filters);
@@ -378,16 +415,26 @@
 		 * @param array $order_by order by rules
 		 *
 		 * @return \MY_PROJECT_DB_NS\MyEntity|null
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function getItem(array $filters, array $order_by = [])
 		{
+			$this->crud->assertRead($filters);
+
 			self::assertFiltersNotEmpty($filters);
+
 			$results = $this->findAllItems($filters, 1, 0, $order_by);
 
-			return $results->fetchClass();
+			$my_entity = $results->fetchClass();
+
+			if ($my_entity) {
+				$this->crud->assertReadEntity($my_entity);
+			}
+
+			return $my_entity;
 		}
 
 		/**
@@ -403,9 +450,12 @@
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 */
 		public function getAllItems(array $filters = [], $max = null, $offset = 0, array $order_by = [], &$total = false)
 		{
+			$this->crud->assertReadAll($filters);
+
 			$results = $this->findAllItems($filters, $max, $offset, $order_by);
 
 			$items = $results->fetchAllClass();
@@ -441,7 +491,7 @@
 		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
-		public function findAllItems(array $filters = [], $max = null, $offset = 0, array $order_by = [])
+		private function findAllItems(array $filters = [], $max = null, $offset = 0, array $order_by = [])
 		{
 			$my_query = new MyTableQueryReal();
 
@@ -452,6 +502,19 @@
 			$results = $my_query->find($max, $offset, $order_by);
 
 			return $results;
+		}
+
+		/**
+		 * @return \Gobl\CRUD\CRUD
+		 * @throws \Exception
+		 */
+		public function getCrud()
+		{
+			if (!$this->crud) {
+				throw new \Exception("Not using CRUD rules");
+			}
+
+			return $this->crud;
 		}
 
 		// TODO

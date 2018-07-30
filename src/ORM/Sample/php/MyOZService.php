@@ -3,19 +3,23 @@
 
 	namespace MY_PROJECT_SERVICE_NS;
 
+	use Gobl\CRUD\Exceptions\CRUDException;
 	use Gobl\DBAL\Relations\Relation;
 	use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 	use Gobl\ORM\Exceptions\ORMControllerFormException;
+	use Gobl\ORM\Exceptions\ORMQueryException;
+	use Gobl\ORM\Exceptions\ORMException;
 	use Gobl\ORM\ORM;
 	use Gobl\ORM\ORMServiceBase;
 	use MY_PROJECT_DB_NS\MyController;
 	use MY_PROJECT_DB_NS\MyEntity;
-	use OZONE\OZ\Core\Assert;
 	use OZONE\OZ\Core\RequestHandler;
 	use OZONE\OZ\Core\URIHelper;
+	use OZONE\OZ\Exceptions\BadRequestException;
 	use OZONE\OZ\Exceptions\ForbiddenException;
 	use OZONE\OZ\Exceptions\InvalidFieldException;
 	use OZONE\OZ\Exceptions\InvalidFormException;
+	use OZONE\OZ\Exceptions\MethodNotAllowedException;
 	use OZONE\OZ\Exceptions\NotFoundException;
 
 	defined('OZ_SELF_SECURITY_CHECK') or die;
@@ -49,26 +53,26 @@
 	final class MyOZService extends ORMServiceBase
 	{
 		// for url like /my_svc/:my_id
-		private static $IDENTIFIED_EXTRA_REG = '#^([a-zA-Z0-9]+)/?$#';
+		private static $identified_extra_reg = '#^([a-zA-Z0-9]+)/?$#';
 
 		// for url like /my_svc/:my_id/relation
-		private static $IDENTIFIED_RELATION_EXTRA_REG = '#^([a-zA-Z0-9]+)/([a-zA-Z0-9_-]+)/?$#';
+		private static $identified_relation_extra_reg = '#^([a-zA-Z0-9]+)/([a-zA-Z0-9_-]+)/?$#';
 
 		/**
 		 * maps form fields name to columns name
 		 *
 		 * @var array
 		 */
-		private static $my_table_fields_map = [
+		private static $columns_map = [
 			//__OZONE_COLUMNS_NAME_MAP__
 		];
 
 		/**
-		 * maps external relations names to real relations names
+		 * maps relations names list
 		 *
 		 * @var array
 		 */
-		private static $my_table_relations_map = [
+		private static $relations_map = [
 			//__OZONE_RELATIONS_NAME_MAP__
 		];
 
@@ -78,15 +82,12 @@
 		 * @param array $request the request parameters
 		 *
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \OZONE\OZ\Exceptions\BadRequestException
-		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
 		 * @throws \OZONE\OZ\Exceptions\InternalErrorException
 		 * @throws \OZONE\OZ\Exceptions\InvalidFieldException
 		 * @throws \OZONE\OZ\Exceptions\InvalidFormException
+		 * @throws \OZONE\OZ\Exceptions\MethodNotAllowedException
 		 * @throws \OZONE\OZ\Exceptions\NotFoundException
 		 * @throws \OZONE\OZ\Exceptions\RuntimeException
-		 * @throws \OZONE\OZ\Exceptions\UnverifiedUserException
 		 */
 		public function execute(array $request = [])
 		{
@@ -100,10 +101,13 @@
 
 			try {
 				$this->executeSub($request);
-			} catch (ORMControllerFormException $e) {
+			} catch (ORMException $e) {
 				$success = false;
 				$error   = $e;
 			} catch (TypesInvalidValueException $e) {
+				$success = false;
+				$error   = $e;
+			} catch (CRUDException $e) {
 				$success = false;
 				$error   = $e;
 			}
@@ -128,75 +132,24 @@
 				throw new InvalidFormException(null, [$error->getMessage(), $error->getData()], $error);
 			}
 
+			if ($error instanceof ORMQueryException) {
+				throw new BadRequestException($error->getMessage(), $error->getData(), $error);
+			}
+
+			if ($error instanceof CRUDException) {
+				throw new ForbiddenException($error->getMessage(), $error->getData(), $error);
+			}
+
 			if ($error instanceof TypesInvalidValueException) {
 				// don't expose debug data to client, may contains sensitive data
 				$debug         = $error->getDebugData();
 				$data          = $error->getData();
-				$data["field"] = self::maskColumn(self::$my_table_fields_map, $debug["column_name"]);
+				$data["field"] = $debug["field"];
 
 				throw new InvalidFieldException($error->getMessage(), $data, $error);
 			}
 
 			throw $error;
-		}
-
-		/**
-		 * Execute request with REST API in minds.
-		 *
-		 * @param array $request
-		 *
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
-		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \OZONE\OZ\Exceptions\BadRequestException
-		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
-		 * @throws \OZONE\OZ\Exceptions\InternalErrorException
-		 * @throws \OZONE\OZ\Exceptions\NotFoundException
-		 * @throws \OZONE\OZ\Exceptions\RuntimeException
-		 * @throws \OZONE\OZ\Exceptions\UnverifiedUserException
-		 * @throws \OZONE\OZ\Exceptions\InvalidFormException
-		 */
-		private function executeSub(array $request)
-		{
-			if ($this->noExtra()) {
-				if (RequestHandler::isPost()) {
-					$this->actionCreateEntity($request);
-				} elseif (RequestHandler::isDelete()) {
-					$this->actionDeleteAll($request);
-				} elseif (RequestHandler::isGet()) {
-					$this->actionGetAll($request);
-				} elseif (RequestHandler::isPatch()) {
-					$this->actionUpdateAll($request);
-				} else {
-					throw new ForbiddenException();
-				}
-			} elseif ($extra = $this->getIdentifiedExtra()) {
-				if (RequestHandler::isDelete()) {
-					$this->actionDeleteEntity($request, $extra);
-				} elseif (RequestHandler::isGet()) {
-					$this->actionGetEntity($request, $extra);
-				} elseif (RequestHandler::isPatch()) {
-					$this->actionUpdateEntity($request, $extra);
-				} else {
-					throw new ForbiddenException();
-				}
-			} elseif ($extra = $this->getIdentifiedRelationExtra()) {
-				if (RequestHandler::isPost()) {
-					$this->actionAddRelation($request, $extra);
-				} elseif (RequestHandler::isDelete()) {
-					$this->actionDeleteRelation($request, $extra);
-				} elseif (RequestHandler::isGet()) {
-					$this->actionGetRelation($request, $extra);
-				} elseif (RequestHandler::isPatch()) {
-					$this->actionUpdateRelation($request, $extra);
-				} else {
-					throw new ForbiddenException();
-				}
-			} else {
-				// invalid url
-				throw new NotFoundException();
-			}
 		}
 
 		/**
@@ -210,6 +163,64 @@
 		}
 
 		/**
+		 * Execute request with REST API in minds.
+		 *
+		 * @param array $request
+		 *
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
+		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \OZONE\OZ\Exceptions\InternalErrorException
+		 * @throws \OZONE\OZ\Exceptions\InvalidFormException
+		 * @throws \OZONE\OZ\Exceptions\MethodNotAllowedException
+		 * @throws \OZONE\OZ\Exceptions\NotFoundException
+		 * @throws \OZONE\OZ\Exceptions\RuntimeException
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
+		 */
+		private function executeSub(array $request)
+		{
+			if ($this->noExtra()) {
+				if (RequestHandler::isPost()) {
+					$this->actionCreateEntity($request);
+				} elseif (RequestHandler::isDelete()) {
+					$this->actionDeleteAll($request);
+				} elseif (RequestHandler::isGet()) {
+					$this->actionGetAll($request);
+				} elseif (RequestHandler::isPatch()) {
+					$this->actionUpdateAll($request);
+				} else {
+					throw new MethodNotAllowedException();
+				}
+			} elseif ($extra = $this->getIdentifiedExtra()) {
+				if (RequestHandler::isDelete()) {
+					$this->actionDeleteEntity($extra);
+				} elseif (RequestHandler::isGet()) {
+					$this->actionGetEntity($request, $extra);
+				} elseif (RequestHandler::isPatch()) {
+					$this->actionUpdateEntity($request, $extra);
+				} else {
+					throw new MethodNotAllowedException();
+				}
+			} elseif ($extra = $this->getIdentifiedRelationExtra()) {
+				if (RequestHandler::isPost()) {
+					$this->actionAddRelation($request, $extra);
+				} elseif (RequestHandler::isDelete()) {
+					$this->actionDeleteRelation($request, $extra);
+				} elseif (RequestHandler::isGet()) {
+					$this->actionGetRelation($request, $extra);
+				} elseif (RequestHandler::isPatch()) {
+					$this->actionUpdateRelation($request, $extra);
+				} else {
+					throw new MethodNotAllowedException();
+				}
+			} else {
+				// invalid url
+				throw new NotFoundException();
+			}
+		}
+
+		/**
 		 * Gets identified extra.
 		 *
 		 * @return array|bool
@@ -218,7 +229,7 @@
 		{
 			$extra_map = ['my_pk_column_const'];
 			$extra     = [];
-			$extra_ok  = URIHelper::parseUriExtra(self::$IDENTIFIED_EXTRA_REG, $extra_map, $extra);
+			$extra_ok  = URIHelper::parseUriExtra(self::$identified_extra_reg, $extra_map, $extra);
 
 			if ($extra_ok) {
 				return $extra;
@@ -236,7 +247,7 @@
 		{
 			$extra_map = ['my_pk_column_const', 'relation'];
 			$extra     = [];
-			$extra_ok  = URIHelper::parseUriExtra(self::$IDENTIFIED_RELATION_EXTRA_REG, $extra_map, $extra);
+			$extra_ok  = URIHelper::parseUriExtra(self::$identified_relation_extra_reg, $extra_map, $extra);
 
 			if ($extra_ok) {
 				return $extra;
@@ -256,57 +267,27 @@
 		 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
 		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
-		 * @throws \OZONE\OZ\Exceptions\UnverifiedUserException
+		 * @throws \Exception
 		 */
 		public function actionCreateEntity(array $request)
 		{
-			// uncomment the next line to allow administrator only
-			Assert::assertIsAdmin();
-			// or uncomment the next line to allow verified user only
-			// Assert::assertUserVerified();
-
-			$form_values = self::removeColumnsMask(self::$my_table_fields_map, $request);
-
-			// prevent non-null value on auto-increment column
-			$form_values['my_pk_column_const'] = null;
+			$form_values = self::onlyColumns(self::$columns_map, $request);
 
 			$controller = new MyController();
 			$entity     = $controller->addItem($form_values);
 
 			$this->getResponseHolder()
-				 ->setDone('CREATED')
-				 ->setData(['item' => $entity->asArray()]);
+				 ->setDone($controller->getCrud()->getMessage())
+				 ->setData(['item' => $entity]);
 		}
 
 		/**
 		 * @param array $request
 		 * @param array $extra
-		 *
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
-		 * @throws \OZONE\OZ\Exceptions\UnverifiedUserException
 		 */
 		public function actionAddRelation(array $request, array $extra)
 		{
-			// uncomment the next line to allow administrator only
-			Assert::assertIsAdmin();
-			// or uncomment the next line to allow verified user only
-			// Assert::assertUserVerified();
-
-			$controller = new MyController();
-			$entity     = $controller->getItem($extra);
-
-			if (!$entity) {
-				throw new ForbiddenException();
-			}
-
 			// TODO
-			$this->getResponseHolder()
-				 ->setDone('RELATION_ADDED')
-				 ->setData(['item' => $entity, 'relations' => '']);
 		}
 
 		//========================================================
@@ -321,29 +302,21 @@
 		 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
 		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
 		 * @throws \OZONE\OZ\Exceptions\NotFoundException
-		 * @throws \OZONE\OZ\Exceptions\UnverifiedUserException
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
+		 * @throws \Exception
 		 */
 		public function actionUpdateEntity(array $request, array $extra)
 		{
-			// uncomment the next line to allow administrator only
-			Assert::assertIsAdmin();
-			// or uncomment the next line to allow verified user only
-			// Assert::assertUserVerified();
-
-			$form_values = self::removeColumnsMask(self::$my_table_fields_map, $request);
-
-			// primary key value should not be updated
-			unset($form_values['my_pk_column_const']);
+			$form_values = self::onlyColumns(self::$columns_map, $request);
 
 			$controller = new MyController();
 			$entity     = $controller->updateOneItem($extra, $form_values);
 
 			if ($entity instanceof MyEntity) {
 				$this->getResponseHolder()
-					 ->setDone('UPDATED')
-					 ->setData(['item' => $entity->asArray()]);
+					 ->setDone($controller->getCrud()->getMessage())
+					 ->setData(['item' => $entity]);
 			} else {
 				throw new NotFoundException();
 			}
@@ -355,65 +328,36 @@
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
-		 * @throws \OZONE\OZ\Exceptions\UnverifiedUserException
 		 * @throws \OZONE\OZ\Exceptions\InvalidFormException
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
+		 * @throws \Exception
 		 */
 		public function actionUpdateAll($request = [])
 		{
-			// uncomment the next line to allow administrator only
-			Assert::assertIsAdmin();
-			// or uncomment the next line to allow verified user only
-			// Assert::assertUserVerified();
-
 			$data        = (isset($request["data"]) AND is_array($request["data"])) ? $request["data"] : [];
-			$form_values = self::removeColumnsMask(self::$my_table_fields_map, $data);
-
-			// primary key value should not be updated
-			unset($form_values['my_pk_column_const']);
+			$form_values = self::onlyColumns(self::$columns_map, $data);
 
 			if (empty($form_values)) {
 				throw new InvalidFormException();
 			}
 
-			$filters = (isset($request['filters']) AND is_array($request['filters'])) ? $request['filters'] : [];
+			$filters = self::getRequestFilters(self::$columns_map, $request);
 
 			$controller = new MyController();
 			$count      = $controller->updateAllItems($filters, $data);
 
 			$this->getResponseHolder()
-				 ->setDone('UPDATED')
+				 ->setDone($controller->getCrud()->getMessage())
 				 ->setData(['affected' => $count]);
 		}
 
 		/**
 		 * @param array $request
 		 * @param array $extra
-		 *
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
-		 * @throws \OZONE\OZ\Exceptions\UnverifiedUserException
 		 */
 		public function actionUpdateRelation(array $request, array $extra)
 		{
-			// uncomment the next line to allow administrator only
-			Assert::assertIsAdmin();
-			// or uncomment the next line to allow verified user only
-			// Assert::assertUserVerified();
-
-			$controller = new MyController();
-			$entity     = $controller->getItem($extra);
-
-			if (!$entity) {
-				throw new ForbiddenException();
-			}
-
 			// TODO
-			$this->getResponseHolder()
-				 ->setDone('RELATION_UPDATED')
-				 ->setData(['entity' => $entity, 'relations' => '']);
 		}
 
 		//========================================================
@@ -421,30 +365,25 @@
 		//========================================================
 
 		/**
-		 * @param array $request
 		 * @param array $extra
 		 *
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
 		 * @throws \OZONE\OZ\Exceptions\NotFoundException
-		 * @throws \OZONE\OZ\Exceptions\UnverifiedUserException
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
+		 * @throws \Exception
 		 */
-		public function actionDeleteEntity(array $request, array $extra)
+		public function actionDeleteEntity(array $extra)
 		{
-			// uncomment the next line to allow administrator only
-			Assert::assertIsAdmin();
-			// or uncomment the next line to allow verified user only
-			// Assert::assertUserVerified();
 
 			$controller = new MyController();
 			$entity     = $controller->deleteOneItem($extra);
 
 			if ($entity instanceof MyEntity) {
 				$this->getResponseHolder()
-					 ->setDone('DELETED')
-					 ->setData(['item' => $entity->asArray()]);
+					 ->setDone($controller->getCrud()->getMessage())
+					 ->setData(['item' => $entity]);
 			} else {
 				throw new NotFoundException();
 			}
@@ -456,21 +395,18 @@
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
-		 * @throws \OZONE\OZ\Exceptions\UnverifiedUserException
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
+		 * @throws \Exception
 		 */
 		public function actionDeleteAll($request = [])
 		{
-			// uncomment the next line to allow administrator only
-			Assert::assertIsAdmin();
-			// or uncomment the next line to allow verified user only
-			// Assert::assertUserVerified();
+			$filters = self::onlyColumns(self::$columns_map, $request);
 
 			$controller = new MyController();
-			$count      = $controller->deleteAllItems($request);
+			$count      = $controller->deleteAllItems($filters);
 
 			$this->getResponseHolder()
-				 ->setDone('DELETED')
+				 ->setDone($controller->getCrud()->getMessage())
 				 ->setData(['affected' => $count]);
 		}
 
@@ -478,31 +414,11 @@
 		 * @param array $request
 		 * @param array $extra
 		 *
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
-		 * @throws \OZONE\OZ\Exceptions\UnverifiedUserException
 		 * @thows \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function actionDeleteRelation(array $request, array $extra)
 		{
-			// uncomment the next line to allow administrator only
-			Assert::assertIsAdmin();
-			// or uncomment the next line to allow verified user only
-			// Assert::assertUserVerified();
-
-			$controller = new MyController();
-			$entity     = $controller->getItem($extra);
-
-			if (!$entity) {
-				throw new ForbiddenException();
-			}
-
 			// TODO
-			$this->getResponseHolder()
-				 ->setDone('RELATION_DELETED')
-				 ->setData(['item' => $entity, 'relations' => '']);
 		}
 
 		//========================================================
@@ -516,17 +432,12 @@
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
 		 * @throws \OZONE\OZ\Exceptions\NotFoundException
-		 * @throws \OZONE\OZ\Exceptions\UnverifiedUserException
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
+		 * @throws \Exception
 		 */
 		public function actionGetEntity(array $request, array $extra)
 		{
-			// uncomment the next line to allow administrator only
-			Assert::assertIsAdmin();
-			// or uncomment the next line to allow verified user only
-			// Assert::assertUserVerified();
-
 			$controller = new MyController();
 			$entity     = $controller->getItem($extra);
 
@@ -534,9 +445,14 @@
 				throw new NotFoundException();
 			}
 
+			$relations = $this->listEntityRelations($entity, $request);
+
 			$this->getResponseHolder()
-				 ->setDone()
-				 ->setData(['item' => $entity->asArray()]);
+				 ->setDone($controller->getCrud()->getMessage())
+				 ->setData([
+					 'item'      => $entity,
+					 'relations' => $relations
+				 ]);
 		}
 
 		/**
@@ -545,18 +461,13 @@
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \OZONE\OZ\Exceptions\BadRequestException
-		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
-		 * @throws \OZONE\OZ\Exceptions\UnverifiedUserException
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
+		 * @throws \Exception
 		 */
 		public function actionGetAll(array $request)
 		{
-			// uncomment the next line to allow administrator only
-			Assert::assertIsAdmin();
-			// or uncomment the next line to allow verified user only
-			// Assert::assertUserVerified();
-
-			$filters = (isset($request['filters']) AND is_array($request['filters'])) ? $request['filters'] : [];
+			$filters  = self::getRequestFilters(self::$columns_map, $request);
+			$order_by = self::getRequestOrderBy(self::$columns_map, $request);
 
 			$p9            = self::getPagination($request);
 			$max           = $p9["max"];
@@ -565,10 +476,10 @@
 			$total_records = 0;
 
 			$controller = new MyController();
-			$results    = $controller->getAllItems($filters, $max, $offset, [], $total_records);
+			$results    = $controller->getAllItems($filters, $max, $offset, $order_by, $total_records);
 
 			$this->getResponseHolder()
-				 ->setDone()
+				 ->setDone($controller->getCrud()->getMessage())
 				 ->setData([
 					 'items' => $results,
 					 'max'   => $max,
@@ -581,69 +492,63 @@
 		 * @param array $request
 		 * @param array $extra
 		 *
-		 * @return \OZONE\OZ\Core\ResponseHolder
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \OZONE\OZ\Exceptions\BadRequestException
-		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
 		 * @throws \OZONE\OZ\Exceptions\NotFoundException
-		 * @throws \OZONE\OZ\Exceptions\UnverifiedUserException
 		 */
 		public function actionGetRelation(array $request, array $extra)
 		{
-			// uncomment the next line to allow administrator only
-			Assert::assertIsAdmin();
-			// or uncomment the next line to allow verified user only
-			// Assert::assertUserVerified();
-
 			if (!isset($extra['my_pk_column_const'])) {
 				throw new NotFoundException();
 			}
 
 			$filters['my_pk_column_const'] = $extra['my_pk_column_const'];
-			$controller                    = new MyController();
-			$entity                        = $controller->getItem($filters);
+			$request_relations             = [$extra["relation"]];
+
+			$controller = new MyController();
+			$entity     = $controller->getItem($filters);
 
 			if (!$entity) {
 				throw new NotFoundException();
 			}
 
-			$relation_name = self::removeRelationMask(self::$my_table_relations_map, $extra["relation"]);
-			$table         = ORM::getDatabase()
-								->getTable(MyEntity::TABLE_NAME);
+			$rel_map = $this->resolveRelations($request_relations);
 
-			if (!$table->hasRelation($relation_name)) {
-				throw new NotFoundException();
-			}
-
-			$rel      = $table->getRelation($relation_name);
+			$rel      = $rel_map[$extra["relation"]];
 			$rel_type = $rel->getType();
 
 			if ($rel_type === Relation::ONE_TO_MANY OR $rel_type === Relation::MANY_TO_MANY) {
-				$results = self::getRelationItemsList($rel, $entity, $request, $extra);
+				$results = $this->getRelationItemsList($rel, $entity, $request);
 			} else {
-				$results = self::getRelationItem($rel, $entity, $extra);
+				$results = $this->getRelationItem($rel, $entity);
 			}
 
-			return $this->getResponseHolder()
-						->setDone()
-						->setData($results);
+			$this->getResponseHolder()
+				 ->setDone()
+				 ->setData($results);
 		}
 
 		/**
 		 * @param \Gobl\DBAL\Relations\Relation $relation
 		 * @param \MY_PROJECT_DB_NS\MyEntity    $entity
 		 * @param array                         $request
-		 * @param array                         $extra
 		 *
 		 * @return array
-		 * @throws \OZONE\OZ\Exceptions\BadRequestException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
-		public static function getRelationItemsList(Relation $relation, MyEntity $entity, array $request, array $extra)
+		private function getRelationItemsList(Relation $relation, MyEntity $entity, array $request)
 		{
-			$filters  = (isset($request['filters']) AND is_array($request['filters'])) ? $request['filters'] : [];
-			$order_by = (isset($request['order_by']) AND is_array($request['order_by'])) ? $request['order_by'] : [];
+			$filters  = self::getRequestFilters(self::$columns_map, $request);
+			$order_by = self::getRequestOrderBy(self::$columns_map, $request);
+
+			$relation_columns = $relation->getRelationColumns();
+			$entity_data      = $entity->asArray();
+
+			foreach ($relation_columns as $from => $target) {
+				$filters[$target] = $entity_data[$from];
+			}
 
 			$p9            = self::getPagination($request);
 			$max           = $p9["max"];
@@ -658,22 +563,102 @@
 			], [$filters, $max, $offset, $order_by, &$total_records]);
 
 			return [
-				'target' => $entity,
-				'items'  => $items,
-				'max'    => $max,
-				'page'   => $page,
-				'total'  => $total_records
+				'item'    => $entity,
+				'targets' => $items,
+				'max'     => $max,
+				'page'    => $page,
+				'total'   => $total_records
 			];
 		}
 
-		public static function getRelationItem(Relation $relation, MyEntity $entity, array $extra)
+		/**
+		 * @param \Gobl\DBAL\Relations\Relation $relation
+		 * @param \MY_PROJECT_DB_NS\MyEntity    $entity
+		 *
+		 * @return array
+		 */
+		private function getRelationItem(Relation $relation, MyEntity $entity)
 		{
+			$filters          = [];
+			$relation_columns = $relation->getRelationColumns();
+			$entity_data      = $entity->asArray();
+
+			foreach ($relation_columns as $from => $target) {
+				$filters[$target] = $entity_data[$from];
+			}
+
 			$relation_getter = $relation->getGetterName();
 			$item            = call_user_func([$entity, $relation_getter]);
 
 			return [
-				'target' => $entity,
-				'item'   => $item
+				'item'   => $entity,
+				'target' => $item
 			];
+		}
+
+		/**
+		 * @param array $request_relations
+		 *
+		 * @return \Gobl\DBAL\Relations\Relation[]
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \OZONE\OZ\Exceptions\NotFoundException
+		 */
+		private function resolveRelations(array $request_relations)
+		{
+			$table   = ORM::getDatabase()->getTable(MyEntity::TABLE_NAME);
+			$missing = [];
+			/**
+			 * @var $rel_map Relation[]
+			 */
+			$rel_map = [];
+
+			// we firstly remove all relation mask
+			foreach ($request_relations as $name) {
+				if (!isset(self::$relations_map[$name]) OR !$table->hasRelation($name)) {
+					$missing[] = $name;
+				} else {
+					$rel_map[$name] = $table->getRelation($name);
+				}
+			}
+
+			// check if there are missing relations
+			if (count($missing)) {
+				throw new NotFoundException(null, ['RELATIONS_MISSING', $missing]);
+			}
+
+			return $rel_map;
+		}
+
+		/**
+		 * @param \MY_PROJECT_DB_NS\MyEntity $entity
+		 * @param array                      $request
+		 *
+		 * @return array
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \OZONE\OZ\Exceptions\NotFoundException
+		 */
+		private function listEntityRelations(MyEntity $entity, array $request)
+		{
+			$request_relations = self::getRequestRelations($request);
+			$relations         = [];
+
+			if (!empty($request_relations)) {
+				$rel_map = $this->resolveRelations($request_relations);
+
+				// now load each requested relation data
+				foreach ($rel_map as $name => $rel) {
+					$rel_type = $rel->getType();
+
+					if ($rel_type === Relation::ONE_TO_MANY OR $rel_type === Relation::MANY_TO_MANY) {
+						$results    = $this->getRelationItemsList($rel, $entity, $request);
+						$rel[$name] = $results['targets'];
+					} else {
+						$results    = $this->getRelationItem($rel, $entity);
+						$rel[$name] = $results['target'];
+					}
+				}
+			}
+
+			return $relations;
 		}
 	}
