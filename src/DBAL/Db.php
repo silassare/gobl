@@ -406,25 +406,17 @@
 		public function addTablesFromOptions(array $tables, $namespace, $tables_prefix = '')
 		{
 			// we add tables and columns first
-			foreach ($tables as $table_name => $table) {
-				if (empty($table['columns']) OR !is_array($table['columns'])) {
+			foreach ($tables as $table_name => $table_options) {
+				if (empty($table_options['columns']) OR !is_array($table_options['columns'])) {
 					throw new DBALException(sprintf('You should define columns for table "%s".', $table_name));
 				}
 
-				if (empty($table['plural_name']) OR empty($table['singular_name'])) {
-					throw new DBALException(sprintf('You should define "plural_name" and "singular_name" for table "%s".', $table_name));
-				}
-
-				$plural_name   = (string)$table['plural_name'];
-				$singular_name = (string)$table['singular_name'];
-				$columns       = $table['columns'];
-				$col_prefix    = isset($table['column_prefix']) ? $table['column_prefix'] : null;
-				$table_private = isset($table['private']) ? $table['private'] : false;
-				$tbl           = new Table($table_name, $plural_name, $singular_name, $namespace, $tables_prefix, $table_private);
+				$columns    = $table_options['columns'];
+				$col_prefix = isset($table_options['column_prefix']) ? $table_options['column_prefix'] : null;
+				$tbl        = new Table($table_name, $namespace, $tables_prefix, $table_options);
 
 				foreach ($columns as $column_name => $value) {
 					$col_options = is_array($value) ? $value : ['type' => $value];
-					$col_private = isset($col_options['private']) ? $col_options['private'] : false;
 
 					if (isset($col_options['type']) AND self::isColumnReference($col_options['type'])) {
 						$ref_options = $this->resolveReferenceColumn($col_options['type'], $tables);
@@ -437,7 +429,7 @@
 					}
 
 					if (is_array($col_options)) {
-						$col = new Column($column_name, $col_options, $col_prefix, $col_private);
+						$col = new Column($column_name, $col_prefix, $col_options);
 					} else {
 						throw new DBALException(sprintf('Invalid column "%s" options in table "%s".', $column_name, $table_name));
 					}
@@ -449,14 +441,14 @@
 			}
 
 			// we add constraints after
-			foreach ($tables as $table_name => $table) {
+			foreach ($tables as $table_name => $table_options) {
 				$tbl = $this->tables[$table_name];
 
-				if (!isset($table['constraints'])) {
+				if (!isset($table_options['constraints'])) {
 					continue;
 				}
 
-				$constraints = $table['constraints'];
+				$constraints = $table_options['constraints'];
 
 				foreach ($constraints as $constraint) {
 					if (!isset($constraint['type'])) {
@@ -526,9 +518,9 @@
 			}
 
 			// we could now add relations
-			foreach ($tables as $table_name => $table) {
-				if (isset($table['relations']) AND is_array($table['relations']) AND count($table['relations'])) {
-					$relations = $table['relations'];
+			foreach ($tables as $table_name => $table_options) {
+				if (isset($table_options['relations']) AND is_array($table_options['relations']) AND count($table_options['relations'])) {
+					$relations = $table_options['relations'];
 					foreach ($relations as $relation_name => $rel_options) {
 						$r = null;
 

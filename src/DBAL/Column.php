@@ -50,6 +50,13 @@
 		protected $type;
 
 		/**
+		 * The column options.
+		 *
+		 * @var array;
+		 */
+		protected $options;
+
+		/**
 		 * Maps available type names to type class names.
 		 *
 		 * @var array
@@ -63,23 +70,15 @@
 		];
 
 		/**
-		 * The column is private
-		 *
-		 * @var bool
-		 */
-		protected $private;
-
-		/**
 		 * Column constructor.
 		 *
-		 * @param string                      $name    the column name
-		 * @param array|\Gobl\DBAL\Types\Type $type    the column type instance or type options array
-		 * @param string|null                 $prefix  the column prefix
-		 * @param bool                        $private the column is private
+		 * @param string $name    the column name
+		 * @param string $prefix  the column prefix
+		 * @param array  $options the column options
 		 *
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
-		public function __construct($name, $type, $prefix = null, $private = false)
+		public function __construct($name, $prefix, array $options)
 		{
 			if (!preg_match(Column::NAME_REG, $name)) {
 				throw new \InvalidArgumentException(sprintf('Invalid column name "%s".', $name));
@@ -93,40 +92,38 @@
 
 			$this->name    = strtolower($name);
 			$this->prefix  = strtolower($prefix);
-			$this->private = $private;
-
-			if ($type instanceof Type) {
-				$this->type = $type;
-			} elseif (is_array($type)) {
-				$this->type = $this->arrayOptionsToType($type);
-			} else {
-				throw new \InvalidArgumentException("Invalid column type.");
-			}
+			$this->options = $options;
+			$this->type    = $this->optionsToType();
 		}
 
 		/**
-		 * Sets column options.
-		 *
-		 * @param array $options
+		 * Returns type from column options.
 		 *
 		 * @return \Gobl\DBAL\Types\Type
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
-		private function arrayOptionsToType(array $options)
+		private function optionsToType()
 		{
-			if (!isset($options['type'])) {
-				throw new DBALException(sprintf('You should define a column type for "%s".', $this->name));
+			if (!isset($this->options['type'])) {
+				throw new DBALException(sprintf('You should define a type for column "%s".', $this->name));
 			}
 
-			$type = $options['type'];
+			$type = $this->options['type'];
 
-			if (isset(self::$columns_types[$type])) {
-				$class = self::$columns_types[$type];
-				/** @var Type $t */
-				$t = call_user_func([$class, 'getInstance'], $options);
-			} else {
+			if ($type instanceof Type) {
+				return $type;
+			}
+
+			if (!is_string($type)) {
+				throw new \InvalidArgumentException('Invalid column type defined for "%s".', $this->name);
+			}
+			if (!isset(self::$columns_types[$type])) {
 				throw new DBALException(sprintf('Unsupported column type "%s" defined for "%s".', $type, $this->name));
 			}
+
+			$class = self::$columns_types[$type];
+			/** @var Type $t */
+			$t = call_user_func([$class, 'getInstance'], $this->options);
 
 			return $t;
 		}
@@ -207,6 +204,20 @@
 		 */
 		public function isPrivate()
 		{
-			return $this->private;
+			if (!isset($this->options['private'])) {
+				return false;
+			}
+
+			return boolval($this->options["private"]);
+		}
+
+		/**
+		 * Returns column options.
+		 *
+		 * @return array
+		 */
+		public function getOptions()
+		{
+			return $this->options;
 		}
 	}

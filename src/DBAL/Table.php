@@ -34,18 +34,11 @@
 		protected $name;
 
 		/**
-		 * The table plural name.
+		 * The table namespace.
 		 *
 		 * @var string
 		 */
-		protected $plural_name;
-
-		/**
-		 * The table singular name.
-		 *
-		 * @var string
-		 */
-		protected $singular_name;
+		protected $namespace;
 
 		/**
 		 * The table prefix.
@@ -55,11 +48,11 @@
 		protected $prefix;
 
 		/**
-		 * The table namespace.
+		 * The table options
 		 *
-		 * @var string
+		 * @var array
 		 */
-		protected $namespace;
+		protected $options;
 
 		/**
 		 * The table columns.
@@ -110,13 +103,6 @@
 		protected $relations = [];
 
 		/**
-		 * The table is private
-		 *
-		 * @var bool
-		 */
-		protected $private;
-
-		/**
 		 * Table constructor.
 		 *
 		 * Plural and singular class name are used to generate
@@ -127,14 +113,14 @@
 		 *    plural class   ------> Users
 		 *    singular class ------> User
 		 *
-		 * @param string      $name          the table name
-		 * @param string      $plural_name   the plural name
-		 * @param string      $singular_name the singular name
-		 * @param string      $namespace     the table namespace
-		 * @param string|null $prefix        the table prefix
-		 * @param bool        $private       the table is private
+		 * @param string $name      the table name
+		 * @param string $namespace the table namespace
+		 * @param string $prefix    the table prefix
+		 * @param array  $options   the table raw options
+		 *
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
-		public function __construct($name, $plural_name, $singular_name, $namespace, $prefix = null, $private = false)
+		public function __construct($name, $namespace, $prefix, array $options)
 		{
 			if (!preg_match(Table::NAME_REG, $name)) {
 				throw new \InvalidArgumentException(sprintf('Invalid table name "%s".', $name));
@@ -144,26 +130,36 @@
 				throw new \InvalidArgumentException(sprintf('You should provide namespace for table "%s".', $name));
 			}
 
-			if (!is_null($prefix)) {
+			if (!empty($prefix)) {
 				if (!preg_match(Table::PREFIX_REG, $prefix)) {
 					throw new \InvalidArgumentException(sprintf('Invalid table prefix name "%s".', $prefix));
 				}
 			}
 
-			if (empty($plural_name) OR empty($singular_name)) {
-				throw new \InvalidArgumentException(sprintf('Plural and singular name for table "%s" should not be empty.', $name));
+			if (!isset($options['plural_name']) OR !isset($options['singular_name'])) {
+				throw new DBALException(sprintf('You should define "plural_name" and "singular_name" for table "%s".', $name));
+			}
+
+			$plural_name   = $options['plural_name'];
+			$singular_name = $options['singular_name'];
+
+			// table name rules also apply to plural and singular names
+			if (!preg_match(Table::NAME_REG, $plural_name)) {
+				throw new \InvalidArgumentException(sprintf('Table "%s" "plural_name" option is invalid.', $name));
+			}
+
+			if (!preg_match(Table::NAME_REG, $singular_name)) {
+				throw new \InvalidArgumentException(sprintf('Table "%s" "singular_name" option is invalid.', $name));
 			}
 
 			if ($plural_name === $singular_name) {
-				throw new \InvalidArgumentException(sprintf('Plural and singular name for table "%s" should not be the same.', $name));
+				throw new \InvalidArgumentException(sprintf('"plural_name" and "singular_name" should not be equal in table "%s".', $name));
 			}
 
-			$this->name          = strtolower($name);
-			$this->prefix        = $prefix;
-			$this->plural_name   = $plural_name;
-			$this->singular_name = $singular_name;
-			$this->namespace     = $namespace;
-			$this->private       = $private;
+			$this->name      = strtolower($name);
+			$this->prefix    = $prefix;
+			$this->namespace = $namespace;
+			$this->options   = $options;
 		}
 
 		/**
@@ -277,39 +273,6 @@
 		/**
 		 * Adds a foreign key constraint on columns.
 		 *
-		 * @param \Gobl\DBAL\Table $reference_table the reference table
-		 * @param array            $columns         the columns
-		 * @param int              $update_action   the reference column update action
-		 * @param int              $delete_action   the reference column delete action
-		 *
-		 * @return $this
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 */
-		public function addForeignKeyConstraintOld(Table $reference_table, array $columns, $update_action, $delete_action)
-		{
-			if (count($columns)) {
-				$constraint_name = sprintf('fk_%s_%s', $this->getName(), $reference_table->getName());
-
-				if (!isset($this->fk_constraints[$constraint_name])) {
-					$this->fk_constraints[$constraint_name] = new ForeignKey($constraint_name, $this, $reference_table);
-				}
-
-				$fk = $this->fk_constraints[$constraint_name];
-
-				foreach ($columns as $column_name => $reference_column) {
-					$fk->addColumn($column_name, $reference_column);
-				}
-
-				$fk->setUpdateAction($update_action);
-				$fk->setDeleteAction($delete_action);
-			}
-
-			return $this;
-		}
-
-		/**
-		 * Adds a foreign key constraint on columns.
-		 *
 		 * @param string           $constraint_name the constraint name
 		 * @param \Gobl\DBAL\Table $reference_table the reference table
 		 * @param array            $columns         the columns
@@ -322,21 +285,35 @@
 		public function addForeignKeyConstraint($constraint_name, Table $reference_table, array $columns, $update_action, $delete_action)
 		{
 			if (count($columns)) {
-				$is_default_fk = false;
+				$is_named_fk = true;
 
 				if (empty($constraint_name)) {
 					$constraint_name = sprintf('fk_%s_%s', $this->getName(), $reference_table->getName());
-					$is_default_fk   = true;
+					$is_named_fk     = false;
 				}
 
 				if (isset($this->fk_constraints[$constraint_name])) {
-					if ($is_default_fk) {
-						// only one unnamed foreign key between two tables is allowed
-						// i.e: only one default foreign key between two tables is allowed
-						// any other foreign key constraint should be named
-						throw new DBALException(sprintf('There is already a default foreign key constraint between the tables "%s" and "%s".', $this->getName(), $reference_table->getName()));
-					} else {
+					if ($is_named_fk) {
 						throw new DBALException(sprintf('Foreign key "%s" is already defined between the tables "%s" and "%s".', $constraint_name, $this->getName(), $reference_table->getName()));
+					}
+
+					// only one default foreign key between two tables is allowed
+					// any other foreign key constraint should be named or unique
+
+					$suffix = [];
+
+					foreach ($columns as $left => $right) {
+						$suffix[] = $left . '_' . $right;
+					}
+
+					sort($suffix);
+
+					$suffix = implode('_', $suffix);
+
+					$constraint_name = 'fk_' . md5($constraint_name . '_' . $suffix);
+
+					if (isset($this->fk_constraints[$constraint_name])) {
+						throw new DBALException(sprintf('There is already a foreign key constraint between the tables "%s" and "%s".', $this->getName(), $reference_table->getName()));
 					}
 				}
 
@@ -370,7 +347,7 @@
 		 */
 		public function getPluralName()
 		{
-			return $this->plural_name;
+			return $this->options['plural_name'];
 		}
 
 		/**
@@ -380,7 +357,7 @@
 		 */
 		public function getSingularName()
 		{
-			return $this->singular_name;
+			return $this->options['singular_name'];
 		}
 
 		/**
@@ -629,18 +606,36 @@
 		/**
 		 * Check if a given columns list are the primary key of this table.
 		 *
-		 * @param array $columns columns full name list
+		 * @param array $columns_full_names columns full name list
 		 *
 		 * @return bool
 		 */
-		public function isPrimaryKey(array $columns)
+		public function isPrimaryKey(array $columns_full_names)
 		{
-			$x = count($columns);
+			$x = count($columns_full_names);
 			if ($x AND $this->hasPrimaryKeyConstraint()) {
 				$pk_columns = $this->pk_constraint->getConstraintColumns();
 				$y          = count($pk_columns);
 
-				return ($x === $y AND !count(array_diff($pk_columns, $columns)));
+				return ($x === $y AND !count(array_diff($pk_columns, $columns_full_names)));
+			}
+
+			return false;
+		}
+
+		/**
+		 * Check if a given column is part of the primary key of this table.
+		 *
+		 * @param \Gobl\DBAL\Column $column
+		 *
+		 * @return bool
+		 */
+		public function isPartOfPrimaryKey(Column $column)
+		{
+			if ($this->hasPrimaryKeyConstraint()) {
+				$pk_columns = $this->pk_constraint->getConstraintColumns();
+
+				return in_array($column->getFullName(), $pk_columns);
 			}
 
 			return false;
@@ -701,6 +696,20 @@
 		 */
 		public function isPrivate()
 		{
-			return $this->private;
+			if (!isset($this->options['private'])) {
+				return false;
+			}
+
+			return boolval($this->options['private']);
+		}
+
+		/**
+		 * Returns table options.
+		 *
+		 * @return array
+		 */
+		public function getOptions()
+		{
+			return $this->options;
 		}
 	}
