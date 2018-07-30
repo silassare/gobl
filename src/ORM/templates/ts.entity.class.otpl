@@ -1,8 +1,9 @@
 export class <%$.class.entity%> extends GoblEntity {
 	<%@import('include/ts.columns.const.otpl',$)%>
-	constructor(data:{[key:string]:any}) {
+	constructor(data?: tGoblEntityData) {
 		super(data, "<%$.class.entity%>", <%$.class.entity%>.PREFIX, <%$.class.entity%>.COLUMNS);
 	}
 	<%@import('include/ts.getters.setters.otpl',$)%>
 }
+
 gobl.<%$.class.entity%> = <%$.class.entity%>;

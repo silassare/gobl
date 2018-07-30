@@ -1,5 +1,21 @@
+<%@var $len = @length($.pk_columns);%>
+<%if($len == 1){%>
+	singlePKValue(){
+		return this.<%$.pk_columns[0].name%>;
+	}<%}%>
+<%if($len){%>
+	identifierColumns(){
+		return [<%loop($.pk_columns : $pk){%><%$.class.entity%>.<%$pk.const%>,<%}%>];
+	}<%} else {%>
+	identifierColumns(){
+		return <%$.class.entity%>.COLUMNS;
+	}<%}%>
+	static fromCache(cache_key: string): <%$.class.entity%> | undefined {
+		let cache = <any>gobl_instance_cache["<%$.class.entity%>"];
+		return cache && cache[cache_key];
+	}
 <%loop($.columns : $column){%>
 	get <%$column.name%>(){ return _c_<%$column.returnType%>(this._data[<%$.class.entity%>.<%$column.const%>])}
 	set <%$column.name%>(nVal:any){ this._set(<%$.class.entity%>.<%$column.const%>, _c_<%$column.returnType%>(nVal))}
-	get<%$column.methodName%>(){ return this.<%$column.name%>}
-	set<%$column.methodName%>(nVal:any):this { this.<%$column.name%> = nVal; return this}<%}%>
+	get<%$column.methodSuffix%>(){ return this.<%$column.name%>}
+	set<%$column.methodSuffix%>(nVal:any):this { this.<%$column.name%> = nVal; return this}<%}%>
