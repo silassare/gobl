@@ -10,37 +10,13 @@
 
 	namespace Gobl\ORM\Exceptions;
 
+	use Gobl\Exceptions\GoblBaseException;
+
 	/**
 	 * Class ORMException
 	 *
 	 * @package Gobl\ORM\Exceptions
 	 */
-	class ORMException extends \Exception
+	class ORMException extends GoblBaseException
 	{
-		/**
-		 * @var array
-		 */
-		private $_data;
-
-		/**
-		 * ORMException constructor.
-		 *
-		 * @param string $message
-		 * @param array  $data
-		 */
-		public function __construct($message, array $data = [])
-		{
-			parent::__construct($message);
-			$this->_data = $data;
-		}
-
-		/**
-		 * Gets data.
-		 *
-		 * @return array
-		 */
-		public function getData()
-		{
-			return $this->_data;
-		}
 	}

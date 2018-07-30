@@ -10,37 +10,13 @@
 
 	namespace Gobl\DBAL\Types\Exceptions;
 
+	use Gobl\Exceptions\GoblBaseException;
+
 	/**
 	 * Class TypesException
 	 *
 	 * @package Gobl\DBAL\Types\Exceptions
 	 */
-	class TypesException extends \Exception
+	class TypesException extends GoblBaseException
 	{
-		/**
-		 * @var array
-		 */
-		private $_data;
-
-		/**
-		 * TypesException constructor.
-		 *
-		 * @param string $message
-		 * @param array  $data
-		 */
-		public function __construct($message, array $data = [])
-		{
-			parent::__construct($message);
-			$this->_data = $data;
-		}
-
-		/**
-		 * Gets data.
-		 *
-		 * @return array
-		 */
-		public function getData()
-		{
-			return $this->_data;
-		}
 	}

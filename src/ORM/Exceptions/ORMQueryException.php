@@ -8,13 +8,13 @@
 	 * file that was distributed with this source code.
 	 */
 
-	namespace Gobl\DBAL\Types\Exceptions;
+	namespace Gobl\ORM\Exceptions;
 
 	/**
-	 * Class TypesInvalidValueException
+	 * Class ORMQueryException
 	 *
-	 * @package Gobl\DBAL\Types\Exceptions
+	 * @package Gobl\ORM\Exceptions
 	 */
-	class TypesInvalidValueException extends TypesException
+	class ORMQueryException extends ORMException
 	{
 	}

@@ -10,9 +10,11 @@
 
 	namespace Gobl\DBAL\Exceptions;
 
+	use Gobl\Exceptions\GoblBaseException;
+
 	/**
 	 * Class DBALException
 	 *
 	 * @package Gobl\DBAL\Exceptions
 	 */
-	class DBALException extends \Exception { }
+	class DBALException extends GoblBaseException { }
