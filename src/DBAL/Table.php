@@ -537,7 +537,7 @@
 		 */
 		public function hasVirtualRelation($name)
 		{
-			return isset($this->relations[$name]);
+			return isset($this->virtual_relations[$name]);
 		}
 
 		/**
