@@ -30,12 +30,10 @@
 		/**
 		 * <%$.class.controller%> constructor.
 		 *
-		 * @param bool $as_relation
-		 *
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 * @throws \Exception
 		 */
-		public function __construct($as_relation = false)
+		public function __construct()
 		{
 			$table   = ORM::getDatabase()
 						  ->getTable(<%$.class.entity%>::TABLE_NAME);
@@ -53,7 +51,7 @@
 				$this->form_fields[$full_name] = $required;
 			}
 
-			$this->crud = new CRUD($table, $as_relation);
+			$this->crud = new CRUD($table);
 		}
 
 		/**

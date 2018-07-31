@@ -16,8 +16,6 @@
 	use Gobl\CRUD\CRUDDeleteAll;
 	use Gobl\CRUD\CRUDRead;
 	use Gobl\CRUD\CRUDReadAll;
-	use Gobl\CRUD\CRUDReadAllAsRelation;
-	use Gobl\CRUD\CRUDReadAsRelation;
 	use Gobl\CRUD\CRUDUpdate;
 	use Gobl\CRUD\CRUDUpdateAll;
 
@@ -94,26 +92,6 @@
 		 * @return boolean
 		 */
 		public function onBeforeDeleteAll(CRUDDeleteAll $action)
-		{
-			return false;
-		}
-
-		/**
-		 * @param \Gobl\CRUD\CRUDReadAsRelation $action
-		 *
-		 * @return boolean
-		 */
-		public function onBeforeReadAsRelation(CRUDReadAsRelation $action)
-		{
-			return false;
-		}
-
-		/**
-		 * @param \Gobl\CRUD\CRUDReadAllAsRelation $action
-		 *
-		 * @return boolean
-		 */
-		public function onBeforeReadAllAsRelation(CRUDReadAllAsRelation $action)
 		{
 			return false;
 		}

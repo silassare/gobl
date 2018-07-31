@@ -14,7 +14,7 @@
                 <%loop ($relation.filters : $filter){%>
                 $filters['<%$filter.from.fullName%>'] = $this->get<%$filter.to.methodSuffix%>();<%}%>
 
-                $m = new <%$relation.target.class.controller%>RealR(true);
+                $m = new <%$relation.target.class.controller%>RealR();
                 $this->r_<%$relation.name%> = $m->getItem($filters);
             }
 
@@ -40,7 +40,7 @@
             <%loop ($relation.filters : $filter){%>
             $filters['<%$filter.from.fullName%>'] = $this->get<%$filter.to.methodSuffix%>();<%}%>
 
-            $ctrl = new <%$relation.target.class.controller%>RealR(true);
+            $ctrl = new <%$relation.target.class.controller%>RealR();
 
             return $ctrl->getAllItems($filters, $max, $offset, $order_by, $total);
         }
@@ -64,7 +64,7 @@
             <%loop ($relation.filters : $filter){%>
             $filters['<%$filter.from.fullName%>'] = $this->get<%$filter.to.methodSuffix%>();<%}%>
 
-            $ctrl = new <%$relation.target.class.controller%>RealR(true);
+            $ctrl = new <%$relation.target.class.controller%>RealR();
 
             return $ctrl->getAllItems($filters, $max, $offset, $order_by, $total);
         }
@@ -83,7 +83,7 @@
                 <%loop ($relation.filters : $filter){%>
                 $filters['<%$filter.from.fullName%>'] = $this->get<%$filter.to.methodSuffix%>();<%}%>
 
-                $m = new <%$relation.target.class.controller%>RealR(true);
+                $m = new <%$relation.target.class.controller%>RealR();
                 $this->r_<%$relation.name%> = $m->getItem($filters);
             }
 

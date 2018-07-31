@@ -29,8 +29,6 @@
 		const READ_ALL             = 'read_all';
 		const UPDATE_ALL           = 'update_all';
 		const DELETE_ALL           = 'delete_all';
-		const READ_AS_RELATION     = 'read_as_relation';
-		const READ_ALL_AS_RELATION = 'read_all_as_relation';
 		const COLUMN_UPDATE        = 'column_update';
 
 		/**
@@ -54,11 +52,6 @@
 		private $message = "OK";
 
 		/**
-		 * @var bool
-		 */
-		private $as_relation;
-
-		/**
 		 * @var array
 		 */
 		private $debug = [];
@@ -67,15 +60,13 @@
 		 * CRUD constructor.
 		 *
 		 * @param \Gobl\DBAL\Table $table
-		 * @param bool             $as_relation
 		 *
 		 * @throws \Exception
 		 */
-		public function __construct(Table $table, $as_relation = false)
+		public function __construct(Table $table)
 		{
-			$this->table       = $table;
-			$this->as_relation = $as_relation;
-			$name              = $table->getName();
+			$this->table = $table;
+			$name        = $table->getName();
 
 			if (isset(self::$crud_options[$name])) {
 				$handler = self::$crud_options[$name];
@@ -192,15 +183,9 @@
 		 */
 		public function assertRead(array &$filters)
 		{
-			if ($this->as_relation) {
-				$action = new CRUDReadAsRelation($this->table, $filters);
-				$result = $this->crud_handler->onBeforeReadAsRelation($action);
-			} else {
-				$action = new CRUDRead($this->table, $filters);
-				$result = $this->crud_handler->onBeforeRead($action);
-			}
+			$action = new CRUDRead($this->table, $filters);
 
-			if (!$result) {
+			if (!$this->crud_handler->onBeforeRead($action)) {
 				throw new CRUDException($action->getError(), [], $this->debug);
 			}
 
@@ -216,15 +201,9 @@
 		 */
 		public function assertReadAll(array &$filters)
 		{
-			if ($this->as_relation) {
-				$action = new CRUDReadAllAsRelation($this->table, $filters);
-				$result = $this->crud_handler->onBeforeReadAllAsRelation($action);
-			} else {
-				$action = new CRUDReadAll($this->table, $filters);
-				$result = $this->crud_handler->onBeforeReadAll($action);
-			}
+			$action = new CRUDReadAll($this->table, $filters);
 
-			if (!$result) {
+			if (!$this->crud_handler->onBeforeReadAll($action)) {
 				throw new CRUDException($action->getError(), [], $this->debug);
 			}
 
