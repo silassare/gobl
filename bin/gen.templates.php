@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 	/**
-	 * This script is used to convert files in ORM/Sample to template files
+	 * This script is used to convert files in src/ORM/Sample to template files
 	 */
 	$sample_dir    = __DIR__ . '/../src/ORM/Sample/';
 	$templates_dir = __DIR__ . '/../src/ORM/templates/';
