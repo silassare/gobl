@@ -131,12 +131,12 @@
 		/**
 		 * @param mixed $entity
 		 */
-		public function onAfterCreate($entity) { }
+		public function onAfterCreateEntity($entity) { }
 
 		/**
 		 * @param mixed $entity
 		 */
-		public function onAfterRead($entity) { }
+		public function onAfterReadEntity($entity) { }
 
 		/**
 		 * @param mixed $entity
@@ -146,7 +146,7 @@
 		/**
 		 * @param mixed $entity
 		 */
-		public function onAfterUpdate($entity) { }
+		public function onAfterUpdateEntity($entity) { }
 
 		/**
 		 * @param mixed $entity
@@ -156,7 +156,7 @@
 		/**
 		 * @param mixed $entity
 		 */
-		public function onAfterDelete($entity) { }
+		public function onAfterDeleteEntity($entity) { }
 
 		/**
 		 * @return boolean

@@ -263,7 +263,7 @@
 			$my_entity->hydrate($values);
 			$my_entity->save();
 
-			$this->crud->getHandler()->onAfterCreate($my_entity);
+			$this->crud->getHandler()->onAfterCreateEntity($my_entity);
 
 			return $my_entity;
 		}
@@ -303,7 +303,7 @@
 				$my_entity->hydrate($new_values);
 				$my_entity->save();
 
-				$this->crud->getHandler()->onAfterUpdate($my_entity);
+				$this->crud->getHandler()->onAfterUpdateEntity($my_entity);
 				return $my_entity;
 			} else {
 				return false;
@@ -375,7 +375,7 @@
 				$my_query->delete()
 						 ->execute();
 
-				$this->crud->getHandler()->onAfterDelete($my_entity);
+				$this->crud->getHandler()->onAfterDeleteEntity($my_entity);
 
 				return $my_entity;
 			} else {
@@ -437,7 +437,7 @@
 			$my_entity = $results->fetchClass();
 
 			if ($my_entity) {
-				$this->crud->getHandler()->onAfterRead($my_entity);
+				$this->crud->getHandler()->onAfterReadEntity($my_entity);
 			}
 
 			return $my_entity;
