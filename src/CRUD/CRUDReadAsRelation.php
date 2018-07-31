@@ -17,32 +17,17 @@
 	 *
 	 * @package Gobl\CRUD
 	 */
-	class CRUDReadAsRelation extends CRUDBase
+	class CRUDReadAsRelation extends CRUDFilterableAction
 	{
 		/**
-		 * @var array
+		 * CRUDReadAsRelation constructor.
+		 *
+		 * @param \Gobl\DBAL\Table $table
+		 * @param array            $filters
 		 */
-		private $filters;
-
 		public function __construct(Table $table, array $filters)
 		{
-			parent::__construct(CRUD::READ_AS_RELATION, $table);
-			$this->filters = $filters;
+			parent::__construct(CRUD::READ_AS_RELATION, $table, $filters);
 		}
 
-		/**
-		 * @return array
-		 */
-		public function getFilters()
-		{
-			return $this->filters;
-		}
-
-		/**
-		 * @param array $filters
-		 */
-		public function setFilters(array $filters)
-		{
-			$this->filters = $filters;
-		}
 	}

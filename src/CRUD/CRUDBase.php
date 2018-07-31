@@ -29,6 +29,11 @@
 		protected $table;
 
 		/**
+		 * @var array
+		 */
+		protected $form;
+
+		/**
 		 * @var string
 		 */
 		protected $success = "";
@@ -42,11 +47,13 @@
 		 *
 		 * @param  string          $type
 		 * @param \Gobl\DBAL\Table $table
+		 * @param array            $form
 		 */
-		protected function __construct($type, Table $table)
+		protected function __construct($type, Table $table, array $form = [])
 		{
 			$this->type  = $type;
 			$this->table = $table;
+			$this->form  = $form;
 		}
 
 		/**
@@ -66,6 +73,42 @@
 		}
 
 		/**
+		 * @return array
+		 */
+		public function getForm()
+		{
+			return $this->form;
+		}
+
+		/**
+		 * @param array $form
+		 *
+		 * @return \Gobl\CRUD\CRUDBase
+		 */
+		public function setForm(array $form)
+		{
+			$this->form = $form;
+
+			return $this;
+		}
+
+		/**
+		 * @param $column
+		 * @param $value
+		 *
+		 * @return \Gobl\CRUD\CRUDBase
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 */
+		public function setField($column, $value)
+		{
+			$this->table->assertHasColumn($column);
+
+			$this->form[$column] = $value;
+
+			return $this;
+		}
+
+		/**
 		 * @param string $error
 		 *
 		 * @return \Gobl\CRUD\CRUDBase
@@ -73,6 +116,7 @@
 		public function setError($error)
 		{
 			$this->error = $error;
+
 			return $this;
 		}
 
@@ -84,6 +128,7 @@
 		public function setSuccess($success)
 		{
 			$this->success = $success;
+
 			return $this;
 		}
 

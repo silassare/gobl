@@ -17,44 +17,16 @@
 	 *
 	 * @package Gobl\CRUD
 	 */
-	class CRUDReadAll extends CRUDBase
+	class CRUDReadAll extends CRUDFilterableAction
 	{
 		/**
-		 * @var array
+		 * CRUDReadAll constructor.
+		 *
+		 * @param \Gobl\DBAL\Table $table
+		 * @param array            $filters
 		 */
-		private $filters;
-
 		public function __construct(Table $table, array $filters)
 		{
-			parent::__construct(CRUD::READ_ALL, $table);
-			$this->filters = $filters;
-		}
-
-		/**
-		 * @return array
-		 */
-		public function getFilters()
-		{
-			return $this->filters;
-		}
-
-		/**
-		 * @param array $filters
-		 */
-		public function setFilters(array $filters)
-		{
-			$this->filters = $filters;
-		}
-
-		/**
-		 * @param string $column
-		 * @param mixed  $filter
-		 *
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 */
-		public function setFilter($column, $filter)
-		{
-			$this->table->assertHasColumn($column);
-			$this->filters[$column] = $filter;
+			parent::__construct(CRUD::READ_ALL, $table, $filters);
 		}
 	}

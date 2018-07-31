@@ -17,32 +17,16 @@
 	 *
 	 * @package Gobl\CRUD
 	 */
-	class CRUDDeleteAll extends CRUDBase
+	class CRUDDeleteAll extends CRUDFilterableAction
 	{
 		/**
-		 * @var array
+		 * CRUDDeleteAll constructor.
+		 *
+		 * @param \Gobl\DBAL\Table $table
+		 * @param array            $filters
 		 */
-		private $filters;
-
 		public function __construct(Table $table, array $filters)
 		{
-			parent::__construct(CRUD::DELETE_ALL, $table);
-			$this->filters = $filters;
-		}
-
-		/**
-		 * @return array
-		 */
-		public function getFilters()
-		{
-			return $this->filters;
-		}
-
-		/**
-		 * @param array $filters
-		 */
-		public function setFilters(array $filters)
-		{
-			$this->filters = $filters;
+			parent::__construct(CRUD::DELETE_ALL, $table, $filters);
 		}
 	}

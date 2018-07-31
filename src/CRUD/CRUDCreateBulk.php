@@ -20,29 +20,13 @@
 	class CRUDCreateBulk extends CRUDBase
 	{
 		/**
-		 * @var array
+		 * CRUDCreateBulk constructor.
+		 *
+		 * @param \Gobl\DBAL\Table $table
+		 * @param array            $form_list
 		 */
-		private $form_list;
-
 		public function __construct(Table $table, array $form_list)
 		{
-			parent::__construct(CRUD::CREATE_BULK, $table);
-			$this->form_list = $form_list;
-		}
-
-		/**
-		 * @return array
-		 */
-		public function getFormList()
-		{
-			return $this->form_list;
-		}
-
-		/**
-		 * @param array $form_list
-		 */
-		public function setFormList(array $form_list)
-		{
-			$this->form_list = $form_list;
+			parent::__construct(CRUD::CREATE_BULK, $table, $form_list);
 		}
 	}

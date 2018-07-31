@@ -17,53 +17,17 @@
 	 *
 	 * @package Gobl\CRUD
 	 */
-	class CRUDUpdate extends CRUDBase
+	class CRUDUpdate extends CRUDFilterableAction
 	{
 		/**
-		 * @var array
+		 * CRUDUpdate constructor.
+		 *
+		 * @param \Gobl\DBAL\Table $table
+		 * @param array            $filters
+		 * @param array            $form
 		 */
-		private $filters;
-		/**
-		 * @var array
-		 */
-		private $form;
-
 		public function __construct(Table $table, array $filters, array $form)
 		{
-			parent::__construct(CRUD::UPDATE, $table);
-			$this->filters = $filters;
-			$this->form    = $form;
-		}
-
-		/**
-		 * @return array
-		 */
-		public function getFilters()
-		{
-			return $this->filters;
-		}
-
-		/**
-		 * @param array $filters
-		 */
-		public function setFilters(array $filters)
-		{
-			$this->filters = $filters;
-		}
-
-		/**
-		 * @return array
-		 */
-		public function getForm()
-		{
-			return $this->form;
-		}
-
-		/**
-		 * @param array $form
-		 */
-		public function setForm(array $form)
-		{
-			$this->form = $form;
+			parent::__construct(CRUD::UPDATE, $table, $filters, $form);
 		}
 	}

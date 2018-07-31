@@ -21,35 +21,22 @@
 	class CRUDColumnUpdate extends CRUDBase
 	{
 		/**
-		 * @var array
-		 */
-		private $form;
-		/**
 		 * @var \Gobl\DBAL\Column
 		 */
 		private $column;
 
+		/**
+		 * CRUDColumnUpdate constructor.
+		 *
+		 * @param \Gobl\DBAL\Table  $table
+		 * @param \Gobl\DBAL\Column $column
+		 * @param array             $form
+		 */
 		public function __construct(Table $table, Column $column, array $form)
 		{
-			parent::__construct(CRUD::COLUMN_UPDATE, $table);
+			parent::__construct(CRUD::COLUMN_UPDATE, $table, $form);
+
 			$this->column = $column;
-			$this->form   = $form;
-		}
-
-		/**
-		 * @return array
-		 */
-		public function getForm()
-		{
-			return $this->form;
-		}
-
-		/**
-		 * @param array $form
-		 */
-		public function setForm(array $form)
-		{
-			$this->form = $form;
 		}
 
 		/**

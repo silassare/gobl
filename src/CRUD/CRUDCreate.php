@@ -20,29 +20,13 @@
 	class CRUDCreate extends CRUDBase
 	{
 		/**
-		 * @var array
+		 * CRUDCreate constructor.
+		 *
+		 * @param \Gobl\DBAL\Table $table
+		 * @param array            $form
 		 */
-		private $form;
-
 		public function __construct(Table $table, array $form)
 		{
-			parent::__construct(CRUD::CREATE, $table);
-			$this->form = $form;
-		}
-
-		/**
-		 * @return array
-		 */
-		public function getForm()
-		{
-			return $this->form;
-		}
-
-		/**
-		 * @param array $form
-		 */
-		public function setForm(array $form)
-		{
-			$this->form = $form;
+			parent::__construct(CRUD::CREATE, $table, $form);
 		}
 	}
