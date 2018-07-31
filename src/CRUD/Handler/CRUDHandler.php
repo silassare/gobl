@@ -24,7 +24,7 @@
 	class CRUDHandler implements CRUDHandlerInterface
 	{
 		/**
-		 * CRUDAssert constructor.
+		 * CRUDHandler constructor.
 		 */
 		public function __construct() { }
 
