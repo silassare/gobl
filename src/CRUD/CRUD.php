@@ -125,6 +125,8 @@
 			"auto_value_force" => false
 		];
 
+		private static $crud_options = [];
+
 		/**
 		 * @var \Gobl\DBAL\Table
 		 */
@@ -162,10 +164,15 @@
 			$this->table       = $table;
 			$this->as_relation = $as_relation;
 
-			$options = $table->getOptions();
+			$options = [];
+			$name    = $table->getName();
 
-			if (isset($options['crud']['table']) AND is_array($options['crud']['table'])) {
-				$crud_rules = array_replace_recursive(self::$default_table_options, $options['crud']['table']);
+			if (isset(self::$crud_options[$name])) {
+				$options = self::$crud_options[$name];
+			}
+
+			if (isset($options['table']) AND is_array($options['table'])) {
+				$crud_rules = array_replace_recursive(self::$default_table_options, $options['table']);
 				foreach ($crud_rules as $type => $value) {
 					if (!is_array($value)) {
 						$crud_rules[$type]           = self::$default_table_options[$type];
@@ -195,11 +202,16 @@
 		 */
 		private function getColumnCRUDRules(Column $column)
 		{
-			$options = $this->table->getOptions();
-			$name    = $column->getName();
+			$options    = [];
+			$name       = $column->getName();
+			$table_name = $this->table->getName();
 
-			if (isset($options['crud']['columns'][$name])) {
-				$value = $options['crud']['columns'][$name];
+			if (isset(self::$crud_options[$table_name])) {
+				$options = self::$crud_options[$table_name];
+			}
+
+			if (isset($options['columns'][$name])) {
+				$value = $options['columns'][$name];
 				if (!is_array($value)) {
 					$crud_rules           = self::$default_column_options;
 					$crud_rules["enable"] = boolval($value);
@@ -419,7 +431,7 @@
 
 			$this->assertTableAccess($assert);
 
-			$form_list = $assert->getFormList();
+			$form_list = $assert->getForm();
 		}
 
 		/**
@@ -498,8 +510,6 @@
 		 */
 		public function assertUpdateAll(array &$filters, array &$form)
 		{
-			$this->fillColumnsAutoValue($form);
-
 			$assert = new CRUDUpdateAll($this->table, $filters, $form);
 
 			$this->assertTableAccess($assert);
@@ -507,7 +517,6 @@
 			$form    = $assert->getForm();
 
 			$this->assertColumnUpdate($form);
-
 		}
 
 		/**
@@ -622,5 +631,13 @@
 			}
 
 			return self::$value_callable_map[$name];
+		}
+
+		/**
+		 * @param array $options
+		 */
+		public static function loadOptions(array $options)
+		{
+			self::$crud_options = array_replace_recursive(self::$crud_options, $options);
 		}
 	}
