@@ -10,8 +10,9 @@
 
 	namespace Gobl\CRUD;
 
+	use Gobl\CRUD\Handler\CRUDHandler;
+	use Gobl\CRUD\Handler\CRUDHandlerInterface;
 	use Gobl\CRUD\Exceptions\CRUDException;
-	use Gobl\DBAL\Column;
 	use Gobl\DBAL\Table;
 
 	/**
@@ -25,7 +26,6 @@
 		const READ                 = 'read';
 		const UPDATE               = 'update';
 		const DELETE               = 'delete';
-		const CREATE_BULK          = 'create_bulk';
 		const READ_ALL             = 'read_all';
 		const UPDATE_ALL           = 'update_all';
 		const DELETE_ALL           = 'delete_all';
@@ -33,156 +33,68 @@
 		const READ_ALL_AS_RELATION = 'read_all_as_relation';
 		const COLUMN_UPDATE        = 'column_update';
 
-		//
-		// |----------------------------------------------------------------------------
-		// | options          | values                                  | description
-		// |----------------------------------------------------------------------------
-		// | enable           | true|false             					| enable or disable the action
-		// | enable_private   | true|false             					| to enable private column update
-		// | enable_pk        | true|false             					| to enable primary key column update
-		// | by               | admin|user|anybody|assert_callable_name | who can access a table or update a column
-		// | if               | assert_callable_name					| who can access a table entity, use this to validate ownership of an entity in the table
-		// | auto_value       | value_callable_name						|
-		// | auto_value_force | true|false								|
-		// | error            | string									|
-		// | success          | string									|
-		// |----------------------------------------------------------------------------
-
-		private static $default_table_options = [
-			CRUD::CREATE               => [
-				"enable"  => true,
-				"by"      => "admin",
-				"error"   => "CREATE_ERROR",
-				"success" => "CREATED"
-			],
-			CRUD::READ                 => [
-				"enable"  => true,
-				"by"      => "admin",
-				"if"      => "anybody",
-				"error"   => "READ_ERROR",
-				"success" => "OK"
-			],
-			CRUD::UPDATE               => [
-				"enable"  => true,
-				"by"      => "admin",
-				"if"      => "anybody",
-				"error"   => "UPDATE_ERROR",
-				"success" => "UPDATED"
-			],
-			CRUD::DELETE               => [
-				"enable"  => true,
-				"by"      => "admin",
-				"if"      => "anybody",
-				"error"   => "DELETE_ERROR",
-				"success" => "DELETED"
-			],
-			CRUD::CREATE_BULK          => [
-				"enable"  => true,
-				"by"      => "admin",
-				"error"   => "CREATE_ERROR",
-				"success" => "CREATED"
-			],
-			CRUD::READ_ALL             => [
-				"enable"  => true,
-				"by"      => "admin",
-				"error"   => "READ_ERROR",
-				"success" => "OK"
-			],
-			CRUD::UPDATE_ALL           => [
-				"enable"  => true,
-				"by"      => "admin",
-				"error"   => "UPDATE_ERROR",
-				"success" => "UPDATED"
-			],
-			CRUD::DELETE_ALL           => [
-				"enable"  => true,
-				"by"      => "admin",
-				"error"   => "DELETE_ERROR",
-				"success" => "DELETED"
-			],
-			CRUD::READ_AS_RELATION     => [
-				"enable"  => true,
-				"by"      => "admin",
-				"error"   => "READ_ERROR",
-				"success" => "OK"
-			],
-			CRUD::READ_ALL_AS_RELATION => [
-				"enable"  => true,
-				"by"      => "admin",
-				"error"   => "READ_ERROR",
-				"success" => "OK"
-			]
-		];
-
-		private static $default_column_options = [
-			"enable"           => true,
-			"enable_private"   => false,
-			"enable_pk"        => false,
-			"by"               => "anybody",
-			"error"            => "COLUMNS_UPDATE_ERROR",
-			"success"          => "OK",
-			"auto_value"       => null,
-			"auto_value_force" => false
-		];
-
+		/**
+		 * @var array
+		 */
 		private static $crud_options = [];
 
 		/**
 		 * @var \Gobl\DBAL\Table
 		 */
 		private $table;
+
 		/**
-		 * @var array
+		 * @var \Gobl\CRUD\Handler\CRUDHandlerInterface
 		 */
-		private $table_crud_rules;
-		/**
-		 * @var callable[]
-		 */
-		private static $assert_callable_map = [];
-		/**
-		 * @var callable[]
-		 */
-		private static $value_callable_map = [];
+		private $crud_handler;
 
 		/**
 		 * @var string
 		 */
 		private $message = "OK";
+
 		/**
 		 * @var bool
 		 */
 		private $as_relation;
 
 		/**
+		 * @var array
+		 */
+		private $debug = [];
+
+		/**
 		 * CRUD constructor.
 		 *
 		 * @param \Gobl\DBAL\Table $table
 		 * @param bool             $as_relation
+		 *
+		 * @throws \Exception
 		 */
 		public function __construct(Table $table, $as_relation = false)
 		{
 			$this->table       = $table;
 			$this->as_relation = $as_relation;
-
-			$options = [];
-			$name    = $table->getName();
+			$name              = $table->getName();
 
 			if (isset(self::$crud_options[$name])) {
-				$options = self::$crud_options[$name];
+				$handler = self::$crud_options[$name];
+				$rc      = new \ReflectionClass($handler);
+
+				if ($rc->implementsInterface(CRUDHandlerInterface::class)) {
+					$this->crud_handler = $rc->newInstance();
+				} else {
+					throw new \Exception(sprintf('Table %s CRUD handler class should implement %s', $name, CRUDHandlerInterface::class));
+				}
+
+			} else {
+				$this->crud_handler = new CRUDHandler();
 			}
 
-			if (isset($options['table']) AND is_array($options['table'])) {
-				$crud_rules = array_replace_recursive(self::$default_table_options, $options['table']);
-				foreach ($crud_rules as $type => $value) {
-					if (!is_array($value)) {
-						$crud_rules[$type]           = self::$default_table_options[$type];
-						$crud_rules[$type]["enable"] = boolval($value);
-					}
-				}
-				$this->table_crud_rules = $crud_rules;
-			} else {
-				$this->table_crud_rules = self::$default_table_options;
-			}
+			$this->debug = [
+				'by'    => get_class($this->crud_handler),
+				'table' => $table->getName()
+			];
 		}
 
 		/**
@@ -194,208 +106,60 @@
 		}
 
 		/**
-		 * Returns column CRUD rules.
-		 *
-		 * @param \Gobl\DBAL\Column $column
-		 *
-		 * @return array
-		 */
-		private function getColumnCRUDRules(Column $column)
-		{
-			$options    = [];
-			$name       = $column->getName();
-			$table_name = $this->table->getName();
-
-			if (isset(self::$crud_options[$table_name])) {
-				$options = self::$crud_options[$table_name];
-			}
-
-			if (isset($options['columns'][$name])) {
-				$value = $options['columns'][$name];
-				if (!is_array($value)) {
-					$crud_rules           = self::$default_column_options;
-					$crud_rules["enable"] = boolval($value);
-					return $crud_rules;
-				}
-
-				return array_replace_recursive(self::$default_column_options, $value);
-			} else {
-				return self::$default_column_options;
-			}
-		}
-
-		/**
-		 * Assert if a given action can be authorized on the current table.
-		 *
-		 * @param \Gobl\CRUD\CRUDBase $action
-		 *
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
-		 * @throws \Exception
-		 */
-		private function assertTableAccess(CRUDBase $action)
-		{
-			$type  = $action->getType();
-			$rules = $this->table_crud_rules[$type];
-
-			$debug = [
-				'on'     => 'table',
-				'table'  => $this->table->getName(),
-				'action' => $type,
-				'rules'  => $rules
-			];
-
-			if (!$rules["enable"]) {
-				$debug["why"] = ['enable' => $rules["enable"]];
-				throw new CRUDException($rules["error"], [], $debug);
-			}
-
-			$by     = $rules['by'];
-			$by     = empty($by) ? self::$default_table_options[$type]["by"] : $by;
-			$c_list = explode("|", $by);
-
-			$action->setSuccess($rules["success"])
-				   ->setError($rules['error']);
-
-			foreach ($c_list as $c) {
-				$callable = self::assertion($c);
-
-				$result = call_user_func($callable, $action);
-
-				if (!$result) {
-					$debug["why"] = ['by' => $c, "in" => $by];
-					throw new CRUDException($action->getError(), [], $debug);
-				}
-			}
-
-			$this->message = $action->getSuccess();
-		}
-
-		/**
-		 * @param string $type
-		 * @param mixed  $entity
-		 *
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
-		 * @throws \Exception
-		 */
-		private function assertEntity($type, $entity)
-		{
-			$debug = [
-				'on'     => 'entity',
-				'table'  => $this->table->getName(),
-				'action' => $type
-			];
-
-			$rules = $this->table_crud_rules[$type];
-
-			$_if    = $rules['if'];
-			$_if    = empty($_if) ? self::$default_table_options[$type]["if"] : $_if;
-			$c_list = explode("|", $_if);
-
-			foreach ($c_list as $c) {
-				$callable = self::assertion($c);
-				$result   = call_user_func($callable, $entity);
-				if (!$result) {
-					$debug['why'] = ['if' => $c, "in" => $_if];
-					throw new CRUDException($rules['error'], [], $debug);
-				}
-			}
-		}
-
-		/**
-		 * Assert if a given action can be authorized on a given column.
-		 *
-		 * @param \Gobl\DBAL\Column   $column
-		 * @param \Gobl\CRUD\CRUDBase $action
-		 *
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
-		 * @throws \Exception
-		 */
-		private function assertColumn(Column $column, CRUDBase $action)
-		{
-			$rules      = self::getColumnCRUDRules($column);
-			$error_data = [$column->getFullName()];
-			$debug      = [
-				'table'  => $this->table->getName(),
-				'column' => $column->getName(),
-				'action' => $action->getType(),
-				'rules'  => $rules
-			];
-
-			if (!$rules["enable_private"] AND $column->isPrivate()) {
-				$debug["why"] = ['column' => "is_private"];
-				throw new CRUDException($rules["error"], $error_data, $debug);
-			}
-
-			if (!$rules["enable_pk"] AND $this->table->isPartOfPrimaryKey($column)) {
-				$debug["why"] = ['column' => "pk"];
-				throw new CRUDException($rules["error"], $error_data, $debug);
-			}
-
-			if (!$rules["enable"]) {
-				$debug["why"] = ['enable' => $rules["enable"]];
-				throw new CRUDException($rules["error"], $error_data, $debug);
-			}
-
-			$by     = $rules['by'];
-			$by     = empty($by) ? self::$default_column_options["by"] : $by;
-			$c_list = explode("|", $by);
-
-			$action->setSuccess($rules["success"])
-				   ->setError($rules['error']);
-
-			foreach ($c_list as $c) {
-				$callable = self::assertion($c);
-				$result   = call_user_func($callable, $action);
-
-				if (!$result) {
-					$debug['why'] = ['by' => $c, "in" => $by];
-					throw new CRUDException($action->getError(), $error_data, $debug);
-				}
-			}
-		}
-
-		/**
-		 * @param array $form
+		 * @param $form
 		 *
 		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 */
-		private function assertColumnUpdate(array &$form)
+		private function checkFormColumnsForCreate($form)
 		{
-			foreach ($form as $column_name => $value) {
-				if ($this->table->hasColumn($column_name)) {
-					$column = $this->table->getColumn($column_name);
-					$assert = new CRUDColumnUpdate($this->table, $column, $form);
+			$debug = $this->debug;
 
-					$this->assertColumn($column, $assert);
+			foreach ($form as $field => $value) {
+				if ($this->table->hasColumn($field)) {
+					$debug['column'] = $field;
+					$column          = $this->table->getColumn($field);
 
-					$form = $assert->getForm();
+					if ($column->isPrivate() AND !$this->crud_handler->shouldWritePrivateColumn()) {
+						$debug['why'] = 'column_is_private';
+						throw new CRUDException("ERROR", [$field], $debug);
+					} elseif ($this->table->isPartOfPrimaryKey($column) AND !$this->crud_handler->shouldWritePrivateColumn()) {
+						$debug['why'] = 'column_is_part_of_pk';
+						throw new CRUDException("ERROR", [$field], $debug);
+					}
 				}
 			}
 		}
 
 		/**
-		 * @param array $form
+		 * @param $form
 		 *
-		 * @return \Gobl\CRUD\CRUD
-		 * @throws \Exception
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 */
-		private function fillColumnsAutoValue(array &$form)
+		private function checkFormColumnsForUpdate(&$form)
 		{
-			$columns = $this->table->getColumns();
-			foreach ($columns as $column) {
-				$crud_rules  = self::getColumnCRUDRules($column);
-				$column_name = $column->getFullName();
-				$auto_value  = $crud_rules['auto_value'];
+			$debug = $this->debug;
 
-				if (!empty($auto_value) AND ($crud_rules["auto_value_force"] OR !isset($form[$column_name]))) {
-					$callable = $this->autoValue($auto_value);
-					$value    = call_user_func_array($callable, [$column, $form, $this->table]);
+			foreach ($form as $field => $value) {
+				if ($this->table->hasColumn($field)) {
+					$debug['column'] = $field;
+					$column          = $this->table->getColumn($field);
+					$action          = new CRUDColumnUpdate($this->table, $column, $form);
 
-					$form[$column_name] = $value;
+					if ($column->isPrivate() AND !$this->crud_handler->shouldWritePrivateColumn()) {
+						$debug['why'] = 'column_is_private';
+						throw new CRUDException('ERROR', [$field], $debug);
+					} elseif ($this->table->isPartOfPrimaryKey($column) AND !$this->crud_handler->shouldWritePrivateColumn()) {
+						$debug['why'] = 'column_is_part_of_pk';
+						throw new CRUDException('ERROR', [$field], $debug);
+					}
+					if (!$this->crud_handler->onBeforeColumnUpdate($action)) {
+						$debug['why'] = 'column_update_rejected';
+						throw new CRUDException($action->getError(), [$field], $debug);
+					}
+
+					$form = $action->getForm();
 				}
 			}
-
-			return $this;
 		}
 
 		/**
@@ -406,32 +170,19 @@
 		 */
 		public function assertCreate(array &$form)
 		{
-			$this->fillColumnsAutoValue($form);
+			$action = new CRUDCreate($this->table, $form);
 
-			$assert = new CRUDCreate($this->table, $form);
-
-			$this->assertTableAccess($assert);
-
-			$form = $assert->getForm();
-		}
-
-		/**
-		 * @param array $form_list
-		 *
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
-		 * @throws \Exception
-		 */
-		public function assertCreateMultiple(array &$form_list)
-		{
-			foreach ($form_list as &$form) {
-				$this->fillColumnsAutoValue($form);
+			if (!$this->crud_handler->onBeforeCreate($action)) {
+				throw new CRUDException($action->getError(), [], $this->debug);
 			}
 
-			$assert = new CRUDCreateBulk($this->table, $form_list);
+			$this->checkFormColumnsForCreate($form);
 
-			$this->assertTableAccess($assert);
+			$form = $action->getForm();
 
-			$form_list = $assert->getForm();
+			$this->crud_handler->autoFillCreateForm($form);
+
+			$this->message = $action->getSuccess();
 		}
 
 		/**
@@ -441,21 +192,21 @@
 		 */
 		public function assertRead(array &$filters)
 		{
-			$assert = $this->as_relation ? new CRUDReadAsRelation($this->table, $filters) : new CRUDRead($this->table, $filters);
+			if ($this->as_relation) {
+				$action = new CRUDReadAsRelation($this->table, $filters);
+				$result = $this->crud_handler->onBeforeReadAsRelation($action);
+			} else {
+				$action = new CRUDRead($this->table, $filters);
+				$result = $this->crud_handler->onBeforeRead($action);
+			}
 
-			$this->assertTableAccess($assert);
+			if (!$result) {
+				throw new CRUDException($action->getError(), [], $this->debug);
+			}
 
-			$filters = $assert->getFilters();
-		}
+			$filters = $action->getFilters();
 
-		/**
-		 * @param mixed $entity
-		 *
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
-		 */
-		public function assertReadEntity($entity)
-		{
-			$this->assertEntity(CRUD::READ, $entity);
+			$this->message = $action->getSuccess();
 		}
 
 		/**
@@ -465,11 +216,21 @@
 		 */
 		public function assertReadAll(array &$filters)
 		{
-			$assert = $this->as_relation ? new CRUDReadAllAsRelation($this->table, $filters) : new CRUDReadAll($this->table, $filters);
+			if ($this->as_relation) {
+				$action = new CRUDReadAllAsRelation($this->table, $filters);
+				$result = $this->crud_handler->onBeforeReadAllAsRelation($action);
+			} else {
+				$action = new CRUDReadAll($this->table, $filters);
+				$result = $this->crud_handler->onBeforeReadAll($action);
+			}
 
-			$this->assertTableAccess($assert);
+			if (!$result) {
+				throw new CRUDException($action->getError(), [], $this->debug);
+			}
 
-			$filters = $assert->getFilters();
+			$filters = $action->getFilters();
+
+			$this->message = $action->getSuccess();
 		}
 
 		/**
@@ -481,24 +242,18 @@
 		 */
 		public function assertUpdate(array &$filters, array &$form)
 		{
-			$assert = new CRUDUpdate($this->table, $filters, $form);
+			$action = new CRUDUpdate($this->table, $filters, $form);
 
-			$this->assertTableAccess($assert);
+			if (!$this->crud_handler->onBeforeUpdate($action)) {
+				throw new CRUDException($action->getError(), [], $this->debug);
+			}
 
-			$filters = $assert->getFilters();
-			$form    = $assert->getForm();
+			$this->checkFormColumnsForUpdate($form);
 
-			$this->assertColumnUpdate($form);
-		}
+			$filters = $action->getFilters();
+			$form    = $action->getForm();
 
-		/**
-		 * @param mixed $entity
-		 *
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
-		 */
-		public function assertUpdateEntity($entity)
-		{
-			$this->assertEntity(CRUD::UPDATE, $entity);
+			$this->message = $action->getSuccess();
 		}
 
 		/**
@@ -510,13 +265,18 @@
 		 */
 		public function assertUpdateAll(array &$filters, array &$form)
 		{
-			$assert = new CRUDUpdateAll($this->table, $filters, $form);
+			$action = new CRUDUpdateAll($this->table, $filters, $form);
 
-			$this->assertTableAccess($assert);
-			$filters = $assert->getFilters();
-			$form    = $assert->getForm();
+			if (!$this->crud_handler->onBeforeUpdateAll($action)) {
+				throw new CRUDException($action->getError(), [], $this->debug);
+			}
 
-			$this->assertColumnUpdate($form);
+			$this->checkFormColumnsForUpdate($form);
+
+			$filters = $action->getFilters();
+			$form    = $action->getForm();
+
+			$this->message = $action->getSuccess();
 		}
 
 		/**
@@ -526,21 +286,15 @@
 		 */
 		public function assertDelete(array &$filters)
 		{
-			$assert = new CRUDDelete($this->table, $filters);
+			$action = new CRUDDelete($this->table, $filters);
 
-			$this->assertTableAccess($assert);
+			if (!$this->crud_handler->onBeforeDelete($action)) {
+				throw new CRUDException($action->getError(), [], $this->debug);
+			}
 
-			$filters = $assert->getFilters();
-		}
+			$filters = $action->getFilters();
 
-		/**
-		 * @param mixed $entity
-		 *
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
-		 */
-		public function assertDeleteEntity($entity)
-		{
-			$this->assertEntity(CRUD::DELETE, $entity);
+			$this->message = $action->getSuccess();
 		}
 
 		/**
@@ -550,87 +304,23 @@
 		 */
 		public function assertDeleteAll(array &$filters)
 		{
-			$assert = new CRUDDeleteAll($this->table, $filters);
+			$action = new CRUDDeleteAll($this->table, $filters);
 
-			$this->assertTableAccess($assert);
-
-			$filters = $assert->getFilters();
-		}
-
-		/**
-		 * Fake anybody assertion.
-		 *
-		 * @return bool
-		 */
-		public static function anybodyAssertion()
-		{
-			return true;
-		}
-
-		/**
-		 * Returns or define assertion callable.
-		 *
-		 * @param string        $name
-		 * @param callable|null $callable
-		 *
-		 * @return callable
-		 * @throws \Exception
-		 */
-		public static function assertion($name, callable $callable = null)
-		{
-			if (!is_null($callable)) {
-				if (isset(self::$assert_callable_map[$name])) {
-					throw new \Exception(sprintf('can\'t override CRUD assertion "%s".', $name));
-				}
-
-				if (!is_callable($callable)) {
-					throw new \InvalidArgumentException(sprintf('CRUD assertion "%s" is not a valid callable.', $name));
-				}
-
-				self::$assert_callable_map[$name] = $callable;
-			} else {
-
-				if ($name === "anybody") {
-					return [CRUD::class, "anybodyAssertion"];
-				}
-
-				if (!isset(self::$assert_callable_map[$name])) {
-					throw new \Exception(sprintf('undefined CRUD assertion "%s".', $name));
-				}
+			if (!$this->crud_handler->onBeforeDeleteAll($action)) {
+				throw new CRUDException($action->getError(), [], $this->debug);
 			}
 
-			return self::$assert_callable_map[$name];
+			$filters = $action->getFilters();
+
+			$this->message = $action->getSuccess();
 		}
 
 		/**
-		 * Returns or define auto value callable.
-		 *
-		 * @param string        $name
-		 * @param callable|null $callable
-		 *
-		 * @return callable
-		 * @throws \Exception
+		 * @return \Gobl\CRUD\Handler\CRUDHandlerInterface
 		 */
-		public static function autoValue($name, callable $callable = null)
+		public function getHandler()
 		{
-			if (!is_null($callable)) {
-				if (isset(self::$value_callable_map[$name])) {
-					throw new \Exception(sprintf('can\'t override CRUD auto value "%s".', $name));
-				}
-
-				if (!is_callable($callable)) {
-					throw new \InvalidArgumentException(sprintf('CRUD auto value "%s" is not a valid callable.', $name));
-				}
-
-				self::$value_callable_map[$name] = $callable;
-			} else {
-				if (!isset(self::$value_callable_map[$name])) {
-					throw new \Exception(sprintf('undefined CRUD auto value "%s".', $name));
-				}
-
-			}
-
-			return self::$value_callable_map[$name];
+			return $this->crud_handler;
 		}
 
 		/**
@@ -638,6 +328,6 @@
 		 */
 		public static function loadOptions(array $options)
 		{
-			self::$crud_options = array_replace_recursive(self::$crud_options, $options);
+			self::$crud_options = array_merge(self::$crud_options, $options);
 		}
 	}

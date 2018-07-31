@@ -29,5 +29,8 @@
 		public function __construct(Table $table, array $filters, array $form)
 		{
 			parent::__construct(CRUD::UPDATE, $table, $filters, $form);
+
+			$this->setError("UPDATE_ERROR")
+				 ->setSuccess("UPDATED");
 		}
 	}

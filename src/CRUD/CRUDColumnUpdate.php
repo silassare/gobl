@@ -37,6 +37,8 @@
 			parent::__construct(CRUD::COLUMN_UPDATE, $table, $form);
 
 			$this->column = $column;
+
+			$this->setError("COLUMN_UPDATE_ERROR");
 		}
 
 		/**

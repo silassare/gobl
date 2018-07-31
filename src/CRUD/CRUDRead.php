@@ -28,5 +28,7 @@
 		public function __construct(Table $table, array $filters)
 		{
 			parent::__construct(CRUD::READ, $table, $filters);
+
+			$this->setError("READ_ERROR");
 		}
 	}

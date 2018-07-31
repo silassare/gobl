@@ -36,11 +36,11 @@
 		/**
 		 * @var string
 		 */
-		protected $success = "";
+		protected $success = "OK";
 		/**
 		 * @var string
 		 */
-		protected $error = "";
+		protected $error = "ERROR";
 
 		/**
 		 * CRUDContext constructor.

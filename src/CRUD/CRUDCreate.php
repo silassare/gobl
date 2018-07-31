@@ -28,5 +28,8 @@
 		public function __construct(Table $table, array $form)
 		{
 			parent::__construct(CRUD::CREATE, $table, $form);
+
+			$this->setError("CREATE_ERROR")
+				 ->setSuccess("CREATED");
 		}
 	}

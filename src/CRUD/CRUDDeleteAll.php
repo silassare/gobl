@@ -28,5 +28,8 @@
 		public function __construct(Table $table, array $filters)
 		{
 			parent::__construct(CRUD::DELETE_ALL, $table, $filters);
+
+			$this->setError("DELETE_ERROR")
+				 ->setSuccess("DELETED");
 		}
 	}

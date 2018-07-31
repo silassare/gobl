@@ -28,6 +28,8 @@
 		public function __construct(Table $table, array $filters)
 		{
 			parent::__construct(CRUD::READ_ALL_AS_RELATION, $table, $filters);
+
+			$this->setError("READ_ALL_AS_RELATION_ERROR");
 		}
 
 	}
