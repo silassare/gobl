@@ -33,6 +33,7 @@
 		 * @param bool $as_relation
 		 *
 		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \Exception
 		 */
 		public function __construct($as_relation = false)
 		{
@@ -262,6 +263,8 @@
 			$my_entity->hydrate($values);
 			$my_entity->save();
 
+			$this->crud->getHandler()->onAfterCreate($my_entity);
+
 			return $my_entity;
 		}
 
@@ -295,11 +298,12 @@
 			$my_entity = $results->fetchClass();
 
 			if ($my_entity) {
-				$this->crud->assertUpdateEntity($my_entity);
+				$this->crud->getHandler()->onBeforeUpdateEntity($my_entity);
 
 				$my_entity->hydrate($new_values);
 				$my_entity->save();
 
+				$this->crud->getHandler()->onAfterUpdate($my_entity);
 				return $my_entity;
 			} else {
 				return false;
@@ -362,7 +366,7 @@
 
 			if ($my_entity) {
 
-				$this->crud->assertDeleteEntity($my_entity);
+				$this->crud->getHandler()->onBeforeDeleteEntity($my_entity);
 
 				$my_query = new MyTableQueryReal();
 
@@ -370,6 +374,8 @@
 
 				$my_query->delete()
 						 ->execute();
+
+				$this->crud->getHandler()->onAfterDelete($my_entity);
 
 				return $my_entity;
 			} else {
@@ -431,7 +437,7 @@
 			$my_entity = $results->fetchClass();
 
 			if ($my_entity) {
-				$this->crud->assertReadEntity($my_entity);
+				$this->crud->getHandler()->onAfterRead($my_entity);
 			}
 
 			return $my_entity;

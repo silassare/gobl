@@ -5,6 +5,7 @@
 
 	use Gobl\CRUD\Exceptions\CRUDException;
 	use Gobl\DBAL\Relations\Relation;
+	use Gobl\DBAL\Relations\VirtualRelation;
 	use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 	use Gobl\ORM\Exceptions\ORMControllerFormException;
 	use Gobl\ORM\Exceptions\ORMQueryException;
@@ -45,7 +46,7 @@
 	 * to get all items in <%$.table.name%>
 	 * - GET     /<%$.service.name%>
 	 *
-	 * to get item(s) from relation for the item in `<%$.table.name%>` with the given :<%$.pk_columns[0].name%>
+	 * to get relation for the item in `<%$.table.name%>` with the given :<%$.pk_columns[0].name%>
 	 * - GET     /<%$.service.name%>/:<%$.pk_columns[0].name%>/relation
 	 *
 	 * @package <%$.namespace%>\App\Services
@@ -65,15 +66,6 @@
 		 */
 		private static $columns_map = [
 			<%@import('include/ozone.columns.name.map.otpl',$)%>
-		];
-
-		/**
-		 * maps relations names list
-		 *
-		 * @var array
-		 */
-		private static $relations_map = [
-			<%@import('include/ozone.relations.name.map.otpl',$)%>
 		];
 
 		/**
@@ -505,7 +497,8 @@
 			}
 
 			$filters[<%$.class.entity%>::<%$.pk_columns[0].const%>] = $extra[<%$.class.entity%>::<%$.pk_columns[0].const%>];
-			$request_relations             = [$extra["relation"]];
+			$req_rel_name                  = $extra["relation"];
+			$request["relations"]          = $req_rel_name;
 
 			$controller = new <%$.class.controller%>();
 			$entity     = $controller->getItem($filters);
@@ -514,20 +507,70 @@
 				throw new NotFoundException();
 			}
 
-			$rel_map = $this->resolveRelations($request_relations);
+			$p9            = self::getPagination($request);
+			$max           = $p9["max"];
+			$offset        = $p9["offset"];
+			$page          = $p9["page"];
+			$total_records = 0;
 
-			$rel      = $rel_map[$extra["relation"]];
-			$rel_type = $rel->getType();
+			$relations = $this->listEntityRelations($entity, $request, $max, $offset, $total_records);
+			$r         = $relations[$req_rel_name];
 
-			if ($rel_type === Relation::ONE_TO_MANY OR $rel_type === Relation::MANY_TO_MANY) {
-				$results = $this->getRelationItemsList($rel, $entity, $request);
+			if (is_array($r)) {
+				$data = [
+					'items' => $r,
+					'max'   => $max,
+					'page'  => $page,
+					'total' => $total_records
+				];
 			} else {
-				$results = $this->getRelationItem($rel, $entity);
+				$data = [
+					'item' => $r
+				];
 			}
 
 			$this->getResponseHolder()
 				 ->setDone()
-				 ->setData($results);
+				 ->setData($data);
+		}
+
+		/**
+		 * @param \<%$.namespace%>\<%$.class.entity%> $entity
+		 * @param array                      $request
+		 * @param null                       $max
+		 * @param int                        $offset
+		 * @param int                        $total_records
+		 *
+		 * @return array
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+		 * @throws \OZONE\OZ\Exceptions\NotFoundException
+		 */
+		private function listEntityRelations(<%$.class.entity%> $entity, array $request, $max = null, $offset = 0, &$total_records = null)
+		{
+			$request_relations = self::getRequestRelations($request);
+			$relations         = [];
+
+			if (!empty($request_relations)) {
+				$rel_map = $this->resolveRelations($request_relations);
+
+				foreach ($rel_map as $name => $rel) {
+					if ($rel instanceof Relation) {
+						/**@var Relation $rel */
+						$rel_type = $rel->getType();
+						if ($rel_type === Relation::ONE_TO_MANY OR $rel_type === Relation::MANY_TO_MANY) {
+							$relations[$name] = $this->getRelationItemsList($rel, $entity, $request, $max, $offset, $total_records);
+						} else {
+							$relations[$name] = $this->getRelationItem($rel, $entity);
+						}
+					} elseif ($rel instanceof VirtualRelation) {
+						/**@var VirtualRelation $rel */
+						$relations[$name] = $rel->run($entity, $request, $max, $offset, $total_records);
+					}
+				}
+			}
+
+			return $relations;
 		}
 
 		/**
@@ -535,26 +578,24 @@
 		 * @param \<%$.namespace%>\<%$.class.entity%>    $entity
 		 * @param array                         $request
 		 *
+		 * @param int                           $max
+		 * @param int                           $offset
+		 * @param int                           $total_records
+		 *
 		 * @return array
-		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 		 */
-		private function getRelationItemsList(Relation $relation, <%$.class.entity%> $entity, array $request)
+		private function getRelationItemsList(Relation $relation, <%$.class.entity%> $entity, array $request, $max = null, $offset = 0, &$total_records = null)
 		{
-			$filters  = self::getRequestFilters(self::$columns_map, $request);
-			$order_by = self::getRequestOrderBy(self::$columns_map, $request);
+			$target_columns_map = [];
+			$target_columns     = $relation->getTargetTable()->getColumns();
 
-			$relation_columns = $relation->getRelationColumns();
-			$entity_data      = $entity->asArray();
-
-			foreach ($relation_columns as $from => $target) {
-				$filters[$target] = $entity_data[$from];
+			foreach ($target_columns as $column) {
+				$target_columns_map[$column->getFullName()] = 1;
 			}
 
-			$p9            = self::getPagination($request);
-			$max           = $p9["max"];
-			$offset        = $p9["offset"];
-			$page          = $p9["page"];
-			$total_records = 0;
+			$filters  = self::getRequestFilters($target_columns_map, $request);
+			$order_by = self::getRequestOrderBy($target_columns_map, $request);
 
 			$relation_getter = $relation->getGetterName();
 			$items           = call_user_func_array([
@@ -562,20 +603,14 @@
 				$relation_getter
 			], [$filters, $max, $offset, $order_by, &$total_records]);
 
-			return [
-				'item'    => $entity,
-				'targets' => $items,
-				'max'     => $max,
-				'page'    => $page,
-				'total'   => $total_records
-			];
+			return $items;
 		}
 
 		/**
 		 * @param \Gobl\DBAL\Relations\Relation $relation
 		 * @param \<%$.namespace%>\<%$.class.entity%>    $entity
 		 *
-		 * @return array
+		 * @return mixed
 		 */
 		private function getRelationItem(Relation $relation, <%$.class.entity%> $entity)
 		{
@@ -590,16 +625,13 @@
 			$relation_getter = $relation->getGetterName();
 			$item            = call_user_func([$entity, $relation_getter]);
 
-			return [
-				'item'   => $entity,
-				'target' => $item
-			];
+			return $item;
 		}
 
 		/**
 		 * @param array $request_relations
 		 *
-		 * @return \Gobl\DBAL\Relations\Relation[]
+		 * @return array
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 * @throws \OZONE\OZ\Exceptions\NotFoundException
 		 */
@@ -607,17 +639,16 @@
 		{
 			$table   = ORM::getDatabase()->getTable(<%$.class.entity%>::TABLE_NAME);
 			$missing = [];
-			/**
-			 * @var $rel_map Relation[]
-			 */
 			$rel_map = [];
 
-			// we firstly remove all relation mask
+			// we firstly check all relation
 			foreach ($request_relations as $name) {
-				if (!isset(self::$relations_map[$name]) OR !$table->hasRelation($name)) {
-					$missing[] = $name;
-				} else {
+				if ($table->hasRelation($name)) {
 					$rel_map[$name] = $table->getRelation($name);
+				} elseif ($table->hasVirtualRelation($name)) {
+					$rel_map[$name] = $table->getVirtualRelation($name);
+				} else {
+					$missing[] = $name;
 				}
 			}
 
@@ -629,36 +660,4 @@
 			return $rel_map;
 		}
 
-		/**
-		 * @param \<%$.namespace%>\<%$.class.entity%> $entity
-		 * @param array                      $request
-		 *
-		 * @return array
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \OZONE\OZ\Exceptions\NotFoundException
-		 */
-		private function listEntityRelations(<%$.class.entity%> $entity, array $request)
-		{
-			$request_relations = self::getRequestRelations($request);
-			$relations         = [];
-
-			if (!empty($request_relations)) {
-				$rel_map = $this->resolveRelations($request_relations);
-
-				// now load each requested relation data
-				foreach ($rel_map as $name => $rel) {
-					$rel_type = $rel->getType();
-
-					if ($rel_type === Relation::ONE_TO_MANY OR $rel_type === Relation::MANY_TO_MANY) {
-						$results    = $this->getRelationItemsList($rel, $entity, $request);
-						$rel[$name] = $results['targets'];
-					} else {
-						$results    = $this->getRelationItem($rel, $entity);
-						$rel[$name] = $results['target'];
-					}
-				}
-			}
-
-			return $relations;
-		}
 	}
