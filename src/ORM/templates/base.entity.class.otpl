@@ -230,7 +230,7 @@
 					$value = $type->validate($value, $column->getName(), $this->table->getName());
 				} catch (TypesInvalidValueException $e) {
 					$debug = [
-						"field"      => $column->getName(),
+						"field"      => $column->getFullName(),
 						"table_name" => $this->table->getName(),
 						"options"    => $type->getCleanOptions()
 					];
