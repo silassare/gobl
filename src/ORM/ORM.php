@@ -12,23 +12,11 @@
 
 	use Gobl\DBAL\Db;
 	use Gobl\ORM\Exceptions\ORMException;
-	use Gobl\ORM\Generators\Generator;
 
 	class ORM
 	{
 		/** @var  \Gobl\DBAL\Db */
 		private static $db;
-
-		/**
-		 * Returns class generator instance.
-		 *
-		 * @return \Gobl\ORM\Generators\Generator
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 */
-		public static function getClassGenerator()
-		{
-
-		}
 
 		/**
 		 * Database setter.

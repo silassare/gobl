@@ -15,6 +15,7 @@
 	use Gobl\DBAL\Constraints\Unique;
 	use Gobl\DBAL\Exceptions\DBALException;
 	use Gobl\DBAL\Relations\Relation;
+	use Gobl\DBAL\Relations\VirtualRelation;
 
 	/**
 	 * Class Table
@@ -101,6 +102,13 @@
 		 * @var \Gobl\DBAL\Relations\Relation[]
 		 */
 		protected $relations = [];
+
+		/**
+		 * Table virtual relations list
+		 *
+		 * @var \Gobl\DBAL\Relations\VirtualRelation[]
+		 */
+		protected $virtual_relations = [];
 
 		/**
 		 * Table constructor.
@@ -196,6 +204,7 @@
 		 *
 		 * @param \Gobl\DBAL\Relations\Relation $relation
 		 *
+		 * @return \Gobl\DBAL\Table
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function addRelation(Relation $relation)
@@ -219,6 +228,37 @@
 			}
 
 			$this->relations[$name] = $relation;
+
+			return $this;
+		}
+
+		/**
+		 * Adds virtual relation to this table.
+		 *
+		 * @param \Gobl\DBAL\Relations\VirtualRelation $virtual_relation
+		 *
+		 * @return \Gobl\DBAL\Table
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 */
+		public function addVirtualRelation(VirtualRelation $virtual_relation)
+		{
+			$name = $virtual_relation->getName();
+
+			if ($this->hasVirtualRelation($name)) {
+				throw new DBALException(sprintf('Cannot override virtual relation "%s" in table "%s".', $name, $this->getName()));
+			}
+
+			if ($this->hasRelation($name)) {
+				throw new DBALException(sprintf('Virtual relation and relation name conflict for "%s" in table "%".', $name, $this->getName()));
+			}
+
+			if ($this->hasColumn($name)) {
+				throw new DBALException(sprintf('Virtual relation and column name conflict for "%s" in table "%".', $name, $this->getName()));
+			}
+
+			$this->virtual_relations[$name] = $virtual_relation;
+
+			return $this;
 		}
 
 		/**
@@ -486,6 +526,44 @@
 		public function getRelations()
 		{
 			return $this->relations;
+		}
+
+		/**
+		 * Checks if a given virtual relation is defined.
+		 *
+		 * @param string $name the virtual relation name
+		 *
+		 * @return bool
+		 */
+		public function hasVirtualRelation($name)
+		{
+			return isset($this->relations[$name]);
+		}
+
+		/**
+		 * Gets a virtual relation by name.
+		 *
+		 * @param string $name the virtual relation name
+		 *
+		 * @return null|\Gobl\DBAL\Relations\VirtualRelation
+		 */
+		public function getVirtualRelation($name)
+		{
+			if ($this->hasVirtualRelation($name)) {
+				return $this->virtual_relations[$name];
+			}
+
+			return null;
+		}
+
+		/**
+		 * Gets virtual relations.
+		 *
+		 * @return \Gobl\DBAL\Relations\VirtualRelation[]
+		 */
+		public function getVirtualRelations()
+		{
+			return $this->virtual_relations;
 		}
 
 		/**
