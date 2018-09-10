@@ -14,6 +14,7 @@
 	use Gobl\DBAL\Constraints\PrimaryKey;
 	use Gobl\DBAL\Constraints\Unique;
 	use Gobl\DBAL\Exceptions\DBALException;
+	use Gobl\DBAL\Relations\CallableVR;
 	use Gobl\DBAL\Relations\Relation;
 	use Gobl\DBAL\Relations\VirtualRelation;
 
@@ -789,5 +790,18 @@
 		public function getOptions()
 		{
 			return $this->options;
+		}
+
+		/**
+		 * @param                  $name
+		 * @param callable         $callable
+		 *
+		 * @return \Gobl\DBAL\Table
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 */
+		public function defineVR($name, callable $callable)
+		{
+			$vr = new CallableVR($name, $callable);
+			return $this->addVirtualRelation($vr);
 		}
 	}
