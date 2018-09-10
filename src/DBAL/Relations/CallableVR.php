@@ -10,8 +10,6 @@
 
 	namespace Gobl\DBAL\Relations;
 
-	use Gobl\DBAL\Table;
-
 	class CallableVR extends VirtualRelation
 	{
 		/**
@@ -38,18 +36,5 @@
 		public function run($target, array $request, $max = null, $offset = 0, &$total_records = null)
 		{
 			return call_user_func($this->callable, $target, $request, $max, $offset, $total_records);
-		}
-
-		/**
-		 * @param \Gobl\DBAL\Table $table
-		 * @param                  $name
-		 * @param callable         $callable
-		 *
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 */
-		static function addVR(Table $table, $name, callable $callable)
-		{
-			$vr = new self($name, $callable);
-			$table->addVirtualRelation($vr);
 		}
 	}
