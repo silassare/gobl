@@ -34,7 +34,7 @@ const win: any  = window,
 			  }
 
 			  if (_isPlainObject(value)) {
-				  let i = GoblEntity.toInstance(value,true);
+				  let i = GoblEntity.toInstance(value, true);
 				  if (i) {
 					  return i;
 				  }
@@ -73,7 +73,7 @@ export abstract class GoblEntity {
 
 	isSaved(set?: boolean): boolean {
 		if (set) {
-			this._cache = {};
+			this._cache = this.toObject();
 			return true;
 		}
 
@@ -167,11 +167,11 @@ export abstract class GoblEntity {
 	}
 
 	// JSON helper
-	toJSON(): string {
+	toJSON(): any {
 		let data          = this.toObject();
 		data[gobl_marker] = this._name;
 
-		return JSON.stringify(data);
+		return data;
 	}
 
 	static toInstance(data: tGoblEntityData, cache = false): GoblEntity | undefined {
