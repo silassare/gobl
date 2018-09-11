@@ -181,19 +181,10 @@
 		 */
 		public function addColumn(Column $column)
 		{
-			$name      = $column->getName();
-			$full_name = $column->getFullName();
+			$this->assertCanAddColumn($column);
 
-			if ($this->hasColumn($name)) {
-				throw new DBALException(sprintf('The column "%s" is already defined in table "%s".', $name, $this->name));
-			}
-
-			// prevent column full name conflict
-			if ($this->hasColumn($full_name)) {
-				$c = $this->col_full_name_map[$full_name];
-				throw new DBALException(sprintf('The columns "%s" and "%s" has the same full name "%s" in table "%s".', $name, $c, $full_name, $this->getName()));
-			}
-
+			$name                                = $column->getName();
+			$full_name                           = $column->getFullName();
 			$this->columns[$name]                = $column;
 			$this->col_full_name_map[$full_name] = $name;
 
@@ -210,15 +201,9 @@
 		 */
 		public function addRelation(Relation $relation)
 		{
+			$this->assertCanAddRelation($relation);
+
 			$name = $relation->getName();
-
-			if ($this->hasRelation($name)) {
-				throw new DBALException(sprintf('Cannot override relation "%s" in table "%s".', $name, $this->getName()));
-			}
-
-			if ($this->hasColumn($name)) {
-				throw new DBALException(sprintf('Cannot use "%s" as relation name, column "%s" exists in table "%s".', $name, $name, $this->getName()));
-			}
 
 			$master_name = $relation->getMasterTable()
 									->getName();
@@ -243,23 +228,91 @@
 		 */
 		public function addVirtualRelation(VirtualRelation $virtual_relation)
 		{
+			$this->assertCanAddVirtualRelation($virtual_relation);
+
+			$name                           = $virtual_relation->getName();
+			$this->virtual_relations[$name] = $virtual_relation;
+
+			return $this;
+		}
+
+		/**
+		 * Assert if we can add the column to this table.
+		 *
+		 * @param \Gobl\DBAL\Column $column
+		 *
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 */
+		private function assertCanAddColumn(Column $column)
+		{
+			$name      = $column->getName();
+			$full_name = $column->getFullName();
+
+			if ($this->hasColumn($name)) {
+				throw new DBALException(sprintf('The column "%s" is already defined in table "%s".', $name, $this->name));
+			}
+
+			// prevent column full name conflict
+			if ($this->hasColumn($full_name)) {
+				$c = $this->col_full_name_map[$full_name];
+				throw new DBALException(sprintf('The columns "%s" and "%s" has the same full name "%s" in table "%s".', $name, $c, $full_name, $this->getName()));
+			}
+
+			if ($this->hasRelation($name)) {
+				throw new DBALException(sprintf('Column name and relation name conflict for "%s" in table "%".', $name, $this->getName()));
+			}
+
+			if ($this->hasVirtualRelation($name)) {
+				throw new DBALException(sprintf('Column name and virtual relation name conflict for "%s" in table "%".', $name, $this->getName()));
+			}
+		}
+
+		/**
+		 * Assert if we can add the relation to this table.
+		 *
+		 * @param \Gobl\DBAL\Relations\Relation $relation
+		 *
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 */
+		private function assertCanAddRelation(Relation $relation)
+		{
+			$name = $relation->getName();
+
+			if ($this->hasColumn($name)) {
+				throw new DBALException(sprintf('Cannot use "%s" as relation name, column "%s" exists in table "%s".', $name, $name, $this->getName()));
+			}
+
+			if ($this->hasRelation($name)) {
+				throw new DBALException(sprintf('Cannot override relation "%s" in table "%s".', $name, $this->getName()));
+			}
+
+			if ($this->hasVirtualRelation($name)) {
+				throw new DBALException(sprintf('Relation name and virtual relation name conflict for "%s" in table "%".', $name, $this->getName()));
+			}
+		}
+
+		/**
+		 * Assert if we can add the virtual relation to this table.
+		 *
+		 * @param \Gobl\DBAL\Relations\VirtualRelation $virtual_relation
+		 *
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 */
+		private function assertCanAddVirtualRelation(VirtualRelation $virtual_relation)
+		{
 			$name = $virtual_relation->getName();
+
+			if ($this->hasColumn($name)) {
+				throw new DBALException(sprintf('Virtual relation name and column name conflict for "%s" in table "%".', $name, $this->getName()));
+			}
 
 			if ($this->hasVirtualRelation($name)) {
 				throw new DBALException(sprintf('Cannot override virtual relation "%s" in table "%s".', $name, $this->getName()));
 			}
 
 			if ($this->hasRelation($name)) {
-				throw new DBALException(sprintf('Virtual relation and relation name conflict for "%s" in table "%".', $name, $this->getName()));
+				throw new DBALException(sprintf('Relation name and virtual relation name conflict for "%s" in table "%".', $name, $this->getName()));
 			}
-
-			if ($this->hasColumn($name)) {
-				throw new DBALException(sprintf('Virtual relation and column name conflict for "%s" in table "%".', $name, $this->getName()));
-			}
-
-			$this->virtual_relations[$name] = $virtual_relation;
-
-			return $this;
 		}
 
 		/**
@@ -793,15 +846,16 @@
 		}
 
 		/**
-		 * @param                  $name
-		 * @param callable         $callable
+		 * @param string   $name
+		 * @param callable $callable
+		 * @param bool     $handle_list
 		 *
 		 * @return \Gobl\DBAL\Table
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
-		public function defineVR($name, callable $callable)
+		public function defineVR($name, callable $callable, $handle_list = false)
 		{
-			$vr = new CallableVR($name, $callable);
+			$vr = new CallableVR($name, $callable, $handle_list);
 			return $this->addVirtualRelation($vr);
 		}
 	}
