@@ -16,12 +16,32 @@
 		 * @var callable
 		 */
 		protected $callable;
+		/**
+		 * @var boolean
+		 */
+		protected $handle_list;
 
-		public function __construct($name, callable $callable)
+		/**
+		 * CallableVR constructor.
+		 *
+		 * @param string   $name
+		 * @param callable $callable
+		 * @param bool     $handle_list
+		 */
+		public function __construct($name, callable $callable, $handle_list = false)
 		{
 			parent::__construct($name);
 
-			$this->callable = $callable;
+			$this->callable    = $callable;
+			$this->handle_list = $handle_list;
+		}
+
+		/**
+		 * @return bool
+		 */
+		public function canHandleList()
+		{
+			return $this->handle_list;
 		}
 
 		/**
