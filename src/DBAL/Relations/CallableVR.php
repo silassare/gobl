@@ -55,6 +55,6 @@
 		 */
 		public function run($target, array $request, $max = null, $offset = 0, &$total_records = null)
 		{
-			return call_user_func($this->callable, $target, $request, $max, $offset, $total_records);
+			return call_user_func_array($this->callable, [$target, $request, $max, $offset, &$total_records]);
 		}
 	}
