@@ -459,8 +459,9 @@
 		 */
 		public function actionGetAll(array $request)
 		{
-			$filters  = self::getRequestFilters(self::$columns_map, $request);
-			$order_by = self::getRequestOrderBy(self::$columns_map, $request);
+			$filters    = self::getRequestFilters(self::$columns_map, $request);
+			$order_by   = self::getRequestOrderBy(self::$columns_map, $request);
+			$collection = self::getRequestCollection($request);
 
 			$p9            = self::getPagination($request);
 			$max           = $p9["max"];
@@ -469,8 +470,14 @@
 			$total_records = 0;
 
 			$controller = new <%$.class.controller%>();
-			$results    = $controller->getAllItems($filters, $max, $offset, $order_by, $total_records);
-			$relations  = [];
+
+			if ($collection) {
+				$results = $controller->getCollectionItems($collection, $filters, $max, $offset, $order_by, $total_records);
+			} else {
+				$results = $controller->getAllItems($filters, $max, $offset, $order_by, $total_records);
+			}
+
+			$relations = [];
 
 			if (count($results)) {
 				$relations = $this->listEntitiesRelations($relations, $request);

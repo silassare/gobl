@@ -79,6 +79,22 @@
 		}
 
 		/**
+		 * Returns requested collection
+		 *
+		 * @param array $request
+		 *
+		 * @return string
+		 */
+		protected static function getRequestCollection(array $request)
+		{
+			if (!isset($request['collection']) OR !is_string($request['collection']) OR !strlen($request['collection'])) {
+				return null;
+			}
+
+			return $request['collection'];
+		}
+
+		/**
 		 * Returns request order by parameters
 		 *
 		 * @param array $columns_map

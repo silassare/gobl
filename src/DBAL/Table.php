@@ -10,6 +10,7 @@
 
 	namespace Gobl\DBAL;
 
+	use Gobl\DBAL\Collections\Collection;
 	use Gobl\DBAL\Constraints\ForeignKey;
 	use Gobl\DBAL\Constraints\PrimaryKey;
 	use Gobl\DBAL\Constraints\Unique;
@@ -110,6 +111,13 @@
 		 * @var \Gobl\DBAL\Relations\VirtualRelation[]
 		 */
 		protected $virtual_relations = [];
+
+		/**
+		 * The collections list
+		 *
+		 * @var \Gobl\DBAL\Collections\Collection[]
+		 */
+		protected $collections;
 
 		/**
 		 * Table constructor.
@@ -237,6 +245,24 @@
 		}
 
 		/**
+		 * Adds collection to this table.
+		 *
+		 * @param \Gobl\DBAL\Collections\Collection $collection
+		 *
+		 * @return \Gobl\DBAL\Table
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 */
+		public function addCollection(Collection $collection)
+		{
+			$this->assertCanAddCollection($collection);
+
+			$name                     = $collection->getName();
+			$this->collections[$name] = $collection;
+
+			return $this;
+		}
+
+		/**
 		 * Assert if we can add the column to this table.
 		 *
 		 * @param \Gobl\DBAL\Column $column
@@ -289,6 +315,10 @@
 			if ($this->hasVirtualRelation($name)) {
 				throw new DBALException(sprintf('Relation name and virtual relation name conflict for "%s" in table "%".', $name, $this->getName()));
 			}
+
+			if ($this->hasCollection($name)) {
+				throw new DBALException(sprintf('Relation name and collection name conflict for "%s" in table "%".', $name, $this->getName()));
+			}
 		}
 
 		/**
@@ -312,6 +342,38 @@
 
 			if ($this->hasRelation($name)) {
 				throw new DBALException(sprintf('Relation name and virtual relation name conflict for "%s" in table "%".', $name, $this->getName()));
+			}
+
+			if ($this->hasCollection($name)) {
+				throw new DBALException(sprintf('Virtual relation name and collection name conflict for "%s" in table "%".', $name, $this->getName()));
+			}
+		}
+
+		/**
+		 * Assert if we can add the collection to this table.
+		 *
+		 * @param \Gobl\DBAL\Collections\Collection $collection
+		 *
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 */
+		private function assertCanAddCollection(Collection $collection)
+		{
+			$name = $collection->getName();
+
+			if ($this->hasColumn($name)) {
+				throw new DBALException(sprintf('Cannot use "%s" as collection name, column "%s" exists in table "%s".', $name, $name, $this->getName()));
+			}
+
+			if ($this->hasCollection($name)) {
+				throw new DBALException(sprintf('Cannot override collection "%s" in table "%s".', $name, $this->getName()));
+			}
+
+			if ($this->hasRelation($name)) {
+				throw new DBALException(sprintf('Collection name and relation name conflict for "%s" in table "%".', $name, $this->getName()));
+			}
+
+			if ($this->hasVirtualRelation($name)) {
+				throw new DBALException(sprintf('Collection name and virtual relation name conflict for "%s" in table "%".', $name, $this->getName()));
 			}
 		}
 
@@ -511,6 +573,18 @@
 		}
 
 		/**
+		 * Checks if a given collection is defined.
+		 *
+		 * @param string $name the collection name
+		 *
+		 * @return bool
+		 */
+		public function hasCollection($name)
+		{
+			return isset($this->collections[$name]);
+		}
+
+		/**
 		 * Asserts if a given column name is defined.
 		 *
 		 * @param string $name the column name or full name
@@ -618,6 +692,32 @@
 		public function getVirtualRelations()
 		{
 			return $this->virtual_relations;
+		}
+
+		/**
+		 * Gets a collection by name.
+		 *
+		 * @param string $name the collection name
+		 *
+		 * @return null|\Gobl\DBAL\Collections\Collection
+		 */
+		public function getCollection($name)
+		{
+			if ($this->hasCollection($name)) {
+				return $this->collections[$name];
+			}
+
+			return null;
+		}
+
+		/**
+		 * Gets collections.
+		 *
+		 * @return \Gobl\DBAL\Collections\Collection[]
+		 */
+		public function getCollections()
+		{
+			return $this->collections;
 		}
 
 		/**
@@ -857,5 +957,18 @@
 		{
 			$vr = new CallableVR($name, $callable, $handle_list);
 			return $this->addVirtualRelation($vr);
+		}
+
+		/**
+		 * @param string   $name
+		 * @param callable $callable
+		 *
+		 * @return \Gobl\DBAL\Table
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 */
+		public function defineCollection($name, callable $callable)
+		{
+			$c = new Collection($name, $callable);
+			return $this->addCollection($c);
 		}
 	}

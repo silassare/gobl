@@ -6,6 +6,8 @@
 	use Gobl\CRUD\CRUD;
 	use Gobl\DBAL\Rule;
 	use Gobl\ORM\Exceptions\ORMControllerFormException;
+	use Gobl\ORM\Exceptions\ORMException;
+	use Gobl\ORM\Exceptions\ORMQueryException;
 	use Gobl\ORM\ORM;
 	use MY_PROJECT_DB_NS\MyEntity as MyEntityReal;
 	use MY_PROJECT_DB_NS\MyTableQuery as MyTableQueryReal;
@@ -480,6 +482,33 @@
 			}
 
 			return $items;
+		}
+
+		/**
+		 * Gets collection items from `my_table`.
+		 *
+		 * @param string   $name
+		 * @param array    $filters
+		 * @param null|int $max
+		 * @param int      $offset
+		 * @param array    $order_by
+		 * @param bool     $total_records
+		 *
+		 * @return \MY_PROJECT_DB_NS\MyEntity[]
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+		 */
+		public function getCollectionItems($name, array $filters = [], $max = null, $offset = 0, array $order_by = [], &$total_records = false)
+		{
+			$table      = ORM::getDatabase()
+							 ->getTable(MyEntity::TABLE_NAME);
+			$collection = $table->getCollection($name);
+
+			if (!$collection) {
+				throw new ORMQueryException("QUERY_INVALID_COLLECTION");
+			}
+
+			return $collection->run($filters, $max, $offset, $order_by, $total_records);
 		}
 
 		/**
