@@ -22,14 +22,14 @@
 	 */
 	class CRUD
 	{
-		const CREATE               = 'create';
-		const READ                 = 'read';
-		const UPDATE               = 'update';
-		const DELETE               = 'delete';
-		const READ_ALL             = 'read_all';
-		const UPDATE_ALL           = 'update_all';
-		const DELETE_ALL           = 'delete_all';
-		const COLUMN_UPDATE        = 'column_update';
+		const CREATE        = 'create';
+		const READ          = 'read';
+		const UPDATE        = 'update';
+		const DELETE        = 'delete';
+		const READ_ALL      = 'read_all';
+		const UPDATE_ALL    = 'update_all';
+		const DELETE_ALL    = 'delete_all';
+		const COLUMN_UPDATE = 'column_update';
 
 		/**
 		 * @var array
