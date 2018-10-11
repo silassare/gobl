@@ -6,7 +6,6 @@
 	use Gobl\CRUD\CRUD;
 	use Gobl\DBAL\Rule;
 	use Gobl\ORM\Exceptions\ORMControllerFormException;
-	use Gobl\ORM\Exceptions\ORMException;
 	use Gobl\ORM\Exceptions\ORMQueryException;
 	use Gobl\ORM\ORM;
 	use MY_PROJECT_DB_NS\MyEntity as MyEntityReal;
@@ -200,12 +199,27 @@
 				if (is_array($column_filters)) {
 					foreach ($column_filters as $filter) {
 						if (is_array($filter)) {
-							if (count($filter) !== 2 OR !isset($filter[0]) OR !isset($filter[1])) {
+							if (count($filter) < 2 OR !isset($filter[0]) OR !isset($filter[1])) {
 								throw new ORMControllerFormException('form_filters_invalid', [$column, $filter]);
 							}
 
 							$operator_key = $filter[0];
 							$value        = $filter[1];
+							$use_and      = false;
+
+							if (isset($filter[2])) {
+								$a = $filter[2];
+								if ($a === "and" OR $a === "AND" OR $a === 1 OR $a === true) {
+									$use_and = true;
+								} elseif ($a === "or" OR $a === "OR" OR $a === 0 OR $a === false) {
+									$use_and = false;
+								} else {
+									throw new ORMControllerFormException('form_filters_invalid', [
+										$column,
+										$filter
+									]);
+								}
+							}
 
 							if (!isset($operators_map[$operator_key])) {
 								throw new ORMControllerFormException('form_filters_unknown_operator', [
@@ -230,7 +244,12 @@
 								]);
 							}
 
-							$query->filterBy($column, $value, $operator, false);
+							$query->filterBy($column, $value, $operator, $use_and);
+						} else {
+							throw new ORMControllerFormException('form_filters_invalid', [
+								$column,
+								$filter
+							]);
 						}
 					}
 				} else {
