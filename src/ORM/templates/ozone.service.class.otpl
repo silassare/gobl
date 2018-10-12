@@ -480,7 +480,7 @@
 			$relations = [];
 
 			if (count($results)) {
-				$relations = $this->listEntitiesRelations($relations, $request);
+				$relations = $this->listEntitiesRelations($results, $request);
 			}
 
 			$this->getResponseHolder()
