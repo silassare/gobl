@@ -11,7 +11,7 @@ const win: any  = window,
 	  _isPlainObject                                  = (a: any): boolean => Object.prototype.toString.call(a) === "[object Object]",
 	  _c_bool                                         = (v: any): boolean => {
 		  // @ts-ignore
-		  return (v === null || v === undefined) ? v : Boolean(v);
+		  return (v === null || v === undefined) ? v : Boolean(v === "0" ? 0 : v);
 	  },
 	  _c_int                                          = (v: any): number => {
 		  // @ts-ignore
