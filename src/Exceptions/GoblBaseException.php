@@ -33,11 +33,12 @@
 		 * @param string          $message
 		 * @param array           $data
 		 * @param array           $debug
-		 * @param null|\Throwable $preview
+		 * @param null|\Throwable $previous
 		 */
-		public function __construct($message, array $data = [], array $debug = [], \Throwable $preview = null)
+		public function __construct($message, array $data = [], array $debug = [], \Throwable $previous = null)
 		{
-			parent::__construct($message, 0, $preview);
+			parent::__construct($message, 0, $previous);
+
 			$this->_data       = $data;
 			$this->_debug_data = $debug;
 		}
