@@ -113,7 +113,7 @@
 					if ($column->isPrivate() AND !$this->crud_handler->shouldWritePrivateColumn()) {
 						$debug['why'] = 'column_is_private';
 						throw new CRUDException("ERROR", [$field], $debug);
-					} elseif ($this->table->isPartOfPrimaryKey($column) AND !$this->crud_handler->shouldWritePrivateColumn()) {
+					} elseif ($value != null AND $this->table->isPartOfPrimaryKey($column) AND !$this->crud_handler->shouldWritePrivateColumn()) {
 						$debug['why'] = 'column_is_part_of_pk';
 						throw new CRUDException("ERROR", [$field], $debug);
 					}
