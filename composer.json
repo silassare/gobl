@@ -29,5 +29,7 @@
       "email": "emile.silas@gmail.com",
       "homepage": "https://github.com/silassare"
     }
-  ]
+  ],
+  "minimum-stability": "dev",
+  "prefer-stable": true
 }

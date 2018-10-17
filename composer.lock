@@ -1,0 +1,58 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "4a33f4cc86209e20de493e8bd4331456",
+    "packages": [
+        {
+            "name": "silassare/otpl",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/silassare/otpl-php.git",
+                "reference": "81fcc002ec720a397bc1dac0b7240ac284d505f8"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/silassare/otpl-php/zipball/81fcc002ec720a397bc1dac0b7240ac284d505f8",
+                "reference": "81fcc002ec720a397bc1dac0b7240ac284d505f8",
+                "shasum": ""
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "OTpl\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "ISC"
+            ],
+            "authors": [
+                {
+                    "name": "Emile Silas Sare",
+                    "email": "emile.silas@gmail.com",
+                    "homepage": "https://github.com/silassare"
+                }
+            ],
+            "description": "A simple template system write once run everywhere!",
+            "homepage": "https://github.com/silassare/otpl-php#readme",
+            "keywords": [
+                "otemplate",
+                "otpl",
+                "template"
+            ],
+            "time": "2018-10-17T14:52:23+00:00"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "dev",
+    "stability-flags": [],
+    "prefer-stable": true,
+    "prefer-lowest": false,
+    "platform": [],
+    "platform-dev": []
+}
