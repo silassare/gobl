@@ -2,7 +2,7 @@
 Gobl allows you to use a Database Abstraction Layer (DBAL) and Object-Relational Mapping (ORM) to query your database in PHP.
 
 ## Dependencies
- - [otpl](https://github.com/silassare/otpl/)
+ - [otpl-php](https://github.com/silassare/otpl-php/)
 
 ## Directives
 [`Types`](./src/DBAL/Types)
