@@ -277,14 +277,14 @@
 
 			$this->completeForm($values);
 
-			$my_entity = new <%$.class.entity%>Real();
+			$entity = new <%$.class.entity%>Real();
 
-			$my_entity->hydrate($values);
-			$my_entity->save();
+			$entity->hydrate($values);
+			$entity->save();
 
-			$this->crud->getHandler()->onAfterCreateEntity($my_entity);
+			$this->crud->getHandler()->onAfterCreateEntity($entity);
 
-			return $my_entity;
+			return $entity;
 		}
 
 		/**
@@ -314,16 +314,16 @@
 
 			$results = $this->findAllItems($filters, 1, 0);
 
-			$my_entity = $results->fetchClass();
+			$entity = $results->fetchClass();
 
-			if ($my_entity) {
-				$this->crud->getHandler()->onBeforeUpdateEntity($my_entity);
+			if ($entity) {
+				$this->crud->getHandler()->onBeforeUpdateEntity($entity);
 
-				$my_entity->hydrate($new_values);
-				$my_entity->save();
+				$entity->hydrate($new_values);
+				$entity->save();
 
-				$this->crud->getHandler()->onAfterUpdateEntity($my_entity);
-				return $my_entity;
+				$this->crud->getHandler()->onAfterUpdateEntity($entity);
+				return $entity;
 			} else {
 				return false;
 			}
@@ -347,11 +347,11 @@
 
 			self::assertFiltersNotEmpty($filters);
 
-			$my_query = new <%$.class.query%>Real();
+			$tableQuery = new <%$.class.query%>Real();
 
-			self::applyFilters($my_query, $filters);
+			self::applyFilters($tableQuery, $filters);
 
-			$affected = $my_query->update($new_values)
+			$affected = $tableQuery->update($new_values)
 								 ->execute();
 
 			return $affected;
@@ -381,22 +381,22 @@
 
 			$results = $this->findAllItems($filters, 1, 0);
 
-			$my_entity = $results->fetchClass();
+			$entity = $results->fetchClass();
 
-			if ($my_entity) {
+			if ($entity) {
 
-				$this->crud->getHandler()->onBeforeDeleteEntity($my_entity);
+				$this->crud->getHandler()->onBeforeDeleteEntity($entity);
 
-				$my_query = new <%$.class.query%>Real();
+				$tableQuery = new <%$.class.query%>Real();
 
-				self::applyFilters($my_query, $filters);
+				self::applyFilters($tableQuery, $filters);
 
-				$my_query->delete()
+				$tableQuery->delete()
 						 ->execute();
 
-				$this->crud->getHandler()->onAfterDeleteEntity($my_entity);
+				$this->crud->getHandler()->onAfterDeleteEntity($entity);
 
-				return $my_entity;
+				return $entity;
 			} else {
 				return false;
 			}
@@ -419,11 +419,11 @@
 
 			self::assertFiltersNotEmpty($filters);
 
-			$my_query = new <%$.class.query%>Real();
+			$tableQuery = new <%$.class.query%>Real();
 
-			self::applyFilters($my_query, $filters);
+			self::applyFilters($tableQuery, $filters);
 
-			$affected = $my_query->delete()
+			$affected = $tableQuery->delete()
 								 ->execute();
 
 			return $affected;
@@ -453,13 +453,13 @@
 
 			$results = $this->findAllItems($filters, 1, 0, $order_by);
 
-			$my_entity = $results->fetchClass();
+			$entity = $results->fetchClass();
 
-			if ($my_entity) {
-				$this->crud->getHandler()->onAfterReadEntity($my_entity);
+			if ($entity) {
+				$this->crud->getHandler()->onAfterReadEntity($entity);
 			}
 
-			return $my_entity;
+			return $entity;
 		}
 
 		/**
@@ -545,13 +545,13 @@
 		 */
 		private function findAllItems(array $filters = [], $max = null, $offset = 0, array $order_by = [])
 		{
-			$my_query = new <%$.class.query%>Real();
+			$tableQuery = new <%$.class.query%>Real();
 
 			if (!empty($filters)) {
-				self::applyFilters($my_query, $filters);
+				self::applyFilters($tableQuery, $filters);
 			}
 
-			$results = $my_query->find($max, $offset, $order_by);
+			$results = $tableQuery->find($max, $offset, $order_by);
 
 			return $results;
 		}
