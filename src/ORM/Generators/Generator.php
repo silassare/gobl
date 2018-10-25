@@ -17,6 +17,7 @@
 	use Gobl\DBAL\Types\Type;
 	use Gobl\DBAL\Utils;
 	use Gobl\ORM\Exceptions\ORMException;
+	use OTpl\OTpl;
 
 	class Generator
 	{
@@ -55,6 +56,7 @@
 		 * @param string  $header the source header to use
 		 *
 		 * @return $this
+		 * @throws \Exception
 		 */
 		public function generateORMClasses(array $tables, $path, $header = '')
 		{
@@ -112,6 +114,7 @@
 		 * @param string  $header the source header to use
 		 *
 		 * @return $this
+		 * @throws \Exception
 		 */
 		public function generateTSClasses(array $tables, $path, $header = '')
 		{
@@ -168,6 +171,7 @@
 		 *
 		 * @return array the O'Zone setting for the service
 		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \Exception
 		 */
 		public function generateOZServiceClass(Table $table, $service_namespace, $service_dir, $service_name, $service_class = '', $header = '')
 		{
@@ -250,11 +254,12 @@
 		 *
 		 * @param string $source the template source
 		 *
-		 * @return \OTpl
+		 * @return \OTpl\OTpl
+		 * @throws \Exception
 		 */
 		private function getTemplate($source)
 		{
-			$o = new \OTpl;
+			$o = new OTpl;
 			$o->parse($source);
 
 			return $o;
