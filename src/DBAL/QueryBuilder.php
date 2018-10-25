@@ -59,7 +59,6 @@
 			'createTable'      => null
 		];
 
-		private $sql                = '';
 		private $alias_map          = [];
 		private $bound_values       = [];
 		private $bound_values_types = [];
@@ -817,13 +816,9 @@
 		 */
 		public function getSqlQuery()
 		{
-			if (empty($this->sql)) {
-				$this->sql = $this->db->getRDBMS()
-									  ->getQueryGenerator($this)
-									  ->buildQuery();
-			}
-
-			return $this->sql;
+			return $this->db->getRDBMS()
+							->getQueryGenerator($this)
+							->buildQuery();
 		}
 
 		/**
