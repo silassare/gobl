@@ -148,8 +148,8 @@
 		 * @param array $new_values new values
 		 *
 		 * @return \Gobl\DBAL\QueryBuilder
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \Exception
 		 */
 		public function safeUpdate(array $old_values, array $new_values)
 		{
@@ -189,8 +189,8 @@
 		 *                         to combine multiple rules on the same column
 		 *
 		 * @return $this|\MY_PROJECT_DB_NS\MyTableQuery
-		 *
-		 * @throws \Exception
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function filterBy($column, $value, $operator = Rule::OP_EQ, $use_and = true)
 		{
@@ -214,7 +214,7 @@
 
 			if ($operator === Rule::OP_IN OR $operator === Rule::OP_NOT_IN) {
 				if (!is_array($value)) {
-					throw new \Exception("IN and NOT IN operators require an array value.");
+					throw new ORMException("IN and NOT IN operators require an array of values.",[$column,$value]);
 				}
 				$value = $this->qb->arrayToListItems($value);
 			} else {

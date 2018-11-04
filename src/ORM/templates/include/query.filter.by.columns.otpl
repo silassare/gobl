@@ -6,7 +6,8 @@
 		 * @param int    $operator the operator to use
 		 *
 		 * @return $this|\<%$.class.use_query%>
-		 * @throws \Exception
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function filterBy<%$column.methodSuffix%>($value, $operator = Rule::OP_EQ)
 		{
