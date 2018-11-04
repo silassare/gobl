@@ -235,13 +235,14 @@
 		 */
 		protected function getStringColumnDefinition(Column $column)
 		{
-			$column_name = $column->getFullName();
-			$type        = $column->getTypeObject();
-			$options     = $type->getCleanOptions();
-			$null        = $type->isNullAble();
-			$default     = $type->getDefault();
-			$min         = isset($options['min']) ? $options['min'] : 0;
-			$max         = isset($options['max']) ? $options['max'] : INF;
+			$column_name      = $column->getFullName();
+			$type             = $column->getTypeObject();
+			$options          = $type->getCleanOptions();
+			$null             = $type->isNullAble();
+			$default          = $type->getDefault();
+			$force_no_default = false;
+			$min              = isset($options['min']) ? $options['min'] : 0;
+			$max              = isset($options['max']) ? $options['max'] : INF;
 			// char(c) c in range(0,255);
 			// varchar(c) c in range(0,65535);
 			$c     = $max;
@@ -252,21 +253,27 @@
 			} elseif ($c <= 65535) {
 				$sql[] = "varchar($c)";
 			} else {
-				$sql[] = 'text';
+				$sql[]            = 'text';
+				$force_no_default = true;
 			}
 
 			if (!$null) {
 				$sql[] = 'NOT NULL';
 
-				if (!is_null($default)) {
-					$sql[] = sprintf('DEFAULT %s', self::quote($default));
+				if (!$force_no_default) {
+					if (!is_null($default)) {
+						$sql[] = sprintf('DEFAULT %s', self::quote($default));
+					}
 				}
 			} else {
 				$sql[] = 'NULL';
-				if (is_null($default)) {
-					$sql[] = 'DEFAULT NULL';
-				} else {
-					$sql[] = sprintf('DEFAULT %s', self::quote($default));
+
+				if (!$force_no_default) {
+					if (is_null($default)) {
+						$sql[] = 'DEFAULT NULL';
+					} else {
+						$sql[] = sprintf('DEFAULT %s', self::quote($default));
+					}
 				}
 			}
 
