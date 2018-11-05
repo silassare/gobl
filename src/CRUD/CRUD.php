@@ -167,13 +167,12 @@
 				throw new CRUDException($action->getError(), [], $this->debug);
 			}
 
+			$form          = $action->getForm();
+			$this->message = $action->getSuccess();
+
 			$this->checkFormColumnsForCreate($form);
 
-			$form = $action->getForm();
-
 			$this->crud_handler->autoFillCreateForm($form);
-
-			$this->message = $action->getSuccess();
 		}
 
 		/**
@@ -189,8 +188,7 @@
 				throw new CRUDException($action->getError(), [], $this->debug);
 			}
 
-			$filters = $action->getFilters();
-
+			$filters       = $action->getFilters();
 			$this->message = $action->getSuccess();
 		}
 
@@ -207,8 +205,7 @@
 				throw new CRUDException($action->getError(), [], $this->debug);
 			}
 
-			$filters = $action->getFilters();
-
+			$filters       = $action->getFilters();
 			$this->message = $action->getSuccess();
 		}
 
@@ -227,12 +224,11 @@
 				throw new CRUDException($action->getError(), [], $this->debug);
 			}
 
-			$this->checkFormColumnsForUpdate($form);
-
-			$filters = $action->getFilters();
-			$form    = $action->getForm();
-
+			$filters       = $action->getFilters();
+			$form          = $action->getForm();
 			$this->message = $action->getSuccess();
+
+			$this->checkFormColumnsForUpdate($form);
 		}
 
 		/**
@@ -250,12 +246,11 @@
 				throw new CRUDException($action->getError(), [], $this->debug);
 			}
 
-			$this->checkFormColumnsForUpdate($form);
-
-			$filters = $action->getFilters();
-			$form    = $action->getForm();
-
+			$filters       = $action->getFilters();
+			$form          = $action->getForm();
 			$this->message = $action->getSuccess();
+
+			$this->checkFormColumnsForUpdate($form);
 		}
 
 		/**
@@ -271,8 +266,7 @@
 				throw new CRUDException($action->getError(), [], $this->debug);
 			}
 
-			$filters = $action->getFilters();
-
+			$filters       = $action->getFilters();
 			$this->message = $action->getSuccess();
 		}
 
@@ -289,8 +283,7 @@
 				throw new CRUDException($action->getError(), [], $this->debug);
 			}
 
-			$filters = $action->getFilters();
-
+			$filters       = $action->getFilters();
 			$this->message = $action->getSuccess();
 		}
 
