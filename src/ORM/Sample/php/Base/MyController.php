@@ -4,12 +4,14 @@
 	namespace MY_PROJECT_DB_NS\Base;
 
 	use Gobl\CRUD\CRUD;
+	use Gobl\DBAL\QueryBuilder;
 	use Gobl\DBAL\Rule;
 	use Gobl\ORM\Exceptions\ORMControllerFormException;
 	use Gobl\ORM\Exceptions\ORMQueryException;
 	use Gobl\ORM\ORM;
 	use MY_PROJECT_DB_NS\MyEntity as MyEntityReal;
 	use MY_PROJECT_DB_NS\MyTableQuery as MyTableQueryReal;
+	use MY_PROJECT_DB_NS\MyResults as MyResultsReal;
 
 	/**
 	 * Class MyController
@@ -24,6 +26,11 @@
 		protected $form_fields_mask = [];
 
 		/**
+		 * @var \Gobl\DBAL\Db
+		 */
+		protected $db;
+
+		/**
 		 * @var \Gobl\CRUD\CRUD
 		 */
 		protected $crud;
@@ -36,9 +43,9 @@
 		 */
 		public function __construct()
 		{
-			$table   = ORM::getDatabase()
-						  ->getTable(MyEntity::TABLE_NAME);
-			$columns = $table->getColumns();
+			$this->db = ORM::getDatabase();
+			$table    = $this->db->getTable(MyEntity::TABLE_NAME);
+			$columns  = $table->getColumns();
 
 			// we finds all required fields
 			foreach ($columns as $column) {
@@ -352,7 +359,7 @@
 			self::applyFilters($tableQuery, $filters);
 
 			$affected = $tableQuery->update($new_values)
-								 ->execute();
+								   ->execute();
 
 			return $affected;
 		}
@@ -392,7 +399,7 @@
 				self::applyFilters($tableQuery, $filters);
 
 				$tableQuery->delete()
-						 ->execute();
+						   ->execute();
 
 				$this->crud->getHandler()->onAfterDeleteEntity($entity);
 
@@ -424,7 +431,7 @@
 			self::applyFilters($tableQuery, $filters);
 
 			$affected = $tableQuery->delete()
-								 ->execute();
+								   ->execute();
 
 			return $affected;
 		}
@@ -485,8 +492,54 @@
 
 			$items = $results->fetchAllClass();
 
+			$total = self::totalResultsCount($results, count($items), $max, $offset);
+
+			return $items;
+		}
+
+		/**
+		 * Gets all items from `my_table` with a custom query builder instance.
+		 *
+		 * @param \Gobl\DBAL\QueryBuilder $qb
+		 * @param null|int                $max    maximum row to retrieve
+		 * @param int                     $offset first row offset
+		 * @param int|bool                $total  total rows without limit
+		 *
+		 * @return \MY_PROJECT_DB_NS\MyEntity[]
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 */
+		public function getAllItemsCustom(QueryBuilder $qb, $max = null, $offset = 0, &$total = false)
+		{
+			$filters = [];
+
+			$this->crud->assertReadAll($filters);
+
+			$qb->limit($max, $offset);
+
+			$results = new MyResultsReal($this->db, $qb);
+
+			$items = $results->fetchAllClass(false);
+
+			$total = self::totalResultsCount($results, count($items), $max, $offset);
+
+			return $items;
+		}
+
+		/**
+		 * @param \MY_PROJECT_DB_NS\MyResults $results
+		 * @param int                         $found
+		 * @param null|int                    $max
+		 * @param int                         $offset
+		 *
+		 * @return int
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 */
+		private static function totalResultsCount(MyResultsReal $results, $found = 0, $max = null, $offset = 0)
+		{
+			$total = 0;
 			if ($total !== false) {
-				$found = count($items);
 				if (isset($max)) {
 					if ($found < $max) {
 						$total = $offset + $found;
@@ -500,7 +553,7 @@
 				}
 			}
 
-			return $items;
+			return $total;
 		}
 
 		/**
