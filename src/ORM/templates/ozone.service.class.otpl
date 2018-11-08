@@ -270,7 +270,7 @@
 			$entity     = $controller->addItem($form_values);
 
 			$this->getResponseHolder()
-				 ->setDone($controller->getCrud()->getMessage())
+				 ->setDone($controller->getCRUD()->getMessage())
 				 ->setData(['item' => $entity]);
 		}
 
@@ -308,7 +308,7 @@
 
 			if ($entity instanceof <%$.class.entity%>) {
 				$this->getResponseHolder()
-					 ->setDone($controller->getCrud()->getMessage())
+					 ->setDone($controller->getCRUD()->getMessage())
 					 ->setData(['item' => $entity]);
 			} else {
 				throw new NotFoundException();
@@ -340,7 +340,7 @@
 			$count      = $controller->updateAllItems($filters, $data);
 
 			$this->getResponseHolder()
-				 ->setDone($controller->getCrud()->getMessage())
+				 ->setDone($controller->getCRUD()->getMessage())
 				 ->setData(['affected' => $count]);
 		}
 
@@ -375,7 +375,7 @@
 
 			if ($entity instanceof <%$.class.entity%>) {
 				$this->getResponseHolder()
-					 ->setDone($controller->getCrud()->getMessage())
+					 ->setDone($controller->getCRUD()->getMessage())
 					 ->setData(['item' => $entity]);
 			} else {
 				throw new NotFoundException();
@@ -399,7 +399,7 @@
 			$count      = $controller->deleteAllItems($filters);
 
 			$this->getResponseHolder()
-				 ->setDone($controller->getCrud()->getMessage())
+				 ->setDone($controller->getCRUD()->getMessage())
 				 ->setData(['affected' => $count]);
 		}
 
@@ -441,7 +441,7 @@
 			$relations = $this->listEntityRelations($entity, $request);
 
 			$this->getResponseHolder()
-				 ->setDone($controller->getCrud()->getMessage())
+				 ->setDone($controller->getCRUD()->getMessage())
 				 ->setData([
 					 'item'      => $entity,
 					 'relations' => $relations
@@ -484,7 +484,7 @@
 			}
 
 			$this->getResponseHolder()
-				 ->setDone($controller->getCrud()->getMessage())
+				 ->setDone($controller->getCRUD()->getMessage())
 				 ->setData([
 					 'items'     => $results,
 					 'max'       => $max,

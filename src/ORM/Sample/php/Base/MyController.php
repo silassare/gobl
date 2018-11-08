@@ -20,9 +20,14 @@
 	 */
 	abstract class MyController
 	{
-		/** @var array */
+		/**
+		 * @var array
+		 */
 		protected $form_fields = [];
-		/** @var array */
+
+		/**
+		 * @var array
+		 */
 		protected $form_fields_mask = [];
 
 		/**
@@ -613,7 +618,7 @@
 		 * @return \Gobl\CRUD\CRUD
 		 * @throws \Exception
 		 */
-		public function getCrud()
+		public function getCRUD()
 		{
 			if (!$this->crud) {
 				throw new \Exception("Not using CRUD rules");
