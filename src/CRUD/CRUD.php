@@ -59,23 +59,27 @@
 		/**
 		 * CRUD constructor.
 		 *
-		 * @param \Gobl\DBAL\Table $table
+		 * @param \Gobl\DBAL\Table                             $table   the target table
+		 * @param \Gobl\CRUD\Handler\CRUDHandlerInterface|null $handler the default handler to use
 		 *
+		 * @throws \ReflectionException
 		 * @throws \Exception
 		 */
-		public function __construct(Table $table)
+		public function __construct(Table $table, CRUDHandlerInterface $handler = null)
 		{
 			$this->table = $table;
 			$name        = $table->getName();
 
-			if (isset(self::$crud_options[$name])) {
+			if (!is_null($handler)) {
+				$this->crud_handler = $handler;
+			} elseif (isset(self::$crud_options[$name])) {
 				$handler = self::$crud_options[$name];
 				$rc      = new \ReflectionClass($handler);
 
 				if ($rc->implementsInterface(CRUDHandlerInterface::class)) {
 					$this->crud_handler = $rc->newInstance();
 				} else {
-					throw new \Exception(sprintf('Table %s CRUD handler class should implement %s', $name, CRUDHandlerInterface::class));
+					throw new \Exception(sprintf('Table %s CRUD handler class should implement %s.', $name, CRUDHandlerInterface::class));
 				}
 
 			} else {
