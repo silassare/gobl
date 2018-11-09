@@ -626,16 +626,4 @@
 
 			return $this->crud;
 		}
-
-		// TODO
-		// public function addOneItemRelation(array $filters, $relation, array $relation_values){}
-
-		// TODO
-		// public function updateOneItemRelation(array $filters, $relation, array $new_values) {}
-
-		// TODO
-		// public function deleteOneItemRelation(array $filters, $relation, $delete_max = 1, $delete_offset = 0) {}
-
-		// TODO
-		// public function getOneItemWithRelations(array $filters, array $relations, $max = null, $offset = 0) {}
 	}

@@ -196,14 +196,8 @@
 					throw new MethodNotAllowedException();
 				}
 			} elseif ($extra = $this->getIdentifiedRelationExtra()) {
-				if (RequestHandler::isPost()) {
-					$this->actionAddRelation($request, $extra);
-				} elseif (RequestHandler::isDelete()) {
-					$this->actionDeleteRelation($request, $extra);
-				} elseif (RequestHandler::isGet()) {
+				if (RequestHandler::isGet()) {
 					$this->actionGetRelation($request, $extra);
-				} elseif (RequestHandler::isPatch()) {
-					$this->actionUpdateRelation($request, $extra);
 				} else {
 					throw new MethodNotAllowedException();
 				}
@@ -274,15 +268,6 @@
 				 ->setData(['item' => $entity]);
 		}
 
-		/**
-		 * @param array $request
-		 * @param array $extra
-		 */
-		public function actionAddRelation(array $request, array $extra)
-		{
-			// TODO
-		}
-
 		//========================================================
 		//=	PATCH REQUEST METHODS
 		//========================================================
@@ -344,15 +329,6 @@
 				 ->setData(['affected' => $count]);
 		}
 
-		/**
-		 * @param array $request
-		 * @param array $extra
-		 */
-		public function actionUpdateRelation(array $request, array $extra)
-		{
-			// TODO
-		}
-
 		//========================================================
 		//=	DELETE REQUEST METHODS
 		//========================================================
@@ -401,17 +377,6 @@
 			$this->getResponseHolder()
 				 ->setDone($controller->getCRUD()->getMessage())
 				 ->setData(['affected' => $count]);
-		}
-
-		/**
-		 * @param array $request
-		 * @param array $extra
-		 *
-		 * @thows \Gobl\DBAL\Exceptions\DBALException
-		 */
-		public function actionDeleteRelation(array $request, array $extra)
-		{
-			// TODO
 		}
 
 		//========================================================
