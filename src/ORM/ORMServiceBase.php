@@ -43,10 +43,19 @@
 		 * @param array $request
 		 *
 		 * @return array
+		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 		 */
-		protected static function getRequestFilters(array $columns_map, array $request)
+		public static function getRequestFilters(array $columns_map, array $request)
 		{
-			$filters = (isset($request['filters']) AND is_array($request['filters'])) ? $request['filters'] : [];
+			if (!isset($request['filters'])) {
+				return [];
+			}
+
+			$filters = $request['filters'];
+
+			if (!is_array($filters)) {
+				throw new ORMQueryException("GOBL_ORM_QUERY_INVALID_FILTERS");
+			}
 
 			return self::onlyColumns($columns_map, $filters);
 		}
@@ -59,19 +68,27 @@
 		 * @return array
 		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 		 */
-		protected static function getRequestRelations(array $request)
+		public static function getRequestRelations(array $request)
 		{
-			if (!isset($request['relations']) OR !is_string($request['relations']) OR !strlen($request['relations'])) {
+			if (!isset($request['relations'])) {
 				return [];
 			}
 
 			$relations = $request['relations'];
 
+			if (!is_string($relations)) {
+				throw new ORMQueryException("GOBL_ORM_QUERY_INVALID_RELATIONS");
+			}
+
+			if (!strlen($relations)) {
+				return [];
+			}
+
 			$relations = array_unique(explode('|', $relations));
 
 			foreach ($relations as $relation) {
 				if (empty($relation)) {
-					throw new ORMQueryException("QUERY_INVALID_RELATIONS");
+					throw new ORMQueryException("GOBL_ORM_QUERY_INVALID_RELATIONS");
 				}
 			}
 
@@ -83,12 +100,17 @@
 		 *
 		 * @param array $request
 		 *
-		 * @return string
+		 * @return string|null
+		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 		 */
-		protected static function getRequestCollection(array $request)
+		public static function getRequestCollection(array $request)
 		{
-			if (!isset($request['collection']) OR !is_string($request['collection']) OR !strlen($request['collection'])) {
+			if (!isset($request['collection'])) {
 				return null;
+			}
+
+			if (!is_string($request['collection']) OR !strlen($request['collection'])) {
+				throw new ORMQueryException("GOBL_ORM_QUERY_INVALID_COLLECTION");
 			}
 
 			return $request['collection'];
@@ -103,10 +125,14 @@
 		 * @return array
 		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 		 */
-		protected static function getRequestOrderBy(array $columns_map, array $request)
+		public static function getRequestOrderBy(array $columns_map, array $request)
 		{
-			if (!isset($request['order_by']) OR !is_string($request['order_by']) OR !strlen($request['order_by'])) {
+			if (!isset($request['order_by'])) {
 				return [];
+			}
+
+			if (!is_string($request['order_by']) OR !strlen($request['order_by'])) {
+				throw new ORMQueryException("GOBL_ORM_QUERY_INVALID_ORDER_BY");
 			}
 
 			$rules    = $request['order_by'];
@@ -120,16 +146,16 @@
 					if ($len > 1 AND $parts[$len - 1] === 'desc') {
 						array_pop($parts);
 						$rule            = implode("_", $parts);
-						$order_by[$rule] = 0;
+						$order_by[$rule] = false;
 					} elseif ($len > 1 AND $parts[$len - 1] === 'asc') {
 						array_pop($parts);
 						$rule            = implode("_", $parts);
-						$order_by[$rule] = 1;
+						$order_by[$rule] = true;
 					} else {
-						$order_by[$rule] = 1;
+						$order_by[$rule] = true;
 					}
 				} else {
-					throw new ORMQueryException("QUERY_INVALID_ORDER_BY");
+					throw new ORMQueryException("GOBL_ORM_QUERY_INVALID_ORDER_BY");
 				}
 			}
 
@@ -149,27 +175,31 @@
 		 * @return array
 		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 		 */
-		static function getPagination(array $request, $max = 10)
+		public static function getPagination(array $request, $max = 10)
 		{
 			$offset = 0;
 			$page   = 1;
 			$_max   = null;
 
 			if (isset($request['max'])) {
-				$_max = intval($request['max']);
-				if (!is_int($_max) OR $_max <= 0) {
-					throw new ORMQueryException("QUERY_INVALID_PAGINATION_MAX");
+				$_max = $request['max'];
+
+				if (!is_numeric($_max) OR ($_max = intval($_max)) <= 0) {
+					throw new ORMQueryException("GOBL_ORM_QUERY_INVALID_PAGINATION_MAX");
 				}
 			}
 
 			if (isset($request['page'])) {
-				$page = intval($request['page']);
-				if (!is_int($page) OR $page <= 0) {
-					throw new ORMQueryException("QUERY_INVALID_PAGINATION_PAGE");
+				$page = $request['page'];
+
+				if (!is_numeric($page) OR ($page = intval($page)) <= 0) {
+					throw new ORMQueryException("GOBL_ORM_QUERY_INVALID_PAGINATION_PAGE");
 				}
+
 				if (!$_max) {
 					$_max = $max;
 				}
+
 				$offset = ($page - 1) * $_max;
 			}
 
