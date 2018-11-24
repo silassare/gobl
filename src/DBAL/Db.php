@@ -459,15 +459,13 @@
 					}
 
 					$columns = $constraint['columns'];
+					$type    = $constraint['type'];
 
-					$type = $constraint['type'];
 					switch ($type) {
 						case 'unique':
-
 							$tbl->addUniqueConstraint($columns);
 							break;
 						case 'primary_key':
-
 							$tbl->addPrimaryKeyConstraint($columns);
 							break;
 						case 'foreign_key':
@@ -679,7 +677,7 @@
 		}
 
 		/**
-		 * @param array $list         values to bind
+		 * @param array  $list        values to bind
 		 * @param array &$bind_values where to store bind value
 		 *
 		 * @return string
