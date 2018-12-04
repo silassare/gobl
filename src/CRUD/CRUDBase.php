@@ -109,6 +109,23 @@
 		}
 
 		/**
+		 * @param $column
+		 *
+		 * @return mixed
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 */
+		public function getField($column)
+		{
+			$this->table->assertHasColumn($column);
+
+			if (isset($this->form[$column])) {
+				return $this->form[$column];
+			}
+
+			return null;
+		}
+
+		/**
 		 * @param string $error
 		 *
 		 * @return \Gobl\CRUD\CRUDBase
