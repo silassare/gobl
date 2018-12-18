@@ -51,6 +51,13 @@
 		private $db_connection;
 
 		/**
+		 * Transaction state flag
+		 *
+		 * @var bool
+		 */
+		private $trans_on = false;
+
+		/**
 		 * Used to generate bind param id.
 		 *
 		 * @var int
@@ -106,70 +113,131 @@
 		}
 
 		/**
-		 * Executes a given sql query and params.
+		 * Executes raw sql string.
 		 *
-		 * @param string     $sql          Your sql query
-		 * @param array|null $params       Your sql params
-		 * @param array      $params_types Your sql params type
+		 * @param string     $sql              the sql query string
+		 * @param array|null $params           Your sql params
+		 * @param array|null $params_types     Your sql params type
+		 * @param bool       $trans_on         run the query in a transaction
+		 * @param bool       $trans_auto       auto commit or rollback
+		 * @param bool       $is_multi_queries the sql string contains multiple query
 		 *
 		 * @return \PDOStatement
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
-		public function execute($sql, array $params = null, array $params_types = [])
+		public function execute($sql, array $params = null, array $params_types = null, $is_multi_queries = false, $trans_on = false, $trans_auto = false)
 		{
-			$stmt = $this->getConnection()
-						 ->prepare($sql);
-
-			if ($params !== null) {
-				foreach ($params as $key => $value) {
-					if (isset($params_types[$key])) {
-						$param_type = $params_types[$key];
-					} else {
-						$param_type = QueryTokenParser::paramType($value);
-					}
-
-					$stmt->bindValue(is_int($key) ? $key + 1 : $key, $value, $param_type);
-				}
+			if (empty($sql)) {
+				throw new DBALException('Your query is empty.');
 			}
 
-			$stmt->execute();
+			if ($trans_on) {
+				$this->beginTransaction();
+			}
 
-			return $stmt;
+			$connection = $this->getConnection();
+
+			try {
+				$stmt = $connection->prepare($sql);
+				$stmt->execute();
+
+				if ($params !== null) {
+					foreach ($params as $key => $value) {
+						if (isset($params_types[$key])) {
+							$param_type = $params_types[$key];
+						} else {
+							$param_type = QueryTokenParser::paramType($value);
+						}
+
+						$stmt->bindValue(is_int($key) ? $key + 1 : $key, $value, $param_type);
+					}
+				}
+
+				if ($is_multi_queries) {
+					/* https://bugs.php.net/bug.php?id=61613 */
+					$i = 0;
+					while ($stmt->nextRowset()) {
+						$i++;
+					}
+				}
+
+				if ($this->trans_on AND $trans_auto) {
+					$this->commit();
+				}
+
+				return $stmt;
+
+			} catch (\PDOException $e) {
+				if ($this->trans_on AND $trans_auto) {
+					$this->rollBack();
+				}
+
+				throw $e;
+			}
 		}
 
 		/**
 		 * Executes sql string with multiples query.
+		 * Suitable for sql file content.
 		 *
-		 * @param string $query the sql query string
+		 * @param string $sql the sql query string
 		 *
-		 * @return bool
+		 * @return \PDOStatement
 		 * @throws \Exception
 		 */
-		public function multipleQueryExecute($query)
+		public function executeMulti($sql)
 		{
-			if (empty($query)) {
-				throw new \Exception('Your query is empty.');
-			}
+			return $this->execute($sql, null, null, true, true, true);
+		}
 
-			$connection = $this->getConnection();
-			$connection->beginTransaction();
-			// the SQLSTATE error code:
-			// '00000' => success
-			// '01000' => success with warning
+		/**
+		 * Begin transaction.
+		 *
+		 * @return bool
+		 */
+		public function beginTransaction()
+		{
+			$con = $this->getConnection();
 
-			try {
-				$statement = $connection->prepare($query);
-				$statement->execute();
-				$i = 0;
-				while ($statement->nextRowset()) {
-					$i++;
-					/* https://bugs.php.net/bug.php?id=61613 */
+			if (!$this->trans_on) {
+				$this->trans_on = true;
+
+				if ($con->inTransaction()) {
+					return true;
 				}
-				$connection->commit();
-			} catch (\PDOException $e) {
-				$connection->rollBack();
-				throw $e;
+
+				return $con->beginTransaction();
 			}
 
+			return true;
+		}
+
+		/**
+		 * Commit current transaction.
+		 *
+		 * @return bool
+		 */
+
+		public function commit()
+		{
+			if ($this->trans_on) {
+				$this->trans_on = false;
+				return $this->getConnection()->commit();
+			}
+			return true;
+		}
+
+		/**
+		 * Rollback current transaction.
+		 *
+		 * @return bool
+		 */
+		public function rollBack()
+		{
+			if ($this->trans_on) {
+				$this->trans_on = false;
+				return $this->getConnection()->rollBack();
+			}
 			return true;
 		}
 
@@ -181,6 +249,7 @@
 		 * @param array      $params_types Your sql params types
 		 *
 		 * @return int Affected row count.
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		private function query($sql, array $params = null, array $params_types = [])
 		{
@@ -197,6 +266,7 @@
 		 * @param array      $params_types Your sql params types
 		 *
 		 * @return \PDOStatement
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function select($sql, array $params = null, array $params_types = [])
 		{
@@ -211,6 +281,7 @@
 		 * @param array      $params_types Your sql params types
 		 *
 		 * @return int    Affected row count
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function delete($sql, array $params = null, array $params_types = [])
 		{
@@ -225,6 +296,7 @@
 		 * @param array      $params_types Your sql params types
 		 *
 		 * @return string The last insert id
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function insert($sql, array $params = null, array $params_types = [])
 		{
@@ -245,6 +317,7 @@
 		 * @param array      $params_types Your sql params types
 		 *
 		 * @return int    Affected row count
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
 		public function update($sql, array $params = null, array $params_types = [])
 		{
