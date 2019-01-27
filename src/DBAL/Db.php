@@ -139,7 +139,6 @@
 
 			try {
 				$stmt = $connection->prepare($sql);
-				$stmt->execute();
 
 				if ($params !== null) {
 					foreach ($params as $key => $value) {
@@ -152,6 +151,8 @@
 						$stmt->bindValue(is_int($key) ? $key + 1 : $key, $value, $param_type);
 					}
 				}
+
+				$stmt->execute();
 
 				if ($is_multi_queries) {
 					/* https://bugs.php.net/bug.php?id=61613 */
