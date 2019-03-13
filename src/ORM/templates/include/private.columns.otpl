@@ -1,3 +1,0 @@
-<%loop($.columns : $column){%>
-<%if($column.private){%>
-			<%$.class.entity%>::<%$column.const%> => 1,<%}%><%}%>

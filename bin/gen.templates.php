@@ -19,7 +19,6 @@
 		'//__GOBL_RELATIONS_PROPERTIES__'       => '<%@import(\'include/entity.relations.properties.otpl\',$)%>',
 		'//__GOBL_RELATIONS_GETTERS__'          => '<%@import(\'include/entity.relations.getters.otpl\',$)%>',
 		'//__GOBL_COLUMNS_GETTERS_SETTERS__'    => '<%@import(\'include/entity.getters.setters.otpl\',$)%>',
-		'//__GOBL_PRIVATE_COLUMNS__'            => '<%@import(\'include/private.columns.otpl\',$)%>',
 		'//__GOBL_QUERY_FILTER_BY_COLUMNS__'    => '<%@import(\'include/query.filter.by.columns.otpl\',$)%>',
 		'//__GOBL_TS_COLUMNS_CONST__'           => '<%@import(\'include/ts.columns.const.otpl\',$)%>',
 		'//__GOBL_TS_COLUMNS_GETTERS_SETTERS__' => '<%@import(\'include/ts.getters.setters.otpl\',$)%>',
