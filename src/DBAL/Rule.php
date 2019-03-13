@@ -32,6 +32,21 @@
 		const OP_IN          = 11;
 		const OP_NOT_IN      = 12;
 
+		static $OPERATORS_OPTIONS = [
+			Rule::OP_EQ          => ['operator' => '=', 'two_operands' => true],
+			Rule::OP_NEQ         => ['operator' => '<>', 'two_operands' => true],
+			Rule::OP_LT          => ['operator' => '<', 'two_operands' => true],
+			Rule::OP_LTE         => ['operator' => '<=', 'two_operands' => true],
+			Rule::OP_GT          => ['operator' => '>', 'two_operands' => true],
+			Rule::OP_GTE         => ['operator' => '>=', 'two_operands' => true],
+			Rule::OP_LIKE        => ['operator' => 'LIKE', 'two_operands' => true],
+			Rule::OP_NOT_LIKE    => ['operator' => 'NOT LIKE', 'two_operands' => true],
+			Rule::OP_IN          => ['operator' => 'IN', 'two_operands' => true],
+			Rule::OP_NOT_IN      => ['operator' => 'NOT IN', 'two_operands' => true],
+			Rule::OP_IS_NULL     => ['operator' => 'IS NULL', 'two_operands' => false],
+			Rule::OP_IS_NOT_NULL => ['operator' => 'IS NOT NULL', 'two_operands' => false]
+		];
+
 		/** @var string */
 		private $expr = '';
 
@@ -220,27 +235,14 @@
 		 */
 		public function conditions(array $items, $operator, $use_and = true)
 		{
-			$map = [
-				Rule::OP_EQ          => ['=', true],
-				Rule::OP_NEQ         => ['<>', true],
-				Rule::OP_LT          => ['<', true],
-				Rule::OP_LTE         => ['<=', true],
-				Rule::OP_GT          => ['>', true],
-				Rule::OP_GTE         => ['>=', true],
-				Rule::OP_LIKE        => ['LIKE', true],
-				Rule::OP_NOT_LIKE    => ['NOT LIKE', true],
-				Rule::OP_IN          => ['IN', true],
-				Rule::OP_NOT_IN      => ['NOT IN', true],
-				Rule::OP_IS_NULL     => ['IS NULL', false],
-				Rule::OP_IS_NOT_NULL => ['IS NOT NULL', false]
-			];
+			$options = self::$OPERATORS_OPTIONS;
 
-			if (!isset($map[$operator])) {
+			if (!isset($options[$operator])) {
 				throw new DBALException('unknown operator used in query rule.');
 			}
 
-			$op           = $map[$operator][0];
-			$two_operands = $map[$operator][1];
+			$op           = $options[$operator]['operator'];
+			$two_operands = $options[$operator]['two_operands'];
 			$counter      = 0;
 
 			if ($two_operands === true) {
