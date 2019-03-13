@@ -55,15 +55,6 @@
 		 */
 		protected $strict = true;
 
-		/**
-		 * Private columns
-		 *
-		 * @var array
-		 */
-		protected static $private_columns = [
-			//__GOBL_PRIVATE_COLUMNS__
-		];
-
 		//__GOBL_RELATIONS_PROPERTIES__
 
 		/**
@@ -281,8 +272,10 @@
 			$row = $this->row;
 
 			if ($hide_private_column) {
-				foreach (self::$private_columns as $key => $value) {
-					unset($row[$key]);
+				$privates_columns = $this->table->getPrivatesColumns();
+
+				foreach ($privates_columns as $column) {
+					unset($row[$column->getFullName()]);
 				}
 			}
 

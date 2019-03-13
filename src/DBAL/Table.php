@@ -561,6 +561,24 @@
 		}
 
 		/**
+		 * Gets privates columns.
+		 *
+		 * @return \Gobl\DBAL\Column[]
+		 */
+		public function getPrivatesColumns()
+		{
+			$list = [];
+
+			foreach ($this->columns as $name => $column) {
+				if ($column->isPrivate()) {
+					$list[$name] = $column;
+				}
+			}
+
+			return $list;
+		}
+
+		/**
 		 * Checks if a given column is defined.
 		 *
 		 * @param string $name the column name or full name
@@ -956,6 +974,7 @@
 		public function defineVR($name, callable $callable, $handle_list = false)
 		{
 			$vr = new CallableVR($name, $callable, $handle_list);
+
 			return $this->addVirtualRelation($vr);
 		}
 
@@ -969,6 +988,7 @@
 		public function defineCollection($name, callable $callable)
 		{
 			$c = new Collection($name, $callable);
+
 			return $this->addCollection($c);
 		}
 	}
