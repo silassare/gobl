@@ -214,7 +214,7 @@
 
 			if ($operator === Rule::OP_IN OR $operator === Rule::OP_NOT_IN) {
 				if (!is_array($value)) {
-					throw new ORMException("IN and NOT IN operators require an array of values.",[$column,$value]);
+					throw new ORMException("IN and NOT IN operators require an array of values.", [$column, $value]);
 				}
 				$value = $this->qb->arrayToListItems($value);
 			} else {
@@ -224,7 +224,12 @@
 			}
 
 			$a = $this->table_alias . '.' . $full_name;
-			$rule->conditions([$a => $value], $operator, false);
+
+			if ($operator === Rule::OP_IS_NULL OR $operator === Rule::OP_IS_NOT_NULL) {
+				$rule->conditions([$a], $operator, false);
+			} else {
+				$rule->conditions([$a => $value], $operator, false);
+			}
 
 			return $this;
 		}
