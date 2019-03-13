@@ -703,6 +703,8 @@
 		public function limit($max = null, $offset = 0)
 		{
 			if (!is_null($max)) {
+				$offset = is_null($offset) ? 0 : $offset;
+
 				if (!is_int($max) OR $max <= 0) {
 					throw new DBALException(sprintf('invalid limit max "%s".', $max));
 				}
