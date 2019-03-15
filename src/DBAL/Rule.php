@@ -496,4 +496,14 @@
 		{
 			return $this->expr;
 		}
+
+		/**
+		 * Help var_dump().
+		 *
+		 * @return array
+		 */
+		public function __debugInfo()
+		{
+			return ['instance_of' => static::class];
+		}
 	}

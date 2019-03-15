@@ -183,7 +183,7 @@
 		public static function addCustomType($type_name, $type_class)
 		{
 			if (isset(self::$columns_types[$type_name])) {
-				throw new DBALException(sprintf('You cannot overwrite column type "%s".', $type_name, $type_class));
+				throw new DBALException(sprintf('You cannot overwrite column type "%s" with "%s".', $type_name, $type_class));
 			}
 
 			if (!(is_subclass_of($type_class, TypeString::class)
@@ -219,5 +219,15 @@
 		public function getOptions()
 		{
 			return $this->options;
+		}
+
+		/**
+		 * Help var_dump().
+		 *
+		 * @return array
+		 */
+		public function __debugInfo()
+		{
+			return ['instance_of' => static::class, 'column_name' => $this->getName()];
 		}
 	}

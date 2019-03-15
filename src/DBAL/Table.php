@@ -991,4 +991,14 @@
 
 			return $this->addCollection($c);
 		}
+
+		/**
+		 * Help var_dump().
+		 *
+		 * @return array
+		 */
+		public function __debugInfo()
+		{
+			return ['instance_of' => static::class, 'table_name' => $this->getName()];
+		}
 	}
