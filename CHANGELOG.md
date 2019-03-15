@@ -1,3 +1,7 @@
+### v1.0.4 (2019-15-03)
+
+    - ORM optimized to reduce generated code size
+
 ### v1.0.3 (2018-18-12)
 
     - Transaction implemented
