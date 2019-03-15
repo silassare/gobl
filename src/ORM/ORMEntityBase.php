@@ -208,7 +208,7 @@
 		 * @param string $name  the column name or full name.
 		 * @param mixed  $value the column new value.
 		 *
-		 * @return $this
+		 * @return mixed
 		 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
 		 */
 		protected function _setValue($name, $value)
