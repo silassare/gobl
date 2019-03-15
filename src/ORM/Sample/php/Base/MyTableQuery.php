@@ -3,6 +3,7 @@
 
 	namespace MY_PROJECT_DB_NS\Base;
 
+	use Gobl\DBAL\Rule;
 	use Gobl\ORM\ORMTableQueryBase;
 
 	/**
