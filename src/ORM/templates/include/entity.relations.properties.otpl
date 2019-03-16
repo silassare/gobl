@@ -3,6 +3,6 @@
 		/**
 		 * @var \<%$relation.target.class.use_entity%>
 		 */
-		protected $r_<%$relation.name%>;
+		protected $_r_<%$relation.name%>;
 <%}%>
 <%}%>

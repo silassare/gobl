@@ -10,15 +10,15 @@
          */
         public function get<%$relation.methodSuffix%>()
         {
-            if (!isset($this->r_<%$relation.name%>)) {
+            if (!isset($this->_r_<%$relation.name%>)) {
                 <%loop ($relation.filters : $filter){%>
                 $filters['<%$filter.from.fullName%>'] = $this->get<%$filter.to.methodSuffix%>();<%}%>
 
                 $m = new <%$relation.target.class.controller%>RealR();
-                $this->r_<%$relation.name%> = $m->getItem($filters);
+                $this->_r_<%$relation.name%> = $m->getItem($filters);
             }
 
-            return $this->r_<%$relation.name%>;
+            return $this->_r_<%$relation.name%>;
         }
 <%} else if($relation.type === 'one-to-many'){%>
         /**
@@ -79,14 +79,14 @@
          */
         public function get<%$relation.methodSuffix%>()
         {
-            if (!isset($this->r_<%$relation.name%>)) {
+            if (!isset($this->_r_<%$relation.name%>)) {
                 <%loop ($relation.filters : $filter){%>
                 $filters['<%$filter.from.fullName%>'] = $this->get<%$filter.to.methodSuffix%>();<%}%>
 
                 $m = new <%$relation.target.class.controller%>RealR();
-                $this->r_<%$relation.name%> = $m->getItem($filters);
+                $this->_r_<%$relation.name%> = $m->getItem($filters);
             }
 
-            return $this->r_<%$relation.name%>;
+            return $this->_r_<%$relation.name%>;
         }
 <%}%><%}%>

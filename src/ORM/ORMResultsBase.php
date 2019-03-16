@@ -14,9 +14,8 @@
 	use Gobl\DBAL\QueryBuilder;
 	use Gobl\ORM\Exceptions\ORMException;
 
-	abstract class ORMResultsBase implements \Countable, \Iterator
+	class ORMResultsBase implements \Countable, \Iterator
 	{
-
 		/** @var \Gobl\DBAL\Db */
 		protected $db;
 
@@ -47,25 +46,31 @@
 		/** @var mixed */
 		protected $current = null;
 
+		/** @var string */
+		protected $entity_class;
+
 		/**
 		 * ORMResultsBase constructor.
 		 *
-		 * @param \Gobl\DBAL\Db           $db
-		 * @param \Gobl\DBAL\QueryBuilder $query
+		 * @param \Gobl\DBAL\Db           $db           The db instance.
+		 * @param \Gobl\DBAL\QueryBuilder $query        The query builder instance.
+		 * @param string                  $entity_class The entity fully qualified name.
 		 *
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
-		public function __construct(Db $db, QueryBuilder $query)
+		public function __construct(Db $db, QueryBuilder $query, $entity_class)
 		{
 			if ($query->getType() !== QueryBuilder::QUERY_TYPE_SELECT) {
 				throw new ORMException('The query should be a selection.');
 			}
 
-			$this->db    = $db;
-			$this->query = $query;
-			$driver      = $db->getConnection()
-							  ->getAttribute(\PDO::ATTR_DRIVER_NAME);
-			// TODO search and verify source
+			$this->db           = $db;
+			$this->entity_class = $entity_class;
+			$this->query        = $query;
+			$driver             = $db->getConnection()
+									 ->getAttribute(\PDO::ATTR_DRIVER_NAME);
+
+			// According to the response at: https://stackoverflow.com/a/4911430
 			//  - sqlite 3.x does not support rowCount
 			//  - so we should not trust rowCount
 			$this->trust_row_count = ($driver === 'sqlite' ? false : true);
@@ -129,6 +134,52 @@
 		{
 			return $this->getStatement()
 						->fetchAll($fetch_style);
+		}
+
+		/**
+		 * Fetch the next row into table of the entity class instance.
+		 *
+		 * @param bool $strict enable/disable strict mode on class fetch
+		 *
+		 * @return mixed
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 */
+		public function fetchClass($strict = true)
+		{
+			$entity_class = $this->entity_class;
+			$entity       = new $entity_class(false, $strict);
+			$stmt         = $this->getStatement();
+
+			$stmt->setFetchMode(\PDO::FETCH_INTO, $entity);
+			$entity = $stmt->fetch();
+
+			if ($entity instanceof $entity_class) {
+				$entity->isSaved(true);// the entity is fetched from the database
+			}
+
+			return $entity;
+		}
+
+		/**
+		 * Fetch all rows and return array of the entity class instance.
+		 *
+		 * @param bool $strict enable/disable strict mode on class fetch
+		 *
+		 * @return mixed
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 */
+		public function fetchAllClass($strict = true)
+		{
+			// according to https://phpdelusions.net/pdo/fetch_modes#FETCH_CLASS
+			// in PDO::FETCH_CLASS mode, PDO assign class properties before calling a constructor.
+			// To amend this behavior, use the following flag \PDO::FETCH_PROPS_LATE like this:
+			// $fetch_style = \PDO::FETCH_CLASS | \PDO::FETCH_PROPS_LATE
+			// but the default behavior is what we want, to let the entity class
+			// know that data are directly fetched from database.
+			$fetch_style = \PDO::FETCH_CLASS;
+
+			return $this->getStatement()
+						->fetchAll($fetch_style, $this->entity_class, [false, $strict]);
 		}
 
 		/**
@@ -240,24 +291,6 @@
 		{
 			return $this->current;
 		}
-
-		/**
-		 * Fetch the next row into table of the entity class instance.
-		 *
-		 * @param bool $strict enable/disable strict mode on class fetch
-		 *
-		 * @return mixed
-		 */
-		abstract public function fetchClass($strict = true);
-
-		/**
-		 * Fetch all rows and return array of the entity class instance.
-		 *
-		 * @param bool $strict enable/disable strict mode on class fetch
-		 *
-		 * @return mixed
-		 */
-		abstract public function fetchAllClass($strict = true);
 
 		/**
 		 * Help var_dump().

@@ -16,9 +16,6 @@
 
 	class ORMTableQueryBase
 	{
-		/** @var \Gobl\DBAL\Table */
-		protected $table;
-
 		/** @var string */
 		protected $table_alias;
 
@@ -37,23 +34,32 @@
 		/** @var array */
 		protected $params = [];
 
+		/** @var \Gobl\DBAL\Table */
+		protected $table;
+
 		/**@var string */
 		protected $table_name;
+
+		/**@var string */
+		protected $table_results_class;
 
 		/**
 		 * ORMTableQueryBase constructor.
 		 *
-		 * @param string $table_name The table name.
+		 * @param string $table_name          The table name.
+		 *
+		 * @param string $table_results_class Fully qualified class name of the table's results iterator.
 		 *
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
-		public function __construct($table_name)
+		public function __construct($table_name, $table_results_class)
 		{
-			$this->table_name  = $table_name;
-			$this->db          = ORM::getDatabase();
-			$this->table       = $this->db->getTable($table_name);
-			$this->table_alias = $this->genUniqueAlias();
-			$this->qb          = new QueryBuilder($this->db);
+			$this->table_name          = $table_name;
+			$this->table_results_class = $table_results_class;
+			$this->db                  = ORM::getDatabase();
+			$this->table               = $this->db->getTable($table_name);
+			$this->table_alias         = $this->genUniqueAlias();
+			$this->qb                  = new QueryBuilder($this->db);
 		}
 
 		/**
@@ -61,7 +67,7 @@
 		 */
 		public function __destruct()
 		{
-			$this->db   = null;
+			$this->db = null;
 		}
 
 		/**
@@ -168,16 +174,16 @@
 		}
 
 		/**
-		 * Prepare find query.
+		 * Finds rows in the table `my_table` and returns a new instance of the table's result iterator.
 		 *
 		 * @param null|int $max      maximum row to retrieve
 		 * @param int      $offset   first row offset
 		 * @param array    $order_by order by rules
 		 *
-		 * @return $this
+		 * @return \Gobl\ORM\ORMResultsBase
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
-		protected function prepareFind($max = null, $offset = 0, array $order_by = [])
+		protected function find($max = null, $offset = 0, array $order_by = [])
 		{
 			$this->qb->select()
 					 ->from($this->table->getFullName(), $this->table_alias);
@@ -195,7 +201,9 @@
 			$this->qb->limit($max, $offset)
 					 ->bindArray($this->params);
 
-			return $this;
+			$class_name = $this->table_results_class;
+
+			return new $class_name($this->db, $this->resetQuery());
 		}
 
 		/**

@@ -9,6 +9,9 @@
 	/**
 	 * Class <%$.class.query%>
 	 *
+	 * @method \<%$.namespace%>\<%$.class.results%>  find(int $max = null, int $offset = 0, array $order_by = []) Finds rows in
+	 *         the table `<%$.table.name%>` and returns a new instance of the table's result iterator.
+	 *
 	 * @package <%$.namespace%>\Base
 	 */
 	abstract class <%$.class.query%> extends ORMTableQueryBase
@@ -20,26 +23,7 @@
 		 */
 		public function __construct()
 		{
-			parent::__construct(<%$.class.entity%>::TABLE_NAME);
+			parent::__construct(<%$.class.entity%>::TABLE_NAME, \<%$.namespace%>\<%$.class.results%>::class);
 		}
-
-		/**
-		 * Finds rows in the table `<%$.table.name%>`.
-		 *
-		 * @param null|int $max      maximum row to retrieve
-		 * @param int      $offset   first row offset
-		 * @param array    $order_by order by rules
-		 *
-		 * @return \<%$.namespace%>\<%$.class.results%>
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 */
-		public function find($max = null, $offset = 0, array $order_by = [])
-		{
-			$this->prepareFind($max, $offset, $order_by);
-
-			return new \<%$.namespace%>\<%$.class.results%>($this->db, $this->resetQuery());
-		}
-
 		<%@import('include/query.filter.by.columns.otpl',$)%>
 	}

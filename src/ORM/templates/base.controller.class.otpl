@@ -7,8 +7,8 @@
 	use Gobl\ORM\Exceptions\ORMQueryException;
 	use Gobl\ORM\ORMControllerBase;
 	use <%$.namespace%>\<%$.class.entity%> as <%$.class.entity%>Real;
-	use <%$.namespace%>\<%$.class.query%> as <%$.class.query%>Real;
 	use <%$.namespace%>\<%$.class.results%> as <%$.class.results%>Real;
+	use <%$.namespace%>\<%$.class.query%> as <%$.class.query%>Real;
 
 	/**
 	 * Class <%$.class.controller%>
@@ -35,7 +35,6 @@
 		 * @return \<%$.namespace%>\<%$.class.entity%>
 		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
 		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
@@ -69,7 +68,6 @@
 		 *
 		 * @return bool|\<%$.namespace%>\<%$.class.entity%>
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
 		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 * @throws \Gobl\CRUD\Exceptions\CRUDException

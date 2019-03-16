@@ -6,7 +6,8 @@
 		 */
 		public function get<%$column.methodSuffix%>()
 		{
-		    $v = $this->_getValue(self::<%$column.const%>);
+			$column = self::<%$column.const%>;
+		    $v = $this->$column;
 
 		    if( $v !== null){
 		        $v = (<%$column.returnType%>)$v;
@@ -25,6 +26,9 @@
 		 */
 		public function set<%$column.methodSuffix%>($<%$column.argName%>)
 		{
-			return $this->_setValue(self::<%$column.const%>, $<%$column.argName%>);
+			$column = self::<%$column.const%>;
+			$this->$column = $<%$column.argName%>;
+
+			return $this;
 		}
 <%}%>

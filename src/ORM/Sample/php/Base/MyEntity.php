@@ -31,7 +31,7 @@
 		 */
 		public function __construct($is_new = true, $strict = true)
 		{
-			parent::__construct(MyEntity::TABLE_NAME, $is_new, $strict);
+			parent::__construct($is_new, $strict, MyEntity::TABLE_NAME);
 		}
 
 		/**
