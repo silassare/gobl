@@ -30,7 +30,7 @@
 	 *
 	 * @package Gobl\ORM
 	 */
-	abstract class ORMEntityBase extends ArrayCapable
+	class ORMEntityBase extends ArrayCapable
 	{
 		/** @var array */
 		private $_row = [];
@@ -64,26 +64,31 @@
 		/** @var string */
 		protected $_table_name;
 
+		/** @var string */
+		protected $_table_query_class;
+
 		/**
 		 * ORMEntityBase constructor.
 		 *
-		 * @param bool   $is_new     True for new entity false for entity fetched
-		 *                           from the database, default is true.
-		 * @param bool   $strict     Enable/disable strict mode
-		 * @param string $table_name The table name.
+		 * @param bool   $is_new            True for new entity false for entity fetched
+		 *                                  from the database, default is true.
+		 * @param bool   $strict            Enable/disable strict mode
+		 * @param string $table_name        The table name.
+		 * @param string $table_query_class The table query's fully qualified class name.
 		 *
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
-		protected function __construct($is_new, $strict, $table_name)
+		protected function __construct($is_new, $strict, $table_name, $table_query_class)
 		{
-			$this->_table_name = $table_name;
-			$this->_table      = ORM::getDatabase()
-									->getTable($table_name);
-			$columns           = $this->_table->getColumns();
-			$this->_is_new     = (bool)$is_new;
-			$this->_is_saved   = !$this->_is_new;
-			$this->_strict     = (bool)$strict;
-			$fetched           = empty($this->_row) ? false : true;
+			$this->_table_name        = $table_name;
+			$this->_table_query_class = $table_query_class;
+			$this->_table             = ORM::getDatabase()
+										   ->getTable($table_name);
+			$columns                  = $this->_table->getColumns();
+			$this->_is_new            = (bool)$is_new;
+			$this->_is_saved          = !$this->_is_new;
+			$this->_strict            = (bool)$strict;
+			$fetched                  = empty($this->_row) ? false : true;
 
 			// we initialise row with default value
 			foreach ($columns as $column) {
@@ -182,9 +187,11 @@
 				}
 			} elseif (!$this->isSaved() AND isset($this->_row_saved)) {
 				// update
-				$t       = $this->entityTableQuery();
-				$returns = $t->safeUpdate($this->_row_saved, $this->_row)
-							 ->execute();
+				$class_name = $this->_table_query_class;
+				/** @var \Gobl\ORM\ORMTableQueryBase $iqb */
+				$iqb     = new $class_name;
+				$returns = $iqb->safeUpdate($this->_row_saved, $this->_row)
+							   ->execute();
 			} else {
 				// nothing to do
 				$returns = 0;
@@ -319,13 +326,6 @@
 
 			return $row;
 		}
-
-		/**
-		 * Return the entity table instance.
-		 *
-		 * @return \Gobl\ORM\ORMTableQueryBase
-		 */
-		abstract public function entityTableQuery();
 
 		/**
 		 * Help var_dump().

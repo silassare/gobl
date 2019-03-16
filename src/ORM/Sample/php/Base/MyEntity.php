@@ -31,16 +31,7 @@
 		 */
 		public function __construct($is_new = true, $strict = true)
 		{
-			parent::__construct($is_new, $strict, MyEntity::TABLE_NAME);
-		}
-
-		/**
-		 * @return \MY_PROJECT_DB_NS\MyTableQuery
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 */
-		public function entityTableQuery()
-		{
-			return new MyTableQueryReal();
+			parent::__construct($is_new, $strict, MyEntity::TABLE_NAME, MyTableQueryReal::class);
 		}
 		//__GOBL_RELATIONS_GETTERS__
 		//__GOBL_COLUMNS_GETTERS_SETTERS__

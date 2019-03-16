@@ -58,7 +58,7 @@
 		 *
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
-		public function __construct(Db $db, QueryBuilder $query, $entity_class)
+		protected function __construct(Db $db, QueryBuilder $query, $entity_class)
 		{
 			if ($query->getType() !== QueryBuilder::QUERY_TYPE_SELECT) {
 				throw new ORMException('The query should be a selection.');

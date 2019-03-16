@@ -121,18 +121,18 @@
 			$_a = $a + 0;
 			$_b = $b + 0;
 
-			// make sure to have bcmath
-			// TODO find a way to avoid using bcmath
+			if (function_exists("bccomp")) {
+				// make sure to have bcmath
+				// TODO find a way to avoid using bcmath
 
-			if ($_a < PHP_INT_MIN AND $_b < PHP_INT_MIN) {
-				$c = bccomp($a, $b) <= 0 ? $a : $b;
-			} elseif ($_a > PHP_INT_MAX AND $_b > PHP_INT_MAX) {
-				$c = bccomp($a, $b) <= 0 ? $b : $a;
-			} else {
-				$c = $_a <= $_b ? $a : $b;
+				if ($_a < PHP_INT_MIN AND $_b < PHP_INT_MIN) {
+					return bccomp($a, $b) <= 0 ? true : false;
+				} elseif ($_a > PHP_INT_MAX AND $_b > PHP_INT_MAX) {
+					return bccomp($a, $b) <= 0 ? false : true;
+				}
 			}
 
-			return ($c === $a);
+			return $_a <= $_b;
 		}
 
 		/**
