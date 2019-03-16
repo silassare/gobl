@@ -31,16 +31,7 @@
 		 */
 		public function __construct($is_new = true, $strict = true)
 		{
-			parent::__construct($is_new, $strict, <%$.class.entity%>::TABLE_NAME);
-		}
-
-		/**
-		 * @return \<%$.namespace%>\<%$.class.query%>
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 */
-		public function entityTableQuery()
-		{
-			return new <%$.class.query%>Real();
+			parent::__construct($is_new, $strict, <%$.class.entity%>::TABLE_NAME, <%$.class.query%>Real::class);
 		}
 		<%@import('include/entity.relations.getters.otpl',$)%>
 		<%@import('include/entity.getters.setters.otpl',$)%>
