@@ -7,8 +7,8 @@
 	use Gobl\ORM\Exceptions\ORMQueryException;
 	use Gobl\ORM\ORMControllerBase;
 	use MY_PROJECT_DB_NS\MyEntity as MyEntityReal;
-	use MY_PROJECT_DB_NS\MyTableQuery as MyTableQueryReal;
 	use MY_PROJECT_DB_NS\MyResults as MyResultsReal;
+	use MY_PROJECT_DB_NS\MyTableQuery as MyTableQueryReal;
 
 	/**
 	 * Class MyController
@@ -35,7 +35,6 @@
 		 * @return \MY_PROJECT_DB_NS\MyEntity
 		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
 		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
@@ -69,7 +68,6 @@
 		 *
 		 * @return bool|\MY_PROJECT_DB_NS\MyEntity
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
 		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 * @throws \Gobl\CRUD\Exceptions\CRUDException

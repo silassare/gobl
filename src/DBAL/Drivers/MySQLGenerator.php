@@ -11,8 +11,8 @@
 	namespace Gobl\DBAL\Drivers;
 
 	use Gobl\DBAL\Constraints\PrimaryKey;
-	use Gobl\DBAL\QueryBuilder;
 	use Gobl\DBAL\Generators\BaseSQLGenerator;
+	use Gobl\DBAL\QueryBuilder;
 	use Gobl\DBAL\Types\Type;
 
 	/**

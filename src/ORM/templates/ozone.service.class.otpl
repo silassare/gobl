@@ -9,8 +9,8 @@
 	use Gobl\DBAL\Relations\VirtualRelation;
 	use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 	use Gobl\ORM\Exceptions\ORMControllerFormException;
-	use Gobl\ORM\Exceptions\ORMQueryException;
 	use Gobl\ORM\Exceptions\ORMException;
+	use Gobl\ORM\Exceptions\ORMQueryException;
 	use Gobl\ORM\ORM;
 	use Gobl\ORM\ORMServiceBase;
 	use <%$.namespace%>\<%$.class.controller%>;

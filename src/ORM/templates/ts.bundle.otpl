@@ -5,8 +5,8 @@ export type tGoblEntityData = {
 };
 export type tGoblCache<T> = { [key: string]: T };
 
-const win: any  = window,
-	  gobl: any = win.gobl = win.gobl || {},
+const win: any                                        = window,
+	  gobl: any                                       = win.gobl = win.gobl || {},
 	  _hasOwn                                         = Object.hasOwnProperty,
 	  _isPlainObject                                  = (a: any): boolean => Object.prototype.toString.call(a) === "[object Object]",
 	  _c_bool                                         = (v: any): boolean => {
@@ -48,7 +48,20 @@ const win: any  = window,
 	  ACTION_DELETING                                 = 2,
 	  ACTION_UPDATING                                 = 3;
 
-// use only camelCase method name don't use `getSomething` or `setSomething`
+/**
+ * GoblEntity class.
+ *
+ * To prevent conflict between:
+ * - entity class property name and column magic getter and setter
+ * - entity class method and column method (getter and setter)
+ * We only use:
+ * - a prefix with a single `_` for property
+ * - camelCase method name avoiding prefixing with `get` or `set` so
+ * So don't use:
+ * - `getSomething`, `setSomething` or `our_property`
+ * Use instead:
+ * - `_getSomething`, `_setSomething`, `doSomething` or `_our_property`
+ */
 export abstract class GoblEntity {
 	protected readonly _data: any = {};
 	protected _cache: any         = {};
