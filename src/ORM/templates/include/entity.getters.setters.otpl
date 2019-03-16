@@ -21,8 +21,7 @@
 		 *
 		 * @param <%$column.argType%> $<%$column.argName%>
 		 *
-		 * @return \<%$.class.use_entity%>
-		 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
+		 * @return $this
 		 */
 		public function set<%$column.methodSuffix%>($<%$column.argName%>)
 		{
