@@ -88,24 +88,18 @@
 			$this->_is_new            = (bool)$is_new;
 			$this->_is_saved          = !$this->_is_new;
 			$this->_strict            = (bool)$strict;
-			$fetched                  = empty($this->_row) ? false : true;
 
-			// we initialise row with default value
 			foreach ($columns as $column) {
 				$full_name = $column->getFullName();
 				$type      = $column->getTypeObject();
 
-				if (!$fetched OR !isset($this->_row[$full_name])) {
+				if ($this->_is_new) {
 					$this->_row[$full_name] = $type->getDefault();
 				}
 
 				if ($type->isAutoIncremented()) {
 					$this->_auto_increment_column = $full_name;
 				}
-			}
-
-			if ($fetched) {
-				$this->isSaved(true);
 			}
 		}
 
@@ -137,7 +131,7 @@
 		public function isSaved($save = false)
 		{
 			if ($save === true) {
-				$this->_row_saved = $this->_row;
+				$this->_row_saved = array_replace($this->_row_saved, $this->_row);
 				$this->_is_new    = false;
 				$this->_is_saved  = true;
 			}
@@ -185,7 +179,7 @@
 				} else {
 					$returns = intval($result); // one row saved
 				}
-			} elseif (!$this->isSaved() AND isset($this->_row_saved)) {
+			} elseif (!$this->isSaved() AND !empty($this->_row_saved)) {
 				// update
 				$class_name = $this->_table_query_class;
 				/** @var \Gobl\ORM\ORMTableQueryBase $iqb */
@@ -267,18 +261,16 @@
 				$full_name = $this->_table->getColumn($name)
 										  ->getFullName();
 
-				// true when we are not hydrated by PDO
-				if (array_key_exists($full_name, $this->_row_saved)) {
-					if ($this->_row[$full_name] !== $value) {
-						$value = $this->doValidation($full_name, $value);
+				// false when we are hydrated by PDO
+				if ($this->isNew() OR array_key_exists($full_name, $this->_row_saved)) {
+					if (!array_key_exists($full_name, $this->_row) OR $this->_row[$full_name] !== $value) {
+						$this->_row[$full_name] = $this->doValidation($full_name, $value);
+						$this->_is_saved        = false;
 					}
-
-					if ($this->_row_saved[$full_name] !== $value) {
-						$this->_is_saved = false;
-					}
+				} else { // we are hydrated by PDO
+					$this->_row[$full_name]       = $value;
+					$this->_row_saved[$full_name] = $value;
 				}
-
-				$this->_row[$full_name] = $value;
 			} elseif ($this->_strict) {
 				$trace = debug_backtrace();
 				$error = sprintf(

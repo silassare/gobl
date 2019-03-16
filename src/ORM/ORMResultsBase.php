@@ -172,11 +172,8 @@
 		{
 			// according to https://phpdelusions.net/pdo/fetch_modes#FETCH_CLASS
 			// in PDO::FETCH_CLASS mode, PDO assign class properties before calling a constructor.
-			// To amend this behavior, use the following flag \PDO::FETCH_PROPS_LATE like this:
-			// $fetch_style = \PDO::FETCH_CLASS | \PDO::FETCH_PROPS_LATE
-			// but the default behavior is what we want, to let the entity class
-			// know that data are directly fetched from database.
-			$fetch_style = \PDO::FETCH_CLASS;
+			// To amend this behavior, use the following flag \PDO::FETCH_PROPS_LATE.
+			$fetch_style = \PDO::FETCH_CLASS | \PDO::FETCH_PROPS_LATE;
 
 			return $this->getStatement()
 						->fetchAll($fetch_style, $this->entity_class, [false, $strict]);
