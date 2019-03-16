@@ -183,7 +183,7 @@
 		 * @return \Gobl\ORM\ORMResultsBase
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
-		protected function find($max = null, $offset = 0, array $order_by = [])
+		public function find($max = null, $offset = 0, array $order_by = [])
 		{
 			$this->qb->select()
 					 ->from($this->table->getFullName(), $this->table_alias);
