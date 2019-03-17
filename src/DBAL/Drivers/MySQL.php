@@ -34,7 +34,7 @@
 		}
 
 		/**
-		 * {@inheritdoc}
+		 * @inheritdoc
 		 */
 		public function connect()
 		{
@@ -57,7 +57,7 @@
 		}
 
 		/**
-		 * {@inheritdoc}
+		 * @inheritdoc
 		 */
 		public function buildDatabase(Db $db, $namespace = null)
 		{
@@ -102,7 +102,7 @@ GOBL_MySQL;
 		}
 
 		/**
-		 * {@inheritdoc}
+		 * @inheritdoc
 		 */
 		public function getQueryGenerator(QueryBuilder $query)
 		{

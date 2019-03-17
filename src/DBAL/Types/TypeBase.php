@@ -24,7 +24,7 @@
 		protected $auto_increment = false;
 
 		/**
-		 * {@inheritdoc}
+		 * @inheritdoc
 		 */
 		public function isNullAble()
 		{
@@ -32,7 +32,7 @@
 		}
 
 		/**
-		 * {@inheritdoc}
+		 * @inheritdoc
 		 */
 		public function nullAble()
 		{
@@ -42,7 +42,7 @@
 		}
 
 		/**
-		 * {@inheritdoc}
+		 * @inheritdoc
 		 */
 		public function isAutoIncremented()
 		{
@@ -50,7 +50,7 @@
 		}
 
 		/**
-		 * {@inheritdoc}
+		 * @inheritdoc
 		 */
 		public function autoIncrement()
 		{
@@ -60,7 +60,7 @@
 		}
 
 		/**
-		 * {@inheritdoc}
+		 * @inheritdoc
 		 */
 		public function getDefault()
 		{
@@ -68,7 +68,7 @@
 		}
 
 		/**
-		 * {@inheritdoc}
+		 * @inheritdoc
 		 */
 		public function setDefault($value)
 		{

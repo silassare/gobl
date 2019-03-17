@@ -337,7 +337,7 @@
 		}
 
 		/**
-		 * {@inheritdoc}
+		 * @inheritdoc
 		 */
 		public function asArray($hide_private_column = true)
 		{
