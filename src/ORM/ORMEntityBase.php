@@ -28,6 +28,40 @@
 	 * Use instead:
 	 * - `_getSomething`, `_setSomething`, `doSomething` or `_our_property`
 	 *
+	 * ```php
+	 * <?php
+	 *
+	 * $n = new Entity();
+	 *
+	 * $n->isSaved() // false
+	 * $n->isNew() // true
+	 *
+	 * $n->name = "Toto";
+	 *
+	 * $n->isSaved() // false
+	 * $n->isNew() // true
+	 *
+	 * $n->save() // will save the entity into the database
+	 *
+	 * $n->isSaved() // true
+	 * $n->isNew() // false
+	 *
+	 * $s = new Entity(false);
+	 *
+	 * $s->isSaved()// true
+	 * $s->isNew()// false
+	 *
+	 * $s->name = "Franck";
+	 *
+	 * $s->isSaved()// true
+	 * $s->isNew()// false
+	 *
+	 * $s->name = "Jack";
+	 *
+	 * $s->isSaved()// false
+	 * $s->isNew()// false
+	 * ```
+	 *
 	 * @package Gobl\ORM
 	 */
 	class ORMEntityBase extends ArrayCapable
@@ -72,7 +106,7 @@
 		 *
 		 * @param bool   $is_new            True for new entity false for entity fetched
 		 *                                  from the database, default is true.
-		 * @param bool   $strict            Enable/disable strict mode
+		 * @param bool   $strict            Enable/disable strict mode.
 		 * @param string $table_name        The table name.
 		 * @param string $table_query_class The table query's fully qualified class name.
 		 *
@@ -142,7 +176,8 @@
 		/**
 		 * Saves modifications to database.
 		 *
-		 * @return int|string int for affected row count on update, string for last insert id
+		 * @return int|string return `int` for affected row count on update, string for last insert id, 0 when nothing
+		 *                    is done
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */

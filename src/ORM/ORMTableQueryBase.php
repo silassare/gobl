@@ -47,8 +47,7 @@
 		 * ORMTableQueryBase constructor.
 		 *
 		 * @param string $table_name          The table name.
-		 *
-		 * @param string $table_results_class Fully qualified class name of the table's results iterator.
+		 * @param string $table_results_class The table's results iterator fully qualified class name.
 		 *
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */

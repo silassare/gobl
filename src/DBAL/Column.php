@@ -176,7 +176,7 @@
 		 * Adds custom column type.
 		 *
 		 * @param string $type_name  The custom type name
-		 * @param string $type_class The custom type class fully qualified name
+		 * @param string $type_class The custom type's fully qualified class name
 		 *
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */

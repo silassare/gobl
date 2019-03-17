@@ -54,7 +54,7 @@
 		 *
 		 * @param \Gobl\DBAL\Db           $db           The db instance.
 		 * @param \Gobl\DBAL\QueryBuilder $query        The query builder instance.
-		 * @param string                  $entity_class The entity fully qualified name.
+		 * @param string                  $entity_class The table's entity fully qualified class name.
 		 *
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
