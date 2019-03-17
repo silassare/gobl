@@ -11,8 +11,11 @@
 	namespace Gobl\ORM;
 
 	use Gobl\CRUD\CRUD;
+	use Gobl\DBAL\QueryBuilder;
 	use Gobl\DBAL\Rule;
+	use Gobl\DBAL\Table;
 	use Gobl\ORM\Exceptions\ORMControllerFormException;
+	use Gobl\ORM\Exceptions\ORMQueryException;
 
 	class ORMControllerBase
 	{
@@ -41,20 +44,35 @@
 		 */
 		protected $table_name;
 
+		/** @var string */
+		protected $entity_class;
+
+		/** @var string */
+		protected $table_query_class;
+
+		/** @var string */
+		protected $table_results_class;
+
 		/**
 		 * ORMController constructor.
 		 *
-		 * @param string $table_name The table name.
+		 * @param string $table_name          The table name.
+		 * @param string $entity_class        The table's entity fully qualified class name.
+		 * @param string $table_query_class   The table's query fully qualified class name.
+		 * @param string $table_results_class The table's results iterator fully qualified class name.
 		 *
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 * @throws \Exception
 		 */
-		protected function __construct($table_name)
+		protected function __construct($table_name, $entity_class, $table_query_class, $table_results_class)
 		{
-			$this->table_name = $table_name;
-			$this->db         = ORM::getDatabase();
-			$table            = $this->db->getTable($table_name);
-			$columns          = $table->getColumns();
+			$this->table_name          = $table_name;
+			$this->entity_class        = $entity_class;
+			$this->table_query_class   = $table_query_class;
+			$this->table_results_class = $table_results_class;
+			$this->db                  = ORM::getDatabase();
+			$table                     = $this->db->getTable($table_name);
+			$columns                   = $table->getColumns();
 
 			// we finds all required fields
 			foreach ($columns as $column) {
@@ -78,6 +96,14 @@
 		{
 			$this->db   = null;
 			$this->crud = null;
+		}
+
+		/**
+		 * @return \Gobl\CRUD\CRUD
+		 */
+		public function getCRUD()
+		{
+			return $this->crud;
 		}
 
 		/**
@@ -262,13 +288,350 @@
 		}
 
 		/**
+		 * Adds item to the table.
+		 *
+		 * @param array $values The row values
+		 *
+		 * @return \Gobl\ORM\ORMEntityBase
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 */
+		public function addItem(array $values = [])
+		{
+			$this->crud->assertCreate($values);
+
+			$this->completeForm($values);
+
+			/** @var \Gobl\ORM\ORMEntityBase $entity */
+			$entity = new $this->entity_class;
+
+			$entity->hydrate($values);
+			$entity->save();
+
+			$this->crud->getHandler()
+					   ->onAfterCreateEntity($entity);
+
+			return $entity;
+		}
+
+		/**
+		 * Updates one item in the table.
+		 *
+		 * @param array $filters    the row filters
+		 * @param array $new_values the new values
+		 *
+		 * @return bool|\Gobl\ORM\ORMEntityBase
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
+		 */
+		public function updateOneItem(array $filters, array $new_values)
+		{
+			$this->crud->assertUpdate($filters, $new_values);
+
+			self::assertFiltersNotEmpty($filters);
+			self::assertUpdateColumns($this->db->getTable($this->table_name), array_keys($new_values));
+
+			$results = $this->findAllItems($filters, 1, 0);
+
+			$entity = $results->fetchClass();
+
+			if ($entity) {
+				$this->crud->getHandler()
+						   ->onBeforeUpdateEntity($entity);
+
+				$entity->hydrate($new_values);
+				$entity->save();
+
+				$this->crud->getHandler()
+						   ->onAfterUpdateEntity($entity);
+
+				return $entity;
+			} else {
+				return false;
+			}
+		}
+
+		/**
+		 * Update all items in the table that match the given item filters.
+		 *
+		 * @param array $filters    the row filters
+		 * @param array $new_values the new values
+		 *
+		 * @return int Affected row count.
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
+		 */
+		public function updateAllItems(array $filters, array $new_values)
+		{
+			$this->crud->assertUpdateAll($filters, $new_values);
+
+			self::assertFiltersNotEmpty($filters);
+
+			/** @var \Gobl\ORM\ORMTableQueryBase $query */
+			$query = new $this->table_results_class;
+
+			$this->applyFilters($query, $filters);
+
+			$affected = $query->update($new_values)
+							  ->execute();
+
+			return $affected;
+		}
+
+		/**
+		 * Delete one item from the table.
+		 *
+		 * @param array $filters the row filters
+		 *
+		 * @return bool|\Gobl\ORM\ORMEntityBase
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
+		 */
+		public function deleteOneItem(array $filters)
+		{
+			$this->crud->assertDelete($filters);
+
+			self::assertFiltersNotEmpty($filters);
+
+			$results = $this->findAllItems($filters, 1, 0);
+
+			$entity = $results->fetchClass();
+
+			if ($entity) {
+				$this->crud->getHandler()
+						   ->onBeforeDeleteEntity($entity);
+
+				/** @var \Gobl\ORM\ORMTableQueryBase $query */
+				$query = new $this->table_query_class();
+
+				$this->applyFilters($query, $filters);
+
+				$query->delete()
+					  ->execute();
+
+				$this->crud->getHandler()
+						   ->onAfterDeleteEntity($entity);
+
+				return $entity;
+			} else {
+				return false;
+			}
+		}
+
+		/**
+		 * Delete all items in the table that match the given item filters.
+		 *
+		 * @param array $filters the row filters
+		 *
+		 * @return int Affected row count.
+		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 */
+		public function deleteAllItems(array $filters)
+		{
+			$this->crud->assertDeleteAll($filters);
+
+			self::assertFiltersNotEmpty($filters);
+
+			/** @var \Gobl\ORM\ORMTableQueryBase $query */
+			$query = new $this->table_query_class();
+
+			$this->applyFilters($query, $filters);
+
+			$affected = $query->delete()
+							  ->execute();
+
+			return $affected;
+		}
+
+		/**
+		 * Gets item from the table that match the given filters.
+		 *
+		 * @param array $filters  the row filters
+		 * @param array $order_by order by rules
+		 *
+		 * @return null|\Gobl\ORM\ORMEntityBase
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 */
+		public function getItem(array $filters, array $order_by = [])
+		{
+			$this->crud->assertRead($filters);
+
+			self::assertFiltersNotEmpty($filters);
+
+			$results = $this->findAllItems($filters, 1, 0, $order_by);
+
+			$entity = $results->fetchClass();
+
+			if ($entity) {
+				$this->crud->getHandler()
+						   ->onAfterReadEntity($entity);
+			}
+
+			return $entity;
+		}
+
+		/**
+		 * Gets all items from the table that match the given filters.
+		 *
+		 * @param array    $filters  the row filters
+		 * @param int|null $max      maximum row to retrieve
+		 * @param int      $offset   first row offset
+		 * @param array    $order_by order by rules
+		 * @param int|bool $total    total rows without limit
+		 *
+		 * @return \Gobl\ORM\ORMEntityBase[]
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
+		 */
+		public function getAllItems(array $filters = [], $max = null, $offset = 0, array $order_by = [], &$total = false)
+		{
+			$this->crud->assertReadAll($filters);
+
+			$results = $this->findAllItems($filters, $max, $offset, $order_by);
+
+			$items = $results->fetchAllClass();
+
+			$total = self::totalResultsCount($results, count($items), $max, $offset);
+
+			return $items;
+		}
+
+		/**
+		 * Gets all items from the table with a custom query builder instance.
+		 *
+		 * @param \Gobl\DBAL\QueryBuilder $qb
+		 * @param int|null                $max    maximum row to retrieve
+		 * @param int                     $offset first row offset
+		 * @param int|bool                $total  total rows without limit
+		 *
+		 * @return \Gobl\ORM\ORMEntityBase[]
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 */
+		public function getAllItemsCustom(QueryBuilder $qb, $max = null, $offset = 0, &$total = false)
+		{
+			$filters = [];
+
+			$this->crud->assertReadAll($filters);
+
+			$qb->limit($max, $offset);
+
+			/** @var \Gobl\ORM\ORMResultsBase $results */
+			$results = new $this->table_results_class($this->db, $qb);
+
+			$items = $results->fetchAllClass(false);
+
+			$total = self::totalResultsCount($results, count($items), $max, $offset);
+
+			return $items;
+		}
+
+		/**
+		 * Gets collection items from the table.
+		 *
+		 * @param string   $name
+		 * @param array    $filters
+		 * @param int|null $max
+		 * @param int      $offset
+		 * @param array    $order_by
+		 * @param bool     $total_records
+		 *
+		 * @return \Gobl\ORM\ORMEntityBase[]
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+		 */
+		public function getCollectionItems($name, array $filters = [], $max = null, $offset = 0, array $order_by = [], &$total_records = false)
+		{
+			$table      = $this->db->getTable($this->table_name);
+			$collection = $table->getCollection($name);
+
+			if (!$collection) {
+				throw new ORMQueryException("QUERY_INVALID_COLLECTION");
+			}
+
+			return $collection->run($filters, $max, $offset, $order_by, $total_records);
+		}
+
+		/**
+		 * Find all items in the table that match the given filters.
+		 *
+		 * @param array    $filters  the row filters
+		 * @param int|null $max      maximum row to retrieve
+		 * @param int      $offset   first row offset
+		 * @param array    $order_by order by rules
+		 *
+		 * @return \Gobl\ORM\ORMResultsBase
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 */
+		protected function findAllItems(array $filters = [], $max = null, $offset = 0, array $order_by = [])
+		{
+			/** @var \Gobl\ORM\ORMTableQueryBase $query */
+			$query = new $this->table_query_class;
+
+			if (!empty($filters)) {
+				$this->applyFilters($query, $filters);
+			}
+
+			$results = $query->find($max, $offset, $order_by);
+
+			return $results;
+		}
+
+		/**
+		 * @param \Gobl\ORM\ORMResultsBase $results
+		 * @param int                      $found
+		 * @param int|null                 $max
+		 * @param int                      $offset
+		 *
+		 * @return int
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 */
+		public static function totalResultsCount(ORMResultsBase $results, $found = 0, $max = null, $offset = 0)
+		{
+			$total = 0;
+			if ($total !== false) {
+				if (isset($max)) {
+					if ($found < $max) {
+						$total = $offset + $found;
+					} else {
+						$total = $results->totalCount();
+					}
+				} elseif ($offset === 0) {
+					$total = $found;
+				} else {
+					$total = $results->totalCount();
+				}
+			}
+
+			return $total;
+		}
+
+		/**
 		 * Asserts that the filters are not empty.
 		 *
 		 * @param array $filters the row filters
 		 *
 		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
 		 */
-		protected function assertFiltersNotEmpty(array $filters)
+		public static function assertFiltersNotEmpty(array $filters)
 		{
 			if (empty($filters)) {
 				throw new ORMControllerFormException('form_filters_empty');
@@ -279,36 +642,22 @@
 		 * Asserts that there is at least one column to update and
 		 * the column(s) to update really exists the table.
 		 *
+		 * @param Table $table
 		 * @param array $columns The columns list
 		 *
 		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
-		protected function assertUpdateColumns(array $columns = [])
+		public static function assertUpdateColumns(Table $table, array $columns = [])
 		{
 			if (empty($columns)) {
 				throw new ORMControllerFormException('form_no_fields_to_update');
 			}
 
-			$table = $this->db->getTable($this->table_name);
 			foreach ($columns as $column) {
 				if (!$table->hasColumn($column)) {
 					throw new ORMControllerFormException('form_unknown_fields', [$column]);
 				}
 			}
-		}
-
-		/**
-		 * @return \Gobl\CRUD\CRUD
-		 * @throws \Exception
-		 */
-		public function getCRUD()
-		{
-			if (!$this->crud) {
-				throw new \Exception("Not using CRUD rules");
-			}
-
-			return $this->crud;
 		}
 
 		/**

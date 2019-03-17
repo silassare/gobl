@@ -4,7 +4,6 @@
 	namespace MY_PROJECT_DB_NS\Base;
 
 	use Gobl\DBAL\QueryBuilder;
-	use Gobl\ORM\Exceptions\ORMQueryException;
 	use Gobl\ORM\ORMControllerBase;
 	use MY_PROJECT_DB_NS\MyEntity as MyEntityReal;
 	use MY_PROJECT_DB_NS\MyResults as MyResultsReal;
@@ -24,7 +23,7 @@
 		 */
 		public function __construct()
 		{
-			parent::__construct(MyEntity::TABLE_NAME);
+			parent::__construct(MyEntity::TABLE_NAME, MyEntityReal::class, MyTableQueryReal::class, MyResultsReal::class);
 		}
 
 		/**
@@ -40,19 +39,10 @@
 		 */
 		public function addItem(array $values = [])
 		{
-			$this->crud->assertCreate($values);
+			/** @var \MY_PROJECT_DB_NS\MyEntity $result */
+			$result = parent::addItem($values);
 
-			$this->completeForm($values);
-
-			$entity = new MyEntityReal();
-
-			$entity->hydrate($values);
-			$entity->save();
-
-			$this->crud->getHandler()
-					   ->onAfterCreateEntity($entity);
-
-			return $entity;
+			return $result;
 		}
 
 		/**
@@ -74,29 +64,7 @@
 		 */
 		public function updateOneItem(array $filters, array $new_values)
 		{
-			$this->crud->assertUpdate($filters, $new_values);
-
-			$this->assertFiltersNotEmpty($filters);
-			$this->assertUpdateColumns(array_keys($new_values));
-
-			$results = $this->findAllItems($filters, 1, 0);
-
-			$entity = $results->fetchClass();
-
-			if ($entity) {
-				$this->crud->getHandler()
-						   ->onBeforeUpdateEntity($entity);
-
-				$entity->hydrate($new_values);
-				$entity->save();
-
-				$this->crud->getHandler()
-						   ->onAfterUpdateEntity($entity);
-
-				return $entity;
-			} else {
-				return false;
-			}
+			return parent::updateOneItem($filters, $new_values);
 		}
 
 		/**
@@ -113,18 +81,7 @@
 		 */
 		public function updateAllItems(array $filters, array $new_values)
 		{
-			$this->crud->assertUpdateAll($filters, $new_values);
-
-			$this->assertFiltersNotEmpty($filters);
-
-			$tableQuery = new MyTableQueryReal();
-
-			$this->applyFilters($tableQuery, $filters);
-
-			$affected = $tableQuery->update($new_values)
-								   ->execute();
-
-			return $affected;
+			return parent::updateAllItems($filters, $new_values);
 		}
 
 		/**
@@ -145,32 +102,7 @@
 		 */
 		public function deleteOneItem(array $filters)
 		{
-			$this->crud->assertDelete($filters);
-
-			$this->assertFiltersNotEmpty($filters);
-
-			$results = $this->findAllItems($filters, 1, 0);
-
-			$entity = $results->fetchClass();
-
-			if ($entity) {
-				$this->crud->getHandler()
-						   ->onBeforeDeleteEntity($entity);
-
-				$tableQuery = new MyTableQueryReal();
-
-				$this->applyFilters($tableQuery, $filters);
-
-				$tableQuery->delete()
-						   ->execute();
-
-				$this->crud->getHandler()
-						   ->onAfterDeleteEntity($entity);
-
-				return $entity;
-			} else {
-				return false;
-			}
+			return parent::deleteOneItem($filters);
 		}
 
 		/**
@@ -186,18 +118,7 @@
 		 */
 		public function deleteAllItems(array $filters)
 		{
-			$this->crud->assertDeleteAll($filters);
-
-			$this->assertFiltersNotEmpty($filters);
-
-			$tableQuery = new MyTableQueryReal();
-
-			$this->applyFilters($tableQuery, $filters);
-
-			$affected = $tableQuery->delete()
-								   ->execute();
-
-			return $affected;
+			return parent::deleteAllItems($filters);
 		}
 
 		/**
@@ -218,27 +139,17 @@
 		 */
 		public function getItem(array $filters, array $order_by = [])
 		{
-			$this->crud->assertRead($filters);
+			/** @var \MY_PROJECT_DB_NS\MyEntity|null $result */
+			$result = parent::getItem($filters, $order_by);
 
-			$this->assertFiltersNotEmpty($filters);
-
-			$results = $this->findAllItems($filters, 1, 0, $order_by);
-
-			$entity = $results->fetchClass();
-
-			if ($entity) {
-				$this->crud->getHandler()
-						   ->onAfterReadEntity($entity);
-			}
-
-			return $entity;
+			return $result;
 		}
 
 		/**
 		 * Gets all items from `my_table` that match the given filters.
 		 *
 		 * @param array    $filters  the row filters
-		 * @param null|int $max      maximum row to retrieve
+		 * @param int|null $max      maximum row to retrieve
 		 * @param int      $offset   first row offset
 		 * @param array    $order_by order by rules
 		 * @param int|bool $total    total rows without limit
@@ -251,74 +162,30 @@
 		 */
 		public function getAllItems(array $filters = [], $max = null, $offset = 0, array $order_by = [], &$total = false)
 		{
-			$this->crud->assertReadAll($filters);
+			/** @var \MY_PROJECT_DB_NS\MyEntity[] $results */
+			$results = parent::getAllItems($filters, $max, $offset, $order_by, $total);
 
-			$results = $this->findAllItems($filters, $max, $offset, $order_by);
-
-			$items = $results->fetchAllClass();
-
-			$total = self::totalResultsCount($results, count($items), $max, $offset);
-
-			return $items;
+			return $results;
 		}
 
 		/**
 		 * Gets all items from `my_table` with a custom query builder instance.
 		 *
 		 * @param \Gobl\DBAL\QueryBuilder $qb
-		 * @param null|int                $max    maximum row to retrieve
+		 * @param int|null                $max    maximum row to retrieve
 		 * @param int                     $offset first row offset
 		 * @param int|bool                $total  total rows without limit
 		 *
 		 * @return \MY_PROJECT_DB_NS\MyEntity[]
 		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function getAllItemsCustom(QueryBuilder $qb, $max = null, $offset = 0, &$total = false)
 		{
-			$filters = [];
+			/** @var \MY_PROJECT_DB_NS\MyEntity[] $results */
+			$results = parent::getAllItemsCustom($qb, $max, $offset, $total);
 
-			$this->crud->assertReadAll($filters);
-
-			$qb->limit($max, $offset);
-
-			$results = new MyResultsReal($this->db, $qb);
-
-			$items = $results->fetchAllClass(false);
-
-			$total = self::totalResultsCount($results, count($items), $max, $offset);
-
-			return $items;
-		}
-
-		/**
-		 * @param \MY_PROJECT_DB_NS\MyResults $results
-		 * @param int                         $found
-		 * @param null|int                    $max
-		 * @param int                         $offset
-		 *
-		 * @return int
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 */
-		private static function totalResultsCount(MyResultsReal $results, $found = 0, $max = null, $offset = 0)
-		{
-			$total = 0;
-			if ($total !== false) {
-				if (isset($max)) {
-					if ($found < $max) {
-						$total = $offset + $found;
-					} else {
-						$total = $results->totalCount();
-					}
-				} elseif ($offset === 0) {
-					$total = $found;
-				} else {
-					$total = $results->totalCount();
-				}
-			}
-
-			return $total;
+			return $results;
 		}
 
 		/**
@@ -326,7 +193,7 @@
 		 *
 		 * @param string   $name
 		 * @param array    $filters
-		 * @param null|int $max
+		 * @param int|null $max
 		 * @param int      $offset
 		 * @param array    $order_by
 		 * @param bool     $total_records
@@ -337,38 +204,8 @@
 		 */
 		public function getCollectionItems($name, array $filters = [], $max = null, $offset = 0, array $order_by = [], &$total_records = false)
 		{
-			$table      = $this->db->getTable(MyEntity::TABLE_NAME);
-			$collection = $table->getCollection($name);
-
-			if (!$collection) {
-				throw new ORMQueryException("QUERY_INVALID_COLLECTION");
-			}
-
-			return $collection->run($filters, $max, $offset, $order_by, $total_records);
-		}
-
-		/**
-		 * Find all items in `my_table` that match the given filters.
-		 *
-		 * @param array    $filters  the row filters
-		 * @param int|null $max      maximum row to retrieve
-		 * @param int      $offset   first row offset
-		 * @param array    $order_by order by rules
-		 *
-		 * @return \MY_PROJECT_DB_NS\MyResults
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 */
-		private function findAllItems(array $filters = [], $max = null, $offset = 0, array $order_by = [])
-		{
-			$tableQuery = new MyTableQueryReal();
-
-			if (!empty($filters)) {
-				$this->applyFilters($tableQuery, $filters);
-			}
-
-			$results = $tableQuery->find($max, $offset, $order_by);
+			/** @var \MY_PROJECT_DB_NS\MyEntity[] $results */
+			$results = parent::getCollectionItems($name, $filters, $max, $offset, $order_by, $total_records);
 
 			return $results;
 		}
