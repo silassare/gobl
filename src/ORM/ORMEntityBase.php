@@ -174,7 +174,7 @@
 		}
 
 		/**
-		 * Saves modifications to database.
+		 * Save modifications to database.
 		 *
 		 * @return int|string return `int` for affected row count on update, string for last insert id, 0 when nothing
 		 *                    is done

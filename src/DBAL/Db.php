@@ -179,6 +179,7 @@
 
 		/**
 		 * Executes sql string with multiples query.
+		 *
 		 * Suitable for sql file content.
 		 *
 		 * @param string $sql the sql query string
@@ -640,7 +641,7 @@
 		 */
 		public function generateDatabaseQuery($namespace = null)
 		{
-			// check all foreign key constraints
+			// checks all foreign key constraints
 			$tables = $this->getTables($namespace);
 			foreach ($tables as $table) {
 				$fk_list = $table->getForeignKeyConstraints();

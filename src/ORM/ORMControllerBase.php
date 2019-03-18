@@ -107,7 +107,7 @@
 		}
 
 		/**
-		 * Get required forms fields.
+		 * Gets required forms fields.
 		 *
 		 * @return array
 		 */
@@ -356,7 +356,7 @@
 		}
 
 		/**
-		 * Update all items in the table that match the given item filters.
+		 * Updates all items in the table that match the given item filters.
 		 *
 		 * @param array $filters    the row filters
 		 * @param array $new_values the new values
@@ -385,7 +385,7 @@
 		}
 
 		/**
-		 * Delete one item from the table.
+		 * Deletes one item from the table.
 		 *
 		 * @param array $filters the row filters
 		 *
@@ -427,7 +427,7 @@
 		}
 
 		/**
-		 * Delete all items in the table that match the given item filters.
+		 * Deletes all items in the table that match the given item filters.
 		 *
 		 * @param array $filters the row filters
 		 *
@@ -569,7 +569,7 @@
 		}
 
 		/**
-		 * Find all items in the table that match the given filters.
+		 * Finds all items in the table that match the given filters.
 		 *
 		 * @param array    $filters  the row filters
 		 * @param int|null $max      maximum row to retrieve

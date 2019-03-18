@@ -38,7 +38,7 @@
 		}
 
 		/**
-		 * Fetch the next row into table of the entity class instance.
+		 * Fetches  the next row into table of the entity class instance.
 		 *
 		 * @param bool $strict
 		 *
@@ -51,7 +51,7 @@
 		}
 
 		/**
-		 * Fetch all rows and return array of the entity class instance.
+		 * Fetches  all rows and return array of the entity class instance.
 		 *
 		 * @param bool $strict
 		 *

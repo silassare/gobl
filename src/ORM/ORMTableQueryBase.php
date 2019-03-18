@@ -70,7 +70,7 @@
 		}
 
 		/**
-		 * Delete rows in the table.
+		 * Deletes rows in the table.
 		 *
 		 * When filters exists only rows that
 		 * satisfy the filters are deleted.
@@ -95,7 +95,7 @@
 		}
 
 		/**
-		 * Update rows in the table.
+		 * Updates rows in the table.
 		 *
 		 * When filters exists only rows that
 		 * satisfy the filters are updated.

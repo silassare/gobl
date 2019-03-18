@@ -91,8 +91,7 @@
 		protected $uc_constraints = [];
 
 		/**
-		 * Constraints counter, used to generate
-		 * named constraints.
+		 * Constraints counter, used to generate named constraints.
 		 *
 		 * @var int
 		 */
@@ -263,7 +262,7 @@
 		}
 
 		/**
-		 * Assert if we can add the column to this table.
+		 * Asserts if we can add the column to this table.
 		 *
 		 * @param \Gobl\DBAL\Column $column
 		 *
@@ -294,7 +293,7 @@
 		}
 
 		/**
-		 * Assert if we can add the relation to this table.
+		 * Asserts if we can add the relation to this table.
 		 *
 		 * @param \Gobl\DBAL\Relations\Relation $relation
 		 *
@@ -322,7 +321,7 @@
 		}
 
 		/**
-		 * Assert if we can add the virtual relation to this table.
+		 * Asserts if we can add the virtual relation to this table.
 		 *
 		 * @param \Gobl\DBAL\Relations\VirtualRelation $virtual_relation
 		 *
@@ -350,7 +349,7 @@
 		}
 
 		/**
-		 * Assert if we can add the collection to this table.
+		 * Asserts if we can add the collection to this table.
 		 *
 		 * @param \Gobl\DBAL\Collections\Collection $collection
 		 *
@@ -769,7 +768,7 @@
 		}
 
 		/**
-		 * Check if the current table has foreign key that refer
+		 * Checks if the current table has foreign key that refer
 		 * to the given columns from the reference table.
 		 *
 		 * @param \Gobl\DBAL\Table $reference the reference table
@@ -820,7 +819,7 @@
 		}
 
 		/**
-		 * Check if the table has a default foreign key constraint with column from a given reference table.
+		 * Checks if the table has a default foreign key constraint with column from a given reference table.
 		 *
 		 * @param \Gobl\DBAL\Table $reference the reference table
 		 *
@@ -834,7 +833,7 @@
 		}
 
 		/**
-		 * Check if the table has primary key constraint.
+		 * Checks if the table has primary key constraint.
 		 *
 		 * @return bool
 		 */
@@ -844,7 +843,7 @@
 		}
 
 		/**
-		 * Check if the table has unique constraint.
+		 * Checks if the table has unique constraint.
 		 *
 		 * @return bool
 		 */
@@ -854,7 +853,7 @@
 		}
 
 		/**
-		 * Check if a given columns list are the primary key of this table.
+		 * Checks if a given columns list are the primary key of this table.
 		 *
 		 * @param array $columns_full_names columns full name list
 		 *
@@ -874,7 +873,7 @@
 		}
 
 		/**
-		 * Check if a given column is part of the primary key of this table.
+		 * Checks if a given column is part of the primary key of this table.
 		 *
 		 * @param \Gobl\DBAL\Column $column
 		 *
@@ -892,7 +891,7 @@
 		}
 
 		/**
-		 * Check if a given columns list are foreign key in this table.
+		 * Checks if a given columns list are foreign key in this table.
 		 *
 		 * @param array $columns columns full name list
 		 *
@@ -916,7 +915,7 @@
 		}
 
 		/**
-		 * Check if a given columns list are unique in this table.
+		 * Checks if a given columns list are unique in this table.
 		 *
 		 * @param array $columns columns full name list
 		 *
@@ -940,7 +939,7 @@
 		}
 
 		/**
-		 * Check if the table is private
+		 * Checks if the table is private
 		 *
 		 * @return bool
 		 */

@@ -57,7 +57,7 @@
 		protected $options;
 
 		/**
-		 * Maps available type names to type class names.
+		 * Map of available type names to type class names.
 		 *
 		 * @var array
 		 */
@@ -198,7 +198,7 @@
 		}
 
 		/**
-		 * Check if the column is private
+		 * Checks if the column is private
 		 *
 		 * @return bool
 		 */

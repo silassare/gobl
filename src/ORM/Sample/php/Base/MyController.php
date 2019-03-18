@@ -68,7 +68,7 @@
 		}
 
 		/**
-		 * Update all items in `my_table` that match the given item filters.
+		 * Updates all items in `my_table` that match the given item filters.
 		 *
 		 * @param array $filters    the row filters
 		 * @param array $new_values the new values
@@ -85,7 +85,7 @@
 		}
 
 		/**
-		 * Delete one item from `my_table`.
+		 * Deletes one item from `my_table`.
 		 *
 		 * The returned value will be:
 		 * - `false` when the item was not found
@@ -106,7 +106,7 @@
 		}
 
 		/**
-		 * Delete all items in `my_table` that match the given item filters.
+		 * Deletes all items in `my_table` that match the given item filters.
 		 *
 		 * @param array $filters the row filters
 		 *

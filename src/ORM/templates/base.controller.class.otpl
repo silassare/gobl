@@ -68,7 +68,7 @@
 		}
 
 		/**
-		 * Update all items in `<%$.table.name%>` that match the given item filters.
+		 * Updates all items in `<%$.table.name%>` that match the given item filters.
 		 *
 		 * @param array $filters    the row filters
 		 * @param array $new_values the new values
@@ -85,7 +85,7 @@
 		}
 
 		/**
-		 * Delete one item from `<%$.table.name%>`.
+		 * Deletes one item from `<%$.table.name%>`.
 		 *
 		 * The returned value will be:
 		 * - `false` when the item was not found
@@ -106,7 +106,7 @@
 		}
 
 		/**
-		 * Delete all items in `<%$.table.name%>` that match the given item filters.
+		 * Deletes all items in `<%$.table.name%>` that match the given item filters.
 		 *
 		 * @param array $filters the row filters
 		 *

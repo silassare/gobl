@@ -61,7 +61,7 @@
 		private static $identified_relation_extra_reg = '#^([a-zA-Z0-9]+)/([a-zA-Z0-9_-]+)/?$#';
 
 		/**
-		 * maps form fields name to columns name
+		 * Map form fields name to columns name
 		 *
 		 * @var array
 		 */
@@ -156,7 +156,7 @@
 		}
 
 		/**
-		 * Execute request with REST API in minds.
+		 * Executes request with REST API in minds.
 		 *
 		 * @param array $request
 		 *
@@ -680,7 +680,7 @@
 				}
 			}
 
-			// check if there are missing relations
+			// checks if there are missing relations
 			if (count($missing)) {
 				throw new NotFoundException(null, ['RELATIONS_MISSING', $missing]);
 			}

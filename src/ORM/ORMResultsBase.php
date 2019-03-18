@@ -94,7 +94,7 @@
 		}
 
 		/**
-		 * Fetches the next row in foreach mode.
+		 * Fetches  the next row in foreach mode.
 		 *
 		 * @return mixed
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
@@ -109,7 +109,7 @@
 		}
 
 		/**
-		 * Fetches the next row.
+		 * Fetches  the next row.
 		 *
 		 * @param int $fetch_style
 		 *
@@ -137,7 +137,7 @@
 		}
 
 		/**
-		 * Fetch the next row into table of the entity class instance.
+		 * Fetches  the next row into table of the entity class instance.
 		 *
 		 * @param bool $strict enable/disable strict mode on class fetch
 		 *
@@ -161,7 +161,7 @@
 		}
 
 		/**
-		 * Fetch all rows and return array of the entity class instance.
+		 * Fetches  all rows and return array of the entity class instance.
 		 *
 		 * @param bool $strict enable/disable strict mode on class fetch
 		 *
@@ -192,7 +192,7 @@
 		}
 
 		/**
-		 * Return the key of the current element.
+		 * Returns the key of the current element.
 		 *
 		 * @return mixed scalar on success, or null on failure.
 		 */
@@ -280,7 +280,7 @@
 		}
 
 		/**
-		 * Return the current element.
+		 * Returns the current element.
 		 *
 		 * @return mixed
 		 */

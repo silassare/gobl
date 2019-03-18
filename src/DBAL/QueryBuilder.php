@@ -86,7 +86,7 @@
 		/**
 		 * Executes the query with current .
 		 *
-		 * Returns type
+		 * Returned type
 		 *        int: affected rows count (for DELETE, UPDATE)
 		 *        string: last insert id (for INSERT)
 		 *      PDOStatement: the statement (for SELECT ...)
