@@ -15,37 +15,40 @@
 
 	class ORM
 	{
-		/** @var  \Gobl\DBAL\Db */
-		private static $db;
+		/** @var \Gobl\DBAL\Db[] */
+		private static $databases = [];
 
 		/**
 		 * Database setter.
 		 *
-		 * @param \Gobl\DBAL\Db $db the database to use
+		 * @param string        $namespace the database namespace
+		 * @param \Gobl\DBAL\Db $db        the database to use
 		 *
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
-		public static function setDatabase(Db $db)
+		public static function setDatabase($namespace, Db $db)
 		{
-			if (isset(self::$db)) {
-				throw new ORMException('You cannot reset the database.');
+			if (isset(self::$databases[$namespace])) {
+				throw new ORMException(sprintf('A database instance is already registered for: %s', $namespace));
 			}
 
-			self::$db = $db;
+			self::$databases[$namespace] = $db;
 		}
 
 		/**
 		 * Database getter.
 		 *
+		 * @param string $namespace the database namespace
+		 *
 		 * @return \Gobl\DBAL\Db
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
-		public static function getDatabase()
+		public static function getDatabase($namespace)
 		{
-			if (!isset(self::$db)) {
-				throw new ORMException('No database defined.');
+			if (!isset(self::$databases[$namespace])) {
+				throw new ORMException(sprintf('No database registered for: %s', $namespace));
 			}
 
-			return self::$db;
+			return self::$databases[$namespace];
 		}
 	}

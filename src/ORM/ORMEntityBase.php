@@ -116,7 +116,7 @@
 		{
 			$this->_table_name        = $table_name;
 			$this->_table_query_class = $table_query_class;
-			$this->_table             = ORM::getDatabase()
+			$this->_table             = ORM::getDatabase('MY_PROJECT_DB_NS')
 										   ->getTable($table_name);
 			$columns                  = $this->_table->getColumns();
 			$this->_is_new            = (bool)$is_new;
@@ -197,7 +197,7 @@
 
 				$columns = array_keys($this->_row);
 				$values  = array_values($this->_row);
-				$qb      = new QueryBuilder(ORM::getDatabase());
+				$qb      = new QueryBuilder(ORM::getDatabase('MY_PROJECT_DB_NS'));
 				$qb->insert()
 				   ->into($this->_table->getFullName(), $columns)
 				   ->values($values);

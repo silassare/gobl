@@ -4,6 +4,7 @@
 	namespace <%$.namespace%>\Base;
 
 	use Gobl\DBAL\QueryBuilder;
+	use Gobl\ORM\ORM;
 	use Gobl\ORM\ORMControllerBase;
 	use <%$.namespace%>\<%$.class.entity%> as <%$.class.entity%>Real;
 	use <%$.namespace%>\<%$.class.results%> as <%$.class.results%>Real;
@@ -20,10 +21,11 @@
 		 * <%$.class.controller%> constructor.
 		 *
 		 * @inheritdoc
+		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function __construct()
 		{
-			parent::__construct(<%$.class.entity%>::TABLE_NAME, <%$.class.entity%>Real::class, <%$.class.query%>Real::class, <%$.class.results%>Real::class);
+			parent::__construct(ORM::getDatabase('<%$.namespace%>'), <%$.class.entity%>::TABLE_NAME, <%$.class.entity%>Real::class, <%$.class.query%>Real::class, <%$.class.results%>Real::class);
 		}
 
 		/**

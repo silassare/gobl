@@ -4,6 +4,7 @@
 	namespace MY_PROJECT_DB_NS\Base;
 
 	use Gobl\DBAL\QueryBuilder;
+	use Gobl\ORM\ORM;
 	use Gobl\ORM\ORMControllerBase;
 	use MY_PROJECT_DB_NS\MyEntity as MyEntityReal;
 	use MY_PROJECT_DB_NS\MyResults as MyResultsReal;
@@ -20,10 +21,11 @@
 		 * MyController constructor.
 		 *
 		 * @inheritdoc
+		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function __construct()
 		{
-			parent::__construct(MyEntity::TABLE_NAME, MyEntityReal::class, MyTableQueryReal::class, MyResultsReal::class);
+			parent::__construct(ORM::getDatabase('MY_PROJECT_DB_NS'), MyEntity::TABLE_NAME, MyEntityReal::class, MyTableQueryReal::class, MyResultsReal::class);
 		}
 
 		/**

@@ -55,7 +55,7 @@
 		{
 			$this->table_name          = $table_name;
 			$this->table_results_class = $table_results_class;
-			$this->db                  = ORM::getDatabase();
+			$this->db                  = ORM::getDatabase('MY_PROJECT_DB_NS');
 			$this->table               = $this->db->getTable($table_name);
 			$this->table_alias         = $this->genUniqueAlias();
 			$this->qb                  = new QueryBuilder($this->db);

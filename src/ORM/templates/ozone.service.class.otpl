@@ -665,7 +665,7 @@
 		 */
 		private function resolveRelations(array $request_relations)
 		{
-			$table   = ORM::getDatabase()->getTable(<%$.class.entity%>::TABLE_NAME);
+			$table   = ORM::getDatabase('<%$.namespace%>')->getTable(<%$.class.entity%>::TABLE_NAME);
 			$missing = [];
 			$rel_map = [];
 

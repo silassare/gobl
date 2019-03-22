@@ -11,6 +11,7 @@
 	namespace Gobl\ORM;
 
 	use Gobl\CRUD\CRUD;
+	use Gobl\DBAL\Db;
 	use Gobl\DBAL\QueryBuilder;
 	use Gobl\DBAL\Rule;
 	use Gobl\DBAL\Table;
@@ -56,21 +57,21 @@
 		/**
 		 * ORMController constructor.
 		 *
-		 * @param string $table_name          The table name.
-		 * @param string $entity_class        The table's entity fully qualified class name.
-		 * @param string $table_query_class   The table's query fully qualified class name.
-		 * @param string $table_results_class The table's results iterator fully qualified class name.
+		 * @param \Gobl\DBAL\Db $db                  The database instance.
+		 * @param string        $table_name          The table name.
+		 * @param string        $entity_class        The table's entity fully qualified class name.
+		 * @param string        $table_query_class   The table's query fully qualified class name.
+		 * @param string        $table_results_class The table's results iterator fully qualified class name.
 		 *
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \Exception
+		 * @throws \ReflectionException
 		 */
-		protected function __construct($table_name, $entity_class, $table_query_class, $table_results_class)
+		protected function __construct(Db $db, $table_name, $entity_class, $table_query_class, $table_results_class)
 		{
 			$this->table_name          = $table_name;
 			$this->entity_class        = $entity_class;
 			$this->table_query_class   = $table_query_class;
 			$this->table_results_class = $table_results_class;
-			$this->db                  = ORM::getDatabase();
+			$this->db                  = $db;
 			$table                     = $this->db->getTable($table_name);
 			$columns                   = $table->getColumns();
 
