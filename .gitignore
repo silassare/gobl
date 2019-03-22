@@ -1,4 +1,5 @@
 .idea
 /vendor
+/ignore
 **/otpl_done/*
 composer.lock
