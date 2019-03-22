@@ -57,7 +57,7 @@
 		protected $options;
 
 		/**
-		 * Map of available type names to type class names.
+		 * Maps available type names to type class names.
 		 *
 		 * @var array
 		 */
