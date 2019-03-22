@@ -61,7 +61,7 @@
 		private static $identified_relation_extra_reg = '#^([a-zA-Z0-9]+)/([a-zA-Z0-9_-]+)/?$#';
 
 		/**
-		 * Map form fields name to columns name
+		 * Maps form fields name to columns name
 		 *
 		 * @var array
 		 */
