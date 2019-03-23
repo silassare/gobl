@@ -16,7 +16,8 @@
 
 	abstract class Relation
 	{
-		const NAME_REG = '#^(?:[a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9]|[a-zA-Z])$#';
+		const NAME_PATTERN = '[a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9]|[a-zA-Z]';
+		const NAME_REG     = '#^(?:' . Relation::NAME_PATTERN . ')$#';
 
 		const ONE_TO_ONE   = 1;
 		const ONE_TO_MANY  = 2;
