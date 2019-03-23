@@ -65,14 +65,14 @@
 				$sql[] = 'NOT NULL';
 
 				if (!is_null($default)) {
-					$sql[] = sprintf('DEFAULT %s', self::quote($default));
+					$sql[] = sprintf('DEFAULT %s', static::quote($default));
 				}
 			} else {
 				$sql[] = 'NULL';
 				if (is_null($default)) {
 					$sql[] = 'DEFAULT NULL';
 				} else {
-					$sql[] = sprintf('DEFAULT %s', self::quote($default));
+					$sql[] = sprintf('DEFAULT %s', static::quote($default));
 				}
 			}
 
@@ -123,14 +123,14 @@
 				$sql[] = 'NOT NULL';
 
 				if (!is_null($default)) {
-					$sql[] = sprintf('DEFAULT %s', self::quote($default));
+					$sql[] = sprintf('DEFAULT %s', static::quote($default));
 				}
 			} else {
 				$sql[] = 'NULL';
 				if (is_null($default)) {
 					$sql[] = 'DEFAULT NULL';
 				} else {
-					$sql[] = sprintf('DEFAULT %s', self::quote($default));
+					$sql[] = sprintf('DEFAULT %s', static::quote($default));
 				}
 			}
 
@@ -167,14 +167,14 @@
 				$sql[] = 'NOT NULL';
 
 				if (!is_null($default)) {
-					$sql[] = sprintf('DEFAULT %s', self::quote($default));
+					$sql[] = sprintf('DEFAULT %s', static::quote($default));
 				}
 			} else {
 				$sql[] = 'NULL';
 				if (is_null($default)) {
 					$sql[] = 'DEFAULT NULL';
 				} else {
-					$sql[] = sprintf('DEFAULT %s', self::quote($default));
+					$sql[] = sprintf('DEFAULT %s', static::quote($default));
 				}
 			}
 
@@ -212,14 +212,14 @@
 				$sql[] = 'NOT NULL';
 
 				if (!is_null($default)) {
-					$sql[] = sprintf('DEFAULT %s', self::quote($default));
+					$sql[] = sprintf('DEFAULT %s', static::quote($default));
 				}
 			} else {
 				$sql[] = 'NULL';
 				if (is_null($default)) {
 					$sql[] = 'DEFAULT NULL';
 				} else {
-					$sql[] = sprintf('DEFAULT %s', self::quote($default));
+					$sql[] = sprintf('DEFAULT %s', static::quote($default));
 				}
 			}
 
@@ -262,7 +262,7 @@
 
 				if (!$force_no_default) {
 					if (!is_null($default)) {
-						$sql[] = sprintf('DEFAULT %s', self::quote($default));
+						$sql[] = sprintf('DEFAULT %s', static::quote($default));
 					}
 				}
 			} else {
@@ -272,7 +272,7 @@
 					if (is_null($default)) {
 						$sql[] = 'DEFAULT NULL';
 					} else {
-						$sql[] = sprintf('DEFAULT %s', self::quote($default));
+						$sql[] = sprintf('DEFAULT %s', static::quote($default));
 					}
 				}
 			}
@@ -292,7 +292,7 @@
 		protected function getUniqueSQL(Table $table, Unique $uc, $alter = true)
 		{
 			$table_name   = $table->getFullName();
-			$columns_list = self::quoteCols($uc->getConstraintColumns());
+			$columns_list = static::quoteCols($uc->getConstraintColumns());
 			$sql          = $alter ? 'ALTER' . ' TABLE `' . $table_name . '` ADD ' : '';
 			$sql          .= 'CONSTRAINT ' . $uc->getName() . ' UNIQUE (' . $columns_list . ')' . ($alter ? ';' : '');
 
@@ -310,7 +310,7 @@
 		 */
 		protected function getPrimaryKeySQL(Table $table, PrimaryKey $pk, $alter = true)
 		{
-			$columns_list = self::quoteCols($pk->getConstraintColumns());
+			$columns_list = static::quoteCols($pk->getConstraintColumns());
 			$table_name   = $table->getFullName();
 			$sql          = $alter ? 'ALTER' . ' TABLE `' . $table_name . '` ADD ' : '';
 			$sql          .= 'CONSTRAINT ' . $pk->getName() . ' PRIMARY KEY (' . $columns_list . ')' . ($alter ? ';' : '');
@@ -334,8 +334,8 @@
 			$ref_table     = $fk->getReferenceTable();
 			$update_action = $fk->getUpdateAction();
 			$delete_action = $fk->getDeleteAction();
-			$columns_list  = self::quoteCols(array_keys($columns));
-			$references    = self::quoteCols(array_values($columns));
+			$columns_list  = static::quoteCols(array_keys($columns));
+			$references    = static::quoteCols(array_values($columns));
 			$sql           = $alter ? 'ALTER' . ' TABLE `' . $table_name . '` ADD ' : '';
 			$sql           .= 'CONSTRAINT ' . $fk->getName() . ' FOREIGN KEY (' . $columns_list . ') REFERENCES ' . $ref_table->getFullName() . ' (' . $references . ')';
 

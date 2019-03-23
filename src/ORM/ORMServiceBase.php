@@ -57,7 +57,7 @@
 				throw new ORMQueryException("GOBL_ORM_QUERY_INVALID_FILTERS");
 			}
 
-			return self::onlyColumns($columns_map, $filters);
+			return static::onlyColumns($columns_map, $filters);
 		}
 
 		/**
@@ -159,7 +159,7 @@
 				}
 			}
 
-			return self::onlyColumns($columns_map, $order_by);
+			return static::onlyColumns($columns_map, $order_by);
 		}
 
 		/**

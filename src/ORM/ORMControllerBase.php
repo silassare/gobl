@@ -333,8 +333,8 @@
 		{
 			$this->crud->assertUpdate($filters, $new_values);
 
-			self::assertFiltersNotEmpty($filters);
-			self::assertUpdateColumns($this->db->getTable($this->table_name), array_keys($new_values));
+			static::assertFiltersNotEmpty($filters);
+			static::assertUpdateColumns($this->db->getTable($this->table_name), array_keys($new_values));
 
 			$results = $this->findAllItems($filters, 1, 0);
 
@@ -372,7 +372,7 @@
 		{
 			$this->crud->assertUpdateAll($filters, $new_values);
 
-			self::assertFiltersNotEmpty($filters);
+			static::assertFiltersNotEmpty($filters);
 
 			/** @var \Gobl\ORM\ORMTableQueryBase $query */
 			$query = new $this->table_results_class;
@@ -400,7 +400,7 @@
 		{
 			$this->crud->assertDelete($filters);
 
-			self::assertFiltersNotEmpty($filters);
+			static::assertFiltersNotEmpty($filters);
 
 			$results = $this->findAllItems($filters, 1, 0);
 
@@ -442,7 +442,7 @@
 		{
 			$this->crud->assertDeleteAll($filters);
 
-			self::assertFiltersNotEmpty($filters);
+			static::assertFiltersNotEmpty($filters);
 
 			/** @var \Gobl\ORM\ORMTableQueryBase $query */
 			$query = new $this->table_query_class();
@@ -471,7 +471,7 @@
 		{
 			$this->crud->assertRead($filters);
 
-			self::assertFiltersNotEmpty($filters);
+			static::assertFiltersNotEmpty($filters);
 
 			$results = $this->findAllItems($filters, 1, 0, $order_by);
 
@@ -508,7 +508,7 @@
 
 			$items = $results->fetchAllClass();
 
-			$total = self::totalResultsCount($results, count($items), $max, $offset);
+			$total = static::totalResultsCount($results, count($items), $max, $offset);
 
 			return $items;
 		}
@@ -538,7 +538,7 @@
 
 			$items = $results->fetchAllClass(false);
 
-			$total = self::totalResultsCount($results, count($items), $max, $offset);
+			$total = static::totalResultsCount($results, count($items), $max, $offset);
 
 			return $items;
 		}

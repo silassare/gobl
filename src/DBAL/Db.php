@@ -335,7 +335,7 @@
 		 */
 		public static function isColumnReference($str)
 		{
-			return is_array(self::parseColumnReference($str));
+			return is_array(static::parseColumnReference($str));
 		}
 
 		/**
@@ -386,7 +386,7 @@
 			}
 
 			$circle[] = $ref_name;
-			$info     = self::parseColumnReference($ref_name);
+			$info     = static::parseColumnReference($ref_name);
 
 			if ($info) {
 				$_col_opt  = null;
@@ -417,7 +417,7 @@
 							$opt_a = $_col_opt;
 						}
 
-						if ($type AND self::isColumnReference($type)) {
+						if ($type AND static::isColumnReference($type)) {
 							$opt_b = $this->resolveReferenceColumn($type, $tables, $circle);
 						}
 
@@ -493,7 +493,7 @@
 				foreach ($columns as $column_name => $value) {
 					$col_options = is_array($value) ? $value : ['type' => $value];
 
-					if (isset($col_options['type']) AND self::isColumnReference($col_options['type'])) {
+					if (isset($col_options['type']) AND static::isColumnReference($col_options['type'])) {
 						$ref_options = $this->resolveReferenceColumn($col_options['type'], $tables);
 						if (is_array($ref_options)) {
 							$col_options         = is_array($value) ? array_merge($ref_options, $value) : $ref_options;
