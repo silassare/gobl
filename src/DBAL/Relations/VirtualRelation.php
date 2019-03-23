@@ -12,7 +12,7 @@
 
 	abstract class VirtualRelation
 	{
-		const NAME_REG = '#^(?:[a-zA-Z][a-zA-Z0-9_-]*[a-zA-Z0-9]|[a-zA-Z])$#';
+		const NAME_REG = Relation::NAME_REG;
 
 		/** @var string */
 		protected $name;
