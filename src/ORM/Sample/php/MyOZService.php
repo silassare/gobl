@@ -8,21 +8,22 @@
 	use Gobl\DBAL\Relations\Relation;
 	use Gobl\DBAL\Relations\VirtualRelation;
 	use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
+	use Gobl\DBAL\Types\TypeBigint;
+	use Gobl\DBAL\Types\TypeInt;
 	use Gobl\ORM\Exceptions\ORMControllerFormException;
-	use Gobl\ORM\Exceptions\ORMException;
 	use Gobl\ORM\Exceptions\ORMQueryException;
 	use Gobl\ORM\ORM;
 	use Gobl\ORM\ORMServiceBase;
 	use MY_PROJECT_DB_NS\MyController;
 	use MY_PROJECT_DB_NS\MyEntity;
-	use OZONE\OZ\Core\RequestHandler;
-	use OZONE\OZ\Core\URIHelper;
+	use OZONE\OZ\App\AppInterface;
 	use OZONE\OZ\Exceptions\BadRequestException;
 	use OZONE\OZ\Exceptions\ForbiddenException;
 	use OZONE\OZ\Exceptions\InvalidFieldException;
 	use OZONE\OZ\Exceptions\InvalidFormException;
-	use OZONE\OZ\Exceptions\MethodNotAllowedException;
 	use OZONE\OZ\Exceptions\NotFoundException;
+	use OZONE\OZ\Http\Request;
+	use OZONE\OZ\Http\Response;
 
 	defined('OZ_SELF_SECURITY_CHECK') or die;
 
@@ -33,7 +34,10 @@
 	 * - POST    /my_svc
 	 *
 	 * to update property(ies) of the item with the given :my_id
-	 * - PUT     /my_svc/:my_id
+	 * - PATCH     /my_svc/:my_id
+	 *
+	 * to update property(ies) of all items in `my_table`
+	 * - PATCH     /my_svc
 	 *
 	 * to delete item with the given :my_id
 	 * - DELETE  /my_svc/:my_id
@@ -54,12 +58,6 @@
 	 */
 	final class MyOZService extends ORMServiceBase
 	{
-		// for url like /my_svc/:my_id
-		private static $identified_extra_reg = '#^([a-zA-Z0-9]+)/?$#';
-
-		// for url like /my_svc/:my_id/relation
-		private static $identified_relation_extra_reg = '#^([a-zA-Z0-9]+)/([a-zA-Z0-9_-]+)/?$#';
-
 		/**
 		 * Maps form fields name to columns name
 		 *
@@ -70,56 +68,83 @@
 		];
 
 		/**
-		 * Executes the service.
-		 *
-		 * @param array $request the request parameters
-		 *
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \OZONE\OZ\Exceptions\InternalErrorException
-		 * @throws \OZONE\OZ\Exceptions\InvalidFieldException
-		 * @throws \OZONE\OZ\Exceptions\InvalidFormException
-		 * @throws \OZONE\OZ\Exceptions\MethodNotAllowedException
-		 * @throws \OZONE\OZ\Exceptions\NotFoundException
-		 * @throws \OZONE\OZ\Exceptions\RuntimeException
+		 * {@inheritdoc}
+		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
-		public function execute(array $request = [])
+		public static function registerRoutes(AppInterface $app)
 		{
-			// uncomment the next line to allow administrator only
-			// Assert::assertIsAdmin();
-			// or uncomment the next line to allow verified user only
-			// Assert::assertUserVerified();
+			$table       = ORM::getDatabase('MY_PROJECT_DB_NS')
+							  ->getTable(MyEntity::TABLE_NAME);
+			$type_obj    = $table->getColumn('my_pk_column_const')
+								 ->getTypeObject();
+			$bigint_type = TypeBigint::class;
+			$int_type    = TypeInt::class;
+			$is_number   = ($type_obj instanceof $bigint_type OR $type_obj instanceof $int_type);
 
-			$success = true;
-			$error   = null;
+			$options = [
+				'my_id'    => $is_number ? '[0-9]+' : '[^/]+',
+				'relation' => Relation::NAME_PATTERN
+			];
 
-			try {
-				$this->executeSub($request);
-			} catch (ORMException $e) {
-				$success = false;
-				$error   = $e;
-			} catch (TypesInvalidValueException $e) {
-				$success = false;
-				$error   = $e;
-			} catch (CRUDException $e) {
-				$success = false;
-				$error   = $e;
-			}
+			$app->getRouter()
+				->post('/my_svc', function (Request $request, Response $response, array $args) use ($app) {
+					$service = new MyOZService();
+					$service->actionCreateEntity($request->getParams());
 
-			if (!$success) {
-				$this->tryConvertException($error);
-			}
+					return $service::writeResponse($app, $service, $response);
+				}, $options)
+				->get('/my_svc/{my_id}', function (Request $request, Response $response, array $args) use ($app) {
+					$service = new MyOZService();
+					$service->actionGetEntity($request->getParams(), $args);
+
+					return $service::writeResponse($app, $service, $response);
+				}, $options)
+				->get('/my_svc', function (Request $request, Response $response, array $args) use ($app) {
+					$service = new MyOZService();
+					$service->actionGetAll($request->getParams());
+
+					return $service::writeResponse($app, $service, $response);
+				}, $options)
+				->get('/my_svc/{my_id}/{relation}', function (Request $request, Response $response, array $args) use ($app) {
+					$service = new MyOZService();
+					$service->actionGetRelation($request->getParams(), $args);
+
+					return $service::writeResponse($app, $service, $response);
+				}, $options)
+				->patch('/my_svc/{my_id}', function (Request $request, Response $response, array $args) use ($app) {
+					$service = new MyOZService();
+					$service->actionUpdateEntity($request->getParams(), $args);
+
+					return $service::writeResponse($app, $service, $response);
+				}, $options)
+				->patch('/my_svc', function (Request $request, Response $response, array $args) use ($app) {
+					$service = new MyOZService();
+					$service->actionUpdateAll($request->getParams());
+
+					return $service::writeResponse($app, $service, $response);
+				}, $options)
+				->delete('/my_svc/{my_id}', function (Request $request, Response $response, array $args) use ($app) {
+					$service = new MyOZService();
+					$service->actionDeleteEntity($args);
+
+					return $service::writeResponse($app, $service, $response);
+				}, $options)
+				->delete('/my_svc', function (Request $request, Response $response, array $args) use ($app) {
+					$service = new MyOZService();
+					$service->actionDeleteAll($request->getParams());
+
+					return $service::writeResponse($app, $service, $response);
+				}, $options);
 		}
 
 		/**
 		 * Converts Gobl exceptions unto OZone exceptions.
 		 *
-		 * @param \Exception $error the exception
+		 * @param \Exception $error the exception to convert
 		 *
 		 * @throws \Exception
-		 * @throws \OZONE\OZ\Exceptions\InvalidFieldException
-		 * @throws \OZONE\OZ\Exceptions\InvalidFormException
 		 */
-		public static function tryConvertException(\Exception $error)
+		private static function tryConvertException(\Exception $error)
 		{
 			if ($error instanceof ORMControllerFormException) {
 				throw new InvalidFormException(null, [$error->getMessage(), $error->getData()], $error);
@@ -137,110 +162,12 @@
 				// don't expose debug data to client, may contains sensitive data
 				$debug         = $error->getDebugData();
 				$data          = $error->getData();
-				$data["field"] = $debug["field"];
+				$data['field'] = $debug['field'];
 
 				throw new InvalidFieldException($error->getMessage(), $data, $error);
 			}
 
 			throw $error;
-		}
-
-		/**
-		 * Checks for request extra.
-		 *
-		 * @return bool
-		 */
-		private function noExtra()
-		{
-			return empty(URIHelper::getUriExtra());
-		}
-
-		/**
-		 * Executes request with REST API in minds.
-		 *
-		 * @param array $request
-		 *
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
-		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \OZONE\OZ\Exceptions\InternalErrorException
-		 * @throws \OZONE\OZ\Exceptions\InvalidFormException
-		 * @throws \OZONE\OZ\Exceptions\MethodNotAllowedException
-		 * @throws \OZONE\OZ\Exceptions\NotFoundException
-		 * @throws \OZONE\OZ\Exceptions\RuntimeException
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
-		 */
-		private function executeSub(array $request)
-		{
-			if ($this->noExtra()) {
-				if (RequestHandler::isPost()) {
-					$this->actionCreateEntity($request);
-				} elseif (RequestHandler::isDelete()) {
-					$this->actionDeleteAll($request);
-				} elseif (RequestHandler::isGet()) {
-					$this->actionGetAll($request);
-				} elseif (RequestHandler::isPatch()) {
-					$this->actionUpdateAll($request);
-				} else {
-					throw new MethodNotAllowedException();
-				}
-			} elseif ($extra = $this->getIdentifiedExtra()) {
-				if (RequestHandler::isDelete()) {
-					$this->actionDeleteEntity($extra);
-				} elseif (RequestHandler::isGet()) {
-					$this->actionGetEntity($request, $extra);
-				} elseif (RequestHandler::isPatch()) {
-					$this->actionUpdateEntity($request, $extra);
-				} else {
-					throw new MethodNotAllowedException();
-				}
-			} elseif ($extra = $this->getIdentifiedRelationExtra()) {
-				if (RequestHandler::isGet()) {
-					$this->actionGetRelation($request, $extra);
-				} else {
-					throw new MethodNotAllowedException();
-				}
-			} else {
-				// invalid url
-				throw new NotFoundException();
-			}
-		}
-
-		/**
-		 * Gets identified extra.
-		 *
-		 * @return array|bool
-		 */
-		private function getIdentifiedExtra()
-		{
-			$extra_map = ['my_pk_column_const'];
-			$extra     = [];
-			$extra_ok  = URIHelper::parseUriExtra(self::$identified_extra_reg, $extra_map, $extra);
-
-			if ($extra_ok) {
-				return $extra;
-			}
-
-			return false;
-		}
-
-		/**
-		 * Gets identified relation extra.
-		 *
-		 * @return array|bool
-		 */
-		private function getIdentifiedRelationExtra()
-		{
-			$extra_map = ['my_pk_column_const', 'relation'];
-			$extra     = [];
-			$extra_ok  = URIHelper::parseUriExtra(self::$identified_relation_extra_reg, $extra_map, $extra);
-
-			if ($extra_ok) {
-				return $extra;
-			}
-
-			return false;
 		}
 
 		//========================================================
@@ -250,22 +177,23 @@
 		/**
 		 * @param array $request
 		 *
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
-		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 * @throws \Exception
 		 */
 		public function actionCreateEntity(array $request)
 		{
-			$form_values = self::onlyColumns(self::$columns_map, $request);
+			try {
+				$form_values = self::onlyColumns(self::$columns_map, $request);
 
-			$controller = new MyController();
-			$entity     = $controller->addItem($form_values);
+				$controller = new MyController();
+				$entity     = $controller->addItem($form_values);
 
-			$this->getResponseHolder()
-				 ->setDone($controller->getCRUD()->getMessage())
-				 ->setData(['item' => $entity]);
+				$this->getResponseHolder()
+					 ->setDone($controller->getCRUD()
+										  ->getMessage())
+					 ->setData(['item' => $entity]);
+			} catch (\Exception $e) {
+				self::tryConvertException($e);
+			}
 		}
 
 		//========================================================
@@ -276,57 +204,56 @@
 		 * @param array $request
 		 * @param array $extra
 		 *
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
-		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \OZONE\OZ\Exceptions\NotFoundException
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 * @throws \Exception
 		 */
 		public function actionUpdateEntity(array $request, array $extra)
 		{
-			$form_values = self::onlyColumns(self::$columns_map, $request);
+			try {
+				$form_values = self::onlyColumns(self::$columns_map, $request);
 
-			$controller = new MyController();
-			$entity     = $controller->updateOneItem($extra, $form_values);
+				$controller = new MyController();
+				$entity     = $controller->updateOneItem($extra, $form_values);
 
-			if ($entity instanceof MyEntity) {
-				$this->getResponseHolder()
-					 ->setDone($controller->getCRUD()->getMessage())
-					 ->setData(['item' => $entity]);
-			} else {
-				throw new NotFoundException();
+				if ($entity instanceof MyEntity) {
+					$this->getResponseHolder()
+						 ->setDone($controller->getCRUD()
+											  ->getMessage())
+						 ->setData(['item' => $entity]);
+				} else {
+					throw new NotFoundException();
+				}
+			} catch (\Exception $e) {
+				self::tryConvertException($e);
 			}
 		}
 
 		/**
 		 * @param array $request
 		 *
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \OZONE\OZ\Exceptions\InvalidFormException
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 * @throws \Exception
 		 */
 		public function actionUpdateAll($request = [])
 		{
-			$data        = (isset($request["data"]) AND is_array($request["data"])) ? $request["data"] : [];
-			$form_values = self::onlyColumns(self::$columns_map, $data);
+			try {
+				$data        = (isset($request['data']) AND is_array($request['data'])) ? $request['data'] : [];
+				$form_values = self::onlyColumns(self::$columns_map, $data);
 
-			if (empty($form_values)) {
-				throw new InvalidFormException();
+				if (empty($form_values)) {
+					throw new InvalidFormException();
+				}
+
+				$filters = self::getRequestFilters(self::$columns_map, $request);
+
+				$controller = new MyController();
+				$count      = $controller->updateAllItems($filters, $data);
+
+				$this->getResponseHolder()
+					 ->setDone($controller->getCRUD()
+										  ->getMessage())
+					 ->setData(['affected' => $count]);
+			} catch (\Exception $e) {
+				self::tryConvertException($e);
 			}
-
-			$filters = self::getRequestFilters(self::$columns_map, $request);
-
-			$controller = new MyController();
-			$count      = $controller->updateAllItems($filters, $data);
-
-			$this->getResponseHolder()
-				 ->setDone($controller->getCRUD()->getMessage())
-				 ->setData(['affected' => $count]);
 		}
 
 		//========================================================
@@ -336,47 +263,47 @@
 		/**
 		 * @param array $extra
 		 *
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \OZONE\OZ\Exceptions\NotFoundException
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 * @throws \Exception
 		 */
 		public function actionDeleteEntity(array $extra)
 		{
+			try {
+				$controller = new MyController();
+				$entity     = $controller->deleteOneItem($extra);
 
-			$controller = new MyController();
-			$entity     = $controller->deleteOneItem($extra);
-
-			if ($entity instanceof MyEntity) {
-				$this->getResponseHolder()
-					 ->setDone($controller->getCRUD()->getMessage())
-					 ->setData(['item' => $entity]);
-			} else {
-				throw new NotFoundException();
+				if ($entity instanceof MyEntity) {
+					$this->getResponseHolder()
+						 ->setDone($controller->getCRUD()
+											  ->getMessage())
+						 ->setData(['item' => $entity]);
+				} else {
+					throw new NotFoundException();
+				}
+			} catch (\Exception $e) {
+				self::tryConvertException($e);
 			}
 		}
 
 		/**
 		 * @param array $request
 		 *
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 * @throws \Exception
 		 */
 		public function actionDeleteAll($request = [])
 		{
-			$filters = self::onlyColumns(self::$columns_map, $request);
+			try {
+				$filters = self::onlyColumns(self::$columns_map, $request);
 
-			$controller = new MyController();
-			$count      = $controller->deleteAllItems($filters);
+				$controller = new MyController();
+				$count      = $controller->deleteAllItems($filters);
 
-			$this->getResponseHolder()
-				 ->setDone($controller->getCRUD()->getMessage())
-				 ->setData(['affected' => $count]);
+				$this->getResponseHolder()
+					 ->setDone($controller->getCRUD()
+										  ->getMessage())
+					 ->setData(['affected' => $count]);
+			} catch (\Exception $e) {
+				self::tryConvertException($e);
+			}
 		}
 
 		//========================================================
@@ -387,130 +314,131 @@
 		 * @param array $request
 		 * @param array $extra
 		 *
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \OZONE\OZ\Exceptions\NotFoundException
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 * @throws \Exception
 		 */
 		public function actionGetEntity(array $request, array $extra)
 		{
-			$controller = new MyController();
-			$entity     = $controller->getItem($extra);
+			try {
+				$controller = new MyController();
+				$entity     = $controller->getItem($extra);
 
-			if (!$entity) {
-				throw new NotFoundException();
+				if (!$entity) {
+					throw new NotFoundException();
+				}
+
+				$relations = $this->listEntityRelations($entity, $request);
+
+				$this->getResponseHolder()
+					 ->setDone($controller->getCRUD()
+										  ->getMessage())
+					 ->setData([
+						 'item'      => $entity,
+						 'relations' => $relations
+					 ]);
+			} catch (\Exception $e) {
+				self::tryConvertException($e);
 			}
-
-			$relations = $this->listEntityRelations($entity, $request);
-
-			$this->getResponseHolder()
-				 ->setDone($controller->getCRUD()->getMessage())
-				 ->setData([
-					 'item'      => $entity,
-					 'relations' => $relations
-				 ]);
 		}
 
 		/**
 		 * @param array $request
 		 *
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 * @throws \Exception
 		 */
 		public function actionGetAll(array $request)
 		{
-			$filters    = self::getRequestFilters(self::$columns_map, $request);
-			$order_by   = self::getRequestOrderBy(self::$columns_map, $request);
-			$collection = self::getRequestCollection($request);
+			try {
+				$filters    = self::getRequestFilters(self::$columns_map, $request);
+				$order_by   = self::getRequestOrderBy(self::$columns_map, $request);
+				$collection = self::getRequestCollection($request);
 
-			$p9            = self::getPagination($request);
-			$max           = $p9["max"];
-			$offset        = $p9["offset"];
-			$page          = $p9["page"];
-			$total_records = 0;
+				$p9            = self::getPagination($request);
+				$max           = $p9['max'];
+				$offset        = $p9['offset'];
+				$page          = $p9['page'];
+				$total_records = 0;
 
-			$controller = new MyController();
+				$controller = new MyController();
 
-			if ($collection) {
-				$results = $controller->getCollectionItems($collection, $filters, $max, $offset, $order_by, $total_records);
-			} else {
-				$results = $controller->getAllItems($filters, $max, $offset, $order_by, $total_records);
+				if ($collection) {
+					$results = $controller->getCollectionItems($collection, $filters, $max, $offset, $order_by, $total_records);
+				} else {
+					$results = $controller->getAllItems($filters, $max, $offset, $order_by, $total_records);
+				}
+
+				$relations = [];
+
+				if (count($results)) {
+					$relations = $this->listEntitiesRelations($results, $request);
+				}
+
+				$this->getResponseHolder()
+					 ->setDone($controller->getCRUD()
+										  ->getMessage())
+					 ->setData([
+						 'items'     => $results,
+						 'max'       => $max,
+						 'page'      => $page,
+						 'total'     => $total_records,
+						 'relations' => $relations
+					 ]);
+			} catch (\Exception $e) {
+				self::tryConvertException($e);
 			}
-
-			$relations = [];
-
-			if (count($results)) {
-				$relations = $this->listEntitiesRelations($results, $request);
-			}
-
-			$this->getResponseHolder()
-				 ->setDone($controller->getCRUD()->getMessage())
-				 ->setData([
-					 'items'     => $results,
-					 'max'       => $max,
-					 'page'      => $page,
-					 'total'     => $total_records,
-					 'relations' => $relations
-				 ]);
 		}
 
 		/**
 		 * @param array $request
 		 * @param array $extra
 		 *
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \OZONE\OZ\Exceptions\NotFoundException
+		 * @throws \Exception
 		 */
 		public function actionGetRelation(array $request, array $extra)
 		{
-			if (!isset($extra['my_pk_column_const'])) {
-				throw new NotFoundException();
+			try {
+				if (!isset($extra['my_pk_column_const'])) {
+					throw new NotFoundException();
+				}
+
+				$filters['my_pk_column_const'] = $extra['my_pk_column_const'];
+				$req_rel_name                  = $extra['relation'];
+				$request['relations']          = $req_rel_name;
+
+				$controller = new MyController();
+				$entity     = $controller->getItem($filters);
+
+				if (!$entity) {
+					throw new NotFoundException();
+				}
+
+				$p9            = self::getPagination($request);
+				$max           = $p9['max'];
+				$offset        = $p9['offset'];
+				$page          = $p9['page'];
+				$total_records = 0;
+
+				$relations = $this->listEntityRelations($entity, $request, $max, $offset, $total_records);
+				$r         = $relations[$req_rel_name];
+
+				if (is_array($r)) {
+					$data = [
+						'items' => $r,
+						'max'   => $max,
+						'page'  => $page,
+						'total' => $total_records
+					];
+				} else {
+					$data = [
+						'item' => $r
+					];
+				}
+
+				$this->getResponseHolder()
+					 ->setDone()
+					 ->setData($data);
+			} catch (\Exception $e) {
+				self::tryConvertException($e);
 			}
-
-			$filters['my_pk_column_const'] = $extra['my_pk_column_const'];
-			$req_rel_name                  = $extra["relation"];
-			$request["relations"]          = $req_rel_name;
-
-			$controller = new MyController();
-			$entity     = $controller->getItem($filters);
-
-			if (!$entity) {
-				throw new NotFoundException();
-			}
-
-			$p9            = self::getPagination($request);
-			$max           = $p9["max"];
-			$offset        = $p9["offset"];
-			$page          = $p9["page"];
-			$total_records = 0;
-
-			$relations = $this->listEntityRelations($entity, $request, $max, $offset, $total_records);
-			$r         = $relations[$req_rel_name];
-
-			if (is_array($r)) {
-				$data = [
-					'items' => $r,
-					'max'   => $max,
-					'page'  => $page,
-					'total' => $total_records
-				];
-			} else {
-				$data = [
-					'item' => $r
-				];
-			}
-
-			$this->getResponseHolder()
-				 ->setDone()
-				 ->setData($data);
 		}
 
 		/**
@@ -616,7 +544,8 @@
 		private function getRelationItemsList(Relation $relation, MyEntity $entity, array $request, $max = null, $offset = 0, &$total_records = null)
 		{
 			$target_columns_map = [];
-			$target_columns     = $relation->getTargetTable()->getColumns();
+			$target_columns     = $relation->getTargetTable()
+										   ->getColumns();
 
 			foreach ($target_columns as $column) {
 				$target_columns_map[$column->getFullName()] = 1;
@@ -665,7 +594,8 @@
 		 */
 		private function resolveRelations(array $request_relations)
 		{
-			$table   = ORM::getDatabase('MY_PROJECT_DB_NS')->getTable(MyEntity::TABLE_NAME);
+			$table   = ORM::getDatabase('MY_PROJECT_DB_NS')
+						  ->getTable(MyEntity::TABLE_NAME);
 			$missing = [];
 			$rel_map = [];
 
