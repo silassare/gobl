@@ -212,12 +212,7 @@
 			$this->writeFile($class_path, $controller_class_tpl->runGet($inject));
 
 			return [
-				"service_class"   => $qualified_class,
-				"is_file_service" => false,
-				"can_serve_resp"  => false,
-				"cross_site"      => false,
-				"require_session" => true,
-				"request_methods" => ['POST', 'GET', 'PUT', 'PATCH', 'DELETE']
+				"service_class" => $qualified_class
 			];
 		}
 

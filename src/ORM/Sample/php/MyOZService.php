@@ -16,14 +16,13 @@
 	use Gobl\ORM\ORMServiceBase;
 	use MY_PROJECT_DB_NS\MyController;
 	use MY_PROJECT_DB_NS\MyEntity;
-	use OZONE\OZ\App\AppInterface;
 	use OZONE\OZ\Exceptions\BadRequestException;
 	use OZONE\OZ\Exceptions\ForbiddenException;
 	use OZONE\OZ\Exceptions\InvalidFieldException;
 	use OZONE\OZ\Exceptions\InvalidFormException;
 	use OZONE\OZ\Exceptions\NotFoundException;
-	use OZONE\OZ\Http\Request;
-	use OZONE\OZ\Http\Response;
+	use OZONE\OZ\Router\RouteContext;
+	use OZONE\OZ\Router\Router;
 
 	defined('OZ_SELF_SECURITY_CHECK') or die;
 
@@ -68,10 +67,11 @@
 		];
 
 		/**
-		 * {@inheritdoc}
+		 * @inheritdoc
+		 *
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
-		public static function registerRoutes(AppInterface $app)
+		public static function registerRoutes(Router $router)
 		{
 			$table       = ORM::getDatabase('MY_PROJECT_DB_NS')
 							  ->getTable(MyEntity::TABLE_NAME);
@@ -86,55 +86,69 @@
 				'relation' => Relation::NAME_PATTERN
 			];
 
-			$app->getRouter()
-				->post('/my_svc', function (Request $request, Response $response, array $args) use ($app) {
-					$service = new MyOZService();
-					$service->actionCreateEntity($request->getParams());
+			$router->post('/my_svc', function (RouteContext $context) {
+				$request_context = $context->getRequestContext();
+				$service         = new MyOZService();
+				$service->actionCreateEntity($request_context->getRequest()
+															 ->getParams());
 
-					return $service::writeResponse($app, $service, $response);
-				}, $options)
-				->get('/my_svc/{my_id}', function (Request $request, Response $response, array $args) use ($app) {
-					$service = new MyOZService();
-					$service->actionGetEntity($request->getParams(), $args);
+				return $service->writeResponse($request_context);
+			}, $options)
+				   ->get('/my_svc/{my_id}', function (RouteContext $context) {
+					   $request_context = $context->getRequestContext();
+					   $service         = new MyOZService();
+					   $service->actionGetEntity($request_context->getRequest()
+																 ->getParams(), $context->getArgs());
 
-					return $service::writeResponse($app, $service, $response);
-				}, $options)
-				->get('/my_svc', function (Request $request, Response $response, array $args) use ($app) {
-					$service = new MyOZService();
-					$service->actionGetAll($request->getParams());
+					   return $service->writeResponse($request_context);
+				   }, $options)
+				   ->get('/my_svc', function (RouteContext $context) {
+					   $request_context = $context->getRequestContext();
+					   $service         = new MyOZService();
+					   $service->actionGetAll($request_context->getRequest()
+															  ->getParams());
 
-					return $service::writeResponse($app, $service, $response);
-				}, $options)
-				->get('/my_svc/{my_id}/{relation}', function (Request $request, Response $response, array $args) use ($app) {
-					$service = new MyOZService();
-					$service->actionGetRelation($request->getParams(), $args);
+					   return $service->writeResponse($request_context);
+				   }, $options)
+				   ->get('/my_svc/{my_id}/{relation}', function (RouteContext $context) {
+					   $request_context = $context->getRequestContext();
+					   $service         = new MyOZService();
+					   $service->actionGetRelation($request_context->getRequest()
+																   ->getParams(), $context->getArgs());
 
-					return $service::writeResponse($app, $service, $response);
-				}, $options)
-				->patch('/my_svc/{my_id}', function (Request $request, Response $response, array $args) use ($app) {
-					$service = new MyOZService();
-					$service->actionUpdateEntity($request->getParams(), $args);
+					   return $service->writeResponse($request_context);
+				   }, $options)
+				   ->patch('/my_svc/{my_id}', function (RouteContext $context) {
+					   $request_context = $context->getRequestContext();
+					   $service         = new MyOZService();
+					   $service->actionUpdateEntity($request_context->getRequest()
+																	->getParams(), $context->getArgs());
 
-					return $service::writeResponse($app, $service, $response);
-				}, $options)
-				->patch('/my_svc', function (Request $request, Response $response, array $args) use ($app) {
-					$service = new MyOZService();
-					$service->actionUpdateAll($request->getParams());
+					   return $service->writeResponse($request_context);
+				   }, $options)
+				   ->patch('/my_svc', function (RouteContext $context) {
+					   $request_context = $context->getRequestContext();
+					   $service         = new MyOZService();
+					   $service->actionUpdateAll($request_context->getRequest()
+																 ->getParams());
 
-					return $service::writeResponse($app, $service, $response);
-				}, $options)
-				->delete('/my_svc/{my_id}', function (Request $request, Response $response, array $args) use ($app) {
-					$service = new MyOZService();
-					$service->actionDeleteEntity($args);
+					   return $service->writeResponse($request_context);
+				   }, $options)
+				   ->delete('/my_svc/{my_id}', function (RouteContext $context) {
+					   $request_context = $context->getRequestContext();
+					   $service         = new MyOZService();
+					   $service->actionDeleteEntity($context->getArgs());
 
-					return $service::writeResponse($app, $service, $response);
-				}, $options)
-				->delete('/my_svc', function (Request $request, Response $response, array $args) use ($app) {
-					$service = new MyOZService();
-					$service->actionDeleteAll($request->getParams());
+					   return $service->writeResponse($request_context);
+				   }, $options)
+				   ->delete('/my_svc', function (RouteContext $context) {
+					   $request_context = $context->getRequestContext();
+					   $service         = new MyOZService();
+					   $service->actionDeleteAll($request_context->getRequest()
+																 ->getParams());
 
-					return $service::writeResponse($app, $service, $response);
-				}, $options);
+					   return $service->writeResponse($request_context);
+				   }, $options);
 		}
 
 		/**

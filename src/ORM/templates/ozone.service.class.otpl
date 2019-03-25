@@ -16,14 +16,13 @@
 	use Gobl\ORM\ORMServiceBase;
 	use <%$.namespace%>\<%$.class.controller%>;
 	use <%$.namespace%>\<%$.class.entity%>;
-	use OZONE\OZ\App\AppInterface;
 	use OZONE\OZ\Exceptions\BadRequestException;
 	use OZONE\OZ\Exceptions\ForbiddenException;
 	use OZONE\OZ\Exceptions\InvalidFieldException;
 	use OZONE\OZ\Exceptions\InvalidFormException;
 	use OZONE\OZ\Exceptions\NotFoundException;
-	use OZONE\OZ\Http\Request;
-	use OZONE\OZ\Http\Response;
+	use OZONE\OZ\Router\RouteContext;
+	use OZONE\OZ\Router\Router;
 
 	defined('OZ_SELF_SECURITY_CHECK') or die;
 
@@ -68,10 +67,11 @@
 		];
 
 		/**
-		 * {@inheritdoc}
+		 * @inheritdoc
+		 *
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
-		public static function registerRoutes(AppInterface $app)
+		public static function registerRoutes(Router $router)
 		{
 			$table       = ORM::getDatabase('<%$.namespace%>')
 							  ->getTable(<%$.class.entity%>::TABLE_NAME);
@@ -86,55 +86,69 @@
 				'relation' => Relation::NAME_PATTERN
 			];
 
-			$app->getRouter()
-				->post('/<%$.service.name%>', function (Request $request, Response $response, array $args) use ($app) {
-					$service = new <%$.service.class%>();
-					$service->actionCreateEntity($request->getParams());
+			$router->post('/<%$.service.name%>', function (RouteContext $context) {
+				$request_context = $context->getRequestContext();
+				$service         = new <%$.service.class%>();
+				$service->actionCreateEntity($request_context->getRequest()
+															 ->getParams());
 
-					return $service::writeResponse($app, $service, $response);
-				}, $options)
-				->get('/<%$.service.name%>/{<%$.pk_columns[0].name%>}', function (Request $request, Response $response, array $args) use ($app) {
-					$service = new <%$.service.class%>();
-					$service->actionGetEntity($request->getParams(), $args);
+				return $service->writeResponse($request_context);
+			}, $options)
+				   ->get('/<%$.service.name%>/{<%$.pk_columns[0].name%>}', function (RouteContext $context) {
+					   $request_context = $context->getRequestContext();
+					   $service         = new <%$.service.class%>();
+					   $service->actionGetEntity($request_context->getRequest()
+																 ->getParams(), $context->getArgs());
 
-					return $service::writeResponse($app, $service, $response);
-				}, $options)
-				->get('/<%$.service.name%>', function (Request $request, Response $response, array $args) use ($app) {
-					$service = new <%$.service.class%>();
-					$service->actionGetAll($request->getParams());
+					   return $service->writeResponse($request_context);
+				   }, $options)
+				   ->get('/<%$.service.name%>', function (RouteContext $context) {
+					   $request_context = $context->getRequestContext();
+					   $service         = new <%$.service.class%>();
+					   $service->actionGetAll($request_context->getRequest()
+															  ->getParams());
 
-					return $service::writeResponse($app, $service, $response);
-				}, $options)
-				->get('/<%$.service.name%>/{<%$.pk_columns[0].name%>}/{relation}', function (Request $request, Response $response, array $args) use ($app) {
-					$service = new <%$.service.class%>();
-					$service->actionGetRelation($request->getParams(), $args);
+					   return $service->writeResponse($request_context);
+				   }, $options)
+				   ->get('/<%$.service.name%>/{<%$.pk_columns[0].name%>}/{relation}', function (RouteContext $context) {
+					   $request_context = $context->getRequestContext();
+					   $service         = new <%$.service.class%>();
+					   $service->actionGetRelation($request_context->getRequest()
+																   ->getParams(), $context->getArgs());
 
-					return $service::writeResponse($app, $service, $response);
-				}, $options)
-				->patch('/<%$.service.name%>/{<%$.pk_columns[0].name%>}', function (Request $request, Response $response, array $args) use ($app) {
-					$service = new <%$.service.class%>();
-					$service->actionUpdateEntity($request->getParams(), $args);
+					   return $service->writeResponse($request_context);
+				   }, $options)
+				   ->patch('/<%$.service.name%>/{<%$.pk_columns[0].name%>}', function (RouteContext $context) {
+					   $request_context = $context->getRequestContext();
+					   $service         = new <%$.service.class%>();
+					   $service->actionUpdateEntity($request_context->getRequest()
+																	->getParams(), $context->getArgs());
 
-					return $service::writeResponse($app, $service, $response);
-				}, $options)
-				->patch('/<%$.service.name%>', function (Request $request, Response $response, array $args) use ($app) {
-					$service = new <%$.service.class%>();
-					$service->actionUpdateAll($request->getParams());
+					   return $service->writeResponse($request_context);
+				   }, $options)
+				   ->patch('/<%$.service.name%>', function (RouteContext $context) {
+					   $request_context = $context->getRequestContext();
+					   $service         = new <%$.service.class%>();
+					   $service->actionUpdateAll($request_context->getRequest()
+																 ->getParams());
 
-					return $service::writeResponse($app, $service, $response);
-				}, $options)
-				->delete('/<%$.service.name%>/{<%$.pk_columns[0].name%>}', function (Request $request, Response $response, array $args) use ($app) {
-					$service = new <%$.service.class%>();
-					$service->actionDeleteEntity($args);
+					   return $service->writeResponse($request_context);
+				   }, $options)
+				   ->delete('/<%$.service.name%>/{<%$.pk_columns[0].name%>}', function (RouteContext $context) {
+					   $request_context = $context->getRequestContext();
+					   $service         = new <%$.service.class%>();
+					   $service->actionDeleteEntity($context->getArgs());
 
-					return $service::writeResponse($app, $service, $response);
-				}, $options)
-				->delete('/<%$.service.name%>', function (Request $request, Response $response, array $args) use ($app) {
-					$service = new <%$.service.class%>();
-					$service->actionDeleteAll($request->getParams());
+					   return $service->writeResponse($request_context);
+				   }, $options)
+				   ->delete('/<%$.service.name%>', function (RouteContext $context) {
+					   $request_context = $context->getRequestContext();
+					   $service         = new <%$.service.class%>();
+					   $service->actionDeleteAll($request_context->getRequest()
+																 ->getParams());
 
-					return $service::writeResponse($app, $service, $response);
-				}, $options);
+					   return $service->writeResponse($request_context);
+				   }, $options);
 		}
 
 		/**
