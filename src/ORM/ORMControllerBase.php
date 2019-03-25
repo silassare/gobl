@@ -62,8 +62,6 @@
 		 * @param string        $entity_class        The table's entity fully qualified class name.
 		 * @param string        $table_query_class   The table's query fully qualified class name.
 		 * @param string        $table_results_class The table's results iterator fully qualified class name.
-		 *
-		 * @throws \ReflectionException
 		 */
 		protected function __construct(Db $db, $table_name, $entity_class, $table_query_class, $table_results_class)
 		{

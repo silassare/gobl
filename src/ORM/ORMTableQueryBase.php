@@ -48,8 +48,6 @@
 		 *
 		 * @param string $table_name          The table name.
 		 * @param string $table_results_class The table's results iterator fully qualified class name.
-		 *
-		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function __construct($table_name, $table_results_class)
 		{

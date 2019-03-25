@@ -21,7 +21,6 @@
 		 * MyController constructor.
 		 *
 		 * @inheritdoc
-		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function __construct()
 		{

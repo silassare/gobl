@@ -41,12 +41,11 @@
 		 * @param string $namespace the database namespace
 		 *
 		 * @return \Gobl\DBAL\Db
-		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public static function getDatabase($namespace)
 		{
 			if (!isset(self::$databases[$namespace])) {
-				throw new ORMException(sprintf('No database registered for: %s', $namespace));
+				throw new \RuntimeException(sprintf('No database registered for: %s', $namespace));
 			}
 
 			return self::$databases[$namespace];

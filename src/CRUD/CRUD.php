@@ -61,9 +61,6 @@
 		 *
 		 * @param \Gobl\DBAL\Table                             $table   the target table
 		 * @param \Gobl\CRUD\Handler\CRUDHandlerInterface|null $handler the default handler to use
-		 *
-		 * @throws \ReflectionException
-		 * @throws \Exception
 		 */
 		public function __construct(Table $table, CRUDHandlerInterface $handler = null)
 		{
@@ -74,14 +71,16 @@
 				$this->crud_handler = $handler;
 			} elseif (isset(self::$crud_options[$name])) {
 				$handler = self::$crud_options[$name];
-				$rc      = new \ReflectionClass($handler);
-
-				if ($rc->implementsInterface(CRUDHandlerInterface::class)) {
-					$this->crud_handler = $rc->newInstance();
-				} else {
-					throw new \Exception(sprintf('Table %s CRUD handler class should implement %s.', $name, CRUDHandlerInterface::class));
+				try {
+					$rc = new \ReflectionClass($handler);
+					if ($rc->implementsInterface(CRUDHandlerInterface::class)) {
+						$this->crud_handler = $rc->newInstance();
+					} else {
+						throw new \InvalidArgumentException(sprintf('Table %s CRUD handler class should implement %s', $name, CRUDHandlerInterface::class));
+					}
+				} catch (\ReflectionException $e) {
+					throw new \RuntimeException(sprintf('Unable to create instance of %s', $handler), null, $e);
 				}
-
 			} else {
 				$this->crud_handler = new CRUDHandler();
 			}

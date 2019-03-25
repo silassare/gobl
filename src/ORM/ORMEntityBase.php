@@ -109,8 +109,6 @@
 		 * @param bool   $strict            Enable/disable strict mode.
 		 * @param string $table_name        The table name.
 		 * @param string $table_query_class The table query's fully qualified class name.
-		 *
-		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		protected function __construct($is_new, $strict, $table_name, $table_query_class)
 		{

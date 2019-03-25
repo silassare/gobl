@@ -68,8 +68,6 @@
 
 		/**
 		 * @inheritdoc
-		 *
-		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public static function registerRoutes(Router $router)
 		{
@@ -603,7 +601,6 @@
 		 * @param array $request_relations
 		 *
 		 * @return array
-		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 * @throws \OZONE\OZ\Exceptions\NotFoundException
 		 */
 		private function resolveRelations(array $request_relations)
