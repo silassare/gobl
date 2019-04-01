@@ -215,9 +215,9 @@
 			} elseif (!$this->isSaved() AND !empty($this->_row_saved)) {
 				// update
 				$class_name = $this->_table_query_class;
-				/** @var \Gobl\ORM\ORMTableQueryBase $iqb */
-				$iqb     = new $class_name;
-				$returns = $iqb->safeUpdate($this->_row_saved, $this->_row)
+				/** @var \Gobl\ORM\ORMTableQueryBase $tqb */
+				$tqb     = new $class_name;
+				$returns = $tqb->safeUpdate($this->_row_saved, $this->_row)
 							   ->execute();
 			} else {
 				// nothing to do
