@@ -371,6 +371,7 @@
 			$this->crud->assertUpdateAll($filters, $new_values);
 
 			static::assertFiltersNotEmpty($filters);
+			static::assertUpdateColumns($this->db->getTable($this->table_name), array_keys($new_values));
 
 			/** @var \Gobl\ORM\ORMTableQueryBase $query */
 			$query = new $this->table_results_class;
@@ -641,8 +642,8 @@
 		 * Asserts that there is at least one column to update and
 		 * the column(s) to update really exists the table.
 		 *
-		 * @param Table $table
-		 * @param array $columns The columns list
+		 * @param Table $table   The table
+		 * @param array $columns The columns to update
 		 *
 		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
 		 */
