@@ -26,8 +26,6 @@
 		 * @param bool $is_new True for new entity false for entity fetched
 		 *                     from the database, default is true.
 		 * @param bool $strict Enable/disable strict mode
-		 *
-		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function __construct($is_new = true, $strict = true)
 		{

@@ -15,8 +15,6 @@
 	{
 		/**
 		 * MyTableQuery constructor.
-		 *
-		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function __construct()
 		{
