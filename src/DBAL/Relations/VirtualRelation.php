@@ -10,6 +10,8 @@
 
 	namespace Gobl\DBAL\Relations;
 
+	use Gobl\ORM\ORMRequestContext;
+
 	abstract class VirtualRelation
 	{
 		const NAME_REG = Relation::NAME_REG;
@@ -42,13 +44,11 @@
 		}
 
 		/**
-		 * @param mixed $target
-		 * @param array $request
-		 * @param int   $max
-		 * @param int   $offset
-		 * @param int   $total_records
+		 * @param mixed                       $target
+		 * @param \Gobl\ORM\ORMRequestContext $request_context
+		 * @param int                         $total_records
 		 *
 		 * @return mixed
 		 */
-		abstract public function run($target, array $request, $max = null, $offset = 0, &$total_records = null);
+		abstract public function run($target, ORMRequestContext $request_context, &$total_records = null);
 	}
