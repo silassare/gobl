@@ -29,16 +29,13 @@
 		'MyOZService'                           => '<%$.service.class%>',
 		'my_svc'                                => '<%$.service.name%>',
 		'my_id'                                 => '<%$.pk_columns[0].name%>',
-		'\'my_pk_column_const\''                => '<%$.class.entity%>::<%$.pk_columns[0].const%>',
-		'//__OZONE_COLUMNS_NAME_MAP__'          => '<%@import(\'include/ozone.columns.name.map.otpl\',$)%>',
-		'//__OZONE_RELATIONS_NAME_MAP__'        => '<%@import(\'include/ozone.relations.name.map.otpl\',$)%>'
+		'\'my_pk_column_const\''                => '<%$.class.entity%>::<%$.pk_columns[0].const%>'
 	];
 
 	$search      = array_keys($map);
 	$replacement = array_values($map);
 
-	$toTemplate = function ($from, $to) use ($search, $replacement)
-	{
+	$toTemplate = function ($from, $to) use ($search, $replacement) {
 		$source = file_get_contents($from);
 		$tpl    = str_replace($search, $replacement, $source);
 
