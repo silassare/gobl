@@ -10,6 +10,8 @@
 
 	namespace Gobl\DBAL\Collections;
 
+	use Gobl\ORM\ORMRequestContext;
+
 	class Collection
 	{
 		const NAME_REG = '#^(?:[a-zA-Z][a-zA-Z0-9_-]*[a-zA-Z0-9]|[a-zA-Z])$#';
@@ -40,6 +42,8 @@
 		}
 
 		/**
+		 * Gets collection name.
+		 *
 		 * @return string
 		 */
 		public function getName()
@@ -48,16 +52,15 @@
 		}
 
 		/**
-		 * @param array $filters
-		 * @param int   $max
-		 * @param int   $offset
-		 * @param array $order_by
-		 * @param int   $total_records
+		 * Runs the collection callable.
+		 *
+		 * @param \Gobl\ORM\ORMRequestContext $request_context
+		 * @param int                         $total_records
 		 *
 		 * @return mixed
 		 */
-		public function run(array $filters = [], $max = null, $offset = 0, array $order_by = [], &$total_records = null)
+		public function run(ORMRequestContext $request_context, &$total_records = null)
 		{
-			return call_user_func_array($this->callable, [$filters, $max, $offset, $order_by, &$total_records]);
+			return call_user_func_array($this->callable, [$request_context, &$total_records]);
 		}
 	}
