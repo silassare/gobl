@@ -10,15 +10,13 @@
 
 	namespace Gobl\ORM;
 
+	use Gobl\DBAL\Collections\Collection;
+	use Gobl\DBAL\Relations\Relation;
+	use Gobl\DBAL\Table;
 	use Gobl\ORM\Exceptions\ORMQueryException;
 
-	final class ORMForm
+	final class ORMQueryContext
 	{
-		/**
-		 * @var array
-		 */
-		private $request_data;
-
 		/**
 		 * @var array
 		 */
@@ -55,36 +53,112 @@
 		private $max = null;
 
 		/**
-		 * Request constructor.
+		 * ORMQueryContext constructor.
 		 *
-		 * @param array $request_data
+		 * @param array $data
 		 */
-		public function __construct(array $request_data = [])
+		public function __construct(array $data = [])
 		{
-			$this->request_data = $request_data;
-
 			try {
-				$this->parse();
+				$this->parse($data);
 			} catch (\Exception $e) {
 				throw new \InvalidArgumentException('Invalid form.', null, $e);
 			}
 		}
 
 		/**
-		 * @param array $columns
+		 * Returns form data
+		 *
+		 * @param \Gobl\DBAL\Table|null $table
 		 *
 		 * @return array
 		 */
-		public function getFormData(array $columns = [])
+		public function getFormData(Table $table = null)
 		{
-			return self::onlyColumns($columns, $this->form_data);
+			return self::scoped($this->form_data, $table);
 		}
 
 		/**
+		 * Sets filters.
+		 *
+		 * @param array $filters
+		 *
+		 * @return $this
+		 */
+		public function setFilters(array $filters)
+		{
+			$this->filters = self::normalizeFilters($filters);
+
+			return $this;
+		}
+
+		/**
+		 * Returns the request filters
+		 *
+		 * @param \Gobl\DBAL\Table|null $table
+		 *
+		 * @return array
+		 */
+		public function getFilters(Table $table = null)
+		{
+			return self::scoped($this->filters, $table);
+		}
+
+		/**
+		 * Adds a filter.
+		 *
+		 * @param string $column_name
+		 * @param mixed  $filter
+		 *
+		 * @return $this
+		 */
+		public function addColumnFilter($column_name, $filter)
+		{
+			$this->filters[$column_name][] = $filter;
+			$this->filters                 = self::normalizeFilters($this->filters);
+
+			return $this;
+		}
+
+		/**
+		 * Sets filters of a given column name.
+		 *
+		 * @param string $column_name
+		 * @param array  $filters
+		 *
+		 * @return $this
+		 */
+		public function setColumnFilters($column_name, array $filters)
+		{
+			$this->filters[$column_name] = $filters;
+			$this->filters               = self::normalizeFilters($this->filters);
+
+			return $this;
+		}
+
+		/**
+		 * Gets filters of a given column name.
+		 *
+		 * @param string $column_name
+		 *
+		 * @return array|null
+		 */
+		public function getColumnFilters($column_name)
+		{
+			if (isset($this->filters[$column_name])) {
+				return $this->filters[$column_name];
+			}
+
+			return null;
+		}
+
+		/**
+		 * Sets the value of the form data field with the given name.
+		 *
 		 * @param string $name
 		 * @param mixed  $value
 		 *
-		 * @return \Gobl\ORM\ORMForm
+		 * @return \Gobl\ORM\ORMQueryContext
 		 */
 		public function setField($name, $value)
 		{
@@ -94,6 +168,8 @@
 		}
 
 		/**
+		 * Removes the form data field with the given name.
+		 *
 		 * @param string $name
 		 *
 		 * @return $this
@@ -108,9 +184,11 @@
 		/**
 		 * Returns parsed request data.
 		 *
+		 * @param \Gobl\DBAL\Table|null $table
+		 *
 		 * @return array
 		 */
-		public function getParsedRequestData()
+		public function getParsedRequestData(Table $table = null)
 		{
 			$r = [];
 
@@ -123,15 +201,15 @@
 			}
 
 			if (!empty($this->filters)) {
-				$r['filters'] = $this->filters;
+				$r['filters'] = self::scoped($this->filters, $table);
 			}
 
 			if (!empty($this->relations)) {
-				$r['relations'] = self::encodeRelations($this->relations);
+				$r['relations'] = self::encodeRelations(self::scoped($this->relations, $table));
 			}
 
 			if (!empty($this->order_by)) {
-				$r['order_by'] = self::encodeOrderBy($this->order_by);
+				$r['order_by'] = self::encodeOrderBy(self::scoped($this->order_by, $table));
 			}
 
 			if (isset($this->max)) {
@@ -143,6 +221,20 @@
 			}
 
 			return $r;
+		}
+
+		/**
+		 * Creates scoped instance.
+		 *
+		 * @param \Gobl\DBAL\Table $table
+		 *
+		 * @return \Gobl\ORM\ORMQueryContext
+		 */
+		public function createScopedInstance(Table $table)
+		{
+			$request_data = $this->getParsedRequestData($table);
+
+			return new self($request_data);
 		}
 
 		/**
@@ -182,35 +274,61 @@
 		/**
 		 * Returns the request order by rules.
 		 *
-		 * @param array $columns
+		 * @param \Gobl\DBAL\Table|null $table
 		 *
 		 * @return array
 		 */
-		public function getOrderBy(array $columns = [])
+		public function getOrderBy(Table $table = null)
 		{
-			return self::onlyColumns($columns, $this->order_by);
+			return self::scoped($this->order_by, $table);
 		}
 
 		/**
-		 * Returns the request filters
+		 * Sets the requested collection.
 		 *
-		 * @param array $columns
+		 * @param string $name
 		 *
-		 * @return array
+		 * @return string
 		 */
-		public function getFilters(array $columns = [])
+		public function setCollection($name)
 		{
-			return self::onlyColumns($columns, $this->filters);
+			if (!self::isValidCollectionName($name)) {
+				throw new \InvalidArgumentException('The collection name is invalid.');
+			}
+
+			$this->collection = $name;
+
+			return $this;
 		}
 
 		/**
-		 * Returns requested collection.
+		 * Returns requested collection
 		 *
 		 * @return string
 		 */
 		public function getCollection()
 		{
 			return $this->collection;
+		}
+
+		/**
+		 * Adds the relation to requested relations list.
+		 *
+		 * @param string $name
+		 *
+		 * @return string
+		 */
+		public function addRelation($name)
+		{
+			if (!self::isValidRelationName($name)) {
+				throw new \InvalidArgumentException('The relation name is invalid.');
+			}
+
+			if (!in_array($name, $this->relations)) {
+				$this->relations[] = $name;
+			}
+
+			return $this;
 		}
 
 		/**
@@ -224,14 +342,24 @@
 		}
 
 		/**
+		 * @param array $request_data
+		 *
 		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 		 */
-		private function parse()
+		private function parse(array $request_data)
 		{
-			$request_data    = $this->request_data;
-			$this->form_data = [];
-			$this->filters   = [];
-			$this->order_by  = self::decodeOrderBy($request_data);
+			// form data
+			if (isset($request_data['data'])) {
+				$data = $request_data['data'];
+
+				if (!is_array($data)) {
+					throw new ORMQueryException('GOBL_ORM_QUERY_INVALID_FORM_DATA', $request_data);
+				}
+
+				$this->form_data = $data;
+			} else {
+				$this->form_data = [];
+			}
 
 			// pagination
 			$pg         = self::paginate($request_data);
@@ -247,69 +375,98 @@
 				}
 
 				$this->filters = self::normalizeFilters($filters);
-			}
-
-			// form data
-			if (isset($request_data['data'])) {
-				$data = $request_data['data'];
-
-				if (!is_array($data)) {
-					throw new ORMQueryException('GOBL_ORM_QUERY_INVALID_FORM_DATA', $request_data);
-				}
-				$this->form_data = $data;
+			} else {
+				$this->filters = [];
 			}
 
 			// relations
-			$this->relations = [];
-
 			if (isset($request_data['relations'])) {
-				$relations = $request_data['relations'];
-
-				if (!is_string($relations)) {
+				if (!self::isNonEmptyString($request_data['relations'])) {
 					throw new ORMQueryException('GOBL_ORM_QUERY_INVALID_RELATIONS', $request_data);
 				}
 
-				if (strlen($relations)) {
-					$relations = array_unique(explode('|', $relations));
+				$relations = array_unique(explode('|', $request_data['relations']));
 
-					foreach ($relations as $relation) {
-						if (empty($relation)) {
-							throw new ORMQueryException('GOBL_ORM_QUERY_INVALID_RELATIONS', $request_data);
-						}
+				foreach ($relations as $relation) {
+					if (!self::isValidRelationName($relation)) {
+						throw new ORMQueryException('GOBL_ORM_QUERY_INVALID_RELATIONS', $request_data);
 					}
-
-					$this->relations = $relations;
 				}
+
+				$this->relations = $relations;
+			} else {
+				$this->relations = [];
 			}
 
 			// collection
-			if (!isset($request_data['collection'])) {
-				$this->collection = null;
-			} elseif (!is_string($request_data['collection']) OR !strlen($request_data['collection'])) {
-				throw new ORMQueryException('GOBL_ORM_QUERY_INVALID_COLLECTION', $request_data);
-			} else {
+			if (isset($request_data['collection'])) {
+				if (!self::isValidCollectionName($request_data['collection'])) {
+					throw new ORMQueryException('GOBL_ORM_QUERY_INVALID_COLLECTION', $request_data);
+				}
+
 				$this->collection = $request_data['collection'];
+			} else {
+				$this->collection = null;
 			}
+
+			// order by
+			$this->order_by = self::decodeOrderBy($request_data);
+		}
+
+		/**
+		 * Checks for non-empty string.
+		 *
+		 * @param mixed $name
+		 *
+		 * @return bool
+		 */
+		private function isNonEmptyString($name)
+		{
+			return is_string($name) AND strlen($name);
+		}
+
+		/**
+		 * Checks for valid collection name.
+		 *
+		 * @param mixed $name
+		 *
+		 * @return bool
+		 */
+		private function isValidCollectionName($name)
+		{
+			return is_string($name) AND strlen($name) AND preg_match(Collection::NAME_REG, $name);
+		}
+
+		/**
+		 * Checks for valid relation name.
+		 *
+		 * @param $name
+		 *
+		 * @return bool
+		 */
+		private function isValidRelationName($name)
+		{
+			return is_string($name) AND strlen($name) AND preg_match(Relation::NAME_REG, $name);
 		}
 
 		/**
 		 * Returns columns from column_map and they value from fields.
 		 *
-		 * @param array $columns
-		 * @param array $map
+		 * @param array                 $map
+		 * @param \Gobl\DBAL\Table|null $table
 		 *
 		 * @return array
 		 */
-		private static function onlyColumns(array $columns, array $map)
+		private static function scoped(array $map, Table $table = null)
 		{
-			if (empty($columns)) {
+			if (is_null($table)) {
 				return $map;
 			}
 
 			$values = [];
 
 			foreach ($map as $field => $value) {
-				if (isset($columns[$field])) {
+				if ($table->hasColumn($field)) {
 					$values[$field] = $value;
 				}
 			}
