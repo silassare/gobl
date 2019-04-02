@@ -1,2 +1,0 @@
-<%loop($.relations.list : $relation){%>
-			'<%$relation.name%>' => 1,<%}%>
