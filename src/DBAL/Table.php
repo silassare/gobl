@@ -552,11 +552,66 @@
 		/**
 		 * Gets columns.
 		 *
+		 * @param bool $include_private if false private column will not be included.
+		 *                              Default is true.
+		 *
 		 * @return \Gobl\DBAL\Column[]
 		 */
-		public function getColumns()
+		public function getColumns($include_private = true)
 		{
+			if (false === $include_private) {
+				$columns = [];
+
+				foreach ($this->columns as $name => $column) {
+					if (!$column->isPrivate()) {
+						$columns[$name] = $column;
+					}
+				}
+
+				return $columns;
+			}
+
 			return $this->columns;
+		}
+
+		/**
+		 * Gets columns fullname list.
+		 *
+		 * @param bool $include_private if false private column will not be included.
+		 *                              Default is true.
+		 *
+		 * @return array
+		 */
+		public function getColumnsFullNameList($include_private = true)
+		{
+			$names = [];
+			foreach ($this->columns as $column) {
+				if ($include_private OR !$column->isPrivate()) {
+					$names[] = $column->getFullName();
+				}
+			}
+
+			return $names;
+		}
+
+		/**
+		 * Gets columns name list.
+		 *
+		 * @param bool $include_private if false private column will not be included.
+		 *                              Default is true.
+		 *
+		 * @return array
+		 */
+		public function getColumnsNameList($include_private = true)
+		{
+			$names = [];
+			foreach ($this->columns as $column) {
+				if ($include_private OR !$column->isPrivate()) {
+					$names[] = $column->getName();
+				}
+			}
+
+			return $names;
 		}
 
 		/**
