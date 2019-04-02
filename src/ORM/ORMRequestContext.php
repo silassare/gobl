@@ -15,7 +15,7 @@
 	use Gobl\DBAL\Table;
 	use Gobl\ORM\Exceptions\ORMQueryException;
 
-	final class ORMQueryContext
+	final class ORMRequestContext
 	{
 		/**
 		 * @var array
@@ -55,12 +55,12 @@
 		/**
 		 * ORMQueryContext constructor.
 		 *
-		 * @param array $data
+		 * @param array $request_data
 		 */
-		public function __construct(array $data = [])
+		public function __construct(array $request_data = [])
 		{
 			try {
-				$this->parse($data);
+				$this->parse($request_data);
 			} catch (\Exception $e) {
 				throw new \InvalidArgumentException('Invalid form.', null, $e);
 			}
@@ -158,7 +158,7 @@
 		 * @param string $name
 		 * @param mixed  $value
 		 *
-		 * @return \Gobl\ORM\ORMQueryContext
+		 * @return $this
 		 */
 		public function setField($name, $value)
 		{
@@ -228,7 +228,7 @@
 		 *
 		 * @param \Gobl\DBAL\Table $table
 		 *
-		 * @return \Gobl\ORM\ORMQueryContext
+		 * @return \Gobl\ORM\ORMRequestContext
 		 */
 		public function createScopedInstance(Table $table)
 		{
