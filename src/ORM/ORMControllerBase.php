@@ -543,32 +543,6 @@
 		}
 
 		/**
-		 * Gets collection items from the table.
-		 *
-		 * @param string   $name
-		 * @param array    $filters
-		 * @param int|null $max
-		 * @param int      $offset
-		 * @param array    $order_by
-		 * @param bool     $total_records
-		 *
-		 * @return \Gobl\ORM\ORMEntityBase[]
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-		 */
-		public function getCollectionItems($name, array $filters = [], $max = null, $offset = 0, array $order_by = [], &$total_records = false)
-		{
-			$table      = $this->db->getTable($this->table_name);
-			$collection = $table->getCollection($name);
-
-			if (!$collection) {
-				throw new ORMQueryException("QUERY_INVALID_COLLECTION");
-			}
-
-			return $collection->run($filters, $max, $offset, $order_by, $total_records);
-		}
-
-		/**
 		 * Finds all items in the table that match the given filters.
 		 *
 		 * @param array    $filters  the row filters

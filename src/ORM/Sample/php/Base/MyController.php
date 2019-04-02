@@ -188,26 +188,4 @@
 
 			return $results;
 		}
-
-		/**
-		 * Gets collection items from `my_table`.
-		 *
-		 * @param string   $name
-		 * @param array    $filters
-		 * @param int|null $max
-		 * @param int      $offset
-		 * @param array    $order_by
-		 * @param bool     $total_records
-		 *
-		 * @return \MY_PROJECT_DB_NS\MyEntity[]
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-		 */
-		public function getCollectionItems($name, array $filters = [], $max = null, $offset = 0, array $order_by = [], &$total_records = false)
-		{
-			/** @var \MY_PROJECT_DB_NS\MyEntity[] $results */
-			$results = parent::getCollectionItems($name, $filters, $max, $offset, $order_by, $total_records);
-
-			return $results;
-		}
 	}
