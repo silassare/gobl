@@ -250,12 +250,15 @@
 		 * @param string $source the template source
 		 *
 		 * @return \OTpl\OTpl
-		 * @throws \Exception
 		 */
 		private function getTemplate($source)
 		{
-			$o = new OTpl;
-			$o->parse($source);
+			try {
+				$o = new OTpl;
+				$o->parse($source);
+			} catch (\Exception $e) {
+				throw new \RuntimeException('Template compile error.', null, $e);
+			}
 
 			return $o;
 		}

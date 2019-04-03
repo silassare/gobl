@@ -16,7 +16,6 @@
 	use Gobl\DBAL\Rule;
 	use Gobl\DBAL\Table;
 	use Gobl\ORM\Exceptions\ORMControllerFormException;
-	use Gobl\ORM\Exceptions\ORMQueryException;
 
 	class ORMControllerBase
 	{
