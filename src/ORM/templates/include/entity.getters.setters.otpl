@@ -21,7 +21,7 @@
 		 *
 		 * @param <%$column.argType%> $<%$column.argName%>
 		 *
-		 * @return $this
+		 * @return \<%$.namespace%>\<%$.class.entity%>
 		 */
 		public function set<%$column.methodSuffix%>($<%$column.argName%>)
 		{

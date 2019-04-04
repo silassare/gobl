@@ -113,26 +113,22 @@
 		 *
 		 * @param mixed $a
 		 * @param mixed $b
+		 * @param bool  $or_equal
 		 *
 		 * @return bool
 		 */
-		private static function isLt($a, $b)
+		private static function isLt($a, $b, $or_equal = true)
 		{
-			$_a = $a + 0;
-			$_b = $b + 0;
-
 			if (function_exists("bccomp")) {
 				// make sure to have bcmath
-				// TODO find a way to avoid using bcmath
+				$a = sprintf('%F', $a);
+				$b = sprintf('%F', $b);
+				$c = bccomp($a, $b);
 
-				if ($_a < PHP_INT_MIN AND $_b < PHP_INT_MIN) {
-					return bccomp($a, $b) <= 0 ? true : false;
-				} elseif ($_a > PHP_INT_MAX AND $_b > PHP_INT_MAX) {
-					return bccomp($a, $b) <= 0 ? false : true;
-				}
+				return $or_equal ? $c <= 0 : $c < 0;
 			}
 
-			return $_a <= $_b;
+			return $or_equal ? $a <= $b : $a < $b;
 		}
 
 		/**
