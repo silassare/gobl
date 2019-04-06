@@ -21,7 +21,7 @@
 		 *
 		 * @param <%$column.argType%> $<%$column.argName%>
 		 *
-		 * @return $this
+		 * @return static
 		 */
 		public function set<%$column.methodSuffix%>($<%$column.argName%>)
 		{
