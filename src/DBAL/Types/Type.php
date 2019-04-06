@@ -81,7 +81,7 @@
 		/**
 		 * Called to validate a form field value.
 		 *
-		 * @param string $value       the value to validate
+		 * @param mixed  $value       the value to validate
 		 * @param string $column_name the column name
 		 * @param string $table_name  the table name
 		 *
