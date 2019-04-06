@@ -18,18 +18,101 @@
 	interface RDBMS
 	{
 		/**
-		 * the relational database management system constructor.
+		 * The relational database management system constructor.
 		 *
-		 * @param array $config
+		 * @param array         $config
 		 */
 		public function __construct(array $config);
 
 		/**
-		 * connect to the relational database management system.
+		 * Begin a new transaction.
 		 *
-		 * @return \PDO
+		 * @return bool
 		 */
-		public function connect();
+		public function beginTransaction();
+
+		/**
+		 * Commit current transaction.
+		 *
+		 * @return bool
+		 */
+		public function commit();
+
+		/**
+		 * Rollback current transaction.
+		 *
+		 * @return bool
+		 */
+		public function rollBack();
+
+		/**
+		 * Executes raw sql string.
+		 *
+		 * @param string     $sql                    the sql query string
+		 * @param array|null $params                 Your sql params
+		 * @param array|null $params_types           Your sql params type
+		 * @param bool       $is_multi_queries       the sql string contains multiple query
+		 * @param bool       $in_transaction         run the query in a transaction
+		 * @param bool       $auto_close_transaction auto commit or rollback
+		 *
+		 * @return \PDOStatement
+		 */
+		public function execute($sql, array $params = null, array $params_types = null, $is_multi_queries = false, $in_transaction = false, $auto_close_transaction = false);
+
+		/**
+		 * Executes sql string with multiples query.
+		 *
+		 * Suitable for sql file content.
+		 *
+		 * @param string $sql the sql query string
+		 *
+		 * @return \PDOStatement
+		 */
+		public function executeMulti($sql);
+
+		/**
+		 * Executes select queries.
+		 *
+		 * @param string     $sql          Your sql select query
+		 * @param array|null $params       Your sql select params
+		 * @param array      $params_types Your sql params types
+		 *
+		 * @return \PDOStatement
+		 */
+		public function select($sql, array $params = null, array $params_types = []);
+
+		/**
+		 * Executes delete queries.
+		 *
+		 * @param string     $sql          Your sql select query
+		 * @param array|null $params       Your sql select params
+		 * @param array      $params_types Your sql params types
+		 *
+		 * @return int    Affected row count
+		 */
+		public function delete($sql, array $params = null, array $params_types = []);
+
+		/**
+		 * Executes insert queries.
+		 *
+		 * @param string     $sql          Your sql select query
+		 * @param array|null $params       Your sql select params
+		 * @param array      $params_types Your sql params types
+		 *
+		 * @return string The last insert id
+		 */
+		public function insert($sql, array $params = null, array $params_types = []);
+
+		/**
+		 * Executes update queries.
+		 *
+		 * @param string     $sql          Your sql select query
+		 * @param array|null $params       Your sql select params
+		 * @param array      $params_types Your sql params types
+		 *
+		 * @return int    Affected row count
+		 */
+		public function update($sql, array $params = null, array $params_types = []);
 
 		/**
 		 * Builds database query.
@@ -37,12 +120,11 @@
 		 * When namespace is not empty,
 		 * only tables with the given namespace will be generated.
 		 *
-		 * @param \Gobl\DBAL\Db $db        the database object
-		 * @param string|null          $namespace the table namespace to generate
+		 * @param string|null $namespace the table namespace to generate
 		 *
 		 * @return string
 		 */
-		public function buildDatabase(Db $db, $namespace = null);
+		public function buildDatabase($namespace = null);
 
 		/**
 		 * Gets this rdbms query generator.

@@ -73,6 +73,19 @@
 			$this->db = $db;
 		}
 
+		/**
+		 * Destructor.
+		 */
+		public function __destruct()
+		{
+			$this->db = null;
+		}
+
+		/**
+		 * Disable clone.
+		 */
+		private function __clone() { }
+
 		public function getBoundValues()
 		{
 			return $this->bound_values;
@@ -818,8 +831,7 @@
 		 */
 		public function getSqlQuery()
 		{
-			return $this->db->getRDBMS()
-							->getQueryGenerator($this)
+			return $this->db->getQueryGenerator($this)
 							->buildQuery();
 		}
 
@@ -845,8 +857,7 @@
 				$this->options["limitMax"]    = null;
 			}
 
-			$sql = $this->db->getRDBMS()
-							->getQueryGenerator($this)
+			$sql = $this->db->getQueryGenerator($this)
 							->buildQuery();
 
 			$sql = 'SELECT ' . 'COUNT(1) FROM (' . $sql . ') as __gobl_alias';

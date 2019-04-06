@@ -11,6 +11,7 @@
 	namespace Gobl\DBAL;
 
 	use Gobl\DBAL\Constraints\ForeignKey;
+	use Gobl\DBAL\Drivers\MySQL;
 	use Gobl\DBAL\Exceptions\DBALException;
 	use Gobl\DBAL\Relations\ManyToMany;
 	use Gobl\DBAL\Relations\ManyToOne;
@@ -22,8 +23,17 @@
 	 *
 	 * @package Gobl\DBAL
 	 */
-	class Db
+	abstract class Db implements RDBMS
 	{
+		/**
+		 * Gobl rdbms class setting shortcuts map
+		 *
+		 * @var array
+		 */
+		private static $rdbms_map = [
+			'mysql' => MySQL::class
+		];
+
 		/**
 		 * Database tables.
 		 *
@@ -37,13 +47,6 @@
 		private $tbl_full_name_map = [];
 
 		/**
-		 * Relational database management system.
-		 *
-		 * @var \Gobl\DBAL\RDBMS
-		 */
-		private $rdbms;
-
-		/**
 		 * PDO database connection instance.
 		 *
 		 * @var \PDO
@@ -51,33 +54,11 @@
 		private $db_connection;
 
 		/**
-		 * Transaction state flag
-		 *
-		 * @var bool
-		 */
-		private $trans_on = false;
-
-		/**
 		 * Used to generate bind param id.
 		 *
 		 * @var int
 		 */
-		private static $bind_unique_id = 0;
-
-		/**
-		 * Db constructor.
-		 *
-		 * @param \Gobl\DBAL\RDBMS $rdbms
-		 */
-		protected function __construct(RDBMS $rdbms)
-		{
-			$this->rdbms = $rdbms;
-		}
-
-		/**
-		 * Prevent external clone.
-		 */
-		private function __clone() { }
+		private $bind_unique_id = 0;
 
 		/**
 		 * Db destructor.
@@ -85,18 +66,12 @@
 		public function __destruct()
 		{
 			$this->db_connection = null;
-			$this->rdbms         = null;
 		}
 
 		/**
-		 * Gets the rdbms.
-		 *
-		 * @return \Gobl\DBAL\RDBMS
+		 * Disable clone.
 		 */
-		public function getRDBMS()
-		{
-			return $this->rdbms;
-		}
+		private function __clone() { }
 
 		/**
 		 * Gets database connection.
@@ -106,225 +81,18 @@
 		public function getConnection()
 		{
 			if (empty($this->db_connection)) {
-				$this->db_connection = $this->rdbms->connect();
+				$this->db_connection = $this->connect();
 			}
 
 			return $this->db_connection;
 		}
 
 		/**
-		 * Executes raw sql string.
+		 * Connect to the relational database management system.
 		 *
-		 * @param string     $sql              the sql query string
-		 * @param array|null $params           Your sql params
-		 * @param array|null $params_types     Your sql params type
-		 * @param bool       $trans_on         run the query in a transaction
-		 * @param bool       $trans_auto       auto commit or rollback
-		 * @param bool       $is_multi_queries the sql string contains multiple query
-		 *
-		 * @return \PDOStatement
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @return \PDO
 		 */
-		public function execute($sql, array $params = null, array $params_types = null, $is_multi_queries = false, $trans_on = false, $trans_auto = false)
-		{
-			if (empty($sql)) {
-				throw new DBALException('Your query is empty.');
-			}
-
-			if ($trans_on) {
-				$this->beginTransaction();
-			}
-
-			$connection = $this->getConnection();
-
-			try {
-				$stmt = $connection->prepare($sql);
-
-				if ($params !== null) {
-					foreach ($params as $key => $value) {
-						if (isset($params_types[$key])) {
-							$param_type = $params_types[$key];
-						} else {
-							$param_type = QueryTokenParser::paramType($value);
-						}
-
-						$stmt->bindValue(is_int($key) ? $key + 1 : $key, $value, $param_type);
-					}
-				}
-
-				$stmt->execute();
-
-				if ($is_multi_queries) {
-					/* https://bugs.php.net/bug.php?id=61613 */
-					$i = 0;
-					while ($stmt->nextRowset()) {
-						$i++;
-					}
-				}
-
-				if ($this->trans_on AND $trans_auto) {
-					$this->commit();
-				}
-
-				return $stmt;
-
-			} catch (\PDOException $e) {
-				if ($this->trans_on AND $trans_auto) {
-					$this->rollBack();
-				}
-
-				throw $e;
-			}
-		}
-
-		/**
-		 * Executes sql string with multiples query.
-		 *
-		 * Suitable for sql file content.
-		 *
-		 * @param string $sql the sql query string
-		 *
-		 * @return \PDOStatement
-		 * @throws \Exception
-		 */
-		public function executeMulti($sql)
-		{
-			return $this->execute($sql, null, null, true, true, true);
-		}
-
-		/**
-		 * Begin transaction.
-		 *
-		 * @return bool
-		 */
-		public function beginTransaction()
-		{
-			$con = $this->getConnection();
-
-			if (!$this->trans_on) {
-				$this->trans_on = true;
-
-				if ($con->inTransaction()) {
-					return true;
-				}
-
-				return $con->beginTransaction();
-			}
-
-			return true;
-		}
-
-		/**
-		 * Commit current transaction.
-		 *
-		 * @return bool
-		 */
-
-		public function commit()
-		{
-			if ($this->trans_on) {
-				$this->trans_on = false;
-				return $this->getConnection()->commit();
-			}
-			return true;
-		}
-
-		/**
-		 * Rollback current transaction.
-		 *
-		 * @return bool
-		 */
-		public function rollBack()
-		{
-			if ($this->trans_on) {
-				$this->trans_on = false;
-				return $this->getConnection()->rollBack();
-			}
-			return true;
-		}
-
-		/**
-		 * Executes a query and return affected row count.
-		 *
-		 * @param string     $sql          Your sql query
-		 * @param array|null $params       Your sql params
-		 * @param array      $params_types Your sql params types
-		 *
-		 * @return int Affected row count.
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 */
-		private function query($sql, array $params = null, array $params_types = [])
-		{
-			$stmt = $this->execute($sql, $params, $params_types);
-
-			return $stmt->rowCount();
-		}
-
-		/**
-		 * Executes select queries.
-		 *
-		 * @param string     $sql          Your sql select query
-		 * @param array|null $params       Your sql select params
-		 * @param array      $params_types Your sql params types
-		 *
-		 * @return \PDOStatement
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 */
-		public function select($sql, array $params = null, array $params_types = [])
-		{
-			return $this->execute($sql, $params, $params_types);
-		}
-
-		/**
-		 * Executes delete queries.
-		 *
-		 * @param string     $sql          Your sql select query
-		 * @param array|null $params       Your sql select params
-		 * @param array      $params_types Your sql params types
-		 *
-		 * @return int    Affected row count
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 */
-		public function delete($sql, array $params = null, array $params_types = [])
-		{
-			return $this->query($sql, $params, $params_types);
-		}
-
-		/**
-		 * Executes insert queries.
-		 *
-		 * @param string     $sql          Your sql select query
-		 * @param array|null $params       Your sql select params
-		 * @param array      $params_types Your sql params types
-		 *
-		 * @return string The last insert id
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 */
-		public function insert($sql, array $params = null, array $params_types = [])
-		{
-			$stmt    = $this->execute($sql, $params, $params_types);
-			$last_id = $this->getConnection()
-							->lastInsertId();
-
-			$stmt->closeCursor();
-
-			return $last_id;
-		}
-
-		/**
-		 * Executes update queries.
-		 *
-		 * @param string     $sql          Your sql select query
-		 * @param array|null $params       Your sql select params
-		 * @param array      $params_types Your sql params types
-		 *
-		 * @return int    Affected row count
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 */
-		public function update($sql, array $params = null, array $params_types = [])
-		{
-			return $this->query($sql, $params, $params_types);
-		}
+		abstract protected function connect();
 
 		/**
 		 * Checks if a given string is a column reference.
@@ -348,7 +116,7 @@
 		public static function parseColumnReference($str)
 		{
 			if (is_string($str)) {
-				$reg = '#^(ref|cp)[:]([a-zA-Z0-9_]+)[.]([a-zA-Z0-9_]+)$#';
+				$reg = '~^(ref|cp)[:]([a-zA-Z0-9_]+)[.]([a-zA-Z0-9_]+)$~';
 				if (preg_match($reg, $str, $parts)) {
 					$head  = $parts[1];
 					$clone = ($head === 'cp' ? true : false);
@@ -378,7 +146,7 @@
 		 * @return array|null
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
-		public function resolveReferenceColumn($ref_name, array $tables = [], array $circle = [])
+		public function resolveColumnReference($ref_name, array $tables = [], array $circle = [])
 		{
 			if (in_array($ref_name, $circle)) {
 				$circle[] = $ref_name;
@@ -418,7 +186,7 @@
 						}
 
 						if ($type AND static::isColumnReference($type)) {
-							$opt_b = $this->resolveReferenceColumn($type, $tables, $circle);
+							$opt_b = $this->resolveColumnReference($type, $tables, $circle);
 						}
 
 						if (is_array($opt_b)) {
@@ -494,7 +262,7 @@
 					$col_options = is_array($value) ? $value : ['type' => $value];
 
 					if (isset($col_options['type']) AND static::isColumnReference($col_options['type'])) {
-						$ref_options = $this->resolveReferenceColumn($col_options['type'], $tables);
+						$ref_options = $this->resolveColumnReference($col_options['type'], $tables);
 						if (is_array($ref_options)) {
 							$col_options         = is_array($value) ? array_merge($ref_options, $value) : $ref_options;
 							$col_options['type'] = $ref_options['type'];
@@ -629,44 +397,6 @@
 		}
 
 		/**
-		 * Generate database file.
-		 *
-		 * When namespace is not empty,
-		 * only tables with the given namespace will be generated.
-		 *
-		 * @param string|null $namespace the table namespace to generate
-		 *
-		 * @return string
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 */
-		public function generateDatabaseQuery($namespace = null)
-		{
-			// checks all foreign key constraints
-			$tables = $this->getTables($namespace);
-			foreach ($tables as $table) {
-				$fk_list = $table->getForeignKeyConstraints();
-				foreach ($fk_list as $fk) {
-					$columns = array_values($fk->getConstraintColumns());
-					// necessary when whe have
-					// table_a.col_1 => table_b.col_x
-					// table_a.col_2 => table_b.col_x
-					$columns = array_unique($columns);
-
-					if (!$fk->getReferenceTable()
-							->isPrimaryKey($columns)) {
-						$message  = 'Foreign key "%s" of table "%s" should be primary key in the reference table "%s".';
-						$ref_name = $fk->getReferenceTable()
-									   ->getName();
-						throw new DBALException(sprintf($message, implode(',', $columns), $table->getName(), $ref_name));
-					}
-				}
-			}
-
-			return $this->getRDBMS()
-						->buildDatabase($this, $namespace);
-		}
-
-		/**
 		 * Gets tables.
 		 *
 		 * @param string|null $namespace
@@ -746,19 +476,21 @@
 		 *
 		 * @return int
 		 */
-		private static function getBindUniqueId()
+		private function getBindUniqueId()
 		{
-			return self::$bind_unique_id++;
+			return $this->bind_unique_id++;
 		}
 
 		/**
+		 * Gets query bind parameters for array.
+		 *
 		 * @param array  $list        values to bind
 		 * @param array &$bind_values where to store bind value
 		 *
 		 * @return string
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
-		public static function getQueryBindForArray(array $list, array &$bind_values)
+		public function getQueryBindForArray(array $list, array &$bind_values)
 		{
 			if (!count($list)) {
 				throw new DBALException('Your list should not be empty array.');
@@ -768,7 +500,7 @@
 			$bind_keys = [];
 
 			foreach ($list as $i => $value) {
-				$bind_key               = '_' . self::getBindUniqueId() . '_';
+				$bind_key               = '_' . $this->getBindUniqueId() . '_';
 				$bind_keys[]            = ':' . $bind_key;
 				$bind_values[$bind_key] = $value;
 			}
@@ -784,5 +516,26 @@
 		public function __debugInfo()
 		{
 			return ['instance_of' => static::class];
+		}
+
+		/**
+		 * Create rdbms instance.
+		 *
+		 * @param string $type
+		 * @param array  $config
+		 *
+		 * @return \Gobl\DBAL\Db
+		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 */
+		public static function instantiate($type, array $config)
+		{
+			if (!isset(self::$rdbms_map[$type])) {
+				throw new DBALException(sprintf('Invalid rdbms: %s.', $type));
+			}
+
+			/**@var \Gobl\DBAL\Db $rdbms_class */
+			$rdbms_class = self::$rdbms_map[$type];
+
+			return new $rdbms_class($config);
 		}
 	}
