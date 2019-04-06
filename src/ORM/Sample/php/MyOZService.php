@@ -85,9 +85,9 @@
 			];
 
 			$router->post('/my_svc', function (RouteInfo $r) {
-				$context       = $r->getContext();
+				$context         = $r->getContext();
 				$request_context = new ORMRequestContext($context->getRequest()
-															   ->getFormData());
+																 ->getFormData());
 
 				$service = new self($context);
 				$service->actionCreateEntity($request_context);
@@ -95,9 +95,9 @@
 				return $service->writeResponse($context);
 			}, $options)
 				   ->get('/my_svc/{my_id}', function (RouteInfo $r) {
-					   $context       = $r->getContext();
+					   $context         = $r->getContext();
 					   $request_context = new ORMRequestContext($context->getRequest()
-																	  ->getFormData());
+																		->getFormData());
 					   $request_context->addColumnFilter('my_id', $r->getArg('my_id'));
 					   $service = new self($context);
 					   $service->actionGetEntity($request_context);
@@ -105,18 +105,18 @@
 					   return $service->writeResponse($context);
 				   }, $options)
 				   ->get('/my_svc', function (RouteInfo $r) {
-					   $context       = $r->getContext();
+					   $context         = $r->getContext();
 					   $request_context = new ORMRequestContext($context->getRequest()
-																	  ->getFormData());
-					   $service       = new self($context);
+																		->getFormData());
+					   $service         = new self($context);
 					   $service->actionGetAll($request_context);
 
 					   return $service->writeResponse($context);
 				   }, $options)
 				   ->get('/my_svc/{my_id}/{relation}', function (RouteInfo $r) {
-					   $context       = $r->getContext();
+					   $context         = $r->getContext();
 					   $request_context = new ORMRequestContext($context->getRequest()
-																	  ->getFormData());
+																		->getFormData());
 					   $request_context->addColumnFilter('my_id', $r->getArg('my_id'));
 					   $request_context->addRelation($r->getArg('relation'));
 
@@ -126,9 +126,9 @@
 					   return $service->writeResponse($context);
 				   }, $options)
 				   ->patch('/my_svc/{my_id}', function (RouteInfo $r) {
-					   $context       = $r->getContext();
+					   $context         = $r->getContext();
 					   $request_context = new ORMRequestContext($context->getRequest()
-																	  ->getFormData());
+																		->getFormData());
 					   $request_context->addColumnFilter('my_id', $r->getArg('my_id'));
 
 					   $service = new self($context);
@@ -137,18 +137,18 @@
 					   return $service->writeResponse($context);
 				   }, $options)
 				   ->patch('/my_svc', function (RouteInfo $r) {
-					   $context       = $r->getContext();
+					   $context         = $r->getContext();
 					   $request_context = new ORMRequestContext($context->getRequest()
-																	  ->getFormData());
-					   $service       = new self($context);
+																		->getFormData());
+					   $service         = new self($context);
 					   $service->actionUpdateAllItems($request_context);
 
 					   return $service->writeResponse($context);
 				   }, $options)
 				   ->delete('/my_svc/{my_id}', function (RouteInfo $r) {
-					   $context       = $r->getContext();
+					   $context         = $r->getContext();
 					   $request_context = new ORMRequestContext($context->getRequest()
-																	  ->getFormData());
+																		->getFormData());
 					   $request_context->addColumnFilter('my_id', $r->getArg('my_id'));
 
 					   $service = new self($context);
@@ -157,9 +157,9 @@
 					   return $service->writeResponse($context);
 				   }, $options)
 				   ->delete('/my_svc', function (RouteInfo $r) {
-					   $context       = $r->getContext();
+					   $context         = $r->getContext();
 					   $request_context = new ORMRequestContext($context->getRequest()
-																	  ->getFormData());
+																		->getFormData());
 					   $request_context->addColumnFilter('my_id', $r->getArg('my_id'));
 
 					   $service = new self($context);
@@ -195,9 +195,11 @@
 
 			if ($error instanceof TypesInvalidValueException) {
 				// don't expose debug data to client, may contains sensitive data
-				$debug         = $error->getDebugData();
-				$data          = $error->getData();
-				$data['field'] = $debug['field'];
+				$debug = $error->getDebugData();
+				$data  = $error->getData();
+				if (isset($debug['field'])) {
+					$data['field'] = $debug['field'];
+				}
 
 				throw new InvalidFieldException($error->getMessage(), $data, $error);
 			}
@@ -248,8 +250,8 @@
 		{
 			try {
 				$request_context = $request_context->createScopedInstance(self::table());
-				$values        = $request_context->getFormData();
-				$filters       = $request_context->getFilters();
+				$values          = $request_context->getFormData();
+				$filters         = $request_context->getFilters();
 
 				$controller = new MyController();
 				$entity     = $controller->updateOneItem($filters, $values);
@@ -278,8 +280,8 @@
 		{
 			try {
 				$request_context = $request_context->createScopedInstance(self::table());
-				$values        = $request_context->getFormData();
-				$filters       = $request_context->getFilters();
+				$values          = $request_context->getFormData();
+				$filters         = $request_context->getFilters();
 
 				$controller = new MyController();
 				$count      = $controller->updateAllItems($filters, $values);
@@ -364,8 +366,8 @@
 		{
 			try {
 				$request_context = $request_context->createScopedInstance(self::table());
-				$filters       = $request_context->getFilters();
-				$order_by      = $request_context->getOrderBy();
+				$filters         = $request_context->getFilters();
+				$order_by        = $request_context->getOrderBy();
 
 				$controller = new MyController();
 				$entity     = $controller->getItem($filters, $order_by);
@@ -401,12 +403,12 @@
 				$collection = $request_context->getCollection();
 
 				$request_context = $request_context->createScopedInstance(self::table());
-				$filters       = $request_context->getFilters();
-				$order_by      = $request_context->getOrderBy();
-				$max           = $request_context->getMax();
-				$offset        = $request_context->getOffset();
-				$page          = $request_context->getPage();
-				$total_records = 0;
+				$filters         = $request_context->getFilters();
+				$order_by        = $request_context->getOrderBy();
+				$max             = $request_context->getMax();
+				$offset          = $request_context->getOffset();
+				$page            = $request_context->getPage();
+				$total_records   = 0;
 
 				$controller = new MyController();
 

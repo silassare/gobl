@@ -85,9 +85,9 @@
 			];
 
 			$router->post('/<%$.service.name%>', function (RouteInfo $r) {
-				$context       = $r->getContext();
+				$context         = $r->getContext();
 				$request_context = new ORMRequestContext($context->getRequest()
-															   ->getFormData());
+																 ->getFormData());
 
 				$service = new self($context);
 				$service->actionCreateEntity($request_context);
@@ -95,9 +95,9 @@
 				return $service->writeResponse($context);
 			}, $options)
 				   ->get('/<%$.service.name%>/{<%$.pk_columns[0].name%>}', function (RouteInfo $r) {
-					   $context       = $r->getContext();
+					   $context         = $r->getContext();
 					   $request_context = new ORMRequestContext($context->getRequest()
-																	  ->getFormData());
+																		->getFormData());
 					   $request_context->addColumnFilter('<%$.pk_columns[0].name%>', $r->getArg('<%$.pk_columns[0].name%>'));
 					   $service = new self($context);
 					   $service->actionGetEntity($request_context);
@@ -105,18 +105,18 @@
 					   return $service->writeResponse($context);
 				   }, $options)
 				   ->get('/<%$.service.name%>', function (RouteInfo $r) {
-					   $context       = $r->getContext();
+					   $context         = $r->getContext();
 					   $request_context = new ORMRequestContext($context->getRequest()
-																	  ->getFormData());
-					   $service       = new self($context);
+																		->getFormData());
+					   $service         = new self($context);
 					   $service->actionGetAll($request_context);
 
 					   return $service->writeResponse($context);
 				   }, $options)
 				   ->get('/<%$.service.name%>/{<%$.pk_columns[0].name%>}/{relation}', function (RouteInfo $r) {
-					   $context       = $r->getContext();
+					   $context         = $r->getContext();
 					   $request_context = new ORMRequestContext($context->getRequest()
-																	  ->getFormData());
+																		->getFormData());
 					   $request_context->addColumnFilter('<%$.pk_columns[0].name%>', $r->getArg('<%$.pk_columns[0].name%>'));
 					   $request_context->addRelation($r->getArg('relation'));
 
@@ -126,9 +126,9 @@
 					   return $service->writeResponse($context);
 				   }, $options)
 				   ->patch('/<%$.service.name%>/{<%$.pk_columns[0].name%>}', function (RouteInfo $r) {
-					   $context       = $r->getContext();
+					   $context         = $r->getContext();
 					   $request_context = new ORMRequestContext($context->getRequest()
-																	  ->getFormData());
+																		->getFormData());
 					   $request_context->addColumnFilter('<%$.pk_columns[0].name%>', $r->getArg('<%$.pk_columns[0].name%>'));
 
 					   $service = new self($context);
@@ -137,18 +137,18 @@
 					   return $service->writeResponse($context);
 				   }, $options)
 				   ->patch('/<%$.service.name%>', function (RouteInfo $r) {
-					   $context       = $r->getContext();
+					   $context         = $r->getContext();
 					   $request_context = new ORMRequestContext($context->getRequest()
-																	  ->getFormData());
-					   $service       = new self($context);
+																		->getFormData());
+					   $service         = new self($context);
 					   $service->actionUpdateAllItems($request_context);
 
 					   return $service->writeResponse($context);
 				   }, $options)
 				   ->delete('/<%$.service.name%>/{<%$.pk_columns[0].name%>}', function (RouteInfo $r) {
-					   $context       = $r->getContext();
+					   $context         = $r->getContext();
 					   $request_context = new ORMRequestContext($context->getRequest()
-																	  ->getFormData());
+																		->getFormData());
 					   $request_context->addColumnFilter('<%$.pk_columns[0].name%>', $r->getArg('<%$.pk_columns[0].name%>'));
 
 					   $service = new self($context);
@@ -157,9 +157,9 @@
 					   return $service->writeResponse($context);
 				   }, $options)
 				   ->delete('/<%$.service.name%>', function (RouteInfo $r) {
-					   $context       = $r->getContext();
+					   $context         = $r->getContext();
 					   $request_context = new ORMRequestContext($context->getRequest()
-																	  ->getFormData());
+																		->getFormData());
 					   $request_context->addColumnFilter('<%$.pk_columns[0].name%>', $r->getArg('<%$.pk_columns[0].name%>'));
 
 					   $service = new self($context);
@@ -195,9 +195,11 @@
 
 			if ($error instanceof TypesInvalidValueException) {
 				// don't expose debug data to client, may contains sensitive data
-				$debug         = $error->getDebugData();
-				$data          = $error->getData();
-				$data['field'] = $debug['field'];
+				$debug = $error->getDebugData();
+				$data  = $error->getData();
+				if (isset($debug['field'])) {
+					$data['field'] = $debug['field'];
+				}
 
 				throw new InvalidFieldException($error->getMessage(), $data, $error);
 			}
@@ -248,8 +250,8 @@
 		{
 			try {
 				$request_context = $request_context->createScopedInstance(self::table());
-				$values        = $request_context->getFormData();
-				$filters       = $request_context->getFilters();
+				$values          = $request_context->getFormData();
+				$filters         = $request_context->getFilters();
 
 				$controller = new <%$.class.controller%>();
 				$entity     = $controller->updateOneItem($filters, $values);
@@ -278,8 +280,8 @@
 		{
 			try {
 				$request_context = $request_context->createScopedInstance(self::table());
-				$values        = $request_context->getFormData();
-				$filters       = $request_context->getFilters();
+				$values          = $request_context->getFormData();
+				$filters         = $request_context->getFilters();
 
 				$controller = new <%$.class.controller%>();
 				$count      = $controller->updateAllItems($filters, $values);
@@ -364,8 +366,8 @@
 		{
 			try {
 				$request_context = $request_context->createScopedInstance(self::table());
-				$filters       = $request_context->getFilters();
-				$order_by      = $request_context->getOrderBy();
+				$filters         = $request_context->getFilters();
+				$order_by        = $request_context->getOrderBy();
 
 				$controller = new <%$.class.controller%>();
 				$entity     = $controller->getItem($filters, $order_by);
@@ -401,12 +403,12 @@
 				$collection = $request_context->getCollection();
 
 				$request_context = $request_context->createScopedInstance(self::table());
-				$filters       = $request_context->getFilters();
-				$order_by      = $request_context->getOrderBy();
-				$max           = $request_context->getMax();
-				$offset        = $request_context->getOffset();
-				$page          = $request_context->getPage();
-				$total_records = 0;
+				$filters         = $request_context->getFilters();
+				$order_by        = $request_context->getOrderBy();
+				$max             = $request_context->getMax();
+				$offset          = $request_context->getOffset();
+				$page            = $request_context->getPage();
+				$total_records   = 0;
 
 				$controller = new <%$.class.controller%>();
 
