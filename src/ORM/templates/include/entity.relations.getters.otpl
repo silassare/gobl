@@ -4,15 +4,20 @@
          * OneToOne relation between `<%$relation.host.table.name%>` and `<%$relation.target.table.name%>`.
          *
          * @return null|\<%$relation.target.class.use_entity%>
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
+         * @throws \Gobl\DBAL\Exceptions\DBALException
+         * @throws \Gobl\ORM\Exceptions\ORMException
+         * @throws \Gobl\CRUD\Exceptions\CRUDException
          */
         public function get<%$relation.methodSuffix%>()
         {
             if (!isset($this->_r_<%$relation.name%>)) {
-                <%loop ($relation.filters : $filter){%>
-                $filters['<%$filter.from.fullName%>'] = $this->get<%$filter.to.methodSuffix%>();<%}%>
+                $filters = [];<%loop ($relation.filters : $filter){%>
+                if(!is_null($v = $this->get<%$filter.to.methodSuffix%>())){
+                    $filters['<%$filter.from.fullName%>'] = $v;
+                }<%}%>
+                if (empty($filters)){
+                    return null;
+                }
 
                 $m = new <%$relation.target.class.controller%>RealR();
                 $this->_r_<%$relation.name%> = $m->getItem($filters);
@@ -31,14 +36,18 @@
          * @param int|bool $total    total rows without limit
          *
          * @return \<%$relation.target.class.use_entity%>[]
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
+         * @throws \Gobl\DBAL\Exceptions\DBALException
+         * @throws \Gobl\ORM\Exceptions\ORMException
+         * @throws \Gobl\CRUD\Exceptions\CRUDException
          */
         function get<%$relation.methodSuffix%>($filters = [], $max = null, $offset = 0, $order_by = [], &$total = false)
-        {
-            <%loop ($relation.filters : $filter){%>
-            $filters['<%$filter.from.fullName%>'] = $this->get<%$filter.to.methodSuffix%>();<%}%>
+        {<%loop ($relation.filters : $filter){%>
+            if(!is_null($v = $this->get<%$filter.to.methodSuffix%>())){
+                $filters['<%$filter.from.fullName%>'] = $v;
+            }<%}%>
+            if (empty($filters)){
+                return [];
+            }
 
             $ctrl = new <%$relation.target.class.controller%>RealR();
 
@@ -55,14 +64,18 @@
          * @param int|bool $total    total rows without limit
          *
          * @return \<%$relation.target.class.use_entity%>[]
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
+         * @throws \Gobl\DBAL\Exceptions\DBALException
+         * @throws \Gobl\ORM\Exceptions\ORMException
+         * @throws \Gobl\CRUD\Exceptions\CRUDException
          */
         function get<%$relation.methodSuffix%>($filters = [], $max = null, $offset = 0, $order_by = [], &$total = false)
-        {
-            <%loop ($relation.filters : $filter){%>
-            $filters['<%$filter.from.fullName%>'] = $this->get<%$filter.to.methodSuffix%>();<%}%>
+        {<%loop ($relation.filters : $filter){%>
+            if(!is_null($v = $this->get<%$filter.to.methodSuffix%>())){
+                $filters['<%$filter.from.fullName%>'] = $v;
+            }<%}%>
+            if (empty($filters)){
+                return null;
+            }
 
             $ctrl = new <%$relation.target.class.controller%>RealR();
 
@@ -73,15 +86,20 @@
          * ManyToOne relation between `<%$relation.host.table.name%>` and `<%$relation.target.table.name%>`.
          *
          * @return null|\<%$relation.target.class.use_entity%>
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
+         * @throws \Gobl\DBAL\Exceptions\DBALException
+         * @throws \Gobl\ORM\Exceptions\ORMException
+         * @throws \Gobl\CRUD\Exceptions\CRUDException
          */
         public function get<%$relation.methodSuffix%>()
         {
             if (!isset($this->_r_<%$relation.name%>)) {
-                <%loop ($relation.filters : $filter){%>
-                $filters['<%$filter.from.fullName%>'] = $this->get<%$filter.to.methodSuffix%>();<%}%>
+                $filters = [];<%loop ($relation.filters : $filter){%>
+                if(!is_null($v = $this->get<%$filter.to.methodSuffix%>())){
+                    $filters['<%$filter.from.fullName%>'] = $v;
+                }<%}%>
+                if (empty($filters)){
+                    return null;
+                }
 
                 $m = new <%$relation.target.class.controller%>RealR();
                 $this->_r_<%$relation.name%> = $m->getItem($filters);
