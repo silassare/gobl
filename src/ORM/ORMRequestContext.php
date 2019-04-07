@@ -114,8 +114,11 @@
 		 */
 		public function addColumnFilter($column_name, $filter)
 		{
+			if (!is_array($filter)) {
+				$filter = ['eq', $filter];
+			}
+
 			$this->filters[$column_name][] = $filter;
-			$this->filters                 = self::normalizeFilters($this->filters);
 
 			return $this;
 		}
@@ -131,8 +134,6 @@
 		public function setColumnFilters($column_name, array $filters)
 		{
 			$this->filters[$column_name] = $filters;
-			$this->filters               = self::normalizeFilters($this->filters);
-
 			return $this;
 		}
 
@@ -483,9 +484,9 @@
 		 */
 		private static function normalizeFilters(array $filters)
 		{
-			foreach ($filters as $key => $val) {
-				if (!is_array($val)) {
-					$filters[$key] = [['eq', $val]];
+			foreach ($filters as $column => $value) {
+				if (!is_array($value)) {
+					$filters[$column] = [['eq', $value]];
 				}
 			}
 
