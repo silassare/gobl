@@ -168,47 +168,6 @@
 				   }, $options);
 		}
 
-		/**
-		 * Converts Gobl exceptions unto OZone exceptions.
-		 *
-		 * @param \Exception $error the exception to convert
-		 *
-		 * @throws \OZONE\OZ\Exceptions\BadRequestException
-		 * @throws \OZONE\OZ\Exceptions\ForbiddenException
-		 * @throws \OZONE\OZ\Exceptions\InvalidFormException
-		 * @throws \Exception
-		 */
-		public static function tryConvertException(\Exception $error)
-		{
-			if ($error instanceof ORMQueryException) {
-				throw new BadRequestException($error->getMessage(), $error->getData(), $error);
-			}
-
-			if ($error instanceof ORMControllerFormException) {
-				throw new InvalidFormException(null, [
-					'message' => $error->getMessage(),
-					'data'    => $error->getData()
-				], $error);
-			}
-
-			if ($error instanceof TypesInvalidValueException) {
-				// don't expose debug data to client, may contains sensitive data
-				$debug = $error->getDebugData();
-				$data['data']  = $error->getData();
-				if (isset($debug['field'])) {
-					$data['field'] = $debug['field'];
-				}
-
-				throw new InvalidFormException($error->getMessage(), $data, $error);
-			}
-
-			if ($error instanceof CRUDException) {
-				throw new ForbiddenException($error->getMessage(), $error->getData(), $error);
-			}
-
-			throw $error;
-		}
-
 		//========================================================
 		//=	POST REQUEST METHODS
 		//========================================================
