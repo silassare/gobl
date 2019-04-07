@@ -176,7 +176,7 @@
 		 *
 		 * @throws \Exception
 		 */
-		private static function tryConvertException(\Exception $error)
+		public static function tryConvertException(\Exception $error)
 		{
 			if ($error instanceof ORMControllerFormException) {
 				throw new InvalidFormException(null, [
