@@ -73,7 +73,7 @@
 				if ($handler instanceof CRUDHandlerInterface) {
 					$this->crud_handler = $handler;
 				} else {
-					throw new \InvalidArgumentException(sprintf('Table %s CRUD handler class should implement %s', $name, CRUDHandlerInterface::class));
+					throw new \InvalidArgumentException(sprintf('Table "%s" CRUD handler class should implements "%s"', $name, CRUDHandlerInterface::class));
 				}
 			} else {
 				$this->crud_handler = new CRUDHandler();
