@@ -32,9 +32,9 @@
 		const COLUMN_UPDATE = 'column_update';
 
 		/**
-		 * @var array
+		 * @var callable
 		 */
-		private static $crud_options = [];
+		private static $handler_provider = null;
 
 		/**
 		 * @var \Gobl\DBAL\Table
@@ -49,7 +49,7 @@
 		/**
 		 * @var string
 		 */
-		private $message = "OK";
+		private $message = 'OK';
 
 		/**
 		 * @var array
@@ -69,17 +69,11 @@
 
 			if (!is_null($handler)) {
 				$this->crud_handler = $handler;
-			} elseif (isset(self::$crud_options[$name])) {
-				$handler = self::$crud_options[$name];
-				try {
-					$rc = new \ReflectionClass($handler);
-					if ($rc->implementsInterface(CRUDHandlerInterface::class)) {
-						$this->crud_handler = $rc->newInstance();
-					} else {
-						throw new \InvalidArgumentException(sprintf('Table %s CRUD handler class should implement %s', $name, CRUDHandlerInterface::class));
-					}
-				} catch (\ReflectionException $e) {
-					throw new \RuntimeException(sprintf('Unable to create instance of %s', $handler), null, $e);
+			} elseif (isset(self::$handler_provider) AND $handler = call_user_func(self::$handler_provider, $name)) {
+				if ($handler instanceof CRUDHandlerInterface) {
+					$this->crud_handler = $handler;
+				} else {
+					throw new \InvalidArgumentException(sprintf('Table %s CRUD handler class should implement %s', $name, CRUDHandlerInterface::class));
 				}
 			} else {
 				$this->crud_handler = new CRUDHandler();
@@ -92,6 +86,8 @@
 		}
 
 		/**
+		 * Gets latest message.
+		 *
 		 * @return string
 		 */
 		public function getMessage()
@@ -100,11 +96,13 @@
 		}
 
 		/**
-		 * @param $form
+		 * Checks columns values for create.
+		 *
+		 * @param array $form
 		 *
 		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 */
-		private function checkFormColumnsForCreate($form)
+		private function checkFormColumnsForCreate(array $form)
 		{
 			$debug = $this->debug;
 
@@ -125,11 +123,13 @@
 		}
 
 		/**
-		 * @param $form
+		 * Checks columns values for update.
+		 *
+		 * @param array $form
 		 *
 		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 */
-		private function checkFormColumnsForUpdate(&$form)
+		private function checkFormColumnsForUpdate(array &$form)
 		{
 			$debug = $this->debug;
 
@@ -157,6 +157,8 @@
 		}
 
 		/**
+		 * Create assertion.
+		 *
 		 * @param array $form
 		 *
 		 * @throws \Gobl\CRUD\Exceptions\CRUDException
@@ -179,6 +181,8 @@
 		}
 
 		/**
+		 * Read assertion.
+		 *
 		 * @param array $filters
 		 *
 		 * @throws \Gobl\CRUD\Exceptions\CRUDException
@@ -196,6 +200,8 @@
 		}
 
 		/**
+		 * Read all assertion.
+		 *
 		 * @param array $filters
 		 *
 		 * @throws \Gobl\CRUD\Exceptions\CRUDException
@@ -213,6 +219,8 @@
 		}
 
 		/**
+		 * Update assertion.
+		 *
 		 * @param array $filters
 		 * @param array $form
 		 *
@@ -235,6 +243,8 @@
 		}
 
 		/**
+		 * Update all assertion.
+		 *
 		 * @param array $filters
 		 * @param       $form
 		 *
@@ -257,6 +267,8 @@
 		}
 
 		/**
+		 * Delete assertion.
+		 *
 		 * @param array $filters
 		 *
 		 * @throws \Gobl\CRUD\Exceptions\CRUDException
@@ -274,6 +286,8 @@
 		}
 
 		/**
+		 * Delete all assertion.
+		 *
 		 * @param array $filters
 		 *
 		 * @throws \Gobl\CRUD\Exceptions\CRUDException
@@ -291,6 +305,8 @@
 		}
 
 		/**
+		 * Gets the CRUD handler.
+		 *
 		 * @return \Gobl\CRUD\Handler\CRUDHandlerInterface
 		 */
 		public function getHandler()
@@ -299,10 +315,29 @@
 		}
 
 		/**
-		 * @param array $options
+		 * Sets the CRUD handler provider.
+		 *
+		 * @param Callable $provider
 		 */
-		public static function loadOptions(array $options)
+		public static function setHandlerProvider(callable $provider)
 		{
-			self::$crud_options = array_merge(self::$crud_options, $options);
+			if (!is_callable($provider)) {
+				throw new \InvalidArgumentException('CRUD handler provider should be a valid callable.');
+			}
+			if (!isset(self::$handler_provider)) {
+				throw new \RuntimeException('CRUD handler provider cannot be overwritten.');
+			}
+
+			self::$handler_provider = $provider;
+		}
+
+		/**
+		 * Gets the CRUD handler provider.
+		 *
+		 * @return callable|null
+		 */
+		public static function getHandlerProvider()
+		{
+			return self::$handler_provider;
 		}
 	}
