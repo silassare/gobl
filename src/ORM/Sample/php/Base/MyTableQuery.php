@@ -4,6 +4,7 @@
 	namespace MY_PROJECT_DB_NS\Base;
 
 	use Gobl\DBAL\Rule;
+	use Gobl\ORM\ORM;
 	use Gobl\ORM\ORMTableQueryBase;
 
 	/**
@@ -18,7 +19,7 @@
 		 */
 		public function __construct()
 		{
-			parent::__construct(MyEntity::TABLE_NAME, \MY_PROJECT_DB_NS\MyResults::class);
+			parent::__construct(ORM::getDatabase('MY_PROJECT_DB_NS'), MyEntity::TABLE_NAME, \MY_PROJECT_DB_NS\MyResults::class);
 		}
 
 		/**

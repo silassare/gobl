@@ -10,6 +10,7 @@
 
 	namespace Gobl\ORM;
 
+	use Gobl\DBAL\Db;
 	use Gobl\DBAL\QueryBuilder;
 	use Gobl\DBAL\Rule;
 	use Gobl\ORM\Exceptions\ORMException;
@@ -46,14 +47,15 @@
 		/**
 		 * ORMTableQueryBase constructor.
 		 *
-		 * @param string $table_name          The table name.
-		 * @param string $table_results_class The table's results iterator fully qualified class name.
+		 * @param \Gobl\DBAL\Db $db                  The database.
+		 * @param string        $table_name          The table name.
+		 * @param string        $table_results_class The table's results iterator fully qualified class name.
 		 */
-		public function __construct($table_name, $table_results_class)
+		public function __construct(Db $db, $table_name, $table_results_class)
 		{
 			$this->table_name          = $table_name;
 			$this->table_results_class = $table_results_class;
-			$this->db                  = ORM::getDatabase('MY_PROJECT_DB_NS');
+			$this->db                  = $db;
 			$this->table               = $this->db->getTable($table_name);
 			$this->table_alias         = $this->genUniqueAlias();
 			$this->qb                  = new QueryBuilder($this->db);

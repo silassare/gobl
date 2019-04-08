@@ -4,6 +4,7 @@
 	namespace <%$.namespace%>\Base;
 
 	use Gobl\DBAL\Rule;
+	use Gobl\ORM\ORM;
 	use Gobl\ORM\ORMTableQueryBase;
 
 	/**
@@ -18,7 +19,7 @@
 		 */
 		public function __construct()
 		{
-			parent::__construct(<%$.class.entity%>::TABLE_NAME, \<%$.namespace%>\<%$.class.results%>::class);
+			parent::__construct(ORM::getDatabase('<%$.namespace%>'), <%$.class.entity%>::TABLE_NAME, \<%$.namespace%>\<%$.class.results%>::class);
 		}
 
 		/**
