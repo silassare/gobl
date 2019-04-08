@@ -324,7 +324,7 @@
 			if (!is_callable($provider)) {
 				throw new \InvalidArgumentException('CRUD handler provider should be a valid callable.');
 			}
-			if (!isset(self::$handler_provider)) {
+			if (isset(self::$handler_provider)) {
 				throw new \RuntimeException('CRUD handler provider cannot be overwritten.');
 			}
 
