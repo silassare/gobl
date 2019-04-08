@@ -107,8 +107,8 @@
 		/**
 		 * ORMEntityBase constructor.
 		 *
-		 * @param \Gobl\DBAL\Db $db                The database
-		 * @param bool          $is_new            True for new entity false for entity fetched
+		 * @param \Gobl\DBAL\Db $db                The database.
+		 * @param bool          $is_new            True for new entity, false for entity fetched
 		 *                                         from the database, default is true.
 		 * @param bool          $strict            Enable/disable strict mode.
 		 * @param string        $table_name        The table name.
