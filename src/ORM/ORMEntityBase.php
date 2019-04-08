@@ -10,6 +10,7 @@
 
 	namespace Gobl\ORM;
 
+	use Gobl\DBAL\Db;
 	use Gobl\DBAL\QueryBuilder;
 	use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 	use Gobl\ORM\Exceptions\ORMException;
@@ -101,21 +102,24 @@
 		/** @var string */
 		protected $_table_query_class;
 
+		protected $_db;
+
 		/**
 		 * ORMEntityBase constructor.
 		 *
-		 * @param bool   $is_new            True for new entity false for entity fetched
-		 *                                  from the database, default is true.
-		 * @param bool   $strict            Enable/disable strict mode.
-		 * @param string $table_name        The table name.
-		 * @param string $table_query_class The table query's fully qualified class name.
+		 * @param \Gobl\DBAL\Db $db                The database
+		 * @param bool          $is_new            True for new entity false for entity fetched
+		 *                                         from the database, default is true.
+		 * @param bool          $strict            Enable/disable strict mode.
+		 * @param string        $table_name        The table name.
+		 * @param string        $table_query_class The table query's fully qualified class name.
 		 */
-		protected function __construct($is_new, $strict, $table_name, $table_query_class)
+		protected function __construct(Db $db, $is_new, $strict, $table_name, $table_query_class)
 		{
+			$this->_db                = $db;
 			$this->_table_name        = $table_name;
 			$this->_table_query_class = $table_query_class;
-			$this->_table             = ORM::getDatabase('MY_PROJECT_DB_NS')
-										   ->getTable($table_name);
+			$this->_table             = $this->_db->getTable($table_name);
 			$columns                  = $this->_table->getColumns();
 			$this->_is_new            = (bool)$is_new;
 			$this->_is_saved          = !$this->_is_new;
@@ -195,7 +199,7 @@
 
 				$columns = array_keys($this->_row);
 				$values  = array_values($this->_row);
-				$qb      = new QueryBuilder(ORM::getDatabase('MY_PROJECT_DB_NS'));
+				$qb      = new QueryBuilder($this->_db);
 				$qb->insert()
 				   ->into($this->_table->getFullName(), $columns)
 				   ->values($values);

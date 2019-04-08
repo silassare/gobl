@@ -3,6 +3,7 @@
 
 	namespace MY_PROJECT_DB_NS\Base;
 
+	use Gobl\ORM\ORM;
 	use Gobl\ORM\ORMEntityBase;
 	use MY_PROJECT_DB_NS\MyTableQuery as MyTableQueryReal;
 
@@ -29,7 +30,7 @@
 		 */
 		public function __construct($is_new = true, $strict = true)
 		{
-			parent::__construct($is_new, $strict, MyEntity::TABLE_NAME, MyTableQueryReal::class);
+			parent::__construct(ORM::getDatabase('MY_PROJECT_DB_NS'), $is_new, $strict, MyEntity::TABLE_NAME, MyTableQueryReal::class);
 		}
 		//__GOBL_RELATIONS_GETTERS__
 		//__GOBL_COLUMNS_GETTERS_SETTERS__

@@ -3,6 +3,7 @@
 
 	namespace <%$.namespace%>\Base;
 
+	use Gobl\ORM\ORM;
 	use Gobl\ORM\ORMEntityBase;
 	use <%$.namespace%>\<%$.class.query%> as <%$.class.query%>Real;
 
@@ -29,7 +30,7 @@
 		 */
 		public function __construct($is_new = true, $strict = true)
 		{
-			parent::__construct($is_new, $strict, <%$.class.entity%>::TABLE_NAME, <%$.class.query%>Real::class);
+			parent::__construct(ORM::getDatabase('<%$.namespace%>'), $is_new, $strict, <%$.class.entity%>::TABLE_NAME, <%$.class.query%>Real::class);
 		}
 		<%@import('include/entity.relations.getters.otpl',$)%>
 		<%@import('include/entity.getters.setters.otpl',$)%>
