@@ -134,6 +134,7 @@
 		public function setColumnFilters($column_name, array $filters)
 		{
 			$this->filters[$column_name] = $filters;
+
 			return $this;
 		}
 
@@ -154,6 +155,19 @@
 		}
 
 		/**
+		 * Gets the value of the form data field with the given name.
+		 *
+		 * @param string $name
+		 * @param null   $def
+		 *
+		 * @return mixed
+		 */
+		public function getFormField($name, $def = null)
+		{
+			return isset($this->form_data[$name]) ? $this->form_data[$name] : $def;
+		}
+
+		/**
 		 * Sets the value of the form data field with the given name.
 		 *
 		 * @param string $name
@@ -161,7 +175,7 @@
 		 *
 		 * @return $this
 		 */
-		public function setField($name, $value)
+		public function setFormField($name, $value)
 		{
 			$this->form_data[$name] = $value;
 
@@ -175,7 +189,7 @@
 		 *
 		 * @return $this
 		 */
-		public function removeField($name)
+		public function removeFormField($name)
 		{
 			unset($this->form_data[$name]);
 
