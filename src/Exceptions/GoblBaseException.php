@@ -23,6 +23,11 @@
 		protected $_data;
 
 		/**
+		 * Sensitive data prefix.
+		 */
+		const SENSITIVE_DATA_PREFIX = '_';
+
+		/**
 		 * @var array
 		 */
 		protected $_debug_data = [];
@@ -32,45 +37,50 @@
 		 *
 		 * @param string          $message
 		 * @param array           $data
-		 * @param array           $debug
 		 * @param null|\Throwable $previous
 		 */
-		public function __construct($message, array $data = [], array $debug = [], \Throwable $previous = null)
+		public function __construct($message, array $data = [], \Throwable $previous = null)
 		{
 			parent::__construct($message, 0, $previous);
 
-			$this->_data       = $data;
-			$this->_debug_data = $debug;
+			$this->_data = $data;
 		}
 
 		/**
 		 * Gets data.
 		 *
-		 * @return array
-		 */
-		public function getData()
-		{
-			return $this->_data;
-		}
-
-		/**
-		 * Gets debug data.
+		 * We shouldn't expose all debug data to client, may contains sensitive data
+		 * like table structure, table name etc...
+		 * all sensitive data should be set with the sensitive data prefix
+		 *
+		 * @param bool $show_sensitive
 		 *
 		 * @return array
 		 */
-		public function getDebugData()
+		public function getData($show_sensitive = false)
 		{
-			return $this->_debug_data;
+			if (!$show_sensitive) {
+				$data = [];
+				foreach ($this->_data as $key => $value) {
+					if (is_int($key) OR $key[0] !== self::SENSITIVE_DATA_PREFIX) {
+						$data[$key] = $value;
+					}
+				}
+
+				return $data;
+			}
+
+			return $this->_data;
 		}
 
 		/**
 		 * Sets debug data.
 		 *
-		 * @param array $debug
+		 * @param array $data
 		 */
-		public function setDebugData(array $debug)
+		public function setData(array $data)
 		{
-			$this->_debug_data = $debug;
+			$this->_data = $data;
 		}
 
 		/**
@@ -80,15 +90,13 @@
 		 */
 		public function __toString()
 		{
-			$e_data  = json_encode($this->getData());
-			$e_debug = json_encode($this->getDebugData());
-			$e_msg   = <<<STRING
+			$e_data = json_encode($this->getData(true));
+			$e_msg  = <<<STRING
 \tFile    : {$this->getFile()}
 \tLine    : {$this->getLine()}
 \tCode    : {$this->getCode()}
 \tMessage : {$this->getMessage()}
 \tData    : $e_data
-\tDebug   : $e_debug
 \tTrace   : {$this->getTraceAsString()}
 STRING;
 

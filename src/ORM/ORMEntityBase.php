@@ -13,6 +13,7 @@
 	use Gobl\DBAL\Db;
 	use Gobl\DBAL\QueryBuilder;
 	use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
+	use Gobl\Exceptions\GoblBaseException;
 	use Gobl\ORM\Exceptions\ORMException;
 
 	/**
@@ -253,13 +254,16 @@
 				try {
 					$value = $type->validate($value, $column->getName(), $this->_table->getName());
 				} catch (TypesInvalidValueException $e) {
-					$debug = [
-						"field"      => $full_name,
-						"table_name" => $this->_table->getName(),
-						"options"    => $type->getCleanOptions()
-					];
+					// sensitive data are prefixed
+					$prefix = GoblBaseException::SENSITIVE_DATA_PREFIX;
 
-					$e->setDebugData($debug);
+					$debug = array_replace($e->getData(), [
+						'field'                => $full_name,
+						$prefix . 'table_name' => $this->_table->getName(),
+						$prefix . 'options'    => $type->getCleanOptions()
+					]);
+
+					$e->setData($debug);
 
 					throw $e;
 				}
