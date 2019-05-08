@@ -212,7 +212,7 @@
 			$this->writeFile($class_path, $controller_class_tpl->runGet($inject));
 
 			return [
-				"service_class" => $qualified_class
+				'provider' => $qualified_class
 			];
 		}
 
