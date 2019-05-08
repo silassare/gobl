@@ -199,7 +199,7 @@
 							if ($operator === Rule::OP_IS_NULL OR $operator === Rule::OP_IS_NOT_NULL) {
 								$use_and_index = 1;// value not needed
 							} else {
-								if (!isset($filter[$value_index])) {
+								if (!array_key_exists($value_index, $filter)) {
 									throw new ORMControllerFormException('form_filters_missing_value', [
 										$column,
 										$filter
@@ -208,25 +208,38 @@
 
 								$value = $filter[$value_index];
 
-								if ($operator === Rule::OP_IN OR $operator === Rule::OP_NOT_IN) {
-									$safe_value = is_array($value) AND count($value) ? true : false;
-								} elseif (!is_scalar($value)) {
-									$safe_value = false;
-								}
+								if ($value === null) {
+									if ($operator === Rule::OP_EQ) {
+										$operator = Rule::OP_IS_NULL;
+									} elseif ($operator === Rule::OP_NEQ) {
+										$operator = Rule::OP_IS_NOT_NULL;
+									} else {
+										throw new ORMControllerFormException('form_filters_null_value', [
+											$column,
+											$filter
+										]);
+									}
+								} else {
+									if ($operator === Rule::OP_IN OR $operator === Rule::OP_NOT_IN) {
+										$safe_value = is_array($value) AND count($value) ? true : false;
+									} elseif (!is_scalar($value)) {
+										$safe_value = false;
+									}
 
-								if (!$safe_value) {
-									throw new ORMControllerFormException('form_filters_invalid_value', [
-										$column,
-										$filter
-									]);
+									if (!$safe_value) {
+										throw new ORMControllerFormException('form_filters_invalid_value', [
+											$column,
+											$filter
+										]);
+									}
 								}
 							}
 
 							if (isset($filter[$use_and_index])) {
 								$a = $filter[$use_and_index];
-								if ($a === "and" OR $a === "AND" OR $a === 1 OR $a === true) {
+								if ($a === 'and' OR $a === 'AND' OR $a === 1 OR $a === true) {
 									$use_and = true;
-								} elseif ($a === "or" OR $a === "OR" OR $a === 0 OR $a === false) {
+								} elseif ($a === 'or' OR $a === 'OR' OR $a === 0 OR $a === false) {
 									$use_and = false;
 								} else {
 									throw new ORMControllerFormException('form_filters_invalid', [

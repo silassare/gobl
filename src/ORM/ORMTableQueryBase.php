@@ -238,22 +238,21 @@
 				}
 			}
 
+			$a = $this->table_alias . '.' . $full_name;
+
 			if ($operator === Rule::OP_IN OR $operator === Rule::OP_NOT_IN) {
 				if (!is_array($value)) {
-					throw new ORMException("IN and NOT IN operators require an array of values.", [$column, $value]);
+					throw new ORMException('IN and NOT IN operators require an array of values.', [$column, $value]);
 				}
+
 				$value = $this->qb->arrayToListItems($value);
+				$rule->conditions([$a => $value], $operator, false);
+			} elseif ($operator === Rule::OP_IS_NULL OR $operator === Rule::OP_IS_NOT_NULL) {
+				$rule->conditions([$a], $operator, false);
 			} else {
 				$param_key                = $this->genUniqueParamKey();
 				$this->params[$param_key] = $value;
 				$value                    = ':' . $param_key;
-			}
-
-			$a = $this->table_alias . '.' . $full_name;
-
-			if ($operator === Rule::OP_IS_NULL OR $operator === Rule::OP_IS_NOT_NULL) {
-				$rule->conditions([$a], $operator, false);
-			} else {
 				$rule->conditions([$a => $value], $operator, false);
 			}
 
