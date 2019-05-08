@@ -20,6 +20,19 @@
 		/**
 		 * @var array
 		 */
+		private $key_words = [
+			'data',
+			'relations',
+			'collection',
+			'filters',
+			'order_by',
+			'max',
+			'page'
+		];
+
+		/**
+		 * @var array
+		 */
 		private $form_data = [];
 
 		/**
@@ -75,7 +88,7 @@
 		 */
 		public function getFormData(Table $table = null)
 		{
-			return self::scoped($this->form_data, $table);
+			return self::scopedColumns($this->form_data, $table);
 		}
 
 		/**
@@ -101,7 +114,7 @@
 		 */
 		public function getFilters(Table $table = null)
 		{
-			return self::scoped($this->filters, $table);
+			return self::scopedColumns($this->filters, $table);
 		}
 
 		/**
@@ -208,23 +221,23 @@
 			$r = [];
 
 			if (!empty($this->form_data)) {
-				$r['data'] = $this->form_data;
+				$r['data'] = $this->getFormData($table);
 			}
 
 			if (!empty($this->collection)) {
-				$r['collection'] = $this->collection;
+				$r['collection'] = $this->getCollection($table);
 			}
 
 			if (!empty($this->filters)) {
-				$r['filters'] = self::scoped($this->filters, $table);
+				$r['filters'] = $this->getFilters($table);
 			}
 
 			if (!empty($this->relations)) {
-				$r['relations'] = self::encodeRelations(self::scoped($this->relations, $table));
+				$r['relations'] = self::encodeRelations($this->getRelations($table));
 			}
 
 			if (!empty($this->order_by)) {
-				$r['order_by'] = self::encodeOrderBy(self::scoped($this->order_by, $table));
+				$r['order_by'] = self::encodeOrderBy($this->getOrderBy($table));
 			}
 
 			if (isset($this->max)) {
@@ -295,7 +308,7 @@
 		 */
 		public function getOrderBy(Table $table = null)
 		{
-			return self::scoped($this->order_by, $table);
+			return self::scopedColumns($this->order_by, $table);
 		}
 
 		/**
@@ -319,10 +332,16 @@
 		/**
 		 * Returns requested collection
 		 *
+		 * @param \Gobl\DBAL\Table|null $table
+		 *
 		 * @return string
 		 */
-		public function getCollection()
+		public function getCollection(Table $table = null)
 		{
+			if ($table AND !$table->hasCollection($this->collection)) {
+				return '';
+			}
+
 			return $this->collection;
 		}
 
@@ -349,11 +368,13 @@
 		/**
 		 * Returns requested relations.
 		 *
+		 * @param \Gobl\DBAL\Table|null $table
+		 *
 		 * @return array
 		 */
-		public function getRelations()
+		public function getRelations(Table $table = null)
 		{
-			return $this->relations;
+			return $this->scopedRelations($this->relations, $table);
 		}
 
 		/**
@@ -373,7 +394,11 @@
 
 				$this->form_data = $data;
 			} else {
-				$this->form_data = [];
+				$this->form_data = $request_data;
+
+				foreach ($this->key_words as $n) {
+					unset($this->form_data[$n]);
+				}
 			}
 
 			// pagination
@@ -465,14 +490,14 @@
 		}
 
 		/**
-		 * Returns columns from column_map and they value from fields.
+		 * Returns a filtered map using the table columns.
 		 *
 		 * @param array                 $map
 		 * @param \Gobl\DBAL\Table|null $table
 		 *
 		 * @return array
 		 */
-		private static function scoped(array $map, Table $table = null)
+		private static function scopedColumns(array $map, Table $table = null)
 		{
 			if (is_null($table)) {
 				return $map;
@@ -482,7 +507,36 @@
 
 			foreach ($map as $field => $value) {
 				if ($table->hasColumn($field)) {
-					$values[$field] = $value;
+					$column = $table->getColumn($field);
+					// only full name are allowed
+					if ($column->getFullName() === $field) {
+						$values[$field] = $value;
+					}
+				}
+			}
+
+			return $values;
+		}
+
+		/**
+		 * Returns a filtered map using the table relations.
+		 *
+		 * @param array                 $map
+		 * @param \Gobl\DBAL\Table|null $table
+		 *
+		 * @return array
+		 */
+		private static function scopedRelations(array $map, Table $table = null)
+		{
+			if (is_null($table)) {
+				return $map;
+			}
+
+			$values = [];
+
+			foreach ($map as $key => $value) {
+				if ($table->hasRelation($value) OR $table->hasVirtualRelation($value)) {
+					$values[] = $value;
 				}
 			}
 
