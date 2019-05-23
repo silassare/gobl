@@ -652,7 +652,7 @@
 		 * @return array
 		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 		 */
-		private static function paginate(array $request_data, $max_default = 10)
+		private static function paginate(array $request_data, $max_default = 100)
 		{
 			$offset = 0;
 			$page   = 1;
