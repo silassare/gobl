@@ -80,8 +80,8 @@
 			}
 
 			$this->debug = [
-				'by'    => get_class($this->crud_handler),
-				'table' => $table->getName()
+				'_by'    => get_class($this->crud_handler),
+				'_table' => $table->getName()
 			];
 		}
 
@@ -112,11 +112,11 @@
 					$column          = $this->table->getColumn($field);
 
 					if ($column->isPrivate() AND !$this->crud_handler->shouldWritePrivateColumn()) {
-						$debug['why'] = 'column_is_private';
-						throw new CRUDException("ERROR", [$field], $debug);
+						$debug['_why'] = 'column_is_private';
+						throw new CRUDException("ERROR", $debug);
 					} elseif ($value != null AND $this->table->isPartOfPrimaryKey($column) AND !$this->crud_handler->shouldWritePrivateColumn()) {
-						$debug['why'] = 'column_is_part_of_pk';
-						throw new CRUDException("ERROR", [$field], $debug);
+						$debug['_why'] = 'column_is_part_of_pk';
+						throw new CRUDException("ERROR", $debug);
 					}
 				}
 			}
@@ -140,15 +140,15 @@
 					$action          = new CRUDColumnUpdate($this->table, $column, $form);
 
 					if ($column->isPrivate() AND !$this->crud_handler->shouldWritePrivateColumn()) {
-						$debug['why'] = 'column_is_private';
-						throw new CRUDException('ERROR', [$field], $debug);
+						$debug['_why'] = 'column_is_private';
+						throw new CRUDException('ERROR', $debug);
 					} elseif ($this->table->isPartOfPrimaryKey($column) AND !$this->crud_handler->shouldWritePrivateColumn()) {
-						$debug['why'] = 'column_is_part_of_pk';
-						throw new CRUDException('ERROR', [$field], $debug);
+						$debug['_why'] = 'column_is_part_of_pk';
+						throw new CRUDException('ERROR', $debug);
 					}
 					if (!$this->crud_handler->onBeforeColumnUpdate($action)) {
-						$debug['why'] = 'column_update_rejected';
-						throw new CRUDException($action->getError(), [$field], $debug);
+						$debug['_why'] = 'column_update_rejected';
+						throw new CRUDException($action->getError(), $debug);
 					}
 
 					$form = $action->getForm();
@@ -169,7 +169,7 @@
 			$action = new CRUDCreate($this->table, $form);
 
 			if (!$this->crud_handler->onBeforeCreate($action)) {
-				throw new CRUDException($action->getError(), [], $this->debug);
+				throw new CRUDException($action->getError(), $this->debug);
 			}
 
 			$form          = $action->getForm();
@@ -192,7 +192,7 @@
 			$action = new CRUDRead($this->table, $filters);
 
 			if (!$this->crud_handler->onBeforeRead($action)) {
-				throw new CRUDException($action->getError(), [], $this->debug);
+				throw new CRUDException($action->getError(), $this->debug);
 			}
 
 			$filters       = $action->getFilters();
@@ -211,7 +211,7 @@
 			$action = new CRUDReadAll($this->table, $filters);
 
 			if (!$this->crud_handler->onBeforeReadAll($action)) {
-				throw new CRUDException($action->getError(), [], $this->debug);
+				throw new CRUDException($action->getError(), $this->debug);
 			}
 
 			$filters       = $action->getFilters();
@@ -232,7 +232,7 @@
 			$action = new CRUDUpdate($this->table, $filters, $form);
 
 			if (!$this->crud_handler->onBeforeUpdate($action)) {
-				throw new CRUDException($action->getError(), [], $this->debug);
+				throw new CRUDException($action->getError(), $this->debug);
 			}
 
 			$filters       = $action->getFilters();
@@ -256,7 +256,7 @@
 			$action = new CRUDUpdateAll($this->table, $filters, $form);
 
 			if (!$this->crud_handler->onBeforeUpdateAll($action)) {
-				throw new CRUDException($action->getError(), [], $this->debug);
+				throw new CRUDException($action->getError(), $this->debug);
 			}
 
 			$filters       = $action->getFilters();
@@ -278,7 +278,7 @@
 			$action = new CRUDDelete($this->table, $filters);
 
 			if (!$this->crud_handler->onBeforeDelete($action)) {
-				throw new CRUDException($action->getError(), [], $this->debug);
+				throw new CRUDException($action->getError(), $this->debug);
 			}
 
 			$filters       = $action->getFilters();
@@ -297,7 +297,7 @@
 			$action = new CRUDDeleteAll($this->table, $filters);
 
 			if (!$this->crud_handler->onBeforeDeleteAll($action)) {
-				throw new CRUDException($action->getError(), [], $this->debug);
+				throw new CRUDException($action->getError(), $this->debug);
 			}
 
 			$filters       = $action->getFilters();
