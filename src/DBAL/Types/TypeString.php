@@ -22,6 +22,7 @@
 	{
 		private $min;
 		private $max;
+		private $truncate = false;
 		private $pattern;
 
 		/**
@@ -57,6 +58,28 @@
 			$this->max = $max;
 
 			return $this;
+		}
+
+		/**
+		 * Enable truncating when string length greater than max.
+		 *
+		 * @return \Gobl\DBAL\Types\Type
+		 */
+		public function truncate()
+		{
+			$this->truncate = true;
+
+			return $this;
+		}
+
+		/**
+		 * Checks if truncate is enabled.
+		 *
+		 * @return bool
+		 */
+		public function canTruncate()
+		{
+			return $this->truncate;
 		}
 
 		/**
@@ -100,8 +123,13 @@
 			if (isset($this->min) AND strlen($value) < $this->min)
 				throw new TypesInvalidValueException('string_length_lt_min', $debug);
 
-			if (isset($this->max) AND strlen($value) > $this->max)
-				throw new TypesInvalidValueException('string_length_gt_max', $debug);
+			if (isset($this->max) AND strlen($value) > $this->max) {
+				if (!$this->canTruncate()) {
+					throw new TypesInvalidValueException('string_length_gt_max', $debug);
+				}
+
+				$value = substr($value, 0, $this->max);
+			}
 
 			if (isset($this->pattern) AND !preg_match($this->pattern, $value))
 				throw new TypesInvalidValueException('string_pattern_check_fails', $debug);
@@ -119,6 +147,9 @@
 			$max      = self::getOptionKey($options, 'max', PHP_INT_MAX);
 
 			$instance->length($min, $max);
+
+			if (isset($options['truncate']) AND $options['truncate'])
+				$instance->truncate();
 
 			if (isset($options['pattern']))
 				$instance->pattern($options['pattern']);
@@ -138,12 +169,13 @@
 		public function getCleanOptions()
 		{
 			$options = [
-				'type'    => 'string',
-				'min'     => $this->min,
-				'max'     => $this->max,
-				'pattern' => $this->pattern,
-				'null'    => $this->isNullAble(),
-				'default' => $this->getDefault()
+				'type'     => 'string',
+				'min'      => $this->min,
+				'max'      => $this->max,
+				'truncate' => $this->truncate,
+				'pattern'  => $this->pattern,
+				'null'     => $this->isNullAble(),
+				'default'  => $this->getDefault()
 			];
 
 			return $options;
