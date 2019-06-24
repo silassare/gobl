@@ -1,39 +1,39 @@
 {
-  "name": "silassare/gobl",
-  "version": "1.0.6",
-  "description": "Gobl allows you to use a Database Abstraction Layer (DBAL) and Object-Relational Mapping (ORM) to query your database with PHP.",
-  "license": "MIT",
-  "keywords": [
-    "gobl",
-    "ORM",
-    "DBAL",
-    "CRUD",
-    "MySql"
-  ],
-  "require": {
-    "php": ">=5.6.0",
-    "silassare/otpl": ">=1.1.6",
-    "ext-pdo": "*",
-    "ext-json": "*"
-  },
-  "homepage": "https://github.com/silassare/gobl#readme",
-  "archive": {
-    "exclude": [
-      "/test"
-    ]
-  },
-  "autoload": {
-    "psr-4": {
-      "Gobl\\": "src"
-    }
-  },
-  "authors": [
-    {
-      "name": "Emile Silas Sare",
-      "email": "emile.silas@gmail.com",
-      "homepage": "https://github.com/silassare"
-    }
-  ],
-  "minimum-stability": "dev",
-  "prefer-stable": true
+	"name": "silassare/gobl",
+	"version": "1.0.7",
+	"description": "Gobl allows you to use a Database Abstraction Layer (DBAL) and Object-Relational Mapping (ORM) to query your database with PHP.",
+	"license": "MIT",
+	"keywords": [
+		"gobl",
+		"ORM",
+		"DBAL",
+		"CRUD",
+		"MySql"
+	],
+	"require": {
+		"php": ">=5.6.0",
+		"silassare/otpl": ">=1.1.6",
+		"ext-pdo": "*",
+		"ext-json": "*"
+	},
+	"homepage": "https://github.com/silassare/gobl#readme",
+	"archive": {
+		"exclude": [
+			"/test"
+		]
+	},
+	"autoload": {
+		"psr-4": {
+			"Gobl\\": "src"
+		}
+	},
+	"authors": [
+		{
+			"name": "Emile Silas Sare",
+			"email": "emile.silas@gmail.com",
+			"homepage": "https://github.com/silassare"
+		}
+	],
+	"minimum-stability": "dev",
+	"prefer-stable": true
 }
