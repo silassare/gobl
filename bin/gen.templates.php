@@ -28,7 +28,7 @@
 		'MY_PROJECT_SERVICE_NS'                 => '<%$.service.namespace%>',
 		'MyOZService'                           => '<%$.service.class%>',
 		'my_svc'                                => '<%$.service.name%>',
-		'my_id'                                 => '<%$.pk_columns[0].name%>',
+		'my_id'                                 => '<%$.pk_columns[0].fullName%>',
 		'\'my_pk_column_const\''                => '<%$.class.entity%>::<%$.pk_columns[0].const%>'
 	];
 

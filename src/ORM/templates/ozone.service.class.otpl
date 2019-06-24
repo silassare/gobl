@@ -25,26 +25,26 @@
 	 * to add item to <%$.service.name%>
 	 * - POST    /<%$.service.name%>
 	 *
-	 * to update property(ies) of the item with the given :<%$.pk_columns[0].name%>
-	 * - PATCH     /<%$.service.name%>/:<%$.pk_columns[0].name%>
+	 * to update property(ies) of the item with the given :<%$.pk_columns[0].fullName%>
+	 * - PATCH     /<%$.service.name%>/:<%$.pk_columns[0].fullName%>
 	 *
 	 * to update property(ies) of all items in `<%$.table.name%>`
 	 * - PATCH     /<%$.service.name%>
 	 *
-	 * to delete item with the given :<%$.pk_columns[0].name%>
-	 * - DELETE  /<%$.service.name%>/:<%$.pk_columns[0].name%>
+	 * to delete item with the given :<%$.pk_columns[0].fullName%>
+	 * - DELETE  /<%$.service.name%>/:<%$.pk_columns[0].fullName%>
 	 *
 	 * to delete all items in `<%$.table.name%>`
 	 * - DELETE  /<%$.service.name%>
 	 *
-	 * to get the item with the given :<%$.pk_columns[0].name%>
-	 * - GET     /<%$.service.name%>/:<%$.pk_columns[0].name%>
+	 * to get the item with the given :<%$.pk_columns[0].fullName%>
+	 * - GET     /<%$.service.name%>/:<%$.pk_columns[0].fullName%>
 	 *
 	 * to get all items in <%$.table.name%>
 	 * - GET     /<%$.service.name%>
 	 *
-	 * to get relation for the item in `<%$.table.name%>` with the given :<%$.pk_columns[0].name%>
-	 * - GET     /<%$.service.name%>/:<%$.pk_columns[0].name%>/relation
+	 * to get relation for the item in `<%$.table.name%>` with the given :<%$.pk_columns[0].fullName%>
+	 * - GET     /<%$.service.name%>/:<%$.pk_columns[0].fullName%>/relation
 	 *
 	 * @package <%$.namespace%>\App\Services
 	 */
@@ -72,7 +72,7 @@
 			$is_number   = ($type_obj instanceof $bigint_type OR $type_obj instanceof $int_type);
 
 			$options = [
-				'<%$.pk_columns[0].name%>'    => $is_number ? '[0-9]+' : '[^/]+',
+				'<%$.pk_columns[0].fullName%>'    => $is_number ? '[0-9]+' : '[^/]+',
 				'relation' => Relation::NAME_PATTERN
 			];
 
@@ -86,11 +86,11 @@
 
 				return $service->writeResponse($context);
 			}, $options)
-				   ->get('/<%$.service.name%>/{<%$.pk_columns[0].name%>}', function (RouteInfo $r) {
+				   ->get('/<%$.service.name%>/{<%$.pk_columns[0].fullName%>}', function (RouteInfo $r) {
 					   $context         = $r->getContext();
 					   $request_context = new ORMRequestContext($context->getRequest()
 																		->getFormData());
-					   $request_context->addColumnFilter('<%$.pk_columns[0].name%>', $r->getArg('<%$.pk_columns[0].name%>'));
+					   $request_context->addColumnFilter('<%$.pk_columns[0].fullName%>', $r->getArg('<%$.pk_columns[0].fullName%>'));
 					   $service = new self($context);
 					   $service->actionGetEntity($request_context);
 
@@ -105,11 +105,11 @@
 
 					   return $service->writeResponse($context);
 				   }, $options)
-				   ->get('/<%$.service.name%>/{<%$.pk_columns[0].name%>}/{relation}', function (RouteInfo $r) {
+				   ->get('/<%$.service.name%>/{<%$.pk_columns[0].fullName%>}/{relation}', function (RouteInfo $r) {
 					   $context         = $r->getContext();
 					   $request_context = new ORMRequestContext($context->getRequest()
 																		->getFormData());
-					   $request_context->addColumnFilter('<%$.pk_columns[0].name%>', $r->getArg('<%$.pk_columns[0].name%>'));
+					   $request_context->addColumnFilter('<%$.pk_columns[0].fullName%>', $r->getArg('<%$.pk_columns[0].fullName%>'));
 					   $request_context->addRelation($r->getArg('relation'));
 
 					   $service = new self($context);
@@ -117,11 +117,11 @@
 
 					   return $service->writeResponse($context);
 				   }, $options)
-				   ->patch('/<%$.service.name%>/{<%$.pk_columns[0].name%>}', function (RouteInfo $r) {
+				   ->patch('/<%$.service.name%>/{<%$.pk_columns[0].fullName%>}', function (RouteInfo $r) {
 					   $context         = $r->getContext();
 					   $request_context = new ORMRequestContext($context->getRequest()
 																		->getFormData());
-					   $request_context->addColumnFilter('<%$.pk_columns[0].name%>', $r->getArg('<%$.pk_columns[0].name%>'));
+					   $request_context->addColumnFilter('<%$.pk_columns[0].fullName%>', $r->getArg('<%$.pk_columns[0].fullName%>'));
 
 					   $service = new self($context);
 					   $service->actionUpdateOneItem($request_context);
@@ -137,11 +137,11 @@
 
 					   return $service->writeResponse($context);
 				   }, $options)
-				   ->delete('/<%$.service.name%>/{<%$.pk_columns[0].name%>}', function (RouteInfo $r) {
+				   ->delete('/<%$.service.name%>/{<%$.pk_columns[0].fullName%>}', function (RouteInfo $r) {
 					   $context         = $r->getContext();
 					   $request_context = new ORMRequestContext($context->getRequest()
 																		->getFormData());
-					   $request_context->addColumnFilter('<%$.pk_columns[0].name%>', $r->getArg('<%$.pk_columns[0].name%>'));
+					   $request_context->addColumnFilter('<%$.pk_columns[0].fullName%>', $r->getArg('<%$.pk_columns[0].fullName%>'));
 
 					   $service = new self($context);
 					   $service->actionDeleteEntity($request_context);
@@ -152,7 +152,7 @@
 					   $context         = $r->getContext();
 					   $request_context = new ORMRequestContext($context->getRequest()
 																		->getFormData());
-					   $request_context->addColumnFilter('<%$.pk_columns[0].name%>', $r->getArg('<%$.pk_columns[0].name%>'));
+					   $request_context->addColumnFilter('<%$.pk_columns[0].fullName%>', $r->getArg('<%$.pk_columns[0].fullName%>'));
 
 					   $service = new self($context);
 					   $service->actionDeleteAll($request_context);

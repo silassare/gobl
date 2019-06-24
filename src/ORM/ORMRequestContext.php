@@ -507,9 +507,10 @@
 
 			foreach ($map as $field => $value) {
 				if ($table->hasColumn($field)) {
-					$column = $table->getColumn($field);
-					// only full name are allowed
-					if ($column->getFullName() === $field) {
+					$column    = $table->getColumn($field);
+					$full_name = $column->getFullName();
+					// only full name will be used
+					if ($full_name === $field) {
 						$values[$field] = $value;
 					}
 				}
