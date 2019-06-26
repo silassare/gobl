@@ -1,52 +1,52 @@
 //__GOBL_HEAD_COMMENT__
 
 export type tGoblEntityData = {
-	[key: string]: any
+	[ key: string ]: any
 };
-export type tGoblCache<T> = { [key: string]: T };
+export type tGoblCache<T> = { [ key: string ]: T };
 
-const win: any                                        = window,
-	  gobl: any                                       = win.gobl = win.gobl || {},
-	  _hasOwn                                         = Object.hasOwnProperty,
-	  _isPlainObject                                  = (a: any): boolean => Object.prototype.toString.call(a) === "[object Object]",
-	  _c_bool                                         = (v: any): boolean => {
-		  // @ts-ignore
-		  return (v === null || v === undefined) ? v : Boolean(v === "0" ? 0 : v);
-	  },
-	  _c_int                                          = (v: any): number => {
-		  // @ts-ignore
-		  return (v === null || v === undefined) ? v : parseInt(v);
-	  },
-	  _c_string                                       = (v: any): string => {
-		  // @ts-ignore
-		  return (v === null || v === undefined) ? "" : String(v);
-	  },
-	  gobl_marker                                     = "__gobl__",
-	  gobl_instance_cache: {
-		  [entity: string]: tGoblCache<GoblEntity>
-	  }                                               = {},
-	  gobl_class_magic_map: { [key: string]: string } = {},
-	  realJSONParse                                   = JSON.parse,
-	  goblJSONParse                                   = function (text: any, reviver?: (key: any, value: any) => any) {
-		  return realJSONParse(text, function (key, value) {
-			  if (typeof reviver === "function") {
-				  value = reviver(key, value);
-			  }
+const win: any = window,
+	gobl: any = win.gobl = win.gobl || {},
+	_hasOwn = Object.hasOwnProperty,
+	_isPlainObject = (a: any): boolean => Object.prototype.toString.call(a) === "[object Object]",
+	_c_bool = (v: any): boolean => {
+		// @ts-ignore
+		return (v === null || v === undefined) ? v : Boolean(v === "0" ? 0 : v);
+	},
+	_c_int = (v: any): number => {
+		// @ts-ignore
+		return (v === null || v === undefined) ? v : parseInt(v);
+	},
+	_c_string = (v: any): string => {
+		// @ts-ignore
+		return (v === null || v === undefined) ? "" : String(v);
+	},
+	gobl_marker = "__gobl__",
+	gobl_instance_cache: {
+		[ entity: string ]: tGoblCache<GoblEntity>
+	} = {},
+	gobl_class_magic_map: { [ key: string ]: string } = {},
+	realJSONParse = JSON.parse,
+	goblJSONParse = function (text: any, reviver?: (key: any, value: any) => any) {
+		return realJSONParse(text, function (key, value) {
+			if (typeof reviver === "function") {
+				value = reviver(key, value);
+			}
 
-			  if (_isPlainObject(value)) {
-				  let i = GoblEntity.toInstance(value, true);
-				  if (i) {
-					  return i;
-				  }
-			  }
+			if (_isPlainObject(value)) {
+				let i = GoblEntity.toInstance(value, true);
+				if (i) {
+					return i;
+				}
+			}
 
-			  return value;
-		  });
-	  },
-	  ACTION_UNKNOWN                                  = 0,
-	  ACTION_SAVING                                   = 1,
-	  ACTION_DELETING                                 = 2,
-	  ACTION_UPDATING                                 = 3;
+			return value;
+		});
+	},
+	ACTION_UNKNOWN = 0,
+	ACTION_SAVING = 1,
+	ACTION_DELETING = 2,
+	ACTION_UPDATING = 3;
 
 /**
  * GoblEntity class.
@@ -56,7 +56,7 @@ const win: any                                        = window,
  * - entity class method and column method (getter and setter)
  * We only use:
  * - a prefix with a single `_` for property
- * - camelCase method name avoiding prefixing with `get` or `set` so
+ * - camelCase method name avoiding prefixing with `get` or `set`
  * So don't use:
  * - `getSomething`, `setSomething` or `our_property`
  * Use instead:
@@ -64,19 +64,24 @@ const win: any                                        = window,
  */
 export abstract class GoblEntity {
 	protected readonly _data: any = {};
-	protected _cache: any         = {};
-	protected _action: number     = ACTION_UNKNOWN;
+	protected _cache: any = {};
+	protected _action: number = ACTION_UNKNOWN;
 
 	protected constructor(_initial_data: tGoblEntityData = {}, private readonly _name: string, private readonly _prefix: string, private readonly _columns: string[]) {
-		let ctx = this;
+		let ctx = this,
+			// we use null not undefined since JSON.stringify will ignore properties with undefined value
+			_def: null = null;
 
 		_columns.forEach(function (col) {
-			ctx._data[col] = ctx._cache[col] = (col in _initial_data) ? _initial_data[col] : null;// don't use undefined since JSON.stringify will remove it
+			ctx._data[ col ] = ctx._cache[ col ] = (col in _initial_data) ? _initial_data[ col ] : _def;
 		});
 	}
 
 	protected _set(column: string, value: any): this {
-		this._data[column] = value;
+		if (_hasOwn.call(this._data, column)) {
+			this._data[ column ] = value;
+		}
+
 		return this;
 	}
 
@@ -122,12 +127,12 @@ export abstract class GoblEntity {
 	// so we use camelCase method name
 	// hydrate the entity and save the state when save is true
 	doHydrate(data: tGoblEntityData, save: boolean = false): this {
-		let ctx             = this,
+		let ctx = this,
 			source_of_truth = this._data;
 
 		Object.keys(data).forEach(function (k) {
-			if (k in source_of_truth) {
-				(ctx as any)[k.slice(ctx._prefix.length + 1)] = data[k];
+			if (_hasOwn.call(source_of_truth, k)) {
+				(ctx as any)[ k.slice(ctx._prefix.length + 1) ] = data[ k ];
 			}
 		});
 
@@ -138,16 +143,19 @@ export abstract class GoblEntity {
 		return this;
 	}
 
-	// returns current data in a clean new object
-	// if diff is true, returns modified columns only
+	/**
+	 * Returns current data in a clean new object
+	 *
+	 * if `diff` is true, returns modified columns only
+	 */
 	toObject(diff: boolean = false): tGoblEntityData {
 		let o: any = {};
 
 		if (diff) {
 			for (let k in this._cache) {
 				if (_hasOwn.call(this._cache, k)) {
-					if (this._cache[k] !== this._data[k]) {
-						o[k] = this._data[k];
+					if (this._cache[ k ] !== this._data[ k ]) {
+						o[ k ] = this._data[ k ];
 					}
 				}
 			}
@@ -156,61 +164,70 @@ export abstract class GoblEntity {
 
 		for (let k in this._data) {
 			if (_hasOwn.call(this._data, k)) {
-				o[k] = this._data[k];
+				o[ k ] = this._data[ k ];
 			}
 		}
 
 		return o;
 	}
 
-	// returns some column values
+	/**
+	 * Returns some column values
+	 */
 	toObjectSome(columns: string[]): tGoblEntityData {
 		let o: any = {}, len = columns.length;
 
 		for (let i = 0; i < len; i++) {
-			let col = columns[i];
-			if (col in this._data) {
-				o[col] = this._data[col];
+			let col = columns[ i ];
+			if (_hasOwn.call(this._data, col)) {
+				o[ col ] = this._data[ col ];
 			} else {
-				throw new Error(`Column "${col}" is not defined in "${this._name}".`);
+				throw new Error(`Column "${ col }" is not defined in "${ this._name }".`);
 			}
 		}
 
 		return o;
 	}
 
-	// JSON helper
+	/**
+	 * JSON helper
+	 */
 	toJSON(): any {
-		let data          = this.toObject();
-		data[gobl_marker] = this._name;
+		let data = this.toObject();
+		data[ gobl_marker ] = this._name;
 
 		return data;
 	}
 
 	static toInstance(data: tGoblEntityData, cache = false): GoblEntity | undefined {
 		if (_isPlainObject(data)) {
-			let entity_name = data[gobl_marker],
-				entity, magic, e: GoblEntity, cache_key;
+			let entity_name = data[ gobl_marker ],
+				entity, magic, old: GoblEntity, e: GoblEntity, cache_key;
 
 			if (entity_name) {
-				entity = gobl[entity_name];
-				delete data[gobl_marker];// maybe the entity name change
+				entity = gobl[ entity_name ];
+				delete data[ gobl_marker ];// maybe the entity name change
 			}
 
 			if (!entity) {
-				magic       = Object.keys(data).sort().join("");
-				entity_name = gobl_class_magic_map[magic];
+				magic = Object.keys(data).sort().join("");
+				entity_name = gobl_class_magic_map[ magic ];
 
 				if (entity_name) {
-					entity = gobl[entity_name];
+					entity = gobl[ entity_name ];
 				}
 			}
 
 			if (entity) {
 				e = new entity(data);
 				if (true === cache) {
-					cache_key                                   = e.cacheKey();
-					gobl_instance_cache[entity_name][cache_key] = e;
+					cache_key = e.cacheKey();
+					old = gobl_instance_cache[ entity_name ][ cache_key ];
+					if (old) {
+						e = old.doHydrate(data);
+					}
+
+					gobl_instance_cache[ entity_name ][ cache_key ] = e;
 				}
 
 				return e;
@@ -221,15 +238,15 @@ export abstract class GoblEntity {
 	}
 
 	cacheKey(): string {
-		let columns       = this.identifierColumns().sort(),
-			len           = columns.length,
+		let columns = this.identifierColumns().sort(),
+			len = columns.length,
 			value = "", i = 0;
 
 		if (len === 1) {
-			value = this._data[columns[0]];
+			value = this._data[ columns[ 0 ] ];
 		} else {
 			for (; i < len; i++) {
-				value += this._data[columns[i]];
+				value += this._data[ columns[ i ] ];
 			}
 		}
 
@@ -237,7 +254,7 @@ export abstract class GoblEntity {
 	}
 
 	static subCache(entity: string): tGoblCache<GoblEntity> | undefined {
-		return gobl_instance_cache[entity];
+		return gobl_instance_cache[ entity ];
 	}
 
 	abstract identifierColumns(): string[]
@@ -250,8 +267,8 @@ export abstract class GoblSinglePKEntity extends GoblEntity {
 //__GOBL_TS_ENTITIES_CLASS_LIST__
 
 Object.keys(gobl).forEach(function (entity) {
-	gobl_instance_cache[entity]                                   = {};
-	gobl_class_magic_map[gobl[entity]["COLUMNS"].sort().join("")] = entity;
+	gobl_instance_cache[ entity ] = {};
+	gobl_class_magic_map[ gobl[ entity ][ "COLUMNS" ].sort().join("") ] = entity;
 });
 
 JSON.parse = goblJSONParse;
