@@ -22,7 +22,7 @@ const win: any = window,
 		return (v === null || v === undefined) ? "" : String(v);
 	},
 	gobl_marker = "__gobl__",
-	gobl_instance_cache: {
+	gobl_cache: {
 		[ entity: string ]: tGoblCache<GoblEntity>
 	} = {},
 	gobl_class_magic_map: { [ key: string ]: string } = {},
@@ -77,6 +77,12 @@ export abstract class GoblEntity {
 		});
 	}
 
+	/**
+	 * Magic setter.
+	 *
+	 * @param column
+	 * @param value
+	 */
 	protected _set(column: string, value: any): this {
 		if (_hasOwn.call(this._data, column)) {
 			this._data[ column ] = value;
@@ -85,10 +91,18 @@ export abstract class GoblEntity {
 		return this;
 	}
 
+	/**
+	 * Checks is the entity is clean.
+	 */
 	isClean(): boolean {
 		return Object.keys(this.toObject(true)).length === 0
 	}
 
+	/**
+	 * Checks if the entity is saved.
+	 *
+	 * @param set When true the entity will be considered as saved.
+	 */
 	isSaved(set?: boolean): boolean {
 		if (set) {
 			this._cache = this.toObject();
@@ -98,6 +112,11 @@ export abstract class GoblEntity {
 		return this.isClean()
 	}
 
+	/**
+	 * Checks if the entity is beeing saved.
+	 *
+	 * @param set When true the state will be set to saving.
+	 */
 	isSaving(set?: boolean): boolean {
 		if (arguments.length) {
 			this._action = set ? ACTION_SAVING : ACTION_UNKNOWN;
@@ -106,6 +125,11 @@ export abstract class GoblEntity {
 		return this._action === ACTION_SAVING;
 	}
 
+	/**
+	 * Checks if the entity is beeing deleted.
+	 *
+	 * @param set When true the state will be set to deleting.
+	 */
 	isDeleting(set?: boolean): boolean {
 		if (arguments.length) {
 			this._action = set ? ACTION_DELETING : ACTION_UNKNOWN;
@@ -114,6 +138,11 @@ export abstract class GoblEntity {
 		return this._action === ACTION_DELETING;
 	}
 
+	/**
+	 * Checks if the entity is beeing updated.
+	 *
+	 * @param set When true the state will be set to updating.
+	 */
 	isUpdating(set?: boolean): boolean {
 		if (arguments.length) {
 			this._action = set ? ACTION_UPDATING : ACTION_UNKNOWN;
@@ -122,10 +151,9 @@ export abstract class GoblEntity {
 		return this._action === ACTION_UPDATING;
 	}
 
-	// hydrate could be a cool name but an entity
-	// could have `[prefix_]hydrate` as his column name
-	// so we use camelCase method name
-	// hydrate the entity and save the state when save is true
+	/**
+	 * Hydrate the entity and set as saved when `save` is true
+	 */
 	doHydrate(data: tGoblEntityData, save: boolean = false): this {
 		let ctx = this,
 			source_of_truth = this._data;
@@ -199,6 +227,12 @@ export abstract class GoblEntity {
 		return data;
 	}
 
+	/**
+	 * Try to identify and instanciate the entity class that best matches the given data.
+	 *
+	 * @param data
+	 * @param cache
+	 */
 	static toInstance(data: tGoblEntityData, cache = false): GoblEntity | undefined {
 		if (_isPlainObject(data)) {
 			let entity_name = data[ gobl_marker ],
@@ -206,7 +240,9 @@ export abstract class GoblEntity {
 
 			if (entity_name) {
 				entity = gobl[ entity_name ];
-				delete data[ gobl_marker ];// maybe the entity name change
+				// maybe the entity name change
+				// this is to have a clean object
+				delete data[ gobl_marker ];
 			}
 
 			if (!entity) {
@@ -222,12 +258,12 @@ export abstract class GoblEntity {
 				e = new entity(data);
 				if (true === cache) {
 					cache_key = e.cacheKey();
-					old = gobl_instance_cache[ entity_name ][ cache_key ];
+					old = gobl_cache[ entity_name ][ cache_key ];
 					if (old) {
 						e = old.doHydrate(data);
 					}
 
-					gobl_instance_cache[ entity_name ][ cache_key ] = e;
+					gobl_cache[ entity_name ][ cache_key ] = e;
 				}
 
 				return e;
@@ -237,6 +273,18 @@ export abstract class GoblEntity {
 		return undefined;
 	}
 
+	/**
+	 * Returns a given entity cache.
+	 *
+	 * @param entity
+	 */
+	static subCache(entity: string): tGoblCache<GoblEntity> | undefined {
+		return gobl_cache[ entity ];
+	}
+
+	/**
+	 * Returns the entity cache key.
+	 */
 	cacheKey(): string {
 		let columns = this.identifierColumns().sort(),
 			len = columns.length,
@@ -253,10 +301,9 @@ export abstract class GoblEntity {
 		return value;
 	}
 
-	static subCache(entity: string): tGoblCache<GoblEntity> | undefined {
-		return gobl_instance_cache[ entity ];
-	}
-
+	/**
+	 * Returns the primary keys of the entity.
+	 */
 	abstract identifierColumns(): string[]
 }
 
@@ -267,7 +314,7 @@ export abstract class GoblSinglePKEntity extends GoblEntity {
 <%@import('include/ts.entities.list.otpl',$)%>
 
 Object.keys(gobl).forEach(function (entity) {
-	gobl_instance_cache[ entity ] = {};
+	gobl_cache[ entity ] = {};
 	gobl_class_magic_map[ gobl[ entity ][ "COLUMNS" ].sort().join("") ] = entity;
 });
 
