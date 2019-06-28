@@ -62,6 +62,7 @@ const win: any = window,
  * Use instead:
  * - `_getSomething`, `_setSomething`, `doSomething` or `_our_property`
  */
+
 export abstract class GoblEntity {
 	protected readonly _data: any = {};
 	protected _cache: any = {};
@@ -256,14 +257,14 @@ export abstract class GoblEntity {
 
 			if (entity) {
 				e = new entity(data);
-				if (true === cache) {
-					cache_key = e.cacheKey();
+				if (true === cache && (cache_key = e.cacheKey())) {
 					old = gobl_cache[ entity_name ][ cache_key ];
 					if (old) {
 						e = old.doHydrate(data);
 					}
 
 					gobl_cache[ entity_name ][ cache_key ] = e;
+
 				}
 
 				return e;
@@ -284,8 +285,10 @@ export abstract class GoblEntity {
 
 	/**
 	 * Returns the entity cache key.
+	 *
+	 * `null` is returned when we can't have a valid cache key.
 	 */
-	cacheKey(): string {
+	cacheKey(): string | null {
 		let columns = this.identifierColumns().sort(),
 			len = columns.length,
 			value = "", i = 0;
@@ -294,11 +297,14 @@ export abstract class GoblEntity {
 			value = this._data[ columns[ 0 ] ];
 		} else {
 			for (; i < len; i++) {
-				value += this._data[ columns[ i ] ];
+				let v = this._data[ columns[ i ] ];
+				if (v != null) {
+					value += v;
+				}
 			}
 		}
 
-		return value;
+		return value || null;
 	}
 
 	/**
@@ -306,6 +312,7 @@ export abstract class GoblEntity {
 	 */
 	abstract identifierColumns(): string[]
 }
+
 
 export abstract class GoblSinglePKEntity extends GoblEntity {
 	abstract singlePKValue(): string
