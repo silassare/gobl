@@ -9,10 +9,10 @@
 	use Gobl\DBAL\Types\TypeBigint;
 	use Gobl\DBAL\Types\TypeInt;
 	use Gobl\ORM\ORM;
-	use Gobl\ORM\ORMRequestContext;
 	use MY_PROJECT_DB_NS\MyController;
 	use MY_PROJECT_DB_NS\MyEntity;
 	use OZONE\OZ\Core\BaseService;
+	use OZONE\OZ\Core\ORMRequest;
 	use OZONE\OZ\Exceptions\NotFoundException;
 	use OZONE\OZ\Router\RouteInfo;
 	use OZONE\OZ\Router\Router;
@@ -77,85 +77,85 @@
 			];
 
 			$router->post('/my_svc', function (RouteInfo $r) {
-				$context         = $r->getContext();
-				$request_context = new ORMRequestContext($context->getRequest()
-																 ->getFormData());
+				$context     = $r->getContext();
+				$orm_request = new ORMRequest($context, $context->getRequest()
+																->getFormData());
 
 				$service = new self($context);
-				$service->actionCreateEntity($request_context);
+				$service->actionCreateEntity($orm_request);
 
 				return $service->writeResponse($context);
 			}, $options)
 				   ->get('/my_svc/{my_id}', function (RouteInfo $r) {
-					   $context         = $r->getContext();
-					   $request_context = new ORMRequestContext($context->getRequest()
-																		->getFormData());
-					   $request_context->addColumnFilter('my_id', $r->getArg('my_id'));
+					   $context     = $r->getContext();
+					   $orm_request = new ORMRequest($context, $context->getRequest()
+																	   ->getFormData());
+					   $orm_request->addColumnFilter('my_id', $r->getArg('my_id'));
 					   $service = new self($context);
-					   $service->actionGetEntity($request_context);
+					   $service->actionGetEntity($orm_request);
 
 					   return $service->writeResponse($context);
 				   }, $options)
 				   ->get('/my_svc', function (RouteInfo $r) {
-					   $context         = $r->getContext();
-					   $request_context = new ORMRequestContext($context->getRequest()
-																		->getFormData());
-					   $service         = new self($context);
-					   $service->actionGetAll($request_context);
+					   $context     = $r->getContext();
+					   $orm_request = new ORMRequest($context, $context->getRequest()
+																	   ->getFormData());
+					   $service     = new self($context);
+					   $service->actionGetAll($orm_request);
 
 					   return $service->writeResponse($context);
 				   }, $options)
 				   ->get('/my_svc/{my_id}/{relation}', function (RouteInfo $r) {
-					   $context         = $r->getContext();
-					   $request_context = new ORMRequestContext($context->getRequest()
-																		->getFormData());
-					   $request_context->addColumnFilter('my_id', $r->getArg('my_id'));
-					   $request_context->addRelation($r->getArg('relation'));
+					   $context     = $r->getContext();
+					   $orm_request = new ORMRequest($context, $context->getRequest()
+																	   ->getFormData());
+					   $orm_request->addColumnFilter('my_id', $r->getArg('my_id'));
+					   $orm_request->addRelation($r->getArg('relation'));
 
 					   $service = new self($context);
-					   $service->actionGetRelation($request_context);
+					   $service->actionGetRelation($orm_request);
 
 					   return $service->writeResponse($context);
 				   }, $options)
 				   ->patch('/my_svc/{my_id}', function (RouteInfo $r) {
-					   $context         = $r->getContext();
-					   $request_context = new ORMRequestContext($context->getRequest()
-																		->getFormData());
-					   $request_context->addColumnFilter('my_id', $r->getArg('my_id'));
+					   $context     = $r->getContext();
+					   $orm_request = new ORMRequest($context, $context->getRequest()
+																	   ->getFormData());
+					   $orm_request->addColumnFilter('my_id', $r->getArg('my_id'));
 
 					   $service = new self($context);
-					   $service->actionUpdateOneItem($request_context);
+					   $service->actionUpdateOneItem($orm_request);
 
 					   return $service->writeResponse($context);
 				   }, $options)
 				   ->patch('/my_svc', function (RouteInfo $r) {
-					   $context         = $r->getContext();
-					   $request_context = new ORMRequestContext($context->getRequest()
-																		->getFormData());
-					   $service         = new self($context);
-					   $service->actionUpdateAllItems($request_context);
+					   $context     = $r->getContext();
+					   $orm_request = new ORMRequest($context, $context->getRequest()
+																	   ->getFormData());
+					   $service     = new self($context);
+					   $service->actionUpdateAllItems($orm_request);
 
 					   return $service->writeResponse($context);
 				   }, $options)
 				   ->delete('/my_svc/{my_id}', function (RouteInfo $r) {
-					   $context         = $r->getContext();
-					   $request_context = new ORMRequestContext($context->getRequest()
-																		->getFormData());
-					   $request_context->addColumnFilter('my_id', $r->getArg('my_id'));
+					   $context     = $r->getContext();
+					   $orm_request = new ORMRequest($context, $context->getRequest()
+																	   ->getFormData());
+					   $orm_request->addColumnFilter('my_id', $r->getArg('my_id'));
 
 					   $service = new self($context);
-					   $service->actionDeleteEntity($request_context);
+					   $service->actionDeleteEntity($orm_request);
 
 					   return $service->writeResponse($context);
 				   }, $options)
 				   ->delete('/my_svc', function (RouteInfo $r) {
-					   $context         = $r->getContext();
-					   $request_context = new ORMRequestContext($context->getRequest()
-																		->getFormData());
-					   $request_context->addColumnFilter('my_id', $r->getArg('my_id'));
+					   $context     = $r->getContext();
+					   $orm_request = new ORMRequest($context, $context->getRequest()
+																	   ->getFormData());
+					   $orm_request->addColumnFilter('my_id', $r->getArg('my_id'));
 
 					   $service = new self($context);
-					   $service->actionDeleteAll($request_context);
+					   $service->actionDeleteAll($orm_request);
 
 					   return $service->writeResponse($context);
 				   }, $options);
@@ -168,14 +168,14 @@
 		/**
 		 * Creates a new entry in the table `my_table`
 		 *
-		 * @param \Gobl\ORM\ORMRequestContext $request_context
+		 * @param \OZONE\OZ\Core\ORMRequest $orm_request
 		 *
 		 * @throws \Exception
 		 */
-		public function actionCreateEntity(ORMRequestContext $request_context)
+		public function actionCreateEntity(ORMRequest $orm_request)
 		{
 			try {
-				$values = $request_context->getFormData(self::table());
+				$values = $orm_request->getFormData(self::table());
 
 				$controller = new MyController();
 				$entity     = $controller->addItem($values);
@@ -196,16 +196,16 @@
 		/**
 		 * Updates only one item in the table `my_table` that matches some filters
 		 *
-		 * @param \Gobl\ORM\ORMRequestContext $request_context
+		 * @param \OZONE\OZ\Core\ORMRequest $orm_request
 		 *
 		 * @throws \Exception
 		 */
-		public function actionUpdateOneItem(ORMRequestContext $request_context)
+		public function actionUpdateOneItem(ORMRequest $orm_request)
 		{
 			try {
-				$request_context = $request_context->createScopedInstance(self::table());
-				$values          = $request_context->getFormData();
-				$filters         = $request_context->getFilters();
+				$orm_request = $orm_request->createScopedInstance(self::table());
+				$values      = $orm_request->getFormData();
+				$filters     = $orm_request->getFilters();
 
 				$controller = new MyController();
 				$entity     = $controller->updateOneItem($filters, $values);
@@ -226,16 +226,16 @@
 		/**
 		 * Updates all items in the table `my_table` that matches some filters
 		 *
-		 * @param \Gobl\ORM\ORMRequestContext $request_context
+		 * @param \OZONE\OZ\Core\ORMRequest $orm_request
 		 *
 		 * @throws \Exception
 		 */
-		public function actionUpdateAllItems(ORMRequestContext $request_context)
+		public function actionUpdateAllItems(ORMRequest $orm_request)
 		{
 			try {
-				$request_context = $request_context->createScopedInstance(self::table());
-				$values          = $request_context->getFormData();
-				$filters         = $request_context->getFilters();
+				$orm_request = $orm_request->createScopedInstance(self::table());
+				$values      = $orm_request->getFormData();
+				$filters     = $orm_request->getFilters();
 
 				$controller = new MyController();
 				$count      = $controller->updateAllItems($filters, $values);
@@ -256,14 +256,14 @@
 		/**
 		 * Deletes only one item in the table `my_table` that matches some filters
 		 *
-		 * @param \Gobl\ORM\ORMRequestContext $request_context
+		 * @param \OZONE\OZ\Core\ORMRequest $orm_request
 		 *
 		 * @throws \Exception
 		 */
-		public function actionDeleteEntity(ORMRequestContext $request_context)
+		public function actionDeleteEntity(ORMRequest $orm_request)
 		{
 			try {
-				$filters = $request_context->getFilters(self::table());
+				$filters = $orm_request->getFilters(self::table());
 
 				$controller = new MyController();
 				$entity     = $controller->deleteOneItem($filters);
@@ -284,14 +284,14 @@
 		/**
 		 * Deletes all items in the table `my_table` that matches some filters
 		 *
-		 * @param \Gobl\ORM\ORMRequestContext $request_context
+		 * @param \OZONE\OZ\Core\ORMRequest $orm_request
 		 *
 		 * @throws \Exception
 		 */
-		public function actionDeleteAll(ORMRequestContext $request_context)
+		public function actionDeleteAll(ORMRequest $orm_request)
 		{
 			try {
-				$filters = $request_context->getFilters(self::table());
+				$filters = $orm_request->getFilters(self::table());
 
 				$controller = new MyController();
 				$count      = $controller->deleteAllItems($filters);
@@ -312,16 +312,16 @@
 		/***
 		 * Gets only one item from the table `my_table` that matches some filters
 		 *
-		 * @param \Gobl\ORM\ORMRequestContext $request_context
+		 * @param \OZONE\OZ\Core\ORMRequest $orm_request
 		 *
 		 * @throws \Exception
 		 */
-		public function actionGetEntity(ORMRequestContext $request_context)
+		public function actionGetEntity(ORMRequest $orm_request)
 		{
 			try {
-				$request_context = $request_context->createScopedInstance(self::table());
-				$filters         = $request_context->getFilters();
-				$order_by        = $request_context->getOrderBy();
+				$orm_request = $orm_request->createScopedInstance(self::table());
+				$filters     = $orm_request->getFilters();
+				$order_by    = $orm_request->getOrderBy();
 
 				$controller = new MyController();
 				$entity     = $controller->getItem($filters, $order_by);
@@ -330,7 +330,7 @@
 					throw new NotFoundException();
 				}
 
-				$relations = $this->listEntityRelations($entity, $request_context);
+				$relations = $this->listEntityRelations($entity, $orm_request);
 
 				$this->getResponseHolder()
 					 ->setDone($controller->getCRUD()
@@ -347,35 +347,35 @@
 		/**
 		 * Gets all items from the table `my_table` that matches some filters
 		 *
-		 * @param \Gobl\ORM\ORMRequestContext $request_context
+		 * @param \OZONE\OZ\Core\ORMRequest $orm_request
 		 *
 		 * @throws \Exception
 		 */
-		public function actionGetAll(ORMRequestContext $request_context)
+		public function actionGetAll(ORMRequest $orm_request)
 		{
 			try {
-				$collection = $request_context->getCollection();
+				$collection = $orm_request->getCollection();
 
-				$request_context = $request_context->createScopedInstance(self::table());
-				$filters         = $request_context->getFilters();
-				$order_by        = $request_context->getOrderBy();
-				$max             = $request_context->getMax();
-				$offset          = $request_context->getOffset();
-				$page            = $request_context->getPage();
-				$total_records   = 0;
+				$orm_request   = $orm_request->createScopedInstance(self::table());
+				$filters       = $orm_request->getFilters();
+				$order_by      = $orm_request->getOrderBy();
+				$max           = $orm_request->getMax();
+				$offset        = $orm_request->getOffset();
+				$page          = $orm_request->getPage();
+				$total_records = 0;
 
 				$controller = new MyController();
 
 				if ($collection) {
 					$table      = ORM::getDatabase('MY_PROJECT_DB_NS')
 									 ->getTable(MyEntity::TABLE_NAME);
-					$collection = $table->getCollection($request_context->getCollection());
+					$collection = $table->getCollection($orm_request->getCollection());
 
 					if (!$collection) {
 						throw new NotFoundException();
 					}
 
-					$results = $collection->run($request_context, $total_records);
+					$results = $collection->run($orm_request, $total_records);
 				} else {
 					$results = $controller->getAllItems($filters, $max, $offset, $order_by, $total_records);
 				}
@@ -383,7 +383,7 @@
 				$relations = [];
 
 				if (count($results)) {
-					$relations = $this->listEntitiesRelations($results, $request_context);
+					$relations = $this->listEntitiesRelations($results, $orm_request);
 				}
 
 				$this->getResponseHolder()
@@ -404,19 +404,19 @@
 		/**
 		 * Gets relation item(s) that matches some filters
 		 *
-		 * @param \Gobl\ORM\ORMRequestContext $request_context
+		 * @param \OZONE\OZ\Core\ORMRequest $orm_request
 		 *
 		 * @throws \Exception
 		 */
-		public function actionGetRelation(ORMRequestContext $request_context)
+		public function actionGetRelation(ORMRequest $orm_request)
 		{
 			try {
 				if (!isset($extra['my_pk_column_const'])) {
 					throw new NotFoundException();
 				}
 
-				$filters      = $request_context->getFilters(self::table());
-				$req_rel_name = $request_context->getRelations()[0];
+				$filters      = $orm_request->getFilters(self::table());
+				$req_rel_name = $orm_request->getRelations()[0];
 
 				$controller = new MyController();
 				$entity     = $controller->getItem($filters);
@@ -425,11 +425,11 @@
 					throw new NotFoundException();
 				}
 
-				$max           = $request_context->getMax();
-				$page          = $request_context->getPage();
+				$max           = $orm_request->getMax();
+				$page          = $orm_request->getPage();
 				$total_records = 0;
 
-				$relations = $this->listEntityRelations($entity, $request_context, $total_records);
+				$relations = $this->listEntityRelations($entity, $orm_request, $total_records);
 				$r         = $relations[$req_rel_name];
 
 				if (is_array($r)) {
@@ -454,16 +454,16 @@
 		}
 
 		/**
-		 * @param \MY_PROJECT_DB_NS\MyEntity  $entity
-		 * @param \Gobl\ORM\ORMRequestContext $request_context
-		 * @param int                         $total_records
+		 * @param \MY_PROJECT_DB_NS\MyEntity $entity
+		 * @param \OZONE\OZ\Core\ORMRequest  $orm_request
+		 * @param int                        $total_records
 		 *
 		 * @return array
 		 * @throws \OZONE\OZ\Exceptions\NotFoundException
 		 */
-		private function listEntityRelations(MyEntity $entity, ORMRequestContext $request_context, &$total_records = null)
+		private function listEntityRelations(MyEntity $entity, ORMRequest $orm_request, &$total_records = null)
 		{
-			$query_relations = $request_context->getRelations();
+			$query_relations = $orm_request->getRelations();
 			$relations       = [];
 
 			if (!empty($query_relations)) {
@@ -474,13 +474,13 @@
 						/**@var Relation $rel */
 						$rel_type = $rel->getType();
 						if ($rel_type === Relation::ONE_TO_MANY OR $rel_type === Relation::MANY_TO_MANY) {
-							$relations[$name] = $this->getRelationItemsList($rel, $entity, $request_context, $total_records);
+							$relations[$name] = $this->getRelationItemsList($rel, $entity, $orm_request, $total_records);
 						} else {
 							$relations[$name] = $this->getRelationItem($rel, $entity);
 						}
 					} elseif ($rel instanceof VirtualRelation) {
 						/**@var VirtualRelation $rel */
-						$relations[$name] = $rel->run($entity, $request_context, $total_records);
+						$relations[$name] = $rel->run($entity, $orm_request, $total_records);
 					}
 				}
 			}
@@ -490,15 +490,15 @@
 
 		/**
 		 * @param \MY_PROJECT_DB_NS\MyEntity[] $entities
-		 * @param \Gobl\ORM\ORMRequestContext  $request_context
+		 * @param \OZONE\OZ\Core\ORMRequest    $orm_request
 		 * @param int                          $total_records
 		 *
 		 * @return array
 		 * @throws \OZONE\OZ\Exceptions\NotFoundException
 		 */
-		private function listEntitiesRelations(array $entities, ORMRequestContext $request_context, &$total_records = null)
+		private function listEntitiesRelations(array $entities, ORMRequest $orm_request, &$total_records = null)
 		{
-			$query_relations = $request_context->getRelations();
+			$query_relations = $orm_request->getRelations();
 			$relations       = [];
 
 			if (!empty($query_relations)) {
@@ -511,19 +511,19 @@
 							$id       = $arr['my_pk_column_const'];
 							$rel_type = $rel->getType();
 							if ($rel_type === Relation::ONE_TO_MANY OR $rel_type === Relation::MANY_TO_MANY) {
-								$relations[$name][$id] = $this->getRelationItemsList($rel, $entity, $request_context, $total_records);
+								$relations[$name][$id] = $this->getRelationItemsList($rel, $entity, $orm_request, $total_records);
 							} else {
 								$relations[$name][$id] = $this->getRelationItem($rel, $entity);
 							}
 						}
 					} elseif ($rel instanceof VirtualRelation) {
 						if ($rel instanceof CallableVR AND $rel->canHandleList()) {
-							$relations[$name] = $rel->run($entities, $request_context, $total_records);
+							$relations[$name] = $rel->run($entities, $orm_request, $total_records);
 						} else {
 							foreach ($entities as $entity) {
 								$arr                   = $entity->asArray(false);
 								$id                    = $arr['my_pk_column_const'];
-								$relations[$name][$id] = $rel->run($entity, $request_context, $total_records);
+								$relations[$name][$id] = $rel->run($entity, $orm_request, $total_records);
 							}
 						}
 					}
@@ -536,12 +536,12 @@
 		/**
 		 * @param \Gobl\DBAL\Relations\Relation $relation
 		 * @param \MY_PROJECT_DB_NS\MyEntity    $entity
-		 * @param \Gobl\ORM\ORMRequestContext   $request_context
+		 * @param \OZONE\OZ\Core\ORMRequest     $orm_request
 		 * @param int                           $total_records
 		 *
 		 * @return array
 		 */
-		private function getRelationItemsList(Relation $relation, MyEntity $entity, ORMRequestContext $request_context, &$total_records = null)
+		private function getRelationItemsList(Relation $relation, MyEntity $entity, ORMRequest $orm_request, &$total_records = null)
 		{
 			$target_columns_map = [];
 			$target_columns     = $relation->getTargetTable()
@@ -556,10 +556,10 @@
 				$entity,
 				$relation_getter
 			], [
-				$request_context->getFilters(),
-				$request_context->getMax(),
-				$request_context->getOffset(),
-				$request_context->getOrderBy(),
+				$orm_request->getFilters(),
+				$orm_request->getMax(),
+				$orm_request->getOffset(),
+				$orm_request->getOrderBy(),
 				&$total_records
 			]);
 

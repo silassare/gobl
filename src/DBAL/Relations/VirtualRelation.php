@@ -10,7 +10,7 @@
 
 	namespace Gobl\DBAL\Relations;
 
-	use Gobl\ORM\ORMRequestContext;
+	use Gobl\ORM\ORMRequestBase;
 
 	abstract class VirtualRelation
 	{
@@ -44,11 +44,11 @@
 		}
 
 		/**
-		 * @param mixed                       $target
-		 * @param \Gobl\ORM\ORMRequestContext $request_context
-		 * @param int                         $total_records
+		 * @param mixed                    $target
+		 * @param \Gobl\ORM\ORMRequestBase $request
+		 * @param int                      $total_records
 		 *
 		 * @return mixed
 		 */
-		abstract public function run($target, ORMRequestContext $request_context, &$total_records = null);
+		abstract public function run($target, ORMRequestBase $request, &$total_records = null);
 	}

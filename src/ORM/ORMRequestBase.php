@@ -15,7 +15,7 @@
 	use Gobl\DBAL\Table;
 	use Gobl\ORM\Exceptions\ORMQueryException;
 
-	final class ORMRequestContext
+	class ORMRequestBase
 	{
 		/**
 		 * @var array
@@ -68,15 +68,29 @@
 		/**
 		 * ORMQueryContext constructor.
 		 *
-		 * @param array $request_data
+		 * @param array $request
 		 */
-		public function __construct(array $request_data = [])
+		public function __construct(array $request = [])
 		{
 			try {
-				$this->parse($request_data);
+				$this->parse($request);
 			} catch (\Exception $e) {
-				throw new \InvalidArgumentException('Invalid form.', null, $e);
+				throw new \InvalidArgumentException('Invalid request.', null, $e);
 			}
+		}
+
+		/**
+		 * Creates scoped instance.
+		 *
+		 * @param \Gobl\DBAL\Table $table
+		 *
+		 * @return \Gobl\ORM\ORMRequestBase
+		 */
+		public function createScopedInstance(Table $table)
+		{
+			$request_data = $this->getParsedRequest($table);
+
+			return new self($request_data);
 		}
 
 		/**
@@ -216,7 +230,7 @@
 		 *
 		 * @return array
 		 */
-		public function getParsedRequestData(Table $table = null)
+		public function getParsedRequest(Table $table = null)
 		{
 			$r = [];
 
@@ -249,20 +263,6 @@
 			}
 
 			return $r;
-		}
-
-		/**
-		 * Creates scoped instance.
-		 *
-		 * @param \Gobl\DBAL\Table $table
-		 *
-		 * @return \Gobl\ORM\ORMRequestContext
-		 */
-		public function createScopedInstance(Table $table)
-		{
-			$request_data = $this->getParsedRequestData($table);
-
-			return new self($request_data);
 		}
 
 		/**
@@ -378,23 +378,23 @@
 		}
 
 		/**
-		 * @param array $request_data
+		 * @param array $request
 		 *
 		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 		 */
-		private function parse(array $request_data)
+		private function parse(array $request)
 		{
 			// form data
-			if (isset($request_data['data'])) {
-				$data = $request_data['data'];
+			if (isset($request['data'])) {
+				$data = $request['data'];
 
 				if (!is_array($data)) {
-					throw new ORMQueryException('GOBL_ORM_QUERY_INVALID_FORM_DATA', $request_data);
+					throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_FORM_DATA', $request);
 				}
 
 				$this->form_data = $data;
 			} else {
-				$this->form_data = $request_data;
+				$this->form_data = $request;
 
 				foreach ($this->key_words as $n) {
 					unset($this->form_data[$n]);
@@ -402,16 +402,16 @@
 			}
 
 			// pagination
-			$pg         = self::paginate($request_data);
+			$pg         = self::paginate($request);
 			$this->page = $pg["page"];
 			$this->max  = $pg["max"];
 
 			// filters
-			if (isset($request_data['filters'])) {
-				$filters = $request_data['filters'];
+			if (isset($request['filters'])) {
+				$filters = $request['filters'];
 
 				if (!is_array($filters)) {
-					throw new ORMQueryException('GOBL_ORM_QUERY_INVALID_FILTERS', $request_data);
+					throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_FILTERS', $request);
 				}
 
 				$this->filters = self::normalizeFilters($filters);
@@ -420,16 +420,16 @@
 			}
 
 			// relations
-			if (isset($request_data['relations'])) {
-				if (!self::isNonEmptyString($request_data['relations'])) {
-					throw new ORMQueryException('GOBL_ORM_QUERY_INVALID_RELATIONS', $request_data);
+			if (isset($request['relations'])) {
+				if (!self::isNonEmptyString($request['relations'])) {
+					throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_RELATIONS', $request);
 				}
 
-				$relations = array_unique(explode('|', $request_data['relations']));
+				$relations = array_unique(explode('|', $request['relations']));
 
 				foreach ($relations as $relation) {
 					if (!self::isValidRelationName($relation)) {
-						throw new ORMQueryException('GOBL_ORM_QUERY_INVALID_RELATIONS', $request_data);
+						throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_RELATIONS', $request);
 					}
 				}
 
@@ -439,18 +439,18 @@
 			}
 
 			// collection
-			if (isset($request_data['collection'])) {
-				if (!self::isValidCollectionName($request_data['collection'])) {
-					throw new ORMQueryException('GOBL_ORM_QUERY_INVALID_COLLECTION', $request_data);
+			if (isset($request['collection'])) {
+				if (!self::isValidCollectionName($request['collection'])) {
+					throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_COLLECTION', $request);
 				}
 
-				$this->collection = $request_data['collection'];
+				$this->collection = $request['collection'];
 			} else {
 				$this->collection = null;
 			}
 
 			// order by
-			$this->order_by = self::decodeOrderBy($request_data);
+			$this->order_by = self::decodeOrderBy($request);
 		}
 
 		/**
@@ -589,7 +589,7 @@
 			}
 
 			if (!is_string($request_data['order_by']) OR !strlen($request_data['order_by'])) {
-				throw new ORMQueryException('GOBL_ORM_QUERY_INVALID_ORDER_BY', $request_data);
+				throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_ORDER_BY', $request_data);
 			}
 
 			$rules    = $request_data['order_by'];
@@ -612,7 +612,7 @@
 						$order_by[$rule] = true;
 					}
 				} else {
-					throw new ORMQueryException('GOBL_ORM_QUERY_INVALID_ORDER_BY', $request_data);
+					throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_ORDER_BY', $request_data);
 				}
 			}
 
@@ -663,7 +663,7 @@
 				$max = $request_data['max'];
 
 				if (!is_numeric($max) OR ($max = intval($max)) <= 0) {
-					throw new ORMQueryException('GOBL_ORM_QUERY_INVALID_PAGINATION_MAX', $request_data);
+					throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_PAGINATION_MAX', $request_data);
 				}
 			}
 
@@ -671,7 +671,7 @@
 				$page = $request_data['page'];
 
 				if (!is_numeric($page) OR ($page = intval($page)) <= 0) {
-					throw new ORMQueryException('GOBL_ORM_QUERY_INVALID_PAGINATION_PAGE', $request_data);
+					throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_PAGINATION_PAGE', $request_data);
 				}
 
 				if (!$max) {

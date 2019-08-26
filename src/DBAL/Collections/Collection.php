@@ -10,7 +10,7 @@
 
 	namespace Gobl\DBAL\Collections;
 
-	use Gobl\ORM\ORMRequestContext;
+	use Gobl\ORM\ORMRequestBase;
 
 	class Collection
 	{
@@ -54,13 +54,13 @@
 		/**
 		 * Runs the collection callable.
 		 *
-		 * @param \Gobl\ORM\ORMRequestContext $request_context
-		 * @param int                         $total_records
+		 * @param \Gobl\ORM\ORMRequestBase $request
+		 * @param int                      $total_records
 		 *
 		 * @return mixed
 		 */
-		public function run(ORMRequestContext $request_context, &$total_records = null)
+		public function run(ORMRequestBase $request, &$total_records = null)
 		{
-			return call_user_func_array($this->callable, [$request_context, &$total_records]);
+			return call_user_func_array($this->callable, [$request, &$total_records]);
 		}
 	}

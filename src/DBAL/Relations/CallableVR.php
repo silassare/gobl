@@ -10,7 +10,7 @@
 
 	namespace Gobl\DBAL\Relations;
 
-	use Gobl\ORM\ORMRequestContext;
+	use Gobl\ORM\ORMRequestBase;
 
 	class CallableVR extends VirtualRelation
 	{
@@ -47,14 +47,14 @@
 		}
 
 		/**
-		 * @param mixed                       $target
-		 * @param \Gobl\ORM\ORMRequestContext $request_context
-		 * @param int                         $total_records
+		 * @param mixed                    $target
+		 * @param \Gobl\ORM\ORMRequestBase $request
+		 * @param int                      $total_records
 		 *
 		 * @return mixed
 		 */
-		public function run($target, ORMRequestContext $request_context, &$total_records = null)
+		public function run($target, ORMRequestBase $request, &$total_records = null)
 		{
-			return call_user_func_array($this->callable, [$target, $request_context, &$total_records]);
+			return call_user_func_array($this->callable, [$target, $request, &$total_records]);
 		}
 	}

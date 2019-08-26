@@ -10,8 +10,8 @@
 
 	namespace Gobl\CRUD;
 
-	use Gobl\CRUD\Handler\CRUDHandler;
-	use Gobl\CRUD\Handler\CRUDHandlerInterface;
+	use Gobl\CRUD\Handler\CRUDHandlerDefault;
+	use Gobl\CRUD\Handler\Interfaces\CRUDHandlerInterface;
 	use Gobl\CRUD\Exceptions\CRUDException;
 	use Gobl\DBAL\Table;
 
@@ -42,7 +42,7 @@
 		private $table;
 
 		/**
-		 * @var \Gobl\CRUD\Handler\CRUDHandlerInterface
+		 * @var \Gobl\CRUD\Handler\Interfaces\CRUDHandlerInterface
 		 */
 		private $crud_handler;
 
@@ -59,8 +59,8 @@
 		/**
 		 * CRUD constructor.
 		 *
-		 * @param \Gobl\DBAL\Table                             $table   the target table
-		 * @param \Gobl\CRUD\Handler\CRUDHandlerInterface|null $handler the default handler to use
+		 * @param \Gobl\DBAL\Table                                        $table   the target table
+		 * @param \Gobl\CRUD\Handler\Interfaces\CRUDHandlerInterface|null $handler the default handler to use
 		 */
 		public function __construct(Table $table, CRUDHandlerInterface $handler = null)
 		{
@@ -76,7 +76,7 @@
 					throw new \InvalidArgumentException(sprintf('Table "%s" CRUD handler class should implements "%s"', $name, CRUDHandlerInterface::class));
 				}
 			} else {
-				$this->crud_handler = new CRUDHandler();
+				$this->crud_handler = new CRUDHandlerDefault();
 			}
 
 			$this->debug = [
@@ -307,7 +307,7 @@
 		/**
 		 * Gets the CRUD handler.
 		 *
-		 * @return \Gobl\CRUD\Handler\CRUDHandlerInterface
+		 * @return \Gobl\CRUD\Handler\Interfaces\CRUDHandlerInterface
 		 */
 		public function getHandler()
 		{
