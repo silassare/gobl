@@ -8,7 +8,7 @@
 	 * file that was distributed with this source code.
 	 */
 
-	namespace Gobl\CRUD\Handler;
+	namespace Gobl\CRUD\Handler\Interfaces;
 
 	use Gobl\CRUD\CRUDColumnUpdate;
 	use Gobl\CRUD\CRUDCreate;
