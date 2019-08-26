@@ -18,8 +18,9 @@
 	use Gobl\CRUD\CRUDReadAll;
 	use Gobl\CRUD\CRUDUpdate;
 	use Gobl\CRUD\CRUDUpdateAll;
+	use Gobl\CRUD\Handler\Interfaces\CRUDHandlerInterface;
 
-	class CRUDHandler implements CRUDHandlerInterface
+	class CRUDHandlerDefault implements CRUDHandlerInterface
 	{
 		/**
 		 * CRUDHandler constructor.
