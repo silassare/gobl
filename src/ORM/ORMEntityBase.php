@@ -315,11 +315,11 @@
 			} elseif ($this->_strict) {
 				$trace = debug_backtrace();
 				$error = sprintf(
-					'Could not set column "%s" value, undefined in table "%s". In "%s" on line %s.',
+					'Could not set value, column "%s" is not defined in table "%s". Found in "%s" on line %s.',
 					$name, $this->_table->getName(),
 					$trace[0]['file'], $trace[0]['line']);
 
-				trigger_error($error, E_USER_NOTICE);
+				trigger_error($error, E_USER_ERROR);
 			}
 		}
 
