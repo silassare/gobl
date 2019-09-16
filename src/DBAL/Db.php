@@ -31,7 +31,7 @@
 		 * @var array
 		 */
 		private static $rdbms_map = [
-			'mysql' => MySQL::class
+			RDBMS::MYSQL => MySQL::class
 		];
 
 		/**

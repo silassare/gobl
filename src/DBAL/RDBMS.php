@@ -17,6 +17,8 @@
 	 */
 	interface RDBMS
 	{
+		const MYSQL = "mysql";
+
 		/**
 		 * The relational database management system constructor.
 		 *
