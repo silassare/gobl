@@ -13,6 +13,7 @@
 		'MyResults'                             => '<%$.class.results%>',
 		'MyController'                          => '<%$.class.controller%>',
 		'my_table'                              => '<%$.table.name%>',
+
 		'//__GOBL_HEAD_COMMENT__'               => '<%@import(\'include/head.comment.otpl\',$)%>',
 		'//__GOBL_RELATIONS_USE_CLASS__'        => '<%@import(\'include/entity.relations.use.class.otpl\',$)%>',
 		'//__GOBL_COLUMNS_CONST__'              => '<%@import(\'include/entity.columns.const.otpl\',$)%>',
