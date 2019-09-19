@@ -1,5 +1,4 @@
 <%@import('include/head.comment.otpl',$)%>
-
 import {
 	GoblEntity,
 	register,

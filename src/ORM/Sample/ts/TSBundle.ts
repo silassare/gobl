@@ -1,5 +1,4 @@
 //__GOBL_HEAD_COMMENT__
-
 import {
 	GoblEntity,
 	register,
