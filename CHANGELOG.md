@@ -1,3 +1,7 @@
+### v1.0.9 (2019-19-09)
+
+    - start using gobl-utils-ts
+
 ### v1.0.8 (2019-26-08)
 
     - class names consistency
