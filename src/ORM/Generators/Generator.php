@@ -87,6 +87,7 @@
 				$inject           = $this->describeTable($table);
 				$inject['header'] = $header;
 				$inject['time']   = time();
+				$inject['version']= file_get_contents(__DIR__.'../../../VERSION');
 				$query_class      = $inject['class']['query'];
 				$entity_class     = $inject['class']['entity'];
 				$results_class    = $inject['class']['results'];
