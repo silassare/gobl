@@ -15,7 +15,7 @@
 		return cache && cache[cache_key];
 	}
 <%loop($.columns : $column){%>
-	get <%$column.name%>(){ return _c_<%$column.returnType%>(this._data[<%$.class.entity%>.<%$column.const%>])}
-	set <%$column.name%>(nVal:any){ this._set(<%$.class.entity%>.<%$column.const%>, _c_<%$column.returnType%>(nVal))}
+	get <%$column.name%>(){ return c_<%$column.returnType%>(this._data[<%$.class.entity%>.<%$column.const%>])}
+	set <%$column.name%>(nVal:any){ this._set(<%$.class.entity%>.<%$column.const%>, c_<%$column.returnType%>(nVal))}
 	get<%$column.methodSuffix%>(){ return this.<%$column.name%>}
 	set<%$column.methodSuffix%>(nVal:any):this { this.<%$column.name%> = nVal; return this}<%}%>
