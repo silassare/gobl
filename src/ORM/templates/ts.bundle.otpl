@@ -3,7 +3,7 @@
 import {
 	GoblEntity,
 	register,
-	getCache,
+	getEntityCache,
 	c_bool,
 	c_int,
 	c_string,

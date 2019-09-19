@@ -24,7 +24,7 @@
 		'//__GOBL_TS_COLUMNS_CONST__'           => '<%@import(\'include/ts.columns.const.otpl\',$)%>',
 		'//__GOBL_TS_COLUMNS_GETTERS_SETTERS__' => '<%@import(\'include/ts.getters.setters.otpl\',$)%>',
 		'//__GOBL_TS_ENTITIES_CLASS_LIST__'     => '<%@import(\'include/ts.entities.list.otpl\',$)%>',
-		'//__GOBL_VERSION__' => file_get_contents(__DIR__.'../VERSION'),
+		'//__GOBL_VERSION__' 					=> trim(file_get_contents(__DIR__.'/../VERSION')),
 
 		// for ozone service usage only
 		'MY_PROJECT_SERVICE_NS'                 => '<%$.service.namespace%>',

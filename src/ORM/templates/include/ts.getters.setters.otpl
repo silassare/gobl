@@ -11,7 +11,7 @@
 		return <%$.class.entity%>.COLUMNS;
 	}<%}%>
 	static fromCache(cache_key: string): <%$.class.entity%> | undefined {
-		let cache = <any>getCache("<%$.class.entity%>");
+		let cache = <any>getEntityCache("<%$.class.entity%>");
 		return cache && cache[cache_key];
 	}
 <%loop($.columns : $column){%>
