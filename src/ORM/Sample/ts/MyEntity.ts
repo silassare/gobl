@@ -6,4 +6,4 @@ export class MyEntity extends GoblEntity {
 	//__GOBL_TS_COLUMNS_GETTERS_SETTERS__
 }
 
-gobl.MyEntity = MyEntity;
+register("MyEntity", MyEntity);
