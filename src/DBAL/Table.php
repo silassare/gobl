@@ -372,7 +372,7 @@
 			}
 
 			if ($this->hasVirtualRelation($name)) {
-				throw new DBALException(sprintf('Collection name and virtual relation name conflict for "%s" in table "%".', $name, $this->getName()));
+				throw new DBALException(sprintf('Collection name and virtual relation name conflict for "%s" in table "%s".', $name, $this->getName()));
 			}
 		}
 
