@@ -84,10 +84,12 @@
 				throw new \InvalidArgumentException(sprintf('Invalid column name "%s".', $name));
 			}
 
-			if (!is_null($prefix)) {
+			if (!empty($prefix)) {
 				if (!preg_match(Column::PREFIX_REG, $prefix)) {
-					throw new \InvalidArgumentException(sprintf('Invalid column prefix name "%s".', $prefix));
+					throw new \InvalidArgumentException(sprintf('Invalid column prefix name "%s" for column "%s".', $prefix, $name));
 				}
+			} else {
+				$prefix = "";
 			}
 
 			$this->name    = strtolower($name);

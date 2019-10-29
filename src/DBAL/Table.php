@@ -150,6 +150,8 @@
 				if (!preg_match(Table::PREFIX_REG, $prefix)) {
 					throw new \InvalidArgumentException(sprintf('Invalid table prefix name "%s".', $prefix));
 				}
+			} else {
+				$prefix = "";
 			}
 
 			if (!isset($options['plural_name']) OR !isset($options['singular_name'])) {
