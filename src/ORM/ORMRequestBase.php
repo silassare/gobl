@@ -419,50 +419,14 @@
 				$this->filters = [];
 			}
 
-			// relations
-			if (isset($request['relations'])) {
-				if (!self::isNonEmptyString($request['relations'])) {
-					throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_RELATIONS', $request);
-				}
-
-				$relations = array_unique(explode('|', $request['relations']));
-
-				foreach ($relations as $relation) {
-					if (!self::isValidRelationName($relation)) {
-						throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_RELATIONS', $request);
-					}
-				}
-
-				$this->relations = $relations;
-			} else {
-				$this->relations = [];
-			}
-
 			// collection
-			if (isset($request['collection'])) {
-				if (!self::isValidCollectionName($request['collection'])) {
-					throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_COLLECTION', $request);
-				}
+			$this->collection = self::decodeCollection($request);
 
-				$this->collection = $request['collection'];
-			} else {
-				$this->collection = null;
-			}
+			// relations
+			$this->relations = self::decodeRelations($request);
 
 			// order by
 			$this->order_by = self::decodeOrderBy($request);
-		}
-
-		/**
-		 * Checks for non-empty string.
-		 *
-		 * @param mixed $name
-		 *
-		 * @return bool
-		 */
-		private function isNonEmptyString($name)
-		{
-			return is_string($name) AND strlen($name);
 		}
 
 		/**
@@ -472,7 +436,7 @@
 		 *
 		 * @return bool
 		 */
-		private function isValidCollectionName($name)
+		private static function isValidCollectionName($name)
 		{
 			return is_string($name) AND strlen($name) AND preg_match(Collection::NAME_REG, $name);
 		}
@@ -484,7 +448,7 @@
 		 *
 		 * @return bool
 		 */
-		private function isValidRelationName($name)
+		private static function isValidRelationName($name)
 		{
 			return is_string($name) AND strlen($name) AND preg_match(Relation::NAME_REG, $name);
 		}
@@ -563,6 +527,35 @@
 		}
 
 		/**
+		 * Decode request collection
+		 *
+		 * @param array $request
+		 *
+		 * @return string|null
+		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+		 */
+		private static function decodeCollection(array $request)
+		{
+			if (!isset($request['collection'])) {
+				return null;
+			}
+
+			if (!is_string($request['collection'])) {
+				throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_COLLECTION', $request);
+			}
+
+			if (strlen($request['collection'])) {
+				if (!self::isValidCollectionName($request['collection'])) {
+					throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_COLLECTION', $request);
+				}
+
+				return $request['collection'];
+			}
+
+			return null;
+		}
+
+		/**
 		 * Encode request relations
 		 *
 		 * @param array $relations
@@ -572,6 +565,39 @@
 		private static function encodeRelations(array $relations)
 		{
 			return implode("|", array_unique($relations));
+		}
+
+		/**
+		 * Decode request relations
+		 *
+		 * @param array $request
+		 *
+		 * @return array
+		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+		 */
+		private static function decodeRelations(array $request)
+		{
+			if (!isset($request['relations'])) {
+				return [];
+			}
+
+			if (!is_string($request['relations'])) {
+				throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_RELATIONS', $request);
+			}
+
+			if (strlen($request['relations'])) {
+				$relations = array_unique(explode('|', $request['relations']));
+
+				foreach ($relations as $relation) {
+					if (!self::isValidRelationName($relation)) {
+						throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_RELATIONS', $request);
+					}
+				}
+
+				return $relations;
+			}
+
+			return [];
 		}
 
 		/**
@@ -588,11 +614,16 @@
 				return [];
 			}
 
-			if (!is_string($request_data['order_by']) OR !strlen($request_data['order_by'])) {
+			$rules = $request_data['order_by'];
+
+			if (!is_string($rules)) {
 				throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_ORDER_BY', $request_data);
 			}
 
-			$rules    = $request_data['order_by'];
+			if (!strlen($rules)) {
+				return [];
+			}
+
 			$rules    = array_unique(explode('|', $rules));
 			$order_by = [];
 
