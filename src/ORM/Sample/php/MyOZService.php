@@ -84,7 +84,7 @@
 				$service = new self($context);
 				$service->actionCreateEntity($orm_request);
 
-				return $service->writeResponse($context);
+				return $service->respond();
 			}, $options)
 				   ->get('/my_svc/{my_id}', function (RouteInfo $r) {
 					   $context     = $r->getContext();
@@ -94,7 +94,7 @@
 					   $service = new self($context);
 					   $service->actionGetEntity($orm_request);
 
-					   return $service->writeResponse($context);
+					   return $service->respond();
 				   }, $options)
 				   ->get('/my_svc', function (RouteInfo $r) {
 					   $context     = $r->getContext();
@@ -103,7 +103,7 @@
 					   $service     = new self($context);
 					   $service->actionGetAll($orm_request);
 
-					   return $service->writeResponse($context);
+					   return $service->respond();
 				   }, $options)
 				   ->get('/my_svc/{my_id}/{relation}', function (RouteInfo $r) {
 					   $context     = $r->getContext();
@@ -115,7 +115,7 @@
 					   $service = new self($context);
 					   $service->actionGetRelation($orm_request);
 
-					   return $service->writeResponse($context);
+					   return $service->respond();
 				   }, $options)
 				   ->patch('/my_svc/{my_id}', function (RouteInfo $r) {
 					   $context     = $r->getContext();
@@ -126,7 +126,7 @@
 					   $service = new self($context);
 					   $service->actionUpdateOneItem($orm_request);
 
-					   return $service->writeResponse($context);
+					   return $service->respond();
 				   }, $options)
 				   ->patch('/my_svc', function (RouteInfo $r) {
 					   $context     = $r->getContext();
@@ -135,7 +135,7 @@
 					   $service     = new self($context);
 					   $service->actionUpdateAllItems($orm_request);
 
-					   return $service->writeResponse($context);
+					   return $service->respond();
 				   }, $options)
 				   ->delete('/my_svc/{my_id}', function (RouteInfo $r) {
 					   $context     = $r->getContext();
@@ -146,7 +146,7 @@
 					   $service = new self($context);
 					   $service->actionDeleteEntity($orm_request);
 
-					   return $service->writeResponse($context);
+					   return $service->respond();
 				   }, $options)
 				   ->delete('/my_svc', function (RouteInfo $r) {
 					   $context     = $r->getContext();
@@ -157,7 +157,7 @@
 					   $service = new self($context);
 					   $service->actionDeleteAll($orm_request);
 
-					   return $service->writeResponse($context);
+					   return $service->respond();
 				   }, $options);
 		}
 
