@@ -14,6 +14,7 @@
 	use Gobl\DBAL\QueryBuilder;
 	use Gobl\DBAL\Rule;
 	use Gobl\ORM\Exceptions\ORMException;
+	use Gobl\ORM\Exceptions\ORMQueryException;
 
 	class ORMTableQueryBase
 	{
@@ -254,6 +255,149 @@
 				$this->params[$param_key] = $value;
 				$value                    = ':' . $param_key;
 				$rule->conditions([$a => $value], $operator, false);
+			}
+
+			return $this;
+		}
+
+		/**
+		 * Apply filters to the table query.
+		 *
+		 * $filters = [
+		 *        'name'  => [
+		 *            ['eq', 'value1'],
+		 *            ['eq', 'value2']
+		 *        ],
+		 *        'age'   => [
+		 *            ['lt' => 40],
+		 *            ['gt' => 50]
+		 *        ],
+		 *        'valid' => 1
+		 * ];
+		 *
+		 * (name = value1 OR name = value2) AND (age < 40 OR age > 50) AND (valid = 1)
+		 *
+		 * @param array $filters
+		 *
+		 * @return \Gobl\ORM\ORMTableQueryBase|void
+		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
+		 * @throws \Exception
+		 */
+		public function applyFilters(array $filters)
+		{
+			if (empty($filters)) {
+				return;
+			}
+
+			$operators_map = [
+				'eq'          => Rule::OP_EQ,
+				'neq'         => Rule::OP_NEQ,
+				'lt'          => Rule::OP_LT,
+				'lte'         => Rule::OP_LTE,
+				'gt'          => Rule::OP_GT,
+				'gte'         => Rule::OP_GTE,
+				'like'        => Rule::OP_LIKE,
+				'not_like'    => Rule::OP_NOT_LIKE,
+				'in'          => Rule::OP_IN,
+				'not_in'      => Rule::OP_NOT_IN,
+				'is_null'     => Rule::OP_IS_NULL,
+				'is_not_null' => Rule::OP_IS_NOT_NULL
+			];
+
+			foreach ($filters as $column => $column_filters) {
+				if (!$this->table->hasColumn($column)) {
+					throw new ORMQueryException('GOBL_ORM_REQUEST_UNKNOWN_FIELDS_IN_FILTERS', [$column]);
+				}
+
+				if (is_array($column_filters)) {
+					foreach ($column_filters as $filter) {
+						if (is_array($filter)) {
+							if (!isset($filter[0])) {
+								throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_FILTERS', [$column, $filter]);
+							}
+
+							$operator_key = $filter[0];
+
+							if (!isset($operators_map[$operator_key])) {
+								throw new ORMQueryException('GOBL_ORM_REQUEST_UNKNOWN_OPERATOR_IN_FILTERS', [
+									$column,
+									$filter
+								]);
+							}
+
+							$safe_value    = true;
+							$operator      = $operators_map[$operator_key];
+							$value         = null;
+							$use_and       = false;
+							$value_index   = 1;
+							$use_and_index = 2;
+
+							if ($operator === Rule::OP_IS_NULL OR $operator === Rule::OP_IS_NOT_NULL) {
+								$use_and_index = 1;// value not needed
+							} else {
+								if (!array_key_exists($value_index, $filter)) {
+									throw new ORMQueryException('GOBL_ORM_REQUEST_MISSING_VALUE_IN_FILTERS', [
+										$column,
+										$filter
+									]);
+								}
+
+								$value = $filter[$value_index];
+
+								if ($value === null) {
+									if ($operator === Rule::OP_EQ) {
+										$operator = Rule::OP_IS_NULL;
+									} elseif ($operator === Rule::OP_NEQ) {
+										$operator = Rule::OP_IS_NOT_NULL;
+									} else {
+										throw new ORMQueryException('GOBL_ORM_REQUEST_NULL_VALUE_IN_FILTERS', [
+											$column,
+											$filter
+										]);
+									}
+								} else {
+									if ($operator === Rule::OP_IN OR $operator === Rule::OP_NOT_IN) {
+										$safe_value = is_array($value) AND count($value) ? true : false;
+									} elseif (!is_scalar($value)) {
+										$safe_value = false;
+									}
+
+									if (!$safe_value) {
+										throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_VALUE_IN_FILTERS', [
+											$column,
+											$filter
+										]);
+									}
+								}
+							}
+
+							if (isset($filter[$use_and_index])) {
+								$a = $filter[$use_and_index];
+								if ($a === 'and' OR $a === 'AND' OR $a === 1 OR $a === true) {
+									$use_and = true;
+								} elseif ($a === 'or' OR $a === 'OR' OR $a === 0 OR $a === false) {
+									$use_and = false;
+								} else {
+									throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_FILTERS', [
+										$column,
+										$filter
+									]);
+								}
+							}
+
+							$this->filterBy($column, $value, $operator, $use_and);
+						} else {
+							throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_FILTERS', [
+								$column,
+								$filter
+							]);
+						}
+					}
+				} else {
+					$value = $column_filters;
+					$this->filterBy($column, $value, is_null($value) ? Rule::OP_IS_NULL : Rule::OP_EQ);
+				}
 			}
 
 			return $this;

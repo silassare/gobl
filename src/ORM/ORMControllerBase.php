@@ -13,9 +13,8 @@
 	use Gobl\CRUD\CRUD;
 	use Gobl\DBAL\Db;
 	use Gobl\DBAL\QueryBuilder;
-	use Gobl\DBAL\Rule;
 	use Gobl\DBAL\Table;
-	use Gobl\ORM\Exceptions\ORMControllerFormException;
+	use Gobl\ORM\Exceptions\ORMQueryException;
 
 	class ORMControllerBase
 	{
@@ -122,154 +121,11 @@
 		}
 
 		/**
-		 * Apply filters to the table query.
-		 *
-		 * $filters = [
-		 *        'name'  => [
-		 *            ['eq', 'value1'],
-		 *            ['eq', 'value2']
-		 *        ],
-		 *        'age'   => [
-		 *            ['lt' => 40],
-		 *            ['gt' => 50]
-		 *        ],
-		 *        'valid' => 1
-		 * ];
-		 *
-		 * (name = value1 OR name = value2) AND (age < 40 OR age > 50) AND (valid = 1)
-		 *
-		 * @param \Gobl\ORM\ORMTableQueryBase $query
-		 * @param array                       $filters
-		 *
-		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \Exception
-		 */
-		final protected function applyFilters(ORMTableQueryBase &$query, array $filters)
-		{
-			if (empty($filters)) {
-				return;
-			}
-
-			$operators_map = [
-				'eq'          => Rule::OP_EQ,
-				'neq'         => Rule::OP_NEQ,
-				'lt'          => Rule::OP_LT,
-				'lte'         => Rule::OP_LTE,
-				'gt'          => Rule::OP_GT,
-				'gte'         => Rule::OP_GTE,
-				'like'        => Rule::OP_LIKE,
-				'not_like'    => Rule::OP_NOT_LIKE,
-				'in'          => Rule::OP_IN,
-				'not_in'      => Rule::OP_NOT_IN,
-				'is_null'     => Rule::OP_IS_NULL,
-				'is_not_null' => Rule::OP_IS_NOT_NULL
-			];
-
-			$table = $this->db->getTable($this->table_name);
-
-			foreach ($filters as $column => $column_filters) {
-				if (!$table->hasColumn($column)) {
-					throw new ORMControllerFormException('form_filters_unknown_fields', [$column]);
-				}
-
-				if (is_array($column_filters)) {
-					foreach ($column_filters as $filter) {
-						if (is_array($filter)) {
-							if (!isset($filter[0])) {
-								throw new ORMControllerFormException('form_filters_invalid', [$column, $filter]);
-							}
-
-							$operator_key = $filter[0];
-
-							if (!isset($operators_map[$operator_key])) {
-								throw new ORMControllerFormException('form_filters_unknown_operator', [
-									$column,
-									$filter
-								]);
-							}
-
-							$safe_value    = true;
-							$operator      = $operators_map[$operator_key];
-							$value         = null;
-							$use_and       = false;
-							$value_index   = 1;
-							$use_and_index = 2;
-
-							if ($operator === Rule::OP_IS_NULL OR $operator === Rule::OP_IS_NOT_NULL) {
-								$use_and_index = 1;// value not needed
-							} else {
-								if (!array_key_exists($value_index, $filter)) {
-									throw new ORMControllerFormException('form_filters_missing_value', [
-										$column,
-										$filter
-									]);
-								}
-
-								$value = $filter[$value_index];
-
-								if ($value === null) {
-									if ($operator === Rule::OP_EQ) {
-										$operator = Rule::OP_IS_NULL;
-									} elseif ($operator === Rule::OP_NEQ) {
-										$operator = Rule::OP_IS_NOT_NULL;
-									} else {
-										throw new ORMControllerFormException('form_filters_null_value', [
-											$column,
-											$filter
-										]);
-									}
-								} else {
-									if ($operator === Rule::OP_IN OR $operator === Rule::OP_NOT_IN) {
-										$safe_value = is_array($value) AND count($value) ? true : false;
-									} elseif (!is_scalar($value)) {
-										$safe_value = false;
-									}
-
-									if (!$safe_value) {
-										throw new ORMControllerFormException('form_filters_invalid_value', [
-											$column,
-											$filter
-										]);
-									}
-								}
-							}
-
-							if (isset($filter[$use_and_index])) {
-								$a = $filter[$use_and_index];
-								if ($a === 'and' OR $a === 'AND' OR $a === 1 OR $a === true) {
-									$use_and = true;
-								} elseif ($a === 'or' OR $a === 'OR' OR $a === 0 OR $a === false) {
-									$use_and = false;
-								} else {
-									throw new ORMControllerFormException('form_filters_invalid', [
-										$column,
-										$filter
-									]);
-								}
-							}
-
-							$query->filterBy($column, $value, $operator, $use_and);
-						} else {
-							throw new ORMControllerFormException('form_filters_invalid', [
-								$column,
-								$filter
-							]);
-						}
-					}
-				} else {
-					$value = $column_filters;
-					$query->filterBy($column, $value, is_null($value) ? Rule::OP_IS_NULL : Rule::OP_EQ);
-				}
-			}
-		}
-
-		/**
 		 * Complete form by adding missing fields.
 		 *
 		 * @param array &$form The form
 		 *
-		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		protected function completeForm(array &$form)
@@ -294,7 +150,7 @@
 			}
 
 			if (!$completed) {
-				throw new ORMControllerFormException('form_missing_fields', $missing);
+				throw new ORMQueryException('form_missing_fields', $missing);
 			}
 		}
 
@@ -306,7 +162,6 @@
 		 * @return \Gobl\ORM\ORMEntityBase
 		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function addItem(array $values = [])
@@ -335,7 +190,7 @@
 		 *
 		 * @return bool|\Gobl\ORM\ORMEntityBase
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 */
@@ -374,7 +229,7 @@
 		 *
 		 * @return int Affected row count.
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 */
@@ -386,14 +241,12 @@
 			static::assertUpdateColumns($this->db->getTable($this->table_name), array_keys($new_values));
 
 			/** @var \Gobl\ORM\ORMTableQueryBase $query */
-			$query = new $this->table_results_class;
+			$query = new $this->table_query_class;
 
-			$this->applyFilters($query, $filters);
+			$query->applyFilters($filters);
 
-			$affected = $query->update($new_values)
-							  ->execute();
-
-			return $affected;
+			return $query->update($new_values)
+						 ->execute();
 		}
 
 		/**
@@ -403,7 +256,7 @@
 		 *
 		 * @return bool|\Gobl\ORM\ORMEntityBase
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 */
@@ -422,9 +275,9 @@
 						   ->onBeforeDeleteEntity($entity);
 
 				/** @var \Gobl\ORM\ORMTableQueryBase $query */
-				$query = new $this->table_query_class();
+				$query = new $this->table_query_class;
 
-				$this->applyFilters($query, $filters);
+				$query->applyFilters($filters);
 
 				$query->delete()
 					  ->execute();
@@ -444,7 +297,7 @@
 		 * @param array $filters the row filters
 		 *
 		 * @return int Affected row count.
-		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
@@ -456,14 +309,11 @@
 			static::assertFiltersNotEmpty($filters);
 
 			/** @var \Gobl\ORM\ORMTableQueryBase $query */
-			$query = new $this->table_query_class();
+			$query = new $this->table_query_class;
 
-			$this->applyFilters($query, $filters);
+			$query->applyFilters($filters);
 
-			$affected = $query->delete()
-							  ->execute();
-
-			return $affected;
+			return $query->delete()->execute();
 		}
 
 		/**
@@ -475,7 +325,7 @@
 		 * @return null|\Gobl\ORM\ORMEntityBase
 		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function getItem(array $filters, array $order_by = [])
@@ -507,7 +357,7 @@
 		 *
 		 * @return \Gobl\ORM\ORMEntityBase[]
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 */
@@ -564,7 +414,7 @@
 		 *
 		 * @return \Gobl\ORM\ORMResultsBase
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		protected function findAllItems(array $filters = [], $max = null, $offset = 0, array $order_by = [])
@@ -573,12 +423,10 @@
 			$query = new $this->table_query_class;
 
 			if (!empty($filters)) {
-				$this->applyFilters($query, $filters);
+				$query->applyFilters($filters);
 			}
 
-			$results = $query->find($max, $offset, $order_by);
-
-			return $results;
+			return $query->find($max, $offset, $order_by);
 		}
 
 		/**
@@ -615,12 +463,12 @@
 		 *
 		 * @param array $filters the row filters
 		 *
-		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 		 */
 		public static function assertFiltersNotEmpty(array $filters)
 		{
 			if (empty($filters)) {
-				throw new ORMControllerFormException('form_filters_empty');
+				throw new ORMQueryException('form_filters_empty');
 			}
 		}
 
@@ -631,17 +479,17 @@
 		 * @param Table $table   The table
 		 * @param array $columns The columns to update
 		 *
-		 * @throws \Gobl\ORM\Exceptions\ORMControllerFormException
+		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 		 */
 		public static function assertUpdateColumns(Table $table, array $columns = [])
 		{
 			if (empty($columns)) {
-				throw new ORMControllerFormException('form_no_fields_to_update');
+				throw new ORMQueryException('form_no_fields_to_update');
 			}
 
 			foreach ($columns as $column) {
 				if (!$table->hasColumn($column)) {
-					throw new ORMControllerFormException('form_unknown_fields', [$column]);
+					throw new ORMQueryException('form_unknown_fields', [$column]);
 				}
 			}
 		}
