@@ -279,7 +279,7 @@
 		 *
 		 * @param array $filters
 		 *
-		 * @return \Gobl\ORM\ORMTableQueryBase|void
+		 * @return \Gobl\ORM\ORMTableQueryBase
 		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 * @throws \Exception
@@ -287,7 +287,7 @@
 		public function applyFilters(array $filters)
 		{
 			if (empty($filters)) {
-				return;
+				return $this;
 			}
 
 			$operators_map = [
@@ -404,26 +404,12 @@
 		}
 
 		/**
-		 * Creates new query builder and returns the old query builder.
-		 *
-		 * @return \Gobl\DBAL\QueryBuilder
-		 */
-		protected function resetQuery()
-		{
-			$qb           = $this->qb;
-			$this->qb     = new QueryBuilder($this->db);
-			$this->params = [];
-
-			return $qb;
-		}
-
-		/**
-		 * Returns a rule that include all filters rules.
+		 * Returns a rule that include all applied filters rules.
 		 *
 		 * @return \Gobl\DBAL\Rule|null
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 */
-		protected function getFiltersRule()
+		public function getFiltersRule()
 		{
 			if (count($this->filters)) {
 				/** @var \Gobl\DBAL\Rule $rule */
@@ -440,6 +426,20 @@
 			}
 
 			return null;
+		}
+
+		/**
+		 * Creates new query builder and returns the old query builder.
+		 *
+		 * @return \Gobl\DBAL\QueryBuilder
+		 */
+		protected function resetQuery()
+		{
+			$qb           = $this->qb;
+			$this->qb     = new QueryBuilder($this->db);
+			$this->params = [];
+
+			return $qb;
 		}
 
 		/**
