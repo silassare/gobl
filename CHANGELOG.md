@@ -1,3 +1,7 @@
+### v1.1.0 (2019-24-12)
+
+    - ORM optimized, bug fix
+
 ### v1.0.9 (2019-19-09)
 
     - start using gobl-utils-ts
