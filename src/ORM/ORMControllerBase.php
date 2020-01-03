@@ -24,11 +24,6 @@
 		protected $form_fields = [];
 
 		/**
-		 * @var array
-		 */
-		protected $form_fields_mask = [];
-
-		/**
 		 * @var \Gobl\DBAL\Db
 		 */
 		protected $db;
@@ -150,7 +145,7 @@
 			}
 
 			if (!$completed) {
-				throw new ORMQueryException('form_missing_fields', $missing);
+				throw new ORMQueryException('GOBL_ORM_REQUEST_MISSING_FIELDS', $missing);
 			}
 		}
 
@@ -468,7 +463,7 @@
 		public static function assertFiltersNotEmpty(array $filters)
 		{
 			if (empty($filters)) {
-				throw new ORMQueryException('form_filters_empty');
+				throw new ORMQueryException('GOBL_ORM_REQUEST_FILTERS_EMPTY');
 			}
 		}
 
@@ -484,12 +479,12 @@
 		public static function assertUpdateColumns(Table $table, array $columns = [])
 		{
 			if (empty($columns)) {
-				throw new ORMQueryException('form_no_fields_to_update');
+				throw new ORMQueryException('GOBL_ORM_REQUEST_NO_FIELDS_TO_UPDATE');
 			}
 
 			foreach ($columns as $column) {
 				if (!$table->hasColumn($column)) {
-					throw new ORMQueryException('form_unknown_fields', [$column]);
+					throw new ORMQueryException('GOBL_ORM_REQUEST_UNKNOWN_FIELDS', [$column]);
 				}
 			}
 		}
