@@ -1,3 +1,9 @@
+### v1.2.0 (2020-20-03)
+
+    - ORMRequestBase bug fix
+    - ORMController db write/delete are now in transaction
+    - OZone service class bug fix
+
 ### v1.1.0 (2019-24-12)
 
     - ORM optimized, bug fix
