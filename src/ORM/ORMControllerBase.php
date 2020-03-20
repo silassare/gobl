@@ -15,6 +15,7 @@
 	use Gobl\DBAL\QueryBuilder;
 	use Gobl\DBAL\Table;
 	use Gobl\ORM\Exceptions\ORMQueryException;
+	use Throwable;
 
 	class ORMControllerBase
 	{
@@ -157,22 +158,32 @@
 		 * @return \Gobl\ORM\ORMEntityBase
 		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function addItem(array $values = [])
 		{
-			$this->crud->assertCreate($values);
+			try {
+				$this->db->beginTransaction();
 
-			$this->completeForm($values);
+				$this->crud->assertCreate($values);
 
-			/** @var \Gobl\ORM\ORMEntityBase $entity */
-			$entity = new $this->entity_class;
+				$this->completeForm($values);
 
-			$entity->hydrate($values);
-			$entity->save();
+				/** @var \Gobl\ORM\ORMEntityBase $entity */
+				$entity = new $this->entity_class;
 
-			$this->crud->getHandler()
-					   ->onAfterCreateEntity($entity);
+				$entity->hydrate($values);
+				$entity->save();
+
+				$this->crud->getHandler()
+						   ->onAfterCreateEntity($entity);
+
+				$this->db->commit();
+			} catch (Throwable $e) {
+				$this->db->rollBack();
+				throw $e;
+			}
 
 			return $entity;
 		}
@@ -184,35 +195,46 @@
 		 * @param array $new_values the new values
 		 *
 		 * @return bool|\Gobl\ORM\ORMEntityBase
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 */
 		public function updateOneItem(array $filters, array $new_values)
 		{
-			$this->crud->assertUpdate($filters, $new_values);
+			try {
+				$this->db->beginTransaction();
 
-			static::assertFiltersNotEmpty($filters);
-			static::assertUpdateColumns($this->db->getTable($this->table_name), array_keys($new_values));
+				$this->crud->assertUpdate($filters, $new_values);
 
-			$results = $this->findAllItems($filters, 1, 0);
+				static::assertFiltersNotEmpty($filters);
+				static::assertUpdateColumns($this->db->getTable($this->table_name), array_keys($new_values));
 
-			$entity = $results->fetchClass();
+				$results = $this->findAllItems($filters, 1, 0);
 
-			if ($entity) {
-				$this->crud->getHandler()
-						   ->onBeforeUpdateEntity($entity);
+				$entity = $results->fetchClass();
 
-				$entity->hydrate($new_values);
-				$entity->save();
+				if ($entity) {
+					$this->crud->getHandler()
+							   ->onBeforeUpdateEntity($entity);
 
-				$this->crud->getHandler()
-						   ->onAfterUpdateEntity($entity);
+					$entity->hydrate($new_values);
+					$entity->save();
 
-				return $entity;
-			} else {
-				return false;
+					$this->crud->getHandler()
+							   ->onAfterUpdateEntity($entity);
+
+					$ret = $entity;
+				} else {
+					$ret = false;
+				}
+
+				$this->db->commit();
+
+				return $ret;
+			} catch (Throwable $e) {
+				$this->db->rollBack();
+				throw $e;
 			}
 		}
 
@@ -223,25 +245,35 @@
 		 * @param array $new_values the new values
 		 *
 		 * @return int Affected row count.
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 */
 		public function updateAllItems(array $filters, array $new_values)
 		{
-			$this->crud->assertUpdateAll($filters, $new_values);
+			try {
+				$this->db->beginTransaction();
 
-			static::assertFiltersNotEmpty($filters);
-			static::assertUpdateColumns($this->db->getTable($this->table_name), array_keys($new_values));
+				$this->crud->assertUpdateAll($filters, $new_values);
 
-			/** @var \Gobl\ORM\ORMTableQueryBase $query */
-			$query = new $this->table_query_class;
+				static::assertFiltersNotEmpty($filters);
+				static::assertUpdateColumns($this->db->getTable($this->table_name), array_keys($new_values));
 
-			$query->applyFilters($filters);
+				/** @var \Gobl\ORM\ORMTableQueryBase $query */
+				$query = new $this->table_query_class;
 
-			return $query->update($new_values)
-						 ->execute();
+				$query->applyFilters($filters);
+
+				$ret = $query->update($new_values)
+							 ->execute();
+				$this->db->commit();
+
+				return $ret;
+			} catch (Throwable $e) {
+				$this->db->rollBack();
+				throw $e;
+			}
 		}
 
 		/**
@@ -250,39 +282,50 @@
 		 * @param array $filters the row filters
 		 *
 		 * @return bool|\Gobl\ORM\ORMEntityBase
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 */
 		public function deleteOneItem(array $filters)
 		{
-			$this->crud->assertDelete($filters);
+			try {
+				$this->db->beginTransaction();
 
-			static::assertFiltersNotEmpty($filters);
+				$this->crud->assertDelete($filters);
 
-			$results = $this->findAllItems($filters, 1, 0);
+				static::assertFiltersNotEmpty($filters);
 
-			$entity = $results->fetchClass();
+				$results = $this->findAllItems($filters, 1, 0);
 
-			if ($entity) {
-				$this->crud->getHandler()
-						   ->onBeforeDeleteEntity($entity);
+				$entity = $results->fetchClass();
 
-				/** @var \Gobl\ORM\ORMTableQueryBase $query */
-				$query = new $this->table_query_class;
+				if ($entity) {
+					$this->crud->getHandler()
+							   ->onBeforeDeleteEntity($entity);
 
-				$query->applyFilters($filters);
+					/** @var \Gobl\ORM\ORMTableQueryBase $query */
+					$query = new $this->table_query_class;
 
-				$query->delete()
-					  ->execute();
+					$query->applyFilters($filters);
 
-				$this->crud->getHandler()
-						   ->onAfterDeleteEntity($entity);
+					$query->delete()
+						  ->execute();
 
-				return $entity;
-			} else {
-				return false;
+					$this->crud->getHandler()
+							   ->onAfterDeleteEntity($entity);
+
+					$ret = $entity;
+				} else {
+					$ret = false;
+				}
+
+				$this->db->commit();
+
+				return $ret;
+			} catch (Throwable $e) {
+				$this->db->rollBack();
+				throw $e;
 			}
 		}
 
@@ -292,23 +335,35 @@
 		 * @param array $filters the row filters
 		 *
 		 * @return int Affected row count.
-		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+		 * @throws \Gobl\ORM\Exceptions\ORMException
 		 */
 		public function deleteAllItems(array $filters)
 		{
-			$this->crud->assertDeleteAll($filters);
+			try {
+				$this->db->beginTransaction();
 
-			static::assertFiltersNotEmpty($filters);
+				$this->crud->assertDeleteAll($filters);
 
-			/** @var \Gobl\ORM\ORMTableQueryBase $query */
-			$query = new $this->table_query_class;
+				static::assertFiltersNotEmpty($filters);
 
-			$query->applyFilters($filters);
+				/** @var \Gobl\ORM\ORMTableQueryBase $query */
+				$query = new $this->table_query_class;
 
-			return $query->delete()->execute();
+				$query->applyFilters($filters);
+
+				$ret = $query->delete()
+							 ->execute();
+
+				$this->db->commit();
+
+				return $ret;
+			} catch (Throwable $e) {
+				$this->db->rollBack();
+				throw $e;
+			}
 		}
 
 		/**
@@ -325,20 +380,33 @@
 		 */
 		public function getItem(array $filters, array $order_by = [])
 		{
-			$this->crud->assertRead($filters);
+			try {
+				// we use transaction for reading too
+				// https://stackoverflow.com/questions/308905/should-there-be-a-transaction-for-read-queries
+				$this->db->beginTransaction();
 
-			static::assertFiltersNotEmpty($filters);
+				$this->crud->assertRead($filters);
 
-			$results = $this->findAllItems($filters, 1, 0, $order_by);
+				static::assertFiltersNotEmpty($filters);
 
-			$entity = $results->fetchClass();
+				$results = $this->findAllItems($filters, 1, 0, $order_by);
 
-			if ($entity) {
-				$this->crud->getHandler()
-						   ->onAfterReadEntity($entity);
+				$entity = $results->fetchClass();
+
+				if ($entity) {
+					$this->crud->getHandler()
+							   ->onAfterReadEntity($entity);
+				}
+
+				$result = $entity;
+
+				$this->db->commit();
+
+				return $result;
+			} catch (Throwable $e) {
+				$this->db->rollBack();
+				throw $e;
 			}
-
-			return $entity;
 		}
 
 		/**
@@ -351,22 +419,33 @@
 		 * @param int|bool $total    total rows without limit
 		 *
 		 * @return \Gobl\ORM\ORMEntityBase[]
+		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 * @throws \Gobl\DBAL\Exceptions\DBALException
 		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
 		 */
 		public function getAllItems(array $filters = [], $max = null, $offset = 0, array $order_by = [], &$total = false)
 		{
-			$this->crud->assertReadAll($filters);
+			try {
+				// we use transaction for reading too
+				// https://stackoverflow.com/questions/308905/should-there-be-a-transaction-for-read-queries
+				$this->db->beginTransaction();
 
-			$results = $this->findAllItems($filters, $max, $offset, $order_by);
+				$this->crud->assertReadAll($filters);
 
-			$items = $results->fetchAllClass();
+				$results = $this->findAllItems($filters, $max, $offset, $order_by);
 
-			$total = static::totalResultsCount($results, count($items), $max, $offset);
+				$items = $results->fetchAllClass();
 
-			return $items;
+				$total = static::totalResultsCount($results, count($items), $max, $offset);
+
+				$this->db->commit();
+
+				return $items;
+			} catch (Throwable $e) {
+				$this->db->rollBack();
+				throw $e;
+			}
 		}
 
 		/**
@@ -383,20 +462,31 @@
 		 */
 		public function getAllItemsCustom(QueryBuilder $qb, $max = null, $offset = 0, &$total = false)
 		{
-			$filters = [];
+			try {
+				// we use transaction for reading too
+				// https://stackoverflow.com/questions/308905/should-there-be-a-transaction-for-read-queries
+				$this->db->beginTransaction();
 
-			$this->crud->assertReadAll($filters);
+				$filters = [];
 
-			$qb->limit($max, $offset);
+				$this->crud->assertReadAll($filters);
 
-			/** @var \Gobl\ORM\ORMResultsBase $results */
-			$results = new $this->table_results_class($this->db, $qb);
+				$qb->limit($max, $offset);
 
-			$items = $results->fetchAllClass(false);
+				/** @var \Gobl\ORM\ORMResultsBase $results */
+				$results = new $this->table_results_class($this->db, $qb);
 
-			$total = static::totalResultsCount($results, count($items), $max, $offset);
+				$items = $results->fetchAllClass(false);
 
-			return $items;
+				$total = static::totalResultsCount($results, count($items), $max, $offset);
+
+				$this->db->commit();
+
+				return $items;
+			} catch (Throwable $e) {
+				$this->db->rollBack();
+				throw $e;
+			}
 		}
 
 		/**
