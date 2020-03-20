@@ -14,6 +14,8 @@
 	use Gobl\DBAL\Exceptions\DBALException;
 	use Gobl\DBAL\QueryBuilder;
 	use Gobl\DBAL\QueryTokenParser;
+	use PDO;
+	use PDOException;
 
 	/**
 	 * Class MySQL
@@ -54,15 +56,14 @@
 			$charset  = $this->config['db_charset'];
 
 			$pdo_options = [
-				\PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION,
-				\PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC
+				PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+				PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
 			];
 
 			// DSN => DATA SOURCE NAME
-			$pdo_dsn    = 'mysql:host=' . $host . ';dbname=' . $dbname . ';charset=' . $charset;
-			$connection = new \PDO($pdo_dsn, $user, $password, $pdo_options);
+			$pdo_dsn = 'mysql:host=' . $host . ';dbname=' . $dbname . ';charset=' . $charset;
 
-			return $connection;
+			return new PDO($pdo_dsn, $user, $password, $pdo_options);
 		}
 
 		/**
@@ -169,7 +170,7 @@
 				}
 
 				return $stmt;
-			} catch (\PDOException $e) {
+			} catch (PDOException $e) {
 				if ($in_transaction AND $auto_close_transaction) {
 					$this->rollBack();
 				}

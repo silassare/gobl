@@ -3,6 +3,7 @@
 
 	namespace <%$.service.namespace%>;
 
+	use Exception;
 	use Gobl\DBAL\Relations\CallableVR;
 	use Gobl\DBAL\Relations\Relation;
 	use Gobl\DBAL\Relations\VirtualRelation;
@@ -184,7 +185,7 @@
 					 ->setDone($controller->getCRUD()
 										  ->getMessage())
 					 ->setData(['item' => $entity]);
-			} catch (\Exception $e) {
+			} catch (Exception $e) {
 				self::tryConvertException($e);
 			}
 		}
@@ -218,7 +219,7 @@
 				} else {
 					throw new NotFoundException();
 				}
-			} catch (\Exception $e) {
+			} catch (Exception $e) {
 				self::tryConvertException($e);
 			}
 		}
@@ -244,7 +245,7 @@
 					 ->setDone($controller->getCRUD()
 										  ->getMessage())
 					 ->setData(['affected' => $count]);
-			} catch (\Exception $e) {
+			} catch (Exception $e) {
 				self::tryConvertException($e);
 			}
 		}
@@ -276,7 +277,7 @@
 				} else {
 					throw new NotFoundException();
 				}
-			} catch (\Exception $e) {
+			} catch (Exception $e) {
 				self::tryConvertException($e);
 			}
 		}
@@ -300,7 +301,7 @@
 					 ->setDone($controller->getCRUD()
 										  ->getMessage())
 					 ->setData(['affected' => $count]);
-			} catch (\Exception $e) {
+			} catch (Exception $e) {
 				self::tryConvertException($e);
 			}
 		}
@@ -339,7 +340,7 @@
 						 'item'      => $entity,
 						 'relations' => $relations
 					 ]);
-			} catch (\Exception $e) {
+			} catch (Exception $e) {
 				self::tryConvertException($e);
 			}
 		}
@@ -396,7 +397,7 @@
 						 'total'     => $total_records,
 						 'relations' => $relations
 					 ]);
-			} catch (\Exception $e) {
+			} catch (Exception $e) {
 				self::tryConvertException($e);
 			}
 		}
@@ -411,7 +412,7 @@
 		public function actionGetRelation(ORMRequest $orm_request)
 		{
 			try {
-				if (!isset($extra[<%$.class.entity%>::<%$.pk_columns[0].const%>])) {
+				if (!$orm_request->getColumnFilters(<%$.class.entity%>::<%$.pk_columns[0].const%>)) {
 					throw new NotFoundException();
 				}
 
@@ -448,7 +449,7 @@
 				$this->getResponseHolder()
 					 ->setDone()
 					 ->setData($data);
-			} catch (\Exception $e) {
+			} catch (Exception $e) {
 				self::tryConvertException($e);
 			}
 		}

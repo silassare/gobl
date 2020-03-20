@@ -31,10 +31,10 @@
 		protected $qb;
 
 		/** @var \Gobl\DBAL\Rule[] */
-		protected $filters = [];
+		protected $filters;
 
 		/** @var array */
-		protected $params = [];
+		protected $params;
 
 		/** @var \Gobl\DBAL\Table */
 		protected $table;
@@ -60,6 +60,8 @@
 			$this->table               = $this->db->getTable($table_name);
 			$this->table_alias         = $this->genUniqueAlias();
 			$this->qb                  = new QueryBuilder($this->db);
+			$this->params              = [];
+			$this->filters             = [];
 		}
 
 		/**
@@ -435,9 +437,10 @@
 		 */
 		protected function resetQuery()
 		{
-			$qb           = $this->qb;
-			$this->qb     = new QueryBuilder($this->db);
-			$this->params = [];
+			$qb            = $this->qb;
+			$this->qb      = new QueryBuilder($this->db);
+			$this->params  = [];
+			$this->filters = [];
 
 			return $qb;
 		}
