@@ -17,6 +17,4 @@
 	 *
 	 * @package Gobl\CRUD\Exceptions
 	 */
-	class CRUDException extends GoblBaseException
-	{
-	}
+	class CRUDException extends GoblBaseException {	}

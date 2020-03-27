@@ -10,6 +10,7 @@
 
 	namespace Gobl\DBAL;
 
+	use Exception;
 	use Gobl\DBAL\Exceptions\DBALException;
 
 	/**
@@ -32,7 +33,7 @@
 		const OP_IN          = 11;
 		const OP_NOT_IN      = 12;
 
-		static $OPERATORS_OPTIONS = [
+		public static $OPERATORS_OPTIONS = [
 			Rule::OP_EQ          => ['operator' => '=', 'two_operands' => true],
 			Rule::OP_NEQ         => ['operator' => '<>', 'two_operands' => true],
 			Rule::OP_LT          => ['operator' => '<', 'two_operands' => true],
@@ -190,7 +191,7 @@
 					try {
 						$table   = $this->qb->prefixTable($parts[0]);
 						$operand = $this->qb->prefix($table, $parts[1]);
-					} catch (\Exception $e) {
+					} catch (Exception $e) {
 						return $operand;
 					}
 				}

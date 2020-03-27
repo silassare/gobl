@@ -11,6 +11,7 @@
 	namespace Gobl\DBAL\Relations;
 
 	use Gobl\ORM\ORMRequestBase;
+	use InvalidArgumentException;
 
 	abstract class VirtualRelation
 	{
@@ -27,7 +28,7 @@
 		public function __construct($name)
 		{
 			if (!preg_match(VirtualRelation::NAME_REG, $name)) {
-				throw new \InvalidArgumentException(sprintf('Invalid virtual relation name "%s".', $name));
+				throw new InvalidArgumentException(sprintf('Invalid virtual relation name "%s".', $name));
 			}
 
 			$this->name = $name;

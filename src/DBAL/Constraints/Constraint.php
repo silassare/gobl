@@ -11,6 +11,7 @@
 	namespace Gobl\DBAL\Constraints;
 
 	use Gobl\DBAL\Table;
+	use InvalidArgumentException;
 
 	/**
 	 * Class Constraint
@@ -43,7 +44,7 @@
 		public function __construct($name, Table $table, $type)
 		{
 			if (!preg_match(Constraint::NAME_REG, $name))
-				throw new \InvalidArgumentException(sprintf('Invalid constraint name "%s" in table "%s".', $name, $table->getName()));
+				throw new InvalidArgumentException(sprintf('Invalid constraint name "%s" in table "%s".', $name, $table->getName()));
 
 			$this->table = $table;
 			$this->name  = $name;

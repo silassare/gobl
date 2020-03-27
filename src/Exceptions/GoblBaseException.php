@@ -10,12 +10,15 @@
 
 	namespace Gobl\Exceptions;
 
+	use Exception;
+	use Throwable;
+
 	/**
 	 * Class GoblBaseException
 	 *
 	 * @package Gobl\Exceptions
 	 */
-	abstract class GoblBaseException extends \Exception
+	abstract class GoblBaseException extends Exception
 	{
 		/**
 		 * @var array
@@ -28,18 +31,13 @@
 		const SENSITIVE_DATA_PREFIX = '_';
 
 		/**
-		 * @var array
-		 */
-		protected $_debug_data = [];
-
-		/**
 		 * GoblBaseException constructor.
 		 *
 		 * @param string          $message
 		 * @param array           $data
 		 * @param null|\Throwable $previous
 		 */
-		public function __construct($message, array $data = [], \Throwable $previous = null)
+		public function __construct($message, array $data = [], Throwable $previous = null)
 		{
 			parent::__construct($message, 0, $previous);
 
@@ -91,7 +89,8 @@
 		public function __toString()
 		{
 			$e_data = json_encode($this->getData(true));
-			$e_msg  = <<<STRING
+
+			return <<<STRING
 \tFile    : {$this->getFile()}
 \tLine    : {$this->getLine()}
 \tCode    : {$this->getCode()}
@@ -99,7 +98,5 @@
 \tData    : $e_data
 \tTrace   : {$this->getTraceAsString()}
 STRING;
-
-			return $e_msg;
 		}
 	}

@@ -13,6 +13,7 @@
 	use Gobl\DBAL\Exceptions\DBALException;
 	use Gobl\DBAL\Table;
 	use Gobl\DBAL\Utils;
+	use InvalidArgumentException;
 
 	abstract class Relation
 	{
@@ -51,7 +52,7 @@
 		public function __construct($name, Table $host_table, Table $target_table, $columns, $type)
 		{
 			if (!preg_match(Relation::NAME_REG, $name)) {
-				throw new \InvalidArgumentException(sprintf('Invalid relation name "%s".', $name));
+				throw new InvalidArgumentException(sprintf('Invalid relation name "%s".', $name));
 			}
 
 			// the relation is based on foreign keys

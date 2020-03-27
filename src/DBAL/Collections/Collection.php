@@ -11,6 +11,7 @@
 	namespace Gobl\DBAL\Collections;
 
 	use Gobl\ORM\ORMRequestBase;
+	use InvalidArgumentException;
 
 	class Collection
 	{
@@ -34,7 +35,7 @@
 		public function __construct($name, callable $callable)
 		{
 			if (!preg_match(Collection::NAME_REG, $name)) {
-				throw new \InvalidArgumentException(sprintf('Invalid collection name "%s".', $name));
+				throw new InvalidArgumentException(sprintf('Invalid collection name "%s".', $name));
 			}
 
 			$this->name     = $name;

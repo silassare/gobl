@@ -14,6 +14,8 @@
 	use Gobl\CRUD\Handler\Interfaces\CRUDHandlerInterface;
 	use Gobl\CRUD\Exceptions\CRUDException;
 	use Gobl\DBAL\Table;
+	use InvalidArgumentException;
+	use RuntimeException;
 
 	/**
 	 * Class CRUD
@@ -73,7 +75,7 @@
 				if ($handler instanceof CRUDHandlerInterface) {
 					$this->crud_handler = $handler;
 				} else {
-					throw new \InvalidArgumentException(sprintf('Table "%s" CRUD handler class should implements "%s"', $name, CRUDHandlerInterface::class));
+					throw new InvalidArgumentException(sprintf('Table "%s" CRUD handler class should implements "%s"', $name, CRUDHandlerInterface::class));
 				}
 			} else {
 				$this->crud_handler = new CRUDHandlerDefault();
@@ -322,10 +324,10 @@
 		public static function setHandlerProvider(callable $provider)
 		{
 			if (!is_callable($provider)) {
-				throw new \InvalidArgumentException('CRUD handler provider should be a valid callable.');
+				throw new InvalidArgumentException('CRUD handler provider should be a valid callable.');
 			}
 			if (isset(self::$handler_provider)) {
-				throw new \RuntimeException('CRUD handler provider cannot be overwritten.');
+				throw new RuntimeException('CRUD handler provider cannot be overwritten.');
 			}
 
 			self::$handler_provider = $provider;

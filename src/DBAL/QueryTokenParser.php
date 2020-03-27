@@ -11,6 +11,7 @@
 	namespace Gobl\DBAL;
 
 	use Gobl\DBAL\Exceptions\DBALException;
+	use PDO;
 
 	/**
 	 * Class QueryTokenParser
@@ -19,7 +20,7 @@
 	 */
 	class QueryTokenParser
 	{
-		private $query            = "";
+		private $query            = '';
 		private $params           = [];
 		private $params_types     = [];
 		private $new_query        = null;
@@ -39,7 +40,7 @@
 			$this->query        = $query;
 			$this->params       = $params;
 			$this->params_types = $params_types;
-			$this->new_query    = preg_replace_callback("#:(\w+)#", [$this, 'replacer'], $this->query);
+			$this->new_query    = preg_replace_callback('#:(\w+)#', [$this, 'replacer'], $this->query);
 		}
 
 		/**
@@ -134,7 +135,7 @@
 			$value = $this->params[$key];
 
 			if (is_array($value)) {
-				$replacement = implode(", ", array_fill(0, count($value), '?'));
+				$replacement = implode(', ', array_fill(0, count($value), '?'));
 				$values      = array_values($value);
 
 				foreach ($values as $v) {
@@ -159,14 +160,14 @@
 		 */
 		public static function paramType($value)
 		{
-			$param_type = \PDO::PARAM_STR;
+			$param_type = PDO::PARAM_STR;
 
 			if (is_int($value)) {
-				$param_type = \PDO::PARAM_INT;
+				$param_type = PDO::PARAM_INT;
 			} elseif (is_bool($value)) {
-				$param_type = \PDO::PARAM_BOOL;
+				$param_type = PDO::PARAM_BOOL;
 			} elseif (is_null($value)) {
-				$param_type = \PDO::PARAM_NULL;
+				$param_type = PDO::PARAM_NULL;
 			}
 
 			return $param_type;

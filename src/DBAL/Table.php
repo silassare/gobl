@@ -18,6 +18,7 @@
 	use Gobl\DBAL\Relations\CallableVR;
 	use Gobl\DBAL\Relations\Relation;
 	use Gobl\DBAL\Relations\VirtualRelation;
+	use InvalidArgumentException;
 
 	/**
 	 * Class Table
@@ -91,13 +92,6 @@
 		protected $uc_constraints = [];
 
 		/**
-		 * Constraints counter, used to generate named constraints.
-		 *
-		 * @var int
-		 */
-		protected $constraints_counter = 1;
-
-		/**
 		 * Table relations list
 		 *
 		 * @var \Gobl\DBAL\Relations\Relation[]
@@ -139,16 +133,16 @@
 		public function __construct($name, $namespace, $prefix, array $options)
 		{
 			if (!preg_match(Table::NAME_REG, $name)) {
-				throw new \InvalidArgumentException(sprintf('Invalid table name "%s".', $name));
+				throw new InvalidArgumentException(sprintf('Invalid table name "%s".', $name));
 			}
 
 			if (!is_string($namespace) OR empty($namespace)) {
-				throw new \InvalidArgumentException(sprintf('You should provide namespace for table "%s".', $name));
+				throw new InvalidArgumentException(sprintf('You should provide namespace for table "%s".', $name));
 			}
 
 			if (!empty($prefix)) {
 				if (!preg_match(Table::PREFIX_REG, $prefix)) {
-					throw new \InvalidArgumentException(sprintf('Invalid table prefix name "%s".', $prefix));
+					throw new InvalidArgumentException(sprintf('Invalid table prefix name "%s".', $prefix));
 				}
 			} else {
 				$prefix = "";
@@ -163,15 +157,15 @@
 
 			// table name rules also apply to plural and singular names
 			if (!preg_match(Table::NAME_REG, $plural_name)) {
-				throw new \InvalidArgumentException(sprintf('Table "%s" "plural_name" option is invalid.', $name));
+				throw new InvalidArgumentException(sprintf('Table "%s" "plural_name" option is invalid.', $name));
 			}
 
 			if (!preg_match(Table::NAME_REG, $singular_name)) {
-				throw new \InvalidArgumentException(sprintf('Table "%s" "singular_name" option is invalid.', $name));
+				throw new InvalidArgumentException(sprintf('Table "%s" "singular_name" option is invalid.', $name));
 			}
 
 			if ($plural_name === $singular_name) {
-				throw new \InvalidArgumentException(sprintf('"plural_name" and "singular_name" should not be equal in table "%s".', $name));
+				throw new InvalidArgumentException(sprintf('"plural_name" and "singular_name" should not be equal in table "%s".', $name));
 			}
 
 			$this->name      = strtolower($name);
