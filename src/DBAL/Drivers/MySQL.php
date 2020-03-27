@@ -11,6 +11,7 @@
 	namespace Gobl\DBAL\Drivers;
 
 	use Gobl\DBAL\Db;
+	use Gobl\DBAL\DbConfig;
 	use Gobl\DBAL\Exceptions\DBALException;
 	use Gobl\DBAL\QueryBuilder;
 	use Gobl\DBAL\QueryTokenParser;
@@ -25,7 +26,7 @@
 	class MySQL extends Db
 	{
 		/**
-		 * @var array
+		 * @var DbConfig
 		 */
 		private $config;
 
@@ -41,7 +42,7 @@
 		 */
 		public function __construct(array $config)
 		{
-			$this->config = $config;
+			$this->config = new DbConfig($config);
 		}
 
 		/**
@@ -49,11 +50,11 @@
 		 */
 		public function connect()
 		{
-			$host     = $this->config['db_host'];
-			$dbname   = $this->config['db_name'];
-			$user     = $this->config['db_user'];
-			$password = $this->config['db_pass'];
-			$charset  = $this->config['db_charset'];
+			$host     = $this->config->getDbHost();
+			$dbname   = $this->config->getDbName();
+			$user     = $this->config->getDbUser();
+			$password = $this->config->getDbPass();
+			$charset  = $this->config->getDbCharset();
 
 			$pdo_options = [
 				PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
@@ -271,16 +272,17 @@
 				$qb = new QueryBuilder($this);
 				$qb->createTable($table);
 				$parts[] = $this->getQueryGenerator($qb)
-								->getTableDefinitionString();
+								->buildQuery();
 			}
 
-			$mysql = implode(PHP_EOL, $parts);
+			$mysql   = implode(PHP_EOL, $parts);
+			$charset = $this->config->getDbCharset();
 
 			return <<<GOBL_MySQL
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
+/*!40101 SET NAMES $charset */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -306,6 +308,6 @@ GOBL_MySQL;
 		 */
 		public function getQueryGenerator(QueryBuilder $query)
 		{
-			return new MySQLGenerator($query);
+			return new MySQLGenerator($query, $this->config);
 		}
 	}

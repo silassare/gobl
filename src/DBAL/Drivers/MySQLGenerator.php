@@ -11,25 +11,27 @@
 	namespace Gobl\DBAL\Drivers;
 
 	use Gobl\DBAL\Constraints\PrimaryKey;
-	use Gobl\DBAL\Generators\BaseSQLGenerator;
+	use Gobl\DBAL\DbConfig;
+	use Gobl\DBAL\Generators\SQLGeneratorBase;
 	use Gobl\DBAL\QueryBuilder;
-	use Gobl\DBAL\Types\Type;
+	use Gobl\DBAL\Types\Interfaces\TypeInterface;
 
 	/**
 	 * Class MySQLGenerator
 	 *
 	 * @package Gobl\DBAL\Drivers
 	 */
-	class MySQLGenerator extends BaseSQLGenerator
+	class MySQLGenerator extends SQLGeneratorBase
 	{
 		/**
 		 * MySQLSyntax constructor.
 		 *
-		 * @param \Gobl\DBAL\QueryBuilder $query
+		 * @param \Gobl\DBAL\QueryBuilder $qb
+		 * @param DbConfig                $config
 		 */
-		public function __construct(QueryBuilder $query)
+		public function __construct(QueryBuilder $qb, DbConfig $config)
 		{
-			parent::__construct($query);
+			parent::__construct($qb, $config);
 		}
 
 		/**
@@ -39,7 +41,7 @@
 		{
 			$sql = '';
 
-			switch ($this->query->getType()) {
+			switch ($this->qb->getType()) {
 				case QueryBuilder::QUERY_TYPE_CREATE_TABLE :
 					$sql = $this->getTableDefinitionString();
 					break;
@@ -65,7 +67,7 @@
 		 *
 		 * @return string
 		 */
-		public function getTableDefinitionString()
+		protected function getTableDefinitionString()
 		{
 			/** @var \Gobl\DBAL\Table $table */
 			$table   = $this->options['createTable'];
@@ -77,19 +79,19 @@
 				$c    = $type->getTypeConstant();
 
 				switch ($c) {
-					case Type::TYPE_INT:
+					case TypeInterface::TYPE_INT:
 						$sql[] = $this->getIntColumnDefinition($column);
 						break;
-					case Type::TYPE_BIGINT:
+					case TypeInterface::TYPE_BIGINT:
 						$sql[] = $this->getBigintColumnDefinition($column);
 						break;
-					case Type::TYPE_FLOAT:
+					case TypeInterface::TYPE_FLOAT:
 						$sql[] = $this->getFloatColumnDefinition($column);
 						break;
-					case Type::TYPE_STRING:
+					case TypeInterface::TYPE_STRING:
 						$sql[] = $this->getStringColumnDefinition($column);
 						break;
-					case Type::TYPE_BOOL:
+					case TypeInterface::TYPE_BOOL:
 						$sql[] = $this->getBoolColumnDefinition($column);
 						break;
 				}
@@ -116,21 +118,21 @@
 			$table_name  = $table->getFullName();
 			$table_body  = implode(',' . PHP_EOL, $sql);
 			$table_alter = implode(PHP_EOL, $table_alter);
-			$mysql       = <<<OTPL
+			$charset     = $this->config->getDbCharset();
+
+			return <<<OTPL
 --
 -- Table structure for table `$table_name`
 --
 
 DROP TABLE IF EXISTS `$table_name`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = $charset */;
 CREATE TABLE `$table_name` (
 $table_body
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=$charset;
 $table_alter
 /*!40101 SET character_set_client = @saved_cs_client */;
 OTPL;
-
-			return $mysql;
 		}
 	}

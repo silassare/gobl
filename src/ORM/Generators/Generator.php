@@ -10,23 +10,26 @@
 
 	namespace Gobl\ORM\Generators;
 
+	use Exception;
 	use Gobl\DBAL\Column;
 	use Gobl\DBAL\Db;
 	use Gobl\DBAL\Relations\Relation;
 	use Gobl\DBAL\Table;
-	use Gobl\DBAL\Types\Type;
+	use Gobl\DBAL\Types\Interfaces\TypeInterface;
 	use Gobl\DBAL\Utils;
 	use Gobl\ORM\Exceptions\ORMException;
+	use InvalidArgumentException;
 	use OTpl\OTpl;
+	use RuntimeException;
 
 	class Generator
 	{
 		private $types_map = [
-			Type::TYPE_INT    => ['int', 'int'],
-			Type::TYPE_BIGINT => ['bigint', 'string'],
-			Type::TYPE_STRING => ['string', 'string'],
-			Type::TYPE_FLOAT  => ['float', 'string'],
-			Type::TYPE_BOOL   => ['bool', 'bool']
+			TypeInterface::TYPE_INT    => ['int', 'int'],
+			TypeInterface::TYPE_BIGINT => ['bigint', 'string'],
+			TypeInterface::TYPE_STRING => ['string', 'string'],
+			TypeInterface::TYPE_FLOAT  => ['float', 'string'],
+			TypeInterface::TYPE_BOOL   => ['bool', 'bool']
 		];
 
 		/** @var \Gobl\DBAL\Db */
@@ -61,7 +64,7 @@
 		public function generateORMClasses(array $tables, $path, $header = '')
 		{
 			if (!file_exists($path) OR !is_dir($path)) {
-				throw new \InvalidArgumentException(sprintf('"%s" is not a valid directory path.', $path));
+				throw new InvalidArgumentException(sprintf('"%s" is not a valid directory path.', $path));
 			}
 
 			$ds            = DIRECTORY_SEPARATOR;
@@ -119,7 +122,7 @@
 		public function generateTSClasses(array $tables, $path, $header = '')
 		{
 			if (!file_exists($path) OR !is_dir($path)) {
-				throw new \InvalidArgumentException(sprintf('"%s" is not a valid directory path.', $path));
+				throw new InvalidArgumentException(sprintf('"%s" is not a valid directory path.', $path));
 			}
 
 			$ds            = DIRECTORY_SEPARATOR;
@@ -176,7 +179,7 @@
 		public function generateOZServiceClass(Table $table, $service_namespace, $service_dir, $service_name, $service_class = '', $header = '')
 		{
 			if (!file_exists($service_dir) OR !is_dir($service_dir)) {
-				throw new \InvalidArgumentException(sprintf('"%s" is not a valid directory path.', $service_dir));
+				throw new InvalidArgumentException(sprintf('"%s" is not a valid directory path.', $service_dir));
 			}
 
 			if (!$table->hasPrimaryKeyConstraint()) {
@@ -256,8 +259,8 @@
 			try {
 				$o = new OTpl;
 				$o->parse($source);
-			} catch (\Exception $e) {
-				throw new \RuntimeException('Template compile error.', null, $e);
+			} catch (Exception $e) {
+				throw new RuntimeException('Template compile error.', null, $e);
 			}
 
 			return $o;

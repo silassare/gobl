@@ -14,35 +14,47 @@
 	use Gobl\DBAL\Constraints\ForeignKey;
 	use Gobl\DBAL\Constraints\PrimaryKey;
 	use Gobl\DBAL\Constraints\Unique;
+	use Gobl\DBAL\DbConfig;
+	use Gobl\DBAL\Generators\Interfaces\GeneratorInterface;
 	use Gobl\DBAL\QueryBuilder;
 	use Gobl\DBAL\Table;
+	use Gobl\DBAL\Types\Interfaces\TypeInterface;
 
 	/**
-	 * Class BaseSQLGenerator
-	 *
-	 * Thanks to Contributors of Doctrine DBAL
-	 * some concept and code form Doctrine DBAL query builder
-	 * are fully or partially used here.
+	 * Class SQLGeneratorBase
 	 *
 	 * @package Gobl\DBAL\Generators
 	 */
-	abstract class BaseSQLGenerator implements Generator
+	abstract class SQLGeneratorBase implements GeneratorInterface
 	{
 		/** @var \Gobl\DBAL\QueryBuilder */
-		protected $query;
+		protected $qb;
 
 		/** @var array */
 		protected $options;
 
+		/** @var array */
+		protected $config;
+
 		/**
-		 * BaseSQLGenerator constructor.
+		 * SQLGeneratorBase constructor.
 		 *
-		 * @param \Gobl\DBAL\QueryBuilder $query
+		 * @param \Gobl\DBAL\QueryBuilder $qb
+		 * @param DbConfig                $config
 		 */
-		public function __construct(QueryBuilder $query)
+		public function __construct(QueryBuilder $qb, DbConfig $config)
 		{
-			$this->query   = $query;
-			$this->options = $query->getOptions();
+			$this->qb      = $qb;
+			$this->config  = $config;
+			$this->options = $qb->getOptions();
+		}
+
+		/**
+		 * Destructor.
+		 */
+		public function __destruct()
+		{
+			unset($this->qb);
 		}
 
 		/**
@@ -56,27 +68,39 @@
 		{
 			$column_name = $column->getFullName();
 			$type        = $column->getTypeObject();
-			$null        = $type->isNullAble();
-			$default     = $type->getDefault();
 
 			$sql[] = "`$column_name` tinyint(1)";
 
-			if (!$null) {
-				$sql[] = 'NOT NULL';
-
-				if (!is_null($default)) {
-					$sql[] = sprintf('DEFAULT %s', static::quote($default));
-				}
-			} else {
-				$sql[] = 'NULL';
-				if (is_null($default)) {
-					$sql[] = 'DEFAULT NULL';
-				} else {
-					$sql[] = sprintf('DEFAULT %s', static::quote($default));
-				}
-			}
+			self::defaultAndNullChunks($type, $sql);
 
 			return implode(' ', $sql);
+		}
+
+		/**
+		 * Add default and null parts to sql.
+		 *
+		 * @param TypeInterface  $type
+		 * @param array         &$sql_parts
+		 */
+		protected static function defaultAndNullChunks(TypeInterface $type, array &$sql_parts)
+		{
+			$null    = $type->isNullAble();
+			$default = $type->getDefault();
+
+			if (!$null) {
+				$sql_parts[] = 'NOT NULL';
+
+				if (!is_null($default)) {
+					$sql_parts[] = sprintf('DEFAULT %s', static::singleQuote($default));
+				}
+			} else {
+				$sql_parts[] = 'NULL';
+				if (is_null($default)) {
+					$sql_parts[] = 'DEFAULT NULL';
+				} else {
+					$sql_parts[] = sprintf('DEFAULT %s', static::singleQuote($default));
+				}
+			}
 		}
 
 		/**
@@ -91,8 +115,6 @@
 			$column_name = $column->getFullName();
 			$type        = $column->getTypeObject();
 			$options     = $type->getCleanOptions();
-			$null        = $type->isNullAble();
-			$default     = $type->getDefault();
 			$unsigned    = $options['unsigned'];
 			$min         = isset($options['min']) ? $options['min'] : -INF;
 			$max         = isset($options['max']) ? $options['max'] : INF;
@@ -101,9 +123,9 @@
 
 			if ($unsigned) {
 				if ($max <= 255) {
-					$sql[] = "tinyint";
+					$sql[] = 'tinyint';
 				} elseif ($max <= 65535) {
-					$sql[] = "smallint";
+					$sql[] = 'smallint';
 				} else {
 					$sql[] = 'int(11)';
 				}
@@ -111,28 +133,15 @@
 				$sql[] = 'unsigned';
 			} else {
 				if ($min >= -128 AND $max <= 127) {
-					$sql[] = "tinyint";
+					$sql[] = 'tinyint';
 				} elseif ($min >= -32768 AND $max <= 32767) {
-					$sql[] = "smallint";
+					$sql[] = 'smallint';
 				} else {
 					$sql[] = 'integer(11)';
 				}
 			}
 
-			if (!$null) {
-				$sql[] = 'NOT NULL';
-
-				if (!is_null($default)) {
-					$sql[] = sprintf('DEFAULT %s', static::quote($default));
-				}
-			} else {
-				$sql[] = 'NULL';
-				if (is_null($default)) {
-					$sql[] = 'DEFAULT NULL';
-				} else {
-					$sql[] = sprintf('DEFAULT %s', static::quote($default));
-				}
-			}
+			self::defaultAndNullChunks($type, $sql);
 
 			if ($type->isAutoIncremented()) {
 				$sql[] = 'AUTO_INCREMENT';
@@ -153,8 +162,6 @@
 			$column_name = $column->getFullName();
 			$type        = $column->getTypeObject();
 			$options     = $type->getCleanOptions();
-			$null        = $type->isNullAble();
-			$default     = $type->getDefault();
 			$unsigned    = $options['unsigned'];
 
 			$sql[] = "`$column_name` bigint(20)";
@@ -163,20 +170,7 @@
 				$sql[] = 'unsigned';
 			}
 
-			if (!$null) {
-				$sql[] = 'NOT NULL';
-
-				if (!is_null($default)) {
-					$sql[] = sprintf('DEFAULT %s', static::quote($default));
-				}
-			} else {
-				$sql[] = 'NULL';
-				if (is_null($default)) {
-					$sql[] = 'DEFAULT NULL';
-				} else {
-					$sql[] = sprintf('DEFAULT %s', static::quote($default));
-				}
-			}
+			self::defaultAndNullChunks($type, $sql);
 
 			if ($type->isAutoIncremented()) {
 				$sql[] = 'AUTO_INCREMENT';
@@ -197,8 +191,6 @@
 			$column_name = $column->getFullName();
 			$type        = $column->getTypeObject();
 			$options     = $type->getCleanOptions();
-			$null        = $type->isNullAble();
-			$default     = $type->getDefault();
 			$unsigned    = $options['unsigned'];
 			$mantissa    = isset($options['mantissa']) ? $options['mantissa'] : 53;
 
@@ -208,20 +200,7 @@
 				$sql[] = 'unsigned';
 			}
 
-			if (!$null) {
-				$sql[] = 'NOT NULL';
-
-				if (!is_null($default)) {
-					$sql[] = sprintf('DEFAULT %s', static::quote($default));
-				}
-			} else {
-				$sql[] = 'NULL';
-				if (is_null($default)) {
-					$sql[] = 'DEFAULT NULL';
-				} else {
-					$sql[] = sprintf('DEFAULT %s', static::quote($default));
-				}
-			}
+			self::defaultAndNullChunks($type, $sql);
 
 			return implode(' ', $sql);
 		}
@@ -262,7 +241,7 @@
 
 				if (!$force_no_default) {
 					if (!is_null($default)) {
-						$sql[] = sprintf('DEFAULT %s', static::quote($default));
+						$sql[] = sprintf('DEFAULT %s', static::singleQuote($default));
 					}
 				}
 			} else {
@@ -272,7 +251,7 @@
 					if (is_null($default)) {
 						$sql[] = 'DEFAULT NULL';
 					} else {
-						$sql[] = sprintf('DEFAULT %s', static::quote($default));
+						$sql[] = sprintf('DEFAULT %s', static::singleQuote($default));
 					}
 				}
 			}
@@ -385,7 +364,7 @@
 		 *
 		 * @return string
 		 */
-		protected static function quote($value)
+		protected static function singleQuote($value)
 		{
 			return "'" . str_replace("'", "''", $value) . "'";
 		}
@@ -404,10 +383,9 @@
 			$having  = $this->getHavingQuery();
 			$orderBy = $this->getOrderByQuery();
 			$limit   = $this->getLimitQuery();
-			$sql     = 'SELECT ' . $columns . ' FROM ' . $from . ' WHERE ' . $where
-					   . $groupBy . $having . $orderBy . $limit;
 
-			return $sql;
+			return 'SELECT ' . $columns . ' FROM ' . $from . ' WHERE ' . $where
+				   . $groupBy . $having . $orderBy . $limit;
 		}
 
 		/**
@@ -471,9 +449,8 @@
 		{
 			$set   = $this->getSetQuery();
 			$where = $this->getWhereQuery();
-			$sql   = 'UPDATE ' . $this->options['table'] . ' ' . $this->options['updateTableAlias'] . ' SET ' . $set . ' WHERE ' . $where;
 
-			return $sql;
+			return 'UPDATE ' . $this->options['table'] . ' ' . $this->options['updateTableAlias'] . ' SET ' . $set . ' WHERE ' . $where;
 		}
 
 		/**
@@ -494,9 +471,7 @@
 			}
 			$delete_alias = implode(' , ', $x);
 
-			$sql = 'DELETE ' . $delete_alias . ' FROM ' . $from . ' WHERE ' . $where;
-
-			return $sql;
+			return 'DELETE ' . $delete_alias . ' FROM ' . $from . ' WHERE ' . $where;
 		}
 
 		/**
@@ -508,9 +483,8 @@
 		{
 			$columns = implode(' , ', array_keys($this->options['columns']));
 			$values  = implode(' , ', $this->options['columns']);
-			$sql     = 'INSERT' . ' INTO ' . $this->options['table'] . ' (' . $columns . ') VALUES(' . $values . ')';
 
-			return $sql;
+			return 'INSERT' . ' INTO ' . $this->options['table'] . ' (' . $columns . ') VALUES(' . $values . ')';
 		}
 
 		/**

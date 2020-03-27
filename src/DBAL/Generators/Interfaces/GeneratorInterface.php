@@ -8,8 +8,9 @@
 	 * file that was distributed with this source code.
 	 */
 
-	namespace Gobl\DBAL\Generators;
+	namespace Gobl\DBAL\Generators\Interfaces;
 
+	use Gobl\DBAL\DbConfig;
 	use Gobl\DBAL\QueryBuilder;
 
 	/**
@@ -17,14 +18,15 @@
 	 *
 	 * @package Gobl\DBAL\Generators
 	 */
-	interface Generator
+	interface GeneratorInterface
 	{
 		/**
 		 * Generator constructor.
 		 *
-		 * @param \Gobl\DBAL\QueryBuilder $query
+		 * @param \Gobl\DBAL\QueryBuilder $qb
+		 * @param DbConfig                $config
 		 */
-		public function __construct(QueryBuilder $query);
+		public function __construct(QueryBuilder $qb, DbConfig $config);
 
 		/**
 		 * Converts query object into sql.

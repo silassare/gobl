@@ -13,6 +13,7 @@
 	use Gobl\DBAL\Constraints\ForeignKey;
 	use Gobl\DBAL\Drivers\MySQL;
 	use Gobl\DBAL\Exceptions\DBALException;
+	use Gobl\DBAL\Interfaces\RDBMSInterface;
 	use Gobl\DBAL\Relations\ManyToMany;
 	use Gobl\DBAL\Relations\ManyToOne;
 	use Gobl\DBAL\Relations\OneToMany;
@@ -23,7 +24,7 @@
 	 *
 	 * @package Gobl\DBAL
 	 */
-	abstract class Db implements RDBMS
+	abstract class Db implements RDBMSInterface
 	{
 		/**
 		 * Gobl rdbms class setting shortcuts map
@@ -31,7 +32,7 @@
 		 * @var array
 		 */
 		private static $rdbms_map = [
-			RDBMS::MYSQL => MySQL::class
+			RDBMSInterface::MYSQL => MySQL::class
 		];
 
 		/**
