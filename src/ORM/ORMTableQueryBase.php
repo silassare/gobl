@@ -14,9 +14,9 @@
 	use Gobl\DBAL\QueryBuilder;
 	use Gobl\DBAL\Rule;
 	use Gobl\ORM\Exceptions\ORMException;
-	use Gobl\ORM\Exceptions\ORMQueryException;
+	use Gobl\ORM\Interfaces\ORMFiltersScopeInterface;
 
-	class ORMTableQueryBase
+	class ORMTableQueryBase implements ORMFiltersScopeInterface
 	{
 		/** @var string */
 		protected $table_alias;
@@ -24,17 +24,8 @@
 		/** @var \Gobl\DBAL\Db */
 		protected $db;
 
-		/** @var int */
-		protected $gen_identifier_counter = 0;
-
-		/** @var \Gobl\DBAL\QueryBuilder */
-		protected $qb;
-
-		/** @var \Gobl\DBAL\Rule[] */
+		/** @var \Gobl\ORM\ORMFilters */
 		protected $filters;
-
-		/** @var array */
-		protected $params;
 
 		/** @var \Gobl\DBAL\Table */
 		protected $table;
@@ -58,10 +49,8 @@
 			$this->table_results_class = $table_results_class;
 			$this->db                  = $db;
 			$this->table               = $this->db->getTable($table_name);
-			$this->table_alias         = $this->genUniqueAlias();
-			$this->qb                  = new QueryBuilder($this->db);
-			$this->params              = [];
-			$this->filters             = [];
+			$this->table_alias         = QueryBuilder::genUniqueTableAlias();
+			$this->filters             = new ORMFilters($db, $this);
 		}
 
 		/**
@@ -69,7 +58,9 @@
 		 */
 		public function __destruct()
 		{
-			$this->db = null;
+			unset($this->db);
+			unset($this->table);
+			unset($this->filters);
 		}
 
 		/**
@@ -83,18 +74,13 @@
 		 */
 		public function delete()
 		{
-			$this->qb->delete()
-					 ->from($this->table->getFullName(), $this->table_alias);
+			$qb = $this->filters->getQueryBuilder();
+			$qb->delete()
+			   ->from($this->table->getFullName(), $this->table_alias);
 
-			$rule = $this->getFiltersRule();
+			$this->reset();
 
-			if (!is_null($rule)) {
-				$this->qb->where($rule);
-			}
-
-			$this->qb->bindArray($this->params);
-
-			return $this->resetQuery();
+			return $qb;
 		}
 
 		/**
@@ -113,28 +99,29 @@
 		public function update(array $set_columns)
 		{
 			if (!count($set_columns)) {
-				throw new ORMException("Empty columns, can't update.");
+				throw new ORMException('Empty columns, can\'t update.');
 			}
 
-			$this->qb->update($this->table->getFullName(), $this->table_alias);
+			$qb = $this->filters->getQueryBuilder();
 
-			$rule = $this->getFiltersRule();
-			if (!is_null($rule)) {
-				$this->qb->where($rule);
-			}
+			$qb->update($this->table->getFullName(), $this->table_alias);
 
+			$params  = [];
 			$columns = [];
+
 			foreach ($set_columns as $column => $value) {
 				$this->table->assertHasColumn($column);
-				$param_key                = $this->genUniqueParamKey();
-				$this->params[$param_key] = $value;
-				$columns[$column]         = ':' . $param_key;
+				$param_key          = QueryBuilder::genUniqueParamKey();
+				$params[$param_key] = $value;
+				$columns[$column]   = ':' . $param_key;
 			}
 
-			$this->qb->set($columns)
-					 ->bindArray($this->params);
+			$qb->set($columns)
+			   ->bindArray($params);
 
-			return $this->resetQuery();
+			$this->reset();
+
+			return $qb;
 		}
 
 		/**
@@ -149,7 +136,7 @@
 		 */
 		public function safeUpdate(array $old_values, array $new_values)
 		{
-			$this->resetQuery();
+			$this->reset();
 
 			foreach ($this->table->getColumns() as $column) {
 				$column_name = $column->getFullName();
@@ -187,25 +174,21 @@
 		 */
 		public function find($max = null, $offset = 0, array $order_by = [])
 		{
-			$this->qb->select()
+			$qb = $this->filters->getQueryBuilder();
+			$qb->select()
 					 ->from($this->table->getFullName(), $this->table_alias);
 
-			$rule = $this->getFiltersRule();
-
-			if (!is_null($rule)) {
-				$this->qb->where($rule);
-			}
-
 			if (!empty($order_by)) {
-				$this->qb->orderBy($order_by);
+				$qb->orderBy($order_by);
 			}
 
-			$this->qb->limit($max, $offset)
-					 ->bindArray($this->params);
+			$qb->limit($max, $offset);
 
 			$class_name = $this->table_results_class;
 
-			return new $class_name($this->db, $this->resetQuery());
+			$this->reset();
+
+			return new $class_name($this->db, $qb);
 		}
 
 		/**
@@ -223,272 +206,56 @@
 		 */
 		public function filterBy($column, $value, $operator = Rule::OP_EQ, $use_and = true)
 		{
-			// maybe user make change to the table without regenerating the classes
-			$this->table->assertHasColumn($column);
-
-			$full_name = $this->table->getColumn($column)
-									 ->getFullName();
-
-			if (!isset($this->filters[$full_name])) {
-				$rule = $this->filters[$full_name] = new Rule($this->qb);
-			} else {
-				$rule = $this->filters[$full_name];
-
-				if ($use_and) {
-					$rule->andX();
-				} else {
-					$rule->orX();
-				}
-			}
-
-			$a = $this->table_alias . '.' . $full_name;
-
-			if ($operator === Rule::OP_IN OR $operator === Rule::OP_NOT_IN) {
-				if (!is_array($value)) {
-					throw new ORMException('IN and NOT IN operators require an array of values.', [$column, $value]);
-				}
-
-				$value = $this->qb->arrayToListItems($value);
-				$rule->conditions([$a => $value], $operator, false);
-			} elseif ($operator === Rule::OP_IS_NULL OR $operator === Rule::OP_IS_NOT_NULL) {
-				$rule->conditions([$a], $operator, false);
-			} else {
-				$param_key                = $this->genUniqueParamKey();
-				$this->params[$param_key] = $value;
-				$value                    = ':' . $param_key;
-				$rule->conditions([$a => $value], $operator, false);
-			}
+			$this->filters->addRule($column, $value, $operator, $use_and);
 
 			return $this;
 		}
 
 		/**
-		 * Apply filters to the table query.
+		 * Gets table alias.
 		 *
-		 * $filters = [
-		 *        'name'  => [
-		 *            ['eq', 'value1'],
-		 *            ['eq', 'value2']
-		 *        ],
-		 *        'age'   => [
-		 *            ['lt' => 40],
-		 *            ['gt' => 50]
-		 *        ],
-		 *        'valid' => 1
-		 * ];
-		 *
-		 * (name = value1 OR name = value2) AND (age < 40 OR age > 50) AND (valid = 1)
-		 *
-		 * @param array $filters
-		 *
-		 * @return \Gobl\ORM\ORMTableQueryBase
-		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \Exception
+		 * @return string
 		 */
-		public function applyFilters(array $filters)
+		public function getTableAlias()
 		{
-			if (empty($filters)) {
-				return $this;
-			}
+			return $this->table_alias;
+		}
 
-			$operators_map = [
-				'eq'          => Rule::OP_EQ,
-				'neq'         => Rule::OP_NEQ,
-				'lt'          => Rule::OP_LT,
-				'lte'         => Rule::OP_LTE,
-				'gt'          => Rule::OP_GT,
-				'gte'         => Rule::OP_GTE,
-				'like'        => Rule::OP_LIKE,
-				'not_like'    => Rule::OP_NOT_LIKE,
-				'in'          => Rule::OP_IN,
-				'not_in'      => Rule::OP_NOT_IN,
-				'is_null'     => Rule::OP_IS_NULL,
-				'is_not_null' => Rule::OP_IS_NOT_NULL
-			];
-
-			foreach ($filters as $column => $column_filters) {
-				if (!$this->table->hasColumn($column)) {
-					throw new ORMQueryException('GOBL_ORM_REQUEST_UNKNOWN_FIELDS_IN_FILTERS', [$column]);
-				}
-
-				if (is_array($column_filters)) {
-					foreach ($column_filters as $filter) {
-						if (is_array($filter)) {
-							if (!isset($filter[0])) {
-								throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_FILTERS', [$column, $filter]);
-							}
-
-							$operator_key = $filter[0];
-
-							if (!isset($operators_map[$operator_key])) {
-								throw new ORMQueryException('GOBL_ORM_REQUEST_UNKNOWN_OPERATOR_IN_FILTERS', [
-									$column,
-									$filter
-								]);
-							}
-
-							$safe_value    = true;
-							$operator      = $operators_map[$operator_key];
-							$value         = null;
-							$use_and       = false;
-							$value_index   = 1;
-							$use_and_index = 2;
-
-							if ($operator === Rule::OP_IS_NULL OR $operator === Rule::OP_IS_NOT_NULL) {
-								$use_and_index = 1;// value not needed
-							} else {
-								if (!array_key_exists($value_index, $filter)) {
-									throw new ORMQueryException('GOBL_ORM_REQUEST_MISSING_VALUE_IN_FILTERS', [
-										$column,
-										$filter
-									]);
-								}
-
-								$value = $filter[$value_index];
-
-								if ($value === null) {
-									if ($operator === Rule::OP_EQ) {
-										$operator = Rule::OP_IS_NULL;
-									} elseif ($operator === Rule::OP_NEQ) {
-										$operator = Rule::OP_IS_NOT_NULL;
-									} else {
-										throw new ORMQueryException('GOBL_ORM_REQUEST_NULL_VALUE_IN_FILTERS', [
-											$column,
-											$filter
-										]);
-									}
-								} else {
-									if ($operator === Rule::OP_IN OR $operator === Rule::OP_NOT_IN) {
-										$safe_value = is_array($value) AND count($value) ? true : false;
-									} elseif (!is_scalar($value)) {
-										$safe_value = false;
-									}
-
-									if (!$safe_value) {
-										throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_VALUE_IN_FILTERS', [
-											$column,
-											$filter
-										]);
-									}
-								}
-							}
-
-							if (isset($filter[$use_and_index])) {
-								$a = $filter[$use_and_index];
-								if ($a === 'and' OR $a === 'AND' OR $a === 1 OR $a === true) {
-									$use_and = true;
-								} elseif ($a === 'or' OR $a === 'OR' OR $a === 0 OR $a === false) {
-									$use_and = false;
-								} else {
-									throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_FILTERS', [
-										$column,
-										$filter
-									]);
-								}
-							}
-
-							$this->filterBy($column, $value, $operator, $use_and);
-						} else {
-							throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_FILTERS', [
-								$column,
-								$filter
-							]);
-						}
-					}
-				} else {
-					$value = $column_filters;
-					$this->filterBy($column, $value, is_null($value) ? Rule::OP_IS_NULL : Rule::OP_EQ);
-				}
-			}
+		/**
+		 * Resets this instance.
+		 *
+		 * @return $this
+		 */
+		protected function reset()
+		{
+			$this->filters = new ORMFilters($this->db, $this);
 
 			return $this;
 		}
 
 		/**
-		 * Returns a rule that include all applied filters rules.
-		 *
-		 * @return \Gobl\DBAL\Rule|null
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @inheritDoc
 		 */
-		public function getFiltersRule()
+		public function isFieldAllowed($column)
 		{
-			if (count($this->filters)) {
-				/** @var \Gobl\DBAL\Rule $rule */
-				$rule = null;
-				foreach ($this->filters as $r) {
-					if (!$rule) {
-						$rule = $r;
-					} else {
-						$rule->andX($r);
-					}
-				}
-
-				return $rule;
-			}
-
-			return null;
+			return $this->table->hasColumn($column);
 		}
 
 		/**
-		 * Creates new query builder and returns the old query builder.
-		 *
-		 * @return \Gobl\DBAL\QueryBuilder
+		 * @inheritDoc
 		 */
-		protected function resetQuery()
+		public function isFilterAllowed($column, $value, $operator)
 		{
-			$qb            = $this->qb;
-			$this->qb      = new QueryBuilder($this->db);
-			$this->params  = [];
-			$this->filters = [];
-
-			return $qb;
+			return true;
 		}
 
 		/**
-		 * Generate unique alias.
-		 *
-		 * @return string
+		 * @inheritDoc
 		 */
-		protected function genUniqueAlias()
+		public function getColumnFQName($column)
 		{
-			return '_' . $this->genIdentifier() . '_';
-		}
-
-		/**
-		 * Generate unique parameter key.
-		 *
-		 * @return string
-		 */
-		protected function genUniqueParamKey()
-		{
-			return '_val_' . $this->genIdentifier();
-		}
-
-		/**
-		 * Generate unique char sequence.
-		 *
-		 * infinite possibilities
-		 * a,  b  ... z
-		 * aa, ab ... az
-		 * ba, bb ... bz
-		 *
-		 * @return string
-		 */
-		protected function genIdentifier()
-		{
-			$x    = $this->gen_identifier_counter++;
-			$list = range('a', 'z');
-			$len  = count($list);
-			$a    = '';
-			do {
-				$r = ($x % $len);
-				$n = ($x - $r) / $len;
-				$x = $n - 1;
-				$a = $list[$r] . $a;
-			} while ($n);
-
-			return $a;
+			return $this->table_alias . '.' . $this->table->getColumn($column)
+														  ->getFullName();
 		}
 
 		/**

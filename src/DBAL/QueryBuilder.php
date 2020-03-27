@@ -11,13 +11,11 @@
 	namespace Gobl\DBAL;
 
 	use Gobl\DBAL\Exceptions\DBALException;
+	use InvalidArgumentException;
+	use PDO;
 
 	/**
 	 * Class QueryBuilder
-	 *
-	 * Thanks to Contributors of Doctrine DBAL
-	 * some concept and code form Doctrine DBAL query builder
-	 * are fully or partially used here.
 	 *
 	 * @package Gobl\DBAL
 	 */
@@ -29,8 +27,11 @@
 		const QUERY_TYPE_UPDATE       = 4;
 		const QUERY_TYPE_DELETE       = 5;
 
+		/** @var int */
+		protected static $GEN_IDENTIFIER_COUNTER = 0;
+
 		/**
-		 * @var \Gobl\DBAL\RDBMS
+		 * @var \Gobl\DBAL\Interfaces\RDBMSInterface
 		 */
 		private $db;
 
@@ -319,7 +320,7 @@
 		private function bind($param, $value, $type = null, $overwrite = false)
 		{
 			if (!is_int($param) AND !is_string($param)) {
-				throw new \InvalidArgumentException('Parameter should be of type int for positional or string for named.');
+				throw new InvalidArgumentException('Parameter should be of type int for positional or string for named.');
 			}
 
 			$dirty = false;
@@ -878,7 +879,7 @@
 		 *
 		 * @return string
 		 */
-		public function quote($value, $type = \PDO::PARAM_STR)
+		public function quote($value, $type = PDO::PARAM_STR)
 		{
 			return $this->db->getConnection()
 							->quote($value, $type);
@@ -901,6 +902,52 @@
 			}
 
 			return '(' . implode(', ', $list) . ')';
+		}
+
+		/**
+		 * Generate unique table alias.
+		 *
+		 * @return string
+		 */
+		public static function genUniqueTableAlias()
+		{
+			return '_' . self::genIdentifier() . '_';
+		}
+
+		/**
+		 * Generate unique parameter key.
+		 *
+		 * @return string
+		 */
+		public static function genUniqueParamKey()
+		{
+			return '_val_' . self::genIdentifier();
+		}
+
+		/**
+		 * Generate unique char sequence.
+		 *
+		 * infinite possibilities
+		 * a,  b  ... z
+		 * aa, ab ... az
+		 * ba, bb ... bz
+		 *
+		 * @return string
+		 */
+		protected static function genIdentifier()
+		{
+			$x    = self::$GEN_IDENTIFIER_COUNTER++;
+			$list = range('a', 'z');
+			$len  = count($list);
+			$a    = '';
+			do {
+				$r = ($x % $len);
+				$n = ($x - $r) / $len;
+				$x = $n - 1;
+				$a = $list[$r] . $a;
+			} while ($n);
+
+			return $a;
 		}
 
 		/**
