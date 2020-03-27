@@ -1,3 +1,10 @@
+### v1.3.0 (2020-27-03)
+
+    - ORMFilters added
+    - DbConfig added
+    - Interface suffix consitency
+    - code clean up
+
 ### v1.2.0 (2020-20-03)
 
     - ORMRequestBase bug fix
