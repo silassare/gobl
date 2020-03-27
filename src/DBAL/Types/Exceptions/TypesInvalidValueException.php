@@ -15,6 +15,4 @@
 	 *
 	 * @package Gobl\DBAL\Types\Exceptions
 	 */
-	class TypesInvalidValueException extends TypesException
-	{
-	}
+	class TypesInvalidValueException extends TypesException { }

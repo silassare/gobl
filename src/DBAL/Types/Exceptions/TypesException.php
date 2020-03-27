@@ -17,6 +17,4 @@
 	 *
 	 * @package Gobl\DBAL\Types\Exceptions
 	 */
-	class TypesException extends GoblBaseException
-	{
-	}
+	class TypesException extends GoblBaseException { }
