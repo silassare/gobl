@@ -11,6 +11,7 @@
 	namespace Gobl\DBAL\Types;
 
 	use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
+	use Gobl\DBAL\Types\Interfaces\TypeInterface;
 
 	/**
 	 * Class TypeBool
@@ -121,14 +122,12 @@
 		 */
 		public function getCleanOptions()
 		{
-			$options = [
+			return [
 				'type'    => 'bool',
 				'strict'  => $this->strict,
 				'null'    => $this->isNullAble(),
 				'default' => $this->getDefault()
 			];
-
-			return $options;
 		}
 
 		/**
@@ -136,6 +135,6 @@
 		 */
 		final public function getTypeConstant()
 		{
-			return Type::TYPE_BOOL;
+			return TypeInterface::TYPE_BOOL;
 		}
 	}

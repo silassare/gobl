@@ -8,14 +8,14 @@
 	 * file that was distributed with this source code.
 	 */
 
-	namespace Gobl\DBAL\Types;
+	namespace Gobl\DBAL\Types\Interfaces;
 
 	/**
 	 * Interface Type
 	 *
 	 * @package Gobl\DBAL\Types
 	 */
-	interface Type
+	interface TypeInterface
 	{
 		const TYPE_INT    = 1;
 		const TYPE_BIGINT = 2;
@@ -33,7 +33,7 @@
 		/**
 		 * Enable null value.
 		 *
-		 * @return \Gobl\DBAL\Types\Type
+		 * @return $this
 		 */
 		public function nullAble();
 
@@ -74,7 +74,7 @@
 		 *
 		 * @param mixed $value the value to use as default
 		 *
-		 * @return \Gobl\DBAL\Types\Type
+		 * @return $this
 		 */
 		public function setDefault($value);
 
@@ -85,7 +85,7 @@
 		 * @param string $column_name the column name
 		 * @param string $table_name  the table name
 		 *
-		 * @return mixed the cleaned value to use.
+		 * @return mixed the cleaned value to use
 		 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
 		 */
 		public function validate($value, $column_name, $table_name);
@@ -102,7 +102,7 @@
 		 *
 		 * @param array $options the options
 		 *
-		 * @return \Gobl\DBAL\Types\Type
+		 * @return $this
 		 *
 		 * @throws \Exception    when options is invalid
 		 */

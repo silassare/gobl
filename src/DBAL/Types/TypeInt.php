@@ -12,6 +12,7 @@
 
 	use Gobl\DBAL\Types\Exceptions\TypesException;
 	use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
+	use Gobl\DBAL\Types\Interfaces\TypeInterface;
 
 	/**
 	 * Class TypeInt
@@ -186,7 +187,7 @@
 		 */
 		public function getCleanOptions()
 		{
-			$options = [
+			return [
 				'type'           => 'int',
 				'min'            => $this->min,
 				'max'            => $this->max,
@@ -195,8 +196,6 @@
 				'null'           => $this->isNullAble(),
 				'default'        => $this->getDefault()
 			];
-
-			return $options;
 		}
 
 		/**
@@ -204,6 +203,6 @@
 		 */
 		final public function getTypeConstant()
 		{
-			return Type::TYPE_INT;
+			return TypeInterface::TYPE_INT;
 		}
 	}

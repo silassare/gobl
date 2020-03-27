@@ -12,6 +12,7 @@
 
 	use Gobl\DBAL\Types\Exceptions\TypesException;
 	use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
+	use Gobl\DBAL\Types\Interfaces\TypeInterface;
 
 	/**
 	 * Class TypeBigint
@@ -119,7 +120,7 @@
 		 */
 		private static function isLt($a, $b, $or_equal = true)
 		{
-			if (function_exists("bccomp")) {
+			if (function_exists('bccomp')) {
 				// make sure to have bcmath
 				$a = sprintf('%F', $a);
 				$b = sprintf('%F', $b);
@@ -192,7 +193,7 @@
 		 */
 		public function getCleanOptions()
 		{
-			$options = [
+			return [
 				'type'           => 'bigint',
 				'min'            => $this->min,
 				'max'            => $this->max,
@@ -201,8 +202,6 @@
 				'null'           => $this->isNullAble(),
 				'default'        => $this->getDefault()
 			];
-
-			return $options;
 		}
 
 		/**
@@ -210,6 +209,6 @@
 		 */
 		final public function getTypeConstant()
 		{
-			return Type::TYPE_BIGINT;
+			return TypeInterface::TYPE_BIGINT;
 		}
 	}

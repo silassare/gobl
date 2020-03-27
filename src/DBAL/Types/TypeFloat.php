@@ -12,6 +12,7 @@
 
 	use Gobl\DBAL\Types\Exceptions\TypesException;
 	use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
+	use Gobl\DBAL\Types\Interfaces\TypeInterface;
 
 	/**
 	 * Class TypeFloat
@@ -21,8 +22,8 @@
 	class TypeFloat extends TypeBase
 	{
 		private $unsigned = false;
-		private $min = null;
-		private $max = null;
+		private $min      = null;
+		private $max      = null;
 
 		/**
 		 * The number of digits following the decimal point.
@@ -131,7 +132,7 @@
 		public function validate($value, $column_name, $table_name)
 		{
 			$debug = [
-				"value"       => $value
+				"value" => $value
 			];
 
 			if (is_null($value) AND $this->isNullAble())
@@ -162,12 +163,12 @@
 		 */
 		public static function getInstance(array $options)
 		{
-			$instance = new self(self::getOptionKey($options,'min', null),self::getOptionKey($options,'max', null),self::getOptionKey($options,'unsigned', false));
+			$instance = new self(self::getOptionKey($options, 'min', null), self::getOptionKey($options, 'max', null), self::getOptionKey($options, 'unsigned', false));
 
 			if (isset($options['mantissa']))
 				$instance->mantissa($options['mantissa']);
 
-			if (self::getOptionKey($options,'null', false))
+			if (self::getOptionKey($options, 'null', false))
 				$instance->nullAble();
 
 			if (array_key_exists('default', $options))
@@ -181,7 +182,7 @@
 		 */
 		public function getCleanOptions()
 		{
-			$options = [
+			return [
 				'type'     => 'float',
 				'min'      => $this->min,
 				'max'      => $this->max,
@@ -190,8 +191,6 @@
 				'null'     => $this->isNullAble(),
 				'default'  => $this->getDefault()
 			];
-
-			return $options;
 		}
 
 		/**
@@ -199,6 +198,6 @@
 		 */
 		final public function getTypeConstant()
 		{
-			return Type::TYPE_FLOAT;
+			return TypeInterface::TYPE_FLOAT;
 		}
 	}

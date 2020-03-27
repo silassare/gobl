@@ -11,13 +11,14 @@
 	namespace Gobl\DBAL\Types;
 
 	use Gobl\DBAL\Types\Exceptions\TypesException;
+	use Gobl\DBAL\Types\Interfaces\TypeInterface;
 
 	/**
 	 * Class TypeBase
 	 *
 	 * @package Gobl\DBAL\Types
 	 */
-	abstract class TypeBase implements Type
+	abstract class TypeBase implements TypeInterface
 	{
 		protected $null           = false;
 		protected $default        = null;
@@ -78,8 +79,10 @@
 		}
 
 		/**
-		 * @param     $min
-		 * @param     $max
+		 * Checks if min & max value are in a given range.
+		 *
+		 * @param mixed    $min
+		 * @param mixed    $max
 		 * @param int $range_min
 		 * @param int $range_max
 		 *
@@ -100,6 +103,15 @@
 				throw new TypesException(sprintf('min=%s and max=%s is not a valid condition.', $min, $max));
 		}
 
+		/**
+		 * Gets an options key value.
+		 *
+		 * @param array $option
+		 * @param string      $key
+		 * @param null  $default
+		 *
+		 * @return mixed|null
+		 */
 		final protected static function getOptionKey(array $option, $key, $default = null)
 		{
 			if (isset($option[$key])) {
@@ -109,6 +121,15 @@
 			return $default;
 		}
 
+		/**
+		 * Gets a sets of options keys values.
+		 *
+		 * @param array $option
+		 * @param array $keys
+		 * @param array $default
+		 *
+		 * @return array
+		 */
 		final protected static function getOptionKeys(array $option, array $keys, array $default = [])
 		{
 			foreach ($keys as $key) {
@@ -130,3 +151,4 @@
 			return ['instance_of' => static::class];
 		}
 	}
+

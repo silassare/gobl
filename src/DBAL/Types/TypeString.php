@@ -12,6 +12,7 @@
 
 	use Gobl\DBAL\Types\Exceptions\TypesException;
 	use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
+	use Gobl\DBAL\Types\Interfaces\TypeInterface;
 
 	/**
 	 * Class TypeString
@@ -63,7 +64,7 @@
 		/**
 		 * Enable truncating when string length greater than max.
 		 *
-		 * @return \Gobl\DBAL\Types\Type
+		 * @return $this
 		 */
 		public function truncate()
 		{
@@ -168,7 +169,7 @@
 		 */
 		public function getCleanOptions()
 		{
-			$options = [
+			return [
 				'type'     => 'string',
 				'min'      => $this->min,
 				'max'      => $this->max,
@@ -177,8 +178,6 @@
 				'null'     => $this->isNullAble(),
 				'default'  => $this->getDefault()
 			];
-
-			return $options;
 		}
 
 		/**
@@ -186,6 +185,6 @@
 		 */
 		final public function getTypeConstant()
 		{
-			return Type::TYPE_STRING;
+			return TypeInterface::TYPE_STRING;
 		}
 	}

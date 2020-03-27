@@ -11,12 +11,13 @@
 	namespace Gobl\DBAL;
 
 	use Gobl\DBAL\Exceptions\DBALException;
-	use Gobl\DBAL\Types\Type;
+	use Gobl\DBAL\Types\Interfaces\TypeInterface;
 	use Gobl\DBAL\Types\TypeBigint;
 	use Gobl\DBAL\Types\TypeBool;
 	use Gobl\DBAL\Types\TypeFloat;
 	use Gobl\DBAL\Types\TypeInt;
 	use Gobl\DBAL\Types\TypeString;
+	use InvalidArgumentException;
 
 	/**
 	 * Class Column
@@ -45,7 +46,7 @@
 		/**
 		 * The column type instance.
 		 *
-		 * @var \Gobl\DBAL\Types\Type;
+		 * @var TypeInterface;
 		 */
 		protected $type;
 
@@ -81,12 +82,12 @@
 		public function __construct($name, $prefix, array $options)
 		{
 			if (!preg_match(Column::NAME_REG, $name)) {
-				throw new \InvalidArgumentException(sprintf('Invalid column name "%s".', $name));
+				throw new InvalidArgumentException(sprintf('Invalid column name "%s".', $name));
 			}
 
 			if (!empty($prefix)) {
 				if (!preg_match(Column::PREFIX_REG, $prefix)) {
-					throw new \InvalidArgumentException(sprintf('Invalid column prefix name "%s" for column "%s".', $prefix, $name));
+					throw new InvalidArgumentException(sprintf('Invalid column prefix name "%s" for column "%s".', $prefix, $name));
 				}
 			} else {
 				$prefix = "";
@@ -101,8 +102,8 @@
 		/**
 		 * Returns type from column options.
 		 *
-		 * @return \Gobl\DBAL\Types\Type
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
+		 * @return TypeInterface
+		 * @throws DBALException
 		 */
 		private function optionsToType()
 		{
@@ -112,19 +113,19 @@
 
 			$type = $this->options['type'];
 
-			if ($type instanceof Type) {
+			if ($type instanceof TypeInterface) {
 				return $type;
 			}
 
 			if (!is_string($type)) {
-				throw new \InvalidArgumentException('Invalid column type defined for "%s".', $this->name);
+				throw new InvalidArgumentException('Invalid column type defined for "%s".', $this->name);
 			}
 			if (!isset(self::$columns_types[$type])) {
 				throw new DBALException(sprintf('Unsupported column type "%s" defined for "%s".', $type, $this->name));
 			}
 
 			$class = self::$columns_types[$type];
-			/** @var Type $t */
+			/** @var TypeInterface $t */
 			$t = call_user_func([$class, 'getInstance'], $this->options);
 
 			return $t;
@@ -133,7 +134,7 @@
 		/**
 		 * Gets type object.
 		 *
-		 * @return \Gobl\DBAL\Types\Type
+		 * @return TypeInterface
 		 */
 		public function getTypeObject()
 		{
