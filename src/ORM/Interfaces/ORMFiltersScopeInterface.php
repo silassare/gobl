@@ -27,6 +27,7 @@ interface ORMFiltersScopeInterface
 	 *
 	 * @param string $column
 	 * @param int    $operator
+	 * @param mixed  $value
 	 *
 	 * @return bool
 	 */

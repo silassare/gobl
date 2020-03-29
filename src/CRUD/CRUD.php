@@ -65,32 +65,6 @@ class CRUD
 	private $debug = [];
 
 	/**
-	 * Sets the CRUD handler provider.
-	 */
-	public static function setHandlerProvider(callable $provider)
-	{
-		if (!\is_callable($provider)) {
-			throw new InvalidArgumentException('CRUD handler provider should be a valid callable.');
-		}
-
-		if (isset(self::$handler_provider)) {
-			throw new RuntimeException('CRUD handler provider cannot be overwritten.');
-		}
-
-		self::$handler_provider = $provider;
-	}
-
-	/**
-	 * Gets the CRUD handler provider.
-	 *
-	 * @return null|callable
-	 */
-	public static function getHandlerProvider()
-	{
-		return self::$handler_provider;
-	}
-
-	/**
 	 * CRUD constructor.
 	 *
 	 * @param \Gobl\DBAL\Table                                        $table   the target table
@@ -346,5 +320,31 @@ class CRUD
 				$form = $action->getForm();
 			}
 		}
+	}
+
+	/**
+	 * Sets the CRUD handler provider.
+	 */
+	public static function setHandlerProvider(callable $provider)
+	{
+		if (!\is_callable($provider)) {
+			throw new InvalidArgumentException('CRUD handler provider should be a valid callable.');
+		}
+
+		if (isset(self::$handler_provider)) {
+			throw new RuntimeException('CRUD handler provider cannot be overwritten.');
+		}
+
+		self::$handler_provider = $provider;
+	}
+
+	/**
+	 * Gets the CRUD handler provider.
+	 *
+	 * @return null|callable
+	 */
+	public static function getHandlerProvider()
+	{
+		return self::$handler_provider;
 	}
 }

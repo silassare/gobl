@@ -70,26 +70,6 @@ class QueryBuilder
 	private $bound_values_types = [];
 
 	/**
-	 * Generate unique table alias.
-	 *
-	 * @return string
-	 */
-	public static function genUniqueTableAlias()
-	{
-		return '_' . self::genIdentifier() . '_';
-	}
-
-	/**
-	 * Generate unique parameter key.
-	 *
-	 * @return string
-	 */
-	public static function genUniqueParamKey()
-	{
-		return '_val_' . self::genIdentifier();
-	}
-
-	/**
 	 * QueryBuilder constructor.
 	 *
 	 * @param \Gobl\DBAL\Db $db
@@ -105,23 +85,6 @@ class QueryBuilder
 	public function __destruct()
 	{
 		$this->db = null;
-	}
-
-	/**
-	 * Disable clone.
-	 */
-	private function __clone()
-	{
-	}
-
-	/**
-	 * Help var_dump().
-	 *
-	 * @return array
-	 */
-	public function __debugInfo()
-	{
-		return ['instance_of' => static::class];
 	}
 
 	public function getBoundValues()
@@ -770,6 +733,7 @@ class QueryBuilder
 	 * Alias for \PDO#quote.
 	 *
 	 * @param null|int $type
+	 * @param mixed    $value
 	 *
 	 * @return string
 	 */
@@ -953,6 +917,26 @@ class QueryBuilder
 	}
 
 	/**
+	 * Generate unique table alias.
+	 *
+	 * @return string
+	 */
+	public static function genUniqueTableAlias()
+	{
+		return '_' . self::genIdentifier() . '_';
+	}
+
+	/**
+	 * Generate unique parameter key.
+	 *
+	 * @return string
+	 */
+	public static function genUniqueParamKey()
+	{
+		return '_val_' . self::genIdentifier();
+	}
+
+	/**
 	 * Generate unique char sequence.
 	 *
 	 * infinite possibilities
@@ -977,5 +961,22 @@ class QueryBuilder
 		} while ($n);
 
 		return $a;
+	}
+
+	/**
+	 * Disable clone.
+	 */
+	private function __clone()
+	{
+	}
+
+	/**
+	 * Help var_dump().
+	 *
+	 * @return array
+	 */
+	public function __debugInfo()
+	{
+		return ['instance_of' => static::class];
 	}
 }

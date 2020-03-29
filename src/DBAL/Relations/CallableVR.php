@@ -48,7 +48,8 @@ class CallableVR extends VirtualRelation
 	}
 
 	/**
-	 * @param int $total_records
+	 * @param int   $total_records
+	 * @param mixed $target
 	 */
 	public function run($target, ORMRequestBase $request, &$total_records = null)
 	{

@@ -34,32 +34,6 @@ class TypeFloat extends TypeBase
 	private $mantissa = 53;
 
 	/**
-	 * @inheritdoc
-	 */
-	public static function getInstance(array $options)
-	{
-		$instance = new self(
-			self::getOptionKey($options, 'min', null),
-			self::getOptionKey($options, 'max', null),
-			self::getOptionKey($options, 'unsigned', false)
-		);
-
-		if (isset($options['mantissa'])) {
-			$instance->mantissa($options['mantissa']);
-		}
-
-		if (self::getOptionKey($options, 'null', false)) {
-			$instance->nullAble();
-		}
-
-		if (\array_key_exists('default', $options)) {
-			$instance->setDefault($options['default']);
-		}
-
-		return $instance;
-	}
-
-	/**
 	 * TypeFloat constructor.
 	 *
 	 * @param null|int $min      the minimum number
@@ -233,5 +207,31 @@ class TypeFloat extends TypeBase
 	final public function getTypeConstant()
 	{
 		return TypeInterface::TYPE_FLOAT;
+	}
+
+	/**
+	 * @inheritdoc
+	 */
+	public static function getInstance(array $options)
+	{
+		$instance = new self(
+			self::getOptionKey($options, 'min', null),
+			self::getOptionKey($options, 'max', null),
+			self::getOptionKey($options, 'unsigned', false)
+		);
+
+		if (isset($options['mantissa'])) {
+			$instance->mantissa($options['mantissa']);
+		}
+
+		if (self::getOptionKey($options, 'null', false)) {
+			$instance->nullAble();
+		}
+
+		if (\array_key_exists('default', $options)) {
+			$instance->setDefault($options['default']);
+		}
+
+		return $instance;
 	}
 }

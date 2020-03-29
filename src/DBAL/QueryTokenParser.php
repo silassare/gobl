@@ -34,26 +34,6 @@ class QueryTokenParser
 	private $tokens           = [];
 
 	/**
-	 * Returns PDO type for a given value
-	 *
-	 * @return int
-	 */
-	public static function paramType($value)
-	{
-		$param_type = PDO::PARAM_STR;
-
-		if (\is_int($value)) {
-			$param_type = PDO::PARAM_INT;
-		} elseif (\is_bool($value)) {
-			$param_type = PDO::PARAM_BOOL;
-		} elseif (null === $value) {
-			$param_type = PDO::PARAM_NULL;
-		}
-
-		return $param_type;
-	}
-
-	/**
 	 * QueryTokenParser constructor.
 	 *
 	 * @param string $query
@@ -172,5 +152,27 @@ class QueryTokenParser
 		}
 
 		return $replacement;
+	}
+
+	/**
+	 * Returns PDO type for a given value
+	 *
+	 * @param mixed $value
+	 *
+	 * @return int
+	 */
+	public static function paramType($value)
+	{
+		$param_type = PDO::PARAM_STR;
+
+		if (\is_int($value)) {
+			$param_type = PDO::PARAM_INT;
+		} elseif (\is_bool($value)) {
+			$param_type = PDO::PARAM_BOOL;
+		} elseif (null === $value) {
+			$param_type = PDO::PARAM_NULL;
+		}
+
+		return $param_type;
 	}
 }

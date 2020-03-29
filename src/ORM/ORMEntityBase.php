@@ -148,73 +148,6 @@ class ORMEntityBase extends ArrayCapable
 	}
 
 	/**
-	 * Magic setter for column value.
-	 *
-	 * @param string $name  the column full name or name
-	 * @param mixed  $value the column value
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
-	 */
-	public function __set($name, $value)
-	{
-		if ($this->oeb_table->hasColumn($name)) {
-			$full_name = $this->oeb_table->getColumn($name)
-										 ->getFullName();
-
-			// false when we are hydrated by PDO
-			if ($this->isNew() || \array_key_exists($full_name, $this->oeb_row_saved)) {
-				if (!\array_key_exists($full_name, $this->oeb_row) || $this->oeb_row[$full_name] !== $value) {
-					$this->oeb_row[$full_name] = $this->doValidation($full_name, $value);
-					$this->oeb_is_saved        = false;
-				}
-			} else { // we are hydrated by PDO
-				$this->oeb_row[$full_name]       = $value;
-				$this->oeb_row_saved[$full_name] = $value;
-			}
-		} elseif ($this->oeb_strict) {
-			$trace = \debug_backtrace(\DEBUG_BACKTRACE_PROVIDE_OBJECT, 2);
-			$error = \sprintf(
-				'Could not set value, column "%s" is not defined in table "%s". Found in "%s" on line %s.',
-				$name,
-				$this->oeb_table->getName(),
-				$trace[0]['file'],
-				$trace[0]['line']
-			);
-
-			\trigger_error($error, \E_USER_ERROR);
-		}
-	}
-
-	/**
-	 * Magic getter for column value.
-	 *
-	 * @param string $name the column full name or name
-	 *
-	 * @return null|mixed
-	 */
-	public function __get($name)
-	{
-		if ($this->oeb_table->hasColumn($name)) {
-			$full_name = $this->oeb_table->getColumn($name)
-										 ->getFullName();
-
-			return isset($this->oeb_row[$full_name]) ? $this->oeb_row[$full_name] : null;
-		}
-
-		return null;
-	}
-
-	/**
-	 * Help var_dump().
-	 *
-	 * @return array
-	 */
-	public function __debugInfo()
-	{
-		return ['instance_of' => static::class, 'data' => static::asArray()];
-	}
-
-	/**
 	 * To check if this entity is new
 	 *
 	 * @return bool
@@ -376,5 +309,72 @@ class ORMEntityBase extends ArrayCapable
 		}
 
 		return $value;
+	}
+
+	/**
+	 * Magic setter for column value.
+	 *
+	 * @param string $name  the column full name or name
+	 * @param mixed  $value the column value
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
+	 */
+	public function __set($name, $value)
+	{
+		if ($this->oeb_table->hasColumn($name)) {
+			$full_name = $this->oeb_table->getColumn($name)
+										 ->getFullName();
+
+			// false when we are hydrated by PDO
+			if ($this->isNew() || \array_key_exists($full_name, $this->oeb_row_saved)) {
+				if (!\array_key_exists($full_name, $this->oeb_row) || $this->oeb_row[$full_name] !== $value) {
+					$this->oeb_row[$full_name] = $this->doValidation($full_name, $value);
+					$this->oeb_is_saved        = false;
+				}
+			} else { // we are hydrated by PDO
+				$this->oeb_row[$full_name]       = $value;
+				$this->oeb_row_saved[$full_name] = $value;
+			}
+		} elseif ($this->oeb_strict) {
+			$trace = \debug_backtrace(\DEBUG_BACKTRACE_PROVIDE_OBJECT, 2);
+			$error = \sprintf(
+				'Could not set value, column "%s" is not defined in table "%s". Found in "%s" on line %s.',
+				$name,
+				$this->oeb_table->getName(),
+				$trace[0]['file'],
+				$trace[0]['line']
+			);
+
+			\trigger_error($error, \E_USER_ERROR);
+		}
+	}
+
+	/**
+	 * Magic getter for column value.
+	 *
+	 * @param string $name the column full name or name
+	 *
+	 * @return null|mixed
+	 */
+	public function __get($name)
+	{
+		if ($this->oeb_table->hasColumn($name)) {
+			$full_name = $this->oeb_table->getColumn($name)
+										 ->getFullName();
+
+			return isset($this->oeb_row[$full_name]) ? $this->oeb_row[$full_name] : null;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Help var_dump().
+	 *
+	 * @return array
+	 */
+	public function __debugInfo()
+	{
+		return ['instance_of' => static::class, 'data' => static::asArray()];
 	}
 }

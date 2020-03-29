@@ -93,26 +93,6 @@ class Rule
 	}
 
 	/**
-	 * Simply returns rule expression.
-	 *
-	 * @return string
-	 */
-	public function __toString()
-	{
-		return $this->expr;
-	}
-
-	/**
-	 * Help var_dump().
-	 *
-	 * @return array
-	 */
-	public function __debugInfo()
-	{
-		return ['instance_of' => static::class];
-	}
-
-	/**
 	 * Adds AND condition.
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
@@ -511,6 +491,8 @@ class Rule
 	/**
 	 * Cleans operand.
 	 *
+	 * @param mixed $operand
+	 *
 	 * @return string
 	 */
 	private function cleanOperand($operand)
@@ -531,5 +513,25 @@ class Rule
 		}
 
 		return $operand;
+	}
+
+	/**
+	 * Simply returns rule expression.
+	 *
+	 * @return string
+	 */
+	public function __toString()
+	{
+		return $this->expr;
+	}
+
+	/**
+	 * Help var_dump().
+	 *
+	 * @return array
+	 */
+	public function __debugInfo()
+	{
+		return ['instance_of' => static::class];
 	}
 }

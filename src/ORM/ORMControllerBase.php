@@ -50,73 +50,6 @@ class ORMControllerBase
 	protected $table_results_class;
 
 	/**
-	 * @param \Gobl\ORM\ORMResultsBase $results
-	 * @param int                      $found
-	 * @param null|int                 $max
-	 * @param int                      $offset
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
-	 * @return int
-	 */
-	public static function totalResultsCount(ORMResultsBase $results, $found = 0, $max = null, $offset = 0)
-	{
-		$total = 0;
-
-		if ($total !== false) {
-			if (isset($max)) {
-				if ($found < $max) {
-					$total = $offset + $found;
-				} else {
-					$total = $results->totalCount();
-				}
-			} elseif ($offset === 0) {
-				$total = $found;
-			} else {
-				$total = $results->totalCount();
-			}
-		}
-
-		return $total;
-	}
-
-	/**
-	 * Asserts that the filters are not empty.
-	 *
-	 * @param array $filters the row filters
-	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-	 */
-	public static function assertFiltersNotEmpty(array $filters)
-	{
-		if (empty($filters)) {
-			throw new ORMQueryException('GOBL_ORM_REQUEST_FILTERS_EMPTY');
-		}
-	}
-
-	/**
-	 * Asserts that there is at least one column to update and
-	 * the column(s) to update really exists the table.
-	 *
-	 * @param Table $table   The table
-	 * @param array $columns The columns to update
-	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-	 */
-	public static function assertUpdateColumns(Table $table, array $columns = [])
-	{
-		if (empty($columns)) {
-			throw new ORMQueryException('GOBL_ORM_REQUEST_NO_FIELDS_TO_UPDATE');
-		}
-
-		foreach ($columns as $column) {
-			if (!$table->hasColumn($column)) {
-				throw new ORMQueryException('GOBL_ORM_REQUEST_UNKNOWN_FIELDS', [$column]);
-			}
-		}
-	}
-
-	/**
 	 * ORMController constructor.
 	 *
 	 * @param \Gobl\DBAL\Db $db                  the database instance
@@ -158,16 +91,6 @@ class ORMControllerBase
 	{
 		$this->db   = null;
 		$this->crud = null;
-	}
-
-	/**
-	 * Help var_dump().
-	 *
-	 * @return array
-	 */
-	public function __debugInfo()
-	{
-		return ['instance_of' => static::class];
 	}
 
 	/**
@@ -610,5 +533,82 @@ class ORMControllerBase
 		}
 
 		return $query->find($max, $offset, $order_by);
+	}
+
+	/**
+	 * @param \Gobl\ORM\ORMResultsBase $results
+	 * @param int                      $found
+	 * @param null|int                 $max
+	 * @param int                      $offset
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 *
+	 * @return int
+	 */
+	public static function totalResultsCount(ORMResultsBase $results, $found = 0, $max = null, $offset = 0)
+	{
+		$total = 0;
+
+		if ($total !== false) {
+			if (isset($max)) {
+				if ($found < $max) {
+					$total = $offset + $found;
+				} else {
+					$total = $results->totalCount();
+				}
+			} elseif ($offset === 0) {
+				$total = $found;
+			} else {
+				$total = $results->totalCount();
+			}
+		}
+
+		return $total;
+	}
+
+	/**
+	 * Asserts that the filters are not empty.
+	 *
+	 * @param array $filters the row filters
+	 *
+	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 */
+	public static function assertFiltersNotEmpty(array $filters)
+	{
+		if (empty($filters)) {
+			throw new ORMQueryException('GOBL_ORM_REQUEST_FILTERS_EMPTY');
+		}
+	}
+
+	/**
+	 * Asserts that there is at least one column to update and
+	 * the column(s) to update really exists the table.
+	 *
+	 * @param Table $table   The table
+	 * @param array $columns The columns to update
+	 *
+	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 */
+	public static function assertUpdateColumns(Table $table, array $columns = [])
+	{
+		if (empty($columns)) {
+			throw new ORMQueryException('GOBL_ORM_REQUEST_NO_FIELDS_TO_UPDATE');
+		}
+
+		foreach ($columns as $column) {
+			if (!$table->hasColumn($column)) {
+				throw new ORMQueryException('GOBL_ORM_REQUEST_UNKNOWN_FIELDS', [$column]);
+			}
+		}
+	}
+
+	/**
+	 * Help var_dump().
+	 *
+	 * @return array
+	 */
+	public function __debugInfo()
+	{
+		return ['instance_of' => static::class];
 	}
 }

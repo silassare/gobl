@@ -65,16 +65,6 @@ class ORMTableQueryBase implements ORMFiltersScopeInterface
 	}
 
 	/**
-	 * Help var_dump().
-	 *
-	 * @return array
-	 */
-	public function __debugInfo()
-	{
-		return ['instance_of' => static::class];
-	}
-
-	/**
 	 * Deletes rows in the table.
 	 *
 	 * When filters exists only rows that
@@ -288,5 +278,15 @@ class ORMTableQueryBase implements ORMFiltersScopeInterface
 		$this->filters = new ORMFilters($this->db, $this);
 
 		return $this;
+	}
+
+	/**
+	 * Help var_dump().
+	 *
+	 * @return array
+	 */
+	public function __debugInfo()
+	{
+		return ['instance_of' => static::class];
 	}
 }

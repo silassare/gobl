@@ -55,6 +55,7 @@ class CRUDFilterableAction extends CRUDBase
 
 	/**
 	 * @param string $column
+	 * @param mixed  $filter
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 *

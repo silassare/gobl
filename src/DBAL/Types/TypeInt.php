@@ -35,32 +35,6 @@ class TypeInt extends TypeBase
 	private $max;
 
 	/**
-	 * @inheritdoc
-	 */
-	public static function getInstance(array $options)
-	{
-		$instance = new self(
-			self::getOptionKey($options, 'min', null),
-			self::getOptionKey($options, 'max', null),
-			self::getOptionKey($options, 'unsigned', false)
-		);
-
-		if (self::getOptionKey($options, 'null', false)) {
-			$instance->nullAble();
-		}
-
-		if (self::getOptionKey($options, 'auto_increment', false)) {
-			$instance->autoIncrement();
-		}
-
-		if (\array_key_exists('default', $options)) {
-			$instance->setDefault($options['default']);
-		}
-
-		return $instance;
-	}
-
-	/**
 	 * TypeInt constructor.
 	 *
 	 * @param null|int $min      the minimum number
@@ -244,5 +218,31 @@ class TypeInt extends TypeBase
 	final public function getTypeConstant()
 	{
 		return TypeInterface::TYPE_INT;
+	}
+
+	/**
+	 * @inheritdoc
+	 */
+	public static function getInstance(array $options)
+	{
+		$instance = new self(
+			self::getOptionKey($options, 'min', null),
+			self::getOptionKey($options, 'max', null),
+			self::getOptionKey($options, 'unsigned', false)
+		);
+
+		if (self::getOptionKey($options, 'null', false)) {
+			$instance->nullAble();
+		}
+
+		if (self::getOptionKey($options, 'auto_increment', false)) {
+			$instance->autoIncrement();
+		}
+
+		if (\array_key_exists('default', $options)) {
+			$instance->setDefault($options['default']);
+		}
+
+		return $instance;
 	}
 }

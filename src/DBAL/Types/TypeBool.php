@@ -54,24 +54,6 @@ class TypeBool extends TypeBase
 	private $strict        = true;
 
 	/**
-	 * @inheritdoc
-	 */
-	public static function getInstance(array $options)
-	{
-		$instance = new self(self::getOptionKey($options, 'strict', true));
-
-		if (self::getOptionKey($options, 'null', false)) {
-			$instance->nullAble();
-		}
-
-		if (\array_key_exists('default', $options)) {
-			$instance->setDefault($options['default']);
-		}
-
-		return $instance;
-	}
-
-	/**
 	 * TypeBool Constructor.
 	 *
 	 * @param bool $strict whether to limit bool value to (true,false,1,0)
@@ -142,5 +124,23 @@ class TypeBool extends TypeBase
 	final public function getTypeConstant()
 	{
 		return TypeInterface::TYPE_BOOL;
+	}
+
+	/**
+	 * @inheritdoc
+	 */
+	public static function getInstance(array $options)
+	{
+		$instance = new self(self::getOptionKey($options, 'strict', true));
+
+		if (self::getOptionKey($options, 'null', false)) {
+			$instance->nullAble();
+		}
+
+		if (\array_key_exists('default', $options)) {
+			$instance->setDefault($options['default']);
+		}
+
+		return $instance;
 	}
 }

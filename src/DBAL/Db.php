@@ -61,88 +61,11 @@ abstract class Db implements RDBMSInterface
 	private $bind_unique_id = 0;
 
 	/**
-	 * Checks if a given string is a column reference.
-	 *
-	 * @param string $str
-	 *
-	 * @return bool
-	 */
-	public static function isColumnReference($str)
-	{
-		return \is_array(static::parseColumnReference($str));
-	}
-
-	/**
-	 * Parse a column reference.
-	 *
-	 * @param string $str The column reference
-	 *
-	 * @return null|array
-	 */
-	public static function parseColumnReference($str)
-	{
-		if (\is_string($str)) {
-			$reg = '~^(ref|cp)[:]([a-zA-Z0-9_]+)[.]([a-zA-Z0-9_]+)$~';
-
-			if (\preg_match($reg, $str, $parts)) {
-				$head  = $parts[1];
-				$clone = ($head === 'cp' ? true : false);
-
-				return [
-					'clone'  => $clone,
-					'table'  => $parts[2],
-					'column' => $parts[3],
-				];
-			}
-		}
-
-		return null;
-	}
-
-	/**
-	 * Create rdbms instance.
-	 *
-	 * @param string $type
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
-	 * @return \Gobl\DBAL\Db
-	 */
-	public static function instantiate($type, array $config)
-	{
-		if (!isset(self::$rdbms_map[$type])) {
-			throw new DBALException(\sprintf('Invalid rdbms: %s.', $type));
-		}
-
-		/*@var \Gobl\DBAL\Db $rdbms_class */
-		$rdbms_class = self::$rdbms_map[$type];
-
-		return new $rdbms_class($config);
-	}
-
-	/**
 	 * Db destructor.
 	 */
 	public function __destruct()
 	{
 		$this->db_connection = null;
-	}
-
-	/**
-	 * Disable clone.
-	 */
-	private function __clone()
-	{
-	}
-
-	/**
-	 * Help var_dump().
-	 *
-	 * @return array
-	 */
-	public function __debugInfo()
-	{
-		return ['instance_of' => static::class];
 	}
 
 	/**
@@ -634,5 +557,82 @@ abstract class Db implements RDBMSInterface
 	private function getBindUniqueId()
 	{
 		return $this->bind_unique_id++;
+	}
+
+	/**
+	 * Checks if a given string is a column reference.
+	 *
+	 * @param string $str
+	 *
+	 * @return bool
+	 */
+	public static function isColumnReference($str)
+	{
+		return \is_array(static::parseColumnReference($str));
+	}
+
+	/**
+	 * Parse a column reference.
+	 *
+	 * @param string $str The column reference
+	 *
+	 * @return null|array
+	 */
+	public static function parseColumnReference($str)
+	{
+		if (\is_string($str)) {
+			$reg = '~^(ref|cp)[:]([a-zA-Z0-9_]+)[.]([a-zA-Z0-9_]+)$~';
+
+			if (\preg_match($reg, $str, $parts)) {
+				$head  = $parts[1];
+				$clone = ($head === 'cp' ? true : false);
+
+				return [
+					'clone'  => $clone,
+					'table'  => $parts[2],
+					'column' => $parts[3],
+				];
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Create rdbms instance.
+	 *
+	 * @param string $type
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 *
+	 * @return \Gobl\DBAL\Db
+	 */
+	public static function instantiate($type, array $config)
+	{
+		if (!isset(self::$rdbms_map[$type])) {
+			throw new DBALException(\sprintf('Invalid rdbms: %s.', $type));
+		}
+
+		/*@var \Gobl\DBAL\Db $rdbms_class */
+		$rdbms_class = self::$rdbms_map[$type];
+
+		return new $rdbms_class($config);
+	}
+
+	/**
+	 * Disable clone.
+	 */
+	private function __clone()
+	{
+	}
+
+	/**
+	 * Help var_dump().
+	 *
+	 * @return array
+	 */
+	public function __debugInfo()
+	{
+		return ['instance_of' => static::class];
 	}
 }

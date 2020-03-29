@@ -27,17 +27,6 @@ interface TypeInterface
 	const TYPE_STRING = 5;
 
 	/**
-	 * Gets type instance based on given options.
-	 *
-	 * @param array $options the options
-	 *
-	 * @throws \Exception when options is invalid
-	 *
-	 * @return $this
-	 */
-	public static function getInstance(array $options);
-
-	/**
 	 * Gets type constant Type::TYPE_*.
 	 *
 	 * @return int
@@ -109,4 +98,15 @@ interface TypeInterface
 	 * @return array
 	 */
 	public function getCleanOptions();
+
+	/**
+	 * Gets type instance based on given options.
+	 *
+	 * @param array $options the options
+	 *
+	 * @throws \Exception when options is invalid
+	 *
+	 * @return $this
+	 */
+	public static function getInstance(array $options);
 }

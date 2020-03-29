@@ -29,36 +29,6 @@ class TypeString extends TypeBase
 	private $pattern;
 
 	/**
-	 * @inheritdoc
-	 */
-	public static function getInstance(array $options)
-	{
-		$instance = new self();
-		$min      = self::getOptionKey($options, 'min', 0);
-		$max      = self::getOptionKey($options, 'max', \PHP_INT_MAX);
-
-		$instance->length($min, $max);
-
-		if (isset($options['truncate']) && $options['truncate']) {
-			$instance->truncate();
-		}
-
-		if (isset($options['pattern'])) {
-			$instance->pattern($options['pattern']);
-		}
-
-		if (self::getOptionKey($options, 'null', false)) {
-			$instance->nullAble();
-		}
-
-		if (\array_key_exists('default', $options)) {
-			$instance->setDefault($options['default']);
-		}
-
-		return $instance;
-	}
-
-	/**
 	 * TypeString constructor.
 	 *
 	 * @param int         $min     the minimum string length
@@ -202,5 +172,35 @@ class TypeString extends TypeBase
 	final public function getTypeConstant()
 	{
 		return TypeInterface::TYPE_STRING;
+	}
+
+	/**
+	 * @inheritdoc
+	 */
+	public static function getInstance(array $options)
+	{
+		$instance = new self();
+		$min      = self::getOptionKey($options, 'min', 0);
+		$max      = self::getOptionKey($options, 'max', \PHP_INT_MAX);
+
+		$instance->length($min, $max);
+
+		if (isset($options['truncate']) && $options['truncate']) {
+			$instance->truncate();
+		}
+
+		if (isset($options['pattern'])) {
+			$instance->pattern($options['pattern']);
+		}
+
+		if (self::getOptionKey($options, 'null', false)) {
+			$instance->nullAble();
+		}
+
+		if (\array_key_exists('default', $options)) {
+			$instance->setDefault($options['default']);
+		}
+
+		return $instance;
 	}
 }

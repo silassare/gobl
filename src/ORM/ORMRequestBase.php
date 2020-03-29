@@ -142,6 +142,7 @@ class ORMRequestBase
 	 * Adds a filter.
 	 *
 	 * @param string $column_name
+	 * @param mixed  $filter
 	 *
 	 * @return $this
 	 */
@@ -201,6 +202,7 @@ class ORMRequestBase
 	 * Sets the value of the form data field with the given name.
 	 *
 	 * @param string $name
+	 * @param mixed  $value
 	 *
 	 * @return $this
 	 */
@@ -416,6 +418,8 @@ class ORMRequestBase
 
 	/**
 	 * Checks for valid collection name.
+	 *
+	 * @param mixed $name
 	 *
 	 * @return bool
 	 */

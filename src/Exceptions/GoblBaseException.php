@@ -42,25 +42,6 @@ abstract class GoblBaseException extends Exception
 	}
 
 	/**
-	 * Gobl exception to string formatter
-	 *
-	 * @return string
-	 */
-	public function __toString()
-	{
-		$e_data = \json_encode($this->getData(true));
-
-		return <<<STRING
-\tFile    : {$this->getFile()}
-\tLine    : {$this->getLine()}
-\tCode    : {$this->getCode()}
-\tMessage : {$this->getMessage()}
-\tData    : $e_data
-\tTrace   : {$this->getTraceAsString()}
-STRING;
-	}
-
-	/**
 	 * Gets data.
 	 *
 	 * We shouldn't expose all debug data to client, may contains sensitive data
@@ -94,5 +75,24 @@ STRING;
 	public function setData(array $data)
 	{
 		$this->data = $data;
+	}
+
+	/**
+	 * Gobl exception to string formatter
+	 *
+	 * @return string
+	 */
+	public function __toString()
+	{
+		$e_data = \json_encode($this->getData(true));
+
+		return <<<STRING
+\tFile    : {$this->getFile()}
+\tLine    : {$this->getLine()}
+\tCode    : {$this->getCode()}
+\tMessage : {$this->getMessage()}
+\tData    : $e_data
+\tTrace   : {$this->getTraceAsString()}
+STRING;
 	}
 }

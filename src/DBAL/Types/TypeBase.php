@@ -26,16 +26,6 @@ abstract class TypeBase implements TypeInterface
 	protected $auto_increment = false;
 
 	/**
-	 * Help var_dump().
-	 *
-	 * @return array
-	 */
-	public function __debugInfo()
-	{
-		return ['instance_of' => static::class];
-	}
-
-	/**
 	 * @inheritdoc
 	 */
 	public function isNullAble()
@@ -92,8 +82,10 @@ abstract class TypeBase implements TypeInterface
 	/**
 	 * Checks if min & max value are in a given range.
 	 *
-	 * @param int $range_min
-	 * @param int $range_max
+	 * @param int   $range_min
+	 * @param int   $range_max
+	 * @param mixed $min
+	 * @param mixed $max
 	 *
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
@@ -151,5 +143,15 @@ abstract class TypeBase implements TypeInterface
 		}
 
 		return $default;
+	}
+
+	/**
+	 * Help var_dump().
+	 *
+	 * @return array
+	 */
+	public function __debugInfo()
+	{
+		return ['instance_of' => static::class];
 	}
 }

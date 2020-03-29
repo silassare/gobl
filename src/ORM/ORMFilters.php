@@ -73,16 +73,6 @@ class ORMFilters
 	}
 
 	/**
-	 * Help var_dump().
-	 *
-	 * @return array
-	 */
-	public function __debugInfo()
-	{
-		return ['instance_of' => static::class];
-	}
-
-	/**
 	 * Add a new filter.
 	 *
 	 * @param string $column   the column full name
@@ -171,10 +161,11 @@ class ORMFilters
 	 *
 	 * @param array $filters
 	 *
-	 * @return $this
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 *
+	 * @return $this
 	 */
 	public function addFiltersArray(array $filters)
 	{
@@ -350,5 +341,15 @@ class ORMFilters
 		$rev = \array_flip(self::$OPERATORS_NAME_MAP);
 
 		return isset($rev[$operator]) ? $rev[$operator] : null;
+	}
+
+	/**
+	 * Help var_dump().
+	 *
+	 * @return array
+	 */
+	public function __debugInfo()
+	{
+		return ['instance_of' => static::class];
 	}
 }

@@ -31,6 +31,8 @@ interface CRUDHandlerInterface
 
 	/**
 	 * Called when an entity is added
+	 *
+	 * @param mixed $entity
 	 */
 	public function onAfterCreateEntity($entity);
 
@@ -43,6 +45,8 @@ interface CRUDHandlerInterface
 
 	/**
 	 * Called when we read an entity
+	 *
+	 * @param mixed $entity
 	 */
 	public function onAfterReadEntity($entity);
 
@@ -58,11 +62,15 @@ interface CRUDHandlerInterface
 	 *
 	 * PS: You can run your own logic, verify ownership,
 	 * or other right on the entity
+	 *
+	 * @param mixed $entity
 	 */
 	public function onBeforeUpdateEntity($entity);
 
 	/**
 	 * Called after an entity is updated
+	 *
+	 * @param mixed $entity
 	 */
 	public function onAfterUpdateEntity($entity);
 
@@ -78,11 +86,15 @@ interface CRUDHandlerInterface
 	 *
 	 * PS: You can run your own logic, verify ownership,
 	 * or other right on the entity
+	 *
+	 * @param mixed $entity
 	 */
 	public function onBeforeDeleteEntity($entity);
 
 	/**
 	 * Called after an entity is deleted
+	 *
+	 * @param mixed $entity
 	 */
 	public function onAfterDeleteEntity($entity);
 

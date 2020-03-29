@@ -586,6 +586,8 @@ abstract class SQLGeneratorBase implements GeneratorInterface
 	/**
 	 * Wrap string, int... in single quote.
 	 *
+	 * @param mixed $value
+	 *
 	 * @return string
 	 */
 	protected static function singleQuote($value)

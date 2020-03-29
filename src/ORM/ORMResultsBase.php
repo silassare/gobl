@@ -78,16 +78,6 @@ class ORMResultsBase implements \Countable, \Iterator
 	}
 
 	/**
-	 * Help var_dump().
-	 *
-	 * @return array
-	 */
-	public function __debugInfo()
-	{
-		return ['instance_of' => static::class];
-	}
-
-	/**
 	 * Fetches  the next row.
 	 *
 	 * @param int $fetch_style
@@ -295,5 +285,15 @@ class ORMResultsBase implements \Countable, \Iterator
 		}
 
 		return $this->fetch();
+	}
+
+	/**
+	 * Help var_dump().
+	 *
+	 * @return array
+	 */
+	public function __debugInfo()
+	{
+		return ['instance_of' => static::class];
 	}
 }

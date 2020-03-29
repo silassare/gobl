@@ -71,41 +71,6 @@ class Column
 	protected $options;
 
 	/**
-	 * Adds custom column type.
-	 *
-	 * @param string $type_name  The custom type name
-	 * @param string $type_class The custom type's fully qualified class name
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 */
-	public static function addCustomType($type_name, $type_class)
-	{
-		if (isset(self::$columns_types[$type_name])) {
-			throw new DBALException(\sprintf(
-				'You cannot overwrite column type "%s" with "%s".',
-				$type_name,
-				$type_class
-			));
-		}
-
-		if (
-			!(\is_subclass_of($type_class, TypeString::class)
-			  || \is_subclass_of($type_class, TypeInt::class)
-			  || \is_subclass_of($type_class, TypeBigint::class)
-			  || \is_subclass_of($type_class, TypeFloat::class)
-			  || \is_subclass_of($type_class, TypeBool::class))
-		) {
-			throw new DBALException(\sprintf(
-				'Your custom column type "%s => %s" should extends one of the standard column types.',
-				$type_name,
-				$type_class
-			));
-		}
-
-		self::$columns_types[$type_name] = $type_class;
-	}
-
-	/**
 	 * Column constructor.
 	 *
 	 * @param string $name    the column name
@@ -136,16 +101,6 @@ class Column
 		$this->prefix  = \strtolower($prefix);
 		$this->options = $options;
 		$this->type    = $this->optionsToType();
-	}
-
-	/**
-	 * Help var_dump().
-	 *
-	 * @return array
-	 */
-	public function __debugInfo()
-	{
-		return ['instance_of' => static::class, 'column_name' => $this->getName()];
 	}
 
 	/**
@@ -246,5 +201,50 @@ class Column
 		$class = self::$columns_types[$type];
 		/* @var TypeInterface $t */
 		return \call_user_func([$class, 'getInstance'], $this->options);
+	}
+
+	/**
+	 * Adds custom column type.
+	 *
+	 * @param string $type_name  The custom type name
+	 * @param string $type_class The custom type's fully qualified class name
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 */
+	public static function addCustomType($type_name, $type_class)
+	{
+		if (isset(self::$columns_types[$type_name])) {
+			throw new DBALException(\sprintf(
+				'You cannot overwrite column type "%s" with "%s".',
+				$type_name,
+				$type_class
+			));
+		}
+
+		if (
+			!(\is_subclass_of($type_class, TypeString::class)
+			  || \is_subclass_of($type_class, TypeInt::class)
+			  || \is_subclass_of($type_class, TypeBigint::class)
+			  || \is_subclass_of($type_class, TypeFloat::class)
+			  || \is_subclass_of($type_class, TypeBool::class))
+		) {
+			throw new DBALException(\sprintf(
+				'Your custom column type "%s => %s" should extends one of the standard column types.',
+				$type_name,
+				$type_class
+			));
+		}
+
+		self::$columns_types[$type_name] = $type_class;
+	}
+
+	/**
+	 * Help var_dump().
+	 *
+	 * @return array
+	 */
+	public function __debugInfo()
+	{
+		return ['instance_of' => static::class, 'column_name' => $this->getName()];
 	}
 }

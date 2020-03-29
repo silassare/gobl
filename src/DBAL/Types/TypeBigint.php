@@ -31,32 +31,6 @@ class TypeBigint extends TypeBase
 	private $max;
 
 	/**
-	 * @inheritdoc
-	 */
-	public static function getInstance(array $options)
-	{
-		$instance = new self(
-			self::getOptionKey($options, 'min', null),
-			self::getOptionKey($options, 'max', null),
-			self::getOptionKey($options, 'unsigned', false)
-		);
-
-		if (self::getOptionKey($options, 'null', false)) {
-			$instance->nullAble();
-		}
-
-		if (self::getOptionKey($options, 'auto_increment', false)) {
-			$instance->autoIncrement();
-		}
-
-		if (\array_key_exists('default', $options)) {
-			$instance->setDefault($options['default']);
-		}
-
-		return $instance;
-	}
-
-	/**
 	 * TypeBigint constructor.
 	 *
 	 * @param null|int $min      the minimum number
@@ -225,9 +199,37 @@ class TypeBigint extends TypeBase
 	}
 
 	/**
+	 * @inheritdoc
+	 */
+	public static function getInstance(array $options)
+	{
+		$instance = new self(
+			self::getOptionKey($options, 'min', null),
+			self::getOptionKey($options, 'max', null),
+			self::getOptionKey($options, 'unsigned', false)
+		);
+
+		if (self::getOptionKey($options, 'null', false)) {
+			$instance->nullAble();
+		}
+
+		if (self::getOptionKey($options, 'auto_increment', false)) {
+			$instance->autoIncrement();
+		}
+
+		if (\array_key_exists('default', $options)) {
+			$instance->setDefault($options['default']);
+		}
+
+		return $instance;
+	}
+
+	/**
 	 * Checks if the first argument is the smallest.
 	 *
-	 * @param bool $or_equal
+	 * @param bool  $or_equal
+	 * @param mixed $a
+	 * @param mixed $b
 	 *
 	 * @return bool
 	 */
@@ -237,7 +239,7 @@ class TypeBigint extends TypeBase
 			// make sure to have bcmath
 			$a = \sprintf('%F', $a);
 			$b = \sprintf('%F', $b);
-			$c = bccomp($a, $b);
+			$c = \bccomp($a, $b);
 
 			return $or_equal ? $c <= 0 : $c < 0;
 		}
