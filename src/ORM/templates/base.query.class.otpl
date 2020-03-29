@@ -1,43 +1,48 @@
 <?php
-	<%@import('include/head.comment.otpl',$)%>
 
-	namespace <%$.namespace%>\Base;
+<%@import('include/head.comment.otpl',$)%>
 
-	use Gobl\DBAL\Rule;
-	use Gobl\ORM\ORM;
-	use Gobl\ORM\ORMTableQueryBase;
+namespace <%$.namespace%>\Base;
+
+use Gobl\DBAL\Rule;
+use Gobl\ORM\ORM;
+use Gobl\ORM\ORMTableQueryBase;
+
+/**
+ * Class <%$.class.query%>
+ *
+ * @package <%$.namespace%>\Base
+ */
+abstract class <%$.class.query%> extends ORMTableQueryBase
+{
+	/**
+	 * <%$.class.query%> constructor.
+	 */
+	public function __construct()
+	{
+		parent::__construct(
+			ORM::getDatabase('<%$.namespace%>'),
+			<%$.class.entity%>::TABLE_NAME,
+			\<%$.namespace%>\<%$.class.results%>::class
+		);
+	}
 
 	/**
-	 * Class <%$.class.query%>
+	 * Finds rows in the table `<%$.table.name%>` and returns a new instance of the table's result iterator.
 	 *
-	 * @package <%$.namespace%>\Base
+	 * @param int|null $max
+	 * @param int      $offset
+	 * @param array    $order_by
+	 *
+	 * @return \<%$.namespace%>\<%$.class.results%>
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
-	abstract class <%$.class.query%> extends ORMTableQueryBase
+	public function find($max = null, $offset = 0, array $order_by = [])
 	{
-		/**
-		 * <%$.class.query%> constructor.
-		 */
-		public function __construct()
-		{
-			parent::__construct(ORM::getDatabase('<%$.namespace%>'), <%$.class.entity%>::TABLE_NAME, \<%$.namespace%>\<%$.class.results%>::class);
-		}
+		/** @var \<%$.namespace%>\<%$.class.results%> $results */
+		$results = parent::find($max, $offset, $order_by);
 
-		/**
-		 * Finds rows in the table `<%$.table.name%>` and returns a new instance of the table's result iterator.
-		 *
-		 * @param int|null $max
-		 * @param int      $offset
-		 * @param array    $order_by
-		 *
-		 * @return \<%$.namespace%>\<%$.class.results%>
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 */
-		public function find($max = null, $offset = 0, array $order_by = [])
-		{
-			/** @var \<%$.namespace%>\<%$.class.results%> $results */
-			$results = parent::find($max, $offset, $order_by);
-
-			return $results;
-		}
-		<%@import('include/query.filter.by.columns.otpl',$)%>
+		return $results;
 	}
+	<%@import('include/query.filter.by.columns.otpl',$)%>
+}

@@ -1,43 +1,48 @@
 <?php
-	//__GOBL_HEAD_COMMENT__
 
-	namespace MY_PROJECT_DB_NS\Base;
+//__GOBL_HEAD_COMMENT__
 
-	use Gobl\DBAL\Rule;
-	use Gobl\ORM\ORM;
-	use Gobl\ORM\ORMTableQueryBase;
+namespace MY_PROJECT_DB_NS\Base;
+
+use Gobl\DBAL\Rule;
+use Gobl\ORM\ORM;
+use Gobl\ORM\ORMTableQueryBase;
+
+/**
+ * Class MyTableQuery
+ *
+ * @package MY_PROJECT_DB_NS\Base
+ */
+abstract class MyTableQuery extends ORMTableQueryBase
+{
+	/**
+	 * MyTableQuery constructor.
+	 */
+	public function __construct()
+	{
+		parent::__construct(
+			ORM::getDatabase('MY_PROJECT_DB_NS'),
+			MyEntity::TABLE_NAME,
+			\MY_PROJECT_DB_NS\MyResults::class
+		);
+	}
 
 	/**
-	 * Class MyTableQuery
+	 * Finds rows in the table `my_table` and returns a new instance of the table's result iterator.
 	 *
-	 * @package MY_PROJECT_DB_NS\Base
+	 * @param int|null $max
+	 * @param int      $offset
+	 * @param array    $order_by
+	 *
+	 * @return \MY_PROJECT_DB_NS\MyResults
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
-	abstract class MyTableQuery extends ORMTableQueryBase
+	public function find($max = null, $offset = 0, array $order_by = [])
 	{
-		/**
-		 * MyTableQuery constructor.
-		 */
-		public function __construct()
-		{
-			parent::__construct(ORM::getDatabase('MY_PROJECT_DB_NS'), MyEntity::TABLE_NAME, \MY_PROJECT_DB_NS\MyResults::class);
-		}
+		/** @var \MY_PROJECT_DB_NS\MyResults $results */
+		$results = parent::find($max, $offset, $order_by);
 
-		/**
-		 * Finds rows in the table `my_table` and returns a new instance of the table's result iterator.
-		 *
-		 * @param int|null $max
-		 * @param int      $offset
-		 * @param array    $order_by
-		 *
-		 * @return \MY_PROJECT_DB_NS\MyResults
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 */
-		public function find($max = null, $offset = 0, array $order_by = [])
-		{
-			/** @var \MY_PROJECT_DB_NS\MyResults $results */
-			$results = parent::find($max, $offset, $order_by);
-
-			return $results;
-		}
-		//__GOBL_QUERY_FILTER_BY_COLUMNS__
+		return $results;
 	}
+	//__GOBL_QUERY_FILTER_BY_COLUMNS__
+}

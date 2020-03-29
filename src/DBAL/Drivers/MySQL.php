@@ -1,284 +1,293 @@
 <?php
+
+/**
+ * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>.
+ *
+ * This file is part of the Gobl package.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace Gobl\DBAL\Drivers;
+
+use Gobl\DBAL\Db;
+use Gobl\DBAL\DbConfig;
+use Gobl\DBAL\Exceptions\DBALException;
+use Gobl\DBAL\QueryBuilder;
+use Gobl\DBAL\QueryTokenParser;
+use PDO;
+use PDOException;
+
+/**
+ * Class MySQL
+ */
+class MySQL extends Db
+{
 	/**
-	 * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
-	 *
-	 * This file is part of the Gobl package.
-	 *
-	 * For the full copyright and license information, please view the LICENSE
-	 * file that was distributed with this source code.
+	 * @var DbConfig
 	 */
-
-	namespace Gobl\DBAL\Drivers;
-
-	use Gobl\DBAL\Db;
-	use Gobl\DBAL\DbConfig;
-	use Gobl\DBAL\Exceptions\DBALException;
-	use Gobl\DBAL\QueryBuilder;
-	use Gobl\DBAL\QueryTokenParser;
-	use PDO;
-	use PDOException;
+	private $config;
 
 	/**
-	 * Class MySQL
-	 *
-	 * @package Gobl\DBAL\Drivers
+	 * @var int
 	 */
-	class MySQL extends Db
+	private $transaction_counter = 0;
+
+	/**
+	 * MySQL constructor.
+	 */
+	public function __construct(array $config)
 	{
-		/**
-		 * @var DbConfig
-		 */
-		private $config;
+		$this->config = new DbConfig($config);
+	}
 
-		/**
-		 * @var int
-		 */
-		private $transaction_counter = 0;
+	/**
+	 * @inheritdoc
+	 */
+	public function connect()
+	{
+		$host     = $this->config->getDbHost();
+		$dbname   = $this->config->getDbName();
+		$user     = $this->config->getDbUser();
+		$password = $this->config->getDbPass();
+		$charset  = $this->config->getDbCharset();
 
-		/**
-		 * MySQL constructor.
-		 *
-		 * @param array $config
-		 */
-		public function __construct(array $config)
-		{
-			$this->config = new DbConfig($config);
+		$pdo_options = [
+			PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+			PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+		];
+
+		// DSN => DATA SOURCE NAME
+		$pdo_dsn = 'mysql:host=' . $host . ';dbname=' . $dbname . ';charset=' . $charset;
+
+		return new PDO($pdo_dsn, $user, $password, $pdo_options);
+	}
+
+	/**
+	 * @inheritdoc
+	 */
+	public function beginTransaction()
+	{
+		$con = $this->getConnection();
+
+		$this->transaction_counter++;
+
+		if ($this->transaction_counter === 1) {
+			return $con->beginTransaction();
 		}
 
-		/**
-		 * @inheritdoc
-		 */
-		public function connect()
-		{
-			$host     = $this->config->getDbHost();
-			$dbname   = $this->config->getDbName();
-			$user     = $this->config->getDbUser();
-			$password = $this->config->getDbPass();
-			$charset  = $this->config->getDbCharset();
+		$con->exec('SAVEPOINT gobl_trans_' . $this->transaction_counter);
 
-			$pdo_options = [
-				PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-				PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
-			];
+		return true;
+	}
 
-			// DSN => DATA SOURCE NAME
-			$pdo_dsn = 'mysql:host=' . $host . ';dbname=' . $dbname . ';charset=' . $charset;
+	/**
+	 * @inheritdoc
+	 */
+	public function commit()
+	{
+		if ($this->transaction_counter > 0) {
+			--$this->transaction_counter;
 
-			return new PDO($pdo_dsn, $user, $password, $pdo_options);
-		}
-
-		/**
-		 * @inheritdoc
-		 */
-		public function beginTransaction()
-		{
 			$con = $this->getConnection();
 
-			$this->transaction_counter++;
-
-			if ($this->transaction_counter === 1) {
-				return $con->beginTransaction();
+			if (!$this->transaction_counter) {
+				return $con->commit();
 			}
 
-			$con->exec('SAVEPOINT gobl_trans_' . $this->transaction_counter);
-
-			return true;
+			$con->exec('RELEASE SAVEPOINT gobl_trans_' . ($this->transaction_counter + 1));
 		}
 
-		/**
-		 * @inheritdoc
-		 */
-		public function commit()
-		{
-			if ($this->transaction_counter > 0) {
-				--$this->transaction_counter;
+		return true;
+	}
 
-				$con = $this->getConnection();
+	/**
+	 * @inheritdoc
+	 */
+	public function rollBack()
+	{
+		if ($this->transaction_counter > 0) {
+			--$this->transaction_counter;
 
-				if (!$this->transaction_counter) {
-					return $con->commit();
-				}
+			$con = $this->getConnection();
 
-				$con->exec('RELEASE SAVEPOINT gobl_trans_' . ($this->transaction_counter + 1));
+			if (!$this->transaction_counter) {
+				return $con->rollback();
 			}
 
-			return true;
+			$con->exec('ROLLBACK TO gobl_trans_' . ($this->transaction_counter + 1));
 		}
 
-		/**
-		 * @inheritdoc
-		 */
-		public function rollBack()
-		{
-			if ($this->transaction_counter > 0) {
-				--$this->transaction_counter;
+		return true;
+	}
 
-				$con = $this->getConnection();
-
-				if (!$this->transaction_counter) {
-					return $con->rollback();
-				}
-
-				$con->exec('ROLLBACK TO gobl_trans_' . ($this->transaction_counter + 1));
-			}
-
-			return true;
+	/**
+	 * @inheritdoc
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 */
+	public function execute(
+		$sql,
+		array $params = null,
+		array $params_types = null,
+		$is_multi_queries = false,
+		$in_transaction = false,
+		$auto_close_transaction = false
+	) {
+		if (empty($sql)) {
+			throw new DBALException('Your query is empty.');
 		}
 
-		/**
-		 * @inheritdoc
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 */
-		public function execute($sql, array $params = null, array $params_types = null, $is_multi_queries = false, $in_transaction = false, $auto_close_transaction = false)
-		{
-			if (empty($sql)) {
-				throw new DBALException('Your query is empty.');
-			}
+		if ($in_transaction) {
+			$this->beginTransaction();
+		}
 
-			if ($in_transaction) {
-				$this->beginTransaction();
-			}
+		$connection = $this->getConnection();
 
-			$connection = $this->getConnection();
+		try {
+			$stmt = $connection->prepare($sql);
 
-			try {
-				$stmt = $connection->prepare($sql);
-
-				if ($params !== null) {
-					foreach ($params as $key => $value) {
-						if (isset($params_types[$key])) {
-							$param_type = $params_types[$key];
-						} else {
-							$param_type = QueryTokenParser::paramType($value);
-						}
-
-						$stmt->bindValue(is_int($key) ? $key + 1 : $key, $value, $param_type);
+			if ($params !== null) {
+				foreach ($params as $key => $value) {
+					if (isset($params_types[$key])) {
+						$param_type = $params_types[$key];
+					} else {
+						$param_type = QueryTokenParser::paramType($value);
 					}
+
+					$stmt->bindValue(\is_int($key) ? $key + 1 : $key, $value, $param_type);
 				}
-
-				$stmt->execute();
-
-				if ($is_multi_queries) {
-					/* https://bugs.php.net/bug.php?id=61613 */
-					$i = 0;
-					while ($stmt->nextRowset()) {
-						$i++;
-					}
-				}
-
-				if ($in_transaction AND $auto_close_transaction) {
-					$this->commit();
-				}
-
-				return $stmt;
-			} catch (PDOException $e) {
-				if ($in_transaction AND $auto_close_transaction) {
-					$this->rollBack();
-				}
-
-				throw $e;
-			}
-		}
-
-		/**
-		 * @inheritdoc
-		 * @throws \Exception
-		 */
-		public function executeMulti($sql)
-		{
-			return $this->execute($sql, null, null, true, true, true);
-		}
-
-		/**
-		 * @inheritdoc
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 */
-		private function query($sql, array $params = null, array $params_types = [])
-		{
-			$stmt = $this->execute($sql, $params, $params_types);
-
-			return $stmt->rowCount();
-		}
-
-		/**
-		 * @inheritdoc
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 */
-		public function select($sql, array $params = null, array $params_types = [])
-		{
-			return $this->execute($sql, $params, $params_types);
-		}
-
-		/**
-		 * @inheritdoc
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 */
-		public function delete($sql, array $params = null, array $params_types = [])
-		{
-			return $this->query($sql, $params, $params_types);
-		}
-
-		/**
-		 * @inheritdoc
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 */
-		public function insert($sql, array $params = null, array $params_types = [])
-		{
-			$stmt    = $this->execute($sql, $params, $params_types);
-			$last_id = $this->getConnection()
-							->lastInsertId();
-
-			$stmt->closeCursor();
-
-			return $last_id;
-		}
-
-		/**
-		 * @inheritdoc
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 */
-		public function update($sql, array $params = null, array $params_types = [])
-		{
-			return $this->query($sql, $params, $params_types);
-		}
-
-		/**
-		 * @inheritdoc
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 */
-		public function buildDatabase($namespace = null)
-		{
-			// checks all foreign key constraints
-			$tables = $this->getTables($namespace);
-			$parts  = [];
-
-			foreach ($tables as $table) {
-				$fk_list = $table->getForeignKeyConstraints();
-				foreach ($fk_list as $fk) {
-					$columns = array_values($fk->getConstraintColumns());
-					// necessary when whe have
-					// table_a.col_1 => table_b.col_x
-					// table_a.col_2 => table_b.col_x
-					$columns = array_unique($columns);
-
-					if (!$fk->getReferenceTable()
-							->isPrimaryKey($columns)) {
-						$ref_name = $fk->getReferenceTable()
-									   ->getName();
-						throw new DBALException(sprintf('Foreign key "%s" of table "%s" should be primary key in the reference table "%s".', implode(',', $columns), $table->getName(), $ref_name));
-					}
-				}
-
-				$qb = new QueryBuilder($this);
-				$qb->createTable($table);
-				$parts[] = $this->getQueryGenerator($qb)
-								->buildQuery();
 			}
 
-			$mysql   = implode(PHP_EOL, $parts);
-			$charset = $this->config->getDbCharset();
+			$stmt->execute();
 
-			return <<<GOBL_MySQL
+			if ($is_multi_queries) {
+				/* https://bugs.php.net/bug.php?id=61613 */
+				$i = 0;
+
+				while ($stmt->nextRowset()) {
+					$i++;
+				}
+			}
+
+			if ($in_transaction && $auto_close_transaction) {
+				$this->commit();
+			}
+
+			return $stmt;
+		} catch (PDOException $e) {
+			if ($in_transaction && $auto_close_transaction) {
+				$this->rollBack();
+			}
+
+			throw $e;
+		}
+	}
+
+	/**
+	 * @inheritdoc
+	 *
+	 * @throws \Exception
+	 */
+	public function executeMulti($sql)
+	{
+		return $this->execute($sql, null, null, true, true, true);
+	}
+
+	/**
+	 * @inheritdoc
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 */
+	public function select($sql, array $params = null, array $params_types = [])
+	{
+		return $this->execute($sql, $params, $params_types);
+	}
+
+	/**
+	 * @inheritdoc
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 */
+	public function delete($sql, array $params = null, array $params_types = [])
+	{
+		return $this->query($sql, $params, $params_types);
+	}
+
+	/**
+	 * @inheritdoc
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 */
+	public function insert($sql, array $params = null, array $params_types = [])
+	{
+		$stmt    = $this->execute($sql, $params, $params_types);
+		$last_id = $this->getConnection()
+						->lastInsertId();
+
+		$stmt->closeCursor();
+
+		return $last_id;
+	}
+
+	/**
+	 * @inheritdoc
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 */
+	public function update($sql, array $params = null, array $params_types = [])
+	{
+		return $this->query($sql, $params, $params_types);
+	}
+
+	/**
+	 * @inheritdoc
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 */
+	public function buildDatabase($namespace = null)
+	{
+		// checks all foreign key constraints
+		$tables = $this->getTables($namespace);
+		$parts  = [];
+
+		foreach ($tables as $table) {
+			$fk_list = $table->getForeignKeyConstraints();
+
+			foreach ($fk_list as $fk) {
+				$columns = \array_values($fk->getConstraintColumns());
+				// necessary when whe have
+				// table_a.col_1 => table_b.col_x
+				// table_a.col_2 => table_b.col_x
+				$columns = \array_unique($columns);
+
+				if (
+					!$fk->getReferenceTable()
+						->isPrimaryKey($columns)
+				) {
+					$ref_name = $fk->getReferenceTable()
+								   ->getName();
+
+					throw new DBALException(\sprintf(
+						'Foreign key "%s" of table "%s" should be primary key in the reference table "%s".',
+						\implode(',', $columns),
+						$table->getName(),
+						$ref_name
+					));
+				}
+			}
+
+			$qb = new QueryBuilder($this);
+			$qb->createTable($table);
+			$parts[] = $this->getQueryGenerator($qb)
+							->buildQuery();
+		}
+
+		$mysql   = \implode(\PHP_EOL, $parts);
+		$charset = $this->config->getDbCharset();
+
+		return <<<GOBL_MySQL
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
@@ -301,13 +310,25 @@ $mysql
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 GOBL_MySQL;
-		}
-
-		/**
-		 * @inheritdoc
-		 */
-		public function getQueryGenerator(QueryBuilder $query)
-		{
-			return new MySQLGenerator($query, $this->config);
-		}
 	}
+
+	/**
+	 * @inheritdoc
+	 */
+	public function getQueryGenerator(QueryBuilder $query)
+	{
+		return new MySQLGenerator($query, $this->config);
+	}
+
+	/**
+	 * @inheritdoc
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 */
+	private function query($sql, array $params = null, array $params_types = [])
+	{
+		$stmt = $this->execute($sql, $params, $params_types);
+
+		return $stmt->rowCount();
+	}
+}

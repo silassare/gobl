@@ -1,15 +1,16 @@
 <?php
+
 <%@import('include/head.comment.otpl',$)%>
 
-	namespace <%$.namespace%>;
+namespace <%$.namespace%>;
 
-	use <%$.namespace%>\Base\<%$.class.results%> as Base<%$.class.results%>;
+use <%$.namespace%>\Base\<%$.class.results%> as Base<%$.class.results%>;
 
-	/**
-	 * Class <%$.class.results%>
-	 *
-	 * @package <%$.namespace%>
-	 */
-	class <%$.class.results%> extends Base<%$.class.results%>
-	{
-	}
+/**
+ * Class <%$.class.results%>
+ *
+ * @package <%$.namespace%>
+ */
+class <%$.class.results%> extends Base<%$.class.results%>
+{
+}

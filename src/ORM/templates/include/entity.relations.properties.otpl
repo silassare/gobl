@@ -1,8 +1,8 @@
 <%loop($.relations.list : $relation){%>
 <%if($relation.type === 'one-to-one' || $relation.type === 'many-to-one'){%>
-		/**
-		 * @var \<%$relation.target.class.use_entity%>
-		 */
-		protected $_r_<%$relation.name%>;
+	/**
+	 * @var \<%$relation.target.class.use_entity%>
+	 */
+	protected $_r_<%$relation.name%>;
 <%}%>
 <%}%>

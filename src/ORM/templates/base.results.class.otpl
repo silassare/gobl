@@ -1,65 +1,66 @@
 <?php
-	<%@import('include/head.comment.otpl',$)%>
 
-	namespace <%$.namespace%>\Base;
+<%@import('include/head.comment.otpl',$)%>
 
-	use Gobl\DBAL\Db;
-	use Gobl\DBAL\QueryBuilder;
-	use Gobl\ORM\ORMResultsBase;
+namespace <%$.namespace%>\Base;
+
+use Gobl\DBAL\Db;
+use Gobl\DBAL\QueryBuilder;
+use Gobl\ORM\ORMResultsBase;
+
+/**
+ * Class <%$.class.results%>
+ *
+ * @package <%$.namespace%>\Base
+ */
+abstract class <%$.class.results%> extends ORMResultsBase
+{
+	/**
+	 * <%$.class.results%> constructor.
+	 *
+	 * @param \Gobl\DBAL\Db           $db
+	 * @param \Gobl\DBAL\QueryBuilder $query
+	 *
+	 * @throws \Gobl\ORM\Exceptions\ORMException
+	 */
+	public function __construct(Db $db, QueryBuilder $query)
+	{
+		parent::__construct($db, $query, \<%$.namespace%>\<%$.class.entity%>::class);
+	}
 
 	/**
-	 * Class <%$.class.results%>
+	 * This is to help editor infer type in loop (foreach or for...)
 	 *
-	 * @package <%$.namespace%>\Base
+	 * @return array|null|\<%$.namespace%>\<%$.class.entity%>
 	 */
-	abstract class <%$.class.results%> extends ORMResultsBase
+	public function current()
 	{
-		/**
-		 * <%$.class.results%> constructor.
-		 *
-		 * @param \Gobl\DBAL\Db           $db
-		 * @param \Gobl\DBAL\QueryBuilder $query
-		 *
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 */
-		public function __construct(Db $db, QueryBuilder $query)
-		{
-			parent::__construct($db, $query, \<%$.namespace%>\<%$.class.entity%>::class);
-		}
-
-		/**
-		 * This is to help editor infer type in loop (foreach or for...)
-		 *
-		 * @return array|null|\<%$.namespace%>\<%$.class.entity%>
-		 */
-		public function current()
-		{
-			return parent::current();
-		}
-
-		/**
-		 * Fetches  the next row into table of the entity class instance.
-		 *
-		 * @param bool $strict
-		 *
-		 * @return null|\<%$.namespace%>\<%$.class.entity%>
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 */
-		public function fetchClass($strict = true)
-		{
-			return parent::fetchClass($strict);
-		}
-
-		/**
-		 * Fetches  all rows and return array of the entity class instance.
-		 *
-		 * @param bool $strict
-		 *
-		 * @return \<%$.namespace%>\<%$.class.entity%>[]
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 */
-		public function fetchAllClass($strict = true)
-		{
-			return parent::fetchAllClass($strict);
-		}
+		return parent::current();
 	}
+
+	/**
+	 * Fetches  the next row into table of the entity class instance.
+	 *
+	 * @param bool $strict
+	 *
+	 * @return null|\<%$.namespace%>\<%$.class.entity%>
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 */
+	public function fetchClass($strict = true)
+	{
+		return parent::fetchClass($strict);
+	}
+
+	/**
+	 * Fetches  all rows and return array of the entity class instance.
+	 *
+	 * @param bool $strict
+	 *
+	 * @return \<%$.namespace%>\<%$.class.entity%>[]
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 */
+	public function fetchAllClass($strict = true)
+	{
+		return parent::fetchAllClass($strict);
+	}
+}

@@ -1,191 +1,198 @@
 <?php
-	<%@import('include/head.comment.otpl',$)%>
 
-	namespace <%$.namespace%>\Base;
+<%@import('include/head.comment.otpl',$)%>
 
-	use Gobl\DBAL\QueryBuilder;
-	use Gobl\ORM\ORM;
-	use Gobl\ORM\ORMControllerBase;
-	use <%$.namespace%>\<%$.class.entity%> as <%$.class.entity%>Real;
-	use <%$.namespace%>\<%$.class.results%> as <%$.class.results%>Real;
-	use <%$.namespace%>\<%$.class.query%> as <%$.class.query%>Real;
+namespace <%$.namespace%>\Base;
+
+use Gobl\DBAL\QueryBuilder;
+use Gobl\ORM\ORM;
+use Gobl\ORM\ORMControllerBase;
+use <%$.namespace%>\<%$.class.entity%> as <%$.class.entity%>Real;
+use <%$.namespace%>\<%$.class.results%> as <%$.class.results%>Real;
+use <%$.namespace%>\<%$.class.query%> as <%$.class.query%>Real;
+
+/**
+ * Class <%$.class.controller%>
+ *
+ * @package <%$.namespace%>\Base
+ */
+abstract class <%$.class.controller%> extends ORMControllerBase
+{
+	/**
+	 * <%$.class.controller%> constructor.
+	 *
+	 * @inheritdoc
+	 */
+	public function __construct()
+	{
+		parent::__construct(
+			ORM::getDatabase('<%$.namespace%>'),
+			<%$.class.entity%>::TABLE_NAME,
+			<%$.class.entity%>Real::class,
+			<%$.class.query%>Real::class,
+			<%$.class.results%>Real::class
+		);
+	}
 
 	/**
-	 * Class <%$.class.controller%>
+	 * Adds item to `<%$.table.name%>`.
 	 *
-	 * @package <%$.namespace%>\Base
+	 * @param array $values the row values
+	 *
+	 * @return \<%$.namespace%>\<%$.class.entity%>
+	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 */
-	abstract class <%$.class.controller%> extends ORMControllerBase
+	public function addItem(array $values = [])
 	{
-		/**
-		 * <%$.class.controller%> constructor.
-		 *
-		 * @inheritdoc
-		 */
-		public function __construct()
-		{
-			parent::__construct(ORM::getDatabase('<%$.namespace%>'), <%$.class.entity%>::TABLE_NAME, <%$.class.entity%>Real::class, <%$.class.query%>Real::class, <%$.class.results%>Real::class);
-		}
+		/** @var \<%$.namespace%>\<%$.class.entity%> $result */
+		$result = parent::addItem($values);
 
-		/**
-		 * Adds item to `<%$.table.name%>`.
-		 *
-		 * @param array $values the row values
-		 *
-		 * @return \<%$.namespace%>\<%$.class.entity%>
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 */
-		public function addItem(array $values = [])
-		{
-			/** @var \<%$.namespace%>\<%$.class.entity%> $result */
-			$result = parent::addItem($values);
-
-			return $result;
-		}
-
-		/**
-		 * Updates one item in `<%$.table.name%>`.
-		 *
-		 * The returned value will be:
-		 * - `false` when the item was not found
-		 * - `<%$.class.entity%>` when the item was successfully updated,
-		 * when there is an error updating you can catch the exception
-		 *
-		 * @param array $filters    the row filters
-		 * @param array $new_values the new values
-		 *
-		 * @return bool|\<%$.namespace%>\<%$.class.entity%>
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
-		 */
-		public function updateOneItem(array $filters, array $new_values)
-		{
-			return parent::updateOneItem($filters, $new_values);
-		}
-
-		/**
-		 * Updates all items in `<%$.table.name%>` that match the given item filters.
-		 *
-		 * @param array $filters    the row filters
-		 * @param array $new_values the new values
-		 *
-		 * @return int Affected row count.
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
-		 */
-		public function updateAllItems(array $filters, array $new_values)
-		{
-			return parent::updateAllItems($filters, $new_values);
-		}
-
-		/**
-		 * Deletes one item from `<%$.table.name%>`.
-		 *
-		 * The returned value will be:
-		 * - `false` when the item was not found
-		 * - `<%$.class.entity%>` when the item was successfully deleted,
-		 * when there is an error deleting you can catch the exception
-		 *
-		 * @param array $filters the row filters
-		 *
-		 * @return bool|\<%$.namespace%>\<%$.class.entity%>
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
-		 */
-		public function deleteOneItem(array $filters)
-		{
-			return parent::deleteOneItem($filters);
-		}
-
-		/**
-		 * Deletes all items in `<%$.table.name%>` that match the given item filters.
-		 *
-		 * @param array $filters the row filters
-		 *
-		 * @return int Affected row count.
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
-		 */
-		public function deleteAllItems(array $filters)
-		{
-			return parent::deleteAllItems($filters);
-		}
-
-		/**
-		 * Gets item from `<%$.table.name%>` that match the given filters.
-		 *
-		 * The returned value will be:
-		 * - `null` when the item was not found
-		 * - `<%$.class.entity%>` otherwise
-		 *
-		 * @param array $filters  the row filters
-		 * @param array $order_by order by rules
-		 *
-		 * @return \<%$.namespace%>\<%$.class.entity%>|null
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 */
-		public function getItem(array $filters, array $order_by = [])
-		{
-			/** @var \<%$.namespace%>\<%$.class.entity%>|null $result */
-			$result = parent::getItem($filters, $order_by);
-
-			return $result;
-		}
-
-		/**
-		 * Gets all items from `<%$.table.name%>` that match the given filters.
-		 *
-		 * @param array    $filters  the row filters
-		 * @param int|null $max      maximum row to retrieve
-		 * @param int      $offset   first row offset
-		 * @param array    $order_by order by rules
-		 * @param int|bool $total    total rows without limit
-		 *
-		 * @return \<%$.namespace%>\<%$.class.entity%>[]
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-		 * @throws \Gobl\ORM\Exceptions\ORMException
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
-		 */
-		public function getAllItems(array $filters = [], $max = null, $offset = 0, array $order_by = [], &$total = false)
-		{
-			/** @var \<%$.namespace%>\<%$.class.entity%>[] $results */
-			$results = parent::getAllItems($filters, $max, $offset, $order_by, $total);
-
-			return $results;
-		}
-
-		/**
-		 * Gets all items from `<%$.table.name%>` with a custom query builder instance.
-		 *
-		 * @param \Gobl\DBAL\QueryBuilder $qb
-		 * @param int|null                $max    maximum row to retrieve
-		 * @param int                     $offset first row offset
-		 * @param int|bool                $total  total rows without limit
-		 *
-		 * @return \<%$.namespace%>\<%$.class.entity%>[]
-		 * @throws \Gobl\CRUD\Exceptions\CRUDException
-		 * @throws \Gobl\DBAL\Exceptions\DBALException
-		 */
-		public function getAllItemsCustom(QueryBuilder $qb, $max = null, $offset = 0, &$total = false)
-		{
-			/** @var \<%$.namespace%>\<%$.class.entity%>[] $results */
-			$results = parent::getAllItemsCustom($qb, $max, $offset, $total);
-
-			return $results;
-		}
+		return $result;
 	}
+
+	/**
+	 * Updates one item in `<%$.table.name%>`.
+	 *
+	 * The returned value will be:
+	 * - `false` when the item was not found
+	 * - `<%$.class.entity%>` when the item was successfully updated,
+	 * when there is an error updating you can catch the exception
+	 *
+	 * @param array $filters    the row filters
+	 * @param array $new_values the new values
+	 *
+	 * @return bool|\<%$.namespace%>\<%$.class.entity%>
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 * @throws \Gobl\ORM\Exceptions\ORMException
+	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 */
+	public function updateOneItem(array $filters, array $new_values)
+	{
+		return parent::updateOneItem($filters, $new_values);
+	}
+
+	/**
+	 * Updates all items in `<%$.table.name%>` that match the given item filters.
+	 *
+	 * @param array $filters    the row filters
+	 * @param array $new_values the new values
+	 *
+	 * @return int Affected row count.
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 * @throws \Gobl\ORM\Exceptions\ORMException
+	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 */
+	public function updateAllItems(array $filters, array $new_values)
+	{
+		return parent::updateAllItems($filters, $new_values);
+	}
+
+	/**
+	 * Deletes one item from `<%$.table.name%>`.
+	 *
+	 * The returned value will be:
+	 * - `false` when the item was not found
+	 * - `<%$.class.entity%>` when the item was successfully deleted,
+	 * when there is an error deleting you can catch the exception
+	 *
+	 * @param array $filters the row filters
+	 *
+	 * @return bool|\<%$.namespace%>\<%$.class.entity%>
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 * @throws \Gobl\ORM\Exceptions\ORMException
+	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 */
+	public function deleteOneItem(array $filters)
+	{
+		return parent::deleteOneItem($filters);
+	}
+
+	/**
+	 * Deletes all items in `<%$.table.name%>` that match the given item filters.
+	 *
+	 * @param array $filters the row filters
+	 *
+	 * @return int Affected row count.
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 * @throws \Gobl\ORM\Exceptions\ORMException
+	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 */
+	public function deleteAllItems(array $filters)
+	{
+		return parent::deleteAllItems($filters);
+	}
+
+	/**
+	 * Gets item from `<%$.table.name%>` that match the given filters.
+	 *
+	 * The returned value will be:
+	 * - `null` when the item was not found
+	 * - `<%$.class.entity%>` otherwise
+	 *
+	 * @param array $filters  the row filters
+	 * @param array $order_by order by rules
+	 *
+	 * @return \<%$.namespace%>\<%$.class.entity%>|null
+	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 * @throws \Gobl\ORM\Exceptions\ORMException
+	 */
+	public function getItem(array $filters, array $order_by = [])
+	{
+		/** @var \<%$.namespace%>\<%$.class.entity%>|null $result */
+		$result = parent::getItem($filters, $order_by);
+
+		return $result;
+	}
+
+	/**
+	 * Gets all items from `<%$.table.name%>` that match the given filters.
+	 *
+	 * @param array    $filters  the row filters
+	 * @param int|null $max      maximum row to retrieve
+	 * @param int      $offset   first row offset
+	 * @param array    $order_by order by rules
+	 * @param int|bool $total    total rows without limit
+	 *
+	 * @return \<%$.namespace%>\<%$.class.entity%>[]
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 * @throws \Gobl\ORM\Exceptions\ORMException
+	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 */
+	public function getAllItems(array $filters = [], $max = null, $offset = 0, array $order_by = [], &$total = false)
+	{
+		/** @var \<%$.namespace%>\<%$.class.entity%>[] $results */
+		$results = parent::getAllItems($filters, $max, $offset, $order_by, $total);
+
+		return $results;
+	}
+
+	/**
+	 * Gets all items from `<%$.table.name%>` with a custom query builder instance.
+	 *
+	 * @param \Gobl\DBAL\QueryBuilder $qb
+	 * @param int|null                $max    maximum row to retrieve
+	 * @param int                     $offset first row offset
+	 * @param int|bool                $total  total rows without limit
+	 *
+	 * @return \<%$.namespace%>\<%$.class.entity%>[]
+	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 */
+	public function getAllItemsCustom(QueryBuilder $qb, $max = null, $offset = 0, &$total = false)
+	{
+		/** @var \<%$.namespace%>\<%$.class.entity%>[] $results */
+		$results = parent::getAllItemsCustom($qb, $max, $offset, $total);
+
+		return $results;
+	}
+}

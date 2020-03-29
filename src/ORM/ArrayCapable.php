@@ -1,33 +1,34 @@
 <?php
+
+/**
+ * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>.
+ *
+ * This file is part of the Gobl package.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace Gobl\ORM;
+
+abstract class ArrayCapable implements \JsonSerializable
+{
 	/**
-	 * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+	 * Returns entity in array form.
 	 *
-	 * This file is part of the Gobl package.
+	 * @param bool $hide_private_column
 	 *
-	 * For the full copyright and license information, please view the LICENSE
-	 * file that was distributed with this source code.
+	 * @return array
 	 */
+	abstract public function asArray($hide_private_column = true);
 
-	namespace Gobl\ORM;
-
-	abstract class ArrayCapable implements \JsonSerializable
+	/**
+	 * Specify data which should be serialized to JSON.
+	 *
+	 * @return array
+	 */
+	public function jsonSerialize()
 	{
-		/**
-		 * Returns entity in array form.
-		 *
-		 * @param bool $hide_private_column
-		 *
-		 * @return array
-		 */
-		abstract function asArray($hide_private_column = true);
-
-		/**
-		 * Specify data which should be serialized to JSON.
-		 *
-		 * @return array
-		 */
-		public function jsonSerialize()
-		{
-			return $this->asArray();
-		}
+		return $this->asArray();
 	}
+}
