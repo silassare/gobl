@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<ruleset name="gobl">
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/ignore/*</exclude-pattern>
+	<exclude-pattern>*/ORM/Sample/*</exclude-pattern>
+	<rule ref="./oliup.phpcs.xml" />
+</ruleset>

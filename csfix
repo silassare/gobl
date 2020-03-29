@@ -1,0 +1,5 @@
+#!/bin/sh
+
+php-cs-fixer fix --using-cache=no
+phpcbf .
+php-cs-fixer fix --using-cache=no
