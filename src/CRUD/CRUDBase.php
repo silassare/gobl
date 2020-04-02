@@ -46,7 +46,9 @@ class CRUDBase
 	/**
 	 * CRUDContext constructor.
 	 *
-	 * @param string $type
+	 * @param string           $type
+	 * @param \Gobl\DBAL\Table $table
+	 * @param array            $form
 	 */
 	protected function __construct($type, Table $table, array $form = [])
 	{
@@ -80,6 +82,8 @@ class CRUDBase
 	}
 
 	/**
+	 * @param array $form
+	 *
 	 * @return \Gobl\CRUD\CRUDBase
 	 */
 	public function setForm(array $form)
@@ -110,6 +114,8 @@ class CRUDBase
 	 * @param $column
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 *
+	 * @return null|mixed
 	 */
 	public function getField($column)
 	{

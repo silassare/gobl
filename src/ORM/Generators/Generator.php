@@ -41,7 +41,7 @@ class Generator
 	private $ignore_private_column;
 
 	/**
-	 * RowClassGenerator constructor.
+	 * Generator constructor.
 	 *
 	 * @param \Gobl\DBAL\Db $db
 	 * @param bool          $ignore_private_table

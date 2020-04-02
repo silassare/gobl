@@ -25,6 +25,8 @@ interface CRUDHandlerInterface
 	/**
 	 * Called to allow CREATE action on a table
 	 *
+	 * @param \Gobl\CRUD\CRUDCreate $action
+	 *
 	 * @return bool true to allow or false to reject
 	 */
 	public function onBeforeCreate(CRUDCreate $action);
@@ -39,6 +41,8 @@ interface CRUDHandlerInterface
 	/**
 	 * Called to allow READ action on a table
 	 *
+	 * @param \Gobl\CRUD\CRUDRead $action
+	 *
 	 * @return bool true to allow or false to reject
 	 */
 	public function onBeforeRead(CRUDRead $action);
@@ -52,6 +56,8 @@ interface CRUDHandlerInterface
 
 	/**
 	 * Called to allow UPDATE action on a table
+	 *
+	 * @param \Gobl\CRUD\CRUDUpdate $action
 	 *
 	 * @return bool true to allow or false to reject
 	 */
@@ -77,6 +83,8 @@ interface CRUDHandlerInterface
 	/**
 	 * Called to allow DELETE action on a table
 	 *
+	 * @param \Gobl\CRUD\CRUDDelete $action
+	 *
 	 * @return bool true to allow or false to reject
 	 */
 	public function onBeforeDelete(CRUDDelete $action);
@@ -101,6 +109,8 @@ interface CRUDHandlerInterface
 	/**
 	 * Called to allow READ_ALL action on a table
 	 *
+	 * @param \Gobl\CRUD\CRUDReadAll $action
+	 *
 	 * @return bool true to allow or false to reject
 	 */
 	public function onBeforeReadAll(CRUDReadAll $action);
@@ -108,12 +118,16 @@ interface CRUDHandlerInterface
 	/**
 	 * Called to allow UPDATE_ALL action on a table
 	 *
+	 * @param \Gobl\CRUD\CRUDUpdateAll $action
+	 *
 	 * @return bool true to allow or false to reject
 	 */
 	public function onBeforeUpdateAll(CRUDUpdateAll $action);
 
 	/**
 	 * Called to allow DELETE_ALL action on a table
+	 *
+	 * @param \Gobl\CRUD\CRUDDeleteAll $action
 	 *
 	 * @return bool true to allow or false to reject
 	 */
@@ -124,6 +138,8 @@ interface CRUDHandlerInterface
 	 *
 	 * PS: You can filter who can update a column
 	 * or when a column can be updated
+	 *
+	 * @param \Gobl\CRUD\CRUDColumnUpdate $action
 	 *
 	 * @return bool true to allow or false to reject
 	 */
@@ -148,6 +164,8 @@ interface CRUDHandlerInterface
 	 *
 	 * PS: any column that is private or primary key
 	 *     should not be added before a call to this
+	 *
+	 * @param array &$form
 	 */
 	public function autoFillCreateForm(array &$form);
 }

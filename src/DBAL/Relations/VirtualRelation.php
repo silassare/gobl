@@ -46,8 +46,9 @@ abstract class VirtualRelation
 	}
 
 	/**
-	 * @param int   $total_records
-	 * @param mixed $target
+	 * @param mixed                    $target
+	 * @param \Gobl\ORM\ORMRequestBase $request
+	 * @param int                      &$total_records
 	 */
 	abstract public function run($target, ORMRequestBase $request, &$total_records = null);
 }

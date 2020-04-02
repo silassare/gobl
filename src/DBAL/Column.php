@@ -25,9 +25,9 @@ use InvalidArgumentException;
  */
 class Column
 {
-	const NAME_REG   = '#^(?:[a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9]|[a-zA-Z])$#';
+	const NAME_REG   = '~^(?:[a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9]|[a-zA-Z])$~';
 
-	const PREFIX_REG = '#^(?:[a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9]|[a-zA-Z])$#';
+	const PREFIX_REG = '~^(?:[a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9]|[a-zA-Z])$~';
 
 	/**
 	 * Maps available type names to type class names.

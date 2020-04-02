@@ -115,6 +115,7 @@ abstract class TypeBase implements TypeInterface
 	/**
 	 * Gets an options key value.
 	 *
+	 * @param array  $option
 	 * @param string $key
 	 * @param null   $default
 	 *
@@ -131,6 +132,10 @@ abstract class TypeBase implements TypeInterface
 
 	/**
 	 * Gets a sets of options keys values.
+	 *
+	 * @param array $option
+	 * @param array $keys
+	 * @param array $default
 	 *
 	 * @return array
 	 */

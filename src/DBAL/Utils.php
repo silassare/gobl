@@ -23,6 +23,7 @@ class Utils
 	 *    a_class_name        => AClassName
 	 *    my_class_name       => MYClassName
 	 *    another_class_name  => AnotherClassName
+	 *    a-relation-name     => ARelationName
 	 *
 	 * @param string $str the table or column name
 	 *
@@ -30,6 +31,7 @@ class Utils
 	 */
 	public static function toClassName($str)
 	{
+		$str    = \str_replace('-', '_', $str);
 		$result = \implode('', \array_map('ucfirst', \explode('_', $str)));
 
 		if (\strlen($str) > 3 && $str[2] === '_') {

@@ -602,6 +602,7 @@ abstract class Db implements RDBMSInterface
 	 * Create rdbms instance.
 	 *
 	 * @param string $type
+	 * @param array  $config
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 *

@@ -28,8 +28,9 @@ class CallableVR extends VirtualRelation
 	/**
 	 * CallableVR constructor.
 	 *
-	 * @param string $name
-	 * @param bool   $handle_list
+	 * @param string   $name
+	 * @param callable $callable
+	 * @param bool     $handle_list
 	 */
 	public function __construct($name, callable $callable, $handle_list = false)
 	{
@@ -48,8 +49,11 @@ class CallableVR extends VirtualRelation
 	}
 
 	/**
-	 * @param int   $total_records
-	 * @param mixed $target
+	 * @param mixed                    $target
+	 * @param \Gobl\ORM\ORMRequestBase $request
+	 * @param int                      &$total_records
+	 *
+	 * @return mixed
 	 */
 	public function run($target, ORMRequestBase $request, &$total_records = null)
 	{

@@ -37,6 +37,9 @@ abstract class SQLGeneratorBase implements GeneratorInterface
 
 	/**
 	 * SQLGeneratorBase constructor.
+	 *
+	 * @param \Gobl\DBAL\QueryBuilder $qb
+	 * @param \Gobl\DBAL\DbConfig     $config
 	 */
 	public function __construct(QueryBuilder $qb, DbConfig $config)
 	{
@@ -56,6 +59,8 @@ abstract class SQLGeneratorBase implements GeneratorInterface
 	/**
 	 * Gets bool column definition query string.
 	 *
+	 * @param \Gobl\DBAL\Column $column
+	 *
 	 * @return string
 	 */
 	protected function getBoolColumnDefinition(Column $column)
@@ -72,6 +77,8 @@ abstract class SQLGeneratorBase implements GeneratorInterface
 
 	/**
 	 * Gets int column definition query string.
+	 *
+	 * @param \Gobl\DBAL\Column $column
 	 *
 	 * @return string
 	 */
@@ -118,6 +125,8 @@ abstract class SQLGeneratorBase implements GeneratorInterface
 	/**
 	 * Gets bigint column definition query string.
 	 *
+	 * @param \Gobl\DBAL\Column $column
+	 *
 	 * @return string
 	 */
 	protected function getBigintColumnDefinition(Column $column)
@@ -145,6 +154,8 @@ abstract class SQLGeneratorBase implements GeneratorInterface
 	/**
 	 * Gets float column definition query string.
 	 *
+	 * @param \Gobl\DBAL\Column $column
+	 *
 	 * @return string
 	 */
 	protected function getFloatColumnDefinition(Column $column)
@@ -168,6 +179,8 @@ abstract class SQLGeneratorBase implements GeneratorInterface
 
 	/**
 	 * Gets string column definition query string.
+	 *
+	 * @param \Gobl\DBAL\Column $column
 	 *
 	 * @return string
 	 */
@@ -549,7 +562,8 @@ abstract class SQLGeneratorBase implements GeneratorInterface
 	/**
 	 * Add default and null parts to sql.
 	 *
-	 * @param array &$sql_parts
+	 * @param \Gobl\DBAL\Types\Interfaces\TypeInterface $type
+	 * @param array &                                   $sql_parts
 	 */
 	protected static function defaultAndNullChunks(TypeInterface $type, array &$sql_parts)
 	{
@@ -575,6 +589,8 @@ abstract class SQLGeneratorBase implements GeneratorInterface
 
 	/**
 	 * Quote columns name in a given list.
+	 *
+	 * @param array $list
 	 *
 	 * @return string
 	 */

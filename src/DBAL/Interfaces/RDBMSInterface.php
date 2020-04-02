@@ -22,6 +22,8 @@ interface RDBMSInterface
 
 	/**
 	 * The Relational DataBase Management System constructor.
+	 *
+	 * @param array $config
 	 */
 	public function __construct(array $config);
 
@@ -129,6 +131,8 @@ interface RDBMSInterface
 
 	/**
 	 * Gets this rdbms query generator.
+	 *
+	 * @param \Gobl\DBAL\QueryBuilder $query
 	 *
 	 * @return \Gobl\DBAL\Generators\SQLGeneratorBase
 	 */

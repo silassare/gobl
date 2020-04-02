@@ -16,7 +16,7 @@ use InvalidArgumentException;
 
 class Collection
 {
-	const NAME_REG = '#^(?:[a-zA-Z][a-zA-Z0-9_-]*[a-zA-Z0-9]|[a-zA-Z])$#';
+	const NAME_REG = '~^(?:[a-zA-Z][a-zA-Z0-9_-]*[a-zA-Z0-9]|[a-zA-Z])$~';
 
 	/**
 	 * @var callable
@@ -31,7 +31,8 @@ class Collection
 	/**
 	 * Collection constructor.
 	 *
-	 * @param $name
+	 * @param string   $name
+	 * @param callable $callable
 	 */
 	public function __construct($name, callable $callable)
 	{
@@ -56,7 +57,10 @@ class Collection
 	/**
 	 * Runs the collection callable.
 	 *
-	 * @param int $total_records
+	 * @param \Gobl\ORM\ORMRequestBase $request
+	 * @param int                      &$total_records
+	 *
+	 * @return mixed
 	 */
 	public function run(ORMRequestBase $request, &$total_records = null)
 	{

@@ -106,10 +106,7 @@ class ORMControllerBase
 	 *
 	 * @param array $values The row values
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-	 * @throws \Gobl\ORM\Exceptions\ORMException
+	 * @throws \Throwable
 	 *
 	 * @return \Gobl\ORM\ORMEntityBase
 	 */
@@ -147,10 +144,7 @@ class ORMControllerBase
 	 * @param array $filters    the row filters
 	 * @param array $new_values the new values
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-	 * @throws \Gobl\ORM\Exceptions\ORMException
+	 * @throws \Throwable
 	 *
 	 * @return bool|\Gobl\ORM\ORMEntityBase
 	 */
@@ -199,10 +193,7 @@ class ORMControllerBase
 	 * @param array $filters    the row filters
 	 * @param array $new_values the new values
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-	 * @throws \Gobl\ORM\Exceptions\ORMException
+	 * @throws \Throwable
 	 *
 	 * @return int affected row count
 	 */
@@ -238,10 +229,7 @@ class ORMControllerBase
 	 *
 	 * @param array $filters the row filters
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-	 * @throws \Gobl\ORM\Exceptions\ORMException
+	 * @throws \Throwable
 	 *
 	 * @return bool|\Gobl\ORM\ORMEntityBase
 	 */
@@ -293,10 +281,7 @@ class ORMControllerBase
 	 *
 	 * @param array $filters the row filters
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-	 * @throws \Gobl\ORM\Exceptions\ORMException
+	 * @throws \Throwable
 	 *
 	 * @return int affected row count
 	 */
@@ -333,10 +318,7 @@ class ORMControllerBase
 	 * @param array $filters  the row filters
 	 * @param array $order_by order by rules
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-	 * @throws \Gobl\ORM\Exceptions\ORMException
+	 * @throws \Throwable
 	 *
 	 * @return null|\Gobl\ORM\ORMEntityBase
 	 */
@@ -379,16 +361,13 @@ class ORMControllerBase
 	 * @param null|int $max      maximum row to retrieve
 	 * @param int      $offset   first row offset
 	 * @param array    $order_by order by rules
-	 * @param bool|int $total    total rows without limit
+	 * @param null|int &$total   total rows without limit
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-	 * @throws \Gobl\ORM\Exceptions\ORMException
+	 * @throws \Throwable
 	 *
 	 * @return \Gobl\ORM\ORMEntityBase[]
 	 */
-	public function getAllItems(array $filters = [], $max = null, $offset = 0, array $order_by = [], &$total = false)
+	public function getAllItems(array $filters = [], $max = null, $offset = 0, array $order_by = [], &$total = null)
 	{
 		try {
 			// we use transaction for reading too
@@ -416,16 +395,16 @@ class ORMControllerBase
 	/**
 	 * Gets all items from the table with a custom query builder instance.
 	 *
-	 * @param null|int $max    maximum row to retrieve
-	 * @param int      $offset first row offset
-	 * @param bool|int $total  total rows without limit
+	 * @param \Gobl\DBAL\QueryBuilder $qb
+	 * @param null|int                $max    maximum row to retrieve
+	 * @param int                     $offset first row offset
+	 * @param null|int                &$total total rows without limit
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws \Throwable
 	 *
 	 * @return \Gobl\ORM\ORMEntityBase[]
 	 */
-	public function getAllItemsCustom(QueryBuilder $qb, $max = null, $offset = 0, &$total = false)
+	public function getAllItemsCustom(QueryBuilder $qb, $max = null, $offset = 0, &$total = null)
 	{
 		try {
 			// we use transaction for reading too
@@ -517,9 +496,9 @@ class ORMControllerBase
 	 * @param int      $offset   first row offset
 	 * @param array    $order_by order by rules
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 * @throws \Gobl\ORM\Exceptions\ORMException
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 *
 	 * @return \Gobl\ORM\ORMResultsBase
 	 */

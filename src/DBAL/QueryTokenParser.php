@@ -37,13 +37,15 @@ class QueryTokenParser
 	 * QueryTokenParser constructor.
 	 *
 	 * @param string $query
+	 * @param array  $params
+	 * @param array  $params_types
 	 */
 	public function __construct($query, array $params = [], array $params_types = [])
 	{
 		$this->query        = $query;
 		$this->params       = $params;
 		$this->params_types = $params_types;
-		$this->new_query    = \preg_replace_callback('#:(\w+)#', [$this, 'replacer'], $this->query);
+		$this->new_query    = \preg_replace_callback('~:(\w+)~', [$this, 'replacer'], $this->query);
 	}
 
 	/**

@@ -172,7 +172,7 @@ final class <%$.service.class%> extends BaseService
 	 *
 	 * @param \OZONE\OZ\Core\ORMRequest $orm_request
 	 *
-	 * @throws \Exception
+	 * @throws \Throwable
 	 */
 	public function actionCreateEntity(ORMRequest $orm_request)
 	{
@@ -200,7 +200,7 @@ final class <%$.service.class%> extends BaseService
 	 *
 	 * @param \OZONE\OZ\Core\ORMRequest $orm_request
 	 *
-	 * @throws \Exception
+	 * @throws \Throwable
 	 */
 	public function actionUpdateOneItem(ORMRequest $orm_request)
 	{
@@ -230,7 +230,7 @@ final class <%$.service.class%> extends BaseService
 	 *
 	 * @param \OZONE\OZ\Core\ORMRequest $orm_request
 	 *
-	 * @throws \Exception
+	 * @throws \Throwable
 	 */
 	public function actionUpdateAllItems(ORMRequest $orm_request)
 	{
@@ -260,7 +260,7 @@ final class <%$.service.class%> extends BaseService
 	 *
 	 * @param \OZONE\OZ\Core\ORMRequest $orm_request
 	 *
-	 * @throws \Exception
+	 * @throws \Throwable
 	 */
 	public function actionDeleteEntity(ORMRequest $orm_request)
 	{
@@ -288,7 +288,7 @@ final class <%$.service.class%> extends BaseService
 	 *
 	 * @param \OZONE\OZ\Core\ORMRequest $orm_request
 	 *
-	 * @throws \Exception
+	 * @throws \Throwable
 	 */
 	public function actionDeleteAll(ORMRequest $orm_request)
 	{
@@ -316,7 +316,7 @@ final class <%$.service.class%> extends BaseService
 	 *
 	 * @param \OZONE\OZ\Core\ORMRequest $orm_request
 	 *
-	 * @throws \Exception
+	 * @throws \Throwable
 	 */
 	public function actionGetEntity(ORMRequest $orm_request)
 	{
@@ -351,7 +351,7 @@ final class <%$.service.class%> extends BaseService
 	 *
 	 * @param \OZONE\OZ\Core\ORMRequest $orm_request
 	 *
-	 * @throws \Exception
+	 * @throws \Throwable
 	 */
 	public function actionGetAll(ORMRequest $orm_request)
 	{
@@ -408,7 +408,7 @@ final class <%$.service.class%> extends BaseService
 	 *
 	 * @param \OZONE\OZ\Core\ORMRequest $orm_request
 	 *
-	 * @throws \Exception
+	 * @throws \Throwable
 	 */
 	public function actionGetRelation(ORMRequest $orm_request)
 	{
@@ -456,9 +456,9 @@ final class <%$.service.class%> extends BaseService
 	}
 
 	/**
-	 * @param \<%$.namespace%>\<%$.class.entity%> $entity
-	 * @param \OZONE\OZ\Core\ORMRequest  $orm_request
-	 * @param int                        $total_records
+	 * @param \<%$.namespace%>\<%$.class.entity%>  $entity
+	 * @param \OZONE\OZ\Core\ORMRequest   $orm_request
+	 * @param int                        &$total_records
 	 *
 	 * @return array
 	 * @throws \OZONE\OZ\Exceptions\NotFoundException
@@ -491,9 +491,9 @@ final class <%$.service.class%> extends BaseService
 	}
 
 	/**
-	 * @param \<%$.namespace%>\<%$.class.entity%>[] $entities
-	 * @param \OZONE\OZ\Core\ORMRequest    $orm_request
-	 * @param int                          $total_records
+	 * @param \<%$.namespace%>\<%$.class.entity%>[]  $entities
+	 * @param \OZONE\OZ\Core\ORMRequest     $orm_request
+	 * @param int                          &$total_records
 	 *
 	 * @return array
 	 * @throws \OZONE\OZ\Exceptions\NotFoundException
@@ -553,7 +553,8 @@ final class <%$.service.class%> extends BaseService
 		<%$.class.entity%> $entity,
 		ORMRequest $orm_request,
 		&$total_records = null
-	) {
+	)
+	{
 		$target_columns_map = [];
 		$target_columns     = $relation->getTargetTable()
 									   ->getColumns();
@@ -563,7 +564,8 @@ final class <%$.service.class%> extends BaseService
 		}
 
 		$relation_getter = $relation->getGetterName();
-		$items           = call_user_func_array([
+
+		return call_user_func_array([
 			$entity,
 			$relation_getter
 		], [
@@ -573,8 +575,6 @@ final class <%$.service.class%> extends BaseService
 			$orm_request->getOrderBy(),
 			&$total_records
 		]);
-
-		return $items;
 	}
 
 	/**
@@ -594,9 +594,8 @@ final class <%$.service.class%> extends BaseService
 		}
 
 		$relation_getter = $relation->getGetterName();
-		$item            = call_user_func([$entity, $relation_getter]);
 
-		return $item;
+		return call_user_func([$entity, $relation_getter]);
 	}
 
 	/**

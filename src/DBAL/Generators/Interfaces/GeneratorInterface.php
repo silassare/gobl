@@ -20,7 +20,10 @@ use Gobl\DBAL\QueryBuilder;
 interface GeneratorInterface
 {
 	/**
-	 * Generator constructor.
+	 * GeneratorInterface constructor.
+	 *
+	 * @param \Gobl\DBAL\QueryBuilder $qb
+	 * @param \Gobl\DBAL\DbConfig     $config
 	 */
 	public function __construct(QueryBuilder $qb, DbConfig $config);
 

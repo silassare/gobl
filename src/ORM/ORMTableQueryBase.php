@@ -220,6 +220,8 @@ class ORMTableQueryBase implements ORMFiltersScopeInterface
 	}
 
 	/**
+	 * @param array $filters
+	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 * @throws \Gobl\ORM\Exceptions\ORMQueryException

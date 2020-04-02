@@ -20,6 +20,9 @@ class CRUDDelete extends CRUDFilterableAction
 {
 	/**
 	 * CRUDDeleteAction constructor.
+	 *
+	 * @param \Gobl\DBAL\Table $table
+	 * @param array            $filters
 	 */
 	public function __construct(Table $table, array $filters)
 	{

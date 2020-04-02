@@ -36,6 +36,8 @@ class MySQL extends Db
 
 	/**
 	 * MySQL constructor.
+	 *
+	 * @param array $config
 	 */
 	public function __construct(array $config)
 	{

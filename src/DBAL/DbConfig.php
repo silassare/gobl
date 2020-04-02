@@ -16,6 +16,11 @@ final class DbConfig
 	/** @var array */
 	private $config;
 
+	/**
+	 * DbConfig constructor.
+	 *
+	 * @param array $config
+	 */
 	public function __construct(array $config)
 	{
 		$this->config = \array_merge([

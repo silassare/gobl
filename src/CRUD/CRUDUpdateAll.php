@@ -20,6 +20,10 @@ class CRUDUpdateAll extends CRUDFilterableAction
 {
 	/**
 	 * CRUDUpdateAll constructor.
+	 *
+	 * @param \Gobl\DBAL\Table $table
+	 * @param array            $filters
+	 * @param array            $form
 	 */
 	public function __construct(Table $table, array $filters, array $form)
 	{

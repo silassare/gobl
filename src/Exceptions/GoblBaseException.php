@@ -32,7 +32,9 @@ abstract class GoblBaseException extends Exception
 	/**
 	 * GoblBaseException constructor.
 	 *
-	 * @param string $message
+	 * @param string          $message
+	 * @param array           $data
+	 * @param null|\Throwable $previous
 	 */
 	public function __construct($message, array $data = [], Throwable $previous = null)
 	{
@@ -57,7 +59,7 @@ abstract class GoblBaseException extends Exception
 		if (!$show_sensitive) {
 			$data = [];
 
-			foreach ($this->_data as $key => $value) {
+			foreach ($this->data as $key => $value) {
 				if (\is_int($key) || $key[0] !== self::SENSITIVE_DATA_PREFIX) {
 					$data[$key] = $value;
 				}
@@ -71,6 +73,8 @@ abstract class GoblBaseException extends Exception
 
 	/**
 	 * Sets debug data.
+	 *
+	 * @param array $data
 	 */
 	public function setData(array $data)
 	{
@@ -84,14 +88,14 @@ abstract class GoblBaseException extends Exception
 	 */
 	public function __toString()
 	{
-		$e_data = \json_encode($this->getData(true));
+		$data = \json_encode($this->getData(true));
 
 		return <<<STRING
 \tFile    : {$this->getFile()}
 \tLine    : {$this->getLine()}
 \tCode    : {$this->getCode()}
 \tMessage : {$this->getMessage()}
-\tData    : $e_data
+\tData    : $data
 \tTrace   : {$this->getTraceAsString()}
 STRING;
 	}

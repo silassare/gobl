@@ -31,6 +31,8 @@ class CRUDHandlerDefault implements CRUDHandlerInterface
 	}
 
 	/**
+	 * @param \Gobl\CRUD\CRUDCreate $action
+	 *
 	 * @return bool
 	 */
 	public function onBeforeCreate(CRUDCreate $action)
@@ -39,6 +41,8 @@ class CRUDHandlerDefault implements CRUDHandlerInterface
 	}
 
 	/**
+	 * @param \Gobl\CRUD\CRUDRead $action
+	 *
 	 * @return bool
 	 */
 	public function onBeforeRead(CRUDRead $action)
@@ -47,6 +51,8 @@ class CRUDHandlerDefault implements CRUDHandlerInterface
 	}
 
 	/**
+	 * @param \Gobl\CRUD\CRUDUpdate $action
+	 *
 	 * @return bool
 	 */
 	public function onBeforeUpdate(CRUDUpdate $action)
@@ -55,6 +61,8 @@ class CRUDHandlerDefault implements CRUDHandlerInterface
 	}
 
 	/**
+	 * @param \Gobl\CRUD\CRUDDelete $action
+	 *
 	 * @return bool
 	 */
 	public function onBeforeDelete(CRUDDelete $action)
@@ -63,6 +71,8 @@ class CRUDHandlerDefault implements CRUDHandlerInterface
 	}
 
 	/**
+	 * @param \Gobl\CRUD\CRUDReadAll $action
+	 *
 	 * @return bool
 	 */
 	public function onBeforeReadAll(CRUDReadAll $action)
@@ -71,6 +81,8 @@ class CRUDHandlerDefault implements CRUDHandlerInterface
 	}
 
 	/**
+	 * @param \Gobl\CRUD\CRUDUpdateAll $action
+	 *
 	 * @return bool
 	 */
 	public function onBeforeUpdateAll(CRUDUpdateAll $action)
@@ -79,6 +91,8 @@ class CRUDHandlerDefault implements CRUDHandlerInterface
 	}
 
 	/**
+	 * @param \Gobl\CRUD\CRUDDeleteAll $action
+	 *
 	 * @return bool
 	 */
 	public function onBeforeDeleteAll(CRUDDeleteAll $action)
@@ -87,6 +101,8 @@ class CRUDHandlerDefault implements CRUDHandlerInterface
 	}
 
 	/**
+	 * @param \Gobl\CRUD\CRUDColumnUpdate $action
+	 *
 	 * @return bool
 	 */
 	public function onBeforeColumnUpdate(CRUDColumnUpdate $action)

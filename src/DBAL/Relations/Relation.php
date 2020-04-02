@@ -18,9 +18,9 @@ use InvalidArgumentException;
 
 abstract class Relation
 {
-	const NAME_PATTERN = '[a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9]|[a-zA-Z]';
+	const NAME_PATTERN = '[a-zA-Z][a-zA-Z0-9_-]*[a-zA-Z0-9]|[a-zA-Z]';
 
-	const NAME_REG     = '#^(?:' . self::NAME_PATTERN . ')$#';
+	const NAME_REG     = '~^(?:' . self::NAME_PATTERN . ')$~';
 
 	const ONE_TO_ONE   = 1;
 
@@ -51,9 +51,11 @@ abstract class Relation
 	/**
 	 * Relation constructor.
 	 *
-	 * @param string     $name
-	 * @param null|array $columns
-	 * @param int        $type
+	 * @param string           $name
+	 * @param \Gobl\DBAL\Table $host_table
+	 * @param \Gobl\DBAL\Table $target_table
+	 * @param null|array       $columns
+	 * @param int              $type
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */

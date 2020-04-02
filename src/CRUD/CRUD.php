@@ -110,8 +110,9 @@ class CRUD
 	/**
 	 * Create assertion.
 	 *
+	 * @param array &$form
+	 *
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 * @throws \Exception
 	 */
 	public function assertCreate(array &$form)
 	{
@@ -132,6 +133,8 @@ class CRUD
 	/**
 	 * Read assertion.
 	 *
+	 * @param array &$filters
+	 *
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
 	 */
 	public function assertRead(array &$filters)
@@ -148,6 +151,8 @@ class CRUD
 
 	/**
 	 * Read all assertion.
+	 *
+	 * @param array &$filters
 	 *
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
 	 */
@@ -166,8 +171,10 @@ class CRUD
 	/**
 	 * Update assertion.
 	 *
+	 * @param array &$filters
+	 * @param array &$form
+	 *
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 * @throws \Exception
 	 */
 	public function assertUpdate(array &$filters, array &$form)
 	{
@@ -187,10 +194,10 @@ class CRUD
 	/**
 	 * Update all assertion.
 	 *
-	 * @param $form
+	 * @param array &$filters
+	 * @param array &$form
 	 *
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 * @throws \Exception
 	 */
 	public function assertUpdateAll(array &$filters, array &$form)
 	{
@@ -210,6 +217,8 @@ class CRUD
 	/**
 	 * Delete assertion.
 	 *
+	 * @param array &$filters
+	 *
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
 	 */
 	public function assertDelete(array &$filters)
@@ -226,6 +235,8 @@ class CRUD
 
 	/**
 	 * Delete all assertion.
+	 *
+	 * @param array &$filters
 	 *
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
 	 */
@@ -253,6 +264,8 @@ class CRUD
 
 	/**
 	 * Checks columns values for create.
+	 *
+	 * @param array $form
 	 *
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
 	 */
@@ -286,6 +299,8 @@ class CRUD
 
 	/**
 	 * Checks columns values for update.
+	 *
+	 * @param array &$form
 	 *
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
 	 */
@@ -324,6 +339,8 @@ class CRUD
 
 	/**
 	 * Sets the CRUD handler provider.
+	 *
+	 * @param callable $provider
 	 */
 	public static function setHandlerProvider(callable $provider)
 	{

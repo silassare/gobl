@@ -349,6 +349,7 @@ class Rule
 	 * Adds IN condition.
 	 *
 	 * @param string $a
+	 * @param array  $b
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 *
@@ -373,6 +374,7 @@ class Rule
 	 * Adds NOT IN condition.
 	 *
 	 * @param string $a
+	 * @param array  $b
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 *
@@ -439,6 +441,7 @@ class Rule
 	 * Join a list of condition with a given glue.
 	 *
 	 * @param string $glue
+	 * @param array  $list
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 *

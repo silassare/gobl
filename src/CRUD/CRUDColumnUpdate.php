@@ -26,6 +26,10 @@ class CRUDColumnUpdate extends CRUDBase
 
 	/**
 	 * CRUDColumnUpdate constructor.
+	 *
+	 * @param \Gobl\DBAL\Table  $table
+	 * @param \Gobl\DBAL\Column $column
+	 * @param array             $form
 	 */
 	public function __construct(Table $table, Column $column, array $form)
 	{

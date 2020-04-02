@@ -83,7 +83,9 @@ class ORMRequestBase
 	private $max;
 
 	/**
-	 * ORMQueryContext constructor.
+	 * ORMRequestBase constructor.
+	 *
+	 * @param array $request
 	 */
 	public function __construct(array $request = [])
 	{
@@ -97,6 +99,8 @@ class ORMRequestBase
 	/**
 	 * Creates scoped instance.
 	 *
+	 * @param \Gobl\DBAL\Table $table
+	 *
 	 * @return \Gobl\ORM\ORMRequestBase
 	 */
 	public function createScopedInstance(Table $table)
@@ -107,7 +111,9 @@ class ORMRequestBase
 	}
 
 	/**
-	 * Returns form data
+	 * Returns form data.
+	 *
+	 * @param null|\Gobl\DBAL\Table $table
 	 *
 	 * @return array
 	 */
@@ -118,6 +124,8 @@ class ORMRequestBase
 
 	/**
 	 * Sets filters.
+	 *
+	 * @param array $filters
 	 *
 	 * @return $this
 	 */
@@ -130,6 +138,8 @@ class ORMRequestBase
 
 	/**
 	 * Returns the request filters
+	 *
+	 * @param null|\Gobl\DBAL\Table $table
 	 *
 	 * @return array
 	 */
@@ -161,6 +171,7 @@ class ORMRequestBase
 	 * Sets filters of a given column name.
 	 *
 	 * @param string $column_name
+	 * @param array  $filters
 	 *
 	 * @return $this
 	 */
@@ -192,6 +203,8 @@ class ORMRequestBase
 	 *
 	 * @param string $name
 	 * @param null   $def
+	 *
+	 * @return null|mixed
 	 */
 	public function getFormField($name, $def = null)
 	{
@@ -229,6 +242,8 @@ class ORMRequestBase
 
 	/**
 	 * Returns parsed request data.
+	 *
+	 * @param null|\Gobl\DBAL\Table $table
 	 *
 	 * @return array
 	 */
@@ -304,6 +319,8 @@ class ORMRequestBase
 	/**
 	 * Returns the request order by rules.
 	 *
+	 * @param null|\Gobl\DBAL\Table $table
+	 *
 	 * @return array
 	 */
 	public function getOrderBy(Table $table = null)
@@ -331,6 +348,8 @@ class ORMRequestBase
 
 	/**
 	 * Returns requested collection
+	 *
+	 * @param null|\Gobl\DBAL\Table $table
 	 *
 	 * @return string
 	 */
@@ -366,6 +385,8 @@ class ORMRequestBase
 	/**
 	 * Returns requested relations.
 	 *
+	 * @param null|\Gobl\DBAL\Table $table
+	 *
 	 * @return array
 	 */
 	public function getRelations(Table $table = null)
@@ -374,6 +395,8 @@ class ORMRequestBase
 	}
 
 	/**
+	 * @param array $request
+	 *
 	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 */
 	private function parse(array $request)
@@ -443,6 +466,9 @@ class ORMRequestBase
 	/**
 	 * Returns a filtered map using the table columns.
 	 *
+	 * @param array                 $map
+	 * @param null|\Gobl\DBAL\Table $table
+	 *
 	 * @return array
 	 */
 	private static function scopedColumns(array $map, Table $table = null)
@@ -470,6 +496,9 @@ class ORMRequestBase
 	/**
 	 * Returns a filtered map using the table relations.
 	 *
+	 * @param array                 $map
+	 * @param null|\Gobl\DBAL\Table $table
+	 *
 	 * @return array
 	 */
 	private static function scopedRelations(array $map, Table $table = null)
@@ -492,6 +521,8 @@ class ORMRequestBase
 	/**
 	 * Normalize request filters
 	 *
+	 * @param array $filters
+	 *
 	 * @return array
 	 */
 	private static function normalizeFilters(array $filters)
@@ -507,6 +538,8 @@ class ORMRequestBase
 
 	/**
 	 * Decode request collection
+	 *
+	 * @param array $request
 	 *
 	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 *
@@ -536,6 +569,8 @@ class ORMRequestBase
 	/**
 	 * Encode request relations
 	 *
+	 * @param array $relations
+	 *
 	 * @return string
 	 */
 	private static function encodeRelations(array $relations)
@@ -545,6 +580,8 @@ class ORMRequestBase
 
 	/**
 	 * Decode request relations
+	 *
+	 * @param array $request
 	 *
 	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 *
@@ -576,7 +613,9 @@ class ORMRequestBase
 	}
 
 	/**
-	 * Decode request order_by
+	 * Decode request order by.
+	 *
+	 * @param array $request_data
 	 *
 	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 *
@@ -626,7 +665,9 @@ class ORMRequestBase
 	}
 
 	/**
-	 * Encode request order_by
+	 * Encode request order by.
+	 *
+	 * @param array $order_by
 	 *
 	 * @return string
 	 */
@@ -652,7 +693,8 @@ class ORMRequestBase
 	 * ?page=2          => ['max' => default|10, 'page' => 2, 'offset' => 10 ]
 	 * ?                => ['max' => null, 'page' => 1, 'offset' => 0 ]
 	 *
-	 * @param int $max_default default max
+	 * @param array $request_data
+	 * @param int   $max_default  default max
 	 *
 	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 *

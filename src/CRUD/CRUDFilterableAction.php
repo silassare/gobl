@@ -26,7 +26,10 @@ class CRUDFilterableAction extends CRUDBase
 	/**
 	 * CRUDFilterable constructor.
 	 *
-	 * @param string $type
+	 * @param string           $type
+	 * @param \Gobl\DBAL\Table $table
+	 * @param array            $filters
+	 * @param array            $form
 	 */
 	protected function __construct($type, Table $table, array $filters, array $form = [])
 	{
@@ -44,6 +47,8 @@ class CRUDFilterableAction extends CRUDBase
 	}
 
 	/**
+	 * @param array $filters
+	 *
 	 * @return \Gobl\CRUD\CRUDFilterableAction
 	 */
 	public function setFilters(array $filters)

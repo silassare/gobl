@@ -24,6 +24,9 @@ class MySQLGenerator extends SQLGeneratorBase
 {
 	/**
 	 * MySQLSyntax constructor.
+	 *
+	 * @param \Gobl\DBAL\QueryBuilder $qb
+	 * @param \Gobl\DBAL\DbConfig     $config
 	 */
 	public function __construct(QueryBuilder $qb, DbConfig $config)
 	{

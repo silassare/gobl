@@ -26,9 +26,9 @@ use InvalidArgumentException;
  */
 class Table
 {
-	const NAME_REG   = '#^(?:[a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9]|[a-zA-Z])$#';
+	const NAME_REG   = '~^(?:[a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9]|[a-zA-Z])$~';
 
-	const PREFIX_REG = '#^(?:[a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9]|[a-zA-Z])$#';
+	const PREFIX_REG = '~^(?:[a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9]|[a-zA-Z])$~';
 
 	/**
 	 * The table name.
@@ -204,6 +204,8 @@ class Table
 	/**
 	 * Adds relation to this table.
 	 *
+	 * @param \Gobl\DBAL\Relations\Relation $relation
+	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 *
 	 * @return \Gobl\DBAL\Table
@@ -237,6 +239,8 @@ class Table
 	/**
 	 * Adds virtual relation to this table.
 	 *
+	 * @param \Gobl\DBAL\Relations\VirtualRelation $virtual_relation
+	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 *
 	 * @return \Gobl\DBAL\Table
@@ -253,6 +257,8 @@ class Table
 
 	/**
 	 * Adds collection to this table.
+	 *
+	 * @param \Gobl\DBAL\Collections\Collection $collection
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 *
@@ -947,8 +953,9 @@ class Table
 	}
 
 	/**
-	 * @param string $name
-	 * @param bool   $handle_list
+	 * @param string   $name
+	 * @param callable $callable
+	 * @param bool     $handle_list
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 *
@@ -962,7 +969,8 @@ class Table
 	}
 
 	/**
-	 * @param string $name
+	 * @param string   $name
+	 * @param callable $callable
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 *
@@ -1024,6 +1032,8 @@ class Table
 	/**
 	 * Asserts if we can add the relation to this table.
 	 *
+	 * @param \Gobl\DBAL\Relations\Relation $relation
+	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	private function assertCanAddRelation(Relation $relation)
@@ -1067,6 +1077,8 @@ class Table
 	/**
 	 * Asserts if we can add the virtual relation to this table.
 	 *
+	 * @param \Gobl\DBAL\Relations\VirtualRelation $virtual_relation
+	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	private function assertCanAddVirtualRelation(VirtualRelation $virtual_relation)
@@ -1108,6 +1120,8 @@ class Table
 
 	/**
 	 * Asserts if we can add the collection to this table.
+	 *
+	 * @param \Gobl\DBAL\Collections\Collection $collection
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */

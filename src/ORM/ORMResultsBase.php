@@ -83,6 +83,8 @@ class ORMResultsBase implements \Countable, \Iterator
 	 * @param int $fetch_style
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 *
+	 * @return mixed
 	 */
 	public function fetch($fetch_style = \PDO::FETCH_ASSOC)
 	{
@@ -111,6 +113,8 @@ class ORMResultsBase implements \Countable, \Iterator
 	 * @param bool $strict enable/disable strict mode on class fetch
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 *
+	 * @return mixed
 	 */
 	public function fetchClass($strict = true)
 	{
@@ -134,6 +138,8 @@ class ORMResultsBase implements \Countable, \Iterator
 	 * @param bool $strict enable/disable strict mode on class fetch
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 *
+	 * @return array
 	 */
 	public function fetchAllClass($strict = true)
 	{

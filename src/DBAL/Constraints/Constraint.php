@@ -19,7 +19,7 @@ use InvalidArgumentException;
  */
 abstract class Constraint
 {
-	const NAME_REG    = '#^(?:[a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9]|[a-zA-Z])$#';
+	const NAME_REG    = '~^(?:[a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9]|[a-zA-Z])$~';
 
 	const PRIMARY_KEY = 1;
 

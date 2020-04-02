@@ -22,13 +22,13 @@ class QueryBuilder
 {
 	const QUERY_TYPE_CREATE_TABLE = 1;
 
-	const QUERY_TYPE_SELECT       = 2;
+	const QUERY_TYPE_SELECT = 2;
 
-	const QUERY_TYPE_INSERT       = 3;
+	const QUERY_TYPE_INSERT = 3;
 
-	const QUERY_TYPE_UPDATE       = 4;
+	const QUERY_TYPE_UPDATE = 4;
 
-	const QUERY_TYPE_DELETE       = 5;
+	const QUERY_TYPE_DELETE = 5;
 
 	/** @var int */
 	protected static $GEN_IDENTIFIER_COUNTER = 0;
@@ -63,9 +63,9 @@ class QueryBuilder
 		'createTable'      => null,
 	];
 
-	private $alias_map          = [];
+	private $alias_map = [];
 
-	private $bound_values       = [];
+	private $bound_values = [];
 
 	private $bound_values_types = [];
 
@@ -361,6 +361,7 @@ class QueryBuilder
 
 	/**
 	 * @param null|string $table
+	 * @param array       $columns
 	 * @param bool        $auto_prefix
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
@@ -447,7 +448,8 @@ class QueryBuilder
 	}
 
 	/**
-	 * @param bool $auto_prefix
+	 * @param array $columns
+	 * @param bool  $auto_prefix
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 *
@@ -467,6 +469,7 @@ class QueryBuilder
 
 	/**
 	 * @param string $table
+	 * @param array  $columns
 	 * @param bool   $auto_prefix
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
@@ -487,6 +490,9 @@ class QueryBuilder
 
 	/**
 	 * Alias for QueryBuilder#bindArray
+	 *
+	 * @param array $values
+	 * @param array $types
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 *
@@ -551,6 +557,8 @@ class QueryBuilder
 	}
 
 	/**
+	 * @param array $groupBy
+	 *
 	 * @return $this
 	 */
 	public function groupBy(array $groupBy)
@@ -577,6 +585,8 @@ class QueryBuilder
 	}
 
 	/**
+	 * @param array $orderBy
+	 *
 	 * @return $this
 	 */
 	public function orderBy(array $orderBy)
@@ -638,7 +648,7 @@ class QueryBuilder
 	public function innerJoin($firstTableAlias, $secondTable, $secondTableAlias, $condition = null)
 	{
 		if (isset($condition) && !($condition instanceof Rule) && !\is_string($condition)) {
-			throw new DBALException("The condition should be of type: \Gobl\DBAL\Rule|string|null");
+			throw new DBALException(\sprintf('The condition should be of type: %s|string|null', Rule::class));
 		}
 
 		return $this->join('INNER', $firstTableAlias, $secondTable, $secondTableAlias, $condition);
@@ -746,6 +756,8 @@ class QueryBuilder
 	/**
 	 * List items to be used in condition(IN and NOT IN).
 	 *
+	 * @param array $items
+	 *
 	 * @return string
 	 */
 	public function arrayToListItems(array $items)
@@ -762,6 +774,7 @@ class QueryBuilder
 
 	/**
 	 * @param string $table
+	 * @param array  $columns
 	 * @param string $auto_prefix
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException

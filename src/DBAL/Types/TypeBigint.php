@@ -20,9 +20,9 @@ use Gobl\DBAL\Types\Interfaces\TypeInterface;
  */
 class TypeBigint extends TypeBase
 {
-	const BIGINT_REG          = '#[-+]?(?:[1-9][0-9]*|0)#';
+	const BIGINT_REG          = '~[-+]?(?:[1-9][0-9]*|0)~';
 
-	const BIGINT_UNSIGNED_REG = '#[+]?(?:[1-9][0-9]*|0)#';
+	const BIGINT_UNSIGNED_REG = '~[+]?(?:[1-9][0-9]*|0)~';
 
 	private $unsigned = false;
 
