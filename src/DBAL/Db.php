@@ -204,15 +204,15 @@ abstract class Db implements RDBMSInterface
 	/**
 	 * Adds table from options.
 	 *
-	 * @param array  $tables        The tables options
 	 * @param string $namespace     The namespace to use
+	 * @param array  $tables        The tables options
 	 * @param string $tables_prefix The tables prefix to use
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 *
 	 * @return $this
 	 */
-	public function addTablesFromOptions(array $tables, $namespace, $tables_prefix = '')
+	public function addTablesToNamespace($namespace, array $tables, $tables_prefix = '')
 	{
 		// we add tables and columns first
 		foreach ($tables as $table_name => $table_options) {
@@ -375,8 +375,8 @@ abstract class Db implements RDBMSInterface
 		foreach ($tables as $table_name => $table_options) {
 			if (
 				isset($table_options['relations'])
-				 && \is_array($table_options['relations'])
-				 && \count($table_options['relations'])
+				&& \is_array($table_options['relations'])
+				&& \count($table_options['relations'])
 			) {
 				$relations = $table_options['relations'];
 
