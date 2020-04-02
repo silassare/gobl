@@ -4,9 +4,7 @@
 	 * OneToOne relation between `<%$relation.host.table.name%>` and `<%$relation.target.table.name%>`.
 	 *
 	 * @return null|\<%$relation.target.class.use_entity%>
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 * @throws \Gobl\ORM\Exceptions\ORMException
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws \Throwable
 	 */
 	public function get<%$relation.methodSuffix%>()
 	{
@@ -36,9 +34,7 @@
 	 * @param int|bool $total	total rows without limit
 	 *
 	 * @return \<%$relation.target.class.use_entity%>[]
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 * @throws \Gobl\ORM\Exceptions\ORMException
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws \Throwable
 	 */
 	function get<%$relation.methodSuffix%>($filters = [], $max = null, $offset = 0, $order_by = [], &$total = false)
 	{<%loop ($relation.filters : $filter){%>
@@ -64,9 +60,7 @@
 	 * @param int|bool $total	total rows without limit
 	 *
 	 * @return \<%$relation.target.class.use_entity%>[]
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 * @throws \Gobl\ORM\Exceptions\ORMException
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws \Throwable
 	 */
 	function get<%$relation.methodSuffix%>($filters = [], $max = null, $offset = 0, $order_by = [], &$total = false)
 	{<%loop ($relation.filters : $filter){%>
@@ -86,9 +80,7 @@
 	 * ManyToOne relation between `<%$relation.host.table.name%>` and `<%$relation.target.table.name%>`.
 	 *
 	 * @return null|\<%$relation.target.class.use_entity%>
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 * @throws \Gobl\ORM\Exceptions\ORMException
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws \Throwable
 	 */
 	public function get<%$relation.methodSuffix%>()
 	{

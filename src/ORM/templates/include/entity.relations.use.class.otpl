@@ -1,2 +1,2 @@
-<%loop($.relations.use : $class){%>
-	use <%$class%>;<%}%>
+<%loop($.relations.use : $class){%>use <%$class%>;
+<%}%>
