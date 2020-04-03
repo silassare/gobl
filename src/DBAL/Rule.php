@@ -459,7 +459,11 @@ class Rule
 			}
 		}
 
-		$x = '(' . \implode(' ' . $glue . ' ', $list) . ')';
+		if ($len === 1) {
+			$x = \implode('', $list);
+		} else {
+			$x = '(' . \implode(' ' . $glue . ' ', $list) . ')';
+		}
 
 		if (!$len && !$this->unused_glue && !empty($this->expr)) {
 			$this->unused_glue = $glue;
