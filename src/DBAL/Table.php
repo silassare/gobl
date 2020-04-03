@@ -28,6 +28,8 @@ class Table
 {
 	const NAME_REG   = '~^(?:[a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9]|[a-zA-Z])$~';
 
+	const ALIAS_REG  = '~^(?:[a-zA-Z_][a-zA-Z0-9_]*)$~';
+
 	const PREFIX_REG = '~^(?:[a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9]|[a-zA-Z])$~';
 
 	/**
