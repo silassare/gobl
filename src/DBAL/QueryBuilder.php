@@ -175,18 +175,15 @@ class QueryBuilder
 	 *
 	 * ```
 	 *
-	 * @param string $table  the table to use
-	 * @param string $column the column to auto prefix
+	 * @param string   $table   the table to use
+	 * @param string[] $columns the columns to auto prefix
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 *
 	 * @return string
 	 */
-	public function prefix($table, $column)
+	public function prefix($table, ...$columns)
 	{
-		$columns = \func_get_args();
-		\array_shift($columns);
-
 		return \implode(' , ', $this->prefixColumnsArray($table, $columns, true));
 	}
 
@@ -826,7 +823,7 @@ class QueryBuilder
 	 */
 	private function useAlias($table, $alias)
 	{
-		if (empty($alias) || !\is_string($alias)) {
+		if (empty($alias) || !\is_string($alias) || !\preg_match(Table::ALIAS_REG, $alias)) {
 			throw new DBALException(\sprintf('invalid alias "%s".', $alias));
 		}
 
