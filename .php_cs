@@ -77,7 +77,7 @@ return $config
                 'indentation_type'                              => true,
                 'is_null'                                       => true,
                 'line_ending'                                   => true,
-                'list_syntax'                                   => ['syntax' => 'short'],
+                'list_syntax'                                   => ['syntax' => 'long'],
                 'logical_operators'                             => true,
                 'lowercase_cast'                                => true,
                 'lowercase_constants'                           => true,
