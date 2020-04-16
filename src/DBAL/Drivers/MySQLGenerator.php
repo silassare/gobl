@@ -128,8 +128,9 @@ class MySQLGenerator extends SQLGeneratorBase
 		$table_body  = \implode(',' . \PHP_EOL, $sql);
 		$table_alter = \implode(\PHP_EOL, $table_alter);
 		$charset     = $this->config->getDbCharset();
+		$collate     = $this->config->getDbCollate();
 
-		return <<<OTPL
+		return <<<GOBL_MySQL
 --
 -- Table structure for table `$table_name`
 --
@@ -139,9 +140,9 @@ DROP TABLE IF EXISTS `$table_name`;
 /*!40101 SET character_set_client = $charset */;
 CREATE TABLE `$table_name` (
 $table_body
-) ENGINE=InnoDB DEFAULT CHARSET=$charset;
+) ENGINE=InnoDB DEFAULT CHARSET=$charset COLLATE=$collate;
 $table_alter
 /*!40101 SET character_set_client = @saved_cs_client */;
-OTPL;
+GOBL_MySQL;
 	}
 }

@@ -28,7 +28,8 @@ final class DbConfig
 			'db_name'    => '',
 			'db_user'    => '',
 			'db_pass'    => '',
-			'db_charset' => '',
+			'db_charset' => 'utf8mb4',
+			'db_collate' => 'utf8mb4_unicode_ci',
 		], $config);
 	}
 
@@ -78,5 +79,13 @@ final class DbConfig
 	public function getDbCharset()
 	{
 		return $this->config['db_charset'];
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getDbCollate()
+	{
+		return $this->config['db_collate'];
 	}
 }
