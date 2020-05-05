@@ -70,7 +70,7 @@ class ORMEntityBase extends ArrayCapable
 	/** @var \Gobl\DBAL\Table */
 	protected $oeb_table;
 
-	/*@var bool */
+	/** @var bool */
 	protected $oeb_is_new;
 
 	/** @var bool */

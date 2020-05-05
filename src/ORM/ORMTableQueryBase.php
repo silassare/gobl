@@ -31,10 +31,10 @@ class ORMTableQueryBase implements ORMFiltersScopeInterface
 	/** @var \Gobl\DBAL\Table */
 	protected $table;
 
-	/*@var string */
+	/** @var string */
 	protected $table_name;
 
-	/*@var string */
+	/** @var string */
 	protected $table_results_class;
 
 	/**

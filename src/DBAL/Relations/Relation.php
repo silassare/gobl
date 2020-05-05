@@ -42,7 +42,7 @@ abstract class Relation
 	/** @var bool */
 	protected $target_is_slave;
 
-	/*@var array */
+	/** @var array */
 	protected $relation_columns;
 
 	/** @var string */

@@ -614,7 +614,7 @@ abstract class Db implements RDBMSInterface
 			throw new DBALException(\sprintf('Invalid rdbms: %s.', $type));
 		}
 
-		/*@var \Gobl\DBAL\Db $rdbms_class */
+		/* @var \Gobl\DBAL\Db $rdbms_class */
 		$rdbms_class = self::$rdbms_map[$type];
 
 		return new $rdbms_class($config);
