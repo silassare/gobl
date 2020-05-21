@@ -1,4 +1,5 @@
 //__GOBL_HEAD_COMMENT__
+// tslint:disable
 import {
 	GoblEntity,
 	register,

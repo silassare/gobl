@@ -1,4 +1,5 @@
 <%@import('include/head.comment.otpl',$)%>
+// tslint:disable
 import {
 	GoblEntity,
 	register,
