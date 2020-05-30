@@ -11,28 +11,28 @@
 
 namespace Gobl\ORM;
 
-use Exception;
 use Gobl\DBAL\Collections\Collection;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Table;
 use Gobl\ORM\Exceptions\ORMQueryException;
-use InvalidArgumentException;
 
 class ORMRequestBase
 {
-	const FORM_DATA_PARAM  = 'form_data';
+	const FORM_DATA_PARAM = 'form_data';
 
-	const RELATIONS_PARAM  = 'relations';
+	const RELATIONS_PARAM = 'relations';
 
 	const COLLECTION_PARAM = 'collection';
 
-	const FILTERS_PARAM    = 'filters';
+	const FILTERS_PARAM = 'filters';
 
-	const ORDER_BY_PARAM   = 'order_by';
+	const ORDER_BY_PARAM = 'order_by';
 
-	const PAGE_PARAM       = 'page';
+	const PAGE_PARAM = 'page';
 
-	const MAX_PARAM        = 'max';
+	const MAX_PARAM = 'max';
+
+	const DELIMITER = '|';
 
 	/**
 	 * @var array
@@ -86,20 +86,20 @@ class ORMRequestBase
 	 * ORMRequestBase constructor.
 	 *
 	 * @param array $request
+	 *
+	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 */
 	public function __construct(array $request = [])
 	{
-		try {
-			$this->parse($request);
-		} catch (Exception $e) {
-			throw new InvalidArgumentException('Invalid request.', null, $e);
-		}
+		$this->parse($request);
 	}
 
 	/**
 	 * Creates scoped instance.
 	 *
 	 * @param \Gobl\DBAL\Table $table
+	 *
+	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 *
 	 * @return \Gobl\ORM\ORMRequestBase
 	 */
@@ -333,12 +333,14 @@ class ORMRequestBase
 	 *
 	 * @param string $name
 	 *
+	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 *
 	 * @return string
 	 */
 	public function setCollection($name)
 	{
 		if (!self::isValidCollectionName($name)) {
-			throw new InvalidArgumentException('The collection name is invalid.');
+			throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_COLLECTION_NAME', [self::COLLECTION_PARAM => $name]);
 		}
 
 		$this->collection = $name;
@@ -367,12 +369,14 @@ class ORMRequestBase
 	 *
 	 * @param string $name
 	 *
+	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 *
 	 * @return string
 	 */
 	public function addRelation($name)
 	{
 		if (!self::isValidRelationName($name)) {
-			throw new InvalidArgumentException('The relation name is invalid.');
+			throw new ORMQueryException('GOBL_REQUEST_INVALID_RELATION_NAME', ['relation' => $name]);
 		}
 
 		if (!\in_array($name, $this->relations)) {
@@ -575,7 +579,7 @@ class ORMRequestBase
 	 */
 	private static function encodeRelations(array $relations)
 	{
-		return \implode('|', \array_unique($relations));
+		return \implode(self::DELIMITER, \array_unique($relations));
 	}
 
 	/**
@@ -593,12 +597,8 @@ class ORMRequestBase
 			return [];
 		}
 
-		if (!\is_string($request[self::RELATIONS_PARAM])) {
-			throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_RELATIONS', $request);
-		}
-
-		if (\strlen($request[self::RELATIONS_PARAM])) {
-			$relations = \array_unique(\explode('|', $request[self::RELATIONS_PARAM]));
+		if (\is_string($request[self::RELATIONS_PARAM]) && \strlen($request[self::RELATIONS_PARAM])) {
+			$relations = \array_unique(\explode(self::DELIMITER, $request[self::RELATIONS_PARAM]));
 
 			foreach ($relations as $relation) {
 				if (!self::isValidRelationName($relation)) {
@@ -609,7 +609,19 @@ class ORMRequestBase
 			return $relations;
 		}
 
-		return [];
+		if (\is_array($request[self::RELATIONS_PARAM])) {
+			$relations = \array_unique($request[self::RELATIONS_PARAM]);
+
+			foreach ($relations as $relation) {
+				if (!self::isValidRelationName($relation)) {
+					throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_RELATIONS', $request);
+				}
+			}
+
+			return $relations;
+		}
+
+		throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_RELATIONS', $request);
 	}
 
 	/**
@@ -637,7 +649,7 @@ class ORMRequestBase
 			return [];
 		}
 
-		$rules    = \array_unique(\explode('|', $rules));
+		$rules    = \array_unique(\explode(self::DELIMITER, $rules));
 		$order_by = [];
 
 		foreach ($rules as $rule) {
@@ -683,7 +695,7 @@ class ORMRequestBase
 			}
 		}
 
-		return \implode('|', $list);
+		return \implode(self::DELIMITER, $list);
 	}
 
 	/**
