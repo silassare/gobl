@@ -18,13 +18,28 @@ use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
 use Gobl\DBAL\Utils;
-use Gobl\ORM\Exceptions\ORMException;
 use InvalidArgumentException;
 use OTpl\OTpl;
 use RuntimeException;
 
+if (!\defined('GOBL_ROOT')) {
+	\define('GOBL_ROOT', \realpath(__DIR__ . '/../../..'));
+}
+
+if (!\defined('GOBL_TEMPLATE_DIR')) {
+	\define('GOBL_TEMPLATE_DIR', \realpath(GOBL_ROOT . '/templates'));
+}
+
+if (!\defined('GOBL_SAMPLE_DIR')) {
+	\define('GOBL_SAMPLE_DIR', \realpath(__DIR__ . '/../Sample'));
+}
+
 class Generator
 {
+	private static $tpl_ext = '.otpl';
+
+	private static $templates_cache;
+
 	private $types_map = [
 		TypeInterface::TYPE_INT    => ['int', 'int'],
 		TypeInterface::TYPE_BIGINT => ['bigint', 'string'],
@@ -71,8 +86,7 @@ class Generator
 			throw new InvalidArgumentException(\sprintf('"%s" is not a valid directory path.', $path));
 		}
 
-		$ds            = \DIRECTORY_SEPARATOR;
-		$templates_dir = $this->getTemplateDir();
+		$ds = \DIRECTORY_SEPARATOR;
 
 		$path_base = $path . $ds . 'Base';
 
@@ -80,15 +94,15 @@ class Generator
 			\mkdir($path_base);
 		}
 
-		$base_query_class_tpl   = $this->getTemplate($templates_dir . 'base.query.class.otpl');
-		$base_entity_class_tpl  = $this->getTemplate($templates_dir . 'base.entity.class.otpl');
-		$base_results_class_tpl = $this->getTemplate($templates_dir . 'base.results.class.otpl');
-		$base_ctrl_class_tpl    = $this->getTemplate($templates_dir . 'base.controller.class.otpl');
+		$base_query_class_tpl   = self::getTemplateCompiler('base.query.class');
+		$base_entity_class_tpl  = self::getTemplateCompiler('base.entity.class');
+		$base_results_class_tpl = self::getTemplateCompiler('base.results.class');
+		$base_ctrl_class_tpl    = self::getTemplateCompiler('base.controller.class');
 
-		$query_class_tpl   = $this->getTemplate($templates_dir . 'query.class.otpl');
-		$entity_class_tpl  = $this->getTemplate($templates_dir . 'entity.class.otpl');
-		$results_class_tpl = $this->getTemplate($templates_dir . 'results.class.otpl');
-		$ctrl_class_tpl    = $this->getTemplate($templates_dir . 'controller.class.otpl');
+		$query_class_tpl   = self::getTemplateCompiler('query.class');
+		$entity_class_tpl  = self::getTemplateCompiler('entity.class');
+		$results_class_tpl = self::getTemplateCompiler('results.class');
+		$ctrl_class_tpl    = self::getTemplateCompiler('controller.class');
 
 		foreach ($tables as $table) {
 			$inject           = $this->describeTable($table);
@@ -130,8 +144,7 @@ class Generator
 			throw new InvalidArgumentException(\sprintf('"%s" is not a valid directory path.', $path));
 		}
 
-		$ds            = \DIRECTORY_SEPARATOR;
-		$templates_dir = $this->getTemplateDir();
+		$ds = \DIRECTORY_SEPARATOR;
 
 		$path_base = $path;
 
@@ -139,8 +152,8 @@ class Generator
 			\mkdir($path_base);
 		}
 
-		$ts_entity_class_tpl = $this->getTemplate($templates_dir . 'ts.entity.class.otpl');
-		$ts_bundle_tpl       = $this->getTemplate($templates_dir . 'ts.bundle.otpl');
+		$ts_entity_class_tpl = self::getTemplateCompiler('ts.entity.class');
+		$ts_bundle_tpl       = self::getTemplateCompiler('ts.bundle');
 		$bundle_inject       = [];
 
 		foreach ($tables as $table) {
@@ -170,124 +183,13 @@ class Generator
 	}
 
 	/**
-	 * Generate O'Zone service class for a given table.
-	 *
-	 * @param \Gobl\DBAL\Table $table             the table
-	 * @param string           $service_namespace the service class namespace
-	 * @param string           $service_dir       the destination folder path
-	 * @param string           $service_name      the service name
-	 * @param string           $service_class     the service class name to use
-	 * @param string           $header            the source header to use
-	 *
-	 * @throws \Exception
-	 * @throws \Gobl\ORM\Exceptions\ORMException
-	 *
-	 * @return array the O'Zone setting for the service
-	 */
-	public function generateOZServiceClass(
-		Table $table,
-		$service_namespace,
-		$service_dir,
-		$service_name,
-		$service_class = '',
-		$header = ''
-	) {
-		if (!\file_exists($service_dir) || !\is_dir($service_dir)) {
-			throw new InvalidArgumentException(\sprintf('"%s" is not a valid directory path.', $service_dir));
-		}
-
-		if (!$table->hasPrimaryKeyConstraint()) {
-			throw new ORMException(\sprintf('There is no primary key in the table "%s".', $table->getName()));
-		}
-
-		$pk      = $table->getPrimaryKeyConstraint();
-		$columns = $pk->getConstraintColumns();
-
-		if (\count($columns) !== 1) {
-			throw new ORMException("You can generate O'Zone service only for tables with one column as primary key.");
-		}
-
-		if (empty($service_class)) {
-			$service_class = Utils::toClassName($table->getName() . '_service');
-		}
-
-		$templates_dir                  = $this->getTemplateDir();
-		$controller_class_tpl           = $this->getTemplate($templates_dir . 'ozone.service.class.otpl');
-		$inject                         = $this->describeTable($table);
-		$inject['header']               = $header;
-		$inject['time']                 = \time();
-		$inject['service']['name']      = $service_name;
-		$inject['service']['namespace'] = $service_namespace;
-		$inject['service']['class']     = $service_class;
-		$qualified_class                = $service_namespace . '\\' . $inject['service']['class'];
-		$class_path                     = $service_dir . \DIRECTORY_SEPARATOR . $service_class . '.php';
-
-		if (\file_exists($class_path)) {
-			\rename($class_path, $class_path . '.old');
-		}
-
-		$this->writeFile($class_path, $controller_class_tpl->runGet($inject));
-
-		return [
-			'provider' => $qualified_class,
-		];
-	}
-
-	/**
-	 * Gets templates directory absolute path.
-	 *
-	 * @return string
-	 */
-	private function getTemplateDir()
-	{
-		$ds = \DIRECTORY_SEPARATOR;
-
-		return __DIR__ . $ds . '..' . $ds . 'templates' . $ds;
-	}
-
-	/**
-	 * Write contents to file.
-	 *
-	 * @param string $path      the file path
-	 * @param mixed  $content   the file content
-	 * @param bool   $overwrite overwrite file if exists, default is true
-	 */
-	private function writeFile($path, $content, $overwrite = true)
-	{
-		if (!$overwrite && \file_exists($path)) {
-			return;
-		}
-
-		\file_put_contents($path, $content);
-	}
-
-	/**
-	 * Gets template object instance with a given template source.
-	 *
-	 * @param string $source the template source
-	 *
-	 * @return \OTpl\OTpl
-	 */
-	private function getTemplate($source)
-	{
-		try {
-			$o = new OTpl();
-			$o->parse($source);
-		} catch (Exception $e) {
-			throw new RuntimeException('Template compile error.', null, $e);
-		}
-
-		return $o;
-	}
-
-	/**
 	 * Returns array that can be used to generate file.
 	 *
 	 * @param \Gobl\DBAL\Table $table
 	 *
 	 * @return array
 	 */
-	private function describeTable(Table $table)
+	public function describeTable(Table $table)
 	{
 		$inject              = $this->getTableInject($table);
 		$inject['columns']   = $this->describeTableColumns($table);
@@ -303,7 +205,7 @@ class Generator
 	 *
 	 * @return array
 	 */
-	private function describeTableColumns(Table $table)
+	public function describeTableColumns(Table $table)
 	{
 		$columns = $table->getColumns();
 		$list    = [];
@@ -324,7 +226,7 @@ class Generator
 	 *
 	 * @return array
 	 */
-	private function describeColumn(Column $column)
+	public function describeColumn(Column $column)
 	{
 		$name       = $column->getName();
 		$type_const = $column->getTypeObject()
@@ -351,7 +253,7 @@ class Generator
 	 *
 	 * @return array
 	 */
-	private function describeTableRelations(Table $table)
+	public function describeTableRelations(Table $table)
 	{
 		$use            = [];
 		$relation_types = [
@@ -419,7 +321,7 @@ class Generator
 	 *
 	 * @return array
 	 */
-	private function getTableInject(Table $table)
+	public function getTableInject(Table $table)
 	{
 		$query_class_name      = Utils::toClassName($table->getPluralName() . '_query');
 		$entity_class_name     = Utils::toClassName($table->getSingularName());
@@ -456,4 +358,155 @@ class Generator
 			],
 		];
 	}
+
+	/**
+	 * Write contents to file.
+	 *
+	 * @param string $path      the file path
+	 * @param mixed  $content   the file content
+	 * @param bool   $overwrite overwrite file if exists, default is true
+	 */
+	private function writeFile($path, $content, $overwrite = true)
+	{
+		if (!$overwrite && \file_exists($path)) {
+			return;
+		}
+
+		\file_put_contents($path, $content);
+	}
+
+	/**
+	 * Gets template compiler instance for a given template name.
+	 *
+	 * @param string $name the template name
+	 *
+	 * @return \OTpl\OTpl
+	 */
+	public static function getTemplateCompiler($name)
+	{
+		try {
+			$path = GOBL_TEMPLATE_DIR . \DIRECTORY_SEPARATOR . $name . self::$tpl_ext;
+			$o    = new OTpl();
+			$o->parse($path);
+		} catch (Exception $e) {
+			throw new RuntimeException('Template compile error.', null, $e);
+		}
+
+		return $o;
+	}
+
+	/**
+	 * Add or overwrite a template.
+	 *
+	 * @param string $name
+	 * @param string $path
+	 * @param array  $replaces
+	 */
+	public static function setTemplate($name, $path, $replaces = [])
+	{
+		self::setTemplates([
+			$name => [
+				'path'     => $path,
+				'replaces' => $replaces,
+			],
+		]);
+	}
+
+	/**
+	 * Add or overwrite template list.
+	 *
+	 * @param array $list
+	 */
+	public static function setTemplates(array $list)
+	{
+		$cache_file = GOBL_TEMPLATE_DIR . \DIRECTORY_SEPARATOR . 'gobl.templates.cache.json';
+
+		if (!isset(self::$templates_cache)) {
+			if (\file_exists($cache_file)) {
+				self::$templates_cache = \json_decode(\file_get_contents($cache_file), true);
+			} else {
+				self::$templates_cache = [];
+			}
+		}
+
+		$changed = false;
+
+		foreach ($list as $name => $item) {
+			$path     = \realpath($item['path']);
+			$replaces = isset($item['replaces']) ? $item['replaces'] : [];
+
+			if (\file_exists($path) && \is_file($path)) {
+				$sum = \md5($name . \json_encode($replaces) . \md5_file($path));
+
+				if (!isset(self::$templates_cache[$path]['md5']) || self::$templates_cache[$path]['md5'] !== $sum) {
+					$changed = true;
+
+					self::$templates_cache[$name] = ['path' => $path, 'md5' => $sum];
+
+					$output = self::toTemplate(\file_get_contents($path), $replaces);
+
+					\file_put_contents(GOBL_TEMPLATE_DIR . \DIRECTORY_SEPARATOR . $name . self::$tpl_ext, $output);
+				}
+			} else {
+				throw new InvalidArgumentException(\sprintf('Template path "%s" is not a valid file path.', $path));
+			}
+		}
+
+		if ($changed) {
+			\file_put_contents($cache_file, \json_encode(self::$templates_cache));
+		}
+	}
+
+	/**
+	 * Converts source code to templates.
+	 *
+	 * @param string $source
+	 * @param array  $replaces
+	 *
+	 * @return string|string[]
+	 */
+	public static function toTemplate($source, $replaces = [])
+	{
+		$replaces = [
+			'//__GOBL_HEAD_COMMENT__'               => '<%@import(\'include/head.comment.otpl\',$)%>',
+			'//__GOBL_RELATIONS_USE_CLASS__'        => '<%@import(\'include/entity.relations.use.class.otpl\',$)%>',
+			'//__GOBL_COLUMNS_CONST__'              => '<%@import(\'include/entity.columns.const.otpl\',$)%>',
+			'//__GOBL_RELATIONS_PROPERTIES__'       => '<%@import(\'include/entity.relations.properties.otpl\',$)%>',
+			'//__GOBL_RELATIONS_GETTERS__'          => '<%@import(\'include/entity.relations.getters.otpl\',$)%>',
+			'//__GOBL_COLUMNS_GETTERS_SETTERS__'    => '<%@import(\'include/entity.getters.setters.otpl\',$)%>',
+			'//__GOBL_QUERY_FILTER_BY_COLUMNS__'    => '<%@import(\'include/query.filter.by.columns.otpl\',$)%>',
+			'//__GOBL_TS_COLUMNS_CONST__'           => '<%@import(\'include/ts.columns.const.otpl\',$)%>',
+			'//__GOBL_TS_COLUMNS_GETTERS_SETTERS__' => '<%@import(\'include/ts.getters.setters.otpl\',$)%>',
+			'//__GOBL_TS_ENTITIES_CLASS_LIST__'     => '<%@import(\'include/ts.entities.list.otpl\',$)%>',
+			'//__GOBL_VERSION__'                    => \trim(\file_get_contents(GOBL_ROOT . '/VERSION')),
+
+			'MY_DB_NS'               => '<%$.namespace%>',
+			'MyTableQuery'           => '<%$.class.query%>',
+			'MyEntity'               => '<%$.class.entity%>',
+			'MyResults'              => '<%$.class.results%>',
+			'MyController'           => '<%$.class.controller%>',
+			'my_table'               => '<%$.table.name%>',
+			'my_id'                  => '<%$.pk_columns[0].fullName%>',
+			'\'my_pk_column_const\'' => '<%$.class.entity%>::<%$.pk_columns[0].const%>',
+
+		] + $replaces;
+
+		$search      = \array_keys($replaces);
+		$replacement = \array_values($replaces);
+
+		return \str_replace($search, $replacement, $source);
+	}
 }
+
+Generator::setTemplates([
+	'base.query.class'      => ['path' => GOBL_SAMPLE_DIR . '/php/Base/MyTableQuery.php'],
+	'base.entity.class'     => ['path' => GOBL_SAMPLE_DIR . '/php/Base/MyEntity.php'],
+	'base.results.class'    => ['path' => GOBL_SAMPLE_DIR . '/php/Base/MyResults.php'],
+	'base.controller.class' => ['path' => GOBL_SAMPLE_DIR . '/php/Base/MyController.php'],
+	'query.class'           => ['path' => GOBL_SAMPLE_DIR . '/php/MyTableQuery.php'],
+	'entity.class'          => ['path' => GOBL_SAMPLE_DIR . '/php/MyEntity.php'],
+	'results.class'         => ['path' => GOBL_SAMPLE_DIR . '/php/MyResults.php'],
+	'controller.class'      => ['path' => GOBL_SAMPLE_DIR . '/php/MyController.php'],
+	'ts.bundle'             => ['path' => GOBL_SAMPLE_DIR . '/ts/TSBundle.ts'],
+	'ts.entity.class'       => ['path' => GOBL_SAMPLE_DIR . '/ts/MyEntity.ts'],
+]);
