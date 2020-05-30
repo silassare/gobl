@@ -2,14 +2,14 @@
 
 //__GOBL_HEAD_COMMENT__
 
-namespace MY_PROJECT_DB_NS;
+namespace MY_DB_NS;
 
-use MY_PROJECT_DB_NS\Base\MyEntity as BaseMyEntity;
+use MY_DB_NS\Base\MyEntity as BaseMyEntity;
 
 /**
  * Class MyEntity
  *
- * @package MY_PROJECT_DB_NS
+ * @package MY_DB_NS
  */
 class MyEntity extends BaseMyEntity
 {

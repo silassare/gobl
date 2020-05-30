@@ -2,19 +2,19 @@
 
 //__GOBL_HEAD_COMMENT__
 
-namespace MY_PROJECT_DB_NS\Base;
+namespace MY_DB_NS\Base;
 
 use Gobl\DBAL\QueryBuilder;
 use Gobl\ORM\ORM;
 use Gobl\ORM\ORMControllerBase;
-use MY_PROJECT_DB_NS\MyEntity as MyEntityReal;
-use MY_PROJECT_DB_NS\MyResults as MyResultsReal;
-use MY_PROJECT_DB_NS\MyTableQuery as MyTableQueryReal;
+use MY_DB_NS\MyEntity as MyEntityReal;
+use MY_DB_NS\MyResults as MyResultsReal;
+use MY_DB_NS\MyTableQuery as MyTableQueryReal;
 
 /**
  * Class MyController
  *
- * @package MY_PROJECT_DB_NS\Base
+ * @package MY_DB_NS\Base
  */
 abstract class MyController extends ORMControllerBase
 {
@@ -26,7 +26,7 @@ abstract class MyController extends ORMControllerBase
 	public function __construct()
 	{
 		parent::__construct(
-			ORM::getDatabase('MY_PROJECT_DB_NS'),
+			ORM::getDatabase('MY_DB_NS'),
 			MyEntity::TABLE_NAME,
 			MyEntityReal::class,
 			MyTableQueryReal::class,
@@ -39,12 +39,12 @@ abstract class MyController extends ORMControllerBase
 	 *
 	 * @param array $values the row values
 	 *
-	 * @return \MY_PROJECT_DB_NS\MyEntity
+	 * @return \MY_DB_NS\MyEntity
 	 * @throws \Throwable
 	 */
 	public function addItem(array $values = [])
 	{
-		/** @var \MY_PROJECT_DB_NS\MyEntity $result */
+		/** @var \MY_DB_NS\MyEntity $result */
 		$result = parent::addItem($values);
 
 		return $result;
@@ -61,7 +61,7 @@ abstract class MyController extends ORMControllerBase
 	 * @param array $filters    the row filters
 	 * @param array $new_values the new values
 	 *
-	 * @return bool|\MY_PROJECT_DB_NS\MyEntity
+	 * @return bool|\MY_DB_NS\MyEntity
 	 * @throws \Throwable
 	 */
 	public function updateOneItem(array $filters, array $new_values)
@@ -93,7 +93,7 @@ abstract class MyController extends ORMControllerBase
 	 *
 	 * @param array $filters the row filters
 	 *
-	 * @return bool|\MY_PROJECT_DB_NS\MyEntity
+	 * @return bool|\MY_DB_NS\MyEntity
 	 * @throws \Throwable
 	 */
 	public function deleteOneItem(array $filters)
@@ -124,12 +124,12 @@ abstract class MyController extends ORMControllerBase
 	 * @param array $filters  the row filters
 	 * @param array $order_by order by rules
 	 *
-	 * @return \MY_PROJECT_DB_NS\MyEntity|null
+	 * @return \MY_DB_NS\MyEntity|null
 	 * @throws \Throwable
 	 */
 	public function getItem(array $filters, array $order_by = [])
 	{
-		/** @var \MY_PROJECT_DB_NS\MyEntity|null $result */
+		/** @var \MY_DB_NS\MyEntity|null $result */
 		$result = parent::getItem($filters, $order_by);
 
 		return $result;
@@ -144,12 +144,12 @@ abstract class MyController extends ORMControllerBase
 	 * @param array    $order_by order by rules
 	 * @param int|bool $total    total rows without limit
 	 *
-	 * @return \MY_PROJECT_DB_NS\MyEntity[]
+	 * @return \MY_DB_NS\MyEntity[]
 	 * @throws \Throwable
 	 */
 	public function getAllItems(array $filters = [], $max = null, $offset = 0, array $order_by = [], &$total = false)
 	{
-		/** @var \MY_PROJECT_DB_NS\MyEntity[] $results */
+		/** @var \MY_DB_NS\MyEntity[] $results */
 		$results = parent::getAllItems($filters, $max, $offset, $order_by, $total);
 
 		return $results;
@@ -163,12 +163,12 @@ abstract class MyController extends ORMControllerBase
 	 * @param int                     $offset first row offset
 	 * @param int|bool                $total  total rows without limit
 	 *
-	 * @return \MY_PROJECT_DB_NS\MyEntity[]
+	 * @return \MY_DB_NS\MyEntity[]
 	 * @throws \Throwable
 	 */
 	public function getAllItemsCustom(QueryBuilder $qb, $max = null, $offset = 0, &$total = false)
 	{
-		/** @var \MY_PROJECT_DB_NS\MyEntity[] $results */
+		/** @var \MY_DB_NS\MyEntity[] $results */
 		$results = parent::getAllItemsCustom($qb, $max, $offset, $total);
 
 		return $results;

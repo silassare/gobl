@@ -2,18 +2,18 @@
 
 //__GOBL_HEAD_COMMENT__
 
-namespace MY_PROJECT_DB_NS\Base;
+namespace MY_DB_NS\Base;
 
 use Gobl\ORM\ORM;
 use Gobl\ORM\ORMEntityBase;
-use MY_PROJECT_DB_NS\MyTableQuery as MyTableQueryReal;
+use MY_DB_NS\MyTableQuery as MyTableQueryReal;
 
 //__GOBL_RELATIONS_USE_CLASS__
 
 /**
  * Class MyEntity
  *
- * @package MY_PROJECT_DB_NS\Base
+ * @package MY_DB_NS\Base
  */
 abstract class MyEntity extends ORMEntityBase
 {
@@ -32,7 +32,7 @@ abstract class MyEntity extends ORMEntityBase
 	public function __construct($is_new = true, $strict = true)
 	{
 		parent::__construct(
-			ORM::getDatabase('MY_PROJECT_DB_NS'),
+			ORM::getDatabase('MY_DB_NS'),
 			$is_new,
 			$strict,
 			MyEntity::TABLE_NAME,

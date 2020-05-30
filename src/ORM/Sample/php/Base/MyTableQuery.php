@@ -2,7 +2,7 @@
 
 //__GOBL_HEAD_COMMENT__
 
-namespace MY_PROJECT_DB_NS\Base;
+namespace MY_DB_NS\Base;
 
 use Gobl\DBAL\Rule;
 use Gobl\ORM\ORM;
@@ -11,7 +11,7 @@ use Gobl\ORM\ORMTableQueryBase;
 /**
  * Class MyTableQuery
  *
- * @package MY_PROJECT_DB_NS\Base
+ * @package MY_DB_NS\Base
  */
 abstract class MyTableQuery extends ORMTableQueryBase
 {
@@ -21,9 +21,9 @@ abstract class MyTableQuery extends ORMTableQueryBase
 	public function __construct()
 	{
 		parent::__construct(
-			ORM::getDatabase('MY_PROJECT_DB_NS'),
+			ORM::getDatabase('MY_DB_NS'),
 			MyEntity::TABLE_NAME,
-			\MY_PROJECT_DB_NS\MyResults::class
+			\MY_DB_NS\MyResults::class
 		);
 	}
 
@@ -34,12 +34,12 @@ abstract class MyTableQuery extends ORMTableQueryBase
 	 * @param int      $offset
 	 * @param array    $order_by
 	 *
-	 * @return \MY_PROJECT_DB_NS\MyResults
+	 * @return \MY_DB_NS\MyResults
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function find($max = null, $offset = 0, array $order_by = [])
 	{
-		/** @var \MY_PROJECT_DB_NS\MyResults $results */
+		/** @var \MY_DB_NS\MyResults $results */
 		$results = parent::find($max, $offset, $order_by);
 
 		return $results;

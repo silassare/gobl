@@ -2,7 +2,7 @@
 
 //__GOBL_HEAD_COMMENT__
 
-namespace MY_PROJECT_DB_NS\Base;
+namespace MY_DB_NS\Base;
 
 use Gobl\DBAL\Db;
 use Gobl\DBAL\QueryBuilder;
@@ -11,7 +11,7 @@ use Gobl\ORM\ORMResultsBase;
 /**
  * Class MyResults
  *
- * @package MY_PROJECT_DB_NS\Base
+ * @package MY_DB_NS\Base
  */
 abstract class MyResults extends ORMResultsBase
 {
@@ -25,13 +25,13 @@ abstract class MyResults extends ORMResultsBase
 	 */
 	public function __construct(Db $db, QueryBuilder $query)
 	{
-		parent::__construct($db, $query, \MY_PROJECT_DB_NS\MyEntity::class);
+		parent::__construct($db, $query, \MY_DB_NS\MyEntity::class);
 	}
 
 	/**
 	 * This is to help editor infer type in loop (foreach or for...)
 	 *
-	 * @return array|null|\MY_PROJECT_DB_NS\MyEntity
+	 * @return array|null|\MY_DB_NS\MyEntity
 	 */
 	public function current()
 	{
@@ -43,7 +43,7 @@ abstract class MyResults extends ORMResultsBase
 	 *
 	 * @param bool $strict
 	 *
-	 * @return null|\MY_PROJECT_DB_NS\MyEntity
+	 * @return null|\MY_DB_NS\MyEntity
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function fetchClass($strict = true)
@@ -56,7 +56,7 @@ abstract class MyResults extends ORMResultsBase
 	 *
 	 * @param bool $strict
 	 *
-	 * @return \MY_PROJECT_DB_NS\MyEntity[]
+	 * @return \MY_DB_NS\MyEntity[]
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function fetchAllClass($strict = true)
