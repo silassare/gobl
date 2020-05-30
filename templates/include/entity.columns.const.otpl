@@ -1,0 +1,2 @@
+<%loop($.columns : $column){%>
+	const <%$column.const%> = '<%$column.fullName%>';<%}%>

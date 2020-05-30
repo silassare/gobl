@@ -1,0 +1,33 @@
+<%loop($.columns : $column){%>
+	/**
+	 * Getter for column `<%$.table.name%>`.`<%$column.name%>`.
+	 *
+	 * @return <%$column.returnType%> the real type is: <%$column.columnType%>
+	 */
+	public function get<%$column.methodSuffix%>()
+	{
+		$column = self::<%$column.const%>;
+		$v = $this->$column;
+
+		if( $v !== null){
+			$v = (<%$column.returnType%>)$v;
+		}
+
+		return $v;
+	}
+
+	/**
+	 * Setter for column `<%$.table.name%>`.`<%$column.name%>`.
+	 *
+	 * @param <%$column.argType%> $<%$column.argName%>
+	 *
+	 * @return static
+	 */
+	public function set<%$column.methodSuffix%>($<%$column.argName%>)
+	{
+		$column = self::<%$column.const%>;
+		$this->$column = $<%$column.argName%>;
+
+		return $this;
+	}
+<%}%>

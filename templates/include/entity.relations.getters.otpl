@@ -1,0 +1,102 @@
+<%loop($.relations.list : $relation){%>
+<%if($relation.type === 'one-to-one'){%>
+	/**
+	 * OneToOne relation between `<%$relation.host.table.name%>` and `<%$relation.target.table.name%>`.
+	 *
+	 * @return null|\<%$relation.target.class.use_entity%>
+	 * @throws \Throwable
+	 */
+	public function get<%$relation.methodSuffix%>()
+	{
+		if (!isset($this->_r_<%$relation.name%>)) {
+			$filters = [];<%loop ($relation.filters : $filter){%>
+			if(!is_null($v = $this->get<%$filter.to.methodSuffix%>())){
+				$filters['<%$filter.from.fullName%>'] = $v;
+			}<%}%>
+			if (empty($filters)){
+				return null;
+			}
+
+			$m = new <%$relation.target.class.controller%>RealR();
+			$this->_r_<%$relation.name%> = $m->getItem($filters);
+		}
+
+		return $this->_r_<%$relation.name%>;
+	}
+<%} else if($relation.type === 'one-to-many'){%>
+	/**
+	 * OneToMany relation between `<%$relation.host.table.name%>` and `<%$relation.target.table.name%>`.
+	 *
+	 * @param array	$filters  the row filters
+	 * @param int|null $max	  maximum row to retrieve
+	 * @param int	  $offset   first row offset
+	 * @param array	$order_by order by rules
+	 * @param int|bool $total	total rows without limit
+	 *
+	 * @return \<%$relation.target.class.use_entity%>[]
+	 * @throws \Throwable
+	 */
+	function get<%$relation.methodSuffix%>($filters = [], $max = null, $offset = 0, $order_by = [], &$total = false)
+	{<%loop ($relation.filters : $filter){%>
+		if(!is_null($v = $this->get<%$filter.to.methodSuffix%>())){
+			$filters['<%$filter.from.fullName%>'] = $v;
+		}<%}%>
+		if (empty($filters)){
+			return [];
+		}
+
+		$ctrl = new <%$relation.target.class.controller%>RealR();
+
+		return $ctrl->getAllItems($filters, $max, $offset, $order_by, $total);
+	}
+<%} else if($relation.type === 'many-to-many'){%>
+	/**
+	 * ManyToMany relation between `<%$relation.host.table.name%>` and `<%$relation.target.table.name%>`.
+	 *
+	 * @param array	$filters  the row filters
+	 * @param int|null $max	  maximum row to retrieve
+	 * @param int	  $offset   first row offset
+	 * @param array	$order_by order by rules
+	 * @param int|bool $total	total rows without limit
+	 *
+	 * @return \<%$relation.target.class.use_entity%>[]
+	 * @throws \Throwable
+	 */
+	function get<%$relation.methodSuffix%>($filters = [], $max = null, $offset = 0, $order_by = [], &$total = false)
+	{<%loop ($relation.filters : $filter){%>
+		if(!is_null($v = $this->get<%$filter.to.methodSuffix%>())){
+			$filters['<%$filter.from.fullName%>'] = $v;
+		}<%}%>
+		if (empty($filters)){
+			return null;
+		}
+
+		$ctrl = new <%$relation.target.class.controller%>RealR();
+
+		return $ctrl->getAllItems($filters, $max, $offset, $order_by, $total);
+	}
+<%} else if($relation.type === 'many-to-one'){%>
+	/**
+	 * ManyToOne relation between `<%$relation.host.table.name%>` and `<%$relation.target.table.name%>`.
+	 *
+	 * @return null|\<%$relation.target.class.use_entity%>
+	 * @throws \Throwable
+	 */
+	public function get<%$relation.methodSuffix%>()
+	{
+		if (!isset($this->_r_<%$relation.name%>)) {
+			$filters = [];<%loop ($relation.filters : $filter){%>
+			if(!is_null($v = $this->get<%$filter.to.methodSuffix%>())){
+				$filters['<%$filter.from.fullName%>'] = $v;
+			}<%}%>
+			if (empty($filters)){
+				return null;
+			}
+
+			$m = new <%$relation.target.class.controller%>RealR();
+			$this->_r_<%$relation.name%> = $m->getItem($filters);
+		}
+
+		return $this->_r_<%$relation.name%>;
+	}
+<%}%><%}%>

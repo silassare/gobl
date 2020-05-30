@@ -1,0 +1,2 @@
+<%loop($.relations.use : $class){%>use <%$class%>;
+<%}%>
