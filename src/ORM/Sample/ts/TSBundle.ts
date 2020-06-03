@@ -3,9 +3,9 @@ import {
 	GoblEntity,
 	register,
 	getEntityCache,
-	c_bool,
-	c_int,
-	c_string,
+	_bool,
+	_int,
+	_string,
 	tGoblEntityData,
 } from 'gobl-utils-ts';
 
