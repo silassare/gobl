@@ -1,21 +1,16 @@
-<%@var $len = @length($.pk_columns);%>
-<%if($len == 1){%>
-	singlePKValue(){
+<%@var $len = @length($.pk_columns);%><%if($len == 1){%>
+	public singlePKValue() {
 		return this.<%$.pk_columns[0].name%>;
 	}<%}%>
 <%if($len){%>
-	identifierColumns(){
-		return [<%loop($.pk_columns : $pk){%><%$.class.entity%>.<%$pk.const%>,<%}%>];
+	public identifierColumns() {
+		return [ <%loop($.pk_columns : $pk){%><%@if($len!==1, ',' , '')%><%$.class.entity%>.<%$pk.const%> <%}%>];
 	}<%} else {%>
-	identifierColumns(){
+	public identifierColumns() {
 		return <%$.class.entity%>.COLUMNS;
 	}<%}%>
-	static fromCache(cacheKey: string): <%$.class.entity%> | undefined {
-		let cache = <any>getEntityCache("<%$.class.entity%>");
-		return cache && cache[cacheKey];
-	}
 <%loop($.columns : $column){%>
-	get <%$column.name%>(){ return _<%$column.returnType%>(this._data[<%$.class.entity%>.<%$column.const%>])}
-	set <%$column.name%>(nVal:any){ this._set(<%$.class.entity%>.<%$column.const%>, _<%$column.returnType%>(nVal))}
-	get<%$column.methodSuffix%>(){ return this.<%$column.name%>}
-	set<%$column.methodSuffix%>(nVal:any):this { this.<%$column.name%> = nVal; return this}<%}%>
+	get <%$column.name%>() { return _<%$column.returnType%>(this._data[<%$.class.entity%>.<%$column.const%>]); }
+	set <%$column.name%>(nVal: any) { this._set(<%$.class.entity%>.<%$column.const%>, _<%$column.returnType%>(nVal)); }
+	public get<%$column.methodSuffix%>() { return this.<%$column.name%>; }
+	public set<%$column.methodSuffix%>(nVal: any): this { this.<%$column.name%> = nVal; return this; }<%}%>
