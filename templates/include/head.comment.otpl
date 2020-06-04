@@ -3,6 +3,6 @@
 <%} else {%>/**
  * Auto generated file, please don't edit.
  *
- * With: Gobl v1.0.9
+ * With: Gobl <%$.version%>
  * Time: <%$.time%>
  */<%}%>

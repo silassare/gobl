@@ -104,16 +104,18 @@ class Generator
 		$results_class_tpl = self::getTemplateCompiler('results.class');
 		$ctrl_class_tpl    = self::getTemplateCompiler('controller.class');
 
-		$time = \time();
+		$time    = \time();
+		$version = \trim(\file_get_contents(GOBL_ROOT . '/VERSION'));
 
 		foreach ($tables as $table) {
-			$inject           = $this->describeTable($table);
-			$inject['header'] = $header;
-			$inject['time']   = $time;
-			$query_class      = $inject['class']['query'];
-			$entity_class     = $inject['class']['entity'];
-			$results_class    = $inject['class']['results'];
-			$ctrl_class       = $inject['class']['controller'];
+			$inject                 = $this->describeTable($table);
+			$inject['header']       = $header;
+			$inject['time']         = $time;
+			$inject['gobl_version'] = $version;
+			$query_class            = $inject['class']['query'];
+			$entity_class           = $inject['class']['entity'];
+			$results_class          = $inject['class']['results'];
+			$ctrl_class             = $inject['class']['controller'];
 
 			$this->writeFile($path_base . $ds . $query_class . '.php', $base_query_class_tpl->runGet($inject));
 			$this->writeFile($path_base . $ds . $entity_class . '.php', $base_entity_class_tpl->runGet($inject));
@@ -159,14 +161,16 @@ class Generator
 		$ts_bundle_tpl       = self::getTemplateCompiler('ts.bundle');
 		$bundle_inject       = [];
 		$time                = \time();
+		$version             = \trim(\file_get_contents(GOBL_ROOT . '/VERSION'));
 
 		foreach ($tables as $table) {
 			if (!($table->isPrivate() && $this->ignore_private_table)) {
-				$inject                 = $this->describeTable($table);
-				$inject['header']       = $header;
-				$inject['time']         = $time;
-				$entity_class           = $inject['class']['entity'];
-				$inject['columns_list'] = \implode('|', \array_keys($inject['columns']));
+				$inject                         = $this->describeTable($table);
+				$inject['header']               = $header;
+				$inject['time']                 = $time;
+				$inject['gobl_version']         = $version;
+				$entity_class                   = $inject['class']['entity'];
+				$inject['columns_list']         = \implode('|', \array_keys($inject['columns']));
 
 				foreach ($inject['columns'] as $column) {
 					$inject['columns_prefix'] = $column['prefix'];
@@ -180,8 +184,9 @@ class Generator
 			}
 		}
 
-		$bundle_inject['header'] = $header;
-		$bundle_inject['time']   = $time;
+		$bundle_inject['header']         = $header;
+		$bundle_inject['time']           = $time;
+		$bundle_inject['gobl_version']   = $version;
 
 		$this->writeFile($path_gobl . $ds . 'index.ts', $ts_bundle_tpl->runGet($bundle_inject), true);
 
