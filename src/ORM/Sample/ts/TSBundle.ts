@@ -1,14 +1,8 @@
 //__GOBL_HEAD_COMMENT__
-import {
-	GoblEntity,
-	register,
-	getEntityCache,
-	_bool,
-	_int,
-	_string,
-	tGoblEntityData,
-} from 'gobl-utils-ts';
+import { register } from 'gobl-utils-ts';
 
-//__GOBL_TS_ENTITIES_CLASS_LIST__
+//__GOBL_TS_ENTITIES_IMPORT__
 
-console.log('[gobl] ready!');
+//__GOBL_TS_ENTITIES_REGISTER__
+
+//__GOBL_TS_ENTITIES_EXPORT__

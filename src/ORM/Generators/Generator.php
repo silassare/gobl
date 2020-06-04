@@ -104,10 +104,12 @@ class Generator
 		$results_class_tpl = self::getTemplateCompiler('results.class');
 		$ctrl_class_tpl    = self::getTemplateCompiler('controller.class');
 
+		$time = \time();
+
 		foreach ($tables as $table) {
 			$inject           = $this->describeTable($table);
 			$inject['header'] = $header;
-			$inject['time']   = \time();
+			$inject['time']   = $time;
 			$query_class      = $inject['class']['query'];
 			$entity_class     = $inject['class']['entity'];
 			$results_class    = $inject['class']['results'];
@@ -146,21 +148,23 @@ class Generator
 
 		$ds = \DIRECTORY_SEPARATOR;
 
-		$path_base = $path;
+		$path_gobl = $path . $ds . 'gobl';
+		$path_entities = $path_gobl . $ds . 'entities';
 
-		if (!\file_exists($path_base)) {
-			\mkdir($path_base);
+		if (!\file_exists($path_entities)) {
+			\mkdir($path_entities, 0755, true);
 		}
 
 		$ts_entity_class_tpl = self::getTemplateCompiler('ts.entity.class');
 		$ts_bundle_tpl       = self::getTemplateCompiler('ts.bundle');
 		$bundle_inject       = [];
+		$time                = \time();
 
 		foreach ($tables as $table) {
 			if (!($table->isPrivate() && $this->ignore_private_table)) {
 				$inject                 = $this->describeTable($table);
 				$inject['header']       = $header;
-				$inject['time']         = \time();
+				$inject['time']         = $time;
 				$entity_class           = $inject['class']['entity'];
 				$inject['columns_list'] = \implode('|', \array_keys($inject['columns']));
 
@@ -170,14 +174,16 @@ class Generator
 					break;
 				}
 
-				$bundle_inject['entities'][$entity_class] = $ts_entity_class_tpl->runGet($inject);
+				$entity_content = $ts_entity_class_tpl->runGet($inject);
+				$bundle_inject['entities'][$entity_class] = $entity_content;
+				$this->writeFile($path_entities . $ds . $entity_class . '.ts', $entity_content, true);
 			}
 		}
 
 		$bundle_inject['header'] = $header;
-		$bundle_inject['time']   = \time();
+		$bundle_inject['time']   = $time;
 
-		$this->writeFile($path . $ds . 'gobl.bundle.ts', $ts_bundle_tpl->runGet($bundle_inject), true);
+		$this->writeFile($path_gobl . $ds . 'index.ts', $ts_bundle_tpl->runGet($bundle_inject), true);
 
 		return $this;
 	}
@@ -477,7 +483,9 @@ class Generator
 			'//__GOBL_QUERY_FILTER_BY_COLUMNS__'    => '<%@import(\'include/query.filter.by.columns.otpl\',$)%>',
 			'//__GOBL_TS_COLUMNS_CONST__'           => '<%@import(\'include/ts.columns.const.otpl\',$)%>',
 			'//__GOBL_TS_COLUMNS_GETTERS_SETTERS__' => '<%@import(\'include/ts.getters.setters.otpl\',$)%>',
-			'//__GOBL_TS_ENTITIES_CLASS_LIST__'     => '<%@import(\'include/ts.entities.list.otpl\',$)%>',
+			'//__GOBL_TS_ENTITIES_IMPORT__'         => '<%@import(\'include/ts.entities.import.otpl\',$)%>',
+			'//__GOBL_TS_ENTITIES_EXPORT__'         => '<%@import(\'include/ts.entities.export.otpl\',$)%>',
+			'//__GOBL_TS_ENTITIES_REGISTER__'       => '<%@import(\'include/ts.entities.register.otpl\',$)%>',
 			'//__GOBL_VERSION__'                    => \trim(\file_get_contents(GOBL_ROOT . '/VERSION')),
 
 			'MY_DB_NS'               => '<%$.namespace%>',
