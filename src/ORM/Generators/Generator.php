@@ -148,7 +148,7 @@ class Generator
 
 		$ds = \DIRECTORY_SEPARATOR;
 
-		$path_gobl = $path . $ds . 'gobl';
+		$path_gobl     = $path . $ds . 'gobl';
 		$path_entities = $path_gobl . $ds . 'entities';
 
 		if (!\file_exists($path_entities)) {
@@ -174,7 +174,7 @@ class Generator
 					break;
 				}
 
-				$entity_content = $ts_entity_class_tpl->runGet($inject);
+				$entity_content                           = $ts_entity_class_tpl->runGet($inject);
 				$bundle_inject['entities'][$entity_class] = $entity_content;
 				$this->writeFile($path_entities . $ds . $entity_class . '.ts', $entity_content, true);
 			}

@@ -1,0 +1,2 @@
+<%loop($.entities : $name : $content){%>import <%$name%> from './entities/<%$name%>';
+<%}%>
