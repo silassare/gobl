@@ -14,6 +14,11 @@ namespace Gobl\DBAL\Types;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
 
+if (!\defined('PHP_INT_MIN')) {
+	// Available since PHP 7.0.0 http://php.net/manual/en/reserved.constants.php
+	\define('PHP_INT_MIN', ~\PHP_INT_MAX);
+}
+
 /**
  * Class TypeBase
  */
@@ -82,10 +87,10 @@ abstract class TypeBase implements TypeInterface
 	/**
 	 * Checks if min & max value are in a given range.
 	 *
-	 * @param int   $range_min
-	 * @param int   $range_max
 	 * @param mixed $min
 	 * @param mixed $max
+	 * @param int   $range_min
+	 * @param int   $range_max
 	 *
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
