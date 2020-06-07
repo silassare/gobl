@@ -28,21 +28,28 @@ class TypeString extends TypeBase
 
 	private $pattern;
 
+	private $one_of = [];
+
 	/**
 	 * TypeString constructor.
 	 *
 	 * @param int         $min     the minimum string length
 	 * @param int         $max     the maximum string length
 	 * @param null|string $pattern the string pattern
+	 * @param array       $one_of  the list of allowed string
 	 *
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
-	public function __construct($min = 0, $max = \PHP_INT_MAX, $pattern = null)
+	public function __construct($min = 0, $max = \PHP_INT_MAX, $pattern = null, array $one_of = [])
 	{
 		$this->length($min, $max);
 
 		if (isset($pattern)) {
 			$this->pattern($pattern);
+		}
+
+		if (\count($one_of)) {
+			$this->oneOf($one_of);
 		}
 	}
 
@@ -109,6 +116,20 @@ class TypeString extends TypeBase
 	}
 
 	/**
+	 * Sets the allowed string list.
+	 *
+	 * @param array $list
+	 *
+	 * @return $this
+	 */
+	public function oneOf(array $list)
+	{
+		$this->one_of = \array_unique($list);
+
+		return $this;
+	}
+
+	/**
 	 * @inheritdoc
 	 *
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
@@ -147,6 +168,10 @@ class TypeString extends TypeBase
 			throw new TypesInvalidValueException('string_pattern_check_fails', $debug);
 		}
 
+		if (\count($this->one_of) && !\in_array($value, $this->one_of)) {
+			throw new TypesInvalidValueException('string_not_in_allowed_list', $debug);
+		}
+
 		return $value;
 	}
 
@@ -161,6 +186,7 @@ class TypeString extends TypeBase
 			'max'      => $this->max,
 			'truncate' => $this->truncate,
 			'pattern'  => $this->pattern,
+			'one_of'   => $this->one_of,
 			'null'     => $this->isNullAble(),
 			'default'  => $this->getDefault(),
 		];
@@ -191,6 +217,10 @@ class TypeString extends TypeBase
 
 		if (isset($options['pattern'])) {
 			$instance->pattern($options['pattern']);
+		}
+
+		if (isset($options['one_of']) && \is_array($options['one_of'])) {
+			$instance->oneOf($options['one_of']);
 		}
 
 		if (self::getOptionKey($options, 'null', false)) {
