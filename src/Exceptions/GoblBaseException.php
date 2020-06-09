@@ -11,13 +11,10 @@
 
 namespace Gobl\Exceptions;
 
-use Exception;
-use Throwable;
-
 /**
  * Class GoblBaseException
  */
-abstract class GoblBaseException extends Exception
+abstract class GoblBaseException extends \Exception
 {
 	/**
 	 * Sensitive data prefix.
@@ -36,7 +33,7 @@ abstract class GoblBaseException extends Exception
 	 * @param array           $data
 	 * @param null|\Throwable $previous
 	 */
-	public function __construct($message, array $data = [], Throwable $previous = null)
+	public function __construct($message, array $data = [], $previous = null)
 	{
 		parent::__construct($message, 0, $previous);
 
@@ -47,7 +44,7 @@ abstract class GoblBaseException extends Exception
 	 * Gets data.
 	 *
 	 * We shouldn't expose all debug data to client, may contains sensitive data
-	 * like table structure, table name etc...
+	 * like table structure, table name etc.
 	 * all sensitive data should be set with the sensitive data prefix
 	 *
 	 * @param bool $show_sensitive

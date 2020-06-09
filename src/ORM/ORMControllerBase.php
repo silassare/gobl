@@ -16,7 +16,6 @@ use Gobl\DBAL\Db;
 use Gobl\DBAL\QueryBuilder;
 use Gobl\DBAL\Table;
 use Gobl\ORM\Exceptions\ORMQueryException;
-use Throwable;
 
 class ORMControllerBase
 {
@@ -129,10 +128,14 @@ class ORMControllerBase
 					   ->onAfterCreateEntity($entity);
 
 			$this->db->commit();
-		} catch (Throwable $e) {
+		} catch (\Exception $e) {
 			$this->db->rollBack();
 
 			throw $e;
+		} catch (\Throwable $t) {
+			$this->db->rollBack();
+
+			throw $t;
 		}
 
 		return $entity;
@@ -180,10 +183,14 @@ class ORMControllerBase
 			$this->db->commit();
 
 			return $ret;
-		} catch (Throwable $e) {
+		} catch (\Exception $e) {
 			$this->db->rollBack();
 
 			throw $e;
+		} catch (\Throwable $t) {
+			$this->db->rollBack();
+
+			throw $t;
 		}
 	}
 
@@ -217,10 +224,14 @@ class ORMControllerBase
 			$this->db->commit();
 
 			return $ret;
-		} catch (Throwable $e) {
+		} catch (\Exception $e) {
 			$this->db->rollBack();
 
 			throw $e;
+		} catch (\Throwable $t) {
+			$this->db->rollBack();
+
+			throw $t;
 		}
 	}
 
@@ -269,10 +280,14 @@ class ORMControllerBase
 			$this->db->commit();
 
 			return $ret;
-		} catch (Throwable $e) {
+		} catch (\Exception $e) {
 			$this->db->rollBack();
 
 			throw $e;
+		} catch (\Throwable $t) {
+			$this->db->rollBack();
+
+			throw $t;
 		}
 	}
 
@@ -305,10 +320,14 @@ class ORMControllerBase
 			$this->db->commit();
 
 			return $ret;
-		} catch (Throwable $e) {
+		} catch (\Exception $e) {
 			$this->db->rollBack();
 
 			throw $e;
+		} catch (\Throwable $t) {
+			$this->db->rollBack();
+
+			throw $t;
 		}
 	}
 
@@ -347,10 +366,14 @@ class ORMControllerBase
 			$this->db->commit();
 
 			return $result;
-		} catch (Throwable $e) {
+		} catch (\Exception $e) {
 			$this->db->rollBack();
 
 			throw $e;
+		} catch (\Throwable $t) {
+			$this->db->rollBack();
+
+			throw $t;
 		}
 	}
 
@@ -385,10 +408,14 @@ class ORMControllerBase
 			$this->db->commit();
 
 			return $items;
-		} catch (Throwable $e) {
+		} catch (\Exception $e) {
 			$this->db->rollBack();
 
 			throw $e;
+		} catch (\Throwable $t) {
+			$this->db->rollBack();
+
+			throw $t;
 		}
 	}
 
@@ -427,10 +454,14 @@ class ORMControllerBase
 			$this->db->commit();
 
 			return $items;
-		} catch (Throwable $e) {
+		} catch (\Exception $e) {
 			$this->db->rollBack();
 
 			throw $e;
+		} catch (\Throwable $t) {
+			$this->db->rollBack();
+
+			throw $t;
 		}
 	}
 
