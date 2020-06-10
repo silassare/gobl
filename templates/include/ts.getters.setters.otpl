@@ -4,7 +4,7 @@
 	}<%}%>
 <%if($len){%>
 	public identifierColumns() {
-		return [ <%loop($.pk_columns : $pk){%><%@if($len!==1, ',' , '')%><%$.class.entity%>.<%$pk.const%> <%}%>];
+		return [ <%loop($.pk_columns : $pk){%><%$.class.entity%>.<%$pk.const%><%@if($len!==1, ',' , '')%> <%}%>];
 	}<%} else {%>
 	public identifierColumns() {
 		return <%$.class.entity%>.COLUMNS;
