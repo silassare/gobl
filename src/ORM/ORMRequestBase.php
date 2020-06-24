@@ -597,7 +597,11 @@ class ORMRequestBase
 			return [];
 		}
 
-		if (\is_string($request[self::RELATIONS_PARAM]) && \strlen($request[self::RELATIONS_PARAM])) {
+		if (\is_string($request[self::RELATIONS_PARAM])) {
+			if (!\strlen($request[self::RELATIONS_PARAM])) {
+				return [];
+			}
+
 			$relations = \array_unique(\explode(self::DELIMITER, $request[self::RELATIONS_PARAM]));
 
 			foreach ($relations as $relation) {
