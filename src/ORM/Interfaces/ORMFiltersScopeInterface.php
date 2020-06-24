@@ -14,6 +14,13 @@ namespace Gobl\ORM\Interfaces;
 interface ORMFiltersScopeInterface
 {
 	/**
+	 * Returns the target table.
+	 *
+	 * @return \Gobl\DBAL\Table
+	 */
+	public function getTable();
+
+	/**
 	 * Checks if a field/column is allowed in filters.
 	 *
 	 * @param string $column

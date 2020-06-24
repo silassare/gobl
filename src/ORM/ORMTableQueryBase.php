@@ -248,6 +248,14 @@ class ORMTableQueryBase implements ORMFiltersScopeInterface
 	/**
 	 * @inheritDoc
 	 */
+	public function getTable()
+	{
+		return $this->table;
+	}
+
+	/**
+	 * @inheritDoc
+	 */
 	public function isFieldAllowed($column)
 	{
 		return $this->table->hasColumn($column);
