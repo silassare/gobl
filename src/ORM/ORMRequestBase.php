@@ -105,9 +105,9 @@ class ORMRequestBase
 	 */
 	public function createScopedInstance(Table $table)
 	{
-		$request_data = $this->getParsedRequest($table);
+		$request = $this->getParsedRequest($table);
 
-		return new self($request_data);
+		return new self($request);
 	}
 
 	/**
@@ -627,22 +627,22 @@ class ORMRequestBase
 	/**
 	 * Decode request order by.
 	 *
-	 * @param array $request_data
+	 * @param array $request
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 *@throws \Gobl\ORM\Exceptions\ORMQueryException
 	 *
 	 * @return array
 	 */
-	private static function decodeOrderBy(array $request_data)
+	private static function decodeOrderBy(array $request)
 	{
-		if (!isset($request_data[self::ORDER_BY_PARAM])) {
+		if (!isset($request[self::ORDER_BY_PARAM])) {
 			return [];
 		}
 
-		$rules = $request_data[self::ORDER_BY_PARAM];
+		$rules = $request[self::ORDER_BY_PARAM];
 
 		if (!\is_string($rules)) {
-			throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_ORDER_BY', $request_data);
+			throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_ORDER_BY', $request);
 		}
 
 		if (!\strlen($rules)) {
@@ -669,7 +669,7 @@ class ORMRequestBase
 					$order_by[$rule] = true;
 				}
 			} else {
-				throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_ORDER_BY', $request_data);
+				throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_ORDER_BY', $request);
 			}
 		}
 
@@ -705,32 +705,32 @@ class ORMRequestBase
 	 * ?page=2          => ['max' => default|10, 'page' => 2, 'offset' => 10 ]
 	 * ?                => ['max' => null, 'page' => 1, 'offset' => 0 ]
 	 *
-	 * @param array $request_data
-	 * @param int   $max_default  default max
+	 * @param array $request
+	 * @param int   $max_default default max
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 *@throws \Gobl\ORM\Exceptions\ORMQueryException
 	 *
 	 * @return array
 	 */
-	private static function paginate(array $request_data, $max_default = 100)
+	private static function paginate(array $request, $max_default = 100)
 	{
 		$offset = 0;
 		$page   = 1;
 		$max    = null;
 
-		if (isset($request_data[self::MAX_PARAM])) {
-			$max = $request_data[self::MAX_PARAM];
+		if (isset($request[self::MAX_PARAM])) {
+			$max = $request[self::MAX_PARAM];
 
 			if (!\is_numeric($max) || ($max = (int) $max) <= 0) {
-				throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_PAGINATION_MAX', $request_data);
+				throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_PAGINATION_MAX', $request);
 			}
 		}
 
-		if (isset($request_data[self::PAGE_PARAM])) {
-			$page = $request_data[self::PAGE_PARAM];
+		if (isset($request[self::PAGE_PARAM])) {
+			$page = $request[self::PAGE_PARAM];
 
 			if (!\is_numeric($page) || ($page = (int) $page) <= 0) {
-				throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_PAGINATION_PAGE', $request_data);
+				throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_PAGINATION_PAGE', $request);
 			}
 
 			if (!$max) {
