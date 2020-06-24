@@ -90,6 +90,7 @@ class ORMFilters
 	{
 		if (!$this->scope->isFieldAllowed($column)) {
 			throw new ORMQueryException('GOBL_ORM_REQUEST_FILTER_FIELD_NOT_ALLOWED', [
+				'table'    => $this->scope->getTable()->getName(),
 				'column'   => $column,
 				'value'    => $value,
 				'operator' => self::operatorName($operator),
@@ -98,6 +99,7 @@ class ORMFilters
 
 		if (!$this->scope->isFilterAllowed($column, $value, $operator)) {
 			throw new ORMQueryException('GOBL_ORM_REQUEST_FILTER_NOT_ALLOWED', [
+				'table'    => $this->scope->getTable()->getName(),
 				'column'   => $column,
 				'value'    => $value,
 				'operator' => self::operatorName($operator),
@@ -122,8 +124,9 @@ class ORMFilters
 		if ($operator === Rule::OP_IN || $operator === Rule::OP_NOT_IN) {
 			if (!\is_array($value)) {
 				throw new ORMException('GOBL_ORM_REQUEST_FILTER_IN_AND_NOT_IN_REQUIRE_ARRAY', [
-					'column' => $column,
-					'value'  => $value,
+					'table'    => $this->scope->getTable()->getName(),
+					'column'   => $column,
+					'value'    => $value,
 				]);
 			}
 
@@ -179,8 +182,9 @@ class ORMFilters
 					if (\is_array($filter)) {
 						if (!isset($filter[0])) {
 							throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_FILTERS', [
-								'column' => $column,
-								'filter' => $filter,
+								'table'    => $this->scope->getTable()->getName(),
+								'column'   => $column,
+								'filter'   => $filter,
 							]);
 						}
 
@@ -188,8 +192,9 @@ class ORMFilters
 
 						if (!isset(self::$OPERATORS_NAME_MAP[$operator_name])) {
 							throw new ORMQueryException('GOBL_ORM_REQUEST_UNKNOWN_OPERATOR_IN_FILTERS', [
-								'column' => $column,
-								'filter' => $filter,
+								'table'    => $this->scope->getTable()->getName(),
+								'column'   => $column,
+								'filter'   => $filter,
 							]);
 						}
 
@@ -205,8 +210,9 @@ class ORMFilters
 						} else {
 							if (!\array_key_exists($value_index, $filter)) {
 								throw new ORMQueryException('GOBL_ORM_REQUEST_MISSING_VALUE_IN_FILTERS', [
-									'column' => $column,
-									'filter' => $filter,
+									'table'    => $this->scope->getTable()->getName(),
+									'column'   => $column,
+									'filter'   => $filter,
 								]);
 							}
 
@@ -219,8 +225,9 @@ class ORMFilters
 									$operator = Rule::OP_IS_NOT_NULL;
 								} else {
 									throw new ORMQueryException('GOBL_ORM_REQUEST_NULL_VALUE_IN_FILTERS', [
-										'column' => $column,
-										'filter' => $filter,
+										'table'    => $this->scope->getTable()->getName(),
+										'column'   => $column,
+										'filter'   => $filter,
 									]);
 								}
 							} else {
@@ -232,8 +239,9 @@ class ORMFilters
 
 								if (!$safe_value) {
 									throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_VALUE_IN_FILTERS', [
-										'column' => $column,
-										'filter' => $filter,
+										'table'    => $this->scope->getTable()->getName(),
+										'column'   => $column,
+										'filter'   => $filter,
 									]);
 								}
 							}
@@ -248,8 +256,9 @@ class ORMFilters
 								$use_and = false;
 							} else {
 								throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_FILTERS', [
-									'column' => $column,
-									'filter' => $filter,
+									'table'    => $this->scope->getTable()->getName(),
+									'column'   => $column,
+									'filter'   => $filter,
 								]);
 							}
 						}
@@ -257,8 +266,9 @@ class ORMFilters
 						$this->addFilter($column, $value, $operator, $use_and);
 					} else {
 						throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_FILTERS', [
-							'column' => $column,
-							'filter' => $filter,
+							'table'    => $this->scope->getTable()->getName(),
+							'column'   => $column,
+							'filter'   => $filter,
 						]);
 					}
 				}
