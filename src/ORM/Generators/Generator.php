@@ -150,27 +150,30 @@ class Generator
 
 		$ds = \DIRECTORY_SEPARATOR;
 
-		$path_gobl     = $path . $ds . 'gobl';
-		$path_entities = $path_gobl . $ds . 'entities';
+		$path_gobl    = $path . $ds . 'gobl';
+		$path_db      = $path_gobl . $ds . 'db';
+		$path_db_base = $path_db . $ds . 'base';
 
-		if (!\file_exists($path_entities)) {
-			\mkdir($path_entities, 0755, true);
+		if (!\file_exists($path_db_base)) {
+			\mkdir($path_db_base, 0755, true);
 		}
 
-		$ts_entity_class_tpl = self::getTemplateCompiler('ts.entity.class');
-		$ts_bundle_tpl       = self::getTemplateCompiler('ts.bundle');
-		$bundle_inject       = [];
-		$time                = \time();
-		$version             = \trim(\file_get_contents(GOBL_ROOT . '/VERSION'));
+		$ts_entity_class_tpl      = self::getTemplateCompiler('ts.entity.class');
+		$ts_entity_base_class_tpl = self::getTemplateCompiler('ts.entity.base.class');
+		$ts_bundle_tpl            = self::getTemplateCompiler('ts.bundle');
+		$bundle_inject            = [];
+		$time                     = \time();
+		$version                  = \trim(\file_get_contents(GOBL_ROOT . '/VERSION'));
 
 		foreach ($tables as $table) {
 			if (!($table->isPrivate() && $this->ignore_private_table)) {
-				$inject                         = $this->describeTable($table);
-				$inject['header']               = $header;
-				$inject['time']                 = $time;
-				$inject['gobl_version']         = $version;
-				$entity_class                   = $inject['class']['entity'];
-				$inject['columns_list']         = \implode('|', \array_keys($inject['columns']));
+				$inject                 = $this->describeTable($table);
+				$inject['header']       = $header;
+				$inject['time']         = $time;
+				$inject['gobl_version'] = $version;
+				$entity_class           = $inject['class']['entity'];
+				$entity_base_class      = $entity_class . 'Base';
+				$inject['columns_list'] = \implode('|', \array_keys($inject['columns']));
 
 				foreach ($inject['columns'] as $column) {
 					$inject['columns_prefix'] = $column['prefix'];
@@ -179,14 +182,16 @@ class Generator
 				}
 
 				$entity_content                           = $ts_entity_class_tpl->runGet($inject);
+				$entity_base_content                      = $ts_entity_base_class_tpl->runGet($inject);
 				$bundle_inject['entities'][$entity_class] = $entity_content;
-				$this->writeFile($path_entities . $ds . $entity_class . '.ts', $entity_content, true);
+				$this->writeFile($path_db . $ds . $entity_class . '.ts', $entity_content, false);
+				$this->writeFile($path_db_base . $ds . $entity_base_class . '.ts', $entity_base_content, true);
 			}
 		}
 
-		$bundle_inject['header']         = $header;
-		$bundle_inject['time']           = $time;
-		$bundle_inject['gobl_version']   = $version;
+		$bundle_inject['header']       = $header;
+		$bundle_inject['time']         = $time;
+		$bundle_inject['gobl_version'] = $version;
 
 		$this->writeFile($path_gobl . $ds . 'index.ts', $ts_bundle_tpl->runGet($bundle_inject), true);
 
@@ -459,7 +464,7 @@ class Generator
 					\file_put_contents(GOBL_TEMPLATE_DIR . \DIRECTORY_SEPARATOR . $name . self::$tpl_ext, $output);
 				}
 			} else {
-				throw new InvalidArgumentException(\sprintf('Template path "%s" is not a valid file path.', $path));
+				throw new InvalidArgumentException(\sprintf('Template path "%s" is not a valid file path.', $item['path']));
 			}
 		}
 
@@ -521,5 +526,6 @@ Generator::setTemplates([
 	'results.class'         => ['path' => GOBL_SAMPLE_DIR . '/php/MyResults.php'],
 	'controller.class'      => ['path' => GOBL_SAMPLE_DIR . '/php/MyController.php'],
 	'ts.bundle'             => ['path' => GOBL_SAMPLE_DIR . '/ts/TSBundle.ts'],
+	'ts.entity.base.class'  => ['path' => GOBL_SAMPLE_DIR . '/ts/MyEntityBase.ts'],
 	'ts.entity.class'       => ['path' => GOBL_SAMPLE_DIR . '/ts/MyEntity.ts'],
 ]);
