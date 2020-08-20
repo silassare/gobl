@@ -1,3 +1,8 @@
+### v1.4.0 (2020-20-08)
+	- TS EntityBase class added
+	- TS using directory structure for entities classes
+	- bug fix and code optimization 
+
 ### v1.3.1 (2020-29-03)
 
 -   using phpcs for linting
