@@ -244,13 +244,21 @@ abstract class Db implements RDBMSInterface
 				}
 
 				if (\is_array($col_options)) {
-					$col = new Column($column_name, $col_prefix, $col_options);
+					try {
+						$col = new Column($column_name, $col_prefix, $col_options);
+					} catch (DBALException $e) {
+						throw new DBALException(\sprintf(
+							'Unable to initialize column "%s" in table "%s".',
+							$column_name,
+							$table_name
+						), $col_options, $e);
+					}
 				} else {
 					throw new DBALException(\sprintf(
 						'Invalid column "%s" options in table "%s".',
 						$column_name,
 						$table_name
-					));
+					), $col_options);
 				}
 
 				$tbl->addColumn($col);
@@ -274,7 +282,7 @@ abstract class Db implements RDBMSInterface
 					throw new DBALException(\sprintf(
 						'You should define constraint "type" in table "%s".',
 						$table_name
-					));
+					), $constraint);
 				}
 
 				if (
@@ -283,90 +291,98 @@ abstract class Db implements RDBMSInterface
 					|| !\count($constraint['columns'])
 				) {
 					throw new DBALException(\sprintf(
-						'Constraint "columns" is not defined or is empty (in the table "%s").',
+						'Required constraint "columns" is not defined or is empty (in the table "%s").',
 						$table_name
-					));
+					), $constraint);
 				}
 
 				$columns = $constraint['columns'];
 				$type    = $constraint['type'];
 
-				switch ($type) {
-					case 'unique':
-						$tbl->addUniqueConstraint($columns);
+				try {
+					switch ($type) {
+						case 'unique':
+							$tbl->addUniqueConstraint($columns);
 
-						break;
-					case 'primary_key':
-						$tbl->addPrimaryKeyConstraint($columns);
+							break;
+						case 'primary_key':
+							$tbl->addPrimaryKeyConstraint($columns);
 
-						break;
-					case 'foreign_key':
-						if (!isset($constraint['reference'])) {
-							throw new DBALException(\sprintf(
-								'You should declare foreign key "reference" table in table "%s".',
-								$table_name
-							));
-						}
-
-						$reference = $constraint['reference'];
-
-						if (!isset($this->tables[$reference])) {
-							throw new DBALException(\sprintf(
-								'Reference table "%s" for foreign key in table "%s" is not defined.',
-								$reference,
-								$table_name
-							));
-						}
-
-						$reference_table = $this->tables[$reference];
-						$update_action   = ForeignKey::ACTION_NO_ACTION;
-						$delete_action   = ForeignKey::ACTION_NO_ACTION;
-						$map             = [
-							'set_null' => ForeignKey::ACTION_SET_NULL,
-							'cascade'  => ForeignKey::ACTION_CASCADE,
-							'restrict' => ForeignKey::ACTION_RESTRICT,
-						];
-						$name            = null;
-
-						if (isset($constraint['name'])) {
-							$name = $constraint['name'];
-						}
-
-						if (isset($constraint['update'])) {
-							if (!isset($map[$constraint['update']])) {
+							break;
+						case 'foreign_key':
+							if (!isset($constraint['reference'])) {
 								throw new DBALException(\sprintf(
-									'Invalid update action "%s" for foreign key constraint.',
-									$constraint['update']
+									'You should declare foreign key "reference" table in table "%s".',
+									$table_name
 								));
 							}
-							$update_action = $map[$constraint['update']];
-						}
 
-						if (isset($constraint['delete'])) {
-							if (!isset($map[$constraint['delete']])) {
+							$reference = $constraint['reference'];
+
+							if (!isset($this->tables[$reference])) {
 								throw new DBALException(\sprintf(
-									'Invalid delete action "%s" for foreign key constraint.',
-									$constraint['delete']
+									'Reference table "%s" for foreign key in table "%s" is not defined.',
+									$reference,
+									$table_name
 								));
 							}
-							$delete_action = $map[$constraint['delete']];
-						}
 
-						$tbl->addForeignKeyConstraint(
-							$name,
-							$reference_table,
-							$constraint['columns'],
-							$update_action,
-							$delete_action
-						);
+							$reference_table = $this->tables[$reference];
+							$update_action   = ForeignKey::ACTION_NO_ACTION;
+							$delete_action   = ForeignKey::ACTION_NO_ACTION;
+							$map             = [
+								'set_null' => ForeignKey::ACTION_SET_NULL,
+								'cascade'  => ForeignKey::ACTION_CASCADE,
+								'restrict' => ForeignKey::ACTION_RESTRICT,
+							];
+							$name            = null;
 
-						break;
-					default:
-						throw new DBALException(\sprintf(
-							'Unknown constraint type "%s" defined in table "%s".',
-							$type,
-							$table_name
-						));
+							if (isset($constraint['name'])) {
+								$name = $constraint['name'];
+							}
+
+							if (isset($constraint['update'])) {
+								if (!isset($map[$constraint['update']])) {
+									throw new DBALException(\sprintf(
+										'Invalid update action "%s" for foreign key constraint.',
+										$constraint['update']
+									));
+								}
+								$update_action = $map[$constraint['update']];
+							}
+
+							if (isset($constraint['delete'])) {
+								if (!isset($map[$constraint['delete']])) {
+									throw new DBALException(\sprintf(
+										'Invalid delete action "%s" for foreign key constraint.',
+										$constraint['delete']
+									));
+								}
+								$delete_action = $map[$constraint['delete']];
+							}
+
+							$tbl->addForeignKeyConstraint(
+								$name,
+								$reference_table,
+								$constraint['columns'],
+								$update_action,
+								$delete_action
+							);
+
+							break;
+						default:
+							throw new DBALException(\sprintf(
+								'Unknown constraint type "%s" defined in table "%s".',
+								$type,
+								$table_name
+							));
+					}
+				} catch (DBALException $e) {
+					throw new DBALException(
+						\sprintf('Unable to add constraint to table "%s".', $table_name),
+						$constraint,
+						$e
+					);
 				}
 			}
 		}
@@ -380,57 +396,65 @@ abstract class Db implements RDBMSInterface
 			) {
 				$relations = $table_options['relations'];
 
-				foreach ($relations as $relation_name => $rel_options) {
-					$r = null;
+				try {
+					foreach ($relations as $relation_name => $rel_options) {
+						$r = null;
 
-					if (\is_array($rel_options) && isset($rel_options['type'], $rel_options['target'])) {
-						$type    = $rel_options['type'];
-						$target  = $rel_options['target'];
-						$columns = isset($rel_options['columns']) ? $rel_options['columns'] : null;
+						if (\is_array($rel_options) && isset($rel_options['type'], $rel_options['target'])) {
+							$type    = $rel_options['type'];
+							$target  = $rel_options['target'];
+							$columns = isset($rel_options['columns']) ? $rel_options['columns'] : null;
 
-						$this->assertHasTable($target);
+							$this->assertHasTable($target);
 
-						if ($type === 'one-to-one') {
-							$r = new OneToOne(
-								$relation_name,
-								$this->getTable($table_name),
-								$this->getTable($target),
-								$columns
-							);
-						} elseif ($type === 'one-to-many') {
-							$r = new OneToMany(
-								$relation_name,
-								$this->getTable($table_name),
-								$this->getTable($target),
-								$columns
-							);
-						} elseif ($type === 'many-to-one') {
-							$r = new ManyToOne(
-								$relation_name,
-								$this->getTable($table_name),
-								$this->getTable($target),
-								$columns
-							);
-						} elseif ($type === 'many-to-many') {
-							$r = new ManyToMany(
-								$relation_name,
-								$this->getTable($table_name),
-								$this->getTable($target),
-								$columns
-							);
+							if ($type === 'one-to-one') {
+								$r = new OneToOne(
+									$relation_name,
+									$this->getTable($table_name),
+									$this->getTable($target),
+									$columns
+								);
+							} elseif ($type === 'one-to-many') {
+								$r = new OneToMany(
+									$relation_name,
+									$this->getTable($table_name),
+									$this->getTable($target),
+									$columns
+								);
+							} elseif ($type === 'many-to-one') {
+								$r = new ManyToOne(
+									$relation_name,
+									$this->getTable($table_name),
+									$this->getTable($target),
+									$columns
+								);
+							} elseif ($type === 'many-to-many') {
+								$r = new ManyToMany(
+									$relation_name,
+									$this->getTable($table_name),
+									$this->getTable($target),
+									$columns
+								);
+							}
 						}
-					}
 
-					if (null === $r) {
-						throw new DBALException(\sprintf(
-							'Invalid relation "%s" in table "%s".',
-							$relation_name,
-							$table_name
-						));
-					}
+						if (null === $r) {
+							throw new DBALException(\sprintf(
+								'Invalid relation "%s" in table "%s".',
+								$relation_name,
+								$table_name
+							));
+						}
 
-					$this->getTable($table_name)
+						$this->getTable($table_name)
 						 ->addRelation($r);
+					}
+				} catch (DBALException $e) {
+					throw new DBALException(
+						\sprintf('Unable to add relation "%s" defined in table "%s".', $relation_name, $table_name),
+						$rel_options,
+						$e
+					);
 				}
 			}
 		}
