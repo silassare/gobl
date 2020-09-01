@@ -1,6 +1,13 @@
 <?php
 
-//__GOBL_HEAD_COMMENT__
+/**
+ * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>.
+ *
+ * This file is part of the Gobl package.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
 namespace MY_DB_NS\Base;
 
@@ -12,8 +19,6 @@ use MY_DB_NS\MyTableQuery as MyTableQueryReal;
 
 /**
  * Class MyEntity
- *
- * @package MY_DB_NS\Base
  */
 abstract class MyEntity extends ORMEntityBase
 {
@@ -25,8 +30,8 @@ abstract class MyEntity extends ORMEntityBase
 	/**
 	 * MyEntity constructor.
 	 *
-	 * @param bool $is_new True for new entity false for entity fetched
-	 *                     from the database, default is true.
+	 * @param bool $is_new true for new entity false for entity fetched
+	 *                     from the database, default is true
 	 * @param bool $strict Enable/disable strict mode
 	 */
 	public function __construct($is_new = true, $strict = true)
@@ -35,10 +40,11 @@ abstract class MyEntity extends ORMEntityBase
 			ORM::getDatabase('MY_DB_NS'),
 			$is_new,
 			$strict,
-			MyEntity::TABLE_NAME,
+			self::TABLE_NAME,
 			MyTableQueryReal::class
 		);
 	}
+
 	//__GOBL_RELATIONS_GETTERS__
 	//__GOBL_COLUMNS_GETTERS_SETTERS__
 }

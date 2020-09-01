@@ -1,6 +1,13 @@
 <?php
 
-//__GOBL_HEAD_COMMENT__
+/**
+ * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>.
+ *
+ * This file is part of the Gobl package.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
 namespace MY_DB_NS\Base;
 
@@ -10,8 +17,6 @@ use Gobl\ORM\ORMResultsBase;
 
 /**
  * Class MyResults
- *
- * @package MY_DB_NS\Base
  */
 abstract class MyResults extends ORMResultsBase
 {
@@ -31,7 +36,7 @@ abstract class MyResults extends ORMResultsBase
 	/**
 	 * This is to help editor infer type in loop (foreach or for...)
 	 *
-	 * @return array|null|\MY_DB_NS\MyEntity
+	 * @return null|array|\MY_DB_NS\MyEntity
 	 */
 	public function current()
 	{
@@ -43,8 +48,9 @@ abstract class MyResults extends ORMResultsBase
 	 *
 	 * @param bool $strict
 	 *
-	 * @return null|\MY_DB_NS\MyEntity
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 *
+	 * @return null|\MY_DB_NS\MyEntity
 	 */
 	public function fetchClass($strict = true)
 	{
@@ -56,8 +62,9 @@ abstract class MyResults extends ORMResultsBase
 	 *
 	 * @param bool $strict
 	 *
-	 * @return \MY_DB_NS\MyEntity[]
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 *
+	 * @return \MY_DB_NS\MyEntity[]
 	 */
 	public function fetchAllClass($strict = true)
 	{

@@ -1,6 +1,13 @@
 <?php
 
-//__GOBL_HEAD_COMMENT__
+/**
+ * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>.
+ *
+ * This file is part of the Gobl package.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
 namespace MY_DB_NS\Base;
 
@@ -13,8 +20,6 @@ use MY_DB_NS\MyTableQuery as MyTableQueryReal;
 
 /**
  * Class MyController
- *
- * @package MY_DB_NS\Base
  */
 abstract class MyController extends ORMControllerBase
 {
@@ -39,15 +44,14 @@ abstract class MyController extends ORMControllerBase
 	 *
 	 * @param array $values the row values
 	 *
-	 * @return \MY_DB_NS\MyEntity
 	 * @throws \Throwable
+	 *
+	 * @return \MY_DB_NS\MyEntity
 	 */
 	public function addItem(array $values = [])
 	{
-		/** @var \MY_DB_NS\MyEntity $result */
-		$result = parent::addItem($values);
-
-		return $result;
+		/* @var \MY_DB_NS\MyEntity $result */
+		return parent::addItem($values);
 	}
 
 	/**
@@ -61,8 +65,9 @@ abstract class MyController extends ORMControllerBase
 	 * @param array $filters    the row filters
 	 * @param array $new_values the new values
 	 *
-	 * @return bool|\MY_DB_NS\MyEntity
 	 * @throws \Throwable
+	 *
+	 * @return bool|\MY_DB_NS\MyEntity
 	 */
 	public function updateOneItem(array $filters, array $new_values)
 	{
@@ -75,8 +80,9 @@ abstract class MyController extends ORMControllerBase
 	 * @param array $filters    the row filters
 	 * @param array $new_values the new values
 	 *
-	 * @return int Affected row count.
 	 * @throws \Throwable
+	 *
+	 * @return int affected row count
 	 */
 	public function updateAllItems(array $filters, array $new_values)
 	{
@@ -93,8 +99,9 @@ abstract class MyController extends ORMControllerBase
 	 *
 	 * @param array $filters the row filters
 	 *
-	 * @return bool|\MY_DB_NS\MyEntity
 	 * @throws \Throwable
+	 *
+	 * @return bool|\MY_DB_NS\MyEntity
 	 */
 	public function deleteOneItem(array $filters)
 	{
@@ -106,8 +113,9 @@ abstract class MyController extends ORMControllerBase
 	 *
 	 * @param array $filters the row filters
 	 *
-	 * @return int Affected row count.
 	 * @throws \Throwable
+	 *
+	 * @return int affected row count
 	 */
 	public function deleteAllItems(array $filters)
 	{
@@ -124,28 +132,28 @@ abstract class MyController extends ORMControllerBase
 	 * @param array $filters  the row filters
 	 * @param array $order_by order by rules
 	 *
-	 * @return \MY_DB_NS\MyEntity|null
 	 * @throws \Throwable
+	 *
+	 * @return null|\MY_DB_NS\MyEntity
 	 */
 	public function getItem(array $filters, array $order_by = [])
 	{
-		/** @var \MY_DB_NS\MyEntity|null $result */
-		$result = parent::getItem($filters, $order_by);
-
-		return $result;
+		/* @var null|\MY_DB_NS\MyEntity $result */
+		return parent::getItem($filters, $order_by);
 	}
 
 	/**
 	 * Gets all items from `my_table` that match the given filters.
 	 *
 	 * @param array    $filters  the row filters
-	 * @param int|null $max      maximum row to retrieve
+	 * @param null|int $max      maximum row to retrieve
 	 * @param int      $offset   first row offset
 	 * @param array    $order_by order by rules
-	 * @param int|bool $total    total rows without limit
+	 * @param bool|int $total    total rows without limit
+	 *
+	 * @throws \Throwable
 	 *
 	 * @return \MY_DB_NS\MyEntity[]
-	 * @throws \Throwable
 	 */
 	public function getAllItems(array $filters = [], $max = null, $offset = 0, array $order_by = [], &$total = false)
 	{
@@ -159,12 +167,13 @@ abstract class MyController extends ORMControllerBase
 	 * Gets all items from `my_table` with a custom query builder instance.
 	 *
 	 * @param \Gobl\DBAL\QueryBuilder $qb
-	 * @param int|null                $max    maximum row to retrieve
+	 * @param null|int                $max    maximum row to retrieve
 	 * @param int                     $offset first row offset
-	 * @param int|bool                $total  total rows without limit
+	 * @param bool|int                $total  total rows without limit
+	 *
+	 * @throws \Throwable
 	 *
 	 * @return \MY_DB_NS\MyEntity[]
-	 * @throws \Throwable
 	 */
 	public function getAllItemsCustom(QueryBuilder $qb, $max = null, $offset = 0, &$total = false)
 	{
