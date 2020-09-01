@@ -16,6 +16,7 @@ use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\QueryBuilder;
 use Gobl\DBAL\QueryTokenParser;
+use Gobl\Gobl;
 use PDO;
 use PDOException;
 
@@ -251,8 +252,9 @@ class MySQL extends Db
 	public function buildDatabase($namespace = null)
 	{
 		// checks all foreign key constraints
-		$tables = $this->getTables($namespace);
-		$parts  = [];
+		$tables             = $this->getTables($namespace);
+		$create_table_parts = [];
+		$alter_table_parts  = [];
 
 		foreach ($tables as $table) {
 			$fk_list = $table->getForeignKeyConstraints();
@@ -266,7 +268,7 @@ class MySQL extends Db
 
 				if (
 					!$fk->getReferenceTable()
-						->isPrimaryKey($columns)
+					->isPrimaryKey($columns)
 				) {
 					$ref_name = $fk->getReferenceTable()
 								   ->getName();
@@ -282,14 +284,30 @@ class MySQL extends Db
 
 			$qb = new QueryBuilder($this);
 			$qb->createTable($table);
-			$parts[] = $this->getQueryGenerator($qb)
-							->buildQuery();
+			$qg                   = $this->getQueryGenerator($qb);
+			$create_table_parts[] = $qg->getTableDefinitionString(false);
+			$foreign_keys         = $qg->getTableForeignKeysDefinitionString();
+
+			if ($foreign_keys) {
+				$alter_table_parts[] = $foreign_keys;
+			}
 		}
 
-		$mysql   = \implode(\PHP_EOL, $parts);
+		$create_sql = \implode(\PHP_EOL . \PHP_EOL, $create_table_parts);
+		$alter_sql  = \implode(\PHP_EOL . \PHP_EOL, $alter_table_parts);
+
 		$charset = $this->config->getDbCharset();
 
+		$time    = \time();
+		$version = Gobl::VERSION;
+
 		return <<<GOBL_MySQL
+--
+-- Auto generated file, please don't edit.
+-- With: $version
+-- Time: $time
+--
+
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
@@ -301,7 +319,9 @@ class MySQL extends Db
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
-$mysql
+$create_sql
+
+$alter_sql
 
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
