@@ -1,7 +1,14 @@
+### v1.4.1 (2020-01-09)
+
+- fix foreign key table alter bug (MySQLGenerator)
+- all alter are now moved after all table creation (MySQLGenerator)
+- src/ORM/Sample directory moved to root
+
 ### v1.4.0 (2020-20-08)
-	- TS EntityBase class added
-	- TS using directory structure for entities classes
-	- bug fix and code optimization 
+
+- TS EntityBase class added
+- TS using directory structure for entities classes
+- bug fix and code optimization 
 
 ### v1.3.1 (2020-29-03)
 
