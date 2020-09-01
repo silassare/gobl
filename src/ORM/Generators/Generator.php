@@ -18,21 +18,10 @@ use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
 use Gobl\DBAL\Utils;
+use Gobl\Gobl;
 use InvalidArgumentException;
 use OTpl\OTpl;
 use RuntimeException;
-
-if (!\defined('GOBL_ROOT')) {
-	\define('GOBL_ROOT', \realpath(__DIR__ . '/../../..'));
-}
-
-if (!\defined('GOBL_TEMPLATE_DIR')) {
-	\define('GOBL_TEMPLATE_DIR', \realpath(GOBL_ROOT . '/templates'));
-}
-
-if (!\defined('GOBL_SAMPLE_DIR')) {
-	\define('GOBL_SAMPLE_DIR', \realpath(__DIR__ . '/../Sample'));
-}
 
 class Generator
 {
@@ -105,13 +94,12 @@ class Generator
 		$ctrl_class_tpl    = self::getTemplateCompiler('controller.class');
 
 		$time    = \time();
-		$version = \trim(\file_get_contents(GOBL_ROOT . '/VERSION'));
 
 		foreach ($tables as $table) {
 			$inject                 = $this->describeTable($table);
 			$inject['header']       = $header;
 			$inject['time']         = $time;
-			$inject['gobl_version'] = $version;
+			$inject['gobl_version'] = Gobl::VERSION;
 			$query_class            = $inject['class']['query'];
 			$entity_class           = $inject['class']['entity'];
 			$results_class          = $inject['class']['results'];
@@ -163,14 +151,13 @@ class Generator
 		$ts_bundle_tpl            = self::getTemplateCompiler('ts.bundle');
 		$bundle_inject            = [];
 		$time                     = \time();
-		$version                  = \trim(\file_get_contents(GOBL_ROOT . '/VERSION'));
 
 		foreach ($tables as $table) {
 			if (!($table->isPrivate() && $this->ignore_private_table)) {
 				$inject                 = $this->describeTable($table);
 				$inject['header']       = $header;
 				$inject['time']         = $time;
-				$inject['gobl_version'] = $version;
+				$inject['gobl_version'] = Gobl::VERSION;
 				$entity_class           = $inject['class']['entity'];
 				$entity_base_class      = $entity_class . 'Base';
 				$inject['columns_list'] = \implode('|', \array_keys($inject['columns']));
@@ -191,7 +178,7 @@ class Generator
 
 		$bundle_inject['header']       = $header;
 		$bundle_inject['time']         = $time;
-		$bundle_inject['gobl_version'] = $version;
+		$bundle_inject['gobl_version'] = Gobl::VERSION;
 
 		$this->writeFile($path_gobl . $ds . 'index.ts', $ts_bundle_tpl->runGet($bundle_inject), true);
 
@@ -401,7 +388,7 @@ class Generator
 	public static function getTemplateCompiler($name)
 	{
 		try {
-			$path = GOBL_TEMPLATE_DIR . \DIRECTORY_SEPARATOR . $name . self::$tpl_ext;
+			$path = Gobl::TEMPLATES_DIR . \DIRECTORY_SEPARATOR . $name . self::$tpl_ext;
 			$o    = new OTpl();
 			$o->parse($path);
 		} catch (Exception $e) {
@@ -435,7 +422,7 @@ class Generator
 	 */
 	public static function setTemplates(array $list)
 	{
-		$cache_file = GOBL_TEMPLATE_DIR . \DIRECTORY_SEPARATOR . 'gobl.templates.cache.json';
+		$cache_file = Gobl::TEMPLATES_DIR . \DIRECTORY_SEPARATOR . 'gobl.templates.cache.json';
 
 		if (!isset(self::$templates_cache)) {
 			if (\file_exists($cache_file)) {
@@ -461,7 +448,7 @@ class Generator
 
 					$output = self::toTemplate(\file_get_contents($path), $replaces);
 
-					\file_put_contents(GOBL_TEMPLATE_DIR . \DIRECTORY_SEPARATOR . $name . self::$tpl_ext, $output);
+					\file_put_contents(Gobl::TEMPLATES_DIR . \DIRECTORY_SEPARATOR . $name . self::$tpl_ext, $output);
 				}
 			} else {
 				throw new InvalidArgumentException(\sprintf('Template path "%s" is not a valid file path.', $item['path']));
@@ -496,7 +483,7 @@ class Generator
 			'//__GOBL_TS_ENTITIES_IMPORT__'         => '<%@import(\'include/ts.entities.import.otpl\',$)%>',
 			'//__GOBL_TS_ENTITIES_EXPORT__'         => '<%@import(\'include/ts.entities.export.otpl\',$)%>',
 			'//__GOBL_TS_ENTITIES_REGISTER__'       => '<%@import(\'include/ts.entities.register.otpl\',$)%>',
-			'//__GOBL_VERSION__'                    => \trim(\file_get_contents(GOBL_ROOT . '/VERSION')),
+			'//__GOBL_VERSION__'                    => Gobl::VERSION,
 
 			'MY_DB_NS'               => '<%$.namespace%>',
 			'MyTableQuery'           => '<%$.class.query%>',
@@ -517,15 +504,15 @@ class Generator
 }
 
 Generator::setTemplates([
-	'base.query.class'      => ['path' => GOBL_SAMPLE_DIR . '/php/Base/MyTableQuery.php'],
-	'base.entity.class'     => ['path' => GOBL_SAMPLE_DIR . '/php/Base/MyEntity.php'],
-	'base.results.class'    => ['path' => GOBL_SAMPLE_DIR . '/php/Base/MyResults.php'],
-	'base.controller.class' => ['path' => GOBL_SAMPLE_DIR . '/php/Base/MyController.php'],
-	'query.class'           => ['path' => GOBL_SAMPLE_DIR . '/php/MyTableQuery.php'],
-	'entity.class'          => ['path' => GOBL_SAMPLE_DIR . '/php/MyEntity.php'],
-	'results.class'         => ['path' => GOBL_SAMPLE_DIR . '/php/MyResults.php'],
-	'controller.class'      => ['path' => GOBL_SAMPLE_DIR . '/php/MyController.php'],
-	'ts.bundle'             => ['path' => GOBL_SAMPLE_DIR . '/ts/TSBundle.ts'],
-	'ts.entity.base.class'  => ['path' => GOBL_SAMPLE_DIR . '/ts/MyEntityBase.ts'],
-	'ts.entity.class'       => ['path' => GOBL_SAMPLE_DIR . '/ts/MyEntity.ts'],
+	'base.query.class'      => ['path' => Gobl::SAMPLES_DIR . '/php/Base/MyTableQuery.php'],
+	'base.entity.class'     => ['path' => Gobl::SAMPLES_DIR . '/php/Base/MyEntity.php'],
+	'base.results.class'    => ['path' => Gobl::SAMPLES_DIR . '/php/Base/MyResults.php'],
+	'base.controller.class' => ['path' => Gobl::SAMPLES_DIR . '/php/Base/MyController.php'],
+	'query.class'           => ['path' => Gobl::SAMPLES_DIR . '/php/MyTableQuery.php'],
+	'entity.class'          => ['path' => Gobl::SAMPLES_DIR . '/php/MyEntity.php'],
+	'results.class'         => ['path' => Gobl::SAMPLES_DIR . '/php/MyResults.php'],
+	'controller.class'      => ['path' => Gobl::SAMPLES_DIR . '/php/MyController.php'],
+	'ts.bundle'             => ['path' => Gobl::SAMPLES_DIR . '/ts/TSBundle.ts'],
+	'ts.entity.base.class'  => ['path' => Gobl::SAMPLES_DIR . '/ts/MyEntityBase.ts'],
+	'ts.entity.class'       => ['path' => Gobl::SAMPLES_DIR . '/ts/MyEntity.ts'],
 ]);
