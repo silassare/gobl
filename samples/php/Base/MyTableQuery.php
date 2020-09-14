@@ -11,6 +11,7 @@
 
 namespace MY_DB_NS\Base;
 
+use Gobl\DBAL\Rule;
 use Gobl\ORM\ORM;
 use Gobl\ORM\ORMTableQueryBase;
 
@@ -45,7 +46,9 @@ abstract class MyTableQuery extends ORMTableQueryBase
 	public function find($max = null, $offset = 0, array $order_by = [])
 	{
 		/* @var \MY_DB_NS\MyResults $results */
-		return parent::find($max, $offset, $order_by);
+		$results = parent::find($max, $offset, $order_by);
+
+		return $results;
 	}
 
 	//__GOBL_QUERY_FILTER_BY_COLUMNS__
