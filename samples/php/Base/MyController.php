@@ -51,7 +51,9 @@ abstract class MyController extends ORMControllerBase
 	public function addItem(array $values = [])
 	{
 		/* @var \MY_DB_NS\MyEntity $result */
-		return parent::addItem($values);
+		$result = parent::addItem($values);
+
+		return $result;
 	}
 
 	/**
@@ -139,7 +141,9 @@ abstract class MyController extends ORMControllerBase
 	public function getItem(array $filters, array $order_by = [])
 	{
 		/* @var null|\MY_DB_NS\MyEntity $result */
-		return parent::getItem($filters, $order_by);
+		$result = parent::getItem($filters, $order_by);
+
+		return $result;
 	}
 
 	/**
