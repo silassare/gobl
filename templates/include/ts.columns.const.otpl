@@ -1,6 +1,0 @@
-public static readonly PREFIX: string = '<%$.columns_prefix%>';
-	public static readonly COLUMNS: string[] = [
-	<%loop($.columns : $column){%>	'<%$column.fullName%>',
-<%}%>	];
-<%loop($.columns : $column){%>	public static readonly <%$column.const%>: string = '<%$column.fullName%>';
-<%}%>

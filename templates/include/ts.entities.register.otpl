@@ -1,2 +1,0 @@
-<%loop($.entities : $name : $content){%>register('<%$name%>', <%$name%>);
-<%}%>

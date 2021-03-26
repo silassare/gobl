@@ -1,2 +1,0 @@
-<%loop($.entities : $name : $content){%>import <%$name%> from './db/<%$name%>';
-<%}%>
