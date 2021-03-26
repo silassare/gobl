@@ -237,6 +237,19 @@ abstract class Generator
 	}
 
 	/**
+	 * Generate classes for tables in the database.
+	 *
+	 * @param Table[] $tables the tables list
+	 * @param string  $path   the destination folder path
+	 * @param string  $header the source header to use
+	 *
+	 * @throws \Exception
+	 *
+	 * @return $this
+	 */
+	abstract public function generate(array $tables, $path, $header = '');
+
+	/**
 	 * Write contents to file.
 	 *
 	 * @param string $path      the file path
@@ -345,35 +358,22 @@ abstract class Generator
 	public static function toTemplate($source, $replaces = [])
 	{
 		$replaces = [
-						'//@'                    => '',
-						'MY_DB_NS'               => '<%$.namespace%>',
-						'MyTableQuery'           => '<%$.class.query%>',
-						'MyEntity'               => '<%$.class.entity%>',
-						'MyResults'              => '<%$.class.results%>',
-						'MyController'           => '<%$.class.controller%>',
-						'my_table'               => '<%$.table.name%>',
-						'my_entity'              => '<%$.table.singular%>',
-						'my_id'                  => '<%$.pk_columns[0].fullName%>',
-						'\'my_pk_column_const\'' => '<%$.class.entity%>::<%$.pk_columns[0].const%>',
+			'//@'                    => '',
+			'MY_DB_NS'               => '<%$.namespace%>',
+			'MyTableQuery'           => '<%$.class.query%>',
+			'MyEntity'               => '<%$.class.entity%>',
+			'MyResults'              => '<%$.class.results%>',
+			'MyController'           => '<%$.class.controller%>',
+			'my_table'               => '<%$.table.name%>',
+			'my_entity'              => '<%$.table.singular%>',
+			'my_id'                  => '<%$.pk_columns[0].fullName%>',
+			'\'my_pk_column_const\'' => '<%$.class.entity%>::<%$.pk_columns[0].const%>',
 
-					] + $replaces;
+		] + $replaces;
 
 		$search      = \array_keys($replaces);
 		$replacement = \array_values($replaces);
 
 		return \str_replace($search, $replacement, $source);
 	}
-
-	/**
-	 * Generate classes for tables in the database.
-	 *
-	 * @param Table[] $tables the tables list
-	 * @param string  $path   the destination folder path
-	 * @param string  $header the source header to use
-	 *
-	 * @return $this
-	 * @throws \Exception
-	 *
-	 */
-	abstract public function generate(array $tables, $path, $header = '');
 }

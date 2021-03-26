@@ -47,9 +47,11 @@ class GeneratorDart extends Generator
 		if (!\file_exists($path_db_base)) {
 			\mkdir($path_db_base, 0755, true);
 		}
+
 		if (!\file_exists($path_db_entities)) {
 			\mkdir($path_db_entities, 0755, true);
 		}
+
 		if (!\file_exists($path_db_mixins)) {
 			\mkdir($path_db_mixins, 0755, true);
 		}

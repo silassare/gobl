@@ -4,21 +4,24 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4a33f4cc86209e20de493e8bd4331456",
+    "content-hash": "2f2603a145b312b340e5376cea628f8d",
     "packages": [
         {
             "name": "silassare/otpl",
-            "version": "dev-master",
+            "version": "1.1.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/silassare/otpl-php.git",
-                "reference": "81fcc002ec720a397bc1dac0b7240ac284d505f8"
+                "reference": "34e46bd59264f6e253a4594a25bd30a244d47050"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/silassare/otpl-php/zipball/81fcc002ec720a397bc1dac0b7240ac284d505f8",
-                "reference": "81fcc002ec720a397bc1dac0b7240ac284d505f8",
+                "url": "https://api.github.com/repos/silassare/otpl-php/zipball/34e46bd59264f6e253a4594a25bd30a244d47050",
+                "reference": "34e46bd59264f6e253a4594a25bd30a244d47050",
                 "shasum": ""
+            },
+            "require": {
+                "php": ">=5.6.0"
             },
             "type": "library",
             "autoload": {
@@ -28,7 +31,7 @@
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "ISC"
+                "MIT"
             ],
             "authors": [
                 {
@@ -44,7 +47,11 @@
                 "otpl",
                 "template"
             ],
-            "time": "2018-10-17T14:52:23+00:00"
+            "support": {
+                "issues": "https://github.com/silassare/otpl-php/issues",
+                "source": "https://github.com/silassare/otpl-php/tree/v1.1.9"
+            },
+            "time": "2019-04-09T02:05:44+00:00"
         }
     ],
     "packages-dev": [],
@@ -53,6 +60,12 @@
     "stability-flags": [],
     "prefer-stable": true,
     "prefer-lowest": false,
-    "platform": [],
-    "platform-dev": []
+    "platform": {
+        "php": ">=5.6.0",
+        "ext-pdo": "*",
+        "ext-json": "*",
+        "ext-bcmath": "*"
+    },
+    "platform-dev": [],
+    "plugin-api-version": "2.0.0"
 }
