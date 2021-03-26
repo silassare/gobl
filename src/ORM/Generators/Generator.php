@@ -29,7 +29,7 @@ abstract class Generator
 
 	private static $templates_cache;
 
-	private $types_map = [
+	protected $types_map = [
 		TypeInterface::TYPE_INT    => ['int', 'int'],
 		TypeInterface::TYPE_BIGINT => ['bigint', 'string'],
 		TypeInterface::TYPE_STRING => ['string', 'string'],
@@ -38,11 +38,11 @@ abstract class Generator
 	];
 
 	/** @var \Gobl\DBAL\Db */
-	private $db;
+	protected $db;
 
-	private $ignore_private_table;
+	protected $ignore_private_table;
 
-	private $ignore_private_column;
+	protected $ignore_private_column;
 
 	/**
 	 * Generator constructor.
@@ -56,133 +56,6 @@ abstract class Generator
 		$this->db                    = $db;
 		$this->ignore_private_table  = $ignore_private_table;
 		$this->ignore_private_column = $ignore_private_column;
-	}
-
-	/**
-	 * Generate classes for tables with a given namespace in the database.
-	 *
-	 * @param Table[] $tables the tables list
-	 * @param string  $path   the destination folder path
-	 * @param string  $header the source header to use
-	 *
-	 * @throws \Exception
-	 *
-	 * @return $this
-	 */
-	public function generateORMClasses(array $tables, $path, $header = '')
-	{
-		if (!\file_exists($path) || !\is_dir($path)) {
-			throw new InvalidArgumentException(\sprintf('"%s" is not a valid directory path.', $path));
-		}
-
-		$ds = \DIRECTORY_SEPARATOR;
-
-		$path_base = $path . $ds . 'Base';
-
-		if (!\file_exists($path_base)) {
-			\mkdir($path_base);
-		}
-
-		$base_query_class_tpl   = self::getTemplateCompiler('base.query.class');
-		$base_entity_class_tpl  = self::getTemplateCompiler('base.entity.class');
-		$base_results_class_tpl = self::getTemplateCompiler('base.results.class');
-		$base_ctrl_class_tpl    = self::getTemplateCompiler('base.controller.class');
-
-		$query_class_tpl   = self::getTemplateCompiler('query.class');
-		$entity_class_tpl  = self::getTemplateCompiler('entity.class');
-		$results_class_tpl = self::getTemplateCompiler('results.class');
-		$ctrl_class_tpl    = self::getTemplateCompiler('controller.class');
-
-		$time    = \time();
-
-		foreach ($tables as $table) {
-			$inject                 = $this->describeTable($table);
-			$inject['header']       = $header;
-			$inject['time']         = $time;
-			$inject['gobl_version'] = Gobl::VERSION;
-			$query_class            = $inject['class']['query'];
-			$entity_class           = $inject['class']['entity'];
-			$results_class          = $inject['class']['results'];
-			$ctrl_class             = $inject['class']['controller'];
-
-			$this->writeFile($path_base . $ds . $query_class . '.php', $base_query_class_tpl->runGet($inject));
-			$this->writeFile($path_base . $ds . $entity_class . '.php', $base_entity_class_tpl->runGet($inject));
-			$this->writeFile($path_base . $ds . $results_class . '.php', $base_results_class_tpl->runGet($inject));
-			$this->writeFile($path_base . $ds . $ctrl_class . '.php', $base_ctrl_class_tpl->runGet($inject));
-
-			$this->writeFile($path . $ds . $query_class . '.php', $query_class_tpl->runGet($inject), false);
-			$this->writeFile($path . $ds . $entity_class . '.php', $entity_class_tpl->runGet($inject), false);
-			$this->writeFile($path . $ds . $results_class . '.php', $results_class_tpl->runGet($inject), false);
-			$this->writeFile($path . $ds . $ctrl_class . '.php', $ctrl_class_tpl->runGet($inject), false);
-		}
-
-		return $this;
-	}
-
-	/**
-	 * Generate TypeScript classes for tables with a given namespace in the database.
-	 *
-	 * @param Table[] $tables the tables list
-	 * @param string  $path   the destination folder path
-	 * @param string  $header the source header to use
-	 *
-	 * @throws \Exception
-	 *
-	 * @return $this
-	 */
-	public function generateTSClasses(array $tables, $path, $header = '')
-	{
-		if (!\file_exists($path) || !\is_dir($path)) {
-			throw new InvalidArgumentException(\sprintf('"%s" is not a valid directory path.', $path));
-		}
-
-		$ds = \DIRECTORY_SEPARATOR;
-
-		$path_gobl    = $path . $ds . 'gobl';
-		$path_db      = $path_gobl . $ds . 'db';
-		$path_db_base = $path_db . $ds . 'base';
-
-		if (!\file_exists($path_db_base)) {
-			\mkdir($path_db_base, 0755, true);
-		}
-
-		$ts_entity_class_tpl      = self::getTemplateCompiler('ts.entity.class');
-		$ts_entity_base_class_tpl = self::getTemplateCompiler('ts.entity.base.class');
-		$ts_bundle_tpl            = self::getTemplateCompiler('ts.bundle');
-		$bundle_inject            = [];
-		$time                     = \time();
-
-		foreach ($tables as $table) {
-			if (!($table->isPrivate() && $this->ignore_private_table)) {
-				$inject                 = $this->describeTable($table);
-				$inject['header']       = $header;
-				$inject['time']         = $time;
-				$inject['gobl_version'] = Gobl::VERSION;
-				$entity_class           = $inject['class']['entity'];
-				$entity_base_class      = $entity_class . 'Base';
-				$inject['columns_list'] = \implode('|', \array_keys($inject['columns']));
-
-				foreach ($inject['columns'] as $column) {
-					$inject['columns_prefix'] = $column['prefix'];
-
-					break;
-				}
-
-				$entity_content                           = $ts_entity_class_tpl->runGet($inject);
-				$entity_base_content                      = $ts_entity_base_class_tpl->runGet($inject);
-				$bundle_inject['entities'][$entity_class] = $entity_content;
-				$this->writeFile($path_db . $ds . $entity_class . '.ts', $entity_content, false);
-				$this->writeFile($path_db_base . $ds . $entity_base_class . '.ts', $entity_base_content, true);
-			}
-		}
-
-		$bundle_inject['header']       = $header;
-		$bundle_inject['time']         = $time;
-		$bundle_inject['gobl_version'] = Gobl::VERSION;
-
-		$this->writeFile($path_gobl . $ds . 'index.ts', $ts_bundle_tpl->runGet($bundle_inject), true);
-
-		return $this;
 	}
 
 	/**
@@ -357,7 +230,8 @@ abstract class Generator
 				'use_controller' => $ns . '\\' . $controller_class_name,
 			],
 			'table'      => [
-				'name' => $table->getName(),
+				'name'     => $table->getName(),
+				'singular' => $table->getSingularName(),
 			],
 		];
 	}
@@ -369,7 +243,7 @@ abstract class Generator
 	 * @param mixed  $content   the file content
 	 * @param bool   $overwrite overwrite file if exists, default is true
 	 */
-	private function writeFile($path, $content, $overwrite = true)
+	protected function writeFile($path, $content, $overwrite = true)
 	{
 		if (!$overwrite && \file_exists($path)) {
 			return;
@@ -471,30 +345,18 @@ abstract class Generator
 	public static function toTemplate($source, $replaces = [])
 	{
 		$replaces = [
-			'//__GOBL_HEAD_COMMENT__'               => '<%@import(\'include/head.comment.otpl\',$)%>',
-			'//__GOBL_RELATIONS_USE_CLASS__'        => '<%@import(\'include/entity.relations.use.class.otpl\',$)%>',
-			'//__GOBL_COLUMNS_CONST__'              => '<%@import(\'include/entity.columns.const.otpl\',$)%>',
-			'//__GOBL_RELATIONS_PROPERTIES__'       => '<%@import(\'include/entity.relations.properties.otpl\',$)%>',
-			'//__GOBL_RELATIONS_GETTERS__'          => '<%@import(\'include/entity.relations.getters.otpl\',$)%>',
-			'//__GOBL_COLUMNS_GETTERS_SETTERS__'    => '<%@import(\'include/entity.getters.setters.otpl\',$)%>',
-			'//__GOBL_QUERY_FILTER_BY_COLUMNS__'    => '<%@import(\'include/query.filter.by.columns.otpl\',$)%>',
-			'//__GOBL_TS_COLUMNS_CONST__'           => '<%@import(\'include/ts.columns.const.otpl\',$)%>',
-			'//__GOBL_TS_COLUMNS_GETTERS_SETTERS__' => '<%@import(\'include/ts.getters.setters.otpl\',$)%>',
-			'//__GOBL_TS_ENTITIES_IMPORT__'         => '<%@import(\'include/ts.entities.import.otpl\',$)%>',
-			'//__GOBL_TS_ENTITIES_EXPORT__'         => '<%@import(\'include/ts.entities.export.otpl\',$)%>',
-			'//__GOBL_TS_ENTITIES_REGISTER__'       => '<%@import(\'include/ts.entities.register.otpl\',$)%>',
-			'//__GOBL_VERSION__'                    => Gobl::VERSION,
+						'//@'                    => '',
+						'MY_DB_NS'               => '<%$.namespace%>',
+						'MyTableQuery'           => '<%$.class.query%>',
+						'MyEntity'               => '<%$.class.entity%>',
+						'MyResults'              => '<%$.class.results%>',
+						'MyController'           => '<%$.class.controller%>',
+						'my_table'               => '<%$.table.name%>',
+						'my_entity'              => '<%$.table.singular%>',
+						'my_id'                  => '<%$.pk_columns[0].fullName%>',
+						'\'my_pk_column_const\'' => '<%$.class.entity%>::<%$.pk_columns[0].const%>',
 
-			'MY_DB_NS'               => '<%$.namespace%>',
-			'MyTableQuery'           => '<%$.class.query%>',
-			'MyEntity'               => '<%$.class.entity%>',
-			'MyResults'              => '<%$.class.results%>',
-			'MyController'           => '<%$.class.controller%>',
-			'my_table'               => '<%$.table.name%>',
-			'my_id'                  => '<%$.pk_columns[0].fullName%>',
-			'\'my_pk_column_const\'' => '<%$.class.entity%>::<%$.pk_columns[0].const%>',
-
-		] + $replaces;
+					] + $replaces;
 
 		$search      = \array_keys($replaces);
 		$replacement = \array_values($replaces);
@@ -515,17 +377,3 @@ abstract class Generator
 	 */
 	abstract public function generate(array $tables, $path, $header = '');
 }
-
-Generator::setTemplates([
-	'base.query.class'      => ['path' => Gobl::SAMPLES_DIR . '/php/Base/MyTableQuery.php'],
-	'base.entity.class'     => ['path' => Gobl::SAMPLES_DIR . '/php/Base/MyEntity.php'],
-	'base.results.class'    => ['path' => Gobl::SAMPLES_DIR . '/php/Base/MyResults.php'],
-	'base.controller.class' => ['path' => Gobl::SAMPLES_DIR . '/php/Base/MyController.php'],
-	'query.class'           => ['path' => Gobl::SAMPLES_DIR . '/php/MyTableQuery.php'],
-	'entity.class'          => ['path' => Gobl::SAMPLES_DIR . '/php/MyEntity.php'],
-	'results.class'         => ['path' => Gobl::SAMPLES_DIR . '/php/MyResults.php'],
-	'controller.class'      => ['path' => Gobl::SAMPLES_DIR . '/php/MyController.php'],
-	'ts.bundle'             => ['path' => Gobl::SAMPLES_DIR . '/ts/TSBundle.ts'],
-	'ts.entity.base.class'  => ['path' => Gobl::SAMPLES_DIR . '/ts/MyEntityBase.ts'],
-	'ts.entity.class'       => ['path' => Gobl::SAMPLES_DIR . '/ts/MyEntity.ts'],
-]);
