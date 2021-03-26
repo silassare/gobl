@@ -23,7 +23,7 @@ use InvalidArgumentException;
 use OTpl\OTpl;
 use RuntimeException;
 
-class Generator
+abstract class Generator
 {
 	private static $tpl_ext = '.otpl';
 
@@ -501,6 +501,19 @@ class Generator
 
 		return \str_replace($search, $replacement, $source);
 	}
+
+	/**
+	 * Generate classes for tables in the database.
+	 *
+	 * @param Table[] $tables the tables list
+	 * @param string  $path   the destination folder path
+	 * @param string  $header the source header to use
+	 *
+	 * @return $this
+	 * @throws \Exception
+	 *
+	 */
+	abstract public function generate(array $tables, $path, $header = '');
 }
 
 Generator::setTemplates([
