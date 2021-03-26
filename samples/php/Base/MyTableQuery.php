@@ -51,6 +51,20 @@ abstract class MyTableQuery extends ORMTableQueryBase
 
 		return $results;
 	}
-
-	//__GOBL_QUERY_FILTER_BY_COLUMNS__
+	//@<%loop($.columns : $column){%>
+//@	/**
+//@	 * Filters rows with condition on column `<%$column.name%>` in the table `<%$.table.name%>`.
+//@	 *
+//@	 * @param mixed  $value    the filter value
+//@	 * @param int    $operator the operator to use
+//@	 *
+//@	 * @return $this|\<%$.class.use_query%>
+//@	 * @throws \Gobl\DBAL\Exceptions\DBALException
+//@	 * @throws \Gobl\ORM\Exceptions\ORMException
+//@	 */
+//@	public function filterBy<%$column.methodSuffix%>($value, $operator = Rule::OP_EQ)
+//@	{
+//@		return $this->filterBy('<%$column.name%>', $value, $operator);
+//@	}
+//@<%}%>
 }

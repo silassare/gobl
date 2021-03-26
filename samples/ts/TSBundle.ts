@@ -8,10 +8,16 @@
  * Time: <%$.gobl_time%>
  */
 //@<%}%>
+
 import { register } from 'gobl-utils-ts';
 
-//__GOBL_TS_ENTITIES_IMPORT__
+//@<%loop($.entities : $name : $content){%>import <%$name%> from './db/<%$name%>';
+//@<%}%>
 
-//__GOBL_TS_ENTITIES_REGISTER__
+//@<%loop($.entities : $name : $content){%>register('<%$name%>', <%$name%>);
+//@<%}%>
 
-//__GOBL_TS_ENTITIES_EXPORT__
+export {
+//@<%loop($.entities : $name : $content){%><%$name%>,
+//@<%}%>
+};
