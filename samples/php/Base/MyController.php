@@ -1,13 +1,14 @@
 <?php
-
+//@<%if(@length($.gobl_header)){%><%$.gobl_header%><%} else {%>
 /**
- * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>.
+ * Auto generated file
  *
- * This file is part of the Gobl package.
+ * WARNING: please don't edit.
  *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * Proudly With: <%$.gobl_version%>
+ * Time: <%$.gobl_time%>
  */
+//@<%}%>
 
 namespace MY_DB_NS\Base;
 
@@ -50,7 +51,7 @@ abstract class MyController extends ORMControllerBase
 	 */
 	public function addItem(array $values = [])
 	{
-		/* @var \MY_DB_NS\MyEntity $result */
+		/** @var \MY_DB_NS\MyEntity $result */
 		$result = parent::addItem($values);
 
 		return $result;
