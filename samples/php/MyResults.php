@@ -1,5 +1,4 @@
 <?php
-
 //@<%if(@length($.gobl_header)){%><%$.gobl_header%><%} else {%>
 /**
  * Auto generated file,
@@ -21,4 +20,7 @@ use MY_DB_NS\Base\MyResults as BaseMyResults;
  */
 class MyResults extends BaseMyResults
 {
+	//====================================================
+	//=	Your custom implementation goes here
+	//====================================================
 }

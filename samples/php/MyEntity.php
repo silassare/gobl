@@ -20,4 +20,7 @@ use MY_DB_NS\Base\MyEntity as BaseMyEntity;
  */
 class MyEntity extends BaseMyEntity
 {
+	//====================================================
+	//=	Your custom implementation goes here
+	//====================================================
 }

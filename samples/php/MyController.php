@@ -20,4 +20,7 @@ use MY_DB_NS\Base\MyController as BaseMyController;
  */
 class MyController extends BaseMyController
 {
+	//====================================================
+	//=	Your custom implementation goes here
+	//====================================================
 }

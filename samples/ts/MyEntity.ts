@@ -21,4 +21,8 @@ export default class MyEntity extends MyEntityBase {
 		const cache: any = getEntityCache("MyEntity");
 		return cache && cache[cacheKey];
 	}
+
+	//====================================================
+	//=	Your custom implementation goes here
+	//====================================================
 }
