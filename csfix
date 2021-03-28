@@ -1,6 +1,6 @@
 #!/bin/sh
 
-php-cs-fixer fix --using-cache=no
-phpcbf .
-php-cs-fixer fix --using-cache=no
-phpcbf .
+./vendor/bin/php-cs-fixer fix --using-cache=no
+./vendor/bin/phpcbf .
+./vendor/bin/php-cs-fixer fix --using-cache=no
+./vendor/bin/phpcbf .
