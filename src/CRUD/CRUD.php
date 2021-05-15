@@ -280,7 +280,8 @@ class CRUD
 		foreach ($form as $field => $value) {
 			if ($this->table->hasColumn($field)) {
 				$debug['column'] = $field;
-				$column          = $this->table->getColumn($field);
+				/** @var \Gobl\DBAL\Column $column */
+				$column = $this->table->getColumn($field);
 
 				if ($column->isPrivate() && !$this->crud_handler->shouldWritePrivateColumn()) {
 					$debug['_why'] = 'column_is_private';
@@ -289,9 +290,9 @@ class CRUD
 				}
 
 				if (
-					$value != null
+					$value !== null
 					&& $this->table->isPartOfPrimaryKey($column)
-					&& !$this->crud_handler->shouldWritePrivateColumn()
+					&& !$this->crud_handler->shouldWritePkColumn()
 				) {
 					$debug['_why'] = 'column_is_part_of_pk';
 
@@ -315,6 +316,7 @@ class CRUD
 		foreach ($form as $field => $value) {
 			if ($this->table->hasColumn($field)) {
 				$debug['column'] = $field;
+				/** @var \Gobl\DBAL\Column $column */
 				$column          = $this->table->getColumn($field);
 				$action          = new CRUDColumnUpdate($this->table, $column, $form);
 
@@ -324,7 +326,7 @@ class CRUD
 					throw new CRUDException('ERROR', $debug);
 				}
 
-				if ($this->table->isPartOfPrimaryKey($column) && !$this->crud_handler->shouldWritePrivateColumn()) {
+				if ($this->table->isPartOfPrimaryKey($column) && !$this->crud_handler->shouldWritePkColumn()) {
 					$debug['_why'] = 'column_is_part_of_pk';
 
 					throw new CRUDException('ERROR', $debug);
