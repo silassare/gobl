@@ -168,4 +168,16 @@ interface CRUDHandlerInterface
 	 * @param array &$form
 	 */
 	public function autoFillCreateForm(array &$form);
+
+	/**
+	 * Called when updating (single or multiple), to let you complete the form before it goes into database
+	 *
+	 * PS: any column that is private or primary key
+	 *     should not be added before a call to this
+	 *
+	 * @param array &$form
+	 * @param array &$filters
+	 * @param bool $is_multiple
+	 */
+	public function autoFillUpdateFormAndFilters(array &$form, array &$filters, $is_multiple);
 }

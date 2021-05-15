@@ -189,6 +189,8 @@ class CRUD
 		$this->message = $action->getSuccess();
 
 		$this->checkFormColumnsForUpdate($form);
+
+		$this->crud_handler->autoFillUpdateFormAndFilters($form, $filters, false);
 	}
 
 	/**
@@ -212,6 +214,8 @@ class CRUD
 		$this->message = $action->getSuccess();
 
 		$this->checkFormColumnsForUpdate($form);
+
+		$this->crud_handler->autoFillUpdateFormAndFilters($form, $filters, true);
 	}
 
 	/**

@@ -150,7 +150,17 @@ class CRUDHandlerDefault implements CRUDHandlerInterface
 		return false;
 	}
 
+	/**
+	 * @inheritDoc
+	 */
 	public function autoFillCreateForm(array &$form)
+	{
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public function autoFillUpdateFormAndFilters(array &$form, array &$filters, $is_multiple)
 	{
 	}
 }
