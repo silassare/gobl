@@ -11,7 +11,7 @@
 		"MySql"
 	],
 	"require": {
-		"php": ">=5.6.0",
+		"php": ">=8.1",
 		"silassare/otpl": "=1.1.9",
 		"ext-pdo": "*",
 		"ext-json": "*",
