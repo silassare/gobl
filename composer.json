@@ -15,7 +15,8 @@
 		"silassare/otpl": "=1.1.9",
 		"ext-pdo": "*",
 		"ext-json": "*",
-		"ext-bcmath": "*"
+		"ext-bcmath": "*",
+		"silassare/php-utils": "@dev"
 	},
 	"require-dev": {
 		"oliup/oliup-cs-php": "dev-main"
@@ -24,6 +25,10 @@
 		"oliup/oliup-cs-php": {
 			"type": "vcs",
 			"url": "https://github.com/oliup-io/oliup-cs-php"
+		},
+		"silassare/php-utils": {
+			"type": "vcs",
+			"url": "https://github.com/silassare/php-utils"
 		}
 	},
 	"homepage": "https://github.com/silassare/gobl#readme",
