@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<ruleset name="gobl">
+    <!-- Files or folders to sniff -->
+    <file>src</file>
+    <file>tests</file>
+
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/ignore/*</exclude-pattern>
+	<exclude-pattern>*/samples/*</exclude-pattern>
+
+    <!-- Path to our coding standard folder -->
+    <rule ref="vendor/oliup/oliup-cs-php/src"/>
+
+    <!-- You should use at least PHP 7 -->
+	<config name="testVersion" value="8.1-"/>
+</ruleset>

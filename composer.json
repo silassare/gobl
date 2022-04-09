@@ -18,13 +18,13 @@
 		"ext-bcmath": "*"
 	},
 	"require-dev": {
-		"friendsofphp/php-cs-fixer": "^2.16",
-		"squizlabs/php_codesniffer": "^3.5",
-		"phpcompatibility/php-compatibility": "*"
+		"oliup/oliup-cs-php": "dev-main"
 	},
-	"scripts": {
-		"post-install-cmd": "\"vendor/bin/phpcs\" --config-set installed_paths vendor/phpcompatibility/php-compatibility",
-		"post-update-cmd": "\"vendor/bin/phpcs\" --config-set installed_paths vendor/phpcompatibility/php-compatibility"
+	"repositories": {
+		"oliup/oliup-cs-php": {
+			"type": "vcs",
+			"url": "https://github.com/oliup-io/oliup-cs-php"
+		}
 	},
 	"homepage": "https://github.com/silassare/gobl#readme",
 	"archive": {
