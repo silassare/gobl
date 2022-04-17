@@ -6,7 +6,7 @@
 
 	<exclude-pattern>*/vendor/*</exclude-pattern>
 	<exclude-pattern>*/ignore/*</exclude-pattern>
-	<exclude-pattern>*/samples/*</exclude-pattern>
+	<exclude-pattern>*/assets/*</exclude-pattern>
 
     <!-- Path to our coding standard folder -->
     <rule ref="vendor/oliup/oliup-cs-php/src"/>

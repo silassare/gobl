@@ -13,7 +13,7 @@ $finder->in([
 	->notPath('otpl_done')
 	->notPath('blate_cache')
 	->notPath('vendor')
-	->notPath('samples')
+	->notPath('assets')
 	->notPath('ignore')
 	->ignoreDotFiles(true)
 	->ignoreVCS(true);
