@@ -8,15 +8,10 @@
  * Time: <%$.gobl_time%>
  */
 //@<%}%>
-import {
-	GoblEntity,
-	_bool,
-	_int,
-	_string,
-} from 'gobl-utils-ts';
+import {GoblEntity,} from 'gobl-utils-ts';
 
 export default abstract class MyEntityBase extends GoblEntity {
-	public static readonly PREFIX: string = '<%$.columns_prefix%>';
+	public static readonly PREFIX: string    = '<%$.columns_prefix%>';
 	public static readonly COLUMNS: string[] = [
 //@	<%loop($.columns : $column){%>	'<%$column.fullName%>',
 //@		<%}%>
@@ -28,17 +23,17 @@ export default abstract class MyEntityBase extends GoblEntity {
 //@		return this.<%$.pk_columns[0].name%>;
 //@	}<%}%>
 //@<%if($len){%>
-//@	public identifierColumns() {
+//@	public identifierColumns(): string[] {
 //@		return [ <%loop($.pk_columns : $pk){%><%$.class.entity%>Base.<%$pk.const%><%@if($len!==1, ',' , '')%> <%}%>];
 //@	}<%} else {%>
 //@	public identifierColumns() {
 //@		return <%$.class.entity%>Base.COLUMNS;
 //@	}<%}%>
 //@<%loop($.columns : $column){%>
-//@	get <%$column.name%>() { return _<%$column.returnType%>(this._data[<%$.class.entity%>Base.<%$column.const%>]); }
-//@	set <%$column.name%>(nVal: any) { this._set(<%$.class.entity%>Base.<%$column.const%>, _<%$column.returnType%>(nVal)); }
-//@	public get<%$column.methodSuffix%>() { return this.<%$column.name%>; }
-//@	public set<%$column.methodSuffix%>(nVal: any): this { this.<%$column.name%> = nVal; return this; }
+//@	get <%$column.name%>(): <%@join($column.readTypeHint, '|')%> { return this._data[<%$.class.entity%>Base.<%$column.const%>]; }
+//@	set <%$column.name%>(nVal: <%@join($column.writeTypeHint, '|')%>) { this._set(<%$.class.entity%>Base.<%$column.const%>, nVal); }
+////@	public get<%$column.methodSuffix%>() { return this.<%$column.name%>; }
+////@	public set<%$column.methodSuffix%>(nVal: <%@join($column.writeTypeHint, '|')%>): this { this.<%$column.name%> = nVal; return this; }
 //@<%}%>
 
 }

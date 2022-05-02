@@ -18,8 +18,8 @@ export default class MyEntity extends MyEntityBase {
 	}
 
 	public static fromCache(cacheKey: string): MyEntity | undefined {
-		const cache: any = getEntityCache("MyEntity");
-		return cache && cache[cacheKey];
+		const cache = getEntityCache("MyEntity");
+		return cache && (cache[cacheKey] as MyEntity);
 	}
 
 	//====================================================
