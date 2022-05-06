@@ -9,25 +9,31 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\ORM;
 
-use Gobl\DBAL\Db;
+use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\ORM\Exceptions\ORMException;
+use Gobl\ORM\Exceptions\ORMRuntimeException;
 
+/**
+ * Class ORM.
+ */
 class ORM
 {
-	/** @var \Gobl\DBAL\Db[] */
-	private static $databases = [];
+	/** @var RDBMSInterface[] */
+	private static array $databases = [];
 
 	/**
 	 * Database setter.
 	 *
-	 * @param string        $namespace the database namespace
-	 * @param \Gobl\DBAL\Db $db        the database to use
+	 * @param string         $namespace the database namespace
+	 * @param RDBMSInterface $db        the database to use
 	 *
 	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 */
-	public static function setDatabase($namespace, Db $db)
+	public static function setDatabase(string $namespace, RDBMSInterface $db): void
 	{
 		if (isset(self::$databases[$namespace])) {
 			throw new ORMException(\sprintf('A database instance is already registered for: %s', $namespace));
@@ -41,12 +47,12 @@ class ORM
 	 *
 	 * @param string $namespace the database namespace
 	 *
-	 * @return \Gobl\DBAL\Db
+	 * @return RDBMSInterface
 	 */
-	public static function getDatabase($namespace)
+	public static function getDatabase(string $namespace): RDBMSInterface
 	{
 		if (!isset(self::$databases[$namespace])) {
-			throw new \RuntimeException(\sprintf('No database registered for: %s', $namespace));
+			throw new ORMRuntimeException(\sprintf('No database registered for: %s', $namespace));
 		}
 
 		return self::$databases[$namespace];

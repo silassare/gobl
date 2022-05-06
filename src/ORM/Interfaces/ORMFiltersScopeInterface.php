@@ -9,8 +9,16 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\ORM\Interfaces;
 
+use Gobl\DBAL\Operator;
+use Gobl\DBAL\Table;
+
+/**
+ * Interface ORMFiltersScopeInterface.
+ */
 interface ORMFiltersScopeInterface
 {
 	/**
@@ -18,36 +26,36 @@ interface ORMFiltersScopeInterface
 	 *
 	 * @return \Gobl\DBAL\Table
 	 */
-	public function getTable();
+	public function getTable(): Table;
 
 	/**
 	 * Checks if a field/column is allowed in filters.
 	 *
-	 * @param string $column
+	 * @param string $field the field
 	 *
 	 * @return bool
 	 */
-	public function isFieldAllowed($column);
+	public function isFieldAllowed(string $field): bool;
 
 	/**
 	 * Checks if a filter is allowed.
 	 *
-	 * @param string $column
-	 * @param int    $operator
-	 * @param mixed  $value
+	 * @param string   $field    the field
+	 * @param Operator $operator the operator
+	 * @param mixed    $value    the value of the filter
 	 *
 	 * @return bool
 	 */
-	public function isFilterAllowed($column, $value, $operator);
+	public function isFilterAllowed(string $field, mixed $value, Operator $operator): bool;
 
 	/**
-	 * Returns the column fully qualified name.
+	 * Returns the field/column fully qualified name to be used in a query.
 	 *
 	 * `users.user_id` is FQ Name of `user_id` from the table `users`
 	 *
-	 * @param string $column
+	 * @param string $field the field
 	 *
 	 * @return string
 	 */
-	public function getColumnFQName($column);
+	public function getFieldFQName(string $field): string;
 }

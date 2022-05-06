@@ -9,10 +9,12 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\ORM\Exceptions;
 
 /**
- * Class ORMQueryException
+ * Class ORMQueryException.
  */
 class ORMQueryException extends ORMException
 {

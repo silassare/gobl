@@ -13,11 +13,11 @@ declare(strict_types=1);
 
 namespace Gobl\ORM\Exceptions;
 
-use Gobl\Exceptions\GoblException;
+use Gobl\Exceptions\GoblRuntimeException;
 
 /**
- * Class ORMException.
+ * Class ORMRuntimeException.
  */
-class ORMException extends GoblException
+class ORMRuntimeException extends GoblRuntimeException
 {
 }
