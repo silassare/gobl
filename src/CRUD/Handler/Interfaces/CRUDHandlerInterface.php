@@ -9,6 +9,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\CRUD\Handler\Interfaces;
 
 use Gobl\CRUD\CRUDColumnUpdate;
@@ -19,122 +21,127 @@ use Gobl\CRUD\CRUDRead;
 use Gobl\CRUD\CRUDReadAll;
 use Gobl\CRUD\CRUDUpdate;
 use Gobl\CRUD\CRUDUpdateAll;
+use Gobl\DBAL\Column;
+use Gobl\ORM\ORMEntity;
 
+/**
+ * Interface CRUDHandlerInterface.
+ */
 interface CRUDHandlerInterface
 {
 	/**
-	 * Called to allow CREATE action on a table
+	 * Called to allow CREATE action on a table.
 	 *
 	 * @param \Gobl\CRUD\CRUDCreate $action
 	 *
 	 * @return bool true to allow or false to reject
 	 */
-	public function onBeforeCreate(CRUDCreate $action);
+	public function onBeforeCreate(CRUDCreate $action): bool;
 
 	/**
-	 * Called when an entity is added
+	 * Called when an entity is created.
 	 *
-	 * @param mixed $entity
+	 * @param \Gobl\ORM\ORMEntity $entity
 	 */
-	public function onAfterCreateEntity($entity);
+	public function onAfterCreateEntity(ORMEntity $entity): void;
 
 	/**
-	 * Called to allow READ action on a table
+	 * Called to allow READ action on a table.
 	 *
 	 * @param \Gobl\CRUD\CRUDRead $action
 	 *
 	 * @return bool true to allow or false to reject
 	 */
-	public function onBeforeRead(CRUDRead $action);
+	public function onBeforeRead(CRUDRead $action): bool;
 
 	/**
-	 * Called when we read an entity
+	 * Called when we read an entity.
 	 *
-	 * @param mixed $entity
+	 * @param \Gobl\ORM\ORMEntity $entity
 	 */
-	public function onAfterReadEntity($entity);
+	public function onAfterReadEntity(ORMEntity $entity): void;
 
 	/**
-	 * Called to allow UPDATE action on a table
+	 * Called to allow UPDATE action on a table.
 	 *
 	 * @param \Gobl\CRUD\CRUDUpdate $action
 	 *
 	 * @return bool true to allow or false to reject
 	 */
-	public function onBeforeUpdate(CRUDUpdate $action);
+	public function onBeforeUpdate(CRUDUpdate $action): bool;
 
 	/**
-	 * Called before an entity is updated
+	 * Called before an entity is updated.
 	 *
 	 * PS: You can run your own logic, verify ownership,
 	 * or other right on the entity
 	 *
-	 * @param mixed $entity
+	 * @param \Gobl\ORM\ORMEntity $entity
 	 */
-	public function onBeforeUpdateEntity($entity);
+	public function onBeforeUpdateEntity(ORMEntity $entity): void;
 
 	/**
-	 * Called after an entity is updated
+	 * Called after an entity is updated.
 	 *
-	 * @param mixed $entity
+	 * @param \Gobl\ORM\ORMEntity $entity
 	 */
-	public function onAfterUpdateEntity($entity);
+	public function onAfterUpdateEntity(ORMEntity $entity): void;
 
 	/**
-	 * Called to allow DELETE action on a table
+	 * Called to allow DELETE action on a table.
 	 *
 	 * @param \Gobl\CRUD\CRUDDelete $action
 	 *
 	 * @return bool true to allow or false to reject
 	 */
-	public function onBeforeDelete(CRUDDelete $action);
+	public function onBeforeDelete(CRUDDelete $action): bool;
 
 	/**
-	 * Called before an entity is deleted
+	 * Called before an entity is deleted.
 	 *
 	 * PS: You can run your own logic, verify ownership,
 	 * or other right on the entity
 	 *
-	 * @param mixed $entity
+	 * @param \Gobl\ORM\ORMEntity $entity
 	 */
-	public function onBeforeDeleteEntity($entity);
+	public function onBeforeDeleteEntity(ORMEntity $entity): void;
 
 	/**
-	 * Called after an entity is deleted
+	 * Called after an entity is deleted.
 	 *
-	 * @param mixed $entity
+	 * @param \Gobl\ORM\ORMEntity $entity
 	 */
-	public function onAfterDeleteEntity($entity);
+	public function onAfterDeleteEntity(ORMEntity $entity): void;
 
 	/**
-	 * Called to allow READ_ALL action on a table
+	 * Called to allow READ_ALL action on a table.
 	 *
 	 * @param \Gobl\CRUD\CRUDReadAll $action
 	 *
 	 * @return bool true to allow or false to reject
 	 */
-	public function onBeforeReadAll(CRUDReadAll $action);
+	public function onBeforeReadAll(CRUDReadAll $action): bool;
 
 	/**
-	 * Called to allow UPDATE_ALL action on a table
+	 * Called to allow UPDATE_ALL action on a table.
 	 *
 	 * @param \Gobl\CRUD\CRUDUpdateAll $action
 	 *
 	 * @return bool true to allow or false to reject
 	 */
-	public function onBeforeUpdateAll(CRUDUpdateAll $action);
+	public function onBeforeUpdateAll(CRUDUpdateAll $action): bool;
 
 	/**
-	 * Called to allow DELETE_ALL action on a table
+	 * Called to allow DELETE_ALL action on a table.
 	 *
 	 * @param \Gobl\CRUD\CRUDDeleteAll $action
 	 *
 	 * @return bool true to allow or false to reject
 	 */
-	public function onBeforeDeleteAll(CRUDDeleteAll $action);
+	public function onBeforeDeleteAll(CRUDDeleteAll $action): bool;
 
 	/**
-	 * Called to allow COLUMN_UPDATE action on a table
+	 * Called to allow COLUMN_UPDATE action on a table.
 	 *
 	 * PS: You can filter who can update a column
 	 * or when a column can be updated
@@ -143,41 +150,41 @@ interface CRUDHandlerInterface
 	 *
 	 * @return bool true to allow or false to reject
 	 */
-	public function onBeforeColumnUpdate(CRUDColumnUpdate $action);
+	public function onBeforeColumnUpdate(CRUDColumnUpdate $action): bool;
 
 	/**
-	 * Called to allow write of a column that is the primary key or is in primary key
+	 * Called to allow write of a column that is the primary key or is part of the primary key.
 	 *
 	 * @return bool true to allow or false to reject
 	 */
-	public function shouldWritePkColumn();
+	public function shouldWritePkColumn(Column $column, mixed $value): bool;
 
 	/**
-	 * Called to allow write of a column that is private
+	 * Called to allow write of a column that is private.
 	 *
 	 * @return bool true to allow or false to reject
 	 */
-	public function shouldWritePrivateColumn();
+	public function shouldWritePrivateColumn(Column $column, mixed $value): bool;
 
 	/**
-	 * Called when creating, to let you complete the form before it goes into database
+	 * Called when creating, to let you complete the form before it goes into database.
 	 *
-	 * PS: any column that is private or primary key
+	 * PS: any column that is private or part of the primary key
+	 *     that can't be set though request
 	 *     should not be added before a call to this
 	 *
-	 * @param array &$form
+	 * @param \Gobl\CRUD\CRUDCreate $action
 	 */
-	public function autoFillCreateForm(array &$form);
+	public function autoFillCreateForm(CRUDCreate $action): void;
 
 	/**
-	 * Called when updating (single or multiple), to let you complete the form before it goes into database
+	 * Called when updating (single or multiple), to let you complete the form before it goes into database.
 	 *
-	 * PS: any column that is private or primary key
+	 * PS: any column that is private or part of the primary key
+	 *     that can't be updated though request
 	 *     should not be added before a call to this
 	 *
-	 * @param array &$form
-	 * @param array &$filters
-	 * @param bool $is_multiple
+	 * @param \Gobl\CRUD\CRUDUpdate|\Gobl\CRUD\CRUDUpdateAll $action
 	 */
-	public function autoFillUpdateFormAndFilters(array &$form, array &$filters, $is_multiple);
+	public function autoFillUpdateFormAndFilters(CRUDUpdate|CRUDUpdateAll $action): void;
 }

@@ -13,11 +13,11 @@ declare(strict_types=1);
 
 namespace Gobl\CRUD\Exceptions;
 
-use Gobl\Exceptions\GoblException;
+use Gobl\Exceptions\GoblRuntimeException;
 
 /**
- * Class CRUDException.
+ * Class CRUDRuntimeException.
  */
-class CRUDException extends GoblException
+class CRUDRuntimeException extends GoblRuntimeException
 {
 }

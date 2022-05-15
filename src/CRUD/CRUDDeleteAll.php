@@ -9,26 +9,26 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\CRUD;
 
 use Gobl\DBAL\Table;
+use Gobl\ORM\ORMTableQuery;
 
 /**
- * Class CRUDDeleteAll
+ * Class CRUDDeleteAll.
  */
-class CRUDDeleteAll extends CRUDFilterableAction
+class CRUDDeleteAll extends CRUDActionFilterable
 {
 	/**
 	 * CRUDDeleteAll constructor.
 	 *
-	 * @param \Gobl\DBAL\Table $table
-	 * @param array            $filters
+	 * @param \Gobl\DBAL\Table        $table
+	 * @param \Gobl\ORM\ORMTableQuery $filters
 	 */
-	public function __construct(Table $table, array $filters)
+	public function __construct(Table $table, ORMTableQuery $filters)
 	{
-		parent::__construct(CRUD::DELETE_ALL, $table, $filters);
-
-		$this->setError('DELETE_ERROR')
-			 ->setSuccess('DELETED');
+		parent::__construct(CRUDActionType::DELETE_ALL, $table, $filters);
 	}
 }

@@ -9,25 +9,26 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\CRUD;
 
 use Gobl\DBAL\Table;
+use Gobl\ORM\ORMTableQuery;
 
 /**
- * Class CRUDReadAll
+ * Class CRUDReadAll.
  */
-class CRUDReadAll extends CRUDFilterableAction
+class CRUDReadAll extends CRUDActionFilterable
 {
 	/**
 	 * CRUDReadAll constructor.
 	 *
-	 * @param \Gobl\DBAL\Table $table
-	 * @param array            $filters
+	 * @param \Gobl\DBAL\Table        $table
+	 * @param \Gobl\ORM\ORMTableQuery $filters
 	 */
-	public function __construct(Table $table, array $filters)
+	public function __construct(Table $table, ORMTableQuery $filters)
 	{
-		parent::__construct(CRUD::READ_ALL, $table, $filters);
-
-		$this->setError('READ_ALL_ERROR');
+		parent::__construct(CRUDActionType::READ_ALL, $table, $filters);
 	}
 }

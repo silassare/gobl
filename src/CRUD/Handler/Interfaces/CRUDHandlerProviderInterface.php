@@ -11,23 +11,21 @@
 
 declare(strict_types=1);
 
-namespace Gobl\CRUD;
+namespace Gobl\CRUD\Handler\Interfaces;
 
 use Gobl\DBAL\Table;
 
 /**
- * Class CRUDCreate.
+ * Interface CRUDHandlerProviderInterface.
  */
-class CRUDCreate extends CRUDAction
+interface CRUDHandlerProviderInterface
 {
 	/**
-	 * CRUDCreate constructor.
+	 * Returns an instance of crud handler for a given table or null if none.
 	 *
 	 * @param \Gobl\DBAL\Table $table
-	 * @param array            $form
+	 *
+	 * @return null|\Gobl\CRUD\Handler\Interfaces\CRUDHandlerInterface
 	 */
-	public function __construct(Table $table, array $form)
-	{
-		parent::__construct(CRUDActionType::CREATE, $table, $form);
-	}
+	public function getCRUDHandler(Table $table): ?CRUDHandlerInterface;
 }

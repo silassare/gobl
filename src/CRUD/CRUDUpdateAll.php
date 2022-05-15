@@ -9,27 +9,27 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\CRUD;
 
 use Gobl\DBAL\Table;
+use Gobl\ORM\ORMTableQuery;
 
 /**
- * Class CRUDUpdateAll
+ * Class CRUDUpdateAll.
  */
-class CRUDUpdateAll extends CRUDFilterableAction
+class CRUDUpdateAll extends CRUDActionFilterable
 {
 	/**
 	 * CRUDUpdateAll constructor.
 	 *
-	 * @param \Gobl\DBAL\Table $table
-	 * @param array            $filters
-	 * @param array            $form
+	 * @param \Gobl\DBAL\Table        $table
+	 * @param \Gobl\ORM\ORMTableQuery $filters
+	 * @param array                   $form
 	 */
-	public function __construct(Table $table, array $filters, array $form)
+	public function __construct(Table $table, ORMTableQuery $filters, array $form)
 	{
-		parent::__construct(CRUD::UPDATE_ALL, $table, $filters, $form);
-
-		$this->setError('UPDATE_ALL_ERROR')
-			 ->setSuccess('UPDATED');
+		parent::__construct(CRUDActionType::UPDATE_ALL, $table, $filters, $form);
 	}
 }

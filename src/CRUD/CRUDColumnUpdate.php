@@ -9,21 +9,18 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\CRUD;
 
 use Gobl\DBAL\Column;
 use Gobl\DBAL\Table;
 
 /**
- * Class CRUDColumnUpdate
+ * Class CRUDColumnUpdate.
  */
-class CRUDColumnUpdate extends CRUDBase
+class CRUDColumnUpdate extends CRUDAction
 {
-	/**
-	 * @var \Gobl\DBAL\Column
-	 */
-	private $column;
-
 	/**
 	 * CRUDColumnUpdate constructor.
 	 *
@@ -31,19 +28,17 @@ class CRUDColumnUpdate extends CRUDBase
 	 * @param \Gobl\DBAL\Column $column
 	 * @param array             $form
 	 */
-	public function __construct(Table $table, Column $column, array $form)
+	public function __construct(Table $table, protected Column $column, array $form)
 	{
-		parent::__construct(CRUD::COLUMN_UPDATE, $table, $form);
-
-		$this->column = $column;
-
-		$this->setError('COLUMN_UPDATE_ERROR');
+		parent::__construct(CRUDActionType::COLUMN_UPDATE, $table, $form);
 	}
 
 	/**
+	 * Returns the column that is being updated.
+	 *
 	 * @return \Gobl\DBAL\Column
 	 */
-	public function getColumn()
+	public function getColumn(): Column
 	{
 		return $this->column;
 	}

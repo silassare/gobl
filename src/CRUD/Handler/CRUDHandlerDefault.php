@@ -9,6 +9,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\CRUD\Handler;
 
 use Gobl\CRUD\CRUDColumnUpdate;
@@ -20,147 +22,146 @@ use Gobl\CRUD\CRUDReadAll;
 use Gobl\CRUD\CRUDUpdate;
 use Gobl\CRUD\CRUDUpdateAll;
 use Gobl\CRUD\Handler\Interfaces\CRUDHandlerInterface;
+use Gobl\DBAL\Column;
 
+/**
+ * Class CRUDHandlerDefault.
+ */
 class CRUDHandlerDefault implements CRUDHandlerInterface
 {
 	/**
-	 * CRUDHandler constructor.
+	 * {@inheritDoc}
 	 */
-	public function __construct()
-	{
-	}
-
-	/**
-	 * @param \Gobl\CRUD\CRUDCreate $action
-	 *
-	 * @return bool
-	 */
-	public function onBeforeCreate(CRUDCreate $action)
+	public function onBeforeCreate(CRUDCreate $action): bool
 	{
 		return true;
 	}
 
 	/**
-	 * @param \Gobl\CRUD\CRUDRead $action
-	 *
-	 * @return bool
+	 * {@inheritDoc}
 	 */
-	public function onBeforeRead(CRUDRead $action)
+	public function onBeforeRead(CRUDRead $action): bool
 	{
 		return true;
 	}
 
 	/**
-	 * @param \Gobl\CRUD\CRUDUpdate $action
-	 *
-	 * @return bool
+	 * {@inheritDoc}
 	 */
-	public function onBeforeUpdate(CRUDUpdate $action)
+	public function onBeforeUpdate(CRUDUpdate $action): bool
 	{
 		return true;
 	}
 
 	/**
-	 * @param \Gobl\CRUD\CRUDDelete $action
-	 *
-	 * @return bool
+	 * {@inheritDoc}
 	 */
-	public function onBeforeDelete(CRUDDelete $action)
+	public function onBeforeDelete(CRUDDelete $action): bool
 	{
 		return true;
 	}
 
 	/**
-	 * @param \Gobl\CRUD\CRUDReadAll $action
-	 *
-	 * @return bool
+	 * {@inheritDoc}
 	 */
-	public function onBeforeReadAll(CRUDReadAll $action)
+	public function onBeforeReadAll(CRUDReadAll $action): bool
 	{
 		return true;
 	}
 
 	/**
-	 * @param \Gobl\CRUD\CRUDUpdateAll $action
-	 *
-	 * @return bool
+	 * {@inheritDoc}
 	 */
-	public function onBeforeUpdateAll(CRUDUpdateAll $action)
+	public function onBeforeUpdateAll(CRUDUpdateAll $action): bool
 	{
 		return true;
 	}
 
 	/**
-	 * @param \Gobl\CRUD\CRUDDeleteAll $action
-	 *
-	 * @return bool
+	 * {@inheritDoc}
 	 */
-	public function onBeforeDeleteAll(CRUDDeleteAll $action)
+	public function onBeforeDeleteAll(CRUDDeleteAll $action): bool
 	{
 		return true;
 	}
 
 	/**
-	 * @param \Gobl\CRUD\CRUDColumnUpdate $action
-	 *
-	 * @return bool
+	 * {@inheritDoc}
 	 */
-	public function onBeforeColumnUpdate(CRUDColumnUpdate $action)
+	public function onBeforeColumnUpdate(CRUDColumnUpdate $action): bool
 	{
 		return true;
 	}
 
-	public function onAfterCreateEntity($entity)
-	{
-	}
-
-	public function onAfterReadEntity($entity)
-	{
-	}
-
-	public function onBeforeUpdateEntity($entity)
-	{
-	}
-
-	public function onAfterUpdateEntity($entity)
-	{
-	}
-
-	public function onBeforeDeleteEntity($entity)
-	{
-	}
-
-	public function onAfterDeleteEntity($entity)
+	/**
+	 * {@inheritDoc}
+	 */
+	public function onAfterCreateEntity($entity): void
 	{
 	}
 
 	/**
-	 * @return bool
+	 * {@inheritDoc}
 	 */
-	public function shouldWritePkColumn()
+	public function onAfterReadEntity($entity): void
+	{
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function onBeforeUpdateEntity($entity): void
+	{
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function onAfterUpdateEntity($entity): void
+	{
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function onBeforeDeleteEntity($entity): void
+	{
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function onAfterDeleteEntity($entity): void
+	{
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function shouldWritePkColumn(Column $column, mixed $value): bool
 	{
 		return false;
 	}
 
 	/**
-	 * @return bool
+	 * {@inheritDoc}
 	 */
-	public function shouldWritePrivateColumn()
+	public function shouldWritePrivateColumn(Column $column, mixed $value): bool
 	{
 		return false;
 	}
 
 	/**
-	 * @inheritDoc
+	 * {@inheritDoc}
 	 */
-	public function autoFillCreateForm(array &$form)
+	public function autoFillCreateForm(CRUDCreate $action): void
 	{
 	}
 
 	/**
-	 * @inheritDoc
+	 * {@inheritDoc}
 	 */
-	public function autoFillUpdateFormAndFilters(array &$form, array &$filters, $is_multiple)
+	public function autoFillUpdateFormAndFilters(CRUDUpdateAll|CRUDUpdate $action): void
 	{
 	}
 }
