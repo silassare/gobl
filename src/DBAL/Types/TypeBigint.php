@@ -9,38 +9,43 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\DBAL\Types;
 
+use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
-use Gobl\DBAL\Types\Interfaces\TypeInterface;
+use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
+use Gobl\ORM\Utils\ORMTypeHint;
 
 /**
- * Class TypeBigint
+ * Class TypeBigint.
  */
-class TypeBigint extends TypeBase
+class TypeBigint extends Type implements BaseTypeInterface
 {
-	const BIGINT_REG          = '~[-+]?(?:[1-9][0-9]*|0)~';
+	public const NAME = 'bigint';
 
-	const BIGINT_UNSIGNED_REG = '~[+]?(?:[1-9][0-9]*|0)~';
+	public const BIGINT_REG = '~[-+]?(?:[1-9]\d*|0)~';
 
-	private $unsigned = false;
-
-	private $min;
-
-	private $max;
+	public const BIGINT_UNSIGNED_REG = '~[+]?(?:[1-9]\d*|0)~';
 
 	/**
 	 * TypeBigint constructor.
 	 *
-	 * @param null|int $min      the minimum number
-	 * @param null|int $max      the maximum number
-	 * @param bool     $unsigned as unsigned number
+	 * @param null|string $min      the minimum bigint value
+	 * @param null|string $max      the maximum bigint value
+	 * @param bool        $unsigned as unsigned bigint value
+	 * @param null|string $message  the error message
 	 *
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
-	public function __construct($min = null, $max = null, $unsigned = false)
-	{
+	public function __construct(
+		?string $min = null,
+		?string $max = null,
+		bool $unsigned = false,
+		?string $message = null
+	) {
 		if ($unsigned) {
 			$this->unsigned();
 		}
@@ -52,90 +57,123 @@ class TypeBigint extends TypeBase
 		if (isset($max)) {
 			$this->max($max);
 		}
+
+		!empty($message) && $this->msg('invalid_bigint_type', $message);
+
+		parent::__construct($this);
 	}
 
 	/**
 	 * Sets as unsigned.
 	 *
+	 * @param bool        $unsigned
+	 * @param null|string $message
+	 *
 	 * @return $this
 	 */
-	public function unsigned()
+	public function unsigned(bool $unsigned = true, ?string $message = null): self
 	{
-		$this->unsigned = true;
+		!empty($message) && $this->msg('invalid_unsigned_bigint_type', $message);
 
-		return $this;
+		return $this->setOption('unsigned', $unsigned);
 	}
 
 	/**
-	 * Sets number max value.
+	 * Sets min value.
 	 *
-	 * @param int $value the maximum
+	 * @param string      $min
+	 * @param null|string $message
 	 *
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 *
 	 * @return $this
 	 */
-	public function max($value)
+	public function min(string $min, ?string $message = null): self
 	{
-		if (!\is_numeric($value)) {
-			throw new TypesException(\sprintf('"%s" is not a valid number.', $value));
+		self::assertValidBigint($min, $this->isUnsigned());
+
+		$max = $this->getOption('max');
+
+		if (null !== $max && !self::isLt($min, $max, true)) {
+			throw new TypesException(\sprintf('min=%s and max=%s is not a valid condition.', $min, $max));
 		}
 
-		if (!\preg_match(self::BIGINT_REG, "$value")) {
-			throw new TypesException(\sprintf('"%s" is not a valid bigint.', $value));
-		}
+		!empty($message) && $this->msg('bigint_value_must_be_gt_or_equal_to_min', $message);
 
-		if ($this->unsigned && \preg_match(self::BIGINT_UNSIGNED_REG, "$value")) {
-			throw new TypesException(\sprintf('"%s" is not a valid unsigned bigint.', $value));
-		}
-
-		if (isset($this->min) && !self::isLt($this->min, $value)) {
-			throw new TypesException(\sprintf('min=%s and max=%s is not a valid condition.', $this->min, $value));
-		}
-
-		$this->max = $value;
-
-		return $this;
+		return $this->setOption('min', $min);
 	}
 
 	/**
-	 * Sets number min value.
+	 * Checks if this is unsigned.
 	 *
-	 * @param int $value the minimum
+	 * @return bool
+	 */
+	public function isUnsigned(): bool
+	{
+		return (bool) $this->getOption('unsigned', false);
+	}
+
+	/**
+	 * Sets max value.
+	 *
+	 * @param string      $max
+	 * @param null|string $message
 	 *
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 *
 	 * @return $this
 	 */
-	public function min($value)
+	public function max(string $max, ?string $message = null): self
 	{
-		if (!\is_numeric($value)) {
-			throw new TypesException(\sprintf('"%s" is not a valid number.', $value));
+		self::assertValidBigint($max, $this->isUnsigned());
+
+		if (isset($this->min) && !self::isLt($this->min, $max, true)) {
+			throw new TypesException(\sprintf('min=%s and max=%s is not a valid condition.', $this->min, $max));
 		}
 
-		if (!\preg_match(self::BIGINT_REG, "$value")) {
-			throw new TypesException(\sprintf('"%s" is not a valid bigint.', $value));
-		}
+		!empty($message) && $this->msg('bigint_value_must_be_lt_or_equal_to_max', $message);
 
-		if ($this->unsigned && \preg_match(self::BIGINT_UNSIGNED_REG, "$value")) {
-			throw new TypesException(\sprintf('"%s" is not a valid unsigned bigint.', $value));
-		}
-
-		if (isset($this->max) && !self::isLt($value, $this->max)) {
-			throw new TypesException(\sprintf('min=%s and max=%s is not a valid condition.', $value, $this->max));
-		}
-
-		$this->min = $value;
-
-		return $this;
+		return $this->setOption('max', $max);
 	}
 
 	/**
-	 * @inheritdoc
+	 * {@inheritDoc}
+	 */
+	public static function getInstance(array $options): self
+	{
+		return (new static())->configure($options);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 */
+	public function configure(array $options): self
+	{
+		if (isset($options['min'])) {
+			$this->min((string) $options['min']);
+		}
+
+		if (isset($options['max'])) {
+			$this->max((string) $options['max']);
+		}
+
+		if (isset($options['unsigned'])) {
+			$this->unsigned((bool) $options['unsigned']);
+		}
+
+		return parent::configure($options);
+	}
+
+	/**
+	 * {@inheritDoc}
 	 *
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
+	 *
+	 * @return null|string
 	 */
-	public function validate($value, $column_name, $table_name)
+	public function validate(mixed $value): ?string
 	{
 		$debug = [
 			'value' => $value,
@@ -146,104 +184,110 @@ class TypeBigint extends TypeBase
 				return null;
 			}
 
-			if ($this->isNullAble()) {
-				return $this->getDefault();
+			$value = $this->getDefault();
+
+			if (null === $value && $this->isNullAble()) {
+				return null;
 			}
 		}
 
 		if (!\is_numeric($value)) {
-			throw new TypesInvalidValueException('invalid_number_type', $debug);
+			throw new TypesInvalidValueException($this->msg('invalid_bigint_type'), $debug);
 		}
 
-		if (!\preg_match(self::BIGINT_REG, "$value")) {
-			throw new TypesInvalidValueException('invalid_bigint_type', $debug);
+		if ($this->isUnsigned()) {
+			if (!\preg_match(self::BIGINT_UNSIGNED_REG, (string) $value)) {
+				throw new TypesInvalidValueException($this->msg('invalid_unsigned_bigint_type'), $debug);
+			}
+		} elseif (!\preg_match(self::BIGINT_REG, (string) $value)) {
+			throw new TypesInvalidValueException($this->msg('invalid_bigint_type'), $debug);
 		}
 
-		if ($this->unsigned && !\preg_match(self::BIGINT_UNSIGNED_REG, "$value")) {
-			throw new TypesInvalidValueException('invalid_unsigned_bigint_type', $debug);
+		$min = $this->getOption('min');
+
+		if (null !== $min && !self::isLt($min, $value, true)) {
+			throw new TypesInvalidValueException($this->msg('bigint_value_must_be_gt_or_equal_to_min'), $debug);
 		}
 
-		if (isset($this->min) && !self::isLt($this->min, $value)) {
-			throw new TypesInvalidValueException('number_value_lt_min', $debug);
+		$max = $this->getOption('max');
+
+		if (null !== $max && !self::isLt($value, $max, true)) {
+			throw new TypesInvalidValueException($this->msg('bigint_value_must_be_lt_or_equal_to_max'), $debug);
 		}
 
-		if (isset($this->max) && !self::isLt($value, $this->max)) {
-			throw new TypesInvalidValueException('number_value_gt_max', $debug);
-		}
-
-		return $value;
+		return (string) $value;
 	}
 
 	/**
-	 * @inheritdoc
+	 * {@inheritDoc}
 	 */
-	public function getCleanOptions()
+	public function getEmptyValueOfType(): ?int
 	{
-		return [
-			'type'           => 'bigint',
-			'min'            => $this->min,
-			'max'            => $this->max,
-			'unsigned'       => $this->unsigned,
-			'auto_increment' => $this->isAutoIncremented(),
-			'null'           => $this->isNullAble(),
-			'default'        => $this->getDefault(),
-		];
+		return $this->isNullAble() ? null : 0;
 	}
 
 	/**
-	 * @inheritdoc
+	 * {@inheritDoc}
 	 */
-	final public function getTypeConstant()
+	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?string
 	{
-		return TypeInterface::TYPE_BIGINT;
+		return null === $value ? null : (string) $value;
 	}
 
 	/**
-	 * @inheritdoc
+	 * {@inheritDoc}
 	 */
-	public static function getInstance(array $options)
+	public function getWriteTypeHint(): array
 	{
-		$instance = new self(
-			self::getOptionKey($options, 'min', null),
-			self::getOptionKey($options, 'max', null),
-			self::getOptionKey($options, 'unsigned', false)
-		);
-
-		if (self::getOptionKey($options, 'null', false)) {
-			$instance->nullAble();
-		}
-
-		if (self::getOptionKey($options, 'auto_increment', false)) {
-			$instance->autoIncrement();
-		}
-
-		if (\array_key_exists('default', $options)) {
-			$instance->setDefault($options['default']);
-		}
-
-		return $instance;
+		return [ORMTypeHint::BIGINT, ORMTypeHint::INT];
 	}
 
 	/**
-	 * Checks if the first argument is the smallest.
+	 * {@inheritDoc}
 	 *
-	 * @param bool  $or_equal
-	 * @param mixed $a
-	 * @param mixed $b
-	 *
-	 * @return bool
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
-	private static function isLt($a, $b, $or_equal = true)
+	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
 	{
-		if (\function_exists('bccomp')) {
-			// make sure to have bcmath
-			$a = \sprintf('%F', $a);
-			$b = \sprintf('%F', $b);
-			$c = \bccomp($a, $b);
+		return $this->validate($value);
+	}
 
-			return $or_equal ? $c <= 0 : $c < 0;
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getReadTypeHint(): array
+	{
+		return [ORMTypeHint::BIGINT];
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getName(): string
+	{
+		return self::NAME;
+	}
+
+	/**
+	 * Checks if a given value is a valid bigint.
+	 *
+	 * @param mixed $value
+	 * @param bool  $unsigned
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 */
+	private static function assertValidBigint(mixed $value, bool $unsigned): void
+	{
+		if (!\is_numeric($value)) {
+			throw new TypesException(\sprintf('"%s" is not a valid bigint.', $value));
 		}
 
-		return $or_equal ? $a <= $b : $a < $b;
+		if ($unsigned) {
+			if (!\preg_match(self::BIGINT_UNSIGNED_REG, (string) $value)) {
+				throw new TypesException(\sprintf('"%s" is not a valid unsigned bigint.', $value));
+			}
+		} elseif (!\preg_match(self::BIGINT_REG, (string) $value)) {
+			throw new TypesException(\sprintf('"%s" is not a valid bigint.', $value));
+		}
 	}
 }

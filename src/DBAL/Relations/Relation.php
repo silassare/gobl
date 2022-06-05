@@ -9,99 +9,88 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\DBAL\Relations;
 
-use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Table;
-use Gobl\DBAL\Utils;
 use InvalidArgumentException;
+use PHPUtils\Interfaces\ArrayCapableInterface;
+use PHPUtils\Str;
+use PHPUtils\Traits\ArrayCapableTrait;
 
-abstract class Relation
+/**
+ * Class Relation.
+ */
+abstract class Relation implements ArrayCapableInterface
 {
-	const NAME_PATTERN = '[a-zA-Z][a-zA-Z0-9_-]*[a-zA-Z0-9]|[a-zA-Z]';
+	use ArrayCapableTrait;
 
-	const NAME_REG     = '~^(?:' . self::NAME_PATTERN . ')$~';
+	public const NAME_PATTERN = '[a-zA-Z](?:[a-zA-Z0-9_-]*[a-zA-Z0-9])?';
 
-	const ONE_TO_ONE   = 1;
+	public const NAME_REG = '~^' . self::NAME_PATTERN . '$~';
 
-	const ONE_TO_MANY  = 2;
+	protected array $relation_columns = [];
 
-	const MANY_TO_ONE  = 3;
-
-	const MANY_TO_MANY = 4;
-
-	/** @var int */
-	protected $type;
-
-	/** @var \Gobl\DBAL\Table */
-	protected $host_table;
-
-	/** @var \Gobl\DBAL\Table */
-	protected $target_table;
-
-	/** @var bool */
-	protected $target_is_slave;
-
-	/** @var array */
-	protected $relation_columns;
-
-	/** @var string */
-	protected $name;
+	protected bool $use_auto_detected_foreign_key = false;
 
 	/**
 	 * Relation constructor.
 	 *
+	 * @param RelationType     $type
 	 * @param string           $name
 	 * @param \Gobl\DBAL\Table $host_table
 	 * @param \Gobl\DBAL\Table $target_table
 	 * @param null|array       $columns
-	 * @param int              $type
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
-	public function __construct($name, Table $host_table, Table $target_table, $columns, $type)
-	{
+	public function __construct(
+		protected RelationType $type,
+		protected string $name,
+		protected Table $host_table,
+		protected Table $target_table,
+		?array $columns = null,
+	) {
 		if (!\preg_match(self::NAME_REG, $name)) {
-			throw new InvalidArgumentException(\sprintf('Invalid relation name "%s".', $name));
+			throw new InvalidArgumentException(\sprintf(
+				'Relation name "%s" should match: %s',
+				$name,
+				self::NAME_PATTERN
+			));
 		}
 
-		// the relation is based on foreign keys
-		if (null === $columns) {
-			// the slave table contains foreign key from the master table
-			if ($target_table->hasDefaultForeignKeyConstraint($host_table)) {
-				$this->target_is_slave = true;
-				$columns               = $target_table->getDefaultForeignKeyConstraintFrom($host_table)
-													  ->getConstraintColumns();
-			} elseif ($host_table->hasDefaultForeignKeyConstraint($target_table)) {
-				$this->target_is_slave = false;
-				$columns               = $host_table->getDefaultForeignKeyConstraintFrom($target_table)
-													->getConstraintColumns();
-			} else {
-				throw new DBALException(\sprintf('Error in relation "%s", there is no columns to link the table "%s" to the table "%s".', $name, $host_table->getName(), $target_table->getName()));
+		$this->checkRelationColumns($columns);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function toArray(): array
+	{
+		$options['target'] = $this->target_table->getName();
+		$options['type']   = $this->type->value;
+
+		if (!$this->use_auto_detected_foreign_key) {
+			foreach ($this->relation_columns as $from => $to) {
+				$key = $this->host_table->getColumnOrFail($from)
+					->getName();
+				$options['columns'][$key] = $this->target_table->getColumnOrFail($to)
+					->getName();
 			}
-		} else {
-			$cols = [];
-
-			foreach ($columns as $from_column => $target_column) {
-				$host_table->assertHasColumn($from_column);
-				$target_table->assertHasColumn($target_column);
-				$from_column   = $host_table->getColumn($from_column)
-											->getFullName();
-				$target_column = $target_table->getColumn($target_column)
-											  ->getFullName();
-
-				$cols[$from_column] = $target_column;
-			}
-
-			$this->target_is_slave = true;
-			$columns               = $cols;
 		}
 
-		$this->name             = $name;
-		$this->type             = $type;
-		$this->host_table       = $host_table;
-		$this->target_table     = $target_table;
-		$this->relation_columns = $columns;
+		return $options;
+	}
+
+	/**
+	 * Checks if the relation returns paginated items.
+	 *
+	 * ie: all relation items can't be retrieved at once.
+	 *
+	 * @return bool
+	 */
+	public function isPaginated(): bool
+	{
+		return RelationType::ONE_TO_MANY === $this->type || RelationType::MANY_TO_MANY === $this->type;
 	}
 
 	/**
@@ -109,7 +98,7 @@ abstract class Relation
 	 *
 	 * @return \Gobl\DBAL\Table
 	 */
-	public function getHostTable()
+	public function getHostTable(): Table
 	{
 		return $this->host_table;
 	}
@@ -119,29 +108,9 @@ abstract class Relation
 	 *
 	 * @return \Gobl\DBAL\Table
 	 */
-	public function getTargetTable()
+	public function getTargetTable(): Table
 	{
 		return $this->target_table;
-	}
-
-	/**
-	 * Gets the relation master table.
-	 *
-	 * @return \Gobl\DBAL\Table
-	 */
-	public function getMasterTable()
-	{
-		return $this->target_is_slave ? $this->host_table : $this->target_table;
-	}
-
-	/**
-	 * Gets the relation slave table.
-	 *
-	 * @return \Gobl\DBAL\Table
-	 */
-	public function getSlaveTable()
-	{
-		return $this->target_is_slave ? $this->target_table : $this->host_table;
 	}
 
 	/**
@@ -149,7 +118,7 @@ abstract class Relation
 	 *
 	 * @return array
 	 */
-	public function getRelationColumns()
+	public function getRelationColumns(): array
 	{
 		return $this->relation_columns;
 	}
@@ -157,21 +126,11 @@ abstract class Relation
 	/**
 	 * Gets the relation type.
 	 *
-	 * @return int
+	 * @return RelationType
 	 */
-	public function getType()
+	public function getType(): RelationType
 	{
 		return $this->type;
-	}
-
-	/**
-	 * Gets the relation name.
-	 *
-	 * @return string
-	 */
-	public function getName()
-	{
-		return $this->name;
 	}
 
 	/**
@@ -179,8 +138,25 @@ abstract class Relation
 	 *
 	 * @return string
 	 */
-	public function getGetterName()
+	public function getGetterName(): string
 	{
-		return 'get' . Utils::toClassName($this->getName());
+		return Str::toGetterName($this->getName());
 	}
+
+	/**
+	 * Gets the relation name.
+	 *
+	 * @return string
+	 */
+	public function getName(): string
+	{
+		return $this->name;
+	}
+
+	/**
+	 * Checks relations columns.
+	 *
+	 * @param null|array $columns
+	 */
+	abstract protected function checkRelationColumns(?array $columns = null): void;
 }

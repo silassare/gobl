@@ -9,12 +9,17 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\DBAL;
 
+/**
+ * Class DbConfig.
+ */
 final class DbConfig
 {
 	/** @var array */
-	private $config;
+	private array $config;
 
 	/**
 	 * DbConfig constructor.
@@ -24,19 +29,20 @@ final class DbConfig
 	public function __construct(array $config)
 	{
 		$this->config = \array_merge([
-			'db_host'    => '',
-			'db_name'    => '',
-			'db_user'    => '',
-			'db_pass'    => '',
-			'db_charset' => 'utf8mb4',
-			'db_collate' => 'utf8mb4_unicode_ci',
+			'db_table_prefix'    => '',
+			'db_host'            => '',
+			'db_name'            => '',
+			'db_user'            => '',
+			'db_pass'            => '',
+			'db_charset'         => 'utf8mb4',
+			'db_collate'         => 'utf8mb4_unicode_ci',
 		], $config);
 	}
 
 	/**
 	 * @return array
 	 */
-	public function getConfig()
+	public function getConfig(): array
 	{
 		return $this->config;
 	}
@@ -44,7 +50,7 @@ final class DbConfig
 	/**
 	 * @return string
 	 */
-	public function getDbHost()
+	public function getDbHost(): string
 	{
 		return $this->config['db_host'];
 	}
@@ -52,7 +58,7 @@ final class DbConfig
 	/**
 	 * @return string
 	 */
-	public function getDbName()
+	public function getDbName(): string
 	{
 		return $this->config['db_name'];
 	}
@@ -60,7 +66,7 @@ final class DbConfig
 	/**
 	 * @return string
 	 */
-	public function getDbUser()
+	public function getDbUser(): string
 	{
 		return $this->config['db_user'];
 	}
@@ -68,7 +74,7 @@ final class DbConfig
 	/**
 	 * @return string
 	 */
-	public function getDbPass()
+	public function getDbPass(): string
 	{
 		return $this->config['db_pass'];
 	}
@@ -76,7 +82,7 @@ final class DbConfig
 	/**
 	 * @return string
 	 */
-	public function getDbCharset()
+	public function getDbCharset(): string
 	{
 		return $this->config['db_charset'];
 	}
@@ -84,8 +90,16 @@ final class DbConfig
 	/**
 	 * @return string
 	 */
-	public function getDbCollate()
+	public function getDbCollate(): string
 	{
 		return $this->config['db_collate'];
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getDbTablePrefix(): string
+	{
+		return $this->config['db_table_prefix'];
 	}
 }

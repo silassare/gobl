@@ -9,28 +9,32 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\DBAL\Constraints;
 
 use Gobl\DBAL\Table;
 
 /**
- * Class Unique
+ * Class Unique.
  */
 class Unique extends Constraint
 {
+	private array $columns = [];
+
 	/**
 	 * Unique constructor.
 	 *
-	 * @param string           $name  the constraint name
-	 * @param \Gobl\DBAL\Table $table the table in which the constraint was defined
+	 * @param string           $name       the constraint name
+	 * @param \Gobl\DBAL\Table $host_table the table in which the constraint was defined
 	 */
-	public function __construct($name, Table $table)
+	public function __construct(string $name, Table $host_table)
 	{
-		parent::__construct($name, $table, Constraint::UNIQUE);
+		parent::__construct($name, $host_table, Constraint::UNIQUE);
 	}
 
 	/**
-	 * Adds column to the constraint
+	 * Adds column to the constraint.
 	 *
 	 * @param string $name the column name
 	 *
@@ -38,12 +42,48 @@ class Unique extends Constraint
 	 *
 	 * @return $this
 	 */
-	public function addColumn($name)
+	public function addColumn(string $name): self
 	{
-		$this->table->assertHasColumn($name);
-		$this->columns[] = $this->table->getColumn($name)
-									   ->getFullName();
+		$this->assertNotLocked();
+
+		$this->columns[] = $this->host_table->getColumnOrFail($name)
+			->getFullName();
 
 		return $this;
+	}
+
+	/**
+	 * Gets unique constraints columns.
+	 *
+	 * @return string[]
+	 */
+	public function getColumns(): array
+	{
+		return $this->columns;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function assertIsValid(): void
+	{
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function toArray(): array
+	{
+		$columns = [];
+
+		foreach ($this->columns as $full_name) {
+			$columns[] = $this->host_table->getColumnOrFail($full_name)
+				->getName();
+		}
+
+		return [
+			'type'    => 'unique',
+			'columns' => $columns,
+		];
 	}
 }

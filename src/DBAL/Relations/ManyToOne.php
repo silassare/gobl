@@ -9,24 +9,34 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\DBAL\Relations;
 
+use Gobl\DBAL\Relations\Traits\SimpleRelationTrait;
 use Gobl\DBAL\Table;
 
-class ManyToOne extends Relation
+/**
+ * Class ManyToOne.
+ */
+final class ManyToOne extends Relation
 {
+	use SimpleRelationTrait;
+
 	/**
 	 * ManyToOne constructor.
 	 *
-	 * @param                  $name
+	 * @param string           $name
 	 * @param \Gobl\DBAL\Table $host_table
 	 * @param \Gobl\DBAL\Table $target_table
 	 * @param null|array       $columns
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
-	public function __construct($name, Table $host_table, Table $target_table, array $columns = null)
-	{
-		parent::__construct($name, $host_table, $target_table, $columns, Relation::MANY_TO_ONE);
+	public function __construct(
+		string $name,
+		Table $host_table,
+		Table $target_table,
+		?array $columns = null
+	) {
+		parent::__construct(RelationType::MANY_TO_ONE, $name, $host_table, $target_table, $columns);
 	}
 }

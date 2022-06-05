@@ -9,10 +9,12 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\DBAL\Types\Exceptions;
 
 /**
- * Class TypesInvalidValueException
+ * Class TypesInvalidValueException.
  */
 class TypesInvalidValueException extends TypesException
 {

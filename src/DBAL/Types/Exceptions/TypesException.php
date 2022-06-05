@@ -9,13 +9,15 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\DBAL\Types\Exceptions;
 
-use Gobl\Exceptions\GoblBaseException;
+use Gobl\DBAL\Exceptions\DBALException;
 
 /**
- * Class TypesException
+ * Class TypesException.
  */
-class TypesException extends GoblBaseException
+class TypesException extends DBALException
 {
 }

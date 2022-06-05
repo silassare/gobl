@@ -9,39 +9,43 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\DBAL\Collections;
 
-use Gobl\ORM\ORMRequestBase;
+use Gobl\ORM\ORMRequest;
 use InvalidArgumentException;
 
-class Collection
+/**
+ * Class Collection.
+ */
+abstract class Collection
 {
-	const NAME_REG = '~^(?:[a-zA-Z][a-zA-Z0-9_-]*[a-zA-Z0-9]|[a-zA-Z])$~';
+	public const NAME_PATTERN = '[a-zA-Z](?:[a-zA-Z0-9_-]*[a-zA-Z0-9])?';
 
-	/**
-	 * @var callable
-	 */
-	protected $callable;
+	public const NAME_REG = '~^' . self::NAME_PATTERN . '$~';
 
 	/**
 	 * @var string
 	 */
-	protected $name;
+	protected string $name;
 
 	/**
 	 * Collection constructor.
 	 *
-	 * @param string   $name
-	 * @param callable $callable
+	 * @param string $name
 	 */
-	public function __construct($name, callable $callable)
+	public function __construct(string $name)
 	{
 		if (!\preg_match(self::NAME_REG, $name)) {
-			throw new InvalidArgumentException(\sprintf('Invalid collection name "%s".', $name));
+			throw new InvalidArgumentException(\sprintf(
+				'Collection name "%s" should match: %s',
+				$name,
+				self::NAME_PATTERN
+			));
 		}
 
-		$this->name     = $name;
-		$this->callable = $callable;
+		$this->name = $name;
 	}
 
 	/**
@@ -49,21 +53,18 @@ class Collection
 	 *
 	 * @return string
 	 */
-	public function getName()
+	public function getName(): string
 	{
 		return $this->name;
 	}
 
 	/**
-	 * Runs the collection callable.
+	 * Returns the collection items.
 	 *
-	 * @param \Gobl\ORM\ORMRequestBase $request
-	 * @param int                      &$total_records
+	 * @param \Gobl\ORM\ORMRequest $request
+	 * @param null|int             &$total_records
 	 *
-	 * @return mixed
+	 * @return \Gobl\ORM\ORMEntity[]
 	 */
-	public function run(ORMRequestBase $request, &$total_records = null)
-	{
-		return \call_user_func_array($this->callable, [$request, &$total_records]);
-	}
+	abstract public function getItems(ORMRequest $request, int &$total_records = null): array;
 }
