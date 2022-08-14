@@ -1,4 +1,7 @@
 .idea
+.DS_Store
+.gobl
 /vendor
 /ignore
+/tests/tmp
 **/otpl_done/*
