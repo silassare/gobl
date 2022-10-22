@@ -54,19 +54,19 @@ class TypeDate extends Type
 	public function configure(array $options): self
 	{
 		if (isset($options['min'])) {
-			$this->min((string)$options['min']);
+			$this->min((string) $options['min']);
 		}
 
 		if (isset($options['max'])) {
-			$this->max((string)$options['max']);
+			$this->max((string) $options['max']);
 		}
 
 		if (isset($options['auto'])) {
-			$this->auto((bool)$options['auto']);
+			$this->auto((bool) $options['auto']);
 		}
 
 		if (isset($options['format'])) {
-			$this->format((string)$options['format']);
+			$this->format((string) $options['format']);
 		}
 
 		return parent::configure($options);
@@ -75,12 +75,12 @@ class TypeDate extends Type
 	/**
 	 * Sets min date.
 	 *
-	 * @param string $min
+	 * @param string      $min
 	 * @param null|string $message
 	 *
-	 * @return $this
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 *
+	 * @return $this
 	 */
 	public function min(string $min, ?string $message = null): self
 	{
@@ -101,12 +101,12 @@ class TypeDate extends Type
 	/**
 	 * Sets max date.
 	 *
-	 * @param string $max
+	 * @param string      $max
 	 * @param null|string $message
 	 *
-	 * @return $this
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 *
+	 * @return $this
 	 */
 	public function max(string $max, ?string $message = null): self
 	{
@@ -172,10 +172,10 @@ class TypeDate extends Type
 	public function getDefault(): ?string
 	{
 		$default = parent::getDefault();
-		$auto = $this->getOption('auto');
+		$auto    = $this->getOption('auto');
 
 		if (null === $default && $auto) {
-			$default = (string)\time();
+			$default = (string) \time();
 		}
 
 		return $default;
@@ -193,14 +193,14 @@ class TypeDate extends Type
 		$format = $this->getOption('format', self::FORMAT_TIMESTAMP);
 
 		if (self::FORMAT_TIMESTAMP === $format) {
-			return (string)$value;
+			return (string) $value;
 		}
 
 		if ($formatted = \date($this->getOption('format', $format), $value)) {
 			return $formatted;
 		}
 
-		return (string)$value;
+		return (string) $value;
 	}
 
 	/**
@@ -224,7 +224,7 @@ class TypeDate extends Type
 
 		if (empty($value) && 0 !== $value) {
 			if ($this->getOption('auto')) {
-				return (string)\time();
+				return (string) \time();
 			}
 
 			$value = $this->getDefault();
@@ -260,14 +260,14 @@ class TypeDate extends Type
 			$converted = \strtotime($value);
 
 			if (false !== $converted) {
-				return (string)$converted;
+				return (string) $converted;
 			}
 
 			return null;
 		}
 
 		if (\is_numeric($value)) {
-			return (string)$value;
+			return (string) $value;
 		}
 
 		return null;
