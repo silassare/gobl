@@ -66,7 +66,7 @@ WARNING: please don't edit.
 
 Proudly With: {$version}
 Time: {$date}";
-		$this->editable_header     = "Auto generated file,
+		$this->editable_header = "Auto generated file,
 
 INFO: you are free to edit it,
 but make sure to know what you are doing.
@@ -285,13 +285,13 @@ return $this;', $col_inject));
 			$target        = $relation->getTargetTable();
 			$m             = $class->newMethod('get' . Str::toClassName($relation->getName()))
 				->public();
-			$comment       = \sprintf(
+			$comment = \sprintf(
 				'%s relation between `%s` and `%s`.',
 				Str::toClassName($relation_type->value),
 				$host->getName(),
 				$target->getName()
 			);
-			$rel_inject    = [
+			$rel_inject = [
 				'target_entity_class_fqn'            => ORMClassKind::ENTITY->getClassFQN($target),
 				'target_entity_controller_class_fqn' => ORMClassKind::CONTROLLER->getClassFQN($target),
 			];
@@ -528,7 +528,7 @@ return $instance;')
 					'column_name_const' => self::toColumnNameConst($column),
 					'arg_type'          => \implode('|', \array_unique(\array_map($this->toTypeHintString(...), ORMTypeHint::getRightOperandTypesHint($type, $operator)))),
 				];
-				$no_arg     = 1 === $operator->getOperandsCount();
+				$no_arg = 1 === $operator->getOperandsCount();
 				if ($no_arg) {
 					$class->newMethod($method)
 						->public()
@@ -650,7 +650,7 @@ return $instance;')
 @method \{db_namespace}\{entity_class_name} addItem(array|\{db_namespace}\{entity_class_name} $item = [])
 @method null|\{db_namespace}\{entity_class_name} getItem(array $filters, array $order_by = [])
 @method null|\{db_namespace}\{entity_class_name} deleteOneItem(array $filters)
-@method \{db_namespace}\{entity_class_name}[] getAllItems(array $filters = [], int $max = null, int $offset = 0, array $order_by = [], ?int &$total = -1)
+@method \{db_namespace}\{entity_class_name}[] getAllItems(array $filters = [], int $max = null, int $offset = 0, array $order_by = [], ?int &$total = null)
 @method \{db_namespace}\{entity_class_name}[] getAllItemsCustom(\Gobl\DBAL\Queries\QBSelect $qb, int $max = null, int $offset = 0, &$total = false)
 @method null|\{db_namespace}\{entity_class_name} updateOneItem(array $filters, array $new_values)', $inject));
 
