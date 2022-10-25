@@ -651,7 +651,7 @@ return $instance;')
 @method null|\{db_namespace}\{entity_class_name} getItem(array $filters, array $order_by = [])
 @method null|\{db_namespace}\{entity_class_name} deleteOneItem(array $filters)
 @method \{db_namespace}\{entity_class_name}[] getAllItems(array $filters = [], int $max = null, int $offset = 0, array $order_by = [], ?int &$total = null)
-@method \{db_namespace}\{entity_class_name}[] getAllItemsCustom(\Gobl\DBAL\Queries\QBSelect $qb, int $max = null, int $offset = 0, &$total = false)
+@method \{db_namespace}\{entity_class_name}[] getAllItemsCustom(\Gobl\DBAL\Queries\QBSelect $qb, int $max = null, int $offset = 0, ?int &$total = null)
 @method null|\{db_namespace}\{entity_class_name} updateOneItem(array $filters, array $new_values)', $inject));
 
 		$class->newMethod('__construct')
