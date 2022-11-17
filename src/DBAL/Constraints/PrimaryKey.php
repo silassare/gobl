@@ -39,9 +39,9 @@ class PrimaryKey extends Constraint
 	 *
 	 * @param string $name the column name
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function addColumn(string $name): self
 	{

@@ -71,9 +71,9 @@ class TypeString extends Type implements BaseTypeInterface
 	 * @param int         $min
 	 * @param null|string $message
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
 	public function min(int $min, ?string $message = null): self
 	{
@@ -90,9 +90,9 @@ class TypeString extends Type implements BaseTypeInterface
 	 * @param int         $max
 	 * @param null|string $message
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
 	public function max(int $max, ?string $message = null): self
 	{
@@ -109,9 +109,9 @@ class TypeString extends Type implements BaseTypeInterface
 	 * @param string      $pattern
 	 * @param null|string $message
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
 	public function pattern(string $pattern, ?string $message = null): self
 	{
@@ -250,9 +250,9 @@ class TypeString extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
-	 *
 	 * @return null|string
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
 	 */
 	public function validate(mixed $value): ?string
 	{

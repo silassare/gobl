@@ -37,9 +37,9 @@ trait QBSetColumnsTrait
 	 * @param array  $columns_values_map
 	 * @param bool   $auto_prefix
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	protected function setInsertOrUpdateColumnsValues(string $table, array $columns_values_map, bool $auto_prefix): static
 	{

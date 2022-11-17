@@ -96,9 +96,9 @@ class CRUD
 	 *
 	 * @param array $form
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 *
 	 * @return \Gobl\CRUD\CRUDCreate
+	 *
+	 * @throws \Gobl\CRUD\Exceptions\CRUDException
 	 */
 	public function assertCreate(array $form): CRUDCreate
 	{
@@ -122,9 +122,9 @@ class CRUD
 	 *
 	 * @param \Gobl\ORM\ORMTableQuery $filters
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 *
 	 * @return \Gobl\CRUD\CRUDRead
+	 *
+	 * @throws \Gobl\CRUD\Exceptions\CRUDException
 	 */
 	public function assertRead(ORMTableQuery $filters): CRUDRead
 	{
@@ -144,9 +144,9 @@ class CRUD
 	 *
 	 * @param \Gobl\ORM\ORMTableQuery $filters
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 *
 	 * @return \Gobl\CRUD\CRUDReadAll
+	 *
+	 * @throws \Gobl\CRUD\Exceptions\CRUDException
 	 */
 	public function assertReadAll(ORMTableQuery $filters): CRUDReadAll
 	{
@@ -167,9 +167,9 @@ class CRUD
 	 * @param \Gobl\ORM\ORMTableQuery $filters
 	 * @param array                   $form
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 *
 	 * @return \Gobl\CRUD\CRUDUpdate
+	 *
+	 * @throws \Gobl\CRUD\Exceptions\CRUDException
 	 */
 	public function assertUpdate(ORMTableQuery $filters, array $form): CRUDUpdate
 	{
@@ -194,9 +194,9 @@ class CRUD
 	 * @param \Gobl\ORM\ORMTableQuery $filters
 	 * @param array                   $form
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 *
 	 * @return \Gobl\CRUD\CRUDUpdateAll
+	 *
+	 * @throws \Gobl\CRUD\Exceptions\CRUDException
 	 */
 	public function assertUpdateAll(ORMTableQuery $filters, array $form): CRUDUpdateAll
 	{
@@ -220,9 +220,9 @@ class CRUD
 	 *
 	 * @param \Gobl\ORM\ORMTableQuery $filters
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 *
 	 * @return \Gobl\CRUD\CRUDDelete
+	 *
+	 * @throws \Gobl\CRUD\Exceptions\CRUDException
 	 */
 	public function assertDelete(ORMTableQuery $filters): CRUDDelete
 	{
@@ -242,9 +242,9 @@ class CRUD
 	 *
 	 * @param \Gobl\ORM\ORMTableQuery $filters
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 *
 	 * @return \Gobl\CRUD\CRUDDeleteAll
+	 *
+	 * @throws \Gobl\CRUD\Exceptions\CRUDException
 	 */
 	public function assertDeleteAll(ORMTableQuery $filters): CRUDDeleteAll
 	{

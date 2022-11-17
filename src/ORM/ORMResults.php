@@ -105,9 +105,9 @@ abstract class ORMResults implements Countable, Iterator
 	 *
 	 * @param int $fetch_style
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return mixed
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function fetch(int $fetch_style = PDO::FETCH_ASSOC): mixed
 	{
@@ -130,9 +130,9 @@ abstract class ORMResults implements Countable, Iterator
 	 *
 	 * @param int $fetch_style
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return array
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function fetchAll(int $fetch_style = PDO::FETCH_ASSOC): array
 	{
@@ -155,9 +155,9 @@ abstract class ORMResults implements Countable, Iterator
 	 *
 	 * @param bool $strict enable/disable strict mode on class fetch
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return \Gobl\ORM\ORMEntity[]
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function fetchAllClass(bool $strict = true): array
 	{
@@ -199,9 +199,9 @@ abstract class ORMResults implements Countable, Iterator
 	 *
 	 * @param bool $strict enable/disable strict mode on class fetch
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return null|\Gobl\ORM\ORMEntity
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function fetchClass(bool $strict = true): ?ORMEntity
 	{
@@ -264,9 +264,9 @@ abstract class ORMResults implements Countable, Iterator
 	/**
 	 * Count number of elements in this results.
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return int the custom count as an integer
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function count(): int
 	{
@@ -301,9 +301,9 @@ abstract class ORMResults implements Countable, Iterator
 	 *
 	 * We lazily run query.
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return PDOStatement
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	protected function getStatement(): PDOStatement
 	{

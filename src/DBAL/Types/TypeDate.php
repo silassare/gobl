@@ -78,9 +78,9 @@ class TypeDate extends Type
 	 * @param string      $min
 	 * @param null|string $message
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
 	public function min(string $min, ?string $message = null): self
 	{
@@ -104,9 +104,9 @@ class TypeDate extends Type
 	 * @param string      $max
 	 * @param null|string $message
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
 	public function max(string $max, ?string $message = null): self
 	{

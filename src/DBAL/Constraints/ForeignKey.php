@@ -50,9 +50,9 @@ class ForeignKey extends Constraint
 	 * @param string $host_column_name      the column name in the host table
 	 * @param string $reference_column_name the column name in the reference table
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function addColumn(string $host_column_name, string $reference_column_name): self
 	{
@@ -91,9 +91,9 @@ class ForeignKey extends Constraint
 	 *
 	 * @param ForeignKeyAction $action
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function setUpdateAction(ForeignKeyAction $action): self
 	{
@@ -119,9 +119,9 @@ class ForeignKey extends Constraint
 	 *
 	 * @param ForeignKeyAction $action
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function setDeleteAction(ForeignKeyAction $action): self
 	{

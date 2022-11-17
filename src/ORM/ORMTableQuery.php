@@ -93,10 +93,10 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 *
 	 * @param array|callable|static ...$filters
 	 *
+	 * @return $this
+	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 * @throws \Gobl\ORM\Exceptions\ORMException
-	 *
-	 * @return $this
 	 */
 	public function and(array|self|callable ...$filters): static
 	{
@@ -110,10 +110,10 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 *
 	 * @param array|callable|static ...$filters
 	 *
+	 * @return $this
+	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 * @throws \Gobl\ORM\Exceptions\ORMException
-	 *
-	 * @return $this
 	 */
 	public function where(array|self|callable ...$filters): static
 	{
@@ -159,10 +159,10 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 *
 	 * @param array|callable|static ...$filters
 	 *
+	 * @return $this
+	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 * @throws \Gobl\ORM\Exceptions\ORMException
-	 *
-	 * @return $this
 	 */
 	public function or(array|self|callable ...$filters): static
 	{
@@ -215,9 +215,9 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	/**
 	 * Create a {@see QBDelete} and apply the current filters.
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return \Gobl\DBAL\Queries\QBDelete
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function delete(): QBDelete
 	{
@@ -262,10 +262,10 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 *
 	 * @param array $columns_values_map new values
 	 *
+	 * @return \Gobl\DBAL\Queries\QBUpdate
+	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 * @throws \Gobl\ORM\Exceptions\ORMException
-	 *
-	 * @return \Gobl\DBAL\Queries\QBUpdate
 	 */
 	public function update(array $columns_values_map): QBUpdate
 	{
@@ -291,9 +291,9 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 * @param int      $offset   first row offset
 	 * @param array    $order_by order by rules
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return ORMResults
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function find(?int $max = null, int $offset = 0, array $order_by = []): ORMResults
 	{
@@ -312,9 +312,9 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 * @param int      $offset   first row offset
 	 * @param array    $order_by order by rules
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return \Gobl\DBAL\Queries\QBSelect
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function select(?int $max = null, int $offset = 0, array $order_by = []): QBSelect
 	{
@@ -338,9 +338,9 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 * @param string   $column   the column name or full name
 	 * @param mixed    $value    the filter value
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	protected function filterBy(Operator $operator, string $column, mixed $value = null): static
 	{

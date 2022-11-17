@@ -41,9 +41,9 @@ trait QBFromTrait
 	 * $this->from(['users', 'articles' => 'a', 'another_table']);
 	 * ```
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function from(array|string $table, ?string $alias = null): static
 	{

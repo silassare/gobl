@@ -59,6 +59,7 @@ use Gobl\DBAL\Types\TypeFloat;
 use Gobl\DBAL\Types\TypeInt;
 use Gobl\DBAL\Types\TypeString;
 use Gobl\Gobl;
+
 use const GOBL_VERSION;
 
 /**
@@ -184,7 +185,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 */
 	public function buildTotalRowCountQuery(QBSelect $qb): string
 	{
-		return 'SELECT ' . 'COUNT(1) FROM (' . $this->buildQuery($qb) . ') as __gobl_alias';
+		return 'SELECT COUNT(1) FROM (' . $this->buildQuery($qb) . ') as __gobl_alias';
 	}
 
 	/**
@@ -216,9 +217,9 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return bool
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function hasSameColumnTypeDefinition(Column $a, Column $b): bool
 	{
@@ -290,7 +291,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$table_name = $action->getTable()
 			->getFullName();
 
-		return 'DROP' . ' TABLE `' . $table_name . '`;';
+		return 'DROP TABLE `' . $table_name . '`;';
 	}
 
 	protected function getColumnDeletedString(ColumnDeleted $action): string
@@ -306,9 +307,9 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	/**
 	 * @param \Gobl\DBAL\Diff\Actions\ColumnAdded $action
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return string
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	protected function getColumnAddedString(ColumnAdded $action): string
 	{
@@ -316,7 +317,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 			->getFullName();
 		$sql        = $this->getColumnDefinitionString($action->getColumn());
 
-		return 'ALTER TABLE' . ' `' . $table_name . '` ADD ' . $sql . ';';
+		return 'ALTER TABLE `' . $table_name . '` ADD ' . $sql . ';';
 	}
 
 	/**
@@ -339,9 +340,9 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	/**
 	 * @param \Gobl\DBAL\Diff\Actions\ColumnTypeChanged $action
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return string
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	protected function getColumnTypeChangedString(ColumnTypeChanged $action): string
 	{
@@ -491,9 +492,9 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 * @param \Gobl\DBAL\Column     $column
 	 * @param null|\Gobl\DBAL\Table $table_for_alter
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return string
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	protected function getColumnDefinitionString(Column $column, ?Table $table_for_alter = null): string
 	{
@@ -516,7 +517,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		};
 
 		if ($table_for_alter) {
-			return 'ALTER TABLE' . ' `' . $table_for_alter->getFullName() . '` ADD ' . $sql . ';';
+			return 'ALTER TABLE `' . $table_for_alter->getFullName() . '` ADD ' . $sql . ';';
 		}
 
 		return $sql;
@@ -528,9 +529,9 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 * @param \Gobl\DBAL\Table $table
 	 * @param bool             $include_fq_or_uq_alter
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return string
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	protected function getTableDefinitionString(Table $table, bool $include_fq_or_uq_alter): string
 	{
@@ -783,9 +784,9 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 *
 	 * @param \Gobl\DBAL\Column $column
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return string
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	protected function getFloatColumnDefinition(Column $column): string
 	{
@@ -861,9 +862,9 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 *
 	 * @param \Gobl\DBAL\Column $column
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return string
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	protected function getDecimalColumnDefinition(Column $column): string
 	{
@@ -1169,7 +1170,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 			throw new DBALRuntimeException('Table name required for insert query.');
 		}
 
-		return 'INSERT' . ' INTO ' . $table . ' (' . $columns . ') VALUES(' . $values . ')';
+		return 'INSERT INTO ' . $table . ' (' . $columns . ') VALUES(' . $values . ')';
 	}
 
 	/**

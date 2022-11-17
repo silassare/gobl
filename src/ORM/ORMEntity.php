@@ -290,13 +290,13 @@ abstract class ORMEntity implements ArrayCapableInterface
 	/**
 	 * Save modifications to database.
 	 *
+	 * @return bool `true` when an insert or update occur,
+	 *              `false` when nothing is done
+	 *
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-	 *
-	 * @return bool `true` when an insert or update occur,
-	 *              `false` when nothing is done
 	 */
 	public function save(): bool
 	{
@@ -342,9 +342,9 @@ abstract class ORMEntity implements ArrayCapableInterface
 	/**
 	 * Returns filters that uniquely identify the current entity.
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMException
-	 *
 	 * @return array
+	 *
+	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 */
 	public function toIdentityFilters(): array
 	{
@@ -424,9 +424,9 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 * @param string $name  the column name or full name
 	 * @param mixed  $value the column new value
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
-	 *
 	 * @return mixed
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
 	 */
 	protected function doValidation(string $name, mixed $value): mixed
 	{

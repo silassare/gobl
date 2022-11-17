@@ -28,9 +28,9 @@ interface TypeInterface extends ArrayCapableInterface
 	 *
 	 * @param array $options the options
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException when options is invalid
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException when options is invalid
 	 */
 	public static function getInstance(array $options): self;
 
@@ -118,9 +118,9 @@ interface TypeInterface extends ArrayCapableInterface
 	 *
 	 * @param mixed $value the value to validate
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
-	 *
 	 * @return mixed the cleaned value to use
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
 	 */
 	public function validate(mixed $value): mixed;
 

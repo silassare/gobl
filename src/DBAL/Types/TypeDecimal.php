@@ -80,9 +80,9 @@ class TypeDecimal extends Type implements BaseTypeInterface
 	 * @param string      $min
 	 * @param null|string $message
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
 	public function min(string $min, ?string $message = null): self
 	{
@@ -116,9 +116,9 @@ class TypeDecimal extends Type implements BaseTypeInterface
 	 * @param string      $max
 	 * @param null|string $message
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
 	public function max(string $max, ?string $message = null): self
 	{
@@ -181,9 +181,9 @@ class TypeDecimal extends Type implements BaseTypeInterface
 	 * @param int      $precision the number of digits before the fixed point
 	 * @param null|int $scale     the number of digits following the fixed point
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
 	public function precision(int $precision, ?int $scale = null): self
 	{
@@ -221,9 +221,9 @@ class TypeDecimal extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
-	 *
 	 * @return null|string
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
 	 */
 	public function validate(mixed $value): ?string
 	{

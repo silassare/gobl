@@ -84,9 +84,9 @@ class TypeInt extends Type implements BaseTypeInterface
 	 * @param int         $min
 	 * @param null|string $message
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
 	public function min(int $min, ?string $message = null): self
 	{
@@ -119,9 +119,9 @@ class TypeInt extends Type implements BaseTypeInterface
 	 * @param int         $max
 	 * @param null|string $message
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
 	public function max(int $max, ?string $message = null): self
 	{
@@ -171,9 +171,9 @@ class TypeInt extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
-	 *
 	 * @return null|int
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
 	 */
 	public function validate(mixed $value): ?int
 	{

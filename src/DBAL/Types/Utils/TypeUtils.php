@@ -48,9 +48,9 @@ class TypeUtils
 	 * @param string $name
 	 * @param array  $options
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-	 *
 	 * @return null|\Gobl\DBAL\Types\Interfaces\TypeInterface
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
 	public static function getTypeInstance(string $name, array $options): ?TypeInterface
 	{
@@ -123,9 +123,9 @@ class TypeUtils
 	 * @param string|string[]                      $expression
 	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $rdbms
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return string|string[]
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public static function runEnforceQueryExpressionValueType(
 		string $table_name,

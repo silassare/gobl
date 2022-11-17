@@ -121,12 +121,12 @@ abstract class ORMController
 	 *
 	 * @param array|\Gobl\ORM\ORMEntity $item
 	 *
+	 * @return \Gobl\ORM\ORMEntity
+	 *
 	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
-	 * @return \Gobl\ORM\ORMEntity
 	 */
 	public function addItem(array|ORMEntity $item = []): ORMEntity
 	{
@@ -173,12 +173,12 @@ abstract class ORMController
 	 * @param array $filters    the row filters
 	 * @param array $new_values the new values
 	 *
+	 * @return null|\Gobl\ORM\ORMEntity
+	 *
 	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
-	 * @return null|\Gobl\ORM\ORMEntity
 	 */
 	public function updateOneItem(array $filters, array $new_values): ?ORMEntity
 	{
@@ -252,12 +252,12 @@ abstract class ORMController
 	 * @param array $filters    the row filters
 	 * @param array $new_values the new values
 	 *
+	 * @return int affected row count
+	 *
 	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
-	 * @return int affected row count
 	 */
 	public function updateAllItems(array $filters, array $new_values): int
 	{
@@ -279,12 +279,12 @@ abstract class ORMController
 	 *
 	 * @param array $filters the row filters
 	 *
+	 * @return null|\Gobl\ORM\ORMEntity
+	 *
 	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
-	 * @return null|\Gobl\ORM\ORMEntity
 	 */
 	public function deleteOneItem(array $filters): ?ORMEntity
 	{
@@ -324,12 +324,12 @@ abstract class ORMController
 	 *
 	 * @param array $filters the row filters
 	 *
+	 * @return int affected row count
+	 *
 	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
-	 * @return int affected row count
 	 */
 	public function deleteAllItems(array $filters): int
 	{
@@ -351,12 +351,12 @@ abstract class ORMController
 	 * @param array $filters  the row filters
 	 * @param array $order_by order by rules
 	 *
+	 * @return null|\Gobl\ORM\ORMEntity
+	 *
 	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
-	 * @return null|\Gobl\ORM\ORMEntity
 	 */
 	public function getItem(array $filters, array $order_by = []): ?ORMEntity
 	{
@@ -390,11 +390,11 @@ abstract class ORMController
 	 * @param array    $order_by order by rules
 	 * @param null|int &$total   total rows without limit
 	 *
+	 * @return array
+	 *
 	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
-	 * @return array
 	 */
 	public function getAllItems(
 		array $filters = [],
@@ -459,11 +459,11 @@ abstract class ORMController
 	 * @param int                         $offset first row offset
 	 * @param null|int                    $total  total rows without limit
 	 *
+	 * @return \Gobl\ORM\ORMEntity[]
+	 *
 	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
-	 * @return \Gobl\ORM\ORMEntity[]
 	 */
 	public function getAllItemsCustom(QBSelect $qb, ?int $max = null, int $offset = 0, ?int &$total = null): array
 	{
@@ -564,10 +564,10 @@ abstract class ORMController
 	 *
 	 * @param array $filters
 	 *
+	 * @return \Gobl\ORM\ORMTableQuery
+	 *
 	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
-	 * @return \Gobl\ORM\ORMTableQuery
 	 */
 	protected function getScopedFiltersInstance(array $filters): ORMTableQuery
 	{

@@ -33,6 +33,7 @@ enum CRUDActionType: string
 	case DELETE_ALL = 'delete_all';
 
 	case COLUMN_UPDATE = 'column_update';
+
 	public function getDefaultSuccessMessage(): string
 	{
 		return match ($this) {

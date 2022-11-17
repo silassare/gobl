@@ -88,9 +88,9 @@ final class Filters
 	 * @param \Gobl\DBAL\Queries\Interfaces\QBInterface                $qb
 	 * @param null|\Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface $scope
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return static
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public static function fromArray(array $filters, QBInterface $qb, ?FiltersScopeInterface $scope = null): self
 	{
@@ -108,10 +108,10 @@ final class Filters
 				$left    = $cur;
 				$op_name = $filters[++$i] ?? null;
 				if (!\is_string($op_name)) {
-					throw (new DBALException('unexpected "%s" while expecting operator.', [
+					throw new DBALException('unexpected "%s" while expecting operator.', [
 						'after'      => $left,
 						'unexpected' => $op_name,
-					]));
+					]);
 				}
 
 				$operator = Operator::tryFrom($op_name);
@@ -180,9 +180,9 @@ final class Filters
 	/**
 	 * Joins filters and following with AND condition.
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function and(array|self|callable ...$filters): self
 	{
@@ -197,9 +197,9 @@ final class Filters
 	/**
 	 * Joins filters and following with OR condition.
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function or(array|self|callable ...$filters): self
 	{
@@ -241,9 +241,9 @@ final class Filters
 	 *
 	 * @param array|callable|self ...$filters
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function where(array|self|callable ...$filters): self
 	{
@@ -303,9 +303,9 @@ final class Filters
 	 * @param string              $left     the left operand
 	 * @param null|mixed          $right    the right operand if allowed
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function add(Operator $operator, string $left, null|int|float|string|array|QBExpression|QBInterface $right = null): self
 	{
@@ -443,9 +443,9 @@ final class Filters
 	 * @param \Gobl\DBAL\Queries\Interfaces\QBInterface                $qb
 	 * @param null|\Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface $scope
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return \Gobl\DBAL\Filters\Filters
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	private static function fromString(
 		string $expression,
@@ -466,9 +466,9 @@ final class Filters
 	 * @param null|string &$found_table
 	 * @param null|string &$found_column
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return string
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	private function cleanOperand(mixed $operand, string &$found_table = null, string &$found_column = null): mixed
 	{
@@ -535,9 +535,9 @@ final class Filters
 	 * @param \Gobl\DBAL\Queries\Interfaces\QBInterface                $qb
 	 * @param null|\Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface $scope
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return \Gobl\DBAL\Filters\Filters
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	private static function fromOldFiltersArray(array $filters, QBInterface $qb, ?FiltersScopeInterface $scope = null): self
 	{

@@ -76,9 +76,9 @@ class TypeFloat extends Type implements BaseTypeInterface
 	 * @param float       $min
 	 * @param null|string $message
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
 	public function min(float $min, ?string $message = null): self
 	{
@@ -112,9 +112,9 @@ class TypeFloat extends Type implements BaseTypeInterface
 	 * @param float       $max
 	 * @param null|string $message
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
 	public function max(float $max, ?string $message = null): self
 	{
@@ -172,9 +172,9 @@ class TypeFloat extends Type implements BaseTypeInterface
 	 *
 	 * @param int $mantissa the mantissa
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
 	public function mantissa(int $mantissa): self
 	{
@@ -198,9 +198,9 @@ class TypeFloat extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
-	 *
 	 * @return null|float
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
 	 */
 	public function validate(mixed $value): ?float
 	{

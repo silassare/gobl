@@ -692,9 +692,9 @@ abstract class Db implements RDBMSInterface
 	 * @param array  $tables             Tables config array
 	 * @param array  $circle             Contains all references, to prevent infinite loop (Internal use only)
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return array
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	protected function resolveColumnReference(
 		string $reference,

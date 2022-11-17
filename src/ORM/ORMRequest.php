@@ -97,9 +97,9 @@ class ORMRequest
 	 *
 	 * @param \Gobl\DBAL\Table $table
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-	 *
 	 * @return \Gobl\ORM\ORMRequest
+	 *
+	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 */
 	public function createScopedInstance(Table $table): self
 	{
@@ -181,9 +181,9 @@ class ORMRequest
 	 *
 	 * @param string $name
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 */
 	public function setCollection(string $name): self
 	{
@@ -363,9 +363,9 @@ class ORMRequest
 	 *
 	 * @param string $name
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 */
 	public function addRelation(string $name): self
 	{
@@ -438,9 +438,9 @@ class ORMRequest
 	 * @param int   $max_default default max
 	 * @param int   $max_allowed maximum value allowed
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-	 *
 	 * @return array
+	 *
+	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 */
 	private static function paginate(array $request, int $max_default, int $max_allowed): array
 	{
@@ -500,9 +500,9 @@ class ORMRequest
 	 *
 	 * @param array $request
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-	 *
 	 * @return null|string
+	 *
+	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 */
 	private static function decodeCollection(array $request): ?string
 	{
@@ -542,9 +542,9 @@ class ORMRequest
 	 *
 	 * @param array $request
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-	 *
 	 * @return array
+	 *
+	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 */
 	private static function decodeRelations(array $request): array
 	{
@@ -561,7 +561,7 @@ class ORMRequest
 
 			foreach ($relations as $relation) {
 				if (!self::isValidRelationName($relation)) {
-					throw (new ORMQueryException('GOBL_ORM_REQUEST_INVALID_RELATIONS', $request));
+					throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_RELATIONS', $request);
 				}
 			}
 
@@ -600,9 +600,9 @@ class ORMRequest
 	 *
 	 * @param array $request
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-	 *
 	 * @return array
+	 *
+	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 */
 	private static function decodeOrderBy(array $request): array
 	{

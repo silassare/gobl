@@ -645,9 +645,9 @@ final class Table implements ArrayCapableInterface
 	 *
 	 * @param \Gobl\DBAL\Column $column the column to add
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function addColumn(Column $column): self
 	{
@@ -706,9 +706,9 @@ final class Table implements ArrayCapableInterface
 	 *
 	 * @param \Gobl\DBAL\Relations\Relation $relation
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return \Gobl\DBAL\Table
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function addRelation(Relation $relation): self
 	{
@@ -737,9 +737,9 @@ final class Table implements ArrayCapableInterface
 	 *
 	 * @param \Gobl\DBAL\Relations\VirtualRelation $virtual_relation
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return \Gobl\DBAL\Table
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function addVirtualRelation(VirtualRelation $virtual_relation): self
 	{
@@ -771,9 +771,9 @@ final class Table implements ArrayCapableInterface
 	 * @param string   $name
 	 * @param callable $factory
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return \Gobl\DBAL\Table
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function addCallableCollection(string $name, callable $factory): self
 	{
@@ -785,9 +785,9 @@ final class Table implements ArrayCapableInterface
 	 *
 	 * @param \Gobl\DBAL\Collections\Collection $collection
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return \Gobl\DBAL\Table
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function addCollection(Collection $collection): self
 	{
@@ -804,9 +804,9 @@ final class Table implements ArrayCapableInterface
 	 *
 	 * @param array $columns the columns
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function addUniqueConstraint(array $columns): self
 	{
@@ -840,9 +840,9 @@ final class Table implements ArrayCapableInterface
 	 *
 	 * @param array $columns the columns
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function addPrimaryKeyConstraint(array $columns): self
 	{
@@ -871,9 +871,9 @@ final class Table implements ArrayCapableInterface
 	 * @param ForeignKeyAction $update_action   the reference column update action
 	 * @param ForeignKeyAction $delete_action   the reference column delete action
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function addForeignKeyConstraint(
 		?string $constraint_name,
@@ -1101,9 +1101,9 @@ final class Table implements ArrayCapableInterface
 	 *
 	 * @param \Gobl\DBAL\Table $reference the reference table
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return \Gobl\DBAL\Constraints\ForeignKey
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function getDefaultForeignKeyConstraintFrom(self $reference): ForeignKey
 	{

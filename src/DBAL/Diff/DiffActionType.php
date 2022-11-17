@@ -58,6 +58,7 @@ enum DiffActionType: string
 	case ROW_DELETED = 'ROW_DELETED';
 
 	case ROW_UPDATED = 'ROW_UPDATED';
+
 	public function getPriority(): int
 	{
 		return match ($this) {

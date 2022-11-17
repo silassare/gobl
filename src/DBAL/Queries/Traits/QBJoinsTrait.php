@@ -43,9 +43,9 @@ trait QBJoinsTrait
 	 * @param string              $secondTableAlias
 	 * @param null|Filters|string $condition
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function innerJoin(
 		string $firstTableAlias,
@@ -64,9 +64,9 @@ trait QBJoinsTrait
 	 * @param string              $secondTableAlias
 	 * @param null|Filters|string $condition
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function leftJoin(
 		string $firstTableAlias,
@@ -85,9 +85,9 @@ trait QBJoinsTrait
 	 * @param string              $secondTableAlias
 	 * @param null|Filters|string $condition
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function rightJoin(
 		string $firstTableAlias,
@@ -105,9 +105,9 @@ trait QBJoinsTrait
 	 * @param string              $secondTableAlias
 	 * @param null|Filters|string $condition
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	private function join(
 		string $type,

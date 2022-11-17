@@ -26,6 +26,7 @@ use Gobl\DBAL\Queries\QBDelete;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Queries\QBUpdate;
 use Gobl\Gobl;
+
 use const GOBL_ASSETS_DIR;
 
 /**

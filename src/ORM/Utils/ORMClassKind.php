@@ -19,7 +19,7 @@ use PHPUtils\Str;
 /**
  * Enum ORMClassKind.
  */
-enum ORMClassKind : string
+enum ORMClassKind: string
 {
 	case ENTITY = 'entity';
 

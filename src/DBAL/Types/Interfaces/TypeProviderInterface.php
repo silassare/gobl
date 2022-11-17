@@ -24,10 +24,10 @@ interface TypeProviderInterface
 	 * @param string $name    the type name
 	 * @param array  $options the options
 	 *
+	 * @return null|\Gobl\DBAL\Types\Interfaces\TypeInterface
+	 *
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException when a type with the given name was found
 	 *                                                    but options is invalid
-	 *
-	 * @return null|\Gobl\DBAL\Types\Interfaces\TypeInterface
 	 */
 	public function getTypeInstance(string $name, array $options): ?TypeInterface;
 

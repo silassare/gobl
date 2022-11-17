@@ -16,7 +16,7 @@ namespace Gobl\DBAL;
 /**
  * Enum Operator.
  */
-enum Operator : string
+enum Operator: string
 {
 	case EQ = 'eq';
 

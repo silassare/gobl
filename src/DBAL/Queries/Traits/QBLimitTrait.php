@@ -45,9 +45,9 @@ trait QBLimitTrait
 	 * @param null|int $max    maximum result to get
 	 * @param int      $offset offset of the first result
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function limit(?int $max = null, int $offset = 0): static
 	{

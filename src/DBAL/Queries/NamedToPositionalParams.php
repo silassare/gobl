@@ -115,9 +115,9 @@ class NamedToPositionalParams
 	 *
 	 * @param $matches
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return string
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	private function replacer($matches): string
 	{

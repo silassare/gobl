@@ -229,9 +229,9 @@ abstract class SQLDriverBase extends Db
 	 * @param null|array $params
 	 * @param array      $params_types
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return int
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	protected function query(string $sql, array $params = null, array $params_types = []): int
 	{

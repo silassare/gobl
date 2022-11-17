@@ -88,9 +88,9 @@ class QBUpdate implements QBInterface
 	 * @param string      $table
 	 * @param null|string $alias
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function update(string $table, ?string $alias = null): self
 	{
@@ -108,9 +108,9 @@ class QBUpdate implements QBInterface
 	 * @param array $columns_values_map
 	 * @param bool  $auto_prefix
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function set(array $columns_values_map, bool $auto_prefix = true): self
 	{
