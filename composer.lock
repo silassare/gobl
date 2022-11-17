@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/oliup-io/code-generator.git",
-                "reference": "356b94dbdd16f7a2aed9232a428930e3dc08db34"
+                "reference": "eaa062d9e7e3f8843e5bbba842cdb578c5dac941"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/oliup-io/code-generator/zipball/356b94dbdd16f7a2aed9232a428930e3dc08db34",
-                "reference": "356b94dbdd16f7a2aed9232a428930e3dc08db34",
+                "url": "https://api.github.com/repos/oliup-io/code-generator/zipball/eaa062d9e7e3f8843e5bbba842cdb578c5dac941",
+                "reference": "eaa062d9e7e3f8843e5bbba842cdb578c5dac941",
                 "shasum": ""
             },
             "require": {
@@ -49,7 +49,7 @@
                 "source": "https://github.com/oliup-io/code-generator/tree/main",
                 "issues": "https://github.com/oliup-io/code-generator/issues"
             },
-            "time": "2022-04-09T11:14:09+00:00"
+            "time": "2022-11-17T21:03:42+00:00"
         },
         {
             "name": "silassare/otpl",
