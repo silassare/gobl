@@ -135,7 +135,7 @@ Time: {$date}";
 		return $this;
 	}
 
-	public function getClassFile(Table $table, ORMClassKind $kind): PHPFile
+	private function getClassFile(Table $table, ORMClassKind $kind): PHPFile
 	{
 		return match ($kind) {
 			ORMClassKind::ENTITY,
