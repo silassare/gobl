@@ -177,7 +177,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 				return $this->getUniqueConstraintDeletedString($action);
 		}
 
-		return throw new DBALException('Build diff action query not implemented for: ' . \get_debug_type($action));
+		throw new DBALException('Build diff action query not implemented for: ' . \get_debug_type($action));
 	}
 
 	/**
