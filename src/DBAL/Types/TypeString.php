@@ -166,8 +166,8 @@ class TypeString extends Type implements BaseTypeInterface
 			$this->truncate((bool) $options['truncate']);
 		}
 
-		if (isset($options['one_line'])) {
-			$this->oneLine((bool) $options['one_line']);
+		if (isset($options['multiline'])) {
+			$this->multiline((bool) $options['multiline']);
 		}
 
 		if (isset($options['trim'])) {
@@ -200,13 +200,13 @@ class TypeString extends Type implements BaseTypeInterface
 	/**
 	 * One line string.
 	 *
-	 * @param bool $one_line
+	 * @param bool $multiline
 	 *
 	 * @return $this
 	 */
-	public function oneLine(bool $one_line = true): self
+	public function multiline(bool $multiline = true): self
 	{
-		return $this->setOption('one_line', $one_line);
+		return $this->setOption('multiline', $multiline);
 	}
 
 	/**
@@ -276,8 +276,8 @@ class TypeString extends Type implements BaseTypeInterface
 			throw new TypesInvalidValueException($this->msg('invalid_string_type'), $debug);
 		}
 
-		if (true === $this->getOption('one_line')) {
-			$value = \preg_replace("~\n+~", '', $value);
+		if (false === $this->getOption('multiline')) {
+			$value = \preg_replace('~\\s+~', ' ', $value);
 		}
 
 		if (true === $this->getOption('trim')) {
