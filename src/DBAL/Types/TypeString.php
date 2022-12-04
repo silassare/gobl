@@ -200,6 +200,18 @@ class TypeString extends Type implements BaseTypeInterface
 	/**
 	 * One line string.
 	 *
+	 * @param bool $one_line
+	 *
+	 * @return $this
+	 */
+	public function oneLine(bool $one_line = true): self
+	{
+		return $this->multiline(!$one_line);
+	}
+
+	/**
+	 * Multiline string.
+	 *
 	 * @param bool $multiline
 	 *
 	 * @return $this
