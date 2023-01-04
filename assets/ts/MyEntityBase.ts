@@ -8,7 +8,7 @@
  * Time: <%$.gobl_time%>
  */
 //@<%}%>
-import {GoblEntity,} from 'gobl-utils-ts';
+import { GoblEntity } from 'gobl-utils-ts';
 
 export default abstract class MyEntityBase extends GoblEntity {
 	public static readonly PREFIX: string    = '<%$.columns_prefix%>';

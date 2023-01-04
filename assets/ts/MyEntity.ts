@@ -9,7 +9,7 @@
  * Time: <%$.gobl_time%>
  */
 //@<%}%>
-import { getEntityCache, GoblEntityData } from "gobl-utils-ts";
+import { getEntityCache, type GoblEntityData } from "gobl-utils-ts";
 import MyEntityBase from "./base/MyEntityBase";
 
 export default class MyEntity extends MyEntityBase {
