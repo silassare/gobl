@@ -353,8 +353,8 @@ abstract class ORMEntity implements ArrayCapableInterface
 			$pk = $this->_oeb_table->getPrimaryKeyConstraint();
 
 			$columns = $pk->getColumns();
-		} elseif ($this->_oeb_table->hasUniqueConstraint()) {
-			$uq = $this->_oeb_table->getUniqueConstraints()[0];
+		} elseif ($this->_oeb_table->hasUniqueKeyConstraint()) {
+			$uq = $this->_oeb_table->getUniqueKeyConstraints()[0];
 
 			$columns = $uq->getColumns();
 		} else {

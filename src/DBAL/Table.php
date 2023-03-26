@@ -18,7 +18,7 @@ use Gobl\DBAL\Collections\Collection;
 use Gobl\DBAL\Constraints\ForeignKey;
 use Gobl\DBAL\Constraints\ForeignKeyAction;
 use Gobl\DBAL\Constraints\PrimaryKey;
-use Gobl\DBAL\Constraints\Unique;
+use Gobl\DBAL\Constraints\UniqueKey;
 use Gobl\DBAL\Diff\Traits\DiffAwareTrait;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
@@ -149,7 +149,7 @@ final class Table implements ArrayCapableInterface
 	/**
 	 * Unique constraints.
 	 *
-	 * @var \Gobl\DBAL\Constraints\Unique[]
+	 * @var \Gobl\DBAL\Constraints\UniqueKey[]
 	 */
 	private array $uc_constraints = [];
 
@@ -800,7 +800,7 @@ final class Table implements ArrayCapableInterface
 	}
 
 	/**
-	 * Adds a unique constraint on columns.
+	 * Adds a unique key constraint on columns.
 	 *
 	 * @param array $columns the columns
 	 *
@@ -808,7 +808,7 @@ final class Table implements ArrayCapableInterface
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
-	public function addUniqueConstraint(array $columns): self
+	public function addUniqueKeyConstraint(array $columns): self
 	{
 		$this->assertNotLocked();
 
@@ -822,7 +822,7 @@ final class Table implements ArrayCapableInterface
 			$constraint_name = \sprintf('uc_%s_%d', $this->getFullName(), $key);
 
 			if (!isset($this->uc_constraints[$constraint_name])) {
-				$uc = new Unique($constraint_name, $this);
+				$uc = new UniqueKey($constraint_name, $this);
 
 				foreach ($columns as $column_name) {
 					$uc->addColumn($column_name);
@@ -1032,9 +1032,9 @@ final class Table implements ArrayCapableInterface
 	/**
 	 * Gets unique constraints.
 	 *
-	 * @return \Gobl\DBAL\Constraints\Unique[]
+	 * @return \Gobl\DBAL\Constraints\UniqueKey[]
 	 */
-	public function getUniqueConstraints(): array
+	public function getUniqueKeyConstraints(): array
 	{
 		return $this->uc_constraints;
 	}
@@ -1133,11 +1133,11 @@ final class Table implements ArrayCapableInterface
 	}
 
 	/**
-	 * Checks if the table has unique constraint.
+	 * Checks if the table has unique key constraint.
 	 *
 	 * @return bool
 	 */
-	public function hasUniqueConstraint(): bool
+	public function hasUniqueKeyConstraint(): bool
 	{
 		return !empty($this->uc_constraints);
 	}
@@ -1218,13 +1218,13 @@ final class Table implements ArrayCapableInterface
 	}
 
 	/**
-	 * Checks if a given columns list are unique in this table.
+	 * Checks if a given columns list are unique key in this table.
 	 *
 	 * @param array $columns columns full name list
 	 *
 	 * @return bool
 	 */
-	public function isUnique(array $columns): bool
+	public function isUniqueKey(array $columns): bool
 	{
 		$x = \count($columns);
 

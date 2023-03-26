@@ -115,7 +115,7 @@ return [
 		],
 		'constraints' => [
 			['type' => 'primary_key', 'columns' => ['id']],
-			['type' => 'unique', 'columns' => ['client_id', 'currency_code']], // DIFF: UNIQUE KEY ADDED
+			['type' => 'unique_key', 'columns' => ['client_id', 'currency_code']], // DIFF: UNIQUE KEY ADDED
 			['type' => 'foreign_key', 'reference' => 'clients', 'columns' => ['client_id' => 'id']],
 			['type' => 'foreign_key', 'reference' => 'currencies', 'columns' => ['currency_code' => 'code']],
 		],
@@ -141,7 +141,7 @@ return [
 		],
 		'constraints'   => [
 			['type' => 'primary_key', 'columns' => ['id']],
-			['type' => 'unique', 'columns' => ['reference']],
+			['type' => 'unique_key', 'columns' => ['reference']],
 			['type' => 'foreign_key', 'reference' => 'accounts', 'columns' => ['account_id' => 'id']],
 		],
 		'columns'       => [
@@ -178,7 +178,7 @@ return [
 			// DIFF: PRIMARY KEY REMOVED
 			// ['type' => 'primary_key', 'columns' => ['code']],
 			// DIFF: UNIQUE KEY ADDED
-			['type' => 'unique', 'columns' => ['code']],
+			['type' => 'unique_key', 'columns' => ['code']],
 		],
 		'columns' => [
 			'code' => [

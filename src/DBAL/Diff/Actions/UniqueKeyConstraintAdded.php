@@ -13,24 +13,24 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Diff\Actions;
 
-use Gobl\DBAL\Constraints\Unique;
+use Gobl\DBAL\Constraints\UniqueKey;
 use Gobl\DBAL\Diff\DiffAction;
 use Gobl\DBAL\Diff\DiffActionType;
 
 /**
- * Class UniqueConstraintAdded.
+ * Class UniqueKeyConstraintAdded.
  */
-final class UniqueConstraintDeleted extends DiffAction
+final class UniqueKeyConstraintAdded extends DiffAction
 {
-	public function __construct(protected Unique $constraint, string $reason = '')
+	public function __construct(protected UniqueKey $constraint, string $reason = '')
 	{
-		parent::__construct(DiffActionType::UNIQUE_CONSTRAINT_DELETED, $reason);
+		parent::__construct(DiffActionType::UNIQUE_KEY_CONSTRAINT_ADDED, $reason);
 	}
 
 	/**
-	 * @return \Gobl\DBAL\Constraints\Unique
+	 * @return \Gobl\DBAL\Constraints\UniqueKey
 	 */
-	public function getConstraint(): Unique
+	public function getConstraint(): UniqueKey
 	{
 		return $this->constraint;
 	}

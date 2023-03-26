@@ -16,7 +16,7 @@ namespace Gobl\DBAL\Diff;
 use Gobl\DBAL\Column;
 use Gobl\DBAL\Constraints\Constraint;
 use Gobl\DBAL\Constraints\PrimaryKey;
-use Gobl\DBAL\Constraints\Unique;
+use Gobl\DBAL\Constraints\UniqueKey;
 use Gobl\DBAL\Diff\Actions\ColumnAdded;
 use Gobl\DBAL\Diff\Actions\ColumnDeleted;
 use Gobl\DBAL\Diff\Actions\ColumnRenamed;
@@ -30,8 +30,8 @@ use Gobl\DBAL\Diff\Actions\PrimaryKeyConstraintDeleted;
 use Gobl\DBAL\Diff\Actions\TableAdded;
 use Gobl\DBAL\Diff\Actions\TableDeleted;
 use Gobl\DBAL\Diff\Actions\TableRenamed;
-use Gobl\DBAL\Diff\Actions\UniqueConstraintAdded;
-use Gobl\DBAL\Diff\Actions\UniqueConstraintDeleted;
+use Gobl\DBAL\Diff\Actions\UniqueKeyConstraintAdded;
+use Gobl\DBAL\Diff\Actions\UniqueKeyConstraintDeleted;
 use Gobl\DBAL\Interfaces\MigrationInterface;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Table;
@@ -149,7 +149,7 @@ DIFF_SQL;
 					$diff[] = $this->getConstraintDeletedClassInstance($fk, $reason);
 				}
 
-				foreach ($from_table->getUniqueConstraints() as $uq) {
+				foreach ($from_table->getUniqueKeyConstraints() as $uq) {
 					$diff[] = $this->getConstraintDeletedClassInstance($uq, $reason);
 				}
 			} else {
@@ -168,7 +168,7 @@ DIFF_SQL;
 					$diff[] = $this->getConstraintAddedClassInstance($fk, $reason);
 				}
 
-				foreach ($to_table->getUniqueConstraints() as $uq) {
+				foreach ($to_table->getUniqueKeyConstraints() as $uq) {
 					$diff[] = $this->getConstraintAddedClassInstance($uq, $reason);
 				}
 			}
@@ -185,14 +185,14 @@ DIFF_SQL;
 		return $diff;
 	}
 
-	protected function getConstraintDeletedClassInstance(Constraint $constraint, string $reason = 'constraint deleted.'): PrimaryKeyConstraintDeleted|ForeignKeyConstraintDeleted|UniqueConstraintDeleted
+	protected function getConstraintDeletedClassInstance(Constraint $constraint, string $reason = 'constraint deleted.'): PrimaryKeyConstraintDeleted|ForeignKeyConstraintDeleted|UniqueKeyConstraintDeleted
 	{
 		if ($constraint instanceof PrimaryKey) {
 			return new PrimaryKeyConstraintDeleted($constraint, $reason);
 		}
 
-		if ($constraint instanceof Unique) {
-			return new UniqueConstraintDeleted($constraint, $reason);
+		if ($constraint instanceof UniqueKey) {
+			return new UniqueKeyConstraintDeleted($constraint, $reason);
 		}
 
 		/** @var \Gobl\DBAL\Constraints\ForeignKey $constraint */
@@ -293,14 +293,14 @@ DIFF_SQL;
 		}
 	}
 
-	protected function getConstraintAddedClassInstance(Constraint $constraint, string $reason = 'constraint deleted.'): ForeignKeyConstraintAdded|PrimaryKeyConstraintAdded|UniqueConstraintAdded
+	protected function getConstraintAddedClassInstance(Constraint $constraint, string $reason = 'constraint deleted.'): ForeignKeyConstraintAdded|PrimaryKeyConstraintAdded|UniqueKeyConstraintAdded
 	{
 		if ($constraint instanceof PrimaryKey) {
 			return new PrimaryKeyConstraintAdded($constraint, $reason);
 		}
 
-		if ($constraint instanceof Unique) {
-			return new UniqueConstraintAdded($constraint, $reason);
+		if ($constraint instanceof UniqueKey) {
+			return new UniqueKeyConstraintAdded($constraint, $reason);
 		}
 
 		/** @var \Gobl\DBAL\Constraints\ForeignKey $constraint */
@@ -381,8 +381,8 @@ DIFF_SQL;
 
 	protected function diffTableUQConstraints(Table $from_table, Table $to_table, array &$diff): void
 	{
-		$from = $from_table->getUniqueConstraints();
-		$to   = $to_table->getUniqueConstraints();
+		$from = $from_table->getUniqueKeyConstraints();
+		$to   = $to_table->getUniqueKeyConstraints();
 
 		foreach ($from as $key => $from_constraint) {
 			$to_constraint = $to[$key] ?? null;
@@ -401,7 +401,7 @@ DIFF_SQL;
 			}
 		}
 
-		foreach ($to_table->getUniqueConstraints() as $key => $to_constraint) {
+		foreach ($to_table->getUniqueKeyConstraints() as $key => $to_constraint) {
 			if (!isset($from[$key])) {
 				$diff[] = $this->getConstraintAddedClassInstance($to_constraint);
 			}

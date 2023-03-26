@@ -18,7 +18,7 @@ use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Diff\Actions\ColumnTypeChanged;
 use Gobl\DBAL\Diff\Actions\ForeignKeyConstraintDeleted;
 use Gobl\DBAL\Diff\Actions\PrimaryKeyConstraintDeleted;
-use Gobl\DBAL\Diff\Actions\UniqueConstraintDeleted;
+use Gobl\DBAL\Diff\Actions\UniqueKeyConstraintDeleted;
 use Gobl\DBAL\Drivers\SQLQueryGeneratorBase;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
@@ -146,7 +146,7 @@ class MySQLQueryGenerator extends SQLQueryGeneratorBase
 	/**
 	 * {@inheritDoc}
 	 */
-	protected function getUniqueConstraintDeletedString(UniqueConstraintDeleted $action): string
+	protected function getUniqueKeyConstraintDeletedString(UniqueKeyConstraintDeleted $action): string
 	{
 		$constraint = $action->getConstraint();
 		$table_name = $constraint->getHostTable()

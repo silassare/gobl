@@ -16,21 +16,21 @@ namespace Gobl\DBAL\Constraints;
 use Gobl\DBAL\Table;
 
 /**
- * Class Unique.
+ * Class UniqueKey.
  */
-class Unique extends Constraint
+class UniqueKey extends Constraint
 {
 	private array $columns = [];
 
 	/**
-	 * Unique constructor.
+	 * UniqueKey constructor.
 	 *
 	 * @param string           $name       the constraint name
 	 * @param \Gobl\DBAL\Table $host_table the table in which the constraint was defined
 	 */
 	public function __construct(string $name, Table $host_table)
 	{
-		parent::__construct($name, $host_table, Constraint::UNIQUE);
+		parent::__construct($name, $host_table, Constraint::UNIQUE_KEY);
 	}
 
 	/**
@@ -82,7 +82,7 @@ class Unique extends Constraint
 		}
 
 		return [
-			'type'    => 'unique',
+			'type'    => 'unique_key',
 			'columns' => $columns,
 		];
 	}

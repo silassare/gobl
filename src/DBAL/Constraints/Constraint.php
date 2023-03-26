@@ -32,7 +32,7 @@ abstract class Constraint implements ArrayCapableInterface
 
 	public const PRIMARY_KEY = 1;
 
-	public const UNIQUE = 2;
+	public const UNIQUE_KEY = 2;
 
 	public const FOREIGN_KEY = 3;
 

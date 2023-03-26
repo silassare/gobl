@@ -17,7 +17,7 @@ use Gobl\DBAL\Column;
 use Gobl\DBAL\Constraints\ForeignKey;
 use Gobl\DBAL\Constraints\ForeignKeyAction;
 use Gobl\DBAL\Constraints\PrimaryKey;
-use Gobl\DBAL\Constraints\Unique;
+use Gobl\DBAL\Constraints\UniqueKey;
 use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Diff\Actions\ColumnAdded;
 use Gobl\DBAL\Diff\Actions\ColumnDeleted;
@@ -33,8 +33,8 @@ use Gobl\DBAL\Diff\Actions\TableCharsetChanged;
 use Gobl\DBAL\Diff\Actions\TableCollateChanged;
 use Gobl\DBAL\Diff\Actions\TableDeleted;
 use Gobl\DBAL\Diff\Actions\TableRenamed;
-use Gobl\DBAL\Diff\Actions\UniqueConstraintAdded;
-use Gobl\DBAL\Diff\Actions\UniqueConstraintDeleted;
+use Gobl\DBAL\Diff\Actions\UniqueKeyConstraintAdded;
+use Gobl\DBAL\Diff\Actions\UniqueKeyConstraintDeleted;
 use Gobl\DBAL\Diff\DiffAction;
 use Gobl\DBAL\Diff\DiffActionType;
 use Gobl\DBAL\Exceptions\DBALException;
@@ -168,13 +168,13 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 				/** @var \Gobl\DBAL\Diff\Actions\ForeignKeyConstraintDeleted $action */
 				return $this->getForeignKeyConstraintDeletedString($action);
 
-			case DiffActionType::UNIQUE_CONSTRAINT_ADDED:
-				/** @var \Gobl\DBAL\Diff\Actions\UniqueConstraintAdded $action */
-				return $this->getUniqueConstraintAddedString($action);
+			case DiffActionType::UNIQUE_KEY_CONSTRAINT_ADDED:
+				/** @var \Gobl\DBAL\Diff\Actions\UniqueKeyConstraintAdded $action */
+				return $this->getUniqueKeyConstraintAddedString($action);
 
-			case DiffActionType::UNIQUE_CONSTRAINT_DELETED:
-				/** @var \Gobl\DBAL\Diff\Actions\UniqueConstraintDeleted $action */
-				return $this->getUniqueConstraintDeletedString($action);
+			case DiffActionType::UNIQUE_KEY_CONSTRAINT_DELETED:
+				/** @var \Gobl\DBAL\Diff\Actions\UniqueKeyConstraintDeleted $action */
+				return $this->getUniqueKeyConstraintDeletedString($action);
 		}
 
 		throw new DBALException('Build diff action query not implemented for: ' . \get_debug_type($action));
@@ -241,7 +241,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		foreach ($tables as $table) {
 			$create_table_parts[] = $this->getTableDefinitionString($table, false);
 			$foreign_keys         = $this->getTableForeignKeysDefinitionString($table, true);
-			$unique_keys          = $this->getTableUniqueConstraintsDefinitionString($table, true);
+			$unique_keys          = $this->getTableUniqueKeyConstraintsDefinitionString($table, true);
 
 			if (!empty($foreign_keys)) {
 				$alter_table_parts[] = $foreign_keys;
@@ -374,13 +374,13 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	}
 
 	/**
-	 * @param \Gobl\DBAL\Diff\Actions\UniqueConstraintAdded $action
+	 * @param \Gobl\DBAL\Diff\Actions\UniqueKeyConstraintAdded $action
 	 *
 	 * @return string
 	 */
-	protected function getUniqueConstraintAddedString(UniqueConstraintAdded $action): string
+	protected function getUniqueKeyConstraintAddedString(UniqueKeyConstraintAdded $action): string
 	{
-		return $this->getUniqueSQL($action->getConstraint(), true);
+		return $this->getUniqueKeySQL($action->getConstraint(), true);
 	}
 
 	/**
@@ -414,11 +414,11 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	}
 
 	/**
-	 * @param \Gobl\DBAL\Diff\Actions\UniqueConstraintDeleted $action
+	 * @param \Gobl\DBAL\Diff\Actions\UniqueKeyConstraintDeleted $action
 	 *
 	 * @return string
 	 */
-	protected function getUniqueConstraintDeletedString(UniqueConstraintDeleted $action): string
+	protected function getUniqueKeyConstraintDeletedString(UniqueKeyConstraintDeleted $action): string
 	{
 		$constraint      = $action->getConstraint();
 		$table_name      = $constraint->getHostTable()
@@ -555,7 +555,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 		if ($include_fq_or_uq_alter) {
 			$alter_table = \PHP_EOL
-						   . $this->getTableUniqueConstraintsDefinitionString($table, true)
+						   . $this->getTableUniqueKeyConstraintsDefinitionString($table, true)
 						   . \PHP_EOL . $this->getTableForeignKeysDefinitionString($table, true);
 		}
 
@@ -569,20 +569,20 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	}
 
 	/**
-	 * Gets table unique constraints definition query string.
+	 * Gets table unique key constraints definition query string.
 	 *
 	 * @param \Gobl\DBAL\Table $table
 	 * @param bool             $alter
 	 *
 	 * @return string
 	 */
-	protected function getTableUniqueConstraintsDefinitionString(Table $table, bool $alter): string
+	protected function getTableUniqueKeyConstraintsDefinitionString(Table $table, bool $alter): string
 	{
 		$alter_table = [];
-		$uc_list     = $table->getUniqueConstraints();
+		$uc_list     = $table->getUniqueKeyConstraints();
 
 		foreach ($uc_list as /* $uc_name => */ $uc) {
-			$alter_table[] = $this->getUniqueSQL($uc, $alter);
+			$alter_table[] = $this->getUniqueKeySQL($uc, $alter);
 		}
 
 		$table_name  = $table->getFullName();
@@ -950,14 +950,14 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	}
 
 	/**
-	 * Gets unique constraint definition query string.
+	 * Gets unique key constraint definition query string.
 	 *
-	 * @param \Gobl\DBAL\Constraints\Unique $uc    the unique constraint
-	 * @param bool                          $alter use alter syntax
+	 * @param \Gobl\DBAL\Constraints\UniqueKey $uc    the unique constraint
+	 * @param bool                             $alter use alter syntax
 	 *
 	 * @return string
 	 */
-	protected function getUniqueSQL(Unique $uc, bool $alter): string
+	protected function getUniqueKeySQL(UniqueKey $uc, bool $alter): string
 	{
 		$host_table_name = $uc->getHostTable()
 			->getFullName();

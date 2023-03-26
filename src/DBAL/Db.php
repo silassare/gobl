@@ -390,8 +390,9 @@ abstract class Db implements RDBMSInterface
 
 				try {
 					switch ($type) {
-						case 'unique':
-							$tbl->addUniqueConstraint($columns);
+						case 'unique_key':
+						case 'unique':// old to be removed
+							$tbl->addUniqueKeyConstraint($columns);
 
 							break;
 
