@@ -42,21 +42,21 @@ class Gobl
 	private static array $templates = [];
 
 	/**
-	 * Returns project root directory.
+	 * Returns root directory.
 	 *
 	 * @return string
 	 */
-	public static function getProjectRootDir(): string
+	public static function getRootDir(): string
 	{
 		return self::$project_root_dir;
 	}
 
 	/**
-	 * Sets project root directory.
+	 * Sets root directory.
 	 *
 	 * @param string $dir
 	 */
-	public static function setProjectRootDir(string $dir): void
+	public static function setRootDir(string $dir): void
 	{
 		if (self::$project_root_dir !== $dir) {
 			$fs = new FSUtils($dir);
@@ -68,7 +68,7 @@ class Gobl
 					->isDir()
 					->assert($dir);
 			} catch (RuntimeException $e) {
-				throw new GoblRuntimeException(\sprintf('Can\'t set "%s" as project root dir.', $dir), null, $e);
+				throw new GoblRuntimeException(\sprintf('Can\'t set "%s" as gobl root dir.', $dir), null, $e);
 			}
 
 			self::$project_root_dir = $fs->resolve('.');
@@ -90,7 +90,7 @@ class Gobl
 	{
 		try {
 			$cache_file = (new FSUtils(self::getCacheDir()))->resolve('templates.cache.json');
-			$fs         = new FSUtils(self::getProjectRootDir());
+			$fs         = new FSUtils(self::getRootDir());
 
 			if (empty(self::$tpl_cache) && \file_exists($cache_file)) {
 				$fs->filter()
