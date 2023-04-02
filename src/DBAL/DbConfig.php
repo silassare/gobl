@@ -13,11 +13,16 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL;
 
+use PHPUtils\Interfaces\ArrayCapableInterface;
+use PHPUtils\Traits\ArrayCapableTrait;
+
 /**
  * Class DbConfig.
  */
-final class DbConfig
+final class DbConfig implements ArrayCapableInterface
 {
+	use ArrayCapableTrait;
+
 	/** @var array */
 	private array $config;
 
@@ -37,14 +42,6 @@ final class DbConfig
 			'db_charset'         => 'utf8mb4',
 			'db_collate'         => 'utf8mb4_unicode_ci',
 		], $config);
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getConfig(): array
-	{
-		return $this->config;
 	}
 
 	/**
@@ -101,5 +98,13 @@ final class DbConfig
 	public function getDbTablePrefix(): string
 	{
 		return $this->config['db_table_prefix'];
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function toArray(): array
+	{
+		return $this->config;
 	}
 }
