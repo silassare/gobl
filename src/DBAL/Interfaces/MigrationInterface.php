@@ -19,11 +19,11 @@ namespace Gobl\DBAL\Interfaces;
 interface MigrationInterface
 {
 	/**
-	 * Returns migration creation timestamp.
+	 * Returns migration version.
 	 *
 	 * @return int
 	 */
-	public function getTimestamp(): int;
+	public function getVersion(): int;
 
 	/**
 	 * Returns tables definitions.

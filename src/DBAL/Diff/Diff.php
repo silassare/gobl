@@ -83,12 +83,12 @@ class Diff
 		$up_sql   = \implode(\PHP_EOL, \array_map(static fn (DiffAction $item) => $gen_to->buildDiffActionQuery($item), $up));
 		$down_sql = \implode(\PHP_EOL, \array_map(static fn (DiffAction $item) => $gen_from->buildDiffActionQuery($item), $down));
 
-		$m_get_timestamp = $class->newMethod('getTimestamp')
+		$m_get_version = $class->newMethod('getVersion')
 			->public()
 			->setReturnType('int');
 
 		$time = \time();
-		$m_get_timestamp->addChild((new PHPComment('Created at: ' . \date(\DATE_ATOM, $time)))->setKind(CommentKindEnum::SLASH))
+		$m_get_version->addChild((new PHPComment('Created at: ' . \date(\DATE_ATOM, $time)))->setKind(CommentKindEnum::SLASH))
 			->addChild(\PHP_EOL . 'return ' . $time . ';')
 			->comment('@inheritDoc');
 
