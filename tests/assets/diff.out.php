@@ -144,9 +144,9 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		return array (
 			'db_table_prefix' => 'gObL',
 			'db_host' => 'localhost',
-			'db_name' => 'gobl_test_db',
-			'db_user' => 'gobl_user',
-			'db_pass' => 'gobl_user_pass',
+			'db_name' => '***',
+			'db_user' => '***',
+			'db_pass' => '***',
 			'db_charset' => 'utf8mb4',
 			'db_collate' => 'utf8mb4_unicode_ci',
 		);
