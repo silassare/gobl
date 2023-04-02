@@ -101,6 +101,21 @@ final class DbConfig implements ArrayCapableInterface
 	}
 
 	/**
+	 * Returns a safe array.
+	 *
+	 * @return array
+	 */
+	public function toSafeArray(): array
+	{
+		$config = $this->toArray();
+
+		$config['db_host'] = $config['db_name'] =
+		$config['db_user'] = $config['db_pass'] = '***';
+
+		return $config;
+	}
+
+	/**
 	 * {@inheritDoc}
 	 */
 	public function toArray(): array

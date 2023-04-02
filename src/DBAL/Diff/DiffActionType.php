@@ -62,8 +62,8 @@ enum DiffActionType: string
 	public function getPriority(): int
 	{
 		return match ($this) {
-			self::FOREIGN_KEY_CONSTRAINT_DELETED => 10,
-			self::PRIMARY_KEY_CONSTRAINT_DELETED => 11,
+			self::FOREIGN_KEY_CONSTRAINT_DELETED     => 10,
+			self::PRIMARY_KEY_CONSTRAINT_DELETED     => 11,
 			self::UNIQUE_KEY_CONSTRAINT_DELETED      => 12,
 
 			self::TABLE_DELETED  => 20,
@@ -86,9 +86,9 @@ enum DiffActionType: string
 			self::ROW_UPDATED  => 71,
 			self::ROW_INSERTED => 72,
 
-			self::PRIMARY_KEY_CONSTRAINT_ADDED => 80,
+			self::PRIMARY_KEY_CONSTRAINT_ADDED     => 80,
 			self::UNIQUE_KEY_CONSTRAINT_ADDED      => 81,
-			self::FOREIGN_KEY_CONSTRAINT_ADDED => 82,
+			self::FOREIGN_KEY_CONSTRAINT_ADDED     => 82,
 		};
 	}
 }

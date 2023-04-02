@@ -113,6 +113,25 @@ DIFF_SQL;
 ', $down_sql))
 			->comment('@inheritDoc');
 
+		$tables = [];
+
+		foreach ($this->db_to->getTables() as $table) {
+			$tables[$table->getName()] = $table->toArray();
+		}
+
+		$m_get_configs = $class->newMethod('getConfigs')
+			->public()
+			->setReturnType('array');
+
+		$m_get_configs->addChild(\sprintf('return %s;', \var_export($this->db_to->getConfig()->toSafeArray(), true)));
+
+		$m_get_tables = $class->newMethod('getTables')
+			->public()
+			->setReturnType('array');
+
+		$m_get_tables->addChild(\sprintf('return %s;', \var_export($tables, true)))
+			->comment('@inheritDoc');
+
 		return $file->addChild('return ' . $class . ';');
 	}
 

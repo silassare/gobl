@@ -26,6 +26,20 @@ interface MigrationInterface
 	public function getTimestamp(): int;
 
 	/**
+	 * Returns tables definitions.
+	 *
+	 * @return array
+	 */
+	public function getTables(): array;
+
+	/**
+	 * Returns configs.
+	 *
+	 * @return array
+	 */
+	public function getConfigs(): array;
+
+	/**
 	 * Returns up query.
 	 *
 	 * @return string
