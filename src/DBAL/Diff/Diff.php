@@ -136,7 +136,17 @@ DIFF_SQL;
 	}
 
 	/**
-	 * Diff two db and return changes.
+	 * Check if db has changes.
+	 *
+	 * @return bool
+	 */
+	public function hasChanges(): bool
+	{
+		return \count($this->getDiff()) > 0;
+	}
+
+	/**
+	 * Gets diff.
 	 *
 	 * @return \Gobl\DBAL\Diff\DiffAction[]
 	 */
