@@ -68,7 +68,7 @@ class Diff
 	 *
 	 * @return \OLIUP\CG\PHPFile
 	 */
-	public function createMigrationFile(): PHPFile
+	public function generateMigrationFile(): PHPFile
 	{
 		$up       = $this->getDiff();
 		$down     = (new self($this->db_to, $this->db_from))->getDiff();
