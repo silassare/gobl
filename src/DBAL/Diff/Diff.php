@@ -68,10 +68,10 @@ class Diff
 	 *
 	 * @return \OLIUP\CG\PHPFile
 	 */
-	public function diffFile(): PHPFile
+	public function createDiffFile(): PHPFile
 	{
-		$up       = $this->diff();
-		$down     = (new self($this->db_to, $this->db_from))->diff();
+		$up       = $this->getDiff();
+		$down     = (new self($this->db_to, $this->db_from))->getDiff();
 		$gen_from = $this->db_from->getGenerator();
 		$gen_to   = $this->db_to->getGenerator();
 
@@ -140,7 +140,7 @@ DIFF_SQL;
 	 *
 	 * @return \Gobl\DBAL\Diff\DiffAction[]
 	 */
-	public function diff(): array
+	public function getDiff(): array
 	{
 		$diff = [];
 		$c_f  = $this->db_from->getConfig();

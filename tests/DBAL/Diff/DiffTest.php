@@ -33,7 +33,7 @@ final class DiffTest extends BaseTestCase
 
 		$diff = new Diff($db_a, $db_a);
 
-		static::assertSame([], $diff->diff());
+		static::assertSame([], $diff->getDiff());
 
 		$db_b = Db::createInstanceWithName($db_a->getType(), $db_a->getConfig());
 
@@ -41,7 +41,7 @@ final class DiffTest extends BaseTestCase
 
 		$diff = new Diff($db_a, $db_b);
 
-		\file_put_contents(GOBL_TEST_OUTPUT . '/diff.out.php', (string) $diff->diffFile());
+		\file_put_contents(GOBL_TEST_OUTPUT . '/diff.out.php', (string) $diff->createDiffFile());
 
 		/** @var MigrationInterface $expected */
 		/** @var MigrationInterface $actual */
