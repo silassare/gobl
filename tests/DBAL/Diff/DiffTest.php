@@ -41,7 +41,7 @@ final class DiffTest extends BaseTestCase
 
 		$diff = new Diff($db_a, $db_b);
 
-		\file_put_contents(GOBL_TEST_OUTPUT . '/diff.out.php', (string) $diff->createDiffFile());
+		\file_put_contents(GOBL_TEST_OUTPUT . '/diff.out.php', (string) $diff->createMigrationFile());
 
 		/** @var MigrationInterface $expected */
 		/** @var MigrationInterface $actual */
