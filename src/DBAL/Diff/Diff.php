@@ -35,9 +35,7 @@ use Gobl\DBAL\Diff\Actions\UniqueKeyConstraintDeleted;
 use Gobl\DBAL\Interfaces\MigrationInterface;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Table;
-use OLIUP\CG\Enums\CommentKindEnum;
 use OLIUP\CG\PHPClass;
-use OLIUP\CG\PHPComment;
 use OLIUP\CG\PHPFile;
 
 /**
@@ -86,10 +84,25 @@ class Diff
 		$m_get_version = $class->newMethod('getVersion')
 			->public()
 			->setReturnType('int');
+		$m_get_label   = $class->newMethod('getLabel')
+			->public()
+			->setReturnType('string');
 
-		$time = \time();
-		$m_get_version->addChild((new PHPComment('Created at: ' . \date(\DATE_ATOM, $time)))->setKind(CommentKindEnum::SLASH))
-			->addChild(\PHP_EOL . 'return ' . $time . ';')
+		$m_get_timestamp = $class->newMethod('getTimestamp')
+			->public()
+			->setReturnType('int');
+
+		$time = $version = \time();
+
+		$m_get_label->addChild('return \'Auto generated.\';')
+			->comment('@inheritDoc');
+
+		$file->comment('Generated on: ' . \date('jS F Y, g:i a', $time));
+
+		$m_get_timestamp->addChild('return ' . $time . ';')
+			->comment('@inheritDoc');
+
+		$m_get_version->addChild('return ' . $version . ';')
 			->comment('@inheritDoc');
 
 		$m_up = $class->newMethod('up')
@@ -123,7 +136,8 @@ DIFF_SQL;
 			->public()
 			->setReturnType('array');
 
-		$m_get_configs->addChild(\sprintf('return %s;', \var_export($this->db_to->getConfig()->toSafeArray(), true)));
+		$m_get_configs->addChild(\sprintf('return %s;', \var_export($this->db_to->getConfig()
+			->toSafeArray(), true)));
 
 		$m_get_tables = $class->newMethod('getTables')
 			->public()
