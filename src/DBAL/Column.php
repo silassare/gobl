@@ -425,12 +425,12 @@ final class Column implements ArrayCapableInterface
 			$options['private'] = $this->private;
 		}
 
+		$options = \array_merge($options, $this->type->toArray());
+
 		if ($this->reference) {
 			$options['type'] = $this->reference;
-
-			return $options;
 		}
 
-		return \array_merge($options, $this->type->toArray());
+		return $options;
 	}
 }
