@@ -97,7 +97,7 @@ class Diff
 		$m_get_label->addChild('return \'Auto generated.\';')
 			->comment('@inheritDoc');
 
-		$file->comment('Generated on: ' . \date('jS F Y, g:i a', $time));
+		$file->comment('Generated on: ' . \date('jS F Y, g:i:s a', $time));
 
 		$m_get_timestamp->addChild('return ' . $time . ';')
 			->comment('@inheritDoc');
