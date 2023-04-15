@@ -49,11 +49,11 @@ interface TypeInterface extends ArrayCapableInterface
 	/**
 	 * Enable null value.
 	 *
-	 * @param bool $null
+	 * @param bool $nullable
 	 *
 	 * @return $this
 	 */
-	public function nullAble(bool $null = true): self;
+	public function nullAble(bool $nullable = true): self;
 
 	/**
 	 * This is used to prevent returning empty value when the column

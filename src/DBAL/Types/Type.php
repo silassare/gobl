@@ -120,15 +120,15 @@ abstract class Type implements TypeInterface
 	 */
 	public function isNullAble(): bool
 	{
-		return (bool) $this->getOption('null', false);
+		return (bool) $this->getOption('nullable', false);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public function nullAble(bool $null = true): self
+	public function nullAble(bool $nullable = true): self
 	{
-		return $this->setOption('null', $null);
+		return $this->setOption('nullable', $nullable);
 	}
 
 	/**
@@ -200,10 +200,11 @@ abstract class Type implements TypeInterface
 	 */
 	public function configure(array $options): self
 	{
-		if (isset($options['null'])) {
-			$this->nullAble((bool) $options['null'])
+		$nullable = $options['nullable'] ?? $options['null'] ?? null;
+		if (null !== $nullable) {
+			$this->nullAble((bool) $nullable)
 				->getBaseType()
-				->nullAble((bool) $options['null']);
+				->nullAble((bool) $nullable);
 		}
 
 		if (isset($options['auto_increment'])) {

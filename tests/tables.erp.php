@@ -122,8 +122,8 @@ return [
 			'name'       => $string_as_a_title,
 			'slug'       => $string_as_a_title,
 			'variant_of' => [
-				'type' => 'ref:products.id',
-				'null' => true,
+				'type'     => 'ref:products.id',
+				'nullable' => true,
 			],
 
 			...$common_columns,
@@ -174,8 +174,8 @@ return [
 			'name'        => $string_as_a_name,
 			'description' => $string_as_a_description,
 			'parent_id'   => [
-				'type' => 'ref:stores.id',
-				'null' => true,
+				'type'     => 'ref:stores.id',
+				'nullable' => true,
 			],
 			// 'location'    => ['type' => 'geo'],
 
@@ -269,8 +269,8 @@ return [
 			'discount_percent' => $percent,
 			'discount_amount'  => $amount,
 			'max_uses'         => [
-				'type' => 'int',
-				'null' => true,
+				'type'     => 'int',
+				'nullable' => true,
 			],
 			'uses_count'       => [
 				'type'    => 'int',
@@ -281,9 +281,9 @@ return [
 				'format' => 'timestamp',
 			],
 			'end_at'           => [
-				'type'   => 'date',
-				'format' => 'timestamp',
-				'null'   => true,
+				'type'       => 'date',
+				'format'     => 'timestamp',
+				'nullable'   => true,
 			],
 
 			...$common_columns,
