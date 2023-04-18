@@ -13,8 +13,10 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Queries\Traits;
 
-use Gobl\DBAL\Exceptions\DBALException;
+use Gobl\DBAL\Exceptions\DBALRuntimeException;
+use Gobl\DBAL\Queries\QBUtils;
 use Gobl\DBAL\Table;
+use PHPUtils\Str;
 
 /**
  * Trait QBAliasTrait.
@@ -22,21 +24,72 @@ use Gobl\DBAL\Table;
 trait QBAliasTrait
 {
 	/**
-	 * @psalm-var array<string, string>
+	 * Contains alias to table name or full name mapping.
+	 * The full name is used when the table is registered in the db.
 	 *
-	 * @var string[]
+	 * @var array<string, string>
 	 */
 	private array $aliases_to_tables_map = [];
 
-	public function resolveTableFullName(string $table_name_or_alias): ?string
-	{
-		$table_name = $this->getAliasTable($table_name_or_alias) ?? $table_name_or_alias;
+	/**
+	 * Contains table name or full name to main alias mapping.
+	 *
+	 * @var array<string, string>
+	 */
+	private array $main_aliases = [];
 
-		if ($table = $this->db->getTable($table_name)) {
-			return $table->getFullName();
+	/**
+	 * {@inheritDoc}
+	 */
+	public function setMainAlias(string|Table $table, string $alias): static
+	{
+		/** @var string $table_name */
+		$table_name = $this->resolveTable($table)
+			?->getFullName() ?? $table;
+
+		if (isset($this->main_aliases[$table_name])) {
+			if ($this->main_aliases[$table_name] !== $alias) {
+				throw new DBALRuntimeException(\sprintf('The table "%s" already has "%s" as main alias.', $table_name, $alias));
+			}
+		} elseif (isset($this->aliases_to_tables_map[$alias])) {
+			if ($this->aliases_to_tables_map[$alias] !== $table_name) {
+				throw new DBALRuntimeException(\sprintf('The alias "%s" was not declared for the table "%s".', $alias, $table_name));
+			}
+		} else {
+			throw new DBALRuntimeException(\sprintf('The alias "%s" was not yet declared for the table "%s".', $alias, $table_name));
 		}
 
-		return null;
+		$this->main_aliases[$table_name] = $alias;
+
+		return $this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getMainAlias(string|Table $table, bool $declare = false): string
+	{
+		$table_name = $this->resolveTable($table)
+			?->getFullName() ?? $table;
+
+		if (isset($this->main_aliases[$table_name])) {
+			return $this->main_aliases[$table_name];
+		}
+
+		if ($declare) {
+			$alias = QBUtils::newAlias();
+
+			$this->alias($table_name, $alias, true);
+
+			return $alias;
+		}
+
+		throw new DBALRuntimeException(\sprintf(
+			'The table "%s" has no main alias. This is probably because you did not declare it through the "%s", "%s" or using "from" clause.',
+			$table_name,
+			Str::callableName([$this, 'alias']),
+			Str::callableName([$this, 'setMainAlias']),
+		));
 	}
 
 	/**
@@ -58,86 +111,22 @@ trait QBAliasTrait
 	/**
 	 * {@inheritDoc}
 	 */
-	public function prefixColumnsString(string $table, ...$columns): string
+	public function alias(string|Table $table, string $alias, bool $main = false): static
 	{
-		return \implode(' , ', $this->prefixColumnsArray($table, $columns, true));
-	}
+		$table_name = $this->resolveTable($table)
+			?->getFullName() ?? $table;
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public function prefixColumnsArray(string $table, array $columns, bool $absolute = false): array
-	{
-		$alias = null;
-		$list  = [];
-
-		if ($tmp = $this->getAliasTable($table)) {
-			$alias = $table;
-			$table = $tmp;
-		}
-
-		$t    = $this->db->getTableOrFail($table);
-		$head = $alias ?? $t->getFullName();
-
-		foreach ($columns as $col_name) {
-			$col           = $t->getColumnOrFail($col_name);
-			$col_full_name = $col->getFullName();
-			$list[]        = ($absolute ? $head . '.' . $col_full_name : $col_full_name);
-		}
-
-		return $list;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function alias(array $aliases_to_tables_map): static
-	{
-		foreach ($aliases_to_tables_map as $alias => $table_name) {
-			$table_name = $this->resolveTableFullName($table_name) ?? $table_name;
-			$this->useAlias($table_name, $alias);
-		}
-
-		return $this;
-	}
-
-	/**
-	 * Asserts that a given string is an alias.
-	 *
-	 * @param string $str
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 */
-	protected function assertAliasExists(string $str): void
-	{
-		if (!isset($this->aliases_to_tables_map[$str])) {
-			throw new DBALException(\sprintf('alias "%s" is not defined.', $str));
-		}
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-
-	/**
-	 * @param string $table_name
-	 * @param string $alias
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 */
-	protected function useAlias(string $table_name, string $alias): void
-	{
 		if (empty($alias) || !\preg_match(Table::ALIAS_REG, $alias)) {
-			throw new DBALException(\sprintf('alias "%s" should match: %s', $alias, Table::ALIAS_PATTERN));
+			throw new DBALRuntimeException(\sprintf('alias "%s" should match: %s', $alias, Table::ALIAS_PATTERN));
 		}
 
-		if ($table = $this->db->getTable($table_name)) {
-			$table_name = $table->getFullName();
-		}
+		/** @var string $table_name */
+		$table_name = $this->resolveTable($table_name)
+			?->getFullName() ?? $table_name;
 
 		if (isset($this->aliases_to_tables_map[$alias])) {
 			if ($this->aliases_to_tables_map[$alias] !== $table_name) {
-				throw new DBALException(\sprintf(
+				throw new DBALRuntimeException(\sprintf(
 					'alias "%s" is already in use by "%s".',
 					$alias,
 					$this->aliases_to_tables_map[$alias]
@@ -146,5 +135,11 @@ trait QBAliasTrait
 		} else {
 			$this->aliases_to_tables_map[$alias] = $table_name;
 		}
+
+		if ($main) {
+			$this->setMainAlias($table, $alias);
+		}
+
+		return $this;
 	}
 }

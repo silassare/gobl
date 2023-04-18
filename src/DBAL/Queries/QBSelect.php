@@ -24,6 +24,7 @@ use Gobl\DBAL\Queries\Traits\QBLimitTrait;
 use Gobl\DBAL\Queries\Traits\QBOrderByTrait;
 use Gobl\DBAL\Queries\Traits\QBSetColumnsTrait;
 use Gobl\DBAL\Queries\Traits\QBWhereTrait;
+use Gobl\DBAL\Table;
 use PDOStatement;
 
 /**
@@ -83,7 +84,7 @@ class QBSelect implements QBInterface
 	}
 
 	/**
-	 * Returns query string to be executed by the rdbms.
+	 * Returns the total rows count.
 	 *
 	 * @param bool $preserve_limit
 	 *
@@ -112,24 +113,27 @@ class QBSelect implements QBInterface
 	}
 
 	/**
-	 * @param null|string $table
-	 * @param array       $columns
-	 * @param bool        $auto_prefix
+	 * Adds columns to select.
+	 *
+	 * @param null|\Gobl\DBAL\Table|string $table_name_or_alias
+	 * @param array                        $columns
+	 * @param bool                         $auto_prefix
 	 *
 	 * @return $this
 	 */
-	public function select(?string $table = null, array $columns = [], bool $auto_prefix = true): static
+	public function select(null|string|Table $table_name_or_alias = null, array $columns = [], bool $auto_prefix = true): static
 	{
-		if (\is_string($table) && !empty($table)) {
-			$table = $this->resolveTableFullName($table) ?? $table;
-
+		if (!empty($table_name_or_alias)) {
+			$table_name = $this->resolveTable($table_name_or_alias)
+				?->getFullName() ?? $table_name_or_alias;
+			// when empty, we select all columns from the table
 			if (empty($columns)) {
-				$this->options_select[] = $table . '.*';
+				$this->options_select[] = $this->fullyQualifiedNameArray($table_name_or_alias)[0];
 			} elseif ($auto_prefix) {
 				if (\is_int(\array_key_first($columns))) {
-					$columns = $this->prefixColumnsArray($table, $columns, true);
+					$columns = $this->fullyQualifiedNameArray($table_name_or_alias, $columns);
 				} else {
-					$keys    = $this->prefixColumnsArray($table, \array_keys($columns), true);
+					$keys    = $this->fullyQualifiedNameArray($table_name_or_alias, \array_keys($columns));
 					$values  = \array_values($columns);
 					$columns = \array_combine($keys, $values);
 				}
@@ -140,7 +144,7 @@ class QBSelect implements QBInterface
 			} else {
 				foreach ($columns as $key => $value) {
 					$this->options_select[] = \is_int($key)
-						? $table . '.' . $value : $table . '.' . $key . ' as ' . $value;
+						? $table_name . '.' . $value : $table_name . '.' . $key . ' as ' . $value;
 				}
 			}
 		} else {

@@ -66,7 +66,7 @@ WARNING: please don't edit.
 
 Proudly With: {$version}
 Time: {$date}";
-		$this->editable_header = "Auto generated file,
+		$this->editable_header     = "Auto generated file,
 
 INFO: you are free to edit it,
 but make sure to know what you are doing.
@@ -285,31 +285,16 @@ return $this;', $col_inject));
 			$target        = $relation->getTargetTable();
 			$m             = $class->newMethod('get' . Str::toClassName($relation->getName()))
 				->public();
-			$comment = \sprintf(
+			$comment       = \sprintf(
 				'%s relation between `%s` and `%s`.',
 				Str::toClassName($relation_type->value),
 				$host->getName(),
 				$target->getName()
 			);
-			$rel_inject = [
+			$rel_inject    = [
 				'target_entity_class_fqn'            => ORMClassKind::ENTITY->getClassFQN($target),
 				'target_entity_controller_class_fqn' => ORMClassKind::CONTROLLER->getClassFQN($target),
 			];
-
-			$filters = [];
-			foreach ($relation->getRelationColumns() as $host_col_name => $target_column_name) {
-				$h_col     = $host->getColumnOrFail($host_col_name);
-				$t_col     = $target->getColumnOrFail($target_column_name);
-				$filters[] = Str::interpolate(
-					'{target_entity_class_fqn}::{target_column_const} => $this->get{host_column_getter}(...),',
-					$rel_inject + [
-						'target_column_const' => self::toColumnNameConst($t_col),
-						'host_column_getter'  => Str::toClassName($h_col->getName()),
-					]
-				);
-			}
-
-			$rel_inject['filters_str'] = \implode(\PHP_EOL, $filters);
 
 			if ($relation_type->isMultiple()) {
 				$comment .= Str::interpolate('
@@ -341,7 +326,7 @@ return $this;', $col_inject));
 
 				$m->setReturnType('array');
 
-				$m->addChild(Str::interpolate('$getters = [{filters_str}];
+				$m->addChild(Str::interpolate('
 $filters_bundle = $this->buildRelationFilter($getters, $filters);
 
 if (null === $filters_bundle) {
@@ -354,8 +339,8 @@ return (new {target_entity_controller_class_fqn}())->getAllItems($filters_bundle
 
 @return ?{target_entity_class_fqn}', $rel_inject);
 				$m->setReturnType(new PHPType('null', $rel_inject['target_entity_class_fqn']));
-				$m->addChild(Str::interpolate('$getters = [{filters_str}];
-$filters_bundle = $this->buildRelationFilter($getters, []);
+				$m->addChild(Str::interpolate('
+$filters_bundle = $this->buildRelationFilter([]);
 
 if (null === $filters_bundle) {
 	return null;
@@ -528,7 +513,7 @@ return $instance;')
 					'column_name_const' => self::toColumnNameConst($column),
 					'arg_type'          => \implode('|', \array_unique(\array_map($this->toTypeHintString(...), ORMTypeHint::getRightOperandTypesHint($type, $operator)))),
 				];
-				$no_arg = 1 === $operator->getOperandsCount();
+				$no_arg     = 1 === $operator->getOperandsCount();
 				if ($no_arg) {
 					$class->newMethod($method)
 						->public()

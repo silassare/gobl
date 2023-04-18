@@ -102,9 +102,9 @@ class TypeBool extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function setDefault(mixed $default): self
+	public function default(mixed $default): self
 	{
-		return parent::setDefault((int) ((bool) $default));
+		return parent::default((int) ((bool) $default));
 	}
 
 	/**

@@ -262,7 +262,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function toArray($hide_sensitive_data = true): array
+	public function toArray(bool $hide_sensitive_data = true): array
 	{
 		$row = $this->toRow();
 

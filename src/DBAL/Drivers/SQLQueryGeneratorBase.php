@@ -41,6 +41,9 @@ use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Filters\Filter;
 use Gobl\DBAL\Filters\FilterGroup;
+use Gobl\DBAL\Filters\FilterRaw;
+use Gobl\DBAL\Filters\Filters;
+use Gobl\DBAL\Filters\Interfaces\FilterInterface;
 use Gobl\DBAL\Interfaces\QueryGeneratorInterface;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
@@ -50,6 +53,7 @@ use Gobl\DBAL\Queries\QBInsert;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Queries\QBType;
 use Gobl\DBAL\Queries\QBUpdate;
+use Gobl\DBAL\Queries\QBUtils;
 use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
 use Gobl\DBAL\Types\TypeBigint;
@@ -185,7 +189,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 */
 	public function buildTotalRowCountQuery(QBSelect $qb): string
 	{
-		return 'SELECT COUNT(1) FROM (' . $this->buildQuery($qb) . ') as __gobl_alias';
+		return 'SELECT COUNT(1) FROM (' . $this->buildQuery($qb) . ') as ' . QBUtils::newAlias();
 	}
 
 	/**
@@ -193,25 +197,37 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 *
 	 * @return string
 	 */
-	public function toExpression(FilterGroup|Filter $filter): string
+	public function filterToExpression(FilterInterface|Filters $filter): string
 	{
+		if ($filter instanceof Filters) {
+			return (string) $filter;
+		}
+
 		if ($filter instanceof Filter) {
-			return $this->filterToExpression($filter);
+			return $this->operatorFilterToExpression($filter);
 		}
 
-		$filters    = $filter->getFilters(true);
-		$cond       = $filter->isAnd() ? ' AND ' : ' OR ';
-		$expression = null;
+		if ($filter instanceof FilterRaw) {
+			return (string) $filter;
+		}
 
-		foreach ($filters as $f) {
-			$entry_exp = $f instanceof Filter ? $this->filterToExpression($f) : $this->toExpression($f);
+		if ($filter instanceof FilterGroup) {
+			$filters    = $filter->getFilters(true);
+			$cond       = $filter->isAnd() ? ' AND ' : ' OR ';
+			$expression = null;
 
-			if (!empty($entry_exp)) {
-				$expression = null === $expression ? $entry_exp : $expression . $cond . $entry_exp;
+			foreach ($filters as $f) {
+				$entry_exp = $this->filterToExpression($f);
+
+				if (!empty($entry_exp)) {
+					$expression = null === $expression ? $entry_exp : $expression . $cond . $entry_exp;
+				}
 			}
+
+			return empty($expression) ? '' : '(' . $expression . ')';
 		}
 
-		return empty($expression) ? '' : '(' . $expression . ')';
+		throw new DBALRuntimeException('Filter type not supported: ' . \get_debug_type($filter));
 	}
 
 	/**
@@ -1141,10 +1157,8 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 		$x = [];
 
-		foreach ($qb->getOptionsFrom() as /* $table_name => */ $alias) {
-			if (null !== $alias) {
-				$x[] = $alias;
-			}
+		foreach ($qb->getOptionsFrom() as /* $table_name => */ $aliases) {
+			$x = [...$x, ...$aliases];
 		}
 
 		$delete_alias = \implode(' , ', $x);
@@ -1185,7 +1199,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$rule = $qb->getOptionsWhere();
 
 		if (null !== $rule) {
-			$rule = (string) $rule;
+			$rule = $this->filterToExpression($rule);
 		}
 
 		return empty($rule) ? '1 = 1' : $rule;
@@ -1221,10 +1235,8 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$from = $qb->getOptionsFrom();
 		$x    = [];
 
-		foreach ($from as $table => $alias) {
-			if (null === $alias) {
-				$x[] = $table . $this->getJoinQueryFor($qb, $table);
-			} else {
+		foreach ($from as $table => $aliases) {
+			foreach ($aliases as $alias) {
 				$x[] = $table . ' ' . $alias . ' ' . $this->getJoinQueryFor($qb, $alias);
 			}
 		}
@@ -1271,29 +1283,36 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	/**
 	 * Returns sql JOIN for a given table.
 	 *
-	 * @param \Gobl\DBAL\Queries\QBDelete|\Gobl\DBAL\Queries\QBSelect $qb
-	 * @param string                                                  $table the table name
+	 * @param \Gobl\DBAL\Queries\QBDelete|\Gobl\DBAL\Queries\QBSelect $qb          the query builder
+	 * @param string                                                  $table_alias the table alias
 	 *
 	 * @return string
 	 */
-	protected function getJoinQueryFor(QBSelect|QBDelete $qb, string $table): string
+	protected function getJoinQueryFor(QBSelect|QBDelete $qb, string $table_alias): string
 	{
 		$sql   = '';
 		$joins = $qb->getOptionsJoins();
 
-		if (isset($joins[$table])) {
-			$table_joins = $joins[$table];
+		if (isset($joins[$table_alias])) {
+			$table_joins = $joins[$table_alias];
 
 			foreach ($table_joins as $join) {
-				$type      = $join['type'];
-				$condition = (string) $join['condition'];
-				$sql .= ' ' . $type
-							  . ' JOIN ' . $join['secondTable'] . ' ' . $join['secondTableAlias']
-							  . ' ON ' . (!empty($condition) ? $condition : '1 = 1');
+				$type                = $join->getType();
+				$options             = $join->getOptions();
+				$condition           = (string) $options['condition'];
+				$table_to_join       = $options['table_to_join'];
+				$table_to_join_alias = $options['table_to_join_alias'];
+
+				$sql .= ' ' . $type->value
+						. ' JOIN ' . $table_to_join . ' ' . $table_to_join_alias
+						. ' ON ' . (!empty($condition) ? $condition : '1 = 1');
 			}
 
 			foreach ($table_joins as $join) {
-				$sql .= $this->getJoinQueryFor($qb, $join['secondTableAlias']);
+				$options             = $join->getOptions();
+				$table_to_join_alias = $options['table_to_join_alias'];
+
+				$sql .= $this->getJoinQueryFor($qb, $table_to_join_alias);
 			}
 		}
 
@@ -1301,13 +1320,16 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	}
 
 	/**
-	 * Converts filter to sql expression.
+	 * Converts a filter using an operator to a sql expression.
+	 *
+	 * By overriding this method you can change the way this kind of
+	 * filters are converted to sql expressions when using another database engine.
 	 *
 	 * @param \Gobl\DBAL\Filters\Filter $filter
 	 *
 	 * @return string
 	 */
-	protected function filterToExpression(Filter $filter): string
+	protected function operatorFilterToExpression(Filter $filter): string
 	{
 		$left   = $filter->getLeftOperand();
 		$right  = $filter->getRightOperand();

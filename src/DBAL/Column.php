@@ -268,11 +268,13 @@ final class Column implements ArrayCapableInterface
 	/**
 	 * Sets column reference.
 	 *
-	 * @param null|\Gobl\DBAL\Column|string $reference
+	 * @param null|\Gobl\DBAL\Column|string $reference Column instance or column reference string
+	 * @param bool                          $copy      If true and reference is a column instance, the column type will
+	 *                                                 be considered as a copy of the reference column type
 	 *
 	 * @return \Gobl\DBAL\Column
 	 */
-	public function setReference(null|string|self $reference): self
+	public function setReference(null|string|self $reference, bool $copy = false): self
 	{
 		$this->assertNotLocked();
 
@@ -284,7 +286,7 @@ final class Column implements ArrayCapableInterface
 			}
 			$this->reference = $reference;
 		} elseif ($table = $reference->getTable()) {
-			$this->reference = 'ref:' . $table->getName() . '.' . $reference->getName();
+			$this->reference = ($copy ? 'cp' : 'ref') . ':' . $table->getName() . '.' . $reference->getName();
 		} else {
 			throw new InvalidArgumentException(\sprintf('Column "%s" not added to a known table could not be added as reference for column "%s".', $reference->getName(), $this->getName()));
 		}

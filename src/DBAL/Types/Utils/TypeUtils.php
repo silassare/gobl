@@ -124,8 +124,6 @@ class TypeUtils
 	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $rdbms
 	 *
 	 * @return string|string[]
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public static function runEnforceQueryExpressionValueType(
 		string $table_name,

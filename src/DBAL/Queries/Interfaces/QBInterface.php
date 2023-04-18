@@ -15,6 +15,7 @@ namespace Gobl\DBAL\Queries\Interfaces;
 
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\QBType;
+use Gobl\DBAL\Table;
 use PDO;
 use PDOStatement;
 
@@ -140,13 +141,55 @@ interface QBInterface
 	public function bindMergeFrom(self $qb): static;
 
 	/**
-	 * Try to get a given table full name.
+	 * Sets the main alias for a given table.
 	 *
-	 * @param string $table_name_or_alias the table name or alias
+	 * @param \Gobl\DBAL\Table|string $table
+	 * @param string                  $alias
 	 *
-	 * @return null|string
+	 * @return $this
 	 */
-	public function resolveTableFullName(string $table_name_or_alias): ?string;
+	public function setMainAlias(string|Table $table, string $alias): static;
+
+	/**
+	 * Resolve a table name or alias to a table instance.
+	 *
+	 * @param \Gobl\DBAL\Table|string $table_name_or_alias
+	 *
+	 * @return null|\Gobl\DBAL\Table
+	 */
+	public function resolveTable(string|Table $table_name_or_alias): ?Table;
+
+	/**
+	 * Returns the fully qualified name of a column.
+	 *
+	 * @param \Gobl\DBAL\Table|string $table_name_or_alias
+	 * @param string                  $column
+	 *
+	 * @return string
+	 */
+	public function fullyQualifiedName(string|Table $table_name_or_alias, string $column): string;
+
+	/**
+	 * Returns the fully qualified name of columns in an array.
+	 *
+	 * If columns is empty, it returns the fully qualified name used to select all ie: users.*
+	 *
+	 * @param \Gobl\DBAL\Table|string $table_name_or_alias
+	 * @param array                   $columns
+	 *
+	 * @return array
+	 */
+	public function fullyQualifiedNameArray(string|Table $table_name_or_alias, array $columns = []): array;
+
+	/**
+	 * Gets the main alias for a given table.
+	 *
+	 * @param \Gobl\DBAL\Table|string $table
+	 * @param bool                    $declare
+	 *
+	 * @return string
+	 */
+	public function getMainAlias(string|Table $table, bool $declare = false): string;
 
 	/**
 	 * Check if a given string is a declared alias.
@@ -167,61 +210,12 @@ interface QBInterface
 	public function getAliasTable(string $alias): ?string;
 
 	/**
-	 * Automatically prefix column(s) in a given table.
+	 * Adds table alias to query.
 	 *
-	 * ```php
-	 * $qb = new QBSelect($db);
-	 * $qb->alias([
-	 *    'u' => 'user',
-	 *    'c' => 'command'
-	 * ]);
-	 *
-	 * $qb->prefixColumnsString('u', 'name'); // u.col_prefix_name
-	 * $qb->prefixColumnsString('c', 'id', 'title'); // c.col_prefix_id, c.col_prefix_title
-	 * $qb->prefixColumnsString('user', 'phone'); // tbl_prefix_user.col_prefix_phone
-	 *
-	 * ```
-	 *
-	 * @param string   $table   the table to use
-	 * @param string[] $columns the columns to auto prefix
-	 *
-	 * @return string
-	 */
-	public function prefixColumnsString(string $table, ...$columns): string;
-
-	/**
-	 * Automatically prefix column(s) in a given table.
-	 *
-	 * The table should be defined.
-	 * The table could be an alias that was declared
-	 *
-	 * ```php
-	 * $qb = new QBSelect($db);
-	 * $qb->alias([
-	 *    'u' => 'user',
-	 *    'c' => 'command'
-	 * ]);
-	 *
-	 * $qb->prefixColumnsArray('u', ['name'], true); // ['u.col_prefix_name']
-	 * $qb->prefixColumnsArray('c', ['id', 'title'], false); // ['col_prefix_id', 'col_prefix_title']
-	 * $qb->prefixColumnsArray('user', ['phone'], true); // ['tbl_prefix_user.col_prefix_phone']
-	 *
-	 * ```
-	 *
-	 * @param string $table    the table to use
-	 * @param array  $columns  the column to auto prefix
-	 * @param bool   $absolute
-	 *
-	 * @return array
-	 */
-	public function prefixColumnsArray(string $table, array $columns, bool $absolute = false): array;
-
-	/**
-	 * Adds table(s) alias(es) to query.
-	 *
-	 * @param array $aliases_to_tables_map aliases map
+	 * @param \Gobl\DBAL\Table|string $table
+	 * @param string                  $alias
 	 *
 	 * @return $this
 	 */
-	public function alias(array $aliases_to_tables_map): static;
+	public function alias(string|Table $table, string $alias): static;
 }

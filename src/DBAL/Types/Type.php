@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Types;
 
-use Gobl\DBAL\Filters\Filter;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Types\Exceptions\TypesException;
@@ -64,17 +63,9 @@ abstract class Type implements TypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function isFilterAllowed(Filter $filter): bool
+	public function assertFilterAllowed(Operator $operator, mixed $value): void
 	{
-		return true;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function checkFilter(Filter $filter): bool
-	{
-		return true;
+		$this->safelyCallOnBaseType(__FUNCTION__, [$operator, $value]);
 	}
 
 	/**
@@ -136,7 +127,7 @@ abstract class Type implements TypeInterface
 	 */
 	public function getEmptyValueOfType(): mixed
 	{
-		return $this->base_type->getEmptyValueOfType();
+		return $this->safelyCallOnBaseType(__FUNCTION__, []);
 	}
 
 	/**
@@ -174,7 +165,7 @@ abstract class Type implements TypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function setDefault(mixed $default): self
+	public function default(mixed $default): self
 	{
 		return $this->setOption('default', $default);
 	}
@@ -184,7 +175,7 @@ abstract class Type implements TypeInterface
 	 */
 	public function getWriteTypeHint(): array
 	{
-		return $this->base_type->getWriteTypeHint();
+		return $this->safelyCallOnBaseType(__FUNCTION__, []);
 	}
 
 	/**
@@ -192,7 +183,7 @@ abstract class Type implements TypeInterface
 	 */
 	public function getReadTypeHint(): array
 	{
-		return $this->base_type->getReadTypeHint();
+		return $this->safelyCallOnBaseType(__FUNCTION__, []);
 	}
 
 	/**
@@ -215,7 +206,7 @@ abstract class Type implements TypeInterface
 
 		if (\array_key_exists('default', $options)) {
 			$default = $options['default'];
-			$this->setDefault($default);
+			$this->default($default);
 		}
 
 		return $this;
@@ -226,7 +217,7 @@ abstract class Type implements TypeInterface
 	 */
 	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): mixed
 	{
-		return $this->base_type->dbToPhp($value, $rdbms);
+		return $this->safelyCallOnBaseType(__FUNCTION__, [$value, $rdbms]);
 	}
 
 	/**
@@ -234,7 +225,7 @@ abstract class Type implements TypeInterface
 	 */
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): null|int|float|string
 	{
-		return $this->base_type->phpToDb($value, $rdbms);
+		return $this->safelyCallOnBaseType(__FUNCTION__, [$value, $rdbms]);
 	}
 
 	/**
@@ -330,5 +321,24 @@ abstract class Type implements TypeInterface
 		}
 
 		return $this->error_messages[$key] ?? $key;
+	}
+
+	/**
+	 * Call the base type method only it is not the same as the current instance.
+	 *
+	 * This prevent infinite loop.
+	 *
+	 * @param string $method
+	 * @param array  $args
+	 *
+	 * @return mixed
+	 */
+	private function safelyCallOnBaseType(string $method, array $args): mixed
+	{
+		if ($this->base_type->getName() === $this->getName()) {
+			return null;
+		}
+
+		return \call_user_func_array([$this->base_type, $method], $args);
 	}
 }

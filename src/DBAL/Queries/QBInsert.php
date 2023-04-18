@@ -17,6 +17,7 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\Interfaces\QBInterface;
 use Gobl\DBAL\Queries\Traits\QBCommonTrait;
 use Gobl\DBAL\Queries\Traits\QBSetColumnsTrait;
+use Gobl\DBAL\Table;
 
 /**
  * Class QBInsert.
@@ -60,19 +61,19 @@ class QBInsert implements QBInterface
 	}
 
 	/**
-	 * @param string $table
-	 * @param array  $columns_values_map
-	 * @param bool   $auto_prefix
+	 * @param \Gobl\DBAL\Table|string $table
+	 * @param array                   $columns_values_map
+	 * @param bool                    $auto_prefix
 	 *
 	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
-	public function into(string $table, array $columns_values_map = [], bool $auto_prefix = true): self
+	public function into(string|Table $table, array $columns_values_map = [], bool $auto_prefix = true): self
 	{
-		$this->options_table = $this->resolveTableFullName($table) ?? $table;
+		$table_name          = $this->resolveTable($table)
+			?->getFullName() ?? $table;
+		$this->options_table = $table_name;
 
-		return $this->setInsertOrUpdateColumnsValues($table, $columns_values_map, $auto_prefix);
+		return $this->setInsertOrUpdateColumnsValues($table_name, $columns_values_map, $auto_prefix);
 	}
 
 	/**

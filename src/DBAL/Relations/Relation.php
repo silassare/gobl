@@ -13,6 +13,9 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Relations;
 
+use Gobl\DBAL\Exceptions\DBALException;
+use Gobl\DBAL\Interfaces\RDBMSInterface;
+use Gobl\DBAL\Relations\Interfaces\LinkInterface;
 use Gobl\DBAL\Table;
 use InvalidArgumentException;
 use PHPUtils\Interfaces\ArrayCapableInterface;
@@ -30,25 +33,19 @@ abstract class Relation implements ArrayCapableInterface
 
 	public const NAME_REG = '~^' . self::NAME_PATTERN . '$~';
 
-	protected array $relation_columns = [];
-
-	protected bool $use_auto_detected_foreign_key = false;
+	protected ?array $target_custom_filters = null;
 
 	/**
 	 * Relation constructor.
 	 *
-	 * @param RelationType     $type
-	 * @param string           $name
-	 * @param \Gobl\DBAL\Table $host_table
-	 * @param \Gobl\DBAL\Table $target_table
-	 * @param null|array       $columns
+	 * @param RelationType                                  $type
+	 * @param string                                        $name
+	 * @param \Gobl\DBAL\Relations\Interfaces\LinkInterface $link
 	 */
 	public function __construct(
 		protected RelationType $type,
 		protected string $name,
-		protected Table $host_table,
-		protected Table $target_table,
-		?array $columns = null,
+		protected LinkInterface $link,
 	) {
 		if (!\preg_match(self::NAME_REG, $name)) {
 			throw new InvalidArgumentException(\sprintf(
@@ -57,28 +54,16 @@ abstract class Relation implements ArrayCapableInterface
 				self::NAME_PATTERN
 			));
 		}
-
-		$this->checkRelationColumns($columns);
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * Gets the relation link.
+	 *
+	 * @return \Gobl\DBAL\Relations\Interfaces\LinkInterface
 	 */
-	public function toArray(): array
+	public function getLink(): LinkInterface
 	{
-		$options['target'] = $this->target_table->getName();
-		$options['type']   = $this->type->value;
-
-		if (!$this->use_auto_detected_foreign_key) {
-			foreach ($this->relation_columns as $from => $to) {
-				$key = $this->host_table->getColumnOrFail($from)
-					->getName();
-				$options['columns'][$key] = $this->target_table->getColumnOrFail($to)
-					->getName();
-			}
-		}
-
-		return $options;
+		return $this->link;
 	}
 
 	/**
@@ -90,7 +75,7 @@ abstract class Relation implements ArrayCapableInterface
 	 */
 	public function isPaginated(): bool
 	{
-		return RelationType::ONE_TO_MANY === $this->type || RelationType::MANY_TO_MANY === $this->type;
+		return $this->type->isMultiple();
 	}
 
 	/**
@@ -100,7 +85,7 @@ abstract class Relation implements ArrayCapableInterface
 	 */
 	public function getHostTable(): Table
 	{
-		return $this->host_table;
+		return $this->link->getHostTable();
 	}
 
 	/**
@@ -110,17 +95,7 @@ abstract class Relation implements ArrayCapableInterface
 	 */
 	public function getTargetTable(): Table
 	{
-		return $this->target_table;
-	}
-
-	/**
-	 * Gets relation columns.
-	 *
-	 * @return array
-	 */
-	public function getRelationColumns(): array
-	{
-		return $this->relation_columns;
+		return $this->link->getTargetTable();
 	}
 
 	/**
@@ -154,9 +129,104 @@ abstract class Relation implements ArrayCapableInterface
 	}
 
 	/**
-	 * Checks relations columns.
+	 * Gets relation target custom filters.
 	 *
-	 * @param null|array $columns
+	 * @return null|array
 	 */
-	abstract protected function checkRelationColumns(?array $columns = null): void;
+	public function getTargetCustomFilters(): ?array
+	{
+		return $this->target_custom_filters;
+	}
+
+	/**
+	 * Sets relation target custom filters.
+	 *
+	 * @param null|array $filters
+	 *
+	 * @return $this
+	 */
+	public function setTargetCustomFilters(?array $filters): static
+	{
+		// we can't check if the filters are valid here
+		// because the target table classes files may not be yet generated
+
+		$this->target_custom_filters = $filters;
+
+		return $this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function toArray(): array
+	{
+		$options['type']   = $this->type->value;
+		$options['target'] = $this->getTargetTable()
+			->getName();
+		$options['link']   = $this->link->toArray();
+
+		if ($this->target_custom_filters) {
+			$options['filters'] = $this->target_custom_filters;
+		}
+
+		return $options;
+	}
+
+	/**
+	 * Create a relation link from options.
+	 *
+	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $rdbms
+	 * @param Table                                $host_table
+	 * @param Table                                $target_table
+	 * @param array                                $options
+	 *
+	 * @return LinkInterface
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 */
+	public static function createLink(RDBMSInterface $rdbms, Table $host_table, Table $target_table, array $options): LinkInterface
+	{
+		$type = $options['type'] ?? null;
+
+		if (\is_string($type)) {
+			$type = LinkType::tryFrom($type);
+		}
+
+		if (!$type instanceof LinkType) {
+			throw new DBALException('Invalid "type" for relation link.');
+		}
+
+		if (LinkType::COLUMNS === $type) {
+			return new LinkColumns($host_table, $target_table, $options);
+		}
+
+		if (LinkType::MORPH === $type) {
+			return new LinkMorph($host_table, $target_table, $options);
+		}
+
+		if (LinkType::THROUGH === $type) {
+			$pivot_table = $options['pivot_table'] ?? null;
+
+			if (!$pivot_table) {
+				throw new DBALException(\sprintf('property "pivot_table" is required for relation link type "%s".', $type->value));
+			}
+
+			if (\is_string($pivot_table)) {
+				$pivot_table = $rdbms->getTableOrFail($pivot_table);
+			}
+
+			if (!$pivot_table instanceof Table) {
+				throw new DBALException(\sprintf(
+					'property "pivot_table" defined for relation link type "%s" should be of string|%s type not "%s".',
+					$type->value,
+					Table::class,
+					\get_debug_type($pivot_table)
+				));
+			}
+
+			return new LinkThrough($rdbms, $host_table, $target_table, $pivot_table, $options);
+		}
+
+		throw new DBALException(\sprintf('Unsupported link type "%s".', $type->value));
+	}
 }

@@ -36,11 +36,11 @@ class QBUtils
 	}
 
 	/**
-	 * Generate a new unique table alias.
+	 * Generate a new unique (table) alias.
 	 *
 	 * @return string
 	 */
-	public static function newTableAlias(): string
+	public static function newAlias(): string
 	{
 		return '_' . self::alphaId() . '_';
 	}

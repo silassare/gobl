@@ -14,16 +14,26 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Queries\Traits;
 
 use Gobl\DBAL\Exceptions\DBALException;
+use Gobl\DBAL\Exceptions\DBALRuntimeException;
+use Gobl\DBAL\Queries\QBUtils;
+use Gobl\DBAL\Table;
 
 /**
  * Trait QBFromTrait.
  */
 trait QBFromTrait
 {
-	protected bool  $disable_multiple_from = false;
-	protected array $options_from          = [];
+	protected bool $disable_multiple_from  = false;
+	protected bool $disable_duplicate_from = false;
 
 	/**
+	 * @var array<string, string[]>
+	 */
+	protected array $options_from = [];
+
+	/**
+	 * Gets from options.
+	 *
 	 * @return array
 	 */
 	public function getOptionsFrom(): array
@@ -32,8 +42,33 @@ trait QBFromTrait
 	}
 
 	/**
-	 * @param array|string $table
-	 * @param null|string  $alias
+	 * Checks if a table is in the from clause.
+	 * If an alias is provided, it will check if the table is in the from clause
+	 * with the provided alias.
+	 *
+	 * @param \Gobl\DBAL\Table|string $table
+	 * @param null|string             $alias
+	 *
+	 * @return bool
+	 */
+	public function inFromClause(string|Table $table, string $alias = null): bool
+	{
+		$table = $table instanceof Table ? $table->getFullName() : $table;
+
+		$found_table = isset($this->options_from[$table]);
+
+		if ($found_table && $alias) {
+			$found_table = \in_array($alias, $this->options_from[$table], true);
+		}
+
+		return $found_table;
+	}
+
+	/**
+	 * Sets the from clause.
+	 *
+	 * @param array|\Gobl\DBAL\Table|string $table
+	 * @param null|string                   $alias
 	 *
 	 * ```php
 	 * $this->from('users');
@@ -45,7 +80,7 @@ trait QBFromTrait
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
-	public function from(array|string $table, ?string $alias = null): static
+	public function from(array|string|Table $table, ?string $alias = null): static
 	{
 		if (
 			$this->disable_multiple_from
@@ -68,6 +103,8 @@ trait QBFromTrait
 					$this->addFromOptions($key, $value);
 				}
 			}
+		} elseif ($table instanceof Table) {
+			$this->addFromOptions($table->getFullName(), $alias);
 		} else {
 			$this->addFromOptions($table, $alias);
 		}
@@ -76,19 +113,43 @@ trait QBFromTrait
 	}
 
 	/**
+	 * Adds a table to the from clause.
+	 *
 	 * @param string      $table
 	 * @param null|string $alias
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	private function addFromOptions(string $table, ?string $alias = null): void
 	{
-		$table = $this->resolveTableFullName($table) ?? $table;
+		$table = $this->resolveTable($table)
+			?->getFullName() ?? $table;
 
-		if (!empty($alias)) {
-			$this->useAlias($table, $alias);
+		$duplicate = $this->inFromClause($table);
+
+		if ($duplicate && $this->disable_duplicate_from) {
+			throw new DBALRuntimeException(
+				\sprintf(
+					'Table "%s" is already defined in "from" clause for query type "%s" provided in "%s".'
+					. 'If you need the same table twice keep it simple and use a JOIN clause.',
+					$table,
+					$this->getType()->name,
+					static::class
+				)
+			);
 		}
 
-		$this->options_from[$table] = $alias;
+		if (!$alias) {
+			try {
+				// if the table has a main alias we use it
+				$alias = $this->getMainAlias($table);
+			} catch (\Throwable) {
+				// do nothing
+			}
+		}
+
+		$alias = $alias ?? QBUtils::newAlias();
+
+		$this->alias($table, $alias, !$duplicate);
+
+		$this->options_from[$table][] = $alias;
 	}
 }

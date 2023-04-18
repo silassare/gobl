@@ -41,7 +41,8 @@ class QBDelete implements QBInterface
 	 */
 	public function __construct(protected RDBMSInterface $db)
 	{
-		$this->disable_multiple_from = true;
+		$this->disable_multiple_from  = true;
+		$this->disable_duplicate_from = true;
 	}
 
 	/**

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Interfaces;
 
+use Gobl\DBAL\Builders\DbBuilder;
 use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Table;
 use PDO;
@@ -65,6 +66,15 @@ interface RDBMSInterface
 	 * @return $this
 	 */
 	public function addTablesToNamespace(string $namespace, array $tables): self;
+
+	/**
+	 * Create a new database scope.
+	 *
+	 * @param string $namespace
+	 *
+	 * @return \Gobl\DBAL\Builders\DbBuilder
+	 */
+	public function scope(string $namespace): DbBuilder;
 
 	/**
 	 * Checks if a given table is defined.

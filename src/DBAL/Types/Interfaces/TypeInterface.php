@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Types\Interfaces;
 
-use Gobl\DBAL\Filters\Filter;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
+use Gobl\DBAL\Operator;
 use Gobl\ORM\Utils\ORMTypeHint;
 use PHPUtils\Interfaces\ArrayCapableInterface;
 
@@ -111,7 +111,7 @@ interface TypeInterface extends ArrayCapableInterface
 	 *
 	 * @return $this
 	 */
-	public function setDefault(mixed $default): self;
+	public function default(mixed $default): self;
 
 	/**
 	 * Called to validate a form field value.
@@ -150,22 +150,12 @@ interface TypeInterface extends ArrayCapableInterface
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): null|int|float|string;
 
 	/**
-	 * Checks if a filter is allowed.
+	 * Asserts operator and value are allowed for this type.
 	 *
-	 * @param \Gobl\DBAL\Filters\Filter $filter
-	 *
-	 * @return bool
+	 * @param \Gobl\DBAL\Operator $operator
+	 * @param mixed               $value
 	 */
-	public function isFilterAllowed(Filter $filter): bool;
-
-	/**
-	 * Called to check a given value and filter.
-	 *
-	 * @param \Gobl\DBAL\Filters\Filter $filter
-	 *
-	 * @return bool
-	 */
-	public function checkFilter(Filter $filter): bool;
+	public function assertFilterAllowed(Operator $operator, mixed $value): void;
 
 	/**
 	 * Should we enforce query expression value type.

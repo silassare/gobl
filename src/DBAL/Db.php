@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL;
 
+use Gobl\DBAL\Builders\DbBuilder;
 use Gobl\DBAL\Constraints\Constraint;
 use Gobl\DBAL\Constraints\ForeignKeyAction;
 use Gobl\DBAL\Drivers\MySQL\MySQL;
@@ -20,6 +21,9 @@ use Gobl\DBAL\Drivers\SQLLite\SQLLite;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
+use Gobl\DBAL\Relations\Interfaces\LinkInterface;
+use Gobl\DBAL\Relations\LinkThrough;
+use Gobl\DBAL\Relations\LinkType;
 use Gobl\DBAL\Relations\ManyToMany;
 use Gobl\DBAL\Relations\ManyToOne;
 use Gobl\DBAL\Relations\OneToMany;
@@ -37,7 +41,7 @@ use Throwable;
  */
 abstract class Db implements RDBMSInterface
 {
-	public const REG_COLUMN_REF = '~^(ref|cp)[:](\w+)\.(\w+)$~';
+	public const REG_COLUMN_REF = '~^(ref|cp):(\w+)\.(\w+)$~';
 
 	/**
 	 * Gobl rdbms class setting shortcuts map.
@@ -420,8 +424,8 @@ abstract class Db implements RDBMSInterface
 							}
 
 							$reference_table = $this->tables[$reference];
-							$update_action   = ForeignKeyAction::NO_ACTION;
-							$delete_action   = ForeignKeyAction::NO_ACTION;
+							$update_action   = null;
+							$delete_action   = null;
 							$name            = $constraint['name'] ?? null;
 
 							if (isset($constraint['update'])) {
@@ -484,13 +488,21 @@ abstract class Db implements RDBMSInterface
 					if ($rel_options instanceof Relation) {
 						$r = $rel_options;
 					} elseif (\is_array($rel_options) && isset($rel_options['type'], $rel_options['target'])) {
-						$type = RelationType::tryFrom($rel_options['type']);
-
-						/** @var string $target */
+						$type   = RelationType::tryFrom($rel_options['type']);
 						$target = $rel_options['target'];
 
-						/** @var null|array $columns */
-						$columns = $rel_options['columns'] ?? null;
+						if (\is_string($target)) {
+							$target = $this->getTableOrFail($target);
+						} elseif (!$target instanceof Table) {
+							throw new DBALException(\sprintf(
+								'property "target" defined for relation "%s" in table "%s" should be of string|%s type not "%s".',
+								$relation_name,
+								$table_name,
+								Table::class,
+								\get_debug_type($target)
+							));
+						}
+
 						$filters = $rel_options['filters'] ?? null;
 
 						if ($filters && !\is_array($filters)) {
@@ -502,54 +514,74 @@ abstract class Db implements RDBMSInterface
 							));
 						}
 
-						$this->assertHasTable($target);
+						$link_options = $rel_options['link'] ?? null;
+
+						if ($link_options) {
+							if ($link_options instanceof LinkInterface) {
+								$link = $link_options;
+							} elseif (\is_array($link_options)) {
+								$link = Relation::createLink($this, $tbl, $target, $link_options);
+							} else {
+								throw new DBALException(\sprintf(
+									'property "link" defined for relation "%s" in table "%s" should be of array|%s type not "%s".',
+									$relation_name,
+									$table_name,
+									LinkInterface::class,
+									\get_debug_type($link_options)
+								));
+							}
+						} else {
+							// old way to define relations
+							$columns = $rel_options['columns'] ?? null;
+
+							if ($columns) {
+								if (!\is_array($columns)) {
+									throw new DBALException(\sprintf(
+										'property "columns" defined for relation "%s" in table "%s" should be of array type not "%s".',
+										$relation_name,
+										$table_name,
+										\get_debug_type($columns)
+									));
+								}
+
+								$link_options = [
+									'type'    => LinkType::COLUMNS->value,
+									'columns' => $columns,
+								];
+							} else {
+								// there is no columns defined so we will suppose it's of type columns
+								$link_options = [
+									'type' => LinkType::COLUMNS->value,
+								];
+							}
+
+							$link = Relation::createLink($this, $tbl, $target, $link_options);
+						}
 
 						if (RelationType::ONE_TO_ONE === $type) {
-							$r = new OneToOne(
-								$relation_name,
-								$tbl,
-								$this->getTableOrFail($target),
-								$columns
-							);
+							$r = new OneToOne($relation_name, $link);
 						} elseif (RelationType::ONE_TO_MANY === $type) {
-							$r = new OneToMany(
-								$relation_name,
-								$tbl,
-								$this->getTableOrFail($target),
-								$columns,
-								$filters
-							);
+							$r = new OneToMany($relation_name, $link);
 						} elseif (RelationType::MANY_TO_ONE === $type) {
-							$r = new ManyToOne(
-								$relation_name,
-								$tbl,
-								$this->getTableOrFail($target),
-								$columns
-							);
+							$r = new ManyToOne($relation_name, $link);
 						} elseif (RelationType::MANY_TO_MANY === $type) {
-							/** @var null|string $junction_table */
-							$junction_table = $rel_options['junction_table'] ?? null;
-							if (empty($junction_table)) {
+							if (!$link instanceof LinkThrough) {
 								throw new DBALException(\sprintf(
-									'Missing "junction_table" for relation "%s" in table "%s".',
+									'Invalid "link" type for relation "%s" in table "%s". Many to many relation should use a link through.',
 									$relation_name,
 									$table_name
 								));
 							}
-							$r = new ManyToMany(
-								$relation_name,
-								$tbl,
-								$this->getTableOrFail($target),
-								$this->getTableOrFail($junction_table),
-								$columns,
-								$filters
-							);
+
+							$r = new ManyToMany($relation_name, $link);
 						}
+
+						$r && $filters && $r->setTargetCustomFilters($filters);
 					}
 
 					if (null === $r) {
 						throw new DBALException(\sprintf(
-							'Invalid relation "%s" in table "%s".',
+							'Invalid or incomplete option provided for relation "%s" in table "%s".',
 							$relation_name,
 							$table_name
 						));
@@ -567,6 +599,14 @@ abstract class Db implements RDBMSInterface
 		}
 
 		return $this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function scope(string $namespace): DbBuilder
+	{
+		return new DbBuilder($this, $namespace);
 	}
 
 	/**
@@ -672,6 +712,25 @@ abstract class Db implements RDBMSInterface
 		}
 
 		return null;
+	}
+
+	/**
+	 * Clean column type options.
+	 *
+	 * @param array $options The column type options
+	 * @param bool  $clone   Whether the column is cloned or not
+	 *
+	 * @return array
+	 */
+	public static function cleanColumnTypeOptionsForReference(array $options, bool $clone): array
+	{
+		if (!$clone) {
+			unset($options['auto_increment']);
+		}
+
+		unset($options['diff_key']);
+
+		return $options;
 	}
 
 	/**
@@ -786,11 +845,7 @@ abstract class Db implements RDBMSInterface
 			}
 
 			if (\is_array($_col_opt)) {
-				if (false === $clone) {
-					unset($_col_opt['auto_increment']);
-				}
-
-				unset($_col_opt['diff_key']);
+				$_col_opt = static::cleanColumnTypeOptionsForReference($_col_opt, $clone);
 
 				$this->resolved_column_ref[$reference] = $_col_opt;
 

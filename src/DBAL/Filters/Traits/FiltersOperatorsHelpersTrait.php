@@ -30,8 +30,6 @@ trait FiltersOperatorsHelpersTrait
 	 * @param null|float|\Gobl\DBAL\Queries\QBExpression|\Gobl\DBAL\Queries\QBSelect|int|string $right
 	 *
 	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function eq(string $left, null|int|float|string|QBSelect|QBExpression $right): static
 	{
@@ -49,8 +47,6 @@ trait FiltersOperatorsHelpersTrait
 	 * @param null|float|\Gobl\DBAL\Queries\QBExpression|\Gobl\DBAL\Queries\QBSelect|int|string $right
 	 *
 	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function neq(string $left, null|int|float|string|QBSelect|QBExpression $right): static
 	{
@@ -68,8 +64,6 @@ trait FiltersOperatorsHelpersTrait
 	 * @param string $right
 	 *
 	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function like(string $left, string $right): static
 	{
@@ -83,8 +77,6 @@ trait FiltersOperatorsHelpersTrait
 	 * @param string $right
 	 *
 	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function notLike(string $left, string $right): static
 	{
@@ -98,8 +90,6 @@ trait FiltersOperatorsHelpersTrait
 	 * @param float|\Gobl\DBAL\Queries\QBExpression|\Gobl\DBAL\Queries\QBSelect|int|string $right
 	 *
 	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function lt(string $left, int|float|string|QBSelect|QBExpression $right): static
 	{
@@ -113,8 +103,6 @@ trait FiltersOperatorsHelpersTrait
 	 * @param float|\Gobl\DBAL\Queries\QBExpression|\Gobl\DBAL\Queries\QBSelect|int|string $right
 	 *
 	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function lte(string $left, int|float|string|QBSelect|QBExpression $right): static
 	{
@@ -128,8 +116,6 @@ trait FiltersOperatorsHelpersTrait
 	 * @param float|\Gobl\DBAL\Queries\QBExpression|\Gobl\DBAL\Queries\QBSelect|int|string $right
 	 *
 	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function gt(string $left, int|float|string|QBSelect|QBExpression $right): static
 	{
@@ -143,8 +129,6 @@ trait FiltersOperatorsHelpersTrait
 	 * @param float|\Gobl\DBAL\Queries\QBExpression|\Gobl\DBAL\Queries\QBSelect|int|string $right
 	 *
 	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function gte(string $left, int|float|string|QBSelect|QBExpression $right): static
 	{
@@ -157,8 +141,6 @@ trait FiltersOperatorsHelpersTrait
 	 * @param string $left
 	 *
 	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function isNull(string $left): static
 	{
@@ -171,8 +153,6 @@ trait FiltersOperatorsHelpersTrait
 	 * @param string $left
 	 *
 	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function isNotNull(string $left): static
 	{

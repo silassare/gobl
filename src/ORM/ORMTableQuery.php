@@ -58,7 +58,7 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 		$this->db = ORM::getDatabase($namespace);
 
 		$this->table       = $this->db->getTableOrFail($table_name);
-		$this->table_alias = QBUtils::newTableAlias();
+		$this->table_alias = QBUtils::newAlias();
 		$this->qb          = new QBSelect($this->db);
 		$this->filters     = $this->qb->filters($this);
 	}
@@ -176,7 +176,11 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 */
 	public function assertFilterAllowed(Operator $operator, string $left_operand, mixed $right_operand): void
 	{
-		$this->table->assertHasColumn($left_operand);
+		// left operand should be a column
+		$column = $this->table->getColumnOrFail($left_operand);
+
+		$column->getType()
+			->assertFilterAllowed($operator, $right_operand);
 	}
 
 	/**
@@ -319,7 +323,7 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	public function select(?int $max = null, int $offset = 0, array $order_by = []): QBSelect
 	{
 		$sel = new QBSelect($this->db);
-		$sel->select()
+		$sel->select($this->table_alias)
 			->from($this->table->getFullName(), $this->getTableAlias())
 			->where($this->getFilters())
 			->bindMergeFrom($this->getBindingSource());
@@ -339,8 +343,6 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 * @param mixed    $value    the filter value
 	 *
 	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	protected function filterBy(Operator $operator, string $column, mixed $value = null): static
 	{

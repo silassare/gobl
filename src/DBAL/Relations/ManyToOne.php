@@ -13,30 +13,21 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Relations;
 
-use Gobl\DBAL\Relations\Traits\SimpleRelationTrait;
-use Gobl\DBAL\Table;
+use Gobl\DBAL\Relations\Interfaces\LinkInterface;
 
 /**
  * Class ManyToOne.
  */
 final class ManyToOne extends Relation
 {
-	use SimpleRelationTrait;
-
 	/**
 	 * ManyToOne constructor.
 	 *
-	 * @param string           $name
-	 * @param \Gobl\DBAL\Table $host_table
-	 * @param \Gobl\DBAL\Table $target_table
-	 * @param null|array       $columns
+	 * @param string                                        $name
+	 * @param \Gobl\DBAL\Relations\Interfaces\LinkInterface $link
 	 */
-	public function __construct(
-		string $name,
-		Table $host_table,
-		Table $target_table,
-		?array $columns = null
-	) {
-		parent::__construct(RelationType::MANY_TO_ONE, $name, $host_table, $target_table, $columns);
+	public function __construct(string $name, LinkInterface $link)
+	{
+		parent::__construct(RelationType::MANY_TO_ONE, $name, $link);
 	}
 }

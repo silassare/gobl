@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Queries\Traits;
 
 use Gobl\DBAL\Interfaces\RDBMSInterface;
+use Gobl\DBAL\Table;
 use PDO;
 
 /**
@@ -74,5 +75,76 @@ trait QBCommonTrait
 	public function getRDBMS(): RDBMSInterface
 	{
 		return $this->db;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function resolveTable(string|Table $table_name_or_alias): ?Table
+	{
+		/** @var null|Table $resolved_table */
+		$resolved_table = null;
+
+		if ($table_name_or_alias instanceof Table) {
+			$resolved_table = $table_name_or_alias;
+		}
+
+		if (!$resolved_table) {
+			// maybe a table name or full name
+			$resolved_table = $this->db->getTable($table_name_or_alias);
+
+			// check if it is an alias
+			if ($aliased_table_name = $this->getAliasTable($table_name_or_alias)) {
+				$resolved_table = $this->db->getTable($aliased_table_name);
+			}
+		}
+
+		return $resolved_table;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function fullyQualifiedName(string|Table $table_name_or_alias, string $column): string
+	{
+		return $this->fullyQualifiedNameArray($table_name_or_alias, [$column])[0];
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function fullyQualifiedNameArray(string|Table $table_name_or_alias, array $columns = []): array
+	{
+		$table      = $this->resolveTable($table_name_or_alias);
+		$table_name = $table?->getFullName() ?? $table_name_or_alias;
+
+		// if the provided argument is an alias, use it as the head
+		if (\is_string($table_name_or_alias) && $this->isDeclaredAlias($table_name_or_alias)) {
+			$head = $table_name_or_alias;
+		} else {
+			// try get the main alias or fallback to the table name / provided argument
+			try {
+				$head = $this->getMainAlias($table_name);
+			} catch (\Throwable) {
+				$head = $table_name;
+			}
+		}
+
+		$out = [];
+
+		if (empty($columns)) {
+			return [$head . '.*'];
+		}
+
+		foreach ($columns as $column) {
+			if ($table) {
+				$column = $table->getColumnOrFail($column)
+					->getFullName();
+			}
+
+			$out[] = $head . '.' . $column;
+		}
+
+		return $out;
 	}
 }

@@ -33,23 +33,31 @@ trait QBSetColumnsTrait
 	}
 
 	/**
-	 * @param string $table
+	 * @param string $table_name
 	 * @param array  $columns_values_map
-	 * @param bool   $auto_prefix
+	 * @param bool   $auto_prefix_column
 	 *
 	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
-	protected function setInsertOrUpdateColumnsValues(string $table, array $columns_values_map, bool $auto_prefix): static
+	protected function setInsertOrUpdateColumnsValues(string $table_name, array $columns_values_map, bool $auto_prefix_column): static
 	{
-		if ($auto_prefix) {
-			$columns            = $this->prefixColumnsArray($table, \array_keys($columns_values_map));
-			$columns_values_map = \array_combine($columns, \array_values($columns_values_map));
-		}
-
 		$params  = [];
 		$columns = [];
+
+		if ($auto_prefix_column) {
+			$table      = $this->db->getTableOrFail($table_name);
+			$table_name = $table->getFullName();
+
+			$tmp = [];
+			foreach ($columns_values_map as $column => $value) {
+				$column = $table->getColumnOrFail($column)
+					->getFullName();
+
+				$tmp[$column] = $value;
+			}
+
+			$columns_values_map = $tmp;
+		}
 
 		foreach ($columns_values_map as $column => $value) {
 			if ($value instanceof QBExpression) {
@@ -61,7 +69,7 @@ trait QBSetColumnsTrait
 			}
 
 			$columns[$column] = TypeUtils::runEnforceQueryExpressionValueType(
-				$table,
+				$table_name,
 				$column,
 				$value,
 				$this->db

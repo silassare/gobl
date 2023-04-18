@@ -233,16 +233,6 @@ abstract class CSGenerator
 			$type         = $relation->getType();
 			$host_table   = $relation->getHostTable();
 			$target_table = $relation->getTargetTable();
-			$rc           = $relation->getRelationColumns();
-			$filters      = [];
-
-			foreach ($rc as $left => $right) {
-				$left   = $this->describeColumn($host_table->getColumnOrFail($left));
-				$right  = $this->describeColumn($target_table->getColumnOrFail($right));
-				$filter = ['filter_column' => $right, 'value_column' => $left];
-
-				$filters[] = $filter;
-			}
 
 			$use[] = ORMClassKind::CONTROLLER->getClassFQN($target_table, true) . ' as ' . ORMClassKind::CONTROLLER->getClassName($target_table) . 'RealR';
 			$use[] = ORMClassKind::ENTITY->getClassFQN($target_table, true) . ' as ' . ORMClassKind::ENTITY->getClassName($target_table) . 'RealR';
@@ -254,7 +244,6 @@ abstract class CSGenerator
 				'methodSuffix' => Str::toClassName($r_name),
 				'host'         => $this->getTableInject($host_table),
 				'target'       => $this->getTableInject($target_table),
-				'filters'      => $filters,
 			];
 		}
 

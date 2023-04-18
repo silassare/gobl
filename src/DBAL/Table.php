@@ -304,7 +304,7 @@ final class Table implements ArrayCapableInterface
 
 		if (isset($missing)) {
 			throw new InvalidArgumentException(\sprintf(
-				'Invalid table "%s" required properties: %s',
+				'Invalid table "%s" missing required properties: %s',
 				$this->name,
 				\implode(', ', $missing)
 			));
@@ -802,7 +802,7 @@ final class Table implements ArrayCapableInterface
 	/**
 	 * Adds a unique key constraint on columns.
 	 *
-	 * @param array $columns the columns
+	 * @param array<\Gobl\DBAL\Column|string> $columns the columns
 	 *
 	 * @return $this
 	 *
@@ -825,6 +825,9 @@ final class Table implements ArrayCapableInterface
 				$uc = new UniqueKey($constraint_name, $this);
 
 				foreach ($columns as $column_name) {
+					if ($column_name instanceof Column) {
+						$column_name = $column_name->getName();
+					}
 					$uc->addColumn($column_name);
 				}
 
@@ -838,7 +841,7 @@ final class Table implements ArrayCapableInterface
 	/**
 	 * Adds a primary key constraint on columns.
 	 *
-	 * @param array $columns the columns
+	 * @param array<\Gobl\DBAL\Column|string> $columns the columns
 	 *
 	 * @return $this
 	 *
@@ -855,6 +858,9 @@ final class Table implements ArrayCapableInterface
 			}
 
 			foreach ($columns as $column_name) {
+				if ($column_name instanceof Column) {
+					$column_name = $column_name->getName();
+				}
 				$this->pk_constraint->addColumn($column_name);
 			}
 		}
@@ -865,11 +871,11 @@ final class Table implements ArrayCapableInterface
 	/**
 	 * Adds a foreign key constraint on columns.
 	 *
-	 * @param null|string      $constraint_name the constraint name
-	 * @param \Gobl\DBAL\Table $reference_table the reference table
-	 * @param array            $columns         the columns
-	 * @param ForeignKeyAction $update_action   the reference column update action
-	 * @param ForeignKeyAction $delete_action   the reference column delete action
+	 * @param null|string           $constraint_name the constraint name
+	 * @param \Gobl\DBAL\Table      $reference_table the reference table
+	 * @param array                 $columns         the columns
+	 * @param null|ForeignKeyAction $update_action   the reference column update action
+	 * @param null|ForeignKeyAction $delete_action   the reference column delete action
 	 *
 	 * @return $this
 	 *
@@ -879,8 +885,8 @@ final class Table implements ArrayCapableInterface
 		?string $constraint_name,
 		self $reference_table,
 		array $columns,
-		ForeignKeyAction $update_action,
-		ForeignKeyAction $delete_action
+		?ForeignKeyAction $update_action,
+		?ForeignKeyAction $delete_action
 	): self {
 		$this->assertNotLocked();
 
@@ -932,8 +938,8 @@ final class Table implements ArrayCapableInterface
 				$fk->addColumn($column_name, $reference_column);
 			}
 
-			$fk->setUpdateAction($update_action);
-			$fk->setDeleteAction($delete_action);
+			$update_action && $fk->setUpdateAction($update_action);
+			$delete_action && $fk->setDeleteAction($delete_action);
 		}
 
 		return $this;

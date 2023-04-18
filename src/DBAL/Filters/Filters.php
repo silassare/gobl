@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Filters;
 
 use Gobl\DBAL\Column;
-use Gobl\DBAL\Exceptions\DBALException;
+use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface;
 use Gobl\DBAL\Filters\Traits\FiltersOperatorsHelpersTrait;
 use Gobl\DBAL\Operator;
@@ -71,7 +71,7 @@ final class Filters
 	{
 		return $this->qb->getRDBMS()
 			->getGenerator()
-			->toExpression($this->group);
+			->filterToExpression($this->group);
 	}
 
 	/**
@@ -89,8 +89,6 @@ final class Filters
 	 * @param null|\Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface $scope
 	 *
 	 * @return static
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public static function fromArray(array $filters, QBInterface $qb, ?FiltersScopeInterface $scope = null): self
 	{
@@ -108,7 +106,7 @@ final class Filters
 				$left    = $cur;
 				$op_name = $filters[++$i] ?? null;
 				if (!\is_string($op_name)) {
-					throw new DBALException('unexpected "%s" while expecting operator.', [
+					throw new DBALRuntimeException('unexpected "%s" while expecting operator.', [
 						'after'      => $left,
 						'unexpected' => $op_name,
 					]);
@@ -116,7 +114,7 @@ final class Filters
 
 				$operator = Operator::tryFrom($op_name);
 				if (!$operator) {
-					throw new DBALException('invalid operator.', [
+					throw new DBALRuntimeException('invalid operator.', [
 						'found' => $op_name,
 					]);
 				}
@@ -132,7 +130,7 @@ final class Filters
 						} elseif (Operator::NEQ === $operator) {
 							$operator = Operator::IS_NOT_NULL;
 						} else {
-							throw new DBALException('invalid right operand.', [
+							throw new DBALRuntimeException('invalid right operand.', [
 								'filter' => [$left, $op_name, $right],
 							]);
 						}
@@ -143,7 +141,7 @@ final class Filters
 			} elseif (\is_array($cur)) {
 				$instance->where(self::fromArray($cur, $qb, $scope));
 			} else {
-				throw new DBALException(\sprintf('unexpected "%s" will expecting "string|array".', \get_debug_type($cur)));
+				throw new DBALRuntimeException(\sprintf('unexpected "%s" will expecting "string|array".', \get_debug_type($cur)));
 			}
 
 			/**
@@ -154,7 +152,7 @@ final class Filters
 			if (\array_key_exists(++$i, $filters)) {
 				$cond = $filters[$i];
 				if (!\is_string($cond)) {
-					throw new DBALException(\sprintf('unexpected "%s" will expecting conditional operator: "and|or".', \get_debug_type($cond)));
+					throw new DBALRuntimeException(\sprintf('unexpected "%s" will expecting conditional operator: "and|or".', \get_debug_type($cond)));
 				}
 
 				$cond = \strtoupper($cond);
@@ -164,12 +162,12 @@ final class Filters
 				} elseif ('OR' === $cond) {
 					$instance->or();
 				} else {
-					throw new DBALException(\sprintf('unexpected conditional operator "%s" allowed value are: "and|or".', $cond));
+					throw new DBALRuntimeException(\sprintf('unexpected conditional operator "%s" allowed value are: "and|or".', $cond));
 				}
 
 				$next = $filters[++$i] ?? null;
 				if (null === $next) {
-					throw new DBALException('a conditional operator should not be the last item in a filter or filter group.');
+					throw new DBALRuntimeException('a conditional operator should not be the last item in a filter or filter group.');
 				}
 			}
 		}
@@ -181,15 +179,10 @@ final class Filters
 	 * Joins filters and following with AND condition.
 	 *
 	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function and(array|self|callable ...$filters): self
 	{
-		if (!$this->group->isAnd()) {
-			$group       = new FilterGroup(true);
-			$this->group = $group->push($this->group);
-		}
+		$this->group->ensureChainingCondition(true);
 
 		return !empty($filters) ? $this->where(...$filters) : $this;
 	}
@@ -198,15 +191,10 @@ final class Filters
 	 * Joins filters and following with OR condition.
 	 *
 	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function or(array|self|callable ...$filters): self
 	{
-		if ($this->group->isAnd()) {
-			$group       = new FilterGroup(false);
-			$this->group = $group->push($this->group);
-		}
+		$this->group->ensureChainingCondition(false);
 
 		return !empty($filters) ? $this->where(...$filters) : $this;
 	}
@@ -239,25 +227,23 @@ final class Filters
 	 * in the actual filters scope...
 	 * ```
 	 *
-	 * @param array|callable|self ...$filters
+	 * @param array|callable|\Gobl\DBAL\Filters\Filters ...$filters
 	 *
 	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function where(array|self|callable ...$filters): self
 	{
 		foreach ($filters as $entry) {
 			if ($entry instanceof self) {
 				if ($entry === $this) {
-					throw new DBALException(\sprintf(
+					throw new DBALRuntimeException(\sprintf(
 						'Current instance used as sub group, you may need to create a sub group with: %s',
 						Str::callableName([$this, 'subGroup'])
 					));
 				}
 
 				if ($this->qb !== $entry->qb) {
-					throw new DBALException(\sprintf(
+					throw new DBALRuntimeException(\sprintf(
 						'"%s" instance should share the same "%s" instance.',
 						self::class,
 						QBInterface::class
@@ -265,32 +251,32 @@ final class Filters
 				}
 
 				if ($this->scope && !$this->scope->shouldAllowFiltersScope($entry->scope)) {
-					throw new DBALException(\sprintf(
+					throw new DBALRuntimeException(\sprintf(
 						'"%s" instance should share the same "%s" instance.',
 						self::class,
 						FiltersScopeInterface::class
 					));
 				}
 
-				$fb = $entry;
+				$filter = $entry->group;
 			} elseif (\is_callable($entry)) {
 				$sub    = $this->subGroup();
 				$return = $entry($sub);
 
 				if ($return !== $sub) {
-					throw (new DBALException(\sprintf(
+					throw (new DBALRuntimeException(\sprintf(
 						'The sub-filters group callable should return the same instance of "%s" passed as argument.',
 						self::class
 					)))
 						->suspectCallable($entry);
 				}
 
-				$fb = $sub;
+				$filter = $sub->group;
 			} else {
-				$fb = self::fromArray($entry, $this->qb, $this->scope);
+				$filter = self::fromArray($entry, $this->qb, $this->scope)->group;
 			}
 
-			$this->group->push($fb->group);
+			$this->group->push($filter);
 		}
 
 		return $this;
@@ -304,8 +290,6 @@ final class Filters
 	 * @param null|mixed          $right    the right operand if allowed
 	 *
 	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function add(Operator $operator, string $left, null|int|float|string|array|QBExpression|QBInterface $right = null): self
 	{
@@ -319,12 +303,12 @@ final class Filters
 
 		$operands_count = $operator->getOperandsCount();
 
-		$left = $this->cleanOperand($left, $left_table, $left_column);
+		$left = $this->cleanOperand($left, $detected_left_table, $detected_left_column);
 
 		if ($this->scope) {
-			$left = $left_column ?? $left;
+			$left = $detected_left_column ?? $left;
 			$this->scope->assertFilterAllowed($operator, $left, $right);
-			if (!$left_table) {
+			if (!$detected_left_table) {
 				$left = $this->scope->getColumnFQName($left);
 			}
 		}
@@ -333,7 +317,7 @@ final class Filters
 			$try_enforce_query_type = true;
 
 			if ($right instanceof QBInterface && QBType::SELECT !== $right->getType()) {
-				throw new DBALException(
+				throw new DBALRuntimeException(
 					\sprintf(
 						'right operand of type "%s" should be a "SELECT" not: %s',
 						$right::class,
@@ -353,7 +337,7 @@ final class Filters
 					$right                  = (string) $right;
 					$try_enforce_query_type = false;
 				} else {
-					throw new DBALException(
+					throw new DBALRuntimeException(
 						\sprintf(
 							'operator "%s" right operand should be of type "%s" not: %s',
 							$operator->name,
@@ -369,7 +353,7 @@ final class Filters
 				$right = (string) $right;
 			} else {
 				if (\is_array($right)) {
-					throw new DBALException(
+					throw new DBALRuntimeException(
 						\sprintf(
 							'"array" type for right operand not supported by operator: %s',
 							$operator->name
@@ -377,9 +361,9 @@ final class Filters
 					);
 				}
 
-				$right = $this->cleanOperand($right, $right_table, $right_column);
+				$right = $this->cleanOperand($right, $detected_right_table, $detected_right_column);
 
-				if (!$right_column) {
+				if (!$detected_right_column) {
 					$param_key = QBUtils::newParamKey();
 					$this->qb->bindNamed($param_key, $right);
 
@@ -387,10 +371,10 @@ final class Filters
 				}
 			}
 
-			if ($left_table && $left_column && $try_enforce_query_type) {
+			if ($detected_left_table && $detected_left_column && $try_enforce_query_type) {
 				$right = TypeUtils::runEnforceQueryExpressionValueType(
-					$left_table,
-					$left_column,
+					$detected_left_table,
+					$detected_left_column,
 					$right,
 					$this->qb->getRDBMS()
 				);
@@ -444,8 +428,6 @@ final class Filters
 	 * @param null|\Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface $scope
 	 *
 	 * @return \Gobl\DBAL\Filters\Filters
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	private static function fromString(
 		string $expression,
@@ -467,8 +449,6 @@ final class Filters
 	 * @param null|string &$found_column
 	 *
 	 * @return string
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	private function cleanOperand(mixed $operand, string &$found_table = null, string &$found_column = null): mixed
 	{
@@ -479,14 +459,16 @@ final class Filters
 
 			if (2 === \count($parts) && !empty($parts[0]) && !empty($parts[1])) {
 				try {
-					$table = $this->qb->resolveTableFullName($parts[0]);
-					if ($table) {
-						$operand = $this->qb->prefixColumnsString($table, $parts[1]);
+					$table_name = $this->qb->resolveTable($parts[0])
+						?->getFullName();
+					if ($table_name) {
+						$operand = $this->qb->fullyQualifiedName($parts[0], $parts[1]);
 						// we found a table and column
 						$fqn_parts = \explode('.', $operand);
 
 						if (2 === \count($fqn_parts)) {
-							[$found_table, $found_column] = $fqn_parts;
+							$found_table  = $table_name;
+							$found_column = $fqn_parts[1];
 						}
 					}
 				} catch (Throwable) {
@@ -497,13 +479,13 @@ final class Filters
 			$table  = $column->getTable();
 
 			if (null === $table) {
-				throw new DBALException(\sprintf('attempt to use unlocked column "%s" in a query.', $column->getName()));
+				throw new DBALRuntimeException(\sprintf('attempt to use unlocked column "%s" in a query.', $column->getName()));
 			}
 
 			$found_table  = $table->getFullName();
 			$found_column = $column->getFullName();
 
-			$operand = $found_table . '.' . $found_column;
+			$operand = $this->qb->fullyQualifiedName($found_table, $found_column);
 		}
 
 		return $operand;
@@ -536,8 +518,6 @@ final class Filters
 	 * @param null|\Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface $scope
 	 *
 	 * @return \Gobl\DBAL\Filters\Filters
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	private static function fromOldFiltersArray(array $filters, QBInterface $qb, ?FiltersScopeInterface $scope = null): self
 	{
@@ -551,7 +531,7 @@ final class Filters
 					if (\is_array($filter)) {// [[rule, value, cond], ...]
 						$operator_name = $filter[0] ?? null;
 						if (!\is_string($operator_name)) {
-							throw new DBALException('GOBL_INVALID_FILTERS', [
+							throw new DBALRuntimeException('GOBL_INVALID_FILTERS', [
 								'field'  => $left,
 								'filter' => $filter,
 							]);
@@ -560,7 +540,7 @@ final class Filters
 						$operator = Operator::tryFrom($operator_name);
 
 						if (null === $operator) {
-							throw new DBALException('GOBL_UNKNOWN_OPERATOR_IN_FILTERS', [
+							throw new DBALRuntimeException('GOBL_UNKNOWN_OPERATOR_IN_FILTERS', [
 								'field'  => $left,
 								'filter' => $filter,
 							]);
@@ -574,7 +554,7 @@ final class Filters
 							$use_and_index = 1; // value not needed
 						} else {
 							if (!\array_key_exists($value_index, $filter)) {
-								throw new DBALException('GOBL_MISSING_VALUE_IN_FILTERS', [
+								throw new DBALRuntimeException('GOBL_MISSING_VALUE_IN_FILTERS', [
 									'field'  => $left,
 									'filter' => $filter,
 								]);
@@ -591,7 +571,7 @@ final class Filters
 							} elseif ('or' === $a || 'OR' === $a) {
 								$sub_filters_group->or();
 							} else {
-								throw new DBALException('GOBL_INVALID_FILTERS', [
+								throw new DBALRuntimeException('GOBL_INVALID_FILTERS', [
 									'field'  => $left,
 									'filter' => $filter,
 								]);
@@ -602,7 +582,7 @@ final class Filters
 
 						$sub_filters_group->add($operator, $left, $value);
 					} else {
-						throw new DBALException('GOBL_INVALID_FILTERS', [
+						throw new DBALRuntimeException('GOBL_INVALID_FILTERS', [
 							'field'  => $left,
 							'filter' => $filter,
 						]);

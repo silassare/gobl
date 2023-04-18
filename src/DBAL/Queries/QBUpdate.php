@@ -16,7 +16,6 @@ namespace Gobl\DBAL\Queries;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\Interfaces\QBInterface;
 use Gobl\DBAL\Queries\Traits\QBCommonTrait;
-use Gobl\DBAL\Queries\Traits\QBJoinsTrait;
 use Gobl\DBAL\Queries\Traits\QBLimitTrait;
 use Gobl\DBAL\Queries\Traits\QBOrderByTrait;
 use Gobl\DBAL\Queries\Traits\QBSetColumnsTrait;
@@ -28,7 +27,6 @@ use Gobl\DBAL\Queries\Traits\QBWhereTrait;
 class QBUpdate implements QBInterface
 {
 	use QBCommonTrait;
-	use QBJoinsTrait;
 	use QBLimitTrait;
 	use QBOrderByTrait;
 	use QBSetColumnsTrait;
@@ -85,19 +83,20 @@ class QBUpdate implements QBInterface
 	}
 
 	/**
+	 * Sets the table to update.
+	 *
 	 * @param string      $table
 	 * @param null|string $alias
 	 *
 	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function update(string $table, ?string $alias = null): self
 	{
-		$this->options_table = $this->resolveTableFullName($table) ?? $table;
+		$this->options_table = $this->resolveTable($table)
+			?->getFullName() ?? $table;
 
 		if (!empty($alias)) {
-			$this->useAlias($this->options_table, $alias);
+			$this->alias($this->options_table, $alias);
 			$this->options_update_table_alias = $alias;
 		}
 
@@ -105,12 +104,12 @@ class QBUpdate implements QBInterface
 	}
 
 	/**
+	 * Sets the columns and values to update.
+	 *
 	 * @param array $columns_values_map
 	 * @param bool  $auto_prefix
 	 *
 	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function set(array $columns_values_map, bool $auto_prefix = true): self
 	{

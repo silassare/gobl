@@ -13,36 +13,21 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Relations;
 
-use Gobl\DBAL\Relations\Traits\FilterableRelationTrait;
-use Gobl\DBAL\Relations\Traits\SimpleRelationTrait;
-use Gobl\DBAL\Table;
+use Gobl\DBAL\Relations\Interfaces\LinkInterface;
 
 /**
  * Class OneToMany.
  */
 final class OneToMany extends Relation
 {
-	use FilterableRelationTrait;
-	use SimpleRelationTrait;
-
 	/**
 	 * OneToMany constructor.
 	 *
-	 * @param string           $name
-	 * @param \Gobl\DBAL\Table $host_table
-	 * @param \Gobl\DBAL\Table $target_table
-	 * @param null|array       $columns
-	 * @param null|array       $filters
+	 * @param string                                        $name
+	 * @param \Gobl\DBAL\Relations\Interfaces\LinkInterface $link
 	 */
-	public function __construct(
-		string $name,
-		Table $host_table,
-		Table $target_table,
-		?array $columns = null,
-		?array $filters = null
-	) {
-		parent::__construct(RelationType::ONE_TO_MANY, $name, $host_table, $target_table, $columns);
-
-		$this->filters = $filters;
+	public function __construct(string $name, LinkInterface $link)
+	{
+		parent::__construct(RelationType::ONE_TO_MANY, $name, $link);
 	}
 }

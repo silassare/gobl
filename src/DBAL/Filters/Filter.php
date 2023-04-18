@@ -13,12 +13,13 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Filters;
 
+use Gobl\DBAL\Filters\Interfaces\FilterInterface;
 use Gobl\DBAL\Operator;
 
 /**
  * Class Filter.
  */
-final class Filter
+final class Filter implements FilterInterface
 {
 	/**
 	 * Filter constructor.

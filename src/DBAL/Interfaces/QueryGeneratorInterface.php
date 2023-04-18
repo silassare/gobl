@@ -16,8 +16,8 @@ namespace Gobl\DBAL\Interfaces;
 use Gobl\DBAL\Column;
 use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Diff\DiffAction;
-use Gobl\DBAL\Filters\Filter;
-use Gobl\DBAL\Filters\FilterGroup;
+use Gobl\DBAL\Filters\Filters;
+use Gobl\DBAL\Filters\Interfaces\FilterInterface;
 use Gobl\DBAL\Queries\Interfaces\QBInterface;
 use Gobl\DBAL\Queries\QBSelect;
 
@@ -74,13 +74,13 @@ interface QueryGeneratorInterface
 	public function buildTotalRowCountQuery(QBSelect $qb): string;
 
 	/**
-	 * Converts filter or a filter group to sql expression.
+	 * Converts filters to sql expression.
 	 *
-	 * @param \Gobl\DBAL\Filters\Filter|\Gobl\DBAL\Filters\FilterGroup $filter
+	 * @param FilterInterface|Filters $filter
 	 *
 	 * @return string
 	 */
-	public function toExpression(FilterGroup|Filter $filter): string;
+	public function filterToExpression(FilterInterface|Filters $filter): string;
 
 	/**
 	 * Checks if two given columns has the same type definition.
