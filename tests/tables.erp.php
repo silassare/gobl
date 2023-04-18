@@ -110,7 +110,14 @@ return [
 			'variants'   => ['type' => 'one-to-many', 'target' => 'products', ['id' => 'variant_of']],
 			'original'   => ['type' => 'many-to-one', 'target' => 'products', ['variant_of' => 'id']],
 			'prices'     => ['type' => 'one-to-many', 'target' => 'prices'],
-			'promos'     => ['type' => 'many-to-many', 'target' => 'promos', 'junction_table' => 'promos_products'],
+			'promos'     => [
+				'type'   => 'many-to-many',
+				'target' => 'promos',
+				'link'   => [
+					'type'        => 'through',
+					'pivot_table' => 'promo_products',
+				],
+			],
 		],
 		'constraints'   => [
 			['type' => 'primary_key', 'columns' => ['id']],
@@ -281,9 +288,9 @@ return [
 				'format' => 'timestamp',
 			],
 			'end_at'           => [
-				'type'       => 'date',
-				'format'     => 'timestamp',
-				'nullable'   => true,
+				'type'     => 'date',
+				'format'   => 'timestamp',
+				'nullable' => true,
 			],
 
 			...$common_columns,

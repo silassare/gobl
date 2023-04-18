@@ -146,4 +146,18 @@ final class DBTest extends BaseTestCase
 
 		$db->addTable((new Table('members'))->addColumn(new Column('id')));
 	}
+
+	public function testGetTables(): void
+	{
+		$db = self::getEmptyDb();
+		$db->addTable((new Table('users', 'pr'))->addColumn(new Column('id')));
+		$db->addTable((new Table('members'))->addColumn(new Column('id')));
+
+		$expected = [
+			'users',
+			'members',
+		];
+
+		static::assertSame($expected, \array_keys($db->getTables()));
+	}
 }

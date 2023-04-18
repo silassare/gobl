@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\Tests;
 
+use Gobl\DBAL\Builders\TableBuilder;
 use Gobl\DBAL\Db;
 use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Drivers\MySQL\MySQL;
@@ -20,6 +21,7 @@ use Gobl\DBAL\Drivers\MySQL\MySQLQueryGenerator;
 use Gobl\DBAL\Drivers\SQLLite\SQLLite;
 use Gobl\DBAL\Drivers\SQLLite\SQLLiteQueryGenerator;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
+use Gobl\DBAL\Relations\LinkType;
 use Gobl\Exceptions\GoblRuntimeException;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
@@ -63,11 +65,92 @@ abstract class BaseTestCase extends TestCase
 			} catch (Throwable $t) {
 				gobl_test_log($t);
 
-				throw new GoblRuntimeException('db init failed.', 0, $t);
+				throw new GoblRuntimeException('db init failed.', null, $t);
 			}
 		}
 
 		return self::$rdbms[$type];
+	}
+
+	/**
+	 * Returns an empty db instance.
+	 *
+	 * @param string $type
+	 *
+	 * @return \Gobl\DBAL\Interfaces\RDBMSInterface
+	 */
+	public static function getEmptyDb(string $type = self::DEFAULT_RDBMS): RDBMSInterface
+	{
+		$config = self::getDbConfig($type);
+
+		return Db::createInstanceWithName($type, $config);
+	}
+
+	/**
+	 * Returns a sample db instance with some tables.
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 */
+	public static function getSampleDB(): RDBMSInterface
+	{
+		$db    = self::getEmptyDb();
+		$scope = $db->scope('test');
+
+		$users = $scope->table('users', function (TableBuilder $t) {
+			$t->id();
+			$t->string('name');
+		});
+
+		$roles = $scope->table('roles', function (TableBuilder $t) {
+			$t->id();
+			$t->string('title');
+			$t->foreign('user_id', 'users', 'id');
+
+			$t->belongsTo('user')
+				->from('users');
+		});
+
+		$tags = $scope->table('tags', function (TableBuilder $t) {
+			$t->id();
+			$t->string('label');
+		});
+
+		$taggables = $scope->table('taggables', function (TableBuilder $t) {
+			$t->id();
+			$t->foreign('tag_id', 'tags', 'id');
+			$t->morph('taggable');
+
+			$t->belongsTo('tag')
+				->from('tags');
+		});
+
+		$articles = $scope->table('articles', function (TableBuilder $t) {
+			$t->id();
+			$t->string('title');
+			$t->foreign('user_id', 'users', 'id');
+
+			$t->belongsTo('user')
+				->from('users');
+
+			$t->hasMany('tags')
+				->from('tags')
+				->through('taggables', [
+					'type'   => LinkType::MORPH,
+					'prefix' => 'taggable',
+				]);
+		});
+
+		$roles->factory(function (TableBuilder $t) {
+			$t->hasMany('users')
+				->from('users');
+		});
+
+		$users->factory(function (TableBuilder $t) {
+			$t->hasMany('roles')
+				->from('roles');
+		});
+
+		return $db->lock();
 	}
 
 	/**
