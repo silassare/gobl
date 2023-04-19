@@ -101,7 +101,7 @@ abstract class ORMResults implements Countable, Iterator
 	 * Fetches the next row.
 	 *
 	 * The db type to php type conversion will be applied to fetched result
-	 * only if `$fetch_style` options contains `\PDO::FETCH_ASSOC`
+	 * only if the fetch style style options contains `\PDO::FETCH_ASSOC`
 	 *
 	 * @param int $fetch_style
 	 *
