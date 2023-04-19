@@ -41,7 +41,7 @@ final class DiffTest extends BaseTestCase
 
 		$diff = new Diff($db_a, $db_b);
 
-		\file_put_contents(GOBL_TEST_OUTPUT . '/diff.out.php', (string) $diff->generateMigrationFile());
+		\file_put_contents(GOBL_TEST_OUTPUT . '/diff.out.php', (string) $diff->generateMigrationFile(1));
 
 		/** @var MigrationInterface $expected */
 		/** @var MigrationInterface $actual */
@@ -50,6 +50,7 @@ final class DiffTest extends BaseTestCase
 
 		static::assertInstanceOf(MigrationInterface::class, $actual);
 
+		static::assertSame($expected->getVersion(), $actual->getVersion());
 		static::assertSame($expected->up(), $actual->up());
 		static::assertSame($expected->down(), $actual->down());
 	}
