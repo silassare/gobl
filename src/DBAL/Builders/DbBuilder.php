@@ -21,6 +21,11 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
 final class DbBuilder
 {
 	/**
+	 * @var \Gobl\DBAL\Builders\TableBuilder[]
+	 */
+	private array $cache = [];
+
+	/**
 	 * DbBuilder constructor.
 	 *
 	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $rdbms     The database
@@ -33,13 +38,20 @@ final class DbBuilder
 	}
 
 	/**
-	 * Creates a new table.
+	 * Returns the table builder instance for the given table name.
+	 *
+	 * @param string                      $name    The table name
+	 * @param callable(TableBuilder):void $factory The table factory
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function table(string $name, callable $factory): TableBuilder
 	{
-		$table_builder = new TableBuilder($this->rdbms, $this->namespace, $name);
+		if (isset($this->cache[$name])) {
+			return $this->cache[$name];
+		}
+
+		$this->cache[$name] = $table_builder = new TableBuilder($this->rdbms, $this->namespace, $name);
 
 		$table_builder->factory($factory);
 
