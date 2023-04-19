@@ -29,23 +29,21 @@ final class QueryBuilderTest extends BaseTestCase
 {
 	public function testFullyQualifiedNameArray(): void
 	{
-		$db = self::getEmptyDb();
+		$db    = self::getEmptyDb();
+		$ns    = $db->ns('test');
+		$users = $ns->table('users', function (TableBuilder $t) {
+			$t->columnPrefix('usr');
+			$t->id();
+			$t->string('name');
+			$t->string('phone');
+		});
 
-		$users = $db->scope('test')
-			->table('users', function (TableBuilder $t) {
-				$t->columnPrefix('usr');
-				$t->id();
-				$t->string('name');
-				$t->string('phone');
-			});
-
-		$commands = $db->scope('test')
-			->table('commands', function (TableBuilder $t) {
-				$t->columnPrefix('cmd');
-				$t->id();
-				$t->string('title');
-				$t->string('phone');
-			});
+		$commands = $ns->table('commands', function (TableBuilder $t) {
+			$t->columnPrefix('cmd');
+			$t->id();
+			$t->string('title');
+			$t->string('phone');
+		});
 
 		$db->lock();
 

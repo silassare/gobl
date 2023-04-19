@@ -57,11 +57,9 @@ abstract class BaseTestCase extends TestCase
 			$config = self::getDbConfig($type);
 
 			try {
-				$db = self::$rdbms[$type] = Db::createInstanceWithName($type, $config);
-				$db->addTablesToNamespace(
-					self::TEST_DB_NAMESPACE,
-					self::getTablesDefinitions()
-				);
+				$db = self::$rdbms[$type] = Db::createInstanceOf($type, $config);
+				$db->ns(self::TEST_DB_NAMESPACE)
+					->addTables(self::getTablesDefinitions());
 			} catch (Throwable $t) {
 				gobl_test_log($t);
 
@@ -83,7 +81,7 @@ abstract class BaseTestCase extends TestCase
 	{
 		$config = self::getDbConfig($type);
 
-		return Db::createInstanceWithName($type, $config);
+		return Db::createInstanceOf($type, $config);
 	}
 
 	/**
@@ -93,15 +91,15 @@ abstract class BaseTestCase extends TestCase
 	 */
 	public static function getSampleDB(): RDBMSInterface
 	{
-		$db    = self::getEmptyDb();
-		$scope = $db->scope('test');
+		$db = self::getEmptyDb();
+		$ns = $db->ns('test');
 
-		$users = $scope->table('users', function (TableBuilder $t) {
+		$users = $ns->table('users', function (TableBuilder $t) {
 			$t->id();
 			$t->string('name');
 		});
 
-		$roles = $scope->table('roles', function (TableBuilder $t) {
+		$roles = $ns->table('roles', function (TableBuilder $t) {
 			$t->id();
 			$t->string('title');
 			$t->foreign('user_id', 'users', 'id');
@@ -110,12 +108,12 @@ abstract class BaseTestCase extends TestCase
 				->from('users');
 		});
 
-		$tags = $scope->table('tags', function (TableBuilder $t) {
+		$tags = $ns->table('tags', function (TableBuilder $t) {
 			$t->id();
 			$t->string('label');
 		});
 
-		$taggables = $scope->table('taggables', function (TableBuilder $t) {
+		$taggables = $ns->table('taggables', function (TableBuilder $t) {
 			$t->id();
 			$t->foreign('tag_id', 'tags', 'id');
 			$t->morph('taggable');
@@ -124,7 +122,7 @@ abstract class BaseTestCase extends TestCase
 				->from('tags');
 		});
 
-		$articles = $scope->table('articles', function (TableBuilder $t) {
+		$articles = $ns->table('articles', function (TableBuilder $t) {
 			$t->id();
 			$t->string('title');
 			$t->foreign('user_id', 'users', 'id');

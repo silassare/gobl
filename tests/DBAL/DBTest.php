@@ -33,9 +33,9 @@ final class DBTest extends BaseTestCase
 {
 	public function testInstantiate(): void
 	{
-		static::assertInstanceOf(MySQL::class, Db::createInstanceWithName(MySQL::NAME, self::getDbConfig(MySQL::NAME)));
+		static::assertInstanceOf(MySQL::class, Db::createInstanceOf(MySQL::NAME, self::getDbConfig(MySQL::NAME)));
 
-		static::assertInstanceOf(SQLLite::class, Db::createInstanceWithName(SQLLite::NAME, self::getDbConfig(SQLLite::NAME)));
+		static::assertInstanceOf(SQLLite::class, Db::createInstanceOf(SQLLite::NAME, self::getDbConfig(SQLLite::NAME)));
 	}
 
 	public function testParseColumnReference(): void

@@ -35,9 +35,10 @@ final class DiffTest extends BaseTestCase
 
 		static::assertSame([], $diff->getDiff());
 
-		$db_b = Db::createInstanceWithName($db_a->getType(), $db_a->getConfig());
+		$db_b = Db::createInstanceOf($db_a->getType(), $db_a->getConfig());
 
-		$db_b->addTablesToNamespace('Test', self::getTablesDiffDefinitions());
+		$db_b->ns('Test')
+			->addTables(self::getTablesDiffDefinitions());
 
 		$diff = new Diff($db_a, $db_b);
 
