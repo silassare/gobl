@@ -58,7 +58,7 @@ final class TableBuilder
 	/**
 	 * Makes sure the table is ready to be used.
 	 *
-	 * @param callable $factory
+	 * @param callable($this):void $factory
 	 *
 	 * @return $this
 	 *
@@ -488,12 +488,18 @@ final class TableBuilder
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
-	public function morph(string $prefix): self
+	public function morph(string $prefix, TypeInterface|array $id_type = null): self
 	{
-		$this->string("{$prefix}_type")
-			->max(128);
+		$id_column_name = "{$prefix}_id";
 
-		$this->string("{$prefix}_id")
+		if ($id_type) {
+			$this->column($id_column_name, $id_type);
+		} else {
+			$this->bigint($id_column_name)
+				->unsigned();
+		}
+
+		$this->string("{$prefix}_type")
 			->max(128);
 
 		return $this;

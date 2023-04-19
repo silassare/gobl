@@ -178,6 +178,8 @@ final class Filters
 	/**
 	 * Joins filters and following with AND condition.
 	 *
+	 * @param array|callable|self ...$filters
+	 *
 	 * @return $this
 	 */
 	public function and(array|self|callable ...$filters): self
@@ -435,10 +437,8 @@ final class Filters
 		QBInterface $qb,
 		?FiltersScopeInterface $scope = null
 	): self {
-		$instance = new self($qb, $scope);
-		$instance->and();
-
-		return $instance;
+		// TODO: implement
+		return new self($qb, $scope);
 	}
 
 	/**
