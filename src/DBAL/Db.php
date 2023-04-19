@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL;
 
-use Gobl\DBAL\Builders\DbBuilder;
+use Gobl\DBAL\Builders\NamespaceBuilder;
 use Gobl\DBAL\Constraints\Constraint;
 use Gobl\DBAL\Constraints\ForeignKeyAction;
 use Gobl\DBAL\Drivers\MySQL\MySQL;
@@ -61,6 +61,13 @@ abstract class Db implements RDBMSInterface
 	private array $tables = [];
 
 	/**
+	 * Database namespaces.
+	 *
+	 * @var \Gobl\DBAL\Builders\NamespaceBuilder[]
+	 */
+	private array $namespaces = [];
+
+	/**
 	 * @var array
 	 */
 	private array $tbl_full_name_map = [];
@@ -100,21 +107,21 @@ abstract class Db implements RDBMSInterface
 	}
 
 	/**
-	 * Creates instance of RDBMS with the given name.
+	 * Creates a new database instance of the given rdbms name.
 	 *
-	 * @param string   $rdbms_name
+	 * @param string   $rdbms_type
 	 * @param DbConfig $config
 	 *
 	 * @return RDBMSInterface
 	 */
-	public static function createInstanceWithName(string $rdbms_name, DbConfig $config): RDBMSInterface
+	public static function createInstanceOf(string $rdbms_type, DbConfig $config): RDBMSInterface
 	{
-		if (!isset(self::$rdbms_map[$rdbms_name])) {
-			throw new InvalidArgumentException(\sprintf('Undefined rdbms: %s.', $rdbms_name));
+		if (!isset(self::$rdbms_map[$rdbms_type])) {
+			throw new InvalidArgumentException(\sprintf('Undefined rdbms: %s.', $rdbms_type));
 		}
 
 		/** @var RDBMSInterface $rdbms_class */
-		$rdbms_class = self::$rdbms_map[$rdbms_name];
+		$rdbms_class = self::$rdbms_map[$rdbms_type];
 
 		return $rdbms_class::createInstance($config);
 	}
@@ -235,8 +242,6 @@ abstract class Db implements RDBMSInterface
 				$columns          = $table_options['columns'];
 				$table_col_prefix = null;
 				$tbl              = new Table($table_name, $table_options['prefix'] ?? $tables_prefix);
-
-				$tbl->setNamespace($namespace);
 
 				if (isset($table_options['diff_key'])) {
 					$tbl->setDiffKey($table_options['diff_key']);
@@ -360,7 +365,7 @@ abstract class Db implements RDBMSInterface
 				));
 			}
 
-			$this->addTable($tbl);
+			$this->addTable($tbl->setNamespace($namespace));
 		}
 
 		// we add constraints after
@@ -604,9 +609,21 @@ abstract class Db implements RDBMSInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function scope(string $namespace): DbBuilder
+	public function namespace(string $namespace): NamespaceBuilder
 	{
-		return new DbBuilder($this, $namespace);
+		if (!isset($this->namespaces[$namespace])) {
+			$this->namespaces[$namespace] = new NamespaceBuilder($this, $namespace);
+		}
+
+		return $this->namespaces[$namespace];
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function ns(string $namespace): NamespaceBuilder
+	{
+		return $this->namespace($namespace);
 	}
 
 	/**
@@ -696,7 +713,7 @@ abstract class Db implements RDBMSInterface
 	 *
 	 * @param string $reference The column reference
 	 *
-	 * @return null|array
+	 * @return null|array{clone: bool, table: string, column: string}
 	 */
 	public static function parseColumnReference(string $reference): ?array
 	{
@@ -786,9 +803,7 @@ abstract class Db implements RDBMSInterface
 			$ref_table = $info['table'];
 			$ref_col   = $info['column'];
 
-			if (isset($this->tables[$ref_table])) {
-				$tbl = $this->tables[$ref_table];
-
+			if ($tbl = $this->getTable($ref_table)) {
 				if ($col = $tbl->getColumn($ref_col)) {
 					$_col_opt = $col->getType()
 						->toArray();

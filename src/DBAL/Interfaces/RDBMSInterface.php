@@ -58,7 +58,7 @@ interface RDBMSInterface
 	public function addTable(Table $table): self;
 
 	/**
-	 * Adds table from options.
+	 * Adds table from options to a given namespace.
 	 *
 	 * @param string $namespace The namespace to use
 	 * @param array  $tables    The tables options
@@ -75,6 +75,15 @@ interface RDBMSInterface
 	 * @return \Gobl\DBAL\Builders\NamespaceBuilder
 	 */
 	public function namespace(string $namespace): NamespaceBuilder;
+
+	/**
+	 * Alias of {@see namespace()}.
+	 *
+	 * @param string $namespace
+	 *
+	 * @return \Gobl\DBAL\Builders\NamespaceBuilder
+	 */
+	public function ns(string $namespace): NamespaceBuilder;
 
 	/**
 	 * Checks if a given table is defined.

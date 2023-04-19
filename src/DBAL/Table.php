@@ -1362,20 +1362,16 @@ final class Table implements ArrayCapableInterface
 	 */
 	public function doDbToPhpConversion(array $row, RDBMSInterface $rdbms): array
 	{
-		$out = [];
-
 		foreach ($row as $column => $value) {
 			$col = $this->getColumn($column);
 
 			if ($col) {
-				$value = $col->getType()
+				$row[$column] = $col->getType()
 					->dbToPhp($value, $rdbms);
 			}
-
-			$out[$column] = $value;
 		}
 
-		return $out;
+		return $row;
 	}
 
 	/**

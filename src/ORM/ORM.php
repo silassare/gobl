@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Gobl\ORM;
 
 use Gobl\DBAL\Interfaces\RDBMSInterface;
-use Gobl\ORM\Exceptions\ORMException;
 use Gobl\ORM\Exceptions\ORMRuntimeException;
 
 /**
@@ -30,13 +29,11 @@ class ORM
 	 *
 	 * @param string         $namespace the database namespace
 	 * @param RDBMSInterface $db        the database to use
-	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 */
 	public static function setDatabase(string $namespace, RDBMSInterface $db): void
 	{
 		if (isset(self::$databases[$namespace])) {
-			throw new ORMException(\sprintf('A database instance is already registered for: %s', $namespace));
+			throw new ORMRuntimeException(\sprintf('A database instance is already defined for: %s', $namespace));
 		}
 
 		self::$databases[$namespace] = $db;
@@ -52,7 +49,7 @@ class ORM
 	public static function getDatabase(string $namespace): RDBMSInterface
 	{
 		if (!isset(self::$databases[$namespace])) {
-			throw new ORMRuntimeException(\sprintf('No database registered for: %s', $namespace));
+			throw new ORMRuntimeException(\sprintf('No database instance defined for: %s', $namespace));
 		}
 
 		return self::$databases[$namespace];

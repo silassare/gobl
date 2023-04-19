@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Builders;
 
 use Gobl\DBAL\Interfaces\RDBMSInterface;
+use Gobl\ORM\ORM;
 
 /**
  * Class NamespaceBuilder.
@@ -58,5 +59,29 @@ final class NamespaceBuilder
 		$this->rdbms->addTable($table_builder->getTable());
 
 		return $table_builder;
+	}
+
+	/**
+	 * Adds tables to the namespace.
+	 *
+	 * @param array $tables The tables to add
+	 */
+	public function addTables(array $tables): self
+	{
+		$this->rdbms->addTablesToNamespace($this->namespace, $tables);
+
+		return $this;
+	}
+
+	/**
+	 * Enables the ORM for this namespace.
+	 *
+	 * @return $this
+	 */
+	public function enableORM(): self
+	{
+		ORM::setDatabase($this->namespace, $this->rdbms);
+
+		return $this;
 	}
 }
