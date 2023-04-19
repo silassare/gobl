@@ -163,8 +163,8 @@ return [
 	],
 	'currencies'   => [
 		'plural_name'   => 'currencies',
-		'singular_name' => 'currency_code',
-		'column_prefix' => 'currency_code',
+		'singular_name' => 'currency',
+		'column_prefix' => 'ccy',
 		'relations'     => [
 		],
 		'constraints'   => [
