@@ -18,11 +18,11 @@ use Gobl\DBAL\Diff\DiffAction;
 use Gobl\DBAL\Diff\DiffActionType;
 
 /**
- * Class UniqueKeyConstraintAdded.
+ * Class UniqueKeyConstraintAdded.currency_code.
  */
 final class UniqueKeyConstraintDeleted extends DiffAction
 {
-	public function __construct(protected UniqueKey $constraint, string $reason = '')
+	public function __construct(protected UniqueKey $constraint, string $reason = 'unique key constraint deleted')
 	{
 		parent::__construct(DiffActionType::UNIQUE_KEY_CONSTRAINT_DELETED, $reason);
 	}

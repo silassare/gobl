@@ -22,7 +22,7 @@ use Gobl\DBAL\Diff\DiffActionType;
  */
 final class ForeignKeyConstraintDeleted extends DiffAction
 {
-	public function __construct(protected ForeignKey $constraint, string $reason = '')
+	public function __construct(protected ForeignKey $constraint, string $reason = 'foreign key constraint deleted')
 	{
 		parent::__construct(DiffActionType::FOREIGN_KEY_CONSTRAINT_DELETED, $reason);
 	}

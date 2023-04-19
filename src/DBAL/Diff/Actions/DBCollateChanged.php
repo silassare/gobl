@@ -22,7 +22,7 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
  */
 final class DBCollateChanged extends DiffAction
 {
-	public function __construct(protected string $collate, protected RDBMSInterface $db, string $reason = '')
+	public function __construct(protected string $collate, protected RDBMSInterface $db, string $reason = 'default collation config changed')
 	{
 		parent::__construct(DiffActionType::DB_COLLATE_CHANGED, $reason);
 	}

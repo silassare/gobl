@@ -22,7 +22,7 @@ use Gobl\DBAL\Table;
  */
 final class TableDeleted extends DiffAction
 {
-	public function __construct(protected Table $table, string $reason = '')
+	public function __construct(protected Table $table, string $reason = 'table deleted')
 	{
 		parent::__construct(DiffActionType::TABLE_DELETED, $reason);
 	}

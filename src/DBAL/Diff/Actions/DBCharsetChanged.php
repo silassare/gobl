@@ -22,7 +22,7 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
  */
 final class DBCharsetChanged extends DiffAction
 {
-	public function __construct(protected string $charset, protected RDBMSInterface $db, string $reason = '')
+	public function __construct(protected string $charset, protected RDBMSInterface $db, string $reason = 'default charset config changed')
 	{
 		parent::__construct(DiffActionType::DB_CHARSET_CHANGED, $reason);
 	}

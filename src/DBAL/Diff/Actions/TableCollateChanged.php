@@ -22,7 +22,7 @@ use Gobl\DBAL\Table;
  */
 final class TableCollateChanged extends DiffAction
 {
-	public function __construct(protected string $collate, protected Table $table, string $reason = '')
+	public function __construct(protected string $collate, protected Table $table, string $reason = 'table collate changed')
 	{
 		parent::__construct(DiffActionType::TABLE_COLLATE_CHANGED, $reason);
 	}

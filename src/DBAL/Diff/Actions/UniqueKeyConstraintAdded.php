@@ -22,7 +22,7 @@ use Gobl\DBAL\Diff\DiffActionType;
  */
 final class UniqueKeyConstraintAdded extends DiffAction
 {
-	public function __construct(protected UniqueKey $constraint, string $reason = '')
+	public function __construct(protected UniqueKey $constraint, string $reason = 'unique key constraint added')
 	{
 		parent::__construct(DiffActionType::UNIQUE_KEY_CONSTRAINT_ADDED, $reason);
 	}

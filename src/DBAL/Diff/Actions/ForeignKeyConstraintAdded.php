@@ -22,7 +22,7 @@ use Gobl\DBAL\Diff\DiffActionType;
  */
 final class ForeignKeyConstraintAdded extends DiffAction
 {
-	public function __construct(protected ForeignKey $constraint, string $reason = '')
+	public function __construct(protected ForeignKey $constraint, string $reason = 'foreign key constraint added')
 	{
 		parent::__construct(DiffActionType::FOREIGN_KEY_CONSTRAINT_ADDED, $reason);
 	}

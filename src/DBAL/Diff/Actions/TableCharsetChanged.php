@@ -22,7 +22,7 @@ use Gobl\DBAL\Table;
  */
 final class TableCharsetChanged extends DiffAction
 {
-	public function __construct(protected string $charset, protected Table $table, string $reason = '')
+	public function __construct(protected string $charset, protected Table $table, string $reason = 'table charset changed')
 	{
 		parent::__construct(DiffActionType::TABLE_CHARSET_CHANGED, $reason);
 	}

@@ -22,7 +22,7 @@ use Gobl\DBAL\Table;
  */
 final class TableRenamed extends DiffAction
 {
-	public function __construct(protected Table $old_table, protected Table $new_table, string $reason = '')
+	public function __construct(protected Table $old_table, protected Table $new_table, string $reason = 'table renamed')
 	{
 		parent::__construct(DiffActionType::TABLE_RENAMED, $reason);
 	}

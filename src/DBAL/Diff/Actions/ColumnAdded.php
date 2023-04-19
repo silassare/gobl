@@ -23,7 +23,7 @@ use Gobl\DBAL\Table;
  */
 final class ColumnAdded extends DiffAction
 {
-	public function __construct(protected Table $table, protected Column $column, string $reason = '')
+	public function __construct(protected Table $table, protected Column $column, string $reason = 'column added')
 	{
 		parent::__construct(DiffActionType::COLUMN_ADDED, $reason);
 	}

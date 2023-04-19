@@ -64,9 +64,11 @@ class Diff
 	/**
 	 * Create diff file using two db.
 	 *
+	 * @param int $version
+	 *
 	 * @return \OLIUP\CG\PHPFile
 	 */
-	public function generateMigrationFile(): PHPFile
+	public function generateMigrationFile(int $version): PHPFile
 	{
 		$up       = $this->getDiff();
 		$down     = (new self($this->db_to, $this->db_from))->getDiff();
@@ -92,7 +94,7 @@ class Diff
 			->public()
 			->setReturnType('int');
 
-		$time = $version = \time();
+		$time = \time();
 
 		$m_get_label->addChild('return \'Auto generated.\';')
 			->comment('@inheritDoc');

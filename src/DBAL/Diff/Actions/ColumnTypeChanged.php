@@ -23,7 +23,7 @@ use Gobl\DBAL\Table;
  */
 final class ColumnTypeChanged extends DiffAction
 {
-	public function __construct(protected Table $table, protected Column $old_column, protected Column $new_column, string $reason = '')
+	public function __construct(protected Table $table, protected Column $old_column, protected Column $new_column, string $reason = 'column type changed')
 	{
 		parent::__construct(DiffActionType::COLUMN_TYPE_CHANGED, $reason);
 	}
