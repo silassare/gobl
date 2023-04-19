@@ -16,9 +16,9 @@ namespace Gobl\DBAL\Builders;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 
 /**
- * Class DbBuilder.
+ * Class NamespaceBuilder.
  */
-final class DbBuilder
+final class NamespaceBuilder
 {
 	/**
 	 * @var \Gobl\DBAL\Builders\TableBuilder[]
@@ -26,7 +26,7 @@ final class DbBuilder
 	private array $cache = [];
 
 	/**
-	 * DbBuilder constructor.
+	 * NamespaceBuilder constructor.
 	 *
 	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $rdbms     The database
 	 * @param string                               $namespace The database namespace
