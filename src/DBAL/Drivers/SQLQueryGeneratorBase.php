@@ -66,6 +66,8 @@ use Gobl\Gobl;
 
 use const GOBL_VERSION;
 
+use PHPUtils\Str;
+
 /**
  * Class SQLGeneratorBase.
  */
@@ -114,74 +116,117 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		switch ($action->getType()) {
 			case DiffActionType::DB_CHARSET_CHANGED:
 				/** @var \Gobl\DBAL\Diff\Actions\DBCharsetChanged $action */
-				return $this->getDBCharsetChangeString($action);
+				$query = $this->getDBCharsetChangeString($action);
+
+				break;
 
 			case DiffActionType::DB_COLLATE_CHANGED:
 				/** @var \Gobl\DBAL\Diff\Actions\DBCollateChanged $action */
-				return $this->getDBCollateChangeString($action);
+				$query = $this->getDBCollateChangeString($action);
+
+				break;
 
 			case DiffActionType::TABLE_CHARSET_CHANGED:
 				/** @var \Gobl\DBAL\Diff\Actions\TableCharsetChanged $action */
-				return $this->getTableCharsetChangeString($action);
+				$query = $this->getTableCharsetChangeString($action);
+
+				break;
 
 			case DiffActionType::TABLE_COLLATE_CHANGED:
 				/** @var \Gobl\DBAL\Diff\Actions\TableCollateChanged $action */
-				return $this->getTableCollateChangeString($action);
+				$query = $this->getTableCollateChangeString($action);
+
+				break;
 
 			case DiffActionType::TABLE_RENAMED:
 				/** @var \Gobl\DBAL\Diff\Actions\TableRenamed $action */
-				return $this->getTableRenamedString($action);
+				$query = $this->getTableRenamedString($action);
+
+				break;
 
 			case DiffActionType::TABLE_ADDED:
 				/** @var \Gobl\DBAL\Diff\Actions\TableAdded $action */
-				return $this->getTableDefinitionString($action->getTable(), false);
+				$query = $this->getTableDefinitionString($action->getTable(), false);
+
+				break;
 
 			case DiffActionType::TABLE_DELETED:
 				/** @var \Gobl\DBAL\Diff\Actions\TableDeleted $action */
-				return $this->getTableDeletedString($action);
+				$query = $this->getTableDeletedString($action);
+
+				break;
 
 			case DiffActionType::COLUMN_DELETED:
 				/** @var \Gobl\DBAL\Diff\Actions\ColumnDeleted $action */
-				return $this->getColumnDeletedString($action);
+				$query = $this->getColumnDeletedString($action);
+
+				break;
 
 			case DiffActionType::COLUMN_ADDED:
 				/** @var \Gobl\DBAL\Diff\Actions\ColumnAdded $action */
-				return $this->getColumnAddedString($action);
+				$query = $this->getColumnAddedString($action);
+
+				break;
 
 			case DiffActionType::COLUMN_RENAMED:
 				/** @var \Gobl\DBAL\Diff\Actions\ColumnRenamed $action */
-				return $this->getColumnRenamedString($action);
+				$query = $this->getColumnRenamedString($action);
+
+				break;
 
 			case DiffActionType::COLUMN_TYPE_CHANGED:
 				/** @var \Gobl\DBAL\Diff\Actions\ColumnTypeChanged $action */
-				return $this->getColumnTypeChangedString($action);
+				$query = $this->getColumnTypeChangedString($action);
+
+				break;
 
 			case DiffActionType::PRIMARY_KEY_CONSTRAINT_ADDED:
 				/** @var \Gobl\DBAL\Diff\Actions\PrimaryKeyConstraintAdded $action */
-				return $this->getPrimaryKeyConstraintAddedString($action);
+				$query = $this->getPrimaryKeyConstraintAddedString($action);
+
+				break;
 
 			case DiffActionType::PRIMARY_KEY_CONSTRAINT_DELETED:
 				/** @var \Gobl\DBAL\Diff\Actions\PrimaryKeyConstraintDeleted $action */
-				return $this->getPrimaryKeyConstraintDeletedString($action);
+				$query = $this->getPrimaryKeyConstraintDeletedString($action);
+
+				break;
 
 			case DiffActionType::FOREIGN_KEY_CONSTRAINT_ADDED:
 				/** @var \Gobl\DBAL\Diff\Actions\ForeignKeyConstraintAdded $action */
-				return $this->getForeignKeyConstraintAddedString($action);
+				$query = $this->getForeignKeyConstraintAddedString($action);
+
+				break;
 
 			case DiffActionType::FOREIGN_KEY_CONSTRAINT_DELETED:
 				/** @var \Gobl\DBAL\Diff\Actions\ForeignKeyConstraintDeleted $action */
-				return $this->getForeignKeyConstraintDeletedString($action);
+				$query = $this->getForeignKeyConstraintDeletedString($action);
+
+				break;
 
 			case DiffActionType::UNIQUE_KEY_CONSTRAINT_ADDED:
 				/** @var \Gobl\DBAL\Diff\Actions\UniqueKeyConstraintAdded $action */
-				return $this->getUniqueKeyConstraintAddedString($action);
+				$query = $this->getUniqueKeyConstraintAddedString($action);
+
+				break;
 
 			case DiffActionType::UNIQUE_KEY_CONSTRAINT_DELETED:
 				/** @var \Gobl\DBAL\Diff\Actions\UniqueKeyConstraintDeleted $action */
-				return $this->getUniqueKeyConstraintDeletedString($action);
+				$query = $this->getUniqueKeyConstraintDeletedString($action);
+
+				break;
+
+			default:
+				throw new DBALException('Build diff action query not implemented for: ' . \get_debug_type($action));
 		}
 
-		throw new DBALException('Build diff action query not implemented for: ' . \get_debug_type($action));
+		$reason = $action->getReason();
+
+		if (!empty($reason)) {
+			$query = $this->getCommentQuery($reason) . \PHP_EOL . $query;
+		}
+
+		return $query;
 	}
 
 	/**
@@ -280,6 +325,18 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 			'create_sql'   => $create_sql,
 			'alter_sql'    => $alter_sql,
 		]);
+	}
+
+	/**
+	 * Create a comment query.
+	 *
+	 * @param string $comment
+	 *
+	 * @return string
+	 */
+	protected function getCommentQuery(string $comment): string
+	{
+		return Str::indent($comment, '-- ');
 	}
 
 	/**
