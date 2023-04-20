@@ -54,10 +54,8 @@ abstract class BaseTestCase extends TestCase
 	public static function getDb(string $type = self::DEFAULT_RDBMS): RDBMSInterface
 	{
 		if (!isset(self::$rdbms[$type])) {
-			$config = self::getDbConfig($type);
-
 			try {
-				$db = self::$rdbms[$type] = Db::createInstanceOf($type, $config);
+				$db = self::$rdbms[$type] = self::getEmptyDb($type);
 				$db->ns(self::TEST_DB_NAMESPACE)
 					->addTables(self::getTablesDefinitions());
 			} catch (Throwable $t) {
