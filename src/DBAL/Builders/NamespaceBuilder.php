@@ -68,7 +68,7 @@ final class NamespaceBuilder
 	 */
 	public function addTables(array $tables): self
 	{
-		$this->rdbms->addTablesToNamespace($this->namespace, $tables);
+		$this->rdbms->addTables($tables, $this->namespace);
 
 		return $this;
 	}

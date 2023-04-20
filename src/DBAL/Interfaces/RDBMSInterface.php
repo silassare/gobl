@@ -58,14 +58,17 @@ interface RDBMSInterface
 	public function addTable(Table $table): self;
 
 	/**
-	 * Adds table from options to a given namespace.
+	 * Adds tables.
 	 *
-	 * @param string $namespace The namespace to use
-	 * @param array  $tables    The tables options
+	 * When a desired namespace is given, it will override any namespace defined in each table.
+	 *
+	 * @param array<string, array|Table> $tables            The tables array, contains table instances or table
+	 *                                                      definition arrays
+	 * @param null|string                $desired_namespace The desired namespace to use for all tables
 	 *
 	 * @return $this
 	 */
-	public function addTablesToNamespace(string $namespace, array $tables): self;
+	public function addTables(array $tables, string $desired_namespace = null): self;
 
 	/**
 	 * Returns db namespace builder for a given namespace.
@@ -124,7 +127,7 @@ interface RDBMSInterface
 	 *
 	 * @param null|string $namespace
 	 *
-	 * @return \Gobl\DBAL\Table[]
+	 * @return array<string, \Gobl\DBAL\Table>
 	 */
 	public function getTables(?string $namespace = null): array;
 

@@ -198,7 +198,7 @@ abstract class Db implements RDBMSInterface
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
-	public function addTablesToNamespace(string $namespace, array $tables): self
+	public function addTables(array $tables, string $desired_namespace = null): self
 	{
 		$tables_prefix           = $this->getConfig()
 			->getDbTablePrefix();
