@@ -26,6 +26,7 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Relations\VirtualRelation;
 use InvalidArgumentException;
+use OLIUP\CG\PHPNamespace;
 use PHPUtils\Interfaces\ArrayCapableInterface;
 use PHPUtils\Traits\ArrayCapableTrait;
 use Throwable;
@@ -548,6 +549,15 @@ final class Table implements ArrayCapableInterface
 
 		if (empty($namespace)) {
 			throw new InvalidArgumentException(\sprintf('Table "%s" namespace should not be empty', $this->name));
+		}
+
+		if (!\preg_match(PHPNamespace::NAMESPACE_PATTERN, $namespace)) {
+			throw new InvalidArgumentException(\sprintf(
+				'Table "%s" namespace "%s" should match: %s',
+				$this->name,
+				$namespace,
+				PHPNamespace::NAMESPACE_PATTERN
+			));
 		}
 
 		$this->namespace = $namespace;
