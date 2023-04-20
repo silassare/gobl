@@ -56,7 +56,7 @@ abstract class Db implements RDBMSInterface
 	/**
 	 * Database tables.
 	 *
-	 * @var \Gobl\DBAL\Table[]
+	 * @var array<string,\Gobl\DBAL\Table>
 	 */
 	private array $tables = [];
 
@@ -206,6 +206,7 @@ abstract class Db implements RDBMSInterface
 		$tables_with_relations   = [];
 		// we add tables and columns first
 		foreach ($tables as $table_name => $table_options) {
+			$table_namespace_option = null;
 			if ($table_options instanceof Table) {
 				$tbl = $table_options;
 			} elseif (\is_array($table_options)) {
@@ -237,6 +238,10 @@ abstract class Db implements RDBMSInterface
 					if (!empty($table_options['relations'])) {
 						$tables_with_relations[] = $table_name;
 					}
+				}
+
+				if (!empty($table_options['namespace']) && \is_string($table_options['namespace'])) {
+					$table_namespace_option = $table_options['namespace'];
 				}
 
 				$columns          = $table_options['columns'];
@@ -365,12 +370,20 @@ abstract class Db implements RDBMSInterface
 				));
 			}
 
-			$this->addTable($tbl->setNamespace($namespace));
+			if ($desired_namespace) {
+				$tbl->setNamespace($desired_namespace);
+			} elseif ($table_namespace_option) {
+				$tbl->setNamespace($table_namespace_option);
+			}
+
+			$this->addTable($tbl);
 		}
 
 		// we add constraints after
 		foreach ($tables_with_constraints as $table_name) {
-			$tbl           = $this->tables[$table_name];
+			$tbl = $this->tables[$table_name];
+
+			/** @var array $table_options */
 			$table_options = $tables[$table_name];
 			$constraints   = $table_options['constraints'];
 
@@ -482,7 +495,9 @@ abstract class Db implements RDBMSInterface
 
 		// we could now add relations
 		foreach ($tables_with_relations as $table_name) {
-			$tbl           = $this->tables[$table_name];
+			$tbl = $this->tables[$table_name];
+
+			/** @var array $table_options */
 			$table_options = $tables[$table_name];
 			$relations     = $table_options['relations'];
 
