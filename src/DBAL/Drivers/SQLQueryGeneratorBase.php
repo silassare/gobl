@@ -63,10 +63,9 @@ use Gobl\DBAL\Types\TypeFloat;
 use Gobl\DBAL\Types\TypeInt;
 use Gobl\DBAL\Types\TypeString;
 use Gobl\Gobl;
+use PHPUtils\Str;
 
 use const GOBL_VERSION;
-
-use PHPUtils\Str;
 
 /**
  * Class SQLGeneratorBase.
