@@ -92,7 +92,7 @@ final class DBTest extends BaseTestCase
 
 	public function testAssertHasTable(): void
 	{
-		$db   = self::getDb();
+		$db   = self::getEmptyDb();
 		$name = \uniqid('table_', false);
 
 		$this->expectException(DBALRuntimeException::class);
@@ -118,26 +118,27 @@ final class DBTest extends BaseTestCase
 	{
 		$types = \array_keys(self::getTestRDBMSList());
 		foreach ($types as $type) {
-			$db = self::getDb($type);
+			$db = self::getEmptyDb($type);
 			static::assertSame($type, $db->getType());
 		}
 	}
 
 	public function testAddTable(): void
 	{
-		$db = self::getDb();
+		$db         = self::getEmptyDb();
+		$tbl_prefix = $db->getConfig()
+			->getDbTablePrefix();
+
 		$db->addTable((new Table('users', 'pr'))->addColumn(new Column('id')));
 
 		static::assertTrue($db->hasTable('users'));
 		static::assertTrue($db->hasTable('pr_users'));
-		static::assertFalse($db->hasTable($db->getConfig()
-			->getDbTablePrefix() . 'users'));
+		static::assertFalse($db->hasTable($tbl_prefix . '_users'));
 
 		$db->addTable($member = (new Table('members'))->addColumn(new Column('id')));
 
 		static::assertTrue($db->hasTable('members'));
-		static::assertTrue($db->hasTable($db->getConfig()
-			->getDbTablePrefix() . '_members'));
+		static::assertTrue($db->hasTable($tbl_prefix . '_members'));
 
 		static::assertSame($member, $db->getTable('members'));
 
@@ -145,6 +146,60 @@ final class DBTest extends BaseTestCase
 		$this->expectExceptionMessage('The table name conflict with an existing table name or full name: "members".');
 
 		$db->addTable((new Table('members'))->addColumn(new Column('id')));
+	}
+
+	public function testAddTables(): void
+	{
+		$db         = self::getEmptyDb();
+		$tbl_prefix = $db->getConfig()
+			->getDbTablePrefix();
+
+		$custom_namespace  = 'App\\Db\\Custom';
+		$foo_bar_namespace = 'App\\Foo\\Bar';
+
+		// without desired namespace
+		$db->addTables([
+			'users'   => (new Table('users', 'ur'))->addColumn(new Column('id'))
+				->setNamespace($custom_namespace),
+			'members' => (new Table('members'))->addColumn(new Column('id')),
+		]);
+
+		// with desired namespace
+		$db->addTables([
+			'tags'  => [
+				'namespace'     => $custom_namespace,
+				'singular_name' => 'tag',
+				'plural_name'   => 'tags',
+				'columns'       => [
+					'id' => [
+						'type'           => 'int',
+						'unsigned'       => true,
+						'auto_increment' => true,
+					],
+				],
+			],
+			'posts' => (new Table('posts'))->addColumn(new Column('id'))
+				->setNamespace($foo_bar_namespace),
+		], $foo_bar_namespace);
+
+		static::assertTrue($db->hasTable('users'));
+		static::assertTrue($db->hasTable('ur_users'));
+		static::assertFalse($db->hasTable($tbl_prefix . '_users'));
+		static::assertTrue($db->hasTable('tags'));
+
+		static::assertTrue($db->hasTable('members'));
+		static::assertTrue($db->hasTable($tbl_prefix . '_members'));
+
+		static::assertSame(['users', 'members', 'tags', 'posts'], \array_keys($db->getTables()));
+		static::assertSame(['users'], \array_keys($db->getTables($custom_namespace)));
+
+		static::assertSame($custom_namespace, $db->getTable('users')
+			->getNamespace());
+
+		static::assertSame($foo_bar_namespace, $db->getTable('posts')
+			->getNamespace());
+
+		static::assertSame(['tags', 'posts'], \array_keys($db->getTables($foo_bar_namespace)));
 	}
 
 	public function testGetTables(): void
