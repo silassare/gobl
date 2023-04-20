@@ -193,6 +193,9 @@ final class DBTest extends BaseTestCase
 		static::assertSame(['users', 'members', 'tags', 'posts'], \array_keys($db->getTables()));
 		static::assertSame(['users'], \array_keys($db->getTables($custom_namespace)));
 
+		static::assertSame(Table::TABLE_DEFAULT_NAMESPACE, $db->getTable('members')
+			->getNamespace());
+
 		static::assertSame($custom_namespace, $db->getTable('users')
 			->getNamespace());
 
