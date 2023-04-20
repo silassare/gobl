@@ -51,6 +51,8 @@ final class Table implements ArrayCapableInterface
 
 	public const PREFIX_REG = '~^' . self::PREFIX_PATTERN . '$~';
 
+	public const TABLE_DEFAULT_NAMESPACE = 'Gobl\\DefaultNamespace';
+
 	/**
 	 * The table name.
 	 *
@@ -89,7 +91,7 @@ final class Table implements ArrayCapableInterface
 	 *
 	 * @var string
 	 */
-	private string $namespace = 'DB';
+	private string $namespace = self::TABLE_DEFAULT_NAMESPACE;
 
 	/**
 	 * The table prefix.
