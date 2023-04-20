@@ -1397,6 +1397,10 @@ final class Table implements ArrayCapableInterface
 			'plural_name'   => $this->plural_name,
 		];
 
+		if (self::TABLE_DEFAULT_NAMESPACE !== $this->namespace) {
+			$options['namespace'] = $this->namespace;
+		}
+
 		if (!empty($this->prefix)) {
 			$options['prefix'] = $this->prefix;
 		}
