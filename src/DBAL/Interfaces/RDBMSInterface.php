@@ -30,7 +30,7 @@ interface RDBMSInterface
 	public static function createInstance(DbConfig $config): self;
 
 	/**
-	 * Lock this column to prevent edit.
+	 * Lock this db instance to prevent table addition.
 	 */
 	public function lock(): self;
 
@@ -173,11 +173,11 @@ interface RDBMSInterface
 	 */
 	public function execute(
 		string $sql,
-		array $params = null,
-		array $params_types = null,
-		bool $is_multi_queries = false,
-		bool $in_transaction = false,
-		bool $auto_close_transaction = false
+		array  $params = null,
+		array  $params_types = null,
+		bool   $is_multi_queries = false,
+		bool   $in_transaction = false,
+		bool   $auto_close_transaction = false
 	): PDOStatement;
 
 	/**
