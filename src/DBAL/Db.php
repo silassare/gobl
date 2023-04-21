@@ -79,6 +79,8 @@ abstract class Db implements RDBMSInterface
 	 */
 	private ?PDO $db_connection = null;
 
+	private bool $locked = false;
+
 	private array $resolved_column_ref = [];
 
 	/**
@@ -131,11 +133,24 @@ abstract class Db implements RDBMSInterface
 	 */
 	public function lock(): self
 	{
-		foreach ($this->tables as $table) {
-			$table->lock();
+		if (!$this->locked) {
+			$this->locked = true;
+			foreach ($this->tables as $table) {
+				$table->lock();
+			}
 		}
 
 		return $this;
+	}
+
+	/**
+	 * Asserts the database is not locked.
+	 */
+	public function assertNotLocked(): void
+	{
+		if ($this->locked) {
+			throw new DBALRuntimeException('The database is locked.');
+		}
 	}
 
 	/**
@@ -159,6 +174,8 @@ abstract class Db implements RDBMSInterface
 	 */
 	public function addTable(Table $table): self
 	{
+		$this->assertNotLocked();
+
 		$name = $table->getName();
 
 		try {
