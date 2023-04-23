@@ -48,11 +48,13 @@ interface LinkInterface extends ArrayCapableInterface
 	/**
 	 * Applies the relation link filter to the target query builder.
 	 *
+	 * When a hast entity is provided the link is applied only if the host entity has all the required
+	 * columns values.
+	 *
 	 * @param \Gobl\DBAL\Queries\QBSelect $target_qb   a select query builder on the target table
 	 * @param null|\Gobl\ORM\ORMEntity    $host_entity the host entity if any
 	 *
-	 * @return bool returns false when the filters cannot be applied due to missing data in the host entity, true
-	 *              otherwise
+	 * @return bool returns true if the relation link was applied, false otherwise
 	 */
 	public function apply(QBSelect $target_qb, ?ORMEntity $host_entity = null): bool;
 }
