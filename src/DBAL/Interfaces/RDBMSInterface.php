@@ -173,11 +173,11 @@ interface RDBMSInterface
 	 */
 	public function execute(
 		string $sql,
-		array  $params = null,
-		array  $params_types = null,
-		bool   $is_multi_queries = false,
-		bool   $in_transaction = false,
-		bool   $auto_close_transaction = false
+		array $params = null,
+		array $params_types = null,
+		bool $is_multi_queries = false,
+		bool $in_transaction = false,
+		bool $auto_close_transaction = false
 	): PDOStatement;
 
 	/**

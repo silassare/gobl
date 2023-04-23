@@ -421,37 +421,6 @@ abstract class ORMController
 	}
 
 	/**
-	 * Lazily count total row that match a select query according to the current results and current pagination info.
-	 *
-	 * @param \Gobl\ORM\ORMResults $results
-	 * @param int                  $found
-	 * @param null|int             $max
-	 * @param int                  $offset
-	 *
-	 * @return int
-	 */
-	public static function lazyTotalResultsCount(
-		ORMResults $results,
-		int $found = 0,
-		?int $max = null,
-		int $offset = 0
-	): int {
-		if (isset($max)) {
-			if ($found < $max) {
-				$total = $offset + $found;
-			} else {
-				$total = $results->totalCount();
-			}
-		} elseif (0 === $offset) {
-			$total = $found;
-		} else {
-			$total = $results->totalCount();
-		}
-
-		return $total;
-	}
-
-	/**
 	 * Gets all items from the table with a custom query builder instance.
 	 *
 	 * @param \Gobl\DBAL\Queries\QBSelect $qb     the custom select query instance
@@ -482,6 +451,37 @@ abstract class ORMController
 
 			return $items;
 		});
+	}
+
+	/**
+	 * Lazily count total row that match a select query according to the current results and current pagination info.
+	 *
+	 * @param \Gobl\ORM\ORMResults $results
+	 * @param int                  $found
+	 * @param null|int             $max
+	 * @param int                  $offset
+	 *
+	 * @return int
+	 */
+	public static function lazyTotalResultsCount(
+		ORMResults $results,
+		int $found = 0,
+		?int $max = null,
+		int $offset = 0
+	): int {
+		if (isset($max)) {
+			if ($found < $max) {
+				$total = $offset + $found;
+			} else {
+				$total = $results->totalCount();
+			}
+		} elseif (0 === $offset) {
+			$total = $found;
+		} else {
+			$total = $results->totalCount();
+		}
+
+		return $total;
 	}
 
 	/**
