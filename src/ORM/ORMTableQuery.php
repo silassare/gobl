@@ -24,6 +24,7 @@ use Gobl\DBAL\Queries\QBUpdate;
 use Gobl\DBAL\Queries\QBUtils;
 use Gobl\DBAL\Table;
 use Gobl\ORM\Exceptions\ORMException;
+use Gobl\ORM\Exceptions\ORMRuntimeException;
 use Gobl\ORM\Utils\ORMClassKind;
 use PHPUtils\Str;
 
@@ -268,7 +269,6 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 *
 	 * @return \Gobl\DBAL\Queries\QBUpdate
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 */
 	public function update(array $columns_values_map): QBUpdate
@@ -333,6 +333,43 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 		}
 
 		return $sel->limit($max, $offset);
+	}
+
+	/**
+	 * Create a {@see QBSelect} and apply the current filters and the relation's filters.
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 */
+	public function selectRelation(
+		string $relation,
+		?ORMEntity $entity = null,
+		?int $max = null,
+		int $offset = 0,
+		array $order_by = []
+	): ?QBSelect {
+		$r = $this->table
+			->getRelation($relation);
+
+		if (!$r) {
+			throw new ORMRuntimeException(\sprintf('Relation "%s" not found in table "%s"', $relation, $this->table->getFullName()));
+		}
+
+		$target = $r->getTargetTable();
+
+		/** @var \Gobl\ORM\ORMTableQuery $entity_class */
+		$entity_class = ORMClassKind::QUERY->getClassFQN($target);
+
+		$target_qb = $entity_class::createInstance();
+
+		$sel = $target_qb->select($max, $offset, $order_by);
+
+		$l = $r->getLink();
+
+		if ($l->apply($sel, $entity)) {
+			return $sel;
+		}
+
+		return null;
 	}
 
 	/**
