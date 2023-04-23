@@ -147,23 +147,22 @@ final class LinkMorph extends Link
 	 */
 	public function apply(QBSelect $target_qb, ?ORMEntity $host_entity = null): bool
 	{
+		$filters = $target_qb->filters();
+
 		if ($host_entity) {
-			$filters = $target_qb->filters();
-			$key     = $host_entity->{$this->morph_host_key_column};
+			$key = $host_entity->{$this->morph_host_key_column};
 
 			if (null === $key) {
 				return false;
 			}
 
-			$filters->eq($this->morph_target_key_column, $key);
-			$filters->eq($this->morph_target_type_column, $this->morph_host_type);
+			$filters->eq($target_qb->fullyQualifiedName($this->target_table, $this->morph_target_key_column), $key);
+			$filters->eq($target_qb->fullyQualifiedName($this->target_table, $this->morph_target_type_column), $this->morph_host_type);
 
 			$target_qb->andWhere($filters);
 
 			return true;
 		}
-
-		$filters = $target_qb->filters();
 
 		$target_qb->innerJoin($this->target_table)
 			->to($this->host_table)
