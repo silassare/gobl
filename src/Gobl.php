@@ -203,7 +203,7 @@ class Gobl
 	}
 
 	/**
-	 * Run a given template with a given inject data.
+	 * Parse and run a given template with a given inject data.
 	 *
 	 * @param string $name
 	 * @param array  $inject
