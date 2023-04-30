@@ -125,6 +125,14 @@ trait QBBindTrait
 	}
 
 	/**
+	 * {@inheritDoc}
+	 */
+	public function isBoundParam(string $name): bool
+	{
+		return isset($this->bound_values[$name]);
+	}
+
+	/**
 	 * Binds parameter to query.
 	 *
 	 * @param int|string $param                The parameter to bind

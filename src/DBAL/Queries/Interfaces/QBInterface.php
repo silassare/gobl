@@ -134,6 +134,15 @@ interface QBInterface
 	public function bindArrayForInList(array $list, array $types = [], bool $return_placeholders = false): array;
 
 	/**
+	 * Checks if a parameter name is bound.
+	 *
+	 * @param string $name
+	 *
+	 * @return bool
+	 */
+	public function isBoundParam(string $name): bool;
+
+	/**
 	 * Merge binds parameters from another query builder.
 	 *
 	 * @return $this
