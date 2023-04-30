@@ -118,7 +118,6 @@ final class Filters
 						'found' => $op_name,
 					]);
 				}
-
 				if ($operator->isUnary()) {
 					$instance->add($operator, $left);
 				} else {
@@ -245,19 +244,15 @@ final class Filters
 				}
 
 				if ($this->qb !== $entry->qb) {
-					throw new DBALRuntimeException(\sprintf(
-						'"%s" instance should share the same "%s" instance.',
-						self::class,
+					throw (new DBALRuntimeException(\sprintf(
+						'Provided filters instance does not share the same "%s" instance as the current filters instance.',
 						QBInterface::class
-					));
+					)))->suspectObject($entry->qb);
 				}
 
-				if ($this->scope && !$this->scope->shouldAllowFiltersScope($entry->scope)) {
-					throw new DBALRuntimeException(\sprintf(
-						'"%s" instance should share the same "%s" instance.',
-						self::class,
-						FiltersScopeInterface::class
-					));
+				if ($this->scope && (!$entry->scope || !$this->scope->shouldAllowFiltersScope($entry->scope))) {
+					throw (new DBALRuntimeException('Provided filters instance scope is not allowed by the current filter scope.'))
+						->suspectObject($entry->scope);
 				}
 
 				$filter = $entry->group;
@@ -305,11 +300,24 @@ final class Filters
 
 		$operands_count = $operator->getOperandsCount();
 
+		$real_left  = $left;
+		$real_right = $right;
+
 		$left = $this->cleanOperand($left, $detected_left_table, $detected_left_column);
 
 		if ($this->scope) {
 			$left = $detected_left_column ?? $left;
-			$this->scope->assertFilterAllowed($operator, $left, $right);
+
+			try {
+				$this->scope->assertFilterAllowed($operator, $left, $right);
+			} catch (Throwable $t) {
+				throw new DBALRuntimeException('Filter not allowed.', [
+					'operator' => $operator,
+					'left'     => $real_left,
+					'right'    => $real_right,
+				], $t);
+			}
+
 			if (!$detected_left_table) {
 				$left = $this->scope->getColumnFQName($left);
 			}
@@ -365,7 +373,7 @@ final class Filters
 
 				$right = $this->cleanOperand($right, $detected_right_table, $detected_right_column);
 
-				if (!$detected_right_column) {
+				if (!$detected_right_column && !$this->isRightOperandABinding($right)) {
 					$param_key = QBUtils::newParamKey();
 					$this->qb->bindNamed($param_key, $right);
 
@@ -404,6 +412,18 @@ final class Filters
 	public function isEmpty(): bool
 	{
 		return empty((string) $this);
+	}
+
+	/**
+	 * Checks if the right operand is a binding.
+	 *
+	 * @param string $right
+	 *
+	 * @return bool
+	 */
+	private function isRightOperandABinding(string $right): bool
+	{
+		return $right && ':' === $right[0] && $this->qb->isBoundParam(\substr($right, 1));
 	}
 
 	/**

@@ -43,6 +43,16 @@ trait QBCommonTrait
 	}
 
 	/**
+	 * Magic method __toString.
+	 *
+	 * @return string
+	 */
+	public function __toString(): string
+	{
+		return $this->getSqlQuery();
+	}
+
+	/**
 	 * Returns query string to be executed by the rdbms.
 	 *
 	 * @return string
