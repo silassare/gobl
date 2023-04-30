@@ -354,12 +354,7 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 			throw new ORMRuntimeException(\sprintf('Relation "%s" not found in table "%s"', $relation, $this->table->getFullName()));
 		}
 
-		$target = $r->getTargetTable();
-
-		/** @var \Gobl\ORM\ORMTableQuery $entity_class */
-		$entity_class = ORMClassKind::QUERY->getClassFQN($target);
-
-		$target_qb = $entity_class::createInstance();
+		$target_qb = static::createInstance();
 
 		$sel = $target_qb->select($max, $offset, $order_by);
 
