@@ -76,11 +76,13 @@ final class NamespaceBuilder
 	/**
 	 * Enables the ORM for this namespace.
 	 *
+	 * @param string $out_dir The ORM output directory
+	 *
 	 * @return $this
 	 */
-	public function enableORM(): self
+	public function enableORM(string $out_dir): self
 	{
-		ORM::setDatabase($this->namespace, $this->rdbms);
+		ORM::declareNamespace($this->namespace, $this->rdbms, $out_dir);
 
 		return $this;
 	}
