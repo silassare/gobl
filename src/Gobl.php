@@ -29,7 +29,7 @@ class Gobl
 	/**
 	 * @var string
 	 */
-	private static string $project_root_dir = GOBL_ROOT;
+	private static string $project_cache_dir = GOBL_ROOT;
 
 	/**
 	 * @var array
@@ -42,23 +42,23 @@ class Gobl
 	private static array $templates = [];
 
 	/**
-	 * Returns root directory.
+	 * Returns project cache directory.
 	 *
 	 * @return string
 	 */
-	public static function getRootDir(): string
+	public static function getProjectCacheDir(): string
 	{
-		return self::$project_root_dir;
+		return self::$project_cache_dir;
 	}
 
 	/**
-	 * Sets root directory.
+	 * Sets project cache directory.
 	 *
 	 * @param string $dir
 	 */
-	public static function setRootDir(string $dir): void
+	public static function setProjectCacheDir(string $dir): void
 	{
-		if (self::$project_root_dir !== $dir) {
+		if (self::$project_cache_dir !== $dir) {
 			$fs = new FSUtils($dir);
 
 			try {
@@ -71,7 +71,7 @@ class Gobl
 				throw new GoblRuntimeException(\sprintf('Can\'t set "%s" as gobl root dir.', $dir), null, $e);
 			}
 
-			self::$project_root_dir = $fs->resolve('.');
+			self::$project_cache_dir = $fs->resolve('.');
 
 			if (!empty(self::$templates)) {
 				$templates       = self::$templates;
@@ -89,8 +89,8 @@ class Gobl
 	public static function addTemplates(array $templates): void
 	{
 		try {
-			$cache_file = (new FSUtils(self::getCacheDir()))->resolve('templates.cache.json');
-			$fs         = new FSUtils(self::getRootDir());
+			$cache_file = (new FSUtils(self::getGoblCacheDir()))->resolve('templates.cache.json');
+			$fs         = new FSUtils(self::getProjectCacheDir());
 
 			if (empty(self::$tpl_cache) && \file_exists($cache_file)) {
 				$fs->filter()
@@ -160,13 +160,13 @@ class Gobl
 	}
 
 	/**
-	 * Returns cache directory.
+	 * Returns Gobl cache directory.
 	 *
 	 * @return string
 	 */
-	public static function getCacheDir(): string
+	public static function getGoblCacheDir(): string
 	{
-		$fu = new FSUtils(self::$project_root_dir);
+		$fu = new FSUtils(self::$project_cache_dir);
 
 		return $fu->cd('.gobl', true)
 			->cd('cache', true)
@@ -182,7 +182,7 @@ class Gobl
 	 */
 	public static function getTemplateFilePath(string $name): string
 	{
-		return (new FSUtils(self::getCacheDir()))->resolve($name . '.otpl');
+		return (new FSUtils(self::getGoblCacheDir()))->resolve($name . '.otpl');
 	}
 
 	/**
