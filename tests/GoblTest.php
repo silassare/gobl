@@ -29,27 +29,27 @@ final class GoblTest extends BaseTestCase
 	{
 		$non_existent_path = GOBL_TEST_PROJECT_DIR . '/nothing';
 
-		Gobl::setRootDir(GOBL_TEST_PROJECT_DIR);
-		static::assertSame(GOBL_TEST_PROJECT_DIR, Gobl::getRootDir());
+		Gobl::setProjectCacheDir(GOBL_TEST_PROJECT_DIR);
+		static::assertSame(GOBL_TEST_PROJECT_DIR, Gobl::getProjectCacheDir());
 
-		Gobl::setRootDir(GOBL_TEST_PROJECT_DIR . \DIRECTORY_SEPARATOR);
-		static::assertSame(GOBL_TEST_PROJECT_DIR, Gobl::getRootDir());
+		Gobl::setProjectCacheDir(GOBL_TEST_PROJECT_DIR . \DIRECTORY_SEPARATOR);
+		static::assertSame(GOBL_TEST_PROJECT_DIR, Gobl::getProjectCacheDir());
 
 		$this->expectException(GoblRuntimeException::class);
-		Gobl::setRootDir($non_existent_path);
+		Gobl::setProjectCacheDir($non_existent_path);
 	}
 
 	public function testGetRootDir(): void
 	{
-		Gobl::setRootDir(GOBL_TEST_PROJECT_DIR);
-		static::assertSame(GOBL_TEST_PROJECT_DIR, Gobl::getRootDir());
+		Gobl::setProjectCacheDir(GOBL_TEST_PROJECT_DIR);
+		static::assertSame(GOBL_TEST_PROJECT_DIR, Gobl::getProjectCacheDir());
 	}
 
 	public function testGetCacheDir(): void
 	{
-		Gobl::setRootDir(GOBL_TEST_PROJECT_DIR);
+		Gobl::setProjectCacheDir(GOBL_TEST_PROJECT_DIR);
 		$expected = GOBL_TEST_PROJECT_DIR . \DIRECTORY_SEPARATOR . '.gobl' . \DIRECTORY_SEPARATOR . 'cache';
-		static::assertSame($expected, Gobl::getCacheDir());
+		static::assertSame($expected, Gobl::getGoblCacheDir());
 	}
 
 	public function testAddTemplate(): void
@@ -85,7 +85,7 @@ final class GoblTest extends BaseTestCase
 
 	public function testGetTemplateFilePath(): void
 	{
-		$expected = Gobl::getCacheDir() . \DIRECTORY_SEPARATOR . 'test_template.otpl';
+		$expected = Gobl::getGoblCacheDir() . \DIRECTORY_SEPARATOR . 'test_template.otpl';
 
 		static::assertSame($expected, Gobl::getTemplateFilePath('test_template'));
 	}
