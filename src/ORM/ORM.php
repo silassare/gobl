@@ -35,7 +35,7 @@ class ORM
 	public static function declareNamespace(string $namespace, RDBMSInterface $db, string $out_dir): void
 	{
 		if (isset(self::$namespaces[$namespace])) {
-			throw new ORMRuntimeException(\sprintf('Namespace "%s" is already declared.', $namespace));
+			throw new ORMRuntimeException(\sprintf('Namespace "%s" is already declared in the ORM.', $namespace));
 		}
 
 		$fs       = new FSUtils(Gobl::getProjectCacheDir());
@@ -70,7 +70,7 @@ class ORM
 	public static function getDatabase(string $namespace): RDBMSInterface
 	{
 		if (!isset(self::$namespaces[$namespace])) {
-			throw new ORMRuntimeException(\sprintf('Namespace "%s" was not declared.', $namespace));
+			throw new ORMRuntimeException(\sprintf('Namespace "%s" was not declared in the ORM.', $namespace));
 		}
 
 		return self::$namespaces[$namespace]['db'];
@@ -86,7 +86,7 @@ class ORM
 	public static function getOutputDirectory(string $namespace): string
 	{
 		if (!isset(self::$namespaces[$namespace])) {
-			throw new ORMRuntimeException(\sprintf('Namespace "%s" was not declared.', $namespace));
+			throw new ORMRuntimeException(\sprintf('Namespace "%s" was not declared in the ORM.', $namespace));
 		}
 
 		return self::$namespaces[$namespace]['out_dir'];
