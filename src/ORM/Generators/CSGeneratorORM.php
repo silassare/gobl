@@ -520,8 +520,7 @@ return $instance;')
 						->setComment(Str::interpolate(
 							'Filters rows with `{rule_name}` condition on column `{table_name}`.`{column_name}`.
 
-@return static
-@throws \Gobl\DBAL\Exceptions\DBALException',
+@return static',
 							$col_inject
 						))
 						->setReturnType('self')
@@ -537,8 +536,7 @@ return $instance;')
 
 @param {arg_type} $value the filter value
 
-@return static
-@throws \Gobl\DBAL\Exceptions\DBALException',
+@return static',
 							$col_inject
 						))
 						->setReturnType('self')
