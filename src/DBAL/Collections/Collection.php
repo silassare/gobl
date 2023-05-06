@@ -67,4 +67,17 @@ abstract class Collection
 	 * @return \Gobl\ORM\ORMEntity[]
 	 */
 	abstract public function getItems(ORMRequest $request, int &$total_records = null): array;
+
+	/**
+	 * Creates a new collection using a callable.
+	 *
+	 * @param string   $name    the collection name
+	 * @param callable $factory the collection factory
+	 *
+	 * @return \Gobl\DBAL\Collections\CollectionFactory
+	 */
+	final public static function fromFactory(string $name, callable $factory): CollectionFactory
+	{
+		return new CollectionFactory($name, $factory);
+	}
 }
