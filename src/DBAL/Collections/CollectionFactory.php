@@ -16,25 +16,33 @@ namespace Gobl\DBAL\Collections;
 use Gobl\ORM\ORMRequest;
 
 /**
- * Class CallableCollection.
+ * Class CollectionFactory.
  */
-class CallableCollection extends Collection
+class CollectionFactory extends Collection
 {
 	/**
 	 * @var callable
 	 */
-	protected $callable;
+	protected $factory;
 
 	/**
-	 * CallableCollection constructor.
+	 * CollectionFactory constructor.
 	 *
 	 * @param string   $name
-	 * @param callable $callable
+	 * @param callable $factory
 	 */
-	public function __construct(string $name, callable $callable)
+	public function __construct(string $name, callable $factory)
 	{
 		parent::__construct($name);
-		$this->callable = $callable;
+		$this->factory = $factory;
+	}
+
+	/**
+	 * CollectionFactory destructor.
+	 */
+	public function __destruct()
+	{
+		unset($this->factory);
 	}
 
 	/**
@@ -42,6 +50,6 @@ class CallableCollection extends Collection
 	 */
 	public function getItems(ORMRequest $request, int &$total_records = null): array
 	{
-		return ($this->callable)($request, $total_records);
+		return ($this->factory)($request, $total_records);
 	}
 }
