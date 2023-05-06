@@ -58,17 +58,16 @@ interface RDBMSInterface
 	public function addTable(Table $table): self;
 
 	/**
-	 * Adds tables.
+	 * Loads tables from a given schema definition.
 	 *
 	 * When a desired namespace is given, it will override any namespace defined in each table.
 	 *
-	 * @param array<string, array|Table> $tables            The tables array, contains table instances or table
-	 *                                                      definition arrays
-	 * @param null|string                $desired_namespace The desired namespace to use for all tables
+	 * @param array<string, array|Table> $schema            The schema definition
+	 * @param null|string                $desired_namespace The desired namespace
 	 *
 	 * @return $this
 	 */
-	public function addTables(array $tables, string $desired_namespace = null): self;
+	public function loadSchema(array $schema, string $desired_namespace = null): self;
 
 	/**
 	 * Returns db namespace builder for a given namespace.

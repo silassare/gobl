@@ -158,14 +158,14 @@ final class DBTest extends BaseTestCase
 		$foo_bar_namespace = 'App\\Foo\\Bar';
 
 		// without desired namespace
-		$db->addTables([
+		$db->loadSchema([
 			'users'   => (new Table('users', 'ur'))->addColumn(new Column('id'))
 				->setNamespace($custom_namespace),
 			'members' => (new Table('members'))->addColumn(new Column('id')),
 		]);
 
 		// with desired namespace
-		$db->addTables([
+		$db->loadSchema([
 			'tags'  => [
 				'namespace'     => $custom_namespace,
 				'singular_name' => 'tag',

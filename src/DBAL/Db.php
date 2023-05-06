@@ -215,14 +215,14 @@ abstract class Db implements RDBMSInterface
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
-	public function addTables(array $tables, string $desired_namespace = null): self
+	public function loadSchema(array $schema, string $desired_namespace = null): self
 	{
 		$tables_prefix           = $this->getConfig()
 			->getDbTablePrefix();
 		$tables_with_constraints = [];
 		$tables_with_relations   = [];
 		// we add tables and columns first
-		foreach ($tables as $table_name => $table_options) {
+		foreach ($schema as $table_name => $table_options) {
 			$table_namespace_option = null;
 			if ($table_options instanceof Table) {
 				$tbl = $table_options;
@@ -336,7 +336,7 @@ abstract class Db implements RDBMSInterface
 						if (\is_string($type)) {
 							if (static::isColumnReference($type)) {
 								$col_reference            = $type;
-								$ref_options              = $this->resolveColumnReference($col_reference, $table_name, $tables);
+								$ref_options              = $this->resolveColumnReference($col_reference, $table_name, $schema);
 								$col_options              = TypeUtils::mergeOptions($ref_options, $col_options);
 								$col_options['type']      = $ref_options['type'];
 								$col_options['reference'] = $col_reference;
@@ -401,7 +401,7 @@ abstract class Db implements RDBMSInterface
 			$tbl = $this->tables[$table_name];
 
 			/** @var array $table_options */
-			$table_options = $tables[$table_name];
+			$table_options = $schema[$table_name];
 			$constraints   = $table_options['constraints'];
 
 			foreach ($constraints as $constraint) {
@@ -515,7 +515,7 @@ abstract class Db implements RDBMSInterface
 			$tbl = $this->tables[$table_name];
 
 			/** @var array $table_options */
-			$table_options = $tables[$table_name];
+			$table_options = $schema[$table_name];
 			$relations     = $table_options['relations'];
 
 			foreach ($relations as $relation_name => $rel_options) {
