@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL;
 
-use Gobl\DBAL\Collections\CallableCollection;
 use Gobl\DBAL\Collections\Collection;
 use Gobl\DBAL\Constraints\ForeignKey;
 use Gobl\DBAL\Constraints\ForeignKeyAction;
@@ -775,21 +774,6 @@ final class Table implements ArrayCapableInterface
 		}
 
 		return $this->prefix . '_' . $this->name;
-	}
-
-	/**
-	 * Adds collection to this table (using callable).
-	 *
-	 * @param string   $name
-	 * @param callable $factory
-	 *
-	 * @return \Gobl\DBAL\Table
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 */
-	public function addCallableCollection(string $name, callable $factory): self
-	{
-		return $this->addCollection(new CallableCollection($name, $factory));
 	}
 
 	/**
