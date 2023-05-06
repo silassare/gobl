@@ -62,13 +62,15 @@ final class NamespaceBuilder
 	}
 
 	/**
-	 * Adds tables to the namespace.
+	 * Loads a schema to this namespace.
 	 *
-	 * @param array $tables The tables to add
+	 * @param array $schema
+	 *
+	 * @return $this
 	 */
-	public function addTables(array $tables): self
+	public function schema(array $schema): self
 	{
-		$this->rdbms->addTables($tables, $this->namespace);
+		$this->rdbms->loadSchema($schema, $this->namespace);
 
 		return $this;
 	}

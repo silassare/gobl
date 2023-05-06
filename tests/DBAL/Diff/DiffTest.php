@@ -38,7 +38,7 @@ final class DiffTest extends BaseTestCase
 		$db_b = Db::createInstanceOf($db_a->getType(), $db_a->getConfig());
 
 		$db_b->ns('Test')
-			->addTables(self::getTablesDiffDefinitions());
+			->schema(self::getTablesDiffDefinitions());
 
 		$diff = new Diff($db_a, $db_b);
 

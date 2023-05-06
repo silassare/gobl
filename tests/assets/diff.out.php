@@ -233,7 +233,7 @@ return new class implements MigrationInterface {
 	/**
 	 * @inheritDoc
 	 */
-	public function getTables(): array
+	public function getSchema(): array
 	{
 		return [
 			'clients'    =>

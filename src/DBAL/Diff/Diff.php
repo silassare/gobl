@@ -141,11 +141,11 @@ DIFF_SQL;
 		$m_get_configs->addChild(\sprintf('return %s;', \var_export($this->db_to->getConfig()
 			->toSafeArray(), true)));
 
-		$m_get_tables = $class->newMethod('getTables')
+		$m_get_schema = $class->newMethod('getSchema')
 			->public()
 			->setReturnType('array');
 
-		$m_get_tables->addChild(\sprintf('return %s;', \var_export($tables, true)))
+		$m_get_schema->addChild(\sprintf('return %s;', \var_export($tables, true)))
 			->comment('@inheritDoc');
 
 		return $file->addChild('return ' . $class . ';');

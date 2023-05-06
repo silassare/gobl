@@ -57,7 +57,7 @@ abstract class BaseTestCase extends TestCase
 			try {
 				$db = self::$rdbms[$type] = self::getEmptyDb($type);
 				$db->ns(self::TEST_DB_NAMESPACE)
-					->addTables(self::getTablesDefinitions());
+					->schema(self::getTablesDefinitions());
 			} catch (Throwable $t) {
 				gobl_test_log($t);
 
