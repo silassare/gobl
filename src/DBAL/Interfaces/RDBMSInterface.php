@@ -30,7 +30,7 @@ interface RDBMSInterface
 	public static function createInstance(DbConfig $config): self;
 
 	/**
-	 * Lock this db instance to prevent table addition.
+	 * Locks this db instance to prevent further changes.
 	 */
 	public function lock(): self;
 
@@ -47,6 +47,14 @@ interface RDBMSInterface
 	 * @return DbConfig
 	 */
 	public function getConfig(): DbConfig;
+
+	/**
+	 * Resolve reference column.
+	 *
+	 * @param string $reference          The reference column path
+	 * @param string $used_in_table_name The table in which the reference is being used
+	 */
+	public function resolveColumn(string $reference, string $used_in_table_name): array;
 
 	/**
 	 * Adds table.

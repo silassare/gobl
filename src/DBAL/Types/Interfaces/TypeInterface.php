@@ -35,6 +35,13 @@ interface TypeInterface extends ArrayCapableInterface
 	public static function getInstance(array $options): self;
 
 	/**
+	 * Locks the type to prevent further changes.
+	 *
+	 * @return $this
+	 */
+	public function lock(): self;
+
+	/**
 	 * @return \Gobl\DBAL\Types\Interfaces\BaseTypeInterface
 	 */
 	public function getBaseType(): BaseTypeInterface;

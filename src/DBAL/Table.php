@@ -122,7 +122,7 @@ final class Table implements ArrayCapableInterface
 
 	private bool $locked = false;
 
-	private bool $name_locked = false;
+	private bool $locked_name = false;
 
 	/**
 	 * The table columns.
@@ -250,7 +250,7 @@ final class Table implements ArrayCapableInterface
 	}
 
 	/**
-	 * Lock this table.
+	 * Locks this table to prevent further changes.
 	 *
 	 * @return $this
 	 */
@@ -267,9 +267,13 @@ final class Table implements ArrayCapableInterface
 						$c_col = clone $column;
 
 						$c_col->setPrefix($this->column_prefix);
-						$this->columns[$name] = $c_col->lock($this);
+						$this->columns[$name] = $c_col;
 					}
 				}
+			}
+
+			foreach ($this->columns as $column) {
+				$column->lock($this);
 			}
 
 			$this->pk_constraint?->lock();
@@ -295,45 +299,9 @@ final class Table implements ArrayCapableInterface
 	 */
 	public function lockName(): self
 	{
-		$this->name_locked = true;
+		$this->locked_name = true;
 
 		return $this;
-	}
-
-	/**
-	 * Asserts if this column definition/instance is valid.
-	 */
-	public function assertIsValid(): void
-	{
-		if (empty($this->columns)) {
-			throw new InvalidArgumentException(\sprintf(
-				'Table "%s" should have at least one column.',
-				$this->name
-			));
-		}
-
-		if (empty($this->plural_name)) {
-			$missing[] = 'plural_name';
-		}
-
-		if (empty($this->singular_name)) {
-			$missing[] = 'singular_name';
-		}
-
-		if (isset($missing)) {
-			throw new InvalidArgumentException(\sprintf(
-				'Invalid table "%s" missing required properties: %s',
-				$this->name,
-				\implode(', ', $missing)
-			));
-		}
-
-		if (!empty($this->plural_name) && $this->plural_name === $this->singular_name) {
-			throw new InvalidArgumentException(\sprintf(
-				'"plural_name" and "singular_name" should not be equal in table "%s".',
-				$this->name
-			));
-		}
 	}
 
 	/**
@@ -484,6 +452,42 @@ final class Table implements ArrayCapableInterface
 	}
 
 	/**
+	 * Asserts if this column definition/instance is valid.
+	 */
+	public function assertIsValid(): void
+	{
+		if (empty($this->columns)) {
+			throw new InvalidArgumentException(\sprintf(
+				'Table "%s" should have at least one column.',
+				$this->name
+			));
+		}
+
+		if (empty($this->plural_name)) {
+			$missing[] = 'plural_name';
+		}
+
+		if (empty($this->singular_name)) {
+			$missing[] = 'singular_name';
+		}
+
+		if (isset($missing)) {
+			throw new InvalidArgumentException(\sprintf(
+				'Invalid table "%s" missing required properties: %s',
+				$this->name,
+				\implode(', ', $missing)
+			));
+		}
+
+		if (!empty($this->plural_name) && $this->plural_name === $this->singular_name) {
+			throw new InvalidArgumentException(\sprintf(
+				'"plural_name" and "singular_name" should not be equal in table "%s".',
+				$this->name
+			));
+		}
+	}
+
+	/**
 	 * Asserts if this table is not locked.
 	 */
 	public function assertNotLocked(): void
@@ -501,9 +505,9 @@ final class Table implements ArrayCapableInterface
 	 */
 	public function assertNameNotLocked(): void
 	{
-		if ($this->name_locked) {
+		if ($this->locked_name) {
 			throw new DBALRuntimeException(\sprintf(
-				'You should not try to edit registered table name or prefix "%s".',
+				'You should not try to edit locked table (%s) name or prefix.',
 				$this->name
 			));
 		}
@@ -695,8 +699,8 @@ final class Table implements ArrayCapableInterface
 		$this->assertNotLocked();
 		$this->assertCanAddColumn($column);
 
-		// this column should not be modified
-		$column->lock($this);
+		// this column name and prefix should not be modified
+		$column->lockName();
 
 		$name                                = $column->getName();
 		$full_name                           = $column->getFullName();

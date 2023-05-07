@@ -71,6 +71,8 @@ final class Column implements ArrayCapableInterface
 
 	private bool $locked = false;
 
+	private bool $locked_name = false;
+
 	private ?Table $table = null;
 
 	/**
@@ -110,9 +112,10 @@ final class Column implements ArrayCapableInterface
 	 */
 	public function __clone()
 	{
-		$this->type   = clone $this->type;
-		$this->locked = false; // we clone because we want to edit
-		$this->table  = null;
+		$this->type        = clone $this->type;
+		$this->locked      = false; // we clone because we want to edit
+		$this->locked_name = false; // we clone because we want to edit
+		$this->table       = null;
 	}
 
 	/**
@@ -172,6 +175,20 @@ final class Column implements ArrayCapableInterface
 	}
 
 	/**
+	 * Asserts if this column definition/instance is valid.
+	 */
+	public function assertIsValid(): void
+	{
+		// noop
+		if (\in_array($this->name, Gobl::getForbiddenColumnsName(), true)) {
+			throw new DBALRuntimeException(\sprintf(
+				'Column name "%s" is not allowed.',
+				$this->name
+			));
+		}
+	}
+
+	/**
 	 * Asserts if this column is not locked.
 	 */
 	public function assertNotLocked(): void
@@ -179,6 +196,19 @@ final class Column implements ArrayCapableInterface
 		if ($this->locked) {
 			throw new DBALRuntimeException(\sprintf(
 				'You should not try to edit locked column "%s".',
+				$this->name
+			));
+		}
+	}
+
+	/**
+	 * Asserts if this table name is not locked.
+	 */
+	public function assertNameNotLocked(): void
+	{
+		if ($this->locked_name) {
+			throw new DBALRuntimeException(\sprintf(
+				'You should not try to edit locked column (%s) name or prefix.',
 				$this->name
 			));
 		}
@@ -204,6 +234,7 @@ final class Column implements ArrayCapableInterface
 	public function setName(string $name): self
 	{
 		$this->assertNotLocked();
+		$this->assertNameNotLocked();
 
 		if (!\preg_match(self::NAME_REG, $name)) {
 			throw new InvalidArgumentException(\sprintf(
@@ -219,7 +250,19 @@ final class Column implements ArrayCapableInterface
 	}
 
 	/**
-	 * Lock this column.
+	 * Lock column name.
+	 *
+	 * @return $this
+	 */
+	public function lockName(): self
+	{
+		$this->locked_name = true;
+
+		return $this;
+	}
+
+	/**
+	 * Locks this column to prevent further changes.
 	 *
 	 * @return $this
 	 */
@@ -229,6 +272,7 @@ final class Column implements ArrayCapableInterface
 			$this->assertIsValid();
 			$this->locked = true;
 			$this->table  = $table;
+			$this->type->lock();
 		} elseif ($table !== $this->table) {
 			throw new DBALRuntimeException(\sprintf(
 				'Can\'t lock column "%s" in table "%s" as it is already locked in "%s".',
@@ -239,20 +283,6 @@ final class Column implements ArrayCapableInterface
 		}
 
 		return $this;
-	}
-
-	/**
-	 * Asserts if this column definition/instance is valid.
-	 */
-	public function assertIsValid(): void
-	{
-		// noop
-		if (\in_array($this->name, Gobl::getForbiddenColumnsName(), true)) {
-			throw new DBALRuntimeException(\sprintf(
-				'Column name "%s" is not allowed.',
-				$this->name
-			));
-		}
 	}
 
 	/**
@@ -331,21 +361,15 @@ final class Column implements ArrayCapableInterface
 	/**
 	 * Gets type object.
 	 *
-	 * To prevent edit on locked column type, the returned type
-	 * is a clone of the original.
-	 *
 	 * @return TypeInterface
 	 */
 	public function getType(): TypeInterface
 	{
-		return clone $this->type;
+		return $this->type;
 	}
 
 	/**
 	 * Sets the column type.
-	 *
-	 * To prevent edit on locked column type,
-	 * the given type object will be cloned.
 	 *
 	 * @param \Gobl\DBAL\Types\Interfaces\TypeInterface $type
 	 *
@@ -355,7 +379,7 @@ final class Column implements ArrayCapableInterface
 	{
 		$this->assertNotLocked();
 
-		$this->type = clone $type;
+		$this->type = $type;
 
 		return $this;
 	}
@@ -380,6 +404,7 @@ final class Column implements ArrayCapableInterface
 	public function setPrefix(string $prefix): self
 	{
 		$this->assertNotLocked();
+		$this->assertNameNotLocked();
 
 		if (!empty($prefix) && !\preg_match(self::PREFIX_REG, $prefix)) {
 			throw new InvalidArgumentException(\sprintf(

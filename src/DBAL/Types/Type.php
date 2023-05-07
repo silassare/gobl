@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Types;
 
+use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Filters\Filter;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
@@ -34,12 +35,33 @@ abstract class Type implements TypeInterface
 
 	protected array $error_messages = [];
 
+	protected bool $locked = false;
+
 	/**
 	 * Type constructor.
 	 */
 	protected function __construct(BaseTypeInterface $base_type)
 	{
-		$this->base_type = $base_type;
+		$this->base_type       = $base_type;
+		$this->options['type'] = $this->getName();
+	}
+
+	/**
+	 * Type clone helper.
+	 */
+	public function __clone()
+	{
+		$this->locked = false; // we clone because we want to edit
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function lock(): self
+	{
+		$this->locked = true;
+
+		return $this;
 	}
 
 	/**
@@ -234,6 +256,10 @@ abstract class Type implements TypeInterface
 	 */
 	final public function setOption(string $key, mixed $value): self
 	{
+		if ($this->locked) {
+			throw new DBALRuntimeException('Locked type cannot be modified.');
+		}
+
 		$this->options[$key] = $value;
 
 		return $this;

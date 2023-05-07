@@ -82,7 +82,7 @@ abstract class Constraint implements ArrayCapableInterface
 	}
 
 	/**
-	 * Lock this constraint.
+	 * Locks this constraints to prevent further changes.
 	 *
 	 * @return $this
 	 */

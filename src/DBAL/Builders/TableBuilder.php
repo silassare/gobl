@@ -167,9 +167,7 @@ final class TableBuilder
 	 */
 	public function string(string $column_name): TypeString
 	{
-		$type = new TypeString();
-
-		$this->column($column_name, $type);
+		$this->column($column_name, $type = new TypeString());
 
 		return $type;
 	}
@@ -185,9 +183,7 @@ final class TableBuilder
 	 */
 	public function bigint(string $column_name): TypeBigint
 	{
-		$type = new TypeBigint();
-
-		$this->column($column_name, $type);
+		$this->column($column_name, $type = new TypeBigint());
 
 		return $type;
 	}
@@ -203,9 +199,7 @@ final class TableBuilder
 	 */
 	public function int(string $column_name): TypeInt
 	{
-		$type = new TypeInt();
-
-		$this->column($column_name, $type);
+		$this->column($column_name, $type = new TypeInt());
 
 		return $type;
 	}
@@ -221,9 +215,7 @@ final class TableBuilder
 	 */
 	public function decimal(string $column_name): TypeDecimal
 	{
-		$type = new TypeDecimal();
-
-		$this->column($column_name, $type);
+		$this->column($column_name, $type = new TypeDecimal());
 
 		return $type;
 	}
@@ -239,9 +231,7 @@ final class TableBuilder
 	 */
 	public function float(string $column_name): TypeFloat
 	{
-		$type = new TypeFloat();
-
-		$this->column($column_name, $type);
+		$this->column($column_name, $type = new TypeFloat());
 
 		return $type;
 	}
@@ -257,9 +247,7 @@ final class TableBuilder
 	 */
 	public function bool(string $column_name): TypeBool
 	{
-		$type = new TypeBool();
-
-		$this->column($column_name, $type);
+		$this->column($column_name, $type = new TypeBool());
 
 		return $type;
 	}
@@ -275,9 +263,7 @@ final class TableBuilder
 	 */
 	public function date(string $column_name): TypeDate
 	{
-		$type = new TypeDate();
-
-		$this->column($column_name, $type);
+		$this->column($column_name, $type = new TypeDate());
 
 		return $type;
 	}
@@ -293,13 +279,9 @@ final class TableBuilder
 	 */
 	public function timestamp(string $column_name): TypeDate
 	{
-		$type = new TypeDate();
+		$this->column($column_name, $type = new TypeDate());
 
-		$type->format('timestamp');
-
-		$this->column($column_name, $type);
-
-		return $type;
+		return $type->format('timestamp');
 	}
 
 	/**
@@ -313,9 +295,7 @@ final class TableBuilder
 	 */
 	public function list(string $column_name): TypeList
 	{
-		$type = new TypeList();
-
-		$this->column($column_name, $type);
+		$this->column($column_name, $type = new TypeList());
 
 		return $type;
 	}
@@ -331,9 +311,7 @@ final class TableBuilder
 	 */
 	public function map(string $column_name): TypeMap
 	{
-		$type = new TypeMap();
-
-		$this->column($column_name, $type);
+		$this->column($column_name, $type = new TypeMap());
 
 		return $type;
 	}
@@ -353,13 +331,14 @@ final class TableBuilder
 		?ForeignKeyAction $update_action = null,
 		?ForeignKeyAction $delete_action = null,
 	): TypeInterface {
-		$ref_table  = $this->rdbms->getTableOrFail($foreign_table);
-		$ref_column = $ref_table->getColumnOrFail($foreign_column);
-		$ref_type   = $ref_column->getType();
+		$ref_table = $this->rdbms->getTableOrFail($foreign_table);
 
-		$column = new Column($column_name, null, $ref_type->toArray());
+		$ref        = 'ref:' . $foreign_table . '.' . $foreign_column;
+		$ref_column = $this->rdbms->resolveColumn($ref, $this->table->getName());
 
-		$column->setReference($ref_column);
+		$column = new Column($column_name, null, $ref_column);
+
+		$column->setReference($ref);
 
 		$this->table->addColumn($column);
 
@@ -381,13 +360,12 @@ final class TableBuilder
 	 */
 	public function sameAs(string $column_name, string $source_table, string $source_column): TypeInterface
 	{
-		$ref_table  = $this->rdbms->getTableOrFail($source_table);
-		$ref_column = $ref_table->getColumnOrFail($source_column);
-		$ref_type   = $ref_column->getType();
+		$ref        = 'cp:' . $source_table . '.' . $source_column;
+		$ref_column = $this->rdbms->resolveColumn($ref, $this->table->getName());
 
-		$column = new Column($column_name, null, $ref_type->toArray());
+		$column = new Column($column_name, null, $ref_column);
 
-		$column->setReference($ref_column, true);
+		$column->setReference($ref);
 
 		$this->table->addColumn($column);
 

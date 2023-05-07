@@ -335,7 +335,7 @@ abstract class Db implements RDBMSInterface
 						if (\is_string($type)) {
 							if (static::isColumnReference($type)) {
 								$col_reference            = $type;
-								$ref_options              = $this->resolveColumnReference($col_reference, $table_name, $schema);
+								$ref_options              = $this->resolveColumnInternal($col_reference, $table_name, $schema);
 								$col_options              = TypeUtils::mergeOptions($ref_options, $col_options);
 								$col_options['type']      = $ref_options['type'];
 								$col_options['reference'] = $col_reference;
@@ -782,6 +782,16 @@ abstract class Db implements RDBMSInterface
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 */
+	public function resolveColumn(string $reference, string $used_in_table_name): array
+	{
+		return $this->resolveColumnInternal($reference, $used_in_table_name);
+	}
+
+	/**
 	 * Connect to the relational database management system.
 	 *
 	 * @return PDO
@@ -791,23 +801,21 @@ abstract class Db implements RDBMSInterface
 	/**
 	 * Resolve reference column.
 	 *
-	 * You don't need to define param circle
-	 * it is for internal use only
-	 * to prevent cyclic search that may cause infinite loop
-	 *
 	 * @param string $reference          The reference column path
-	 * @param string $current_table_name The table in which the reference is
-	 * @param array  $tables             Tables config array
-	 * @param array  $circle             Contains all references, to prevent infinite loop (Internal use only)
+	 * @param string $used_in_table_name The table in which the reference is being used
+	 * @param array  $schema             Schema definition
+	 * @param array  $circle             Contains all references, to prevent infinite loop
 	 *
 	 * @return array
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 *
+	 * @internal
 	 */
-	protected function resolveColumnReference(
+	protected function resolveColumnInternal(
 		string $reference,
-		string $current_table_name,
-		array $tables = [],
+		string $used_in_table_name,
+		array $schema = [],
 		array &$circle = []
 	): array {
 		if (isset($this->resolved_column_ref[$reference])) {
@@ -821,7 +829,7 @@ abstract class Db implements RDBMSInterface
 				'Possible cyclic reference path "%s" found while resolving column reference "%s" in table "%s".',
 				\implode(' > ', $circle),
 				$circle[0],
-				$current_table_name
+				$used_in_table_name
 			));
 		}
 
@@ -839,23 +847,23 @@ abstract class Db implements RDBMSInterface
 					$_col_opt = $col->getType()
 						->toArray();
 				}
-			} elseif (isset($tables[$ref_table])) {
-				if ($tables[$ref_table] instanceof Table) {
-					$tbl = $tables[$ref_table];
+			} elseif (isset($schema[$ref_table])) {
+				if ($schema[$ref_table] instanceof Table) {
+					$tbl = $schema[$ref_table];
 
 					if ($col = $tbl->getColumn($ref_col)) {
 						$_col_opt = $col->getType()
 							->toArray();
 					}
-				} elseif (\is_array($tables[$ref_table]) && isset($tables[$ref_table]['columns'][$ref_col])) {
-					$ref_col_opt          = $tables[$ref_table]['columns'][$ref_col];
+				} elseif (\is_array($schema[$ref_table]) && isset($schema[$ref_table]['columns'][$ref_col])) {
+					$ref_col_opt          = $schema[$ref_table]['columns'][$ref_col];
 					$ref_type_to_override = null;
 
 					if (\is_string($ref_col_opt)) {
 						$type = $ref_col_opt;
 
 						if (static::isColumnReference($ref_col_opt)) {
-							$ref_type_to_override = $this->resolveColumnReference($type, $ref_table, $tables, $circle);
+							$ref_type_to_override = $this->resolveColumnInternal($type, $ref_table, $schema, $circle);
 						}
 					} elseif (\is_array($ref_col_opt)) {
 						if (isset($ref_col_opt['type'])) {
@@ -863,10 +871,10 @@ abstract class Db implements RDBMSInterface
 							$_col_opt = $ref_col_opt;
 
 							if (\is_string($type) && static::isColumnReference($type)) {
-								$ref_type_to_override = $this->resolveColumnReference(
+								$ref_type_to_override = $this->resolveColumnInternal(
 									$type,
 									$ref_table,
-									$tables,
+									$schema,
 									$circle
 								);
 							} elseif ($type instanceof TypeInterface) {
@@ -902,7 +910,7 @@ abstract class Db implements RDBMSInterface
 		throw new DBALException(\sprintf(
 			'Unable to resolve column type reference "%s" found in table "%s".',
 			$reference,
-			$current_table_name
+			$used_in_table_name
 		));
 	}
 }
