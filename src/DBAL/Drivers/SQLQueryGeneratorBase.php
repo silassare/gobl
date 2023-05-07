@@ -981,7 +981,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$column_name      = $column->getFullName();
 		$type             = $column->getType()
 			->getBaseType();
-		$null             = $type->isNullAble();
+		$null             = $type->isNullable();
 		$default          = $type->getDefault();
 		$force_no_default = false;
 		$min              = $type->getOption('min', 0);
@@ -1432,7 +1432,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 */
 	protected static function defaultAndNullChunks(BaseTypeInterface $type, array &$sql_parts): void
 	{
-		$null    = $type->isNullAble();
+		$null    = $type->isNullable();
 		$default = $type->getDefault();
 
 		if (!$null) {

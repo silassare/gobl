@@ -138,7 +138,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 			$value     = $this->_oeb_row[$full_name] ?? null;
 			$type      = $column->getType();
 
-			if (null === $value && !$type->isNullAble()) {
+			if (null === $value && !$type->isNullable()) {
 				// this is to prevent returning null as the property is supposed to not have null value
 				return $type->getEmptyValueOfType();
 			}
@@ -371,7 +371,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 			$value          = $this->{$column_name_fn};
 
 			if (null === $value && !$column->getType()
-				->isNullAble()) {// unique constraint may be nullable
+				->isNullable()) {// unique constraint may be nullable
 				throw new ORMException(\sprintf('Required identity column "%s" value was not set.', $column_name_fn));
 			}
 

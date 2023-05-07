@@ -186,7 +186,7 @@ class TypeBigint extends Type implements BaseTypeInterface
 
 			$value = $this->getDefault();
 
-			if (null === $value && $this->isNullAble()) {
+			if (null === $value && $this->isNullable()) {
 				return null;
 			}
 		}
@@ -223,7 +223,7 @@ class TypeBigint extends Type implements BaseTypeInterface
 	 */
 	public function getEmptyValueOfType(): ?int
 	{
-		return $this->isNullAble() ? null : 0;
+		return $this->isNullable() ? null : 0;
 	}
 
 	/**

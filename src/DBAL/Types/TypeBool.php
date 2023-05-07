@@ -96,7 +96,7 @@ class TypeBool extends Type implements BaseTypeInterface
 	 */
 	public function getEmptyValueOfType(): ?bool
 	{
-		return $this->isNullAble() ? null : false;
+		return $this->isNullable() ? null : false;
 	}
 
 	/**
@@ -119,7 +119,7 @@ class TypeBool extends Type implements BaseTypeInterface
 			Operator::IS_TRUE,
 		];
 
-		if ($this->isNullAble()) {
+		if ($this->isNullable()) {
 			$operators[] = Operator::IS_NULL;
 			$operators[] = Operator::IS_NOT_NULL;
 		}
@@ -153,7 +153,7 @@ class TypeBool extends Type implements BaseTypeInterface
 		if (null === $value) {
 			$value = $this->getDefault();
 
-			if (null === $value && $this->isNullAble()) {
+			if (null === $value && $this->isNullable()) {
 				return null;
 			}
 		}

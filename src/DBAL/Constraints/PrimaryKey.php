@@ -50,7 +50,7 @@ class PrimaryKey extends Constraint
 		$column = $this->host_table->getColumnOrFail($name);
 
 		if ($column->getType()
-			->isNullAble()) {
+			->isNullable()) {
 			throw new DBALException(\sprintf(
 				'All parts of a PRIMARY KEY must be NOT NULL; if you need NULL in a key,'
 				. ' use UNIQUE instead; check column "%s" in table "%s".',

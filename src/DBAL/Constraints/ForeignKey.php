@@ -178,7 +178,7 @@ class ForeignKey extends Constraint
 
 			if (ForeignKeyAction::SET_NULL === $this->delete_action
 				&& !$col->getType()
-					->isNullAble()
+					->isNullable()
 			) {
 				throw new DBALException(\sprintf(
 					'The foreign column "%s" found in "%s" should be nullable to be able to "%s" on delete, as defined in the foreign key constraint.',
@@ -189,7 +189,7 @@ class ForeignKey extends Constraint
 			}
 			if (ForeignKeyAction::SET_NULL === $this->update_action
 				&& !$col->getType()
-					->isNullAble()
+					->isNullable()
 			) {
 				throw new DBALException(\sprintf(
 					'The foreign column "%s" found in "%s" should be nullable to be able to "%s" on update, as defined in the foreign key constraint.',

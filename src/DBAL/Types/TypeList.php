@@ -51,7 +51,7 @@ class TypeList extends Type
 	 */
 	public function getEmptyValueOfType(): ?array
 	{
-		return $this->isNullAble() ? null : [];
+		return $this->isNullable() ? null : [];
 	}
 
 	/**
@@ -132,7 +132,7 @@ class TypeList extends Type
 			Operator::NOT_LIKE,
 		];
 
-		if ($this->isNullAble()) {
+		if ($this->isNullable()) {
 			$operators[] = Operator::IS_NULL;
 			$operators[] = Operator::IS_NOT_NULL;
 		}

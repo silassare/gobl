@@ -215,7 +215,7 @@ class TypeDecimal extends Type implements BaseTypeInterface
 	 */
 	public function getEmptyValueOfType(): ?float
 	{
-		return $this->isNullAble() ? null : 0.0;
+		return $this->isNullable() ? null : 0.0;
 	}
 
 	/**
@@ -234,7 +234,7 @@ class TypeDecimal extends Type implements BaseTypeInterface
 		if (null === $value) {
 			$value = $this->getDefault();
 
-			if (null === $value && $this->isNullAble()) {
+			if (null === $value && $this->isNullable()) {
 				return null;
 			}
 		}

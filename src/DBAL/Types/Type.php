@@ -119,7 +119,7 @@ abstract class Type implements TypeInterface
 				unset($operators[$key]);
 			}
 
-			if (!$this->isNullAble()) {
+			if (!$this->isNullable()) {
 				if (Operator::IS_NULL === $op || Operator::IS_NOT_NULL === $op) {
 					unset($operators[$key]);
 				}
@@ -132,7 +132,7 @@ abstract class Type implements TypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function isNullAble(): bool
+	public function isNullable(): bool
 	{
 		return (bool) $this->getOption('nullable', false);
 	}
@@ -140,7 +140,7 @@ abstract class Type implements TypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function nullAble(bool $nullable = true): self
+	public function nullable(bool $nullable = true): self
 	{
 		return $this->setOption('nullable', $nullable);
 	}
@@ -216,9 +216,9 @@ abstract class Type implements TypeInterface
 	{
 		$nullable = $options['nullable'] ?? $options['null'] ?? null;
 		if (null !== $nullable) {
-			$this->nullAble((bool) $nullable)
+			$this->nullable((bool) $nullable)
 				->getBaseType()
-				->nullAble((bool) $nullable);
+				->nullable((bool) $nullable);
 		}
 
 		if (isset($options['auto_increment'])) {

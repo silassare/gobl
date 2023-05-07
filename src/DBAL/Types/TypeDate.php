@@ -229,7 +229,7 @@ class TypeDate extends Type
 
 			$value = $this->getDefault();
 
-			if (null === $value && $this->isNullAble()) {
+			if (null === $value && $this->isNullable()) {
 				return null;
 			}
 		}

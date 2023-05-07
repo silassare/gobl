@@ -68,7 +68,7 @@ abstract class ORMController
 		foreach ($columns as $column) {
 			$full_name = $column->getFullName();
 			$type      = $column->getType();
-			$required  = !($type->isAutoIncremented() || $type->isNullAble() || $type->hasDefault());
+			$required  = !($type->isAutoIncremented() || $type->isNullable() || $type->hasDefault());
 
 			$this->form_fields[$full_name] = $required;
 

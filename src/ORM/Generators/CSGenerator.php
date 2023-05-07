@@ -138,7 +138,7 @@ abstract class CSGenerator
 			'fullName'          => $column->getFullName(),
 			'prefix'            => $column->getPrefix(),
 			'isAutoIncremented' => $type->isAutoIncremented(),
-			'isNullable'        => $type->isNullAble(),
+			'isNullable'        => $type->isNullable(),
 			'hasDefault'        => $type->hasDefault(),
 			'filtersRules'      => $filtersRules,
 			'methodSuffix'      => Str::toClassName($column_name),
@@ -171,7 +171,7 @@ abstract class CSGenerator
 		$type      = $column->getType();
 		$type_hint = $type->getWriteTypeHint();
 
-		if ($type->isAutoIncremented() || $type->isNullAble()) {
+		if ($type->isAutoIncremented() || $type->isNullable()) {
 			$type_hint[] = ORMTypeHint::_NULL;
 		}
 
@@ -188,7 +188,7 @@ abstract class CSGenerator
 		$type      = $column->getType();
 		$type_hint = $type->getReadTypeHint();
 
-		if ($type->isAutoIncremented() || $type->isNullAble()) {
+		if ($type->isAutoIncremented() || $type->isNullable()) {
 			$type_hint[] = ORMTypeHint::_NULL;
 		}
 

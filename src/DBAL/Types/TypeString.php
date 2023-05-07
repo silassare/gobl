@@ -248,7 +248,7 @@ class TypeString extends Type implements BaseTypeInterface
 	 */
 	public function getEmptyValueOfType(): ?string
 	{
-		return $this->isNullAble() ? null : '';
+		return $this->isNullable() ? null : '';
 	}
 
 	/**
@@ -279,7 +279,7 @@ class TypeString extends Type implements BaseTypeInterface
 		if (null === $value || '' === $value) {
 			$value = $this->getDefault();
 
-			if (null === $value && $this->isNullAble()) {
+			if (null === $value && $this->isNullable()) {
 				return null;
 			}
 		}

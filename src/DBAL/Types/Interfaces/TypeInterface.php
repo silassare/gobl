@@ -60,7 +60,7 @@ interface TypeInterface extends ArrayCapableInterface
 	 *
 	 * @return $this
 	 */
-	public function nullAble(bool $nullable = true): self;
+	public function nullable(bool $nullable = true): self;
 
 	/**
 	 * This is used to prevent returning empty value when the column
@@ -75,7 +75,7 @@ interface TypeInterface extends ArrayCapableInterface
 	 *
 	 * @return bool
 	 */
-	public function isNullAble(): bool;
+	public function isNullable(): bool;
 
 	/**
 	 * Auto-increment allows a unique number to be generated,
