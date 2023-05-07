@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Filters\Interfaces;
 
-use Gobl\DBAL\Operator;
+use Gobl\DBAL\Filters\Filter;
 
 /**
  * Interface FiltersScopeInterface.
@@ -23,11 +23,9 @@ interface FiltersScopeInterface
 	/**
 	 * Asserts if a filter is allowed.
 	 *
-	 * @param \Gobl\DBAL\Operator $operator
-	 * @param string              $left_operand
-	 * @param mixed               $right_operand
+	 * @param \Gobl\DBAL\Filters\Filter $filter
 	 */
-	public function assertFilterAllowed(Operator $operator, string $left_operand, mixed $right_operand): void;
+	public function assertFilterAllowed(Filter $filter): void;
 
 	/**
 	 * Should return the given column fully qualified name or return as is.

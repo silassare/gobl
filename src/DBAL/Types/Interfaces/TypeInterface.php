@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Types\Interfaces;
 
+use Gobl\DBAL\Filters\Filter;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
-use Gobl\DBAL\Operator;
 use Gobl\ORM\Utils\ORMTypeHint;
 use PHPUtils\Interfaces\ArrayCapableInterface;
 
@@ -152,10 +152,9 @@ interface TypeInterface extends ArrayCapableInterface
 	/**
 	 * Asserts operator and value are allowed for this type.
 	 *
-	 * @param \Gobl\DBAL\Operator $operator
-	 * @param mixed               $value
+	 * @param \Gobl\DBAL\Filters\Filter $filter
 	 */
-	public function assertFilterAllowed(Operator $operator, mixed $value): void;
+	public function assertFilterAllowed(Filter $filter): void;
 
 	/**
 	 * Should we enforce query expression value type.

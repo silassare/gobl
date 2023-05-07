@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Types;
 
+use Gobl\DBAL\Filters\Filter;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Types\Exceptions\TypesException;
@@ -63,9 +64,9 @@ abstract class Type implements TypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function assertFilterAllowed(Operator $operator, mixed $value): void
+	public function assertFilterAllowed(Filter $filter): void
 	{
-		$this->safelyCallOnBaseType(__FUNCTION__, [$operator, $value]);
+		$this->safelyCallOnBaseType(__FUNCTION__, [$filter]);
 	}
 
 	/**
