@@ -28,6 +28,8 @@ abstract class DiffAction implements ArrayCapableInterface
 	}
 
 	/**
+	 * Gets the reason.
+	 *
 	 * @return string
 	 */
 	public function getReason(): string
@@ -36,6 +38,22 @@ abstract class DiffAction implements ArrayCapableInterface
 	}
 
 	/**
+	 * Sets the reason.
+	 *
+	 * @param string $reason
+	 *
+	 * @return $this
+	 */
+	public function setReason(string $reason): self
+	{
+		$this->reason = $reason;
+
+		return $this;
+	}
+
+	/**
+	 * Gets the type.
+	 *
 	 * @return \Gobl\DBAL\Diff\DiffActionType
 	 */
 	public function getType(): DiffActionType
