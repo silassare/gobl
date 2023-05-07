@@ -180,7 +180,6 @@ abstract class Db implements RDBMSInterface
 
 		try {
 			$table->assertNotLocked();
-			$table->assertIsValid();
 		} catch (Throwable $t) {
 			throw new DBALException(\sprintf(
 				'Table "%s" could not be added.',
@@ -205,7 +204,7 @@ abstract class Db implements RDBMSInterface
 		}
 
 		$this->tbl_full_name_map[$full_name] = $name;
-		$this->tables[$name]                 = $table;
+		$this->tables[$name]                 = $table->lockName();
 
 		return $this;
 	}

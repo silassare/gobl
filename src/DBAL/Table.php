@@ -122,6 +122,8 @@ final class Table implements ArrayCapableInterface
 
 	private bool $locked = false;
 
+	private bool $name_locked = false;
+
 	/**
 	 * The table columns.
 	 *
@@ -193,12 +195,13 @@ final class Table implements ArrayCapableInterface
 	public function __construct(string $name, ?string $prefix = null)
 	{
 		$this->setName($name);
-		$this->setPluralName($name . '_entities');
-		$this->setSingularName($name . '_entity');
 
 		if (!empty($prefix)) {
 			$this->setPrefix($prefix);
 		}
+
+		$this->setPluralName($name . '_entities');
+		$this->setSingularName($name . '_entity');
 	}
 
 	/**
@@ -235,6 +238,7 @@ final class Table implements ArrayCapableInterface
 	public function setName(string $name): self
 	{
 		$this->assertNotLocked();
+		$this->assertNameNotLocked();
 
 		if (!\preg_match(self::NAME_REG, $name)) {
 			throw new InvalidArgumentException(\sprintf('Table name "%s" should match: %s', $name, self::NAME_PATTERN));
@@ -280,6 +284,18 @@ final class Table implements ArrayCapableInterface
 
 			$this->locked = true;
 		}
+
+		return $this;
+	}
+
+	/**
+	 * Lock table name.
+	 *
+	 * @return $this
+	 */
+	public function lockName(): self
+	{
+		$this->name_locked = true;
 
 		return $this;
 	}
@@ -414,6 +430,7 @@ final class Table implements ArrayCapableInterface
 	public function setPrefix(string $prefix): self
 	{
 		$this->assertNotLocked();
+		$this->assertNameNotLocked();
 
 		if (!empty($prefix) && !\preg_match(self::PREFIX_REG, $prefix)) {
 			throw new InvalidArgumentException(\sprintf(
@@ -467,13 +484,26 @@ final class Table implements ArrayCapableInterface
 	}
 
 	/**
-	 * Asserts if this column is not locked.
+	 * Asserts if this table is not locked.
 	 */
 	public function assertNotLocked(): void
 	{
 		if ($this->locked) {
 			throw new DBALRuntimeException(\sprintf(
 				'You should not try to edit locked table "%s".',
+				$this->name
+			));
+		}
+	}
+
+	/**
+	 * Asserts if this table name is not locked.
+	 */
+	public function assertNameNotLocked(): void
+	{
+		if ($this->name_locked) {
+			throw new DBALRuntimeException(\sprintf(
+				'You should not try to edit registered table name or prefix "%s".',
 				$this->name
 			));
 		}
