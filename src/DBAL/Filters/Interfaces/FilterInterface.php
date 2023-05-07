@@ -13,9 +13,11 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Filters\Interfaces;
 
+use PHPUtils\Interfaces\ArrayCapableInterface;
+
 /**
  * Interface FilterInterface.
  */
-interface FilterInterface
+interface FilterInterface extends ArrayCapableInterface
 {
 }

@@ -14,12 +14,15 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Filters;
 
 use Gobl\DBAL\Filters\Interfaces\FilterInterface;
+use PHPUtils\Traits\ArrayCapableTrait;
 
 /**
  * Class FilterRaw.
  */
 final class FilterRaw implements FilterInterface
 {
+	use ArrayCapableTrait;
+
 	/**
 	 * FilterRaw constructor.
 	 *
@@ -34,5 +37,15 @@ final class FilterRaw implements FilterInterface
 	public function __toString(): string
 	{
 		return $this->filter_query_string;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function toArray(): array
+	{
+		return [
+			$this->filter_query_string,
+		];
 	}
 }

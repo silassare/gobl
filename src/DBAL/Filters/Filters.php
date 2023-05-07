@@ -308,15 +308,9 @@ final class Filters
 		if ($this->scope) {
 			$left = $detected_left_column ?? $left;
 
-			try {
-				$this->scope->assertFilterAllowed($operator, $left, $right);
-			} catch (Throwable $t) {
-				throw new DBALRuntimeException('Filter not allowed.', [
-					'operator' => $operator,
-					'left'     => $real_left,
-					'right'    => $real_right,
-				], $t);
-			}
+			$tmp_filter = new Filter($operator, $left, $right, $real_left, $real_right);
+
+			$this->scope->assertFilterAllowed($tmp_filter);
 
 			if (!$detected_left_table) {
 				$left = $this->scope->getColumnFQName($left);
@@ -397,7 +391,7 @@ final class Filters
 			$right = null;
 		}
 
-		$filter = new Filter($operator, $left, $right);
+		$filter = new Filter($operator, $left, $right, $real_left, $real_right);
 
 		$this->group->push($filter);
 

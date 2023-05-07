@@ -14,12 +14,15 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Filters;
 
 use Gobl\DBAL\Filters\Interfaces\FilterInterface;
+use PHPUtils\Traits\ArrayCapableTrait;
 
 /**
  * Class FilterGroup.
  */
 final class FilterGroup implements FilterInterface
 {
+	use ArrayCapableTrait;
+
 	/** @var array<FilterInterface|Filters> */
 	private array $filters = [];
 
@@ -108,5 +111,13 @@ final class FilterGroup implements FilterInterface
 		}
 
 		return $this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function toArray(): array
+	{
+		return $this->getFilters();
 	}
 }
