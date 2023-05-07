@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\ORM;
 
+use Gobl\DBAL\Filters\Filter;
 use Gobl\DBAL\Filters\Filters;
 use Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
@@ -24,9 +25,11 @@ use Gobl\DBAL\Queries\QBUpdate;
 use Gobl\DBAL\Queries\QBUtils;
 use Gobl\DBAL\Table;
 use Gobl\ORM\Exceptions\ORMException;
+use Gobl\ORM\Exceptions\ORMQueryException;
 use Gobl\ORM\Exceptions\ORMRuntimeException;
 use Gobl\ORM\Utils\ORMClassKind;
 use PHPUtils\Str;
+use Throwable;
 
 /**
  * Class ORMTableQuery.
@@ -47,6 +50,8 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 
 	/** @var \Gobl\DBAL\Table */
 	protected Table $table;
+
+	protected bool $allow_private_column_in_filters = false;
 
 	/**
 	 * ORMTableQuery constructor.
@@ -80,6 +85,20 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	public function __debugInfo(): array
 	{
 		return ['instance_of' => static::class];
+	}
+
+	/**
+	 * Enable or disable filtering on private columns.
+	 *
+	 * @param bool $allow
+	 *
+	 * @return $this
+	 */
+	public function allowPrivateColumnInFilters(bool $allow = true): self
+	{
+		$this->allow_private_column_in_filters = $allow;
+
+		return $this;
 	}
 
 	/**
@@ -174,14 +193,24 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 */
-	public function assertFilterAllowed(Operator $operator, string $left_operand, mixed $right_operand): void
+	public function assertFilterAllowed(Filter $filter): void
 	{
-		// left operand should be a column
-		$column = $this->table->getColumnOrFail($left_operand);
+		try {
+			// left operand should be a column
+			$column = $this->table->getColumnOrFail($filter->getLeftOperand());
 
-		$column->getType()
-			->assertFilterAllowed($operator, $right_operand);
+			if (!$this->allow_private_column_in_filters && $column->isPrivate()) {
+				throw new ORMRuntimeException('Private column not allowed in filters.');
+			}
+
+			$column->getType()
+				->assertFilterAllowed($filter);
+		} catch (Throwable $t) {
+			throw new ORMQueryException('GOBL_ORM_FILTER_NOT_ALLOWED', $filter->toArray(), $t);
+		}
 	}
 
 	/**
