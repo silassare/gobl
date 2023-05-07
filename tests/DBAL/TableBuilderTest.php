@@ -54,16 +54,18 @@ final class TableBuilderTest extends BaseTestCase
 			'user_id',
 		], \array_keys($tbl_roles->getColumns()));
 
-		$user_id_column = $tbl_roles->getColumn('user_id');
+		$role_user_id_column = $tbl_roles->getColumn('user_id');
 
 		static::assertSame([
-			'type' => 'bigint',
-		], $user_id_column->getType()
+			'type'     => 'bigint',
+			'unsigned' => true,
+		], $role_user_id_column->getType()
 			->toArray());
 
 		static::assertSame([
-			'diff_key' => $user_id_column->getDiffKey(),
+			'diff_key' => $role_user_id_column->getDiffKey(),
 			'type'     => 'ref:users.id',
-		], $user_id_column->toArray());
+			'unsigned' => true,
+		], $role_user_id_column->toArray());
 	}
 }

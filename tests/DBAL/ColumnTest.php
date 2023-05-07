@@ -113,7 +113,9 @@ final class ColumnTest extends BaseTestCase
 		$table  = new Table('users');
 		$column = new Column('name');
 
-		$table->addColumn($column);
+		$table->addColumn($column)
+			->lock();
+
 		static::assertSame($table, $column->getTable());
 	}
 

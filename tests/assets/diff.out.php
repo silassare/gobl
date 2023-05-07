@@ -1,14 +1,21 @@
 <?php
+
 /**
- * Generated on: 20th April 2023, 4:35:02 pm
+ * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>.
+ *
+ * This file is part of the Gobl package.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
+
 declare(strict_types=1);
 
 use Gobl\DBAL\Interfaces\MigrationInterface;
 
-return new class implements MigrationInterface {
+return new class() implements MigrationInterface {
 	/**
-	 * @inheritDoc
+	 * {@inheritDoc}
 	 */
 	public function getVersion(): int
 	{
@@ -16,7 +23,7 @@ return new class implements MigrationInterface {
 	}
 
 	/**
-	 * @inheritDoc
+	 * {@inheritDoc}
 	 */
 	public function getLabel(): string
 	{
@@ -24,19 +31,19 @@ return new class implements MigrationInterface {
 	}
 
 	/**
-	 * @inheritDoc
+	 * {@inheritDoc}
 	 */
 	public function getTimestamp(): int
 	{
-		return 1682008502;
+		return 1683494035;
 	}
 
 	/**
-	 * @inheritDoc
+	 * {@inheritDoc}
 	 */
 	public function up(): string
 	{
-		return <<<DIFF_SQL
+		return <<<'DIFF_SQL'
 		-- constraints column "account_client_id" type changed in host table "gObL_accounts".
 		ALTER TABLE `gObL_accounts` DROP FOREIGN KEY fk_accounts_clients;
 		-- constraints column mapping changed.
@@ -121,11 +128,11 @@ return new class implements MigrationInterface {
 	}
 
 	/**
-	 * @inheritDoc
+	 * {@inheritDoc}
 	 */
 	public function down(): string
 	{
-		return <<<DIFF_SQL
+		return <<<'DIFF_SQL'
 		-- constraints column "account_client_id" type changed in host table "gObL_accounts".
 		ALTER TABLE `gObL_accounts` DROP FOREIGN KEY fk_accounts_clients;
 		-- constraints column mapping changed.
@@ -231,399 +238,333 @@ return new class implements MigrationInterface {
 	}
 
 	/**
-	 * @inheritDoc
+	 * {@inheritDoc}
 	 */
 	public function getSchema(): array
 	{
 		return [
-			'clients'    =>
-				[
-					'diff_key'      => 'a62f471a2cf722b02163d4e17baac2df',
-					'singular_name' => 'client',
-					'plural_name'   => 'clients',
-					'namespace'     => 'Test',
-					'prefix'        => 'gObL',
-					'column_prefix' => 'client',
-					'columns'       =>
-						[
-							'id'         =>
-								[
-									'diff_key'       => '7e3fcd9ea31e5a29842ad16890210296',
-									'type'           => 'int',
-									'prefix'         => 'client',
-									'unsigned'       => true,
-									'auto_increment' => true,
-								],
-							'given_name' =>
-								[
-									'diff_key' => '772898b6a3f24fcdef13a0e7668d6b43',
-									'type'     => 'string',
-									'prefix'   => 'client',
-									'min'      => 1,
-									'max'      => 60,
-								],
-							'name'       =>
-								[
-									'diff_key' => '0ead17a73c1f1b641434b5cac3380e9d',
-									'type'     => 'string',
-									'prefix'   => 'client',
-									'min'      => 1,
-									'max'      => 60,
-								],
-							'gender'     =>
-								[
-									'diff_key' => 'd25adb5233b554402c5b3575b0327a5d',
-									'type'     => 'string',
-									'prefix'   => 'client',
-									'min'      => 1,
-									'max'      => 60,
-									'one_of'   =>
-										[
-											0 => 'male',
-											1 => 'female',
-											2 => 'unknown',
-										],
-								],
-							'data'       =>
-								[
-									'diff_key' => '08e958cbfb421daa1b3e5152a2aa92bc',
-									'type'     => 'map',
-									'prefix'   => 'client',
-									'default'  =>
-										[
-										],
-								],
-							'created_at' =>
-								[
-									'diff_key' => 'abfddb6b13b13864afaf3e97a248504f',
-									'type'     => 'date',
-									'prefix'   => 'client',
-									'auto'     => true,
-									'format'   => 'timestamp',
-								],
-							'updated_at' =>
-								[
-									'diff_key' => 'a87cdad32a42bc2697c16e3589462c39',
-									'type'     => 'date',
-									'prefix'   => 'client',
-									'auto'     => true,
-									'format'   => 'timestamp',
-								],
-							'valid'      =>
-								[
-									'diff_key' => '00b0937ea473f0a3acb9b9f2acee3fcd',
-									'type'     => 'bool',
-									'prefix'   => 'client',
-									'strict'   => true,
-									'default'  => 1,
-								],
+			'clients'    => [
+				'diff_key'      => 'ffec81d589152bf22f0ba34eea81abb4',
+				'singular_name' => 'client',
+				'plural_name'   => 'clients',
+				'namespace'     => 'Test',
+				'prefix'        => 'gObL',
+				'column_prefix' => 'client',
+				'columns'       => [
+					'id'         => [
+						'diff_key'       => '0d3a1f3cc7e34cece016a31b0bad1142',
+						'type'           => 'int',
+						'prefix'         => 'client',
+						'unsigned'       => true,
+						'auto_increment' => true,
+					],
+					'given_name' => [
+						'diff_key' => 'a44032b46d9ceabe0d8a44c4d978f5aa',
+						'type'     => 'string',
+						'prefix'   => 'client',
+						'min'      => 1,
+						'max'      => 60,
+					],
+					'name'       => [
+						'diff_key' => 'f6034c1eb91614a65b9b6acf990389ab',
+						'type'     => 'string',
+						'prefix'   => 'client',
+						'min'      => 1,
+						'max'      => 60,
+					],
+					'gender'     => [
+						'diff_key' => '5b2f8b3f8affa8c1ed3c3bfea37e2abc',
+						'type'     => 'string',
+						'prefix'   => 'client',
+						'min'      => 1,
+						'max'      => 60,
+						'one_of'   => [
+							0 => 'male',
+							1 => 'female',
+							2 => 'unknown',
 						],
-					'constraints'   =>
-						[
-							0 =>
-								[
-									'type'    => 'primary_key',
-									'columns' =>
-										[
-											0 => 'id',
-										],
-								],
+					],
+					'data'       => [
+						'diff_key' => '6a2442212899f6c3a550537817d98be0',
+						'type'     => 'map',
+						'prefix'   => 'client',
+						'default'  => [
 						],
-					'relations'     =>
-						[
-							'accounts' =>
-								[
-									'type'   => 'one-to-many',
-									'target' => 'accounts',
-									'link'   =>
-										[
-											'type' => 'columns',
-										],
-								],
-						],
+					],
+					'created_at' => [
+						'diff_key' => '355d870c5eed059ca754588d701e9028',
+						'type'     => 'date',
+						'prefix'   => 'client',
+						'auto'     => true,
+						'format'   => 'timestamp',
+					],
+					'updated_at' => [
+						'diff_key' => 'de9081943e95c1e2aba4c2dda2da93b8',
+						'type'     => 'date',
+						'prefix'   => 'client',
+						'auto'     => true,
+						'format'   => 'timestamp',
+					],
+					'valid'      => [
+						'diff_key' => '1f7b36079b118f742166aec07effca08',
+						'type'     => 'bool',
+						'prefix'   => 'client',
+						'strict'   => true,
+						'default'  => 1,
+					],
 				],
-			'accounts'   =>
-				[
-					'diff_key'      => '09a323cbbc430408970bbb896aa7191c',
-					'singular_name' => 'account',
-					'plural_name'   => 'accounts',
-					'namespace'     => 'Test',
-					'prefix'        => 'gObL',
-					'column_prefix' => 'account',
-					'columns'       =>
-						[
-							'id'            =>
-								[
-									'diff_key'       => 'daf27c855ed5aedadba59b0128d954be',
-									'type'           => 'int',
-									'prefix'         => 'account',
-									'unsigned'       => true,
-									'auto_increment' => true,
-								],
-							'client_id'     =>
-								[
-									'diff_key' => '69e3e14cd53987898a206f82402e9605',
-									'type'     => 'ref:clients.id',
-									'prefix'   => 'account',
-									'unsigned' => true,
-								],
-							'label'         =>
-								[
-									'diff_key' => 'efd23c342ac8773a8817e437ca6261a7',
-									'type'     => 'string',
-									'prefix'   => 'account',
-									'min'      => 1,
-									'max'      => 60,
-								],
-							'balance'       =>
-								[
-									'diff_key' => '935be222e43d5c95adaec7a1e9764648',
-									'type'     => 'decimal',
-									'prefix'   => 'account',
-									'unsigned' => true,
-									'default'  => 0,
-								],
-							'currency_code' =>
-								[
-									'diff_key' => 'bb1e01e7b6718f51235ea27a802a4acb',
-									'type'     => 'ref:currencies.code',
-									'prefix'   => 'account',
-									'min'      => 1,
-									'max'      => 30,
-								],
-							'data'          =>
-								[
-									'diff_key' => 'bf4bf7eefedd1185f7aa3ad4f885a6b8',
-									'type'     => 'map',
-									'prefix'   => 'account',
-									'default'  =>
-										[
-										],
-								],
-							'created_at'    =>
-								[
-									'diff_key' => 'ce03550a05d8224d064834b7576da310',
-									'type'     => 'date',
-									'prefix'   => 'account',
-									'auto'     => true,
-									'format'   => 'timestamp',
-								],
-							'updated_at'    =>
-								[
-									'diff_key' => 'f868d99157b9ca799d1bdc7224e4bbba',
-									'type'     => 'date',
-									'prefix'   => 'account',
-									'auto'     => true,
-									'format'   => 'timestamp',
-								],
-							'valid'         =>
-								[
-									'diff_key' => '92301d92f025f2f3d233de6b739e7c7d',
-									'type'     => 'bool',
-									'prefix'   => 'account',
-									'strict'   => true,
-									'default'  => 1,
-								],
+				'constraints'   => [
+					0 => [
+						'type'    => 'primary_key',
+						'columns' => [
+							0 => 'id',
 						],
-					'constraints'   =>
-						[
-							0 =>
-								[
-									'type'    => 'primary_key',
-									'columns' =>
-										[
-											0 => 'id',
-										],
-								],
-							1 =>
-								[
-									'type'    => 'unique_key',
-									'columns' =>
-										[
-											0 => 'client_id',
-											1 => 'currency_code',
-										],
-								],
-							2 =>
-								[
-									'type'      => 'foreign_key',
-									'reference' => 'clients',
-									'columns'   =>
-										[
-											'client_id' => 'id',
-										],
-									'update'    => 'none',
-									'delete'    => 'none',
-								],
-							3 =>
-								[
-									'type'      => 'foreign_key',
-									'reference' => 'currencies',
-									'columns'   =>
-										[
-											'currency_code' => 'code',
-										],
-									'update'    => 'none',
-									'delete'    => 'none',
-								],
-						],
-					'relations'     =>
-						[
-							'client' =>
-								[
-									'type'   => 'many-to-one',
-									'target' => 'clients',
-									'link'   =>
-										[
-											'type' => 'columns',
-										],
-								],
-						],
+					],
 				],
-			'currencies' =>
-				[
-					'diff_key'      => 'f404b744b11b451b477981f7c0d7c0c2',
-					'singular_name' => 'currency',
-					'plural_name'   => 'currencies',
-					'namespace'     => 'Test',
-					'prefix'        => 'gObL',
-					'column_prefix' => 'currency',
-					'columns'       =>
-						[
-							'code'       =>
-								[
-									'diff_key' => '7d36def82d069c158916cfb9d0f70b5d',
-									'type'     => 'string',
-									'prefix'   => 'currency',
-									'min'      => 1,
-									'max'      => 30,
-								],
-							'name'       =>
-								[
-									'diff_key' => '2c7b6e6a566ec177c7e8ac5248f5e0ad',
-									'type'     => 'string',
-									'prefix'   => 'currency',
-									'min'      => 1,
-									'max'      => 60,
-								],
-							'symbol'     =>
-								[
-									'diff_key' => '6f6a14db6cfbf3d5946fdd314804816a',
-									'type'     => 'string',
-									'prefix'   => 'currency',
-									'min'      => 1,
-									'max'      => 6,
-								],
-							'data'       =>
-								[
-									'diff_key' => '859e89c2f2c75866a198bbc433fd563b',
-									'type'     => 'map',
-									'prefix'   => 'currency',
-									'default'  =>
-										[
-										],
-								],
-							'created_at' =>
-								[
-									'diff_key' => '836da1fab2249fcd2855128af8eec7f5',
-									'type'     => 'date',
-									'prefix'   => 'currency',
-									'auto'     => true,
-									'format'   => 'timestamp',
-								],
-							'updated_at' =>
-								[
-									'diff_key' => '6b8b5a47eb6036808fe1d16eb7d8c001',
-									'type'     => 'date',
-									'prefix'   => 'currency',
-									'auto'     => true,
-									'format'   => 'timestamp',
-								],
-							'valid'      =>
-								[
-									'diff_key' => '471c3e2a8551dab69d5b6bd72b9f1fb8',
-									'type'     => 'bool',
-									'prefix'   => 'currency',
-									'strict'   => true,
-									'default'  => 1,
-								],
+				'relations'     => [
+					'accounts' => [
+						'type'   => 'one-to-many',
+						'target' => 'accounts',
+						'link'   => [
+							'type' => 'columns',
 						],
-					'constraints'   =>
-						[
-							0 =>
-								[
-									'type'    => 'unique_key',
-									'columns' =>
-										[
-											0 => 'code',
-										],
-								],
-						],
+					],
 				],
-			'orders'     =>
-				[
-					'diff_key'      => '738b6f125e5f092dc63f11de2ae4aca1',
-					'singular_name' => 'order',
-					'plural_name'   => 'orders',
-					'namespace'     => 'Test',
-					'prefix'        => 'gObL',
-					'column_prefix' => 'order',
-					'columns'       =>
-						[
-							'id'         =>
-								[
-									'diff_key'       => '155fd8b66d899b13fb025a66aa2d9837',
-									'type'           => 'int',
-									'prefix'         => 'order',
-									'unsigned'       => true,
-									'auto_increment' => true,
-								],
-							'data'       =>
-								[
-									'diff_key' => '7a2942820af98b3526c48db3c46ec314',
-									'type'     => 'map',
-									'prefix'   => 'order',
-									'default'  =>
-										[
-										],
-								],
-							'created_at' =>
-								[
-									'diff_key' => 'de0c35d2b124c6d5f3a4a178c611bd98',
-									'type'     => 'date',
-									'prefix'   => 'order',
-									'auto'     => true,
-									'format'   => 'timestamp',
-								],
-							'updated_at' =>
-								[
-									'diff_key' => '7fd079e85bbb1749951694084f754427',
-									'type'     => 'date',
-									'prefix'   => 'order',
-									'auto'     => true,
-									'format'   => 'timestamp',
-								],
-							'valid'      =>
-								[
-									'diff_key' => 'eb5617476da3d41b3c5a9a526d9d4651',
-									'type'     => 'bool',
-									'prefix'   => 'order',
-									'strict'   => true,
-									'default'  => 1,
-								],
+			],
+			'accounts'   => [
+				'diff_key'      => '4edc257cc391e356491e1e4277ce561b',
+				'singular_name' => 'account',
+				'plural_name'   => 'accounts',
+				'namespace'     => 'Test',
+				'prefix'        => 'gObL',
+				'column_prefix' => 'account',
+				'columns'       => [
+					'id'            => [
+						'diff_key'       => '5ae6511663194f9cfcc9aa0674a89fce',
+						'type'           => 'int',
+						'prefix'         => 'account',
+						'unsigned'       => true,
+						'auto_increment' => true,
+					],
+					'client_id'     => [
+						'diff_key' => 'ddf1cac63bff521b737eafd3b98bea74',
+						'type'     => 'ref:clients.id',
+						'prefix'   => 'account',
+						'unsigned' => true,
+					],
+					'label'         => [
+						'diff_key' => 'bef2324461fcab77376ad05bc103b937',
+						'type'     => 'string',
+						'prefix'   => 'account',
+						'min'      => 1,
+						'max'      => 60,
+					],
+					'balance'       => [
+						'diff_key' => '0856de077d36173ddd052f7dfec559c6',
+						'type'     => 'decimal',
+						'prefix'   => 'account',
+						'unsigned' => true,
+						'default'  => 0,
+					],
+					'currency_code' => [
+						'diff_key' => '4567d9ab1ad9e25fb7384ca104f88801',
+						'type'     => 'ref:currencies.code',
+						'prefix'   => 'account',
+						'min'      => 1,
+						'max'      => 30,
+					],
+					'data'          => [
+						'diff_key' => '2e3d03cc1e991e741b39bebb6608e440',
+						'type'     => 'map',
+						'prefix'   => 'account',
+						'default'  => [
 						],
-					'constraints'   =>
-						[
-							0 =>
-								[
-									'type'    => 'primary_key',
-									'columns' =>
-										[
-											0 => 'id',
-										],
-								],
-						],
+					],
+					'created_at'    => [
+						'diff_key' => 'dbf674d266a5118fd5a363fa54247d76',
+						'type'     => 'date',
+						'prefix'   => 'account',
+						'auto'     => true,
+						'format'   => 'timestamp',
+					],
+					'updated_at'    => [
+						'diff_key' => '627bd8c8782b623b0d92f5ce1ec37f71',
+						'type'     => 'date',
+						'prefix'   => 'account',
+						'auto'     => true,
+						'format'   => 'timestamp',
+					],
+					'valid'         => [
+						'diff_key' => '085fadb0d26c76ae0ec00de25156a378',
+						'type'     => 'bool',
+						'prefix'   => 'account',
+						'strict'   => true,
+						'default'  => 1,
+					],
 				],
+				'constraints'   => [
+					0 => [
+						'type'    => 'primary_key',
+						'columns' => [
+							0 => 'id',
+						],
+					],
+					1 => [
+						'type'    => 'unique_key',
+						'columns' => [
+							0 => 'client_id',
+							1 => 'currency_code',
+						],
+					],
+					2 => [
+						'type'      => 'foreign_key',
+						'reference' => 'clients',
+						'columns'   => [
+							'client_id' => 'id',
+						],
+						'update'    => 'none',
+						'delete'    => 'none',
+					],
+					3 => [
+						'type'      => 'foreign_key',
+						'reference' => 'currencies',
+						'columns'   => [
+							'currency_code' => 'code',
+						],
+						'update'    => 'none',
+						'delete'    => 'none',
+					],
+				],
+				'relations'     => [
+					'client' => [
+						'type'   => 'many-to-one',
+						'target' => 'clients',
+						'link'   => [
+							'type' => 'columns',
+						],
+					],
+				],
+			],
+			'currencies' => [
+				'diff_key'      => 'c83eb26af9cbaaef16fc9d69297e6af0',
+				'singular_name' => 'currency',
+				'plural_name'   => 'currencies',
+				'namespace'     => 'Test',
+				'prefix'        => 'gObL',
+				'column_prefix' => 'currency',
+				'columns'       => [
+					'code'       => [
+						'diff_key' => '70337316bc348ef591d026b584a23ba2',
+						'type'     => 'string',
+						'prefix'   => 'currency',
+						'min'      => 1,
+						'max'      => 30,
+					],
+					'name'       => [
+						'diff_key' => 'ef233f0f77d6dfaef5971dda5385bd2c',
+						'type'     => 'string',
+						'prefix'   => 'currency',
+						'min'      => 1,
+						'max'      => 60,
+					],
+					'symbol'     => [
+						'diff_key' => '2d97877e95d590eb2c64afdfd6e995dd',
+						'type'     => 'string',
+						'prefix'   => 'currency',
+						'min'      => 1,
+						'max'      => 6,
+					],
+					'data'       => [
+						'diff_key' => 'a87195bf20e193486f086987f3934ac1',
+						'type'     => 'map',
+						'prefix'   => 'currency',
+						'default'  => [
+						],
+					],
+					'created_at' => [
+						'diff_key' => '584b45e11272aa837bbeae0c2482ac16',
+						'type'     => 'date',
+						'prefix'   => 'currency',
+						'auto'     => true,
+						'format'   => 'timestamp',
+					],
+					'updated_at' => [
+						'diff_key' => '69aa15efd11b7706e32cdea9c92b99b7',
+						'type'     => 'date',
+						'prefix'   => 'currency',
+						'auto'     => true,
+						'format'   => 'timestamp',
+					],
+					'valid'      => [
+						'diff_key' => '0a57ba7ad224908f713d72ca74ea1b89',
+						'type'     => 'bool',
+						'prefix'   => 'currency',
+						'strict'   => true,
+						'default'  => 1,
+					],
+				],
+				'constraints'   => [
+					0 => [
+						'type'    => 'unique_key',
+						'columns' => [
+							0 => 'code',
+						],
+					],
+				],
+			],
+			'orders'     => [
+				'diff_key'      => '36872de43bd8e0b99fec591b6bec1d1a',
+				'singular_name' => 'order',
+				'plural_name'   => 'orders',
+				'namespace'     => 'Test',
+				'prefix'        => 'gObL',
+				'column_prefix' => 'order',
+				'columns'       => [
+					'id'         => [
+						'diff_key'       => 'f713006b12441894ec66cd3966574621',
+						'type'           => 'int',
+						'prefix'         => 'order',
+						'unsigned'       => true,
+						'auto_increment' => true,
+					],
+					'data'       => [
+						'diff_key' => '50a04d2511e705aaa16efe3148c10edd',
+						'type'     => 'map',
+						'prefix'   => 'order',
+						'default'  => [
+						],
+					],
+					'created_at' => [
+						'diff_key' => '43dc3df63dfd6cf4ca896c74c3e27baa',
+						'type'     => 'date',
+						'prefix'   => 'order',
+						'auto'     => true,
+						'format'   => 'timestamp',
+					],
+					'updated_at' => [
+						'diff_key' => 'f6380ea6121ca713fb3f779c7db0b9ae',
+						'type'     => 'date',
+						'prefix'   => 'order',
+						'auto'     => true,
+						'format'   => 'timestamp',
+					],
+					'valid'      => [
+						'diff_key' => '74adea94b0b3ed91f9f2c2154b7aa1b8',
+						'type'     => 'bool',
+						'prefix'   => 'order',
+						'strict'   => true,
+						'default'  => 1,
+					],
+				],
+				'constraints'   => [
+					0 => [
+						'type'    => 'primary_key',
+						'columns' => [
+							0 => 'id',
+						],
+					],
+				],
+			],
 		];
 	}
 };
