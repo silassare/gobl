@@ -488,19 +488,33 @@ final class TableBuilder
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
-	public function morph(string $prefix, TypeInterface|array $id_type = null): self
-	{
-		$id_column_name = "{$prefix}_id";
+	public function morph(
+		string $prefix,
+		TypeInterface|array $target_id_column_type = null,
+		TypeInterface|array $target_type_column_type = null,
+		bool $nullable = false
+	): self {
+		$target_id_column_name   = "{$prefix}_id";
+		$target_type_column_name = "{$prefix}_type";
 
-		if ($id_type) {
-			$this->column($id_column_name, $id_type);
+		if ($target_id_column_type) {
+			$id_col = $this->column($target_id_column_name, $target_id_column_type);
 		} else {
-			$this->bigint($id_column_name)
+			$id_col = $this->bigint($target_id_column_name)
 				->unsigned();
 		}
 
-		$this->string("{$prefix}_type")
-			->max(128);
+		if ($target_type_column_type) {
+			$type_col = $this->column($target_type_column_name, $target_type_column_type);
+		} else {
+			$type_col = $this->string($target_type_column_name)
+				->max(64);
+		}
+
+		if ($nullable) {
+			$id_col->nullable();
+			$type_col->nullable();
+		}
 
 		return $this;
 	}
