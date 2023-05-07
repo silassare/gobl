@@ -265,7 +265,7 @@ class ORMRequest
 	public function addRequestedRelation(string $name): self
 	{
 		if (!self::isValidRelationName($name)) {
-			throw new ORMQueryException('GOBL_REQUEST_INVALID_RELATION_NAME', ['relation' => $name]);
+			throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_RELATION_NAME', ['relation' => $name]);
 		}
 
 		if (!\in_array($name, $this->relations, true)) {
