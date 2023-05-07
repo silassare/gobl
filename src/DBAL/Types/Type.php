@@ -142,6 +142,9 @@ abstract class Type implements TypeInterface
 	 */
 	public function nullable(bool $nullable = true): self
 	{
+		// important as it will be used by the base type
+		$this->safelyCallOnBaseType(__FUNCTION__, [$nullable]);
+
 		return $this->setOption('nullable', $nullable);
 	}
 
@@ -166,6 +169,9 @@ abstract class Type implements TypeInterface
 	 */
 	public function autoIncrement(bool $auto_increment = true): self
 	{
+		// important as it will be used by the base type
+		$this->safelyCallOnBaseType(__FUNCTION__, [$auto_increment]);
+
 		return $this->setOption('auto_increment', $auto_increment);
 	}
 
@@ -216,15 +222,11 @@ abstract class Type implements TypeInterface
 	{
 		$nullable = $options['nullable'] ?? $options['null'] ?? null;
 		if (null !== $nullable) {
-			$this->nullable((bool) $nullable)
-				->getBaseType()
-				->nullable((bool) $nullable);
+			$this->nullable((bool) $nullable);
 		}
 
 		if (isset($options['auto_increment'])) {
-			$this->autoIncrement((bool) $options['auto_increment'])
-				->getBaseType()
-				->autoIncrement((bool) $options['auto_increment']);
+			$this->autoIncrement((bool) $options['auto_increment']);
 		}
 
 		if (\array_key_exists('default', $options)) {
