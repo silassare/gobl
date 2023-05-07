@@ -105,7 +105,7 @@
             "source": {
                 "type": "git",
                 "url": "/mnt/Emile/silassare/php-utils",
-                "reference": "ea785078f299b9d7091db6723e789ccd15a2dbeb"
+                "reference": "2e96c4b4480867fe8bf9dd223caedf020f62db86"
             },
             "require": {
                 "ext-json": "*",
@@ -152,7 +152,7 @@
                 "utilities",
                 "utils"
             ],
-            "time": "2023-05-07T15:18:16+00:00"
+            "time": "2023-05-07T16:11:46+00:00"
         }
     ],
     "packages-dev": [
