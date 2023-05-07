@@ -54,9 +54,12 @@ final class NamespaceBuilder
 
 		$this->cache[$name] = $table_builder = new TableBuilder($this->rdbms, $this->namespace, $name);
 
-		$factory && $table_builder->factory($factory);
-
+		// we add the table before running the factory
+		// because the factory may need to access the table
+		// or use it in column type reference.
 		$this->rdbms->addTable($table_builder->getTable());
+
+		$factory && $table_builder->factory($factory);
 
 		return $table_builder;
 	}
