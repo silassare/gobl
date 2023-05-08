@@ -42,8 +42,6 @@ interface QBInterface
 	 *```
 	 *
 	 * @return bool|int|PDOStatement|string
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function execute(): bool|int|string|PDOStatement;
 

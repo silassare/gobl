@@ -392,7 +392,6 @@ abstract class ORMController
 	 *
 	 * @return array
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
@@ -430,7 +429,6 @@ abstract class ORMController
 	 *
 	 * @return \Gobl\ORM\ORMEntity[]
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
@@ -565,9 +563,6 @@ abstract class ORMController
 	 * @param array $filters
 	 *
 	 * @return \Gobl\ORM\ORMTableQuery
-	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMException
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	protected function getScopedFiltersInstance(array $filters): ORMTableQuery
 	{

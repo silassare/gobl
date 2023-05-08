@@ -57,13 +57,21 @@ enum Operator: string
 	{
 		$name = $column->getName();
 
-		if (\str_starts_with($name, 'is_') || \str_ends_with($name, 'ed')) {
+		if (\str_starts_with($name, 'is_')) {
 			$verb = \substr($name, 3);
 			if (self::IS_TRUE === $this) {
 				return 'is_' . $verb;
 			}
 			if (self::IS_FALSE === $this) {
 				return 'is_not_' . $verb;
+			}
+		}
+		if (\str_ends_with($name, 'ed')) {
+			if (self::IS_TRUE === $this) {
+				return 'is_' . $name;
+			}
+			if (self::IS_FALSE === $this) {
+				return 'is_not_' . $name;
 			}
 		}
 

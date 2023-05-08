@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Queries\Traits;
 
-use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Queries\QBUtils;
 use Gobl\DBAL\Table;
@@ -77,8 +76,6 @@ trait QBFromTrait
 	 * ```
 	 *
 	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function from(array|string|Table $table, ?string $alias = null): static
 	{
@@ -86,7 +83,7 @@ trait QBFromTrait
 			$this->disable_multiple_from
 			&& (!empty($this->options_from) || (\is_array($table) && \count($table) > 1))
 		) {
-			throw new DBALException(
+			throw new DBALRuntimeException(
 				\sprintf(
 					'Multiple table definition for "from" clause are disabled for query type "%s" provided in "%s".',
 					$this->getType()->name,

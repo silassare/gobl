@@ -24,7 +24,6 @@ use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Queries\QBUpdate;
 use Gobl\DBAL\Queries\QBUtils;
 use Gobl\DBAL\Table;
-use Gobl\ORM\Exceptions\ORMException;
 use Gobl\ORM\Exceptions\ORMQueryException;
 use Gobl\ORM\Exceptions\ORMRuntimeException;
 use Gobl\ORM\Utils\ORMClassKind;
@@ -114,9 +113,6 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 * @param array|callable|static ...$filters
 	 *
 	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 */
 	public function and(array|self|callable ...$filters): static
 	{
@@ -131,16 +127,13 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 * @param array|callable|static ...$filters
 	 *
 	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 */
 	public function where(array|self|callable ...$filters): static
 	{
 		foreach ($filters as $entry) {
 			if ($entry instanceof self) {
 				if ($entry === $this) {
-					throw new ORMException(\sprintf(
+					throw new ORMRuntimeException(\sprintf(
 						'Current instance used as sub group, you may need to create a sub group with: %s',
 						Str::callableName([$this, 'subGroup'])
 					));
@@ -151,7 +144,7 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 				$return = $entry($sub);
 
 				if ($return !== $sub) {
-					throw (new ORMException(\sprintf(
+					throw (new ORMRuntimeException(\sprintf(
 						'The sub-filters group callable should return the same instance of "%s" passed as argument.',
 						static::class
 					)))
@@ -180,9 +173,6 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 * @param array|callable|static ...$filters
 	 *
 	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 */
 	public function or(array|self|callable ...$filters): static
 	{
@@ -250,8 +240,6 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 * Create a {@see QBDelete} and apply the current filters.
 	 *
 	 * @return \Gobl\DBAL\Queries\QBDelete
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function delete(): QBDelete
 	{
@@ -297,13 +285,11 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 * @param array $columns_values_map new values
 	 *
 	 * @return \Gobl\DBAL\Queries\QBUpdate
-	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 */
 	public function update(array $columns_values_map): QBUpdate
 	{
 		if (!\count($columns_values_map)) {
-			throw new ORMException('Empty columns, can\'t update.');
+			throw new ORMRuntimeException('Empty columns, can\'t update.');
 		}
 
 		$values = $this->table->doPhpToDbConversion($columns_values_map, $this->db);
@@ -325,8 +311,6 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 * @param array    $order_by order by rules
 	 *
 	 * @return ORMResults
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function find(?int $max = null, int $offset = 0, array $order_by = []): ORMResults
 	{
@@ -346,8 +330,6 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 * @param array    $order_by order by rules
 	 *
 	 * @return \Gobl\DBAL\Queries\QBSelect
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function select(?int $max = null, int $offset = 0, array $order_by = []): QBSelect
 	{
@@ -366,8 +348,6 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 
 	/**
 	 * Create a {@see QBSelect} and apply the current filters and the relation's filters.
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function selectRelation(
 		string $relation,

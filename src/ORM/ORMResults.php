@@ -16,7 +16,7 @@ namespace Gobl\ORM;
 use Countable;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\QBSelect;
-use Gobl\ORM\Exceptions\ORMException;
+use Gobl\ORM\Exceptions\ORMRuntimeException;
 use Gobl\ORM\Utils\ORMClassKind;
 use Iterator;
 use PDO;
@@ -106,8 +106,6 @@ abstract class ORMResults implements Countable, Iterator
 	 * @param int $fetch_style
 	 *
 	 * @return mixed
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function fetch(int $fetch_style = PDO::FETCH_ASSOC): mixed
 	{
@@ -131,8 +129,6 @@ abstract class ORMResults implements Countable, Iterator
 	 * @param int $fetch_style
 	 *
 	 * @return array
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function fetchAll(int $fetch_style = PDO::FETCH_ASSOC): array
 	{
@@ -156,8 +152,6 @@ abstract class ORMResults implements Countable, Iterator
 	 * @param bool $strict enable/disable strict mode on class fetch
 	 *
 	 * @return \Gobl\ORM\ORMEntity[]
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function fetchAllClass(bool $strict = true): array
 	{
@@ -182,8 +176,6 @@ abstract class ORMResults implements Countable, Iterator
 
 	/**
 	 * Move forward to next element.
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function next(): void
 	{
@@ -200,8 +192,6 @@ abstract class ORMResults implements Countable, Iterator
 	 * @param bool $strict enable/disable strict mode on class fetch
 	 *
 	 * @return null|\Gobl\ORM\ORMEntity
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function fetchClass(bool $strict = true): ?ORMEntity
 	{
@@ -214,7 +204,6 @@ abstract class ORMResults implements Countable, Iterator
 		$entity = $stmt->fetch();
 
 		if ($entity instanceof $entity_class) {
-			/** @var ORMEntity $entity */
 			$entity->isSaved(true); // the entity is fetched from the database
 
 			return $entity;
@@ -235,15 +224,12 @@ abstract class ORMResults implements Countable, Iterator
 
 	/**
 	 * Rewind the Iterator to the first element.
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 */
 	public function rewind(): void
 	{
 		// not supported
 		if ($this->foreach_count) {
-			throw new ORMException('You cannot use the same result set in multiple foreach.');
+			throw new ORMRuntimeException('You cannot use the same result set in multiple foreach.');
 		}
 
 		$this->current = $this->fetchClass();
@@ -265,8 +251,6 @@ abstract class ORMResults implements Countable, Iterator
 	 * Count number of elements in this results.
 	 *
 	 * @return int the custom count as an integer
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function count(): int
 	{
@@ -302,8 +286,6 @@ abstract class ORMResults implements Countable, Iterator
 	 * We lazily run query.
 	 *
 	 * @return PDOStatement
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	protected function getStatement(): PDOStatement
 	{

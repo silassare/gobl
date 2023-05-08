@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Queries\Traits;
 
-use Gobl\DBAL\Exceptions\DBALException;
+use Gobl\DBAL\Exceptions\DBALRuntimeException;
 
 /**
  * Trait QBLimitTrait.
@@ -46,18 +46,16 @@ trait QBLimitTrait
 	 * @param int      $offset offset of the first result
 	 *
 	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function limit(?int $max = null, int $offset = 0): static
 	{
 		if (null !== $max) {
 			if ($max <= 0) {
-				throw new DBALException(\sprintf('invalid limit max "%s".', $max));
+				throw new DBALRuntimeException(\sprintf('invalid limit max "%s".', $max));
 			}
 
 			if ($offset < 0) {
-				throw new DBALException(\sprintf('invalid limit offset "%s".', $offset));
+				throw new DBALRuntimeException(\sprintf('invalid limit offset "%s".', $offset));
 			}
 
 			$this->options_limit_max    = $max;
