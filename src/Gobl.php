@@ -257,6 +257,10 @@ class Gobl
 	{
 		return [
 			'save',
+			'saved',
+			'is_saved',
+			'new',
+			'is_new',
 			'hydrate',
 		];
 	}

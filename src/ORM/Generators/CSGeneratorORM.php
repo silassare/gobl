@@ -145,7 +145,9 @@ Time: {$date}";
 	private static function propertyGetterName(string $column_name): string
 	{
 		if (\str_starts_with($column_name, 'is_')) {
-			return Str::toClassName($column_name);
+			$verb = \substr($column_name, 3);
+
+			return 'is' . Str::toClassName($verb);
 		}
 		if (\str_ends_with($column_name, 'ed')) {
 			return 'is' . Str::toClassName($column_name);
