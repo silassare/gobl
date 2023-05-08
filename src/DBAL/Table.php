@@ -259,19 +259,6 @@ final class Table implements ArrayCapableInterface
 		if (!$this->locked) {
 			$this->assertIsValid();
 
-			if (!empty($this->column_prefix)) {
-				foreach ($this->columns as $name => $column) {
-					$prefix = $column->getPrefix();
-
-					if (empty($prefix) || ($this->column_prefix_override && $prefix !== $this->column_prefix)) {
-						$c_col = clone $column;
-
-						$c_col->setPrefix($this->column_prefix);
-						$this->columns[$name] = $c_col;
-					}
-				}
-			}
-
 			foreach ($this->columns as $column) {
 				$column->lock($this);
 			}
@@ -698,6 +685,14 @@ final class Table implements ArrayCapableInterface
 	{
 		$this->assertNotLocked();
 		$this->assertCanAddColumn($column);
+
+		if (!empty($this->column_prefix)) {
+			$prefix = $column->getPrefix();
+
+			if (empty($prefix) || ($this->column_prefix_override && $prefix !== $this->column_prefix)) {
+				$column->setPrefix($this->column_prefix);
+			}
+		}
 
 		// this column name and prefix should not be modified
 		$column->lockName();

@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-$id = [
+$id             = [
 	// DIFF: TYPE CHANGED
 	'type'           => 'int',
 	'auto_increment' => true,
 	'unsigned'       => true,
 ];
 $common_columns = [
-	'data' => [
+	'data'       => [
 		'type'    => 'map',
 		'default' => [],
 	],
@@ -28,48 +28,48 @@ $common_columns = [
 		'auto'   => true,
 	],
 	'updated_at' => [
-		'type'   => 'date',
-		'format' => 'timestamp',
-		'auto'   => true,
+		'type'     => 'date',
+		'format'   => 'timestamp',
+		'nullable' => true,
 	],
-	'valid' => [
+	'valid'      => [
 		'type'    => 'bool',
 		'default' => true,
 	],
 ];
-$quantity = [
+$quantity       = [
 	'type'     => 'decimal',
 	'unsigned' => true,
 ];
-$unit = [
+$unit           = [
 	'type'    => 'string',
 	'min'     => 1,
 	'max'     => 32,
 	'default' => 'N/A',
 ];
-$amount = [
+$amount         = [
 	'type'     => 'decimal',
 	'unsigned' => true,
 	'default'  => 0,
 ];
-$percent = [
+$percent        = [
 	'type'     => 'float',
 	'unsigned' => true,
 	'default'  => 0,
 	'max'      => 100,
 ];
 
-$string_as_a_name = [
+$string_as_a_name        = [
 	'type' => 'string',
 	'min'  => 1,
 	'max'  => 60,
 ];
-$string_as_a_title = [
+$string_as_a_title       = [
 	'type' => 'string',
 	'min'  => 1,
 	'max'  => 128,
 ];
-$string_as_a_summary = [
+$string_as_a_summary     = [
 	'type' => 'string',
 	'min'  => 1,
 	'max'  => 255,
@@ -79,32 +79,32 @@ $string_as_a_description = [
 ];
 
 return [
-	'clients' => [
+	'clients'    => [
 		'plural_name'   => 'clients',
 		'singular_name' => 'client',
 		'column_prefix' => 'client',
 		'relations'     => [
 			'accounts' => ['type' => 'one-to-many', 'target' => 'accounts'],
 		],
-		'constraints' => [
+		'constraints'   => [
 			['type' => 'primary_key', 'columns' => ['id']],
 		],
-		'columns' => [
-			'id' => $id,
+		'columns'       => [
+			'id'         => $id,
 			// DIFF: COLUMN REMOVED
 			// 'first_name' => $string_as_a_name,
 			// 'last_name'  => $string_as_a_name,
 			'given_name' => $string_as_a_name,
 			// DIFF: COLUMN ADDED
-			'name'   => $string_as_a_name,
-			'gender' => $string_as_a_name + [
+			'name'       => $string_as_a_name,
+			'gender'     => $string_as_a_name + [
 				'one_of' => ['male', 'female', 'unknown'],
 			],
 
 			...$common_columns,
 		],
 	],
-	'accounts' => [
+	'accounts'   => [
 		'plural_name'   => 'accounts',
 		'singular_name' => 'account',
 		'column_prefix' => 'account',
@@ -113,13 +113,13 @@ return [
 			// 'transactions' => ['type' => 'one-to-many', 'target' => 'transactions'],
 			'client' => ['type' => 'many-to-one', 'target' => 'clients'],
 		],
-		'constraints' => [
+		'constraints'   => [
 			['type' => 'primary_key', 'columns' => ['id']],
 			['type' => 'unique_key', 'columns' => ['client_id', 'currency_code']], // DIFF: UNIQUE KEY ADDED
 			['type' => 'foreign_key', 'reference' => 'clients', 'columns' => ['client_id' => 'id']],
 			['type' => 'foreign_key', 'reference' => 'currencies', 'columns' => ['currency_code' => 'code']],
 		],
-		'columns' => [
+		'columns'       => [
 			'id'        => $id,
 			'client_id' => 'ref:clients.id',
 
@@ -174,14 +174,14 @@ return [
 		'column_prefix' => 'currency',
 		'relations'     => [
 		],
-		'constraints' => [
+		'constraints'   => [
 			// DIFF: PRIMARY KEY REMOVED
 			// ['type' => 'primary_key', 'columns' => ['code']],
 			// DIFF: UNIQUE KEY ADDED
 			['type' => 'unique_key', 'columns' => ['code']],
 		],
-		'columns' => [
-			'code' => [
+		'columns'       => [
+			'code'   => [
 				'type' => 'string',
 				'min'  => 1,
 				'max'  => 30,
@@ -197,16 +197,16 @@ return [
 		],
 	],
 	// DIFF: TABLE ADDED
-	'orders' => [
+	'orders'     => [
 		'plural_name'   => 'orders',
 		'singular_name' => 'order',
 		'column_prefix' => 'order',
 		'relations'     => [
 		],
-		'constraints' => [
+		'constraints'   => [
 			['type' => 'primary_key', 'columns' => ['id']],
 		],
-		'columns' => [
+		'columns'       => [
 			'id' => $id,
 
 			...$common_columns,

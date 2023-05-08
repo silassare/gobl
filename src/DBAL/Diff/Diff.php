@@ -230,18 +230,36 @@ DIFF_SQL;
 		return $diff;
 	}
 
-	protected function getConstraintDeletedClassInstance(Constraint $constraint, string $reason = 'constraint deleted.'): PrimaryKeyConstraintDeleted|ForeignKeyConstraintDeleted|UniqueKeyConstraintDeleted
+	protected function getConstraintAddedClassInstance(Constraint $constraint, string $reason = ''): ForeignKeyConstraintAdded|PrimaryKeyConstraintAdded|UniqueKeyConstraintAdded
 	{
 		if ($constraint instanceof PrimaryKey) {
-			return new PrimaryKeyConstraintDeleted($constraint, $reason);
+			$c = new PrimaryKeyConstraintAdded($constraint, $reason);
+		} elseif ($constraint instanceof UniqueKey) {
+			$c = new UniqueKeyConstraintAdded($constraint, $reason);
+		} else {
+			/** @var \Gobl\DBAL\Constraints\ForeignKey $constraint */
+			$c = new ForeignKeyConstraintAdded($constraint, $reason);
 		}
 
-		if ($constraint instanceof UniqueKey) {
-			return new UniqueKeyConstraintDeleted($constraint, $reason);
+		!empty($reason) && $c->setReason($reason);
+
+		return $c;
+	}
+
+	protected function getConstraintDeletedClassInstance(Constraint $constraint, string $reason = ''): PrimaryKeyConstraintDeleted|ForeignKeyConstraintDeleted|UniqueKeyConstraintDeleted
+	{
+		if ($constraint instanceof PrimaryKey) {
+			$c = new PrimaryKeyConstraintDeleted($constraint);
+		} elseif ($constraint instanceof UniqueKey) {
+			$c = new UniqueKeyConstraintDeleted($constraint);
+		} else {
+			/** @var \Gobl\DBAL\Constraints\ForeignKey $constraint */
+			$c = new ForeignKeyConstraintDeleted($constraint);
 		}
 
-		/** @var \Gobl\DBAL\Constraints\ForeignKey $constraint */
-		return new ForeignKeyConstraintDeleted($constraint, $reason);
+		!empty($reason) && $c->setReason($reason);
+
+		return $c;
 	}
 
 	protected function diffTable(Table $from_table, Table $to_table, array &$diff): void
@@ -336,20 +354,6 @@ DIFF_SQL;
 		} elseif ($b_pk) {
 			$diff[] = $this->getConstraintAddedClassInstance($b_pk);
 		}
-	}
-
-	protected function getConstraintAddedClassInstance(Constraint $constraint, string $reason = 'constraint deleted.'): ForeignKeyConstraintAdded|PrimaryKeyConstraintAdded|UniqueKeyConstraintAdded
-	{
-		if ($constraint instanceof PrimaryKey) {
-			return new PrimaryKeyConstraintAdded($constraint, $reason);
-		}
-
-		if ($constraint instanceof UniqueKey) {
-			return new UniqueKeyConstraintAdded($constraint, $reason);
-		}
-
-		/** @var \Gobl\DBAL\Constraints\ForeignKey $constraint */
-		return new ForeignKeyConstraintAdded($constraint, $reason);
 	}
 
 	protected function diffTableFKConstraints(Table $from_table, Table $to_table, array &$diff): void

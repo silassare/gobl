@@ -307,8 +307,7 @@ abstract class Db implements RDBMSInterface
 							));
 						}
 					} elseif ($column_opt instanceof TypeInterface) {
-						$col = new Column($column_name, $table_col_prefix);
-						$col->setType($column_opt);
+						$col = new Column($column_name, $table_col_prefix, $column_opt);
 					} else {
 						if (\is_string($column_opt)) {
 							$col_options = ['type' => $column_opt];
@@ -352,7 +351,7 @@ abstract class Db implements RDBMSInterface
 						}
 
 						try {
-							$col = new Column($column_name, $table_col_prefix);
+							$col = new Column($column_name, $table_col_prefix, $col_options);
 
 							if (isset($col_options['private'])) {
 								$col->setPrivate((bool) $col_options['private']);
@@ -365,8 +364,6 @@ abstract class Db implements RDBMSInterface
 							if (isset($col_options['reference'])) {
 								$col->setReference($col_options['reference']);
 							}
-
-							$col->setTypeFromOptions($col_options);
 						} catch (Throwable $t) {
 							throw new DBALException(\sprintf(
 								'Unable to initialize column "%s" in table "%s".',
