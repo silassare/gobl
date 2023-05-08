@@ -120,7 +120,7 @@ abstract class CSGenerator
 		$filtersRules = [];
 
 		foreach ($type->getAllowedFilterOperators() as $operator) {
-			$method_suffix = Str::toMethodName('where_' . $column_name . '_' . $operator->getFilterSuffix());
+			$method_suffix = Str::toMethodName('where_' . $operator->getFilterSuffix($column));
 
 			$rule = [
 				'name'                 => $operator->value,

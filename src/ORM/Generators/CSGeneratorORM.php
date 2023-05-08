@@ -135,6 +135,25 @@ Time: {$date}";
 		return $this;
 	}
 
+	/**
+	 * Returns property getter name.
+	 *
+	 * @param string $column_name
+	 *
+	 * @return string
+	 */
+	private static function propertyGetterName(string $column_name): string
+	{
+		if (\str_starts_with($column_name, 'is_')) {
+			return Str::toClassName($column_name);
+		}
+		if (\str_ends_with($column_name, 'ed')) {
+			return 'is' . Str::toClassName($column_name);
+		}
+
+		return 'get' . Str::toClassName($column_name);
+	}
+
 	private function getClassFile(Table $table, ORMClassKind $kind): PHPFile
 	{
 		return match ($kind) {
@@ -254,7 +273,7 @@ Time: {$date}";
 			$class->newConstant($column_const, $column->getFullName())
 				->public();
 
-			$get = $class->newMethod('get' . Str::toClassName($column_name))
+			$get = $class->newMethod(self::propertyGetterName($column_name))
 				->public()
 				->setComment(Str::interpolate('Getter for column `{table_name}`.`{column_name}`.
 
@@ -504,7 +523,7 @@ return $instance;')
 		foreach ($table->getColumns() as $column) {
 			$type = $column->getType();
 			foreach ($type->getAllowedFilterOperators() as $operator) {
-				$method = Str::toMethodName('where_' . $column->getName() . '_' . $operator->getFilterSuffix());
+				$method = Str::toMethodName('where_' . $operator->getFilterSuffix($column));
 
 				$col_inject = $inject + [
 					'rule_name'         => $operator->value,

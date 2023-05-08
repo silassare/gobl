@@ -49,11 +49,25 @@ enum Operator: string
 	/**
 	 * Gets operand filter suffix used in ORM.
 	 *
+	 * @param \Gobl\DBAL\Column $column
+	 *
 	 * @return string
 	 */
-	public function getFilterSuffix(): string
+	public function getFilterSuffix(Column $column): string
 	{
-		return match ($this) {
+		$name = $column->getName();
+
+		if (\str_starts_with($name, 'is_') || \str_ends_with($name, 'ed')) {
+			$verb = \substr($name, 3);
+			if (self::IS_TRUE === $this) {
+				return 'is_' . $verb;
+			}
+			if (self::IS_FALSE === $this) {
+				return 'is_not_' . $verb;
+			}
+		}
+
+		return $name . '_' . match ($this) {
 			self::EQ          => 'is',
 			self::NEQ         => 'is_not',
 			self::LT          => 'is_lt',
