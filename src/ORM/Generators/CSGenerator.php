@@ -17,8 +17,8 @@ use Gobl\DBAL\Column;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Table;
 use Gobl\Gobl;
+use Gobl\ORM\ORMTypeHint;
 use Gobl\ORM\Utils\ORMClassKind;
-use Gobl\ORM\Utils\ORMTypeHint;
 use PHPUtils\Str;
 
 /**
@@ -125,7 +125,7 @@ abstract class CSGenerator
 			$rule = [
 				'name'                 => $operator->value,
 				'methodSuffix'         => $method_suffix,
-				'rightOperandTypeHint' => \array_unique(\array_map($this->toTypeHintString(...), ORMTypeHint::getRightOperandTypesHint($type, $operator))),
+				'rightOperandTypeHint' => $this->toTypeHintString(ORMTypeHint::getOperatorRightOperandTypesHint($type, $operator)),
 				'noArg'                => 1 === $operator->getOperandsCount(),
 			];
 
@@ -144,8 +144,8 @@ abstract class CSGenerator
 			'methodSuffix'      => Str::toClassName($column_name),
 			'const'             => self::toColumnNameConst($column),
 			'argName'           => $column_name,
-			'writeTypeHint'     => $this->getColumnWriteTypeHintStrings($column),
-			'readTypeHint'      => $this->getColumnReadTypeHintStrings($column),
+			'writeTypeHint'     => $this->getColumnWriteTypeHintString($column),
+			'readTypeHint'      => $this->getColumnReadTypeHintString($column),
 		];
 	}
 
@@ -164,35 +164,35 @@ abstract class CSGenerator
 	/**
 	 * @param \Gobl\DBAL\Column $column
 	 *
-	 * @return string[]
+	 * @return string
 	 */
-	public function getColumnWriteTypeHintStrings(Column $column): array
+	public function getColumnWriteTypeHintString(Column $column): string
 	{
 		$type      = $column->getType();
 		$type_hint = $type->getWriteTypeHint();
 
 		if ($type->isAutoIncremented() || $type->isNullable()) {
-			$type_hint[] = ORMTypeHint::_NULL;
+			$type_hint->nullable();
 		}
 
-		return \array_unique(\array_map($this->toTypeHintString(...), $type_hint));
+		return $this->toTypeHintString($type_hint);
 	}
 
 	/**
 	 * @param \Gobl\DBAL\Column $column
 	 *
-	 * @return string[]
+	 * @return string
 	 */
-	public function getColumnReadTypeHintStrings(Column $column): array
+	public function getColumnReadTypeHintString(Column $column): string
 	{
 		$type      = $column->getType();
 		$type_hint = $type->getReadTypeHint();
 
 		if ($type->isAutoIncremented() || $type->isNullable()) {
-			$type_hint[] = ORMTypeHint::_NULL;
+			$type_hint->nullable();
 		}
 
-		return \array_unique(\array_map($this->toTypeHintString(...), $type_hint));
+		return $this->toTypeHintString($type_hint);
 	}
 
 	/**
@@ -267,7 +267,7 @@ abstract class CSGenerator
 	/**
 	 * Map type to custom type string.
 	 *
-	 * @param \Gobl\ORM\Utils\ORMTypeHint $type_hint
+	 * @param \Gobl\ORM\ORMTypeHint $type_hint
 	 *
 	 * @return string
 	 */

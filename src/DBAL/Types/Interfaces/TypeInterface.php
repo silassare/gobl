@@ -15,7 +15,7 @@ namespace Gobl\DBAL\Types\Interfaces;
 
 use Gobl\DBAL\Filters\Filter;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
-use Gobl\ORM\Utils\ORMTypeHint;
+use Gobl\ORM\ORMTypeHint;
 use PHPUtils\Interfaces\ArrayCapableInterface;
 
 /**
@@ -210,22 +210,22 @@ interface TypeInterface extends ArrayCapableInterface
 	public function getOption(string $key, mixed $default = null): mixed;
 
 	/**
-	 * Gets return Read/Getter hint.
+	 * Gets return Read/Getter type hint.
 	 *
 	 * Useful for the ORM class generator.
 	 *
-	 * @return ORMTypeHint[]
+	 * @return ORMTypeHint
 	 */
-	public function getReadTypeHint(): array;
+	public function getReadTypeHint(): ORMTypeHint;
 
 	/**
-	 * Gets allowed Write/Setter types hint.
+	 * Gets allowed Write/Setter type hint.
 	 *
 	 * Useful for the ORM class generator.
 	 *
-	 * @return ORMTypeHint[]
+	 * @return ORMTypeHint
 	 */
-	public function getWriteTypeHint(): array;
+	public function getWriteTypeHint(): ORMTypeHint;
 
 	/**
 	 * Apply default, null and auto_increment options.

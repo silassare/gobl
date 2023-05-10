@@ -16,7 +16,7 @@ namespace Gobl\DBAL\Types;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
-use Gobl\ORM\Utils\ORMTypeHint;
+use Gobl\ORM\ORMTypeHint;
 use JsonException;
 
 /**
@@ -143,16 +143,16 @@ class TypeMap extends Type
 	/**
 	 * {@inheritDoc}
 	 */
-	public function getWriteTypeHint(): array
+	public function getWriteTypeHint(): ORMTypeHint
 	{
-		return [ORMTypeHint::MAP];
+		return ORMTypeHint::map();
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public function getReadTypeHint(): array
+	public function getReadTypeHint(): ORMTypeHint
 	{
-		return [ORMTypeHint::MAP];
+		return ORMTypeHint::map();
 	}
 }

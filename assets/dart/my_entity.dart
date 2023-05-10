@@ -51,9 +51,9 @@ class MyEntity extends MyEntityBase with MyEntityMixin<MyEntity> {
     return MyEntity(json);
   }
 //@  <%loop($.columns : $column){%>
-//@  <%@join($column.readTypeHint, '|')%> get <%$column.name%> { return doGet(<%$column.const%>, <%@join($column.readTypeHint, '|')%>); }
-//@  set <%$column.name%>(<%@join($column.writeTypeHint, '|')%> nVal) { doSet(<%$column.const%>, nVal, <%@join($column.readTypeHint, '|')%>); }
-//@  <%@join($column.readTypeHint, '|')%> get<%$column.methodSuffix%>() { return <%$column.name%>; }
-//@  MyEntity set<%$column.methodSuffix%>(<%@join($column.writeTypeHint, '|')%> nVal) { <%$column.name%> = nVal; return this; }
+//@  <%$column.readTypeHint%> get <%$column.name%> { return doGet(<%$column.const%>, <%$column.readTypeHint%>); }
+//@  set <%$column.name%>(<%$column.writeTypeHint%> nVal) { doSet(<%$column.const%>, nVal, <%$column.readTypeHint%>); }
+//@  <%$column.readTypeHint%> get<%$column.methodSuffix%>() { return <%$column.name%>; }
+//@  MyEntity set<%$column.methodSuffix%>(<%$column.writeTypeHint%> nVal) { <%$column.name%> = nVal; return this; }
 //@ <%}%>
 }

@@ -16,7 +16,7 @@ namespace Gobl\DBAL\Types;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
-use Gobl\ORM\Utils\ORMTypeHint;
+use Gobl\ORM\ORMTypeHint;
 use JsonException;
 
 /**
@@ -143,16 +143,16 @@ class TypeList extends Type
 	/**
 	 * {@inheritDoc}
 	 */
-	public function getWriteTypeHint(): array
+	public function getWriteTypeHint(): ORMTypeHint
 	{
-		return [ORMTypeHint::ARRAY];
+		return ORMTypeHint::array();
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public function getReadTypeHint(): array
+	public function getReadTypeHint(): ORMTypeHint
 	{
-		return [ORMTypeHint::ARRAY];
+		return ORMTypeHint::array();
 	}
 }

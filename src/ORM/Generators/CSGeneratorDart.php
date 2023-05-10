@@ -15,7 +15,8 @@ namespace Gobl\ORM\Generators;
 
 use Exception;
 use Gobl\Gobl;
-use Gobl\ORM\Utils\ORMTypeHint;
+use Gobl\ORM\ORMTypeHint;
+use Gobl\ORM\ORMUniversalType;
 use PHPUtils\FS\FSUtils;
 
 /**
@@ -33,15 +34,22 @@ class CSGeneratorDart extends CSGenerator
 	 */
 	public function toTypeHintString(ORMTypeHint $type_hint): string
 	{
-		return match ($type_hint) {
-			ORMTypeHint::ARRAY => 'List',
-			ORMTypeHint::MAP   => 'Map',
-			ORMTypeHint::STRING, ORMTypeHint::DECIMAL, ORMTypeHint::BIGINT => 'String',
-			ORMTypeHint::FLOAT, ORMTypeHint::INT => 'num',
-			ORMTypeHint::BOOL  => 'bool',
-			ORMTypeHint::_NULL => 'null',
-			ORMTypeHint::MIXED => 'dynamic',
-		};
+		$types      = $type_hint->getUniversalTypes();
+		$dart_types = [];
+
+		foreach ($types as $type) {
+			$dart_types[] = match ($type) {
+				ORMUniversalType::ARRAY => 'List',
+				ORMUniversalType::MAP => 'Map',
+				ORMUniversalType::STRING, ORMUniversalType::DECIMAL, ORMUniversalType::BIGINT => 'String',
+				ORMUniversalType::FLOAT, ORMUniversalType::INT => 'num',
+				ORMUniversalType::BOOL => 'bool',
+				ORMUniversalType::_NULL => 'null',
+				ORMUniversalType::MIXED => 'dynamic',
+			};
+		}
+
+		return \implode('|', $dart_types);
 	}
 
 	/**
@@ -66,9 +74,9 @@ class CSGeneratorDart extends CSGenerator
 		$fs = new FSUtils($path);
 
 		$fs->filter()
-			->isDir()
-			->isWritable()
-			->assert('.');
+		   ->isDir()
+		   ->isWritable()
+		   ->assert('.');
 
 		$path             = $fs->getRoot();
 		$ds               = \DIRECTORY_SEPARATOR;

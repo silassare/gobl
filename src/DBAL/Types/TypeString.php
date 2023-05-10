@@ -13,11 +13,12 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Types;
 
+use BackedEnum;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
-use Gobl\ORM\Utils\ORMTypeHint;
+use Gobl\ORM\ORMTypeHint;
 
 /**
  * Class TypeString.
@@ -32,7 +33,7 @@ class TypeString extends Type implements BaseTypeInterface
 	 * @param null|int    $min     the minimum string length
 	 * @param null|int    $max     the maximum string length
 	 * @param null|string $pattern the string pattern
-	 * @param array       $one_of  the list of allowed string
+	 * @param string[]    $one_of  the list of allowed string
 	 * @param null|string $message the error message
 	 *
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
@@ -127,7 +128,7 @@ class TypeString extends Type implements BaseTypeInterface
 	/**
 	 * Sets the allowed string list.
 	 *
-	 * @param array       $list
+	 * @param string[]    $list
 	 * @param null|string $message
 	 *
 	 * @return $this
@@ -137,6 +138,37 @@ class TypeString extends Type implements BaseTypeInterface
 		!empty($message) && $this->msg('string_not_in_allowed_list', $message);
 
 		return $this->setOption('one_of', \array_unique($list));
+	}
+
+	/**
+	 * Sets the allowed string list from enum class.
+	 *
+	 * @param class-string<BackedEnum> $enum_class
+	 * @param null|string              $message
+	 *
+	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 */
+	public function enum(string $enum_class, ?string $message = null): self
+	{
+		if (!\is_subclass_of($enum_class, BackedEnum::class)) {
+			throw new TypesException(\sprintf(
+				'invalid enum class, found "%s" while expecting subclass of "%s"',
+				$enum_class,
+				BackedEnum::class
+			));
+		}
+
+		/** @var BackedEnum[] $cases */
+		$cases = $enum_class::cases();
+		$list  = [];
+
+		foreach ($cases as $case) {
+			$list[] = (string) $case->value;
+		}
+
+		return $this->oneOf($list, $message);
 	}
 
 	/**
@@ -254,9 +286,9 @@ class TypeString extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function getWriteTypeHint(): array
+	public function getWriteTypeHint(): ORMTypeHint
 	{
-		return [ORMTypeHint::STRING];
+		return ORMTypeHint::string();
 	}
 
 	/**
@@ -330,9 +362,9 @@ class TypeString extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function getReadTypeHint(): array
+	public function getReadTypeHint(): ORMTypeHint
 	{
-		return [ORMTypeHint::STRING];
+		return ORMTypeHint::string();
 	}
 
 	/**

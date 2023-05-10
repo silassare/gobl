@@ -15,7 +15,8 @@ namespace Gobl\ORM\Generators;
 
 use Exception;
 use Gobl\Gobl;
-use Gobl\ORM\Utils\ORMTypeHint;
+use Gobl\ORM\ORMTypeHint;
+use Gobl\ORM\ORMUniversalType;
 use PHPUtils\FS\FSUtils;
 
 /**
@@ -33,15 +34,22 @@ class CSGeneratorTS extends CSGenerator
 	 */
 	public function toTypeHintString(ORMTypeHint $type_hint): string
 	{
-		return match ($type_hint) {
-			ORMTypeHint::ARRAY => 'unknown[]',
-			ORMTypeHint::MAP   => 'Record<string, unknown>',
-			ORMTypeHint::STRING, ORMTypeHint::DECIMAL, ORMTypeHint::BIGINT => 'string',
-			ORMTypeHint::FLOAT, ORMTypeHint::INT => 'number',
-			ORMTypeHint::BOOL  => 'boolean',
-			ORMTypeHint::_NULL => 'null',
-			ORMTypeHint::MIXED => 'any',
-		};
+		$types    = $type_hint->getUniversalTypes();
+		$ts_types = [];
+
+		foreach ($types as $type) {
+			$ts_types[] = match ($type) {
+				ORMUniversalType::ARRAY => 'unknown[]',
+				ORMUniversalType::MAP => 'Record<string, unknown>',
+				ORMUniversalType::STRING, ORMUniversalType::DECIMAL, ORMUniversalType::BIGINT => 'string',
+				ORMUniversalType::FLOAT, ORMUniversalType::INT => 'number',
+				ORMUniversalType::BOOL => 'boolean',
+				ORMUniversalType::_NULL => 'null',
+				ORMUniversalType::MIXED => 'any',
+			};
+		}
+
+		return \implode('|', $ts_types);
 	}
 
 	/**
@@ -64,9 +72,9 @@ class CSGeneratorTS extends CSGenerator
 		$fs = new FSUtils($path);
 
 		$fs->filter()
-			->isDir()
-			->isWritable()
-			->assert('.');
+		   ->isDir()
+		   ->isWritable()
+		   ->assert('.');
 
 		$path         = $fs->getRoot();
 		$ds           = \DIRECTORY_SEPARATOR;

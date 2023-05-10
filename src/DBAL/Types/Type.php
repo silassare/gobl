@@ -20,6 +20,7 @@ use Gobl\DBAL\Operator;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
+use Gobl\ORM\ORMTypeHint;
 use PHPUtils\Traits\ArrayCapableTrait;
 
 /**
@@ -202,7 +203,7 @@ abstract class Type implements TypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function getWriteTypeHint(): array
+	public function getWriteTypeHint(): ORMTypeHint
 	{
 		return $this->safelyCallOnBaseType(__FUNCTION__, []);
 	}
@@ -210,7 +211,7 @@ abstract class Type implements TypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function getReadTypeHint(): array
+	public function getReadTypeHint(): ORMTypeHint
 	{
 		return $this->safelyCallOnBaseType(__FUNCTION__, []);
 	}

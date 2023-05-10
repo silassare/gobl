@@ -17,7 +17,7 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
-use Gobl\ORM\Utils\ORMTypeHint;
+use Gobl\ORM\ORMTypeHint;
 
 /**
  * Class TypeInt.
@@ -253,9 +253,9 @@ class TypeInt extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function getWriteTypeHint(): array
+	public function getWriteTypeHint(): ORMTypeHint
 	{
-		return [ORMTypeHint::INT];
+		return ORMTypeHint::int();
 	}
 
 	/**
@@ -271,9 +271,9 @@ class TypeInt extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function getReadTypeHint(): array
+	public function getReadTypeHint(): ORMTypeHint
 	{
-		return [ORMTypeHint::INT];
+		return ORMTypeHint::int();
 	}
 
 	/**

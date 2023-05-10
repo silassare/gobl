@@ -8,7 +8,7 @@
  * Time: <%$.gobl_time%>
  */
 //@<%}%>
-import { GoblEntity } from 'gobl-utils-ts';
+import {GoblEntity} from 'gobl-utils-ts';
 
 export default abstract class MyEntityBase extends GoblEntity {
 	public static readonly PREFIX: string    = '<%$.columns_prefix%>';
@@ -30,10 +30,10 @@ export default abstract class MyEntityBase extends GoblEntity {
 //@		return <%$.class.entity%>Base.COLUMNS;
 //@	}<%}%>
 //@<%loop($.columns : $column){%>
-//@	get <%$column.name%>(): <%@join($column.readTypeHint, '|')%> { return this._data[<%$.class.entity%>Base.<%$column.const%>]; }
-//@	set <%$column.name%>(nVal: <%@join($column.writeTypeHint, '|')%>) { this._set(<%$.class.entity%>Base.<%$column.const%>, nVal); }
+//@	get <%$column.name%>(): <%$column.readTypeHint%> { return this._data[<%$.class.entity%>Base.<%$column.const%>]; }
+//@	set <%$column.name%>(nVal: <%$column.writeTypeHint%>) { this._set(<%$.class.entity%>Base.<%$column.const%>, nVal); }
 ////@	public get<%$column.methodSuffix%>() { return this.<%$column.name%>; }
-////@	public set<%$column.methodSuffix%>(nVal: <%@join($column.writeTypeHint, '|')%>): this { this.<%$column.name%> = nVal; return this; }
+////@	public set<%$column.methodSuffix%>(nVal: <%$column.writeTypeHint%>): this { this.<%$column.name%> = nVal; return this; }
 //@<%}%>
 
 }
