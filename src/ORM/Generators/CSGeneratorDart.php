@@ -40,11 +40,11 @@ class CSGeneratorDart extends CSGenerator
 		foreach ($types as $type) {
 			$dart_types[] = match ($type) {
 				ORMUniversalType::ARRAY => 'List',
-				ORMUniversalType::MAP => 'Map',
+				ORMUniversalType::MAP   => 'Map',
 				ORMUniversalType::STRING, ORMUniversalType::DECIMAL, ORMUniversalType::BIGINT => 'String',
 				ORMUniversalType::FLOAT, ORMUniversalType::INT => 'num',
-				ORMUniversalType::BOOL => 'bool',
-				ORMUniversalType::_NULL => 'null',
+				ORMUniversalType::BOOL  => 'bool',
+				ORMUniversalType::NULL  => 'null',
 				ORMUniversalType::MIXED => 'dynamic',
 			};
 		}
@@ -74,9 +74,9 @@ class CSGeneratorDart extends CSGenerator
 		$fs = new FSUtils($path);
 
 		$fs->filter()
-		   ->isDir()
-		   ->isWritable()
-		   ->assert('.');
+			->isDir()
+			->isWritable()
+			->assert('.');
 
 		$path             = $fs->getRoot();
 		$ds               = \DIRECTORY_SEPARATOR;

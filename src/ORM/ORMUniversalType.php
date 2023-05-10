@@ -36,7 +36,7 @@ enum ORMUniversalType: string
 
 	case STRING = 'STRING';
 
-	case _NULL = 'NULL';
+	case NULL = 'NULL';
 
 	case MIXED = 'MIXED';
 }

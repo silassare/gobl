@@ -101,7 +101,7 @@ class ORMTypeHint
 	{
 		$this->php_type?->nullable();
 
-		return $this->addUniversalTypes(ORMUniversalType::_NULL);
+		return $this->addUniversalTypes(ORMUniversalType::NULL);
 	}
 
 	/**
@@ -182,7 +182,7 @@ class ORMTypeHint
 	 */
 	public static function null(): self
 	{
-		return new self(ORMUniversalType::_NULL);
+		return new self(ORMUniversalType::NULL);
 	}
 
 	/**
