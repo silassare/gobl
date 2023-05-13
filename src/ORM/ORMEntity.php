@@ -139,8 +139,20 @@ abstract class ORMEntity implements ArrayCapableInterface
 			$type      = $column->getType();
 
 			if (null === $value && !$type->isNullable()) {
-				// this is to prevent returning null as the property is supposed to not have null value
-				return $type->getEmptyValueOfType();
+				// this is an attempt to prevent returning null
+				// as the property is supposed to not have null value
+				$value = $type->getDefault();
+				if (null === $value) {
+					$value = $type->getEmptyValueOfType();
+				}
+
+				if (null === $value) {
+					throw new ORMRuntimeException(\sprintf(
+						'Missing required value for column "%s" defined in table "%s".',
+						$name,
+						$this->_oeb_table->getName()
+					));
+				}
 			}
 
 			return $value;
@@ -294,7 +306,6 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 *              `false` when nothing is done
 	 *
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 */
