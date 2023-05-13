@@ -57,14 +57,6 @@ class TypeMap extends Type
 	/**
 	 * {@inheritDoc}
 	 */
-	public function getName(): string
-	{
-		return self::NAME;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
 	public function validate(mixed $value): ?array
 	{
 		$debug = [
@@ -154,5 +146,13 @@ class TypeMap extends Type
 	public function getReadTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::map();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getName(): string
+	{
+		return self::NAME;
 	}
 }

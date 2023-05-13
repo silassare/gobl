@@ -285,14 +285,6 @@ class TypeString extends Type implements BaseTypeInterface
 
 	/**
 	 * {@inheritDoc}
-	 */
-	public function getWriteTypeHint(): ORMTypeHint
-	{
-		return ORMTypeHint::string();
-	}
-
-	/**
-	 * {@inheritDoc}
 	 *
 	 * @return null|string
 	 *
@@ -357,6 +349,14 @@ class TypeString extends Type implements BaseTypeInterface
 		}
 
 		return $value;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getWriteTypeHint(): ORMTypeHint
+	{
+		return ORMTypeHint::string();
 	}
 
 	/**

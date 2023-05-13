@@ -237,20 +237,20 @@ class TypeBigint extends Type implements BaseTypeInterface
 
 	/**
 	 * {@inheritDoc}
-	 */
-	public function getWriteTypeHint(): ORMTypeHint
-	{
-		return ORMTypeHint::bigint();
-	}
-
-	/**
-	 * {@inheritDoc}
 	 *
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
 	{
 		return $this->validate($value);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getWriteTypeHint(): ORMTypeHint
+	{
+		return ORMTypeHint::bigint();
 	}
 
 	/**

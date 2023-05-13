@@ -128,7 +128,7 @@ class ORMTypeHint
 	/**
 	 * Creates integer type hint instance.
 	 *
-	 * @return static
+	 * @return self
 	 */
 	public static function int(): self
 	{
@@ -138,7 +138,7 @@ class ORMTypeHint
 	/**
 	 * Creates float type hint instance.
 	 *
-	 * @return static
+	 * @return self
 	 */
 	public static function float(): self
 	{
@@ -148,7 +148,7 @@ class ORMTypeHint
 	/**
 	 * Creates boolean type hint instance.
 	 *
-	 * @return static
+	 * @return self
 	 */
 	public static function bool(): self
 	{
@@ -158,7 +158,7 @@ class ORMTypeHint
 	/**
 	 * Creates array type hint instance.
 	 *
-	 * @return static
+	 * @return self
 	 */
 	public static function array(): self
 	{
@@ -168,7 +168,7 @@ class ORMTypeHint
 	/**
 	 * Creates string type hint instance.
 	 *
-	 * @return static
+	 * @return self
 	 */
 	public static function string(): self
 	{
@@ -178,7 +178,7 @@ class ORMTypeHint
 	/**
 	 * Creates null type hint instance.
 	 *
-	 * @return static
+	 * @return self
 	 */
 	public static function null(): self
 	{
@@ -188,7 +188,7 @@ class ORMTypeHint
 	/**
 	 * Creates mixed type hint instance.
 	 *
-	 * @return static
+	 * @return self
 	 */
 	public static function mixed(): self
 	{
@@ -198,7 +198,7 @@ class ORMTypeHint
 	/**
 	 * Creates decimal type hint instance.
 	 *
-	 * @return static
+	 * @return self
 	 */
 	public static function decimal(): self
 	{
@@ -208,7 +208,7 @@ class ORMTypeHint
 	/**
 	 * Creates bigint type hint instance.
 	 *
-	 * @return static
+	 * @return self
 	 */
 	public static function bigint(): self
 	{
@@ -218,7 +218,7 @@ class ORMTypeHint
 	/**
 	 * Creates map type hint instance.
 	 *
-	 * @return static
+	 * @return self
 	 */
 	public static function map(): self
 	{

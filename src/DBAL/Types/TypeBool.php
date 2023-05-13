@@ -184,17 +184,17 @@ class TypeBool extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?bool
+	public function getReadTypeHint(): ORMTypeHint
 	{
-		return null === $value ? null : (bool) $value;
+		return ORMTypeHint::bool();
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public function getReadTypeHint(): ORMTypeHint
+	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?bool
 	{
-		return ORMTypeHint::bool();
+		return null === $value ? null : (bool) $value;
 	}
 
 	/**

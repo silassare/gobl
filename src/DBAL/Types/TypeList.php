@@ -57,14 +57,6 @@ class TypeList extends Type
 	/**
 	 * {@inheritDoc}
 	 */
-	public function getName(): string
-	{
-		return self::NAME;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
 	public function validate(mixed $value): ?array
 	{
 		$debug = [
@@ -154,5 +146,13 @@ class TypeList extends Type
 	public function getReadTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::array();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getName(): string
+	{
+		return self::NAME;
 	}
 }

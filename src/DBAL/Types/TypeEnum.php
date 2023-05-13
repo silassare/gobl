@@ -39,8 +39,7 @@ class TypeEnum extends Type
 	public function __construct(
 		?string $enum_class = null,
 		?string $message = null
-	)
-	{
+	) {
 		!empty($message) && $this->msg('invalid_enum_value_type', $message);
 
 		if ($enum_class) {
@@ -152,7 +151,7 @@ class TypeEnum extends Type
 	public function getWriteTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::string()
-						  ->setPHPType(new PHPType($this->getEnumClass(), 'string'));
+			->setPHPType(new PHPType($this->getEnumClass(), 'string'));
 	}
 
 	/**
@@ -163,7 +162,7 @@ class TypeEnum extends Type
 	public function getReadTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::string()
-						  ->setPHPType(new PHPType($this->getEnumClass()));
+			->setPHPType(new PHPType($this->getEnumClass()));
 	}
 
 	/**

@@ -252,20 +252,20 @@ class TypeInt extends Type implements BaseTypeInterface
 
 	/**
 	 * {@inheritDoc}
-	 */
-	public function getWriteTypeHint(): ORMTypeHint
-	{
-		return ORMTypeHint::int();
-	}
-
-	/**
-	 * {@inheritDoc}
 	 *
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
 	 */
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?int
 	{
 		return $this->validate($value);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getWriteTypeHint(): ORMTypeHint
+	{
+		return ORMTypeHint::int();
 	}
 
 	/**

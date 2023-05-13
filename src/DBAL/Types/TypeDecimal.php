@@ -274,14 +274,6 @@ class TypeDecimal extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function getName(): string
-	{
-		return self::NAME;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getReadTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::decimal();
@@ -303,5 +295,13 @@ class TypeDecimal extends Type implements BaseTypeInterface
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
 	{
 		return $this->validate($value);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getName(): string
+	{
+		return self::NAME;
 	}
 }
