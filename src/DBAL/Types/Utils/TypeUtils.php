@@ -86,11 +86,12 @@ class TypeUtils
 
 			if (!$type_ok) {
 				throw new TypesException(\sprintf(
-					'Custom column type "%s" provided by "%s" for type "%s" should provide a valid base type not "%s".',
+					'Custom column type "%s" provided by "%s" for type "%s" returned "%s" while expecting one of allowed base type: %s',
 					\get_class($found),
 					\get_class($found_in),
 					$name,
-					\get_class($found_bt)
+					\get_class($found_bt),
+					\implode('|', $base_types)
 				));
 			}
 		}
