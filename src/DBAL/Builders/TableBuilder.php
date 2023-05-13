@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Builders;
 
+use BackedEnum;
 use Gobl\DBAL\Column;
 use Gobl\DBAL\Constraints\ForeignKeyAction;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
@@ -25,6 +26,7 @@ use Gobl\DBAL\Types\TypeBigint;
 use Gobl\DBAL\Types\TypeBool;
 use Gobl\DBAL\Types\TypeDate;
 use Gobl\DBAL\Types\TypeDecimal;
+use Gobl\DBAL\Types\TypeEnum;
 use Gobl\DBAL\Types\TypeFloat;
 use Gobl\DBAL\Types\TypeInt;
 use Gobl\DBAL\Types\TypeList;
@@ -232,6 +234,23 @@ final class TableBuilder
 	public function float(string $column_name): TypeFloat
 	{
 		$this->column($column_name, $type = new TypeFloat());
+
+		return $type;
+	}
+
+	/**
+	 * Creates a new column of type enum.
+	 *
+	 * @param string                   $column_name
+	 * @param class-string<BackedEnum> $enum_class
+	 *
+	 * @return \Gobl\DBAL\Types\TypeEnum
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 */
+	public function enum(string $column_name, string $enum_class): TypeEnum
+	{
+		$this->column($column_name, $type = new TypeEnum($enum_class));
 
 		return $type;
 	}

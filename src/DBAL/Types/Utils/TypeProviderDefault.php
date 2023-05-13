@@ -19,6 +19,7 @@ use Gobl\DBAL\Types\TypeBigint;
 use Gobl\DBAL\Types\TypeBool;
 use Gobl\DBAL\Types\TypeDate;
 use Gobl\DBAL\Types\TypeDecimal;
+use Gobl\DBAL\Types\TypeEnum;
 use Gobl\DBAL\Types\TypeFloat;
 use Gobl\DBAL\Types\TypeInt;
 use Gobl\DBAL\Types\TypeList;
@@ -48,6 +49,7 @@ class TypeProviderDefault implements TypeProviderInterface
 		TypeList::NAME    => TypeList::class,
 		TypeMap::NAME     => TypeMap::class,
 		TypeDate::NAME    => TypeDate::class,
+		TypeEnum::NAME    => TypeEnum::class,
 	];
 
 	/**
