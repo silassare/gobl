@@ -197,6 +197,11 @@ abstract class Type implements TypeInterface
 	 */
 	public function default(mixed $default): self
 	{
+		// we don't call the base type here
+		// because the default value may not be a scalar value
+		// and as default value set on base type is used to
+		// generate table sql query it may cause errors
+		// if required a custom type should override this method
 		return $this->setOption('default', $default);
 	}
 
