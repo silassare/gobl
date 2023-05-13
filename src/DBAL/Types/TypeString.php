@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Types;
 
-use BackedEnum;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
@@ -138,37 +137,6 @@ class TypeString extends Type implements BaseTypeInterface
 		!empty($message) && $this->msg('string_not_in_allowed_list', $message);
 
 		return $this->setOption('one_of', \array_unique($list));
-	}
-
-	/**
-	 * Sets the allowed string list from enum class.
-	 *
-	 * @param class-string<BackedEnum> $enum_class
-	 * @param null|string              $message
-	 *
-	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-	 */
-	public function enum(string $enum_class, ?string $message = null): self
-	{
-		if (!\is_subclass_of($enum_class, BackedEnum::class)) {
-			throw new TypesException(\sprintf(
-				'invalid enum class, found "%s" while expecting subclass of "%s"',
-				$enum_class,
-				BackedEnum::class
-			));
-		}
-
-		/** @var BackedEnum[] $cases */
-		$cases = $enum_class::cases();
-		$list  = [];
-
-		foreach ($cases as $case) {
-			$list[] = (string) $case->value;
-		}
-
-		return $this->oneOf($list, $message);
 	}
 
 	/**
