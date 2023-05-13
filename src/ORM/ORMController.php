@@ -18,6 +18,7 @@ use Gobl\CRUD\CRUD;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\QBInsert;
 use Gobl\DBAL\Queries\QBSelect;
+use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Table;
 use Gobl\ORM\Exceptions\ORMException;
 use Gobl\ORM\Exceptions\ORMQueryException;
@@ -126,7 +127,6 @@ abstract class ORMController
 	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function addItem(array|ORMEntity $item = []): ORMEntity
 	{
@@ -143,7 +143,7 @@ abstract class ORMController
 			$values   = $item->toRow();
 		}
 
-		return $this->runInTransaction(function () use ($instance, &$values): ORMEntity {
+		return $this->runInTransaction(function () use ($instance, $values): ORMEntity {
 			$values = $this->crud->assertCreate($values)
 				->getForm();
 
@@ -178,11 +178,10 @@ abstract class ORMController
 	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function updateOneItem(array $filters, array $new_values): ?ORMEntity
 	{
-		return $this->runInTransaction(function () use (&$filters, &$new_values): ?ORMEntity {
+		return $this->runInTransaction(function () use ($filters, $new_values): ?ORMEntity {
 			$tsf        = $this->getScopedFiltersInstance($filters);
 			$action     = $this->crud->assertUpdate($tsf, $new_values);
 			$new_values = $action->getForm();
@@ -257,11 +256,10 @@ abstract class ORMController
 	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function updateAllItems(array $filters, array $new_values): int
 	{
-		return $this->runInTransaction(function () use (&$filters, &$new_values): int {
+		return $this->runInTransaction(function () use ($filters, $new_values): int {
 			$tsf        = $this->getScopedFiltersInstance($filters);
 			$action     = $this->crud->assertUpdateAll($tsf, $new_values);
 			$new_values = $action->getForm();
@@ -284,11 +282,10 @@ abstract class ORMController
 	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function deleteOneItem(array $filters): ?ORMEntity
 	{
-		return $this->runInTransaction(function () use (&$filters): ?ORMEntity {
+		return $this->runInTransaction(function () use ($filters): ?ORMEntity {
 			$tsf = $this->getScopedFiltersInstance($filters);
 
 			$this->crud->assertDelete($tsf);
@@ -329,11 +326,10 @@ abstract class ORMController
 	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function deleteAllItems(array $filters): int
 	{
-		return $this->runInTransaction(function () use (&$filters): int {
+		return $this->runInTransaction(function () use ($filters): int {
 			$tsf = $this->getScopedFiltersInstance($filters);
 
 			$this->crud->assertDeleteAll($tsf);
@@ -356,13 +352,12 @@ abstract class ORMController
 	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function getItem(array $filters, array $order_by = []): ?ORMEntity
 	{
 		// we use transaction for reading too
 		// https://stackoverflow.com/questions/308905/should-there-be-a-transaction-for-read-queries
-		return $this->runInTransaction(function () use (&$filters, &$order_by): ?ORMEntity {
+		return $this->runInTransaction(function () use ($filters, $order_by): ?ORMEntity {
 			$tsf = $this->getScopedFiltersInstance($filters);
 
 			$this->crud->assertRead($tsf);
@@ -393,7 +388,6 @@ abstract class ORMController
 	 * @return array
 	 *
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function getAllItems(
 		array $filters = [],
@@ -402,9 +396,7 @@ abstract class ORMController
 		array $order_by = [],
 		?int &$total = null
 	): array {
-		// we use transaction for reading too
-		// https://stackoverflow.com/questions/308905/should-there-be-a-transaction-for-read-queries
-		return $this->runInTransaction(function () use (&$filters, $max, $offset, &$order_by, &$total): array {
+		return $this->runInTransaction(function () use ($filters, $max, $offset, $order_by, &$total): array {
 			$tsf = $this->getScopedFiltersInstance($filters);
 
 			$this->crud->assertReadAll($tsf);
@@ -430,12 +422,9 @@ abstract class ORMController
 	 * @return \Gobl\ORM\ORMEntity[]
 	 *
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
 	public function getAllItemsCustom(QBSelect $qb, ?int $max = null, int $offset = 0, ?int &$total = null): array
 	{
-		// we use transaction for reading too
-		// https://stackoverflow.com/questions/308905/should-there-be-a-transaction-for-read-queries
 		return $this->runInTransaction(function () use ($qb, $max, $offset, &$total): array {
 			$this->crud->assertReadAll($this->getScopedFiltersInstance([]));
 
@@ -444,6 +433,88 @@ abstract class ORMController
 			$results = $this->getResultsInstance($qb);
 
 			$items = $results->fetchAllClass(false);
+
+			$total = static::lazyTotalResultsCount($results, \count($items), $max, $offset);
+
+			return $items;
+		});
+	}
+
+	/**
+	 * Gets a given item relative.
+	 *
+	 * @param \Gobl\ORM\ORMEntity           $entity
+	 * @param \Gobl\DBAL\Relations\Relation $relation
+	 * @param array                         $filters
+	 * @param array                         $order_by
+	 *
+	 * @return null|\Gobl\ORM\ORMEntity
+	 *
+	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 */
+	public function getRelative(ORMEntity $entity, Relation $relation, array $filters = [], array $order_by = []): ?ORMEntity
+	{
+		return $this->runInTransaction(function () use ($entity, $relation, $filters, $order_by): ?ORMEntity {
+			$tsf = $this->getScopedFiltersInstance($filters);
+
+			$this->crud->assertRead($tsf);
+
+			$qb = $tsf->selectRelatives($relation, $entity, 1, 0, $order_by);
+
+			if (!$qb) {
+				return null;
+			}
+
+			$results = $this->getResultsInstance($qb);
+			$entity  = $results->fetchClass();
+
+			if ($entity) {
+				$this->crud->getHandler()
+					->onAfterReadEntity($entity);
+			}
+
+			return $entity;
+		});
+	}
+
+	/**
+	 * Gets a given item relatives.
+	 *
+	 * @param \Gobl\ORM\ORMEntity           $entity
+	 * @param \Gobl\DBAL\Relations\Relation $relation
+	 * @param array                         $filters
+	 * @param null|int                      $max
+	 * @param int                           $offset
+	 * @param array                         $order_by
+	 * @param null|int                      $total
+	 *
+	 * @return array
+	 *
+	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 */
+	public function getAllRelatives(
+		ORMEntity $entity,
+		Relation $relation,
+		array $filters = [],
+		?int $max = null,
+		int $offset = 0,
+		array $order_by = [],
+		?int &$total = null
+	): array {
+		return $this->runInTransaction(function () use ($entity, $relation, $filters, $max, $offset, $order_by, &$total): array {
+			$tsf = $this->getScopedFiltersInstance($filters);
+
+			$this->crud->assertReadAll($tsf);
+
+			$qb = $tsf->selectRelatives($relation, $entity, $max, $offset, $order_by);
+
+			if (!$qb) {
+				return [];
+			}
+
+			$results = $this->getResultsInstance($qb);
+
+			$items = $results->fetchAllClass();
 
 			$total = static::lazyTotalResultsCount($results, \count($items), $max, $offset);
 
@@ -593,7 +664,6 @@ abstract class ORMController
 	 *
 	 * @param \Gobl\ORM\ORMEntity $entity
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 */
 	private function persistItem(ORMEntity $entity): void

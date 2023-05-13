@@ -360,26 +360,14 @@ return $this;', $col_inject));
 				$m->setReturnType('array');
 
 				$m->addChild(Str::interpolate('
-$filters_bundle = $this->buildRelationFilter($getters, $filters);
-
-if (null === $filters_bundle) {
-	return [];
-}
-
-return (new {target_entity_controller_class_fqn}())->getAllItems($filters_bundle, $max, $offset, $order_by, $total);', $rel_inject));
+return (new {target_entity_controller_class_fqn}())->getAllRelatives($this, $filters, $max, $offset, $order_by, $total);', $rel_inject));
 			} else {
 				$comment .= Str::interpolate('
 
 @return ?{target_entity_class_fqn}', $rel_inject);
 				$m->setReturnType(new PHPType('null', $rel_inject['target_entity_class_fqn']));
 				$m->addChild(Str::interpolate('
-$filters_bundle = $this->buildRelationFilter([]);
-
-if (null === $filters_bundle) {
-	return null;
-}
-
-return (new {target_entity_controller_class_fqn}())->getItem($filters_bundle);', $rel_inject));
+return (new {target_entity_controller_class_fqn}())->getRelative($this);', $rel_inject));
 			}
 
 			$m->setComment($comment);

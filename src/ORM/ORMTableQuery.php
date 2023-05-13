@@ -23,6 +23,7 @@ use Gobl\DBAL\Queries\QBDelete;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Queries\QBUpdate;
 use Gobl\DBAL\Queries\QBUtils;
+use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Table;
 use Gobl\ORM\Exceptions\ORMQueryException;
 use Gobl\ORM\Exceptions\ORMRuntimeException;
@@ -349,25 +350,31 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	/**
 	 * Create a {@see QBSelect} and apply the current filters and the relation's filters.
 	 */
-	public function selectRelation(
-		string $relation,
+	public function selectRelatives(
+		Relation $relation,
 		?ORMEntity $entity = null,
 		?int $max = null,
 		int $offset = 0,
 		array $order_by = []
 	): ?QBSelect {
-		$r = $this->table
-			->getRelation($relation);
+		$target = $relation->getTargetTable();
 
-		if (!$r) {
-			throw new ORMRuntimeException(\sprintf('Relation "%s" not found in table "%s"', $relation, $this->table->getFullName()));
+		if ($relation->getTargetTable() !== $this->table) {
+			throw new ORMRuntimeException(
+				\sprintf(
+					'The relation "%s" target table "%s" is not the same as the current table "%s".',
+					$relation->getName(),
+					$target->getFullName(),
+					$this->table->getFullName()
+				)
+			);
 		}
 
 		$target_qb = static::createInstance();
 
 		$sel = $target_qb->select($max, $offset, $order_by);
 
-		$l = $r->getLink();
+		$l = $relation->getLink();
 
 		if ($l->apply($sel, $entity)) {
 			return $sel;
