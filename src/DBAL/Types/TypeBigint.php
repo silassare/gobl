@@ -250,7 +250,8 @@ class TypeBigint extends Type implements BaseTypeInterface
 	 */
 	public function getWriteTypeHint(): ORMTypeHint
 	{
-		return ORMTypeHint::bigint();
+		return ORMTypeHint::bigint()
+			->addUniversalTypes(ORMUniversalType::INT);
 	}
 
 	/**
@@ -258,8 +259,7 @@ class TypeBigint extends Type implements BaseTypeInterface
 	 */
 	public function getReadTypeHint(): ORMTypeHint
 	{
-		return ORMTypeHint::bigint()
-			->addUniversalTypes(ORMUniversalType::INT);
+		return ORMTypeHint::bigint();
 	}
 
 	/**
