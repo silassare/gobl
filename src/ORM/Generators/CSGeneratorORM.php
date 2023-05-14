@@ -15,7 +15,9 @@ namespace Gobl\ORM\Generators;
 
 use Gobl\CRUD\Handler\Interfaces\CRUDHandlerInterface;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
+use Gobl\DBAL\Operator;
 use Gobl\DBAL\Queries\QBSelect;
+use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Relations\VirtualRelation;
 use Gobl\DBAL\Table;
 use Gobl\Gobl;
@@ -486,6 +488,8 @@ throw new \InvalidArgumentException(\'Target item should be an instance of: \' .
 			'db_namespace'       => $db_ns,
 		];
 
+		$namespace->use(Operator::class);
+
 		$class->extends(new PHPClass(ORMTableQuery::class))
 			->abstract()
 			->setComment(Str::interpolate('Class {class_name}.
@@ -546,7 +550,7 @@ return $instance;')
 						))
 						->setReturnType('self')
 						->setContent(str::interpolate('return $this->filterBy(
-	\Gobl\DBAL\Operator::from(\'{rule_name}\'),
+	Operator::from(\'{rule_name}\'),
 	\{db_namespace}\{entity_class_name}::{column_name_const}
 );', $col_inject));
 				} else {
@@ -647,6 +651,10 @@ return $instance;')
 			'db_namespace'      => $db_ns,
 		];
 
+		$namespace->use(QBSelect::class)
+			->use(ORMEntity::class)
+			->use(Relation::class);
+
 		$class->extends(new PHPClass(ORMController::class))
 			->abstract()
 			->setComment(Str::interpolate('Class {class_name}.
@@ -655,7 +663,9 @@ return $instance;')
 @method null|\{db_namespace}\{entity_class_name} getItem(array $filters, array $order_by = [])
 @method null|\{db_namespace}\{entity_class_name} deleteOneItem(array $filters)
 @method \{db_namespace}\{entity_class_name}[] getAllItems(array $filters = [], int $max = null, int $offset = 0, array $order_by = [], ?int &$total = null)
-@method \{db_namespace}\{entity_class_name}[] getAllItemsCustom(\Gobl\DBAL\Queries\QBSelect $qb, int $max = null, int $offset = 0, ?int &$total = null)
+@method \{db_namespace}\{entity_class_name}[] getAllItemsCustom(QBSelect $qb, int $max = null, int $offset = 0, ?int &$total = null)
+@method \{db_namespace}\{entity_class_name} getRelative(ORMEntity $entity, Relation $relation, array $filters = [], array $order_by = [])
+@method \{db_namespace}\{entity_class_name}[] getAllRelatives(ORMEntity $entity, Relation $relation, array $filters = [], int $max = null, int $offset = 0, array $order_by = [], ?int &$total = null)
 @method null|\{db_namespace}\{entity_class_name} updateOneItem(array $filters, array $new_values)', $inject));
 
 		$class->newMethod('__construct')
