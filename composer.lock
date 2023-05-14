@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "44ecd9a91f25ff06b525d3713ffd12e3",
+    "content-hash": "e8a5f8fd9682b95856c97c25518015ee",
     "packages": [
         {
             "name": "oliup/code-generator",
@@ -12,7 +12,7 @@
             "source": {
                 "type": "git",
                 "url": "/mnt/Emile/oliup/code-generator",
-                "reference": "b010d5bf45ec084c2ef2ae1b5aa3b674ae9e24c0"
+                "reference": "5a2f47fd9a6be7ca6705147d1d648e71055dd239"
             },
             "require": {
                 "php": ">=8.1",
@@ -20,7 +20,8 @@
             },
             "require-dev": {
                 "oliup/oliup-cs-php": "dev-main",
-                "roave/security-advisories": "dev-latest"
+                "roave/security-advisories": "dev-latest",
+                "vimeo/psalm": "^4.30"
             },
             "default-branch": true,
             "type": "library",
@@ -45,7 +46,7 @@
                 }
             ],
             "description": "Simple code generator for PHP.",
-            "time": "2023-05-14T00:29:01+00:00"
+            "time": "2023-05-14T01:45:48+00:00"
         },
         {
             "name": "silassare/otpl",
