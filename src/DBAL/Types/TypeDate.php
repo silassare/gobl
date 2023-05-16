@@ -13,9 +13,11 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Types;
 
+use DateTime;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
+use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
 
 /**
  * Class TypeDate.
@@ -30,12 +32,14 @@ class TypeDate extends Type
 	 * TypeDate constructor.
 	 *
 	 * @param null|string $message the error message
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
 	public function __construct(?string $message = null)
 	{
 		!empty($message) && $this->msg('invalid_date_type', $message);
 
-		parent::__construct(new TypeBigint());
+		parent::__construct(self::chooseBaseType());
 	}
 
 	/**
@@ -53,6 +57,10 @@ class TypeDate extends Type
 	 */
 	public function configure(array $options): self
 	{
+		if (isset($options['precision']) && 'microseconds' === $options['precision']) {
+			$this->microseconds();
+		}
+
 		if (isset($options['min'])) {
 			$this->min((string) $options['min']);
 		}
@@ -135,6 +143,20 @@ class TypeDate extends Type
 	}
 
 	/**
+	 * Sets the date precision to microseconds.
+	 *
+	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 */
+	public function microseconds(): self
+	{
+		$this->base_type = self::chooseBaseType(true);
+
+		return $this->setOption('precision', 'microseconds');
+	}
+
+	/**
 	 * Sets the date format.
 	 *
 	 * @param string $format
@@ -196,11 +218,26 @@ class TypeDate extends Type
 			return (string) $value;
 		}
 
+		if ($this->isMicroseconds()) {
+			return DateTime::createFromFormat('U.u', $value)
+				->format($format);
+		}
+
 		if ($formatted = \date($this->getOption('format', $format), $value)) {
 			return $formatted;
 		}
 
 		return (string) $value;
+	}
+
+	/**
+	 * Checks if the date precision is microseconds.
+	 *
+	 * @return bool
+	 */
+	public function isMicroseconds(): bool
+	{
+		return 'microseconds' === $this->getOption('precision');
 	}
 
 	/**
@@ -222,9 +259,10 @@ class TypeDate extends Type
 			'value' => $value,
 		];
 
-		if (empty($value) && 0 !== $value) {
+		// if empty value and not (0 or 0.0)
+		if (empty($value) && !\is_numeric($value)) {
 			if ($this->getOption('auto')) {
-				return (string) \time();
+				return $this->isMicroseconds() ? (string) \microtime(true) : (string) \time();
 			}
 
 			$value = $this->getDefault();
@@ -247,6 +285,27 @@ class TypeDate extends Type
 		}
 
 		return $value;
+	}
+
+	/**
+	 * Choose appropriate base type.
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 */
+	protected static function chooseBaseType(bool $microseconds = false): BaseTypeInterface
+	{
+		// we use bigint or decimal because of the year 2038 issue
+		// https://stackoverflow.com/questions/2012589/php-mysql-year-2038-bug-what-is-it-how-to-solve-it
+
+		$base_type = new TypeBigint();
+
+		if ($microseconds) {
+			$base_type = new TypeDecimal();
+
+			$base_type->precision(20, 6);
+		}
+
+		return $base_type;
 	}
 
 	/**
