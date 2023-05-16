@@ -315,7 +315,7 @@ class TypeDate extends Type
 	 */
 	private static function toTimestamp($value): ?string
 	{
-		if (\is_string($value) && !\preg_match('~^\d+$~', $value)) {
+		if (\is_string($value) && !\preg_match('~^\d+(?:\.\d+)?$~', $value)) {
 			$converted = \strtotime($value);
 
 			if (false !== $converted) {
