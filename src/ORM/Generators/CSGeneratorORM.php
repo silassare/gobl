@@ -619,6 +619,7 @@ return $instance;')
 @method null|\{db_namespace}\{entity_class_name} current()
 @method null|\{db_namespace}\{entity_class_name} fetchClass(bool $strict = true)
 @method \{db_namespace}\{entity_class_name}[] fetchAllClass(bool $strict = true)
+@method \Generator<\{db_namespace}\{entity_class_name}> lazy(bool $strict = true, int $max = 100)
 @method null|\{db_namespace}\{entity_class_name} updateOneItem(array $filters, array $new_values)', $inject));
 
 		$construct = $class->newMethod('__construct')

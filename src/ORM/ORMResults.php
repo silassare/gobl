@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Gobl\ORM;
 
 use Countable;
+use Generator;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\ORM\Exceptions\ORMRuntimeException;
@@ -86,6 +87,33 @@ abstract class ORMResults implements Countable, Iterator
 	public function __debugInfo(): array
 	{
 		return ['instance_of' => static::class];
+	}
+
+	/**
+	 * Lazily iterate through large result set.
+	 *
+	 * @param bool $strict
+	 * @param int  $max
+	 *
+	 * @return Generator<\Gobl\ORM\ORMEntity>
+	 */
+	public function lazy(bool $strict = true, int $max = 100): Generator
+	{
+		$page = 1;
+
+		while ($this->query->limit($max, ($page - 1) * $max) && $this->getStatement(true)) {
+			$count = 0;
+			while ($entry = $this->fetchClass($strict)) {
+				++$count;
+
+				yield $entry;
+			}
+
+			if ($count < $max) {
+				break;
+			}
+			++$page;
+		}
 	}
 
 	/**
