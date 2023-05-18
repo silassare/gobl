@@ -285,11 +285,13 @@ abstract class ORMResults implements Countable, Iterator
 	 *
 	 * We lazily run query.
 	 *
+	 * @param bool $force
+	 *
 	 * @return PDOStatement
 	 */
-	protected function getStatement(): PDOStatement
+	protected function getStatement(bool $force = false): PDOStatement
 	{
-		if (null === $this->statement) {
+		if ($force || null === $this->statement) {
 			$this->statement = $this->query->execute();
 		}
 
