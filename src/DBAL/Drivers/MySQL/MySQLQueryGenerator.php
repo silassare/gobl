@@ -13,14 +13,12 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Drivers\MySQL;
 
-use Gobl\DBAL\Column;
 use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Diff\Actions\ColumnTypeChanged;
 use Gobl\DBAL\Diff\Actions\ForeignKeyConstraintDeleted;
 use Gobl\DBAL\Diff\Actions\PrimaryKeyConstraintDeleted;
 use Gobl\DBAL\Diff\Actions\UniqueKeyConstraintDeleted;
 use Gobl\DBAL\Drivers\SQLQueryGeneratorBase;
-use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\QBDelete;
 use Gobl\DBAL\Queries\QBSelect;
@@ -34,6 +32,8 @@ use const GOBL_ASSETS_DIR;
  */
 class MySQLQueryGenerator extends SQLQueryGeneratorBase
 {
+	protected int $decimal_precision_max      = 65;
+	protected int $decimal_scale_max          = 30;
 	private static bool $templates_registered = false;
 
 	/**
@@ -75,46 +75,6 @@ class MySQLQueryGenerator extends SQLQueryGeneratorBase
 		}
 
 		return $sql;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 */
-	protected function checkDecimalColumn(Column $column): void
-	{
-		$type      = $column->getType();
-		$precision = $type->getOption('precision');
-		$scale     = $type->getOption('scale');
-		$min       = 1;
-		$max       = 65;
-
-		if (null !== $precision) {
-			if ($min > $precision || $precision > $max) {
-				throw new DBALException(\sprintf(
-					'[%s] Column %s with decimal type should have a "precision" between %s and %s.',
-					$this->db->getType(),
-					$column->getFullName(),
-					$min,
-					$max,
-				));
-			}
-
-			if (null !== $scale) {
-				$max = \min($precision, 30);
-
-				if ($min > $scale || $scale > $max) {
-					throw new DBALException(\sprintf(
-						'[%s] Column %s with decimal type should have a "scale" between %s and %s.',
-						$this->db->getType(),
-						$column->getFullName(),
-						$min,
-						$max,
-					));
-				}
-			}
-		}
 	}
 
 	/**

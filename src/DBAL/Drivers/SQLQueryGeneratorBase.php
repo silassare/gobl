@@ -72,6 +72,11 @@ use const GOBL_VERSION;
  */
 abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 {
+	protected int $decimal_precision_min = 1;
+	protected int $decimal_precision_max = 38;
+	protected int $decimal_scale_min     = 0;
+	protected int $decimal_scale_max     = 38;
+
 	/**
 	 * SQLGeneratorBase constructor.
 	 *
@@ -896,33 +901,34 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 */
 	protected function checkDecimalColumn(Column $column): void
 	{
-		$type      = $column->getType();
-		$precision = $type->getOption('precision');
-		$scale     = $type->getOption('scale');
-		$min       = 1;
-		$max       = 38;
+		$base_type = $column->getType()
+			->getBaseType();
+		$precision = $base_type->getOption('precision');
+		$scale     = $base_type->getOption('scale');
 
 		if (null !== $precision) {
-			if ($min > $precision || $precision > $max) {
+			if ($this->decimal_precision_min > $precision || $precision > $this->decimal_precision_max) {
 				throw new DBALException(\sprintf(
-					'[%s] Column %s with decimal type should have a "precision" between %s and %s.',
+					'[%s] Column %s with decimal type should have a "precision" between %s and %s not %s.',
 					$this->db->getType(),
 					$column->getFullName(),
-					$min,
-					$max,
+					$this->decimal_precision_min,
+					$this->decimal_precision_max,
+					$precision
 				));
 			}
 
 			if (null !== $scale) {
-				$max = $precision;
+				$scale_max = \min($precision, $this->decimal_scale_max);
 
-				if ($min > $scale || $scale > $max) {
+				if ($this->decimal_scale_min > $scale || $scale > $scale_max) {
 					throw new DBALException(\sprintf(
-						'[%s] Column %s with decimal type should have a "scale" between %s and %s.',
+						'[%s] Column %s with decimal type should have a "scale" between %s and %s not %s.',
 						$this->db->getType(),
 						$column->getFullName(),
-						$min,
-						$max,
+						$this->decimal_scale_min,
+						$scale_max,
+						$scale
 					));
 				}
 			}
@@ -940,11 +946,11 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 */
 	protected function getDecimalColumnDefinition(Column $column): string
 	{
+		$type = $column->getType()
+			->getBaseType();
 		$this->checkDecimalColumn($column);
 
 		$column_name = $column->getFullName();
-		$type        = $column->getType()
-			->getBaseType();
 		$unsigned    = $type->getOption('unsigned');
 		$precision   = $type->getOption('precision');
 		$scale       = $type->getOption('scale');
