@@ -29,18 +29,19 @@ final class Filter implements FilterInterface
 	/**
 	 * Filter constructor.
 	 *
-	 * @param \Gobl\DBAL\Operator $operator
-	 * @param string              $left
-	 * @param null|string         $right
-	 * @param string              $raw_left
-	 * @param mixed               $raw_right
+	 * @param \Gobl\DBAL\Operator $operator  The operator
+	 * @param string              $left      The left operand as provided by the user
+	 * @param mixed               $right     The right operand as provided by the user
+	 * @param string              $left_str  The left operand as string to be used in the query
+	 * @param null|string         $right_str The right operand as string to be used in the query
+	 *                                       or null if not yet defined like for prepared statements
 	 */
 	public function __construct(
 		protected Operator $operator,
 		protected string $left,
-		protected ?string $right,
-		protected string $raw_left,
-		protected null|int|float|string|array|QBExpression|QBInterface $raw_right
+		protected null|int|float|string|array|QBExpression|QBInterface $right,
+		protected string $left_str,
+		protected ?string $right_str,
 	) {
 	}
 
@@ -49,7 +50,7 @@ final class Filter implements FilterInterface
 	 */
 	public function __destruct()
 	{
-		unset($this->operator, $this->left, $this->right, $this->raw_left, $this->raw_right);
+		unset($this->operator, $this->left_str, $this->right_str, $this->left, $this->right);
 	}
 
 	/**
@@ -65,31 +66,31 @@ final class Filter implements FilterInterface
 	/**
 	 * Get filter right operand.
 	 *
-	 * @return null|string
+	 * @return null|array|float|\Gobl\DBAL\Queries\Interfaces\QBInterface|\Gobl\DBAL\Queries\QBExpression|int|string
 	 */
-	public function getRightOperand(): ?string
+	public function getRightOperand(): null|int|float|string|array|QBExpression|QBInterface
 	{
 		return $this->right;
 	}
 
 	/**
-	 * Get filter raw left operand.
+	 * Get filter right operand as string.
 	 *
-	 * @return mixed
+	 * @return null|string
 	 */
-	public function getLeftOperandRaw(): string
+	public function getRightOperandString(): ?string
 	{
-		return $this->raw_left;
+		return $this->right_str;
 	}
 
 	/**
-	 * Get filter raw right operand.
+	 * Get filter left operand as a string.
 	 *
-	 * @return null|array|float|\Gobl\DBAL\Queries\Interfaces\QBInterface|\Gobl\DBAL\Queries\QBExpression|int|string
+	 * @return mixed
 	 */
-	public function getRightOperandRaw(): null|int|float|string|array|QBExpression|QBInterface
+	public function getLeftOperandString(): string
 	{
-		return $this->raw_right;
+		return $this->left_str;
 	}
 
 	/**

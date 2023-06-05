@@ -1393,8 +1393,8 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 */
 	protected function operatorFilterToExpression(Filter $filter): string
 	{
-		$left   = $filter->getLeftOperand();
-		$right  = $filter->getRightOperand();
+		$left   = $filter->getLeftOperandString();
+		$right  = $filter->getRightOperandString();
 		$op     = $filter->getOperator();
 		$sql_op = match ($op) {
 			Operator::EQ          => '=',

@@ -308,7 +308,7 @@ final class Filters
 		if ($this->scope) {
 			$left = $detected_left_column ?? $left;
 
-			$tmp_filter = new Filter($operator, $left, $right, $real_left, $real_right);
+			$tmp_filter = new Filter($operator, $real_left, $real_right, $left, null);
 
 			$this->scope->assertFilterAllowed($tmp_filter);
 
@@ -391,7 +391,7 @@ final class Filters
 			$right = null;
 		}
 
-		$filter = new Filter($operator, $left, $right, $real_left, $real_right);
+		$filter = new Filter($operator, $real_left, $real_right, $left, $right);
 
 		$this->group->push($filter);
 
