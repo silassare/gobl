@@ -411,13 +411,13 @@ final class Filters
 	/**
 	 * Checks if the right operand is a binding.
 	 *
-	 * @param string $right
+	 * @param mixed $right
 	 *
 	 * @return bool
 	 */
-	private function isRightOperandABinding(string $right): bool
+	private function isRightOperandABinding(mixed $right): bool
 	{
-		return $right && ':' === $right[0] && $this->qb->isBoundParam(\substr($right, 1));
+		return \is_string($right) && $right && ':' === $right[0] && $this->qb->isBoundParam(\substr($right, 1));
 	}
 
 	/**
