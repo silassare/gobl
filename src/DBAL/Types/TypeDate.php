@@ -194,10 +194,9 @@ class TypeDate extends Type
 	public function getDefault(): ?string
 	{
 		$default = parent::getDefault();
-		$auto    = $this->getOption('auto');
 
-		if (null === $default && $auto) {
-			$default = (string) \time();
+		if (null === $default && $this->isAuto()) {
+			$default = $this->now();
 		}
 
 		return $default;
@@ -241,6 +240,14 @@ class TypeDate extends Type
 	}
 
 	/**
+	 * Checks if the auto value is enabled.
+	 */
+	public function isAuto(): bool
+	{
+		return (bool) $this->getOption('auto');
+	}
+
+	/**
 	 * {@inheritDoc}
 	 *
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
@@ -261,8 +268,8 @@ class TypeDate extends Type
 
 		// if empty value and not (0 or 0.0)
 		if (empty($value) && !\is_numeric($value)) {
-			if ($this->getOption('auto')) {
-				return $this->isMicroseconds() ? (string) \microtime(true) : (string) \time();
+			if ($this->isAuto()) {
+				return $this->now();
 			}
 
 			$value = $this->getDefault();
@@ -285,6 +292,16 @@ class TypeDate extends Type
 		}
 
 		return $value;
+	}
+
+	/**
+	 * Returns the current date.
+	 *
+	 * @return string
+	 */
+	protected function now(): string
+	{
+		return $this->isMicroseconds() ? (string) \microtime(true) : (string) \time();
 	}
 
 	/**
