@@ -24,8 +24,7 @@ use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
  */
 class TypeDate extends Type
 {
-	public const NAME = 'date';
-
+	public const NAME             = 'date';
 	public const FORMAT_TIMESTAMP = 'timestamp';
 
 	/**
@@ -326,6 +325,8 @@ class TypeDate extends Type
 	}
 
 	/**
+	 * Convert value to timestamp.
+	 *
 	 * @param $value
 	 *
 	 * @return null|string
