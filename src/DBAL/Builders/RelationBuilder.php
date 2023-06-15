@@ -117,9 +117,9 @@ final class RelationBuilder
 	/**
 	 * Specify a relation link of type "through".
 	 *
-	 * @param string|Table          $pivot_table
-	 * @param array<string, string> $host_to_pivot_link_options
-	 * @param array<string, string> $pivot_to_target_link_options
+	 * @param string|Table                   $pivot_table
+	 * @param array<string, LinkType|string> $host_to_pivot_link_options
+	 * @param array<string, LinkType|string> $pivot_to_target_link_options
 	 *
 	 * @return \Gobl\DBAL\Relations\Relation
 	 *
