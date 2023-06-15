@@ -102,13 +102,6 @@ abstract class ORMController
 	}
 
 	/**
-	 * Creates new instance.
-	 *
-	 * @return static
-	 */
-	abstract public static function createInstance(): static;
-
-	/**
 	 * Returns CRUD.
 	 *
 	 * @return \Gobl\CRUD\CRUD
@@ -167,6 +160,13 @@ abstract class ORMController
 			return $instance;
 		});
 	}
+
+	/**
+	 * Creates new instance.
+	 *
+	 * @return static
+	 */
+	abstract public static function createInstance(): static;
 
 	/**
 	 * Updates one item in the table.
@@ -386,7 +386,7 @@ abstract class ORMController
 	 * @param array    $order_by order by rules
 	 * @param null|int &$total   total rows without limit
 	 *
-	 * @return array
+	 * @return \Gobl\ORM\ORMEntity[]
 	 *
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
 	 */
@@ -410,6 +410,37 @@ abstract class ORMController
 
 			return $items;
 		});
+	}
+
+	/**
+	 * Lazily count total row that match a select query according to the current results and current pagination info.
+	 *
+	 * @param \Gobl\ORM\ORMResults $results
+	 * @param int                  $found
+	 * @param null|int             $max
+	 * @param int                  $offset
+	 *
+	 * @return int
+	 */
+	public static function lazyTotalResultsCount(
+		ORMResults $results,
+		int $found = 0,
+		?int $max = null,
+		int $offset = 0
+	): int {
+		if (isset($max)) {
+			if ($found < $max) {
+				$total = $offset + $found;
+			} else {
+				$total = $results->totalCount();
+			}
+		} elseif (0 === $offset) {
+			$total = $found;
+		} else {
+			$total = $results->totalCount();
+		}
+
+		return $total;
 	}
 
 	/**
@@ -489,7 +520,7 @@ abstract class ORMController
 	 * @param array                         $order_by
 	 * @param null|int                      $total
 	 *
-	 * @return array
+	 * @return \Gobl\ORM\ORMEntity[]
 	 *
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
 	 */
@@ -521,37 +552,6 @@ abstract class ORMController
 
 			return $items;
 		});
-	}
-
-	/**
-	 * Lazily count total row that match a select query according to the current results and current pagination info.
-	 *
-	 * @param \Gobl\ORM\ORMResults $results
-	 * @param int                  $found
-	 * @param null|int             $max
-	 * @param int                  $offset
-	 *
-	 * @return int
-	 */
-	public static function lazyTotalResultsCount(
-		ORMResults $results,
-		int $found = 0,
-		?int $max = null,
-		int $offset = 0
-	): int {
-		if (isset($max)) {
-			if ($found < $max) {
-				$total = $offset + $found;
-			} else {
-				$total = $results->totalCount();
-			}
-		} elseif (0 === $offset) {
-			$total = $found;
-		} else {
-			$total = $results->totalCount();
-		}
-
-		return $total;
 	}
 
 	/**
