@@ -415,23 +415,65 @@ return $this;', $col_inject));
 			->comment(Str::interpolate('Class {class_name}.', $inject));
 
 		$methods = [
-			'onAfterCreateEntity',
-			'onAfterReadEntity',
-			'onBeforeUpdateEntity',
-			'onAfterUpdateEntity',
-			'onBeforeDeleteEntity',
-			'onAfterDeleteEntity',
+			'onAfterCreateEntity'  => 'Called when an entity is created.',
+			'onAfterReadEntity'    => 'Called when we read an entity.',
+			'onBeforeUpdateEntity' => 'Called before an entity is updated.',
+			'onAfterUpdateEntity'  => 'Called after an entity is updated.',
+			'onBeforeDeleteEntity' => 'Called before an entity is deleted.',
+			'onAfterDeleteEntity'  => 'Called after an entity is deleted.',
 		];
 
-		foreach ($methods as $method) {
+		$on_entity_event = $class->newMethod('onEntityEvent')
+			->public()
+			->setReturnType('void');
+		$on_entity_event->comment('@inheritdoc');
+		$on_entity_event->setContent(
+			Str::interpolate('
+/** @var \{db_namespace}\{entity_class_name} $entity */
+switch ($event) {
+	case {crud_event_enum}::AFTER_CREATE:
+		$this->onAfterCreateEntity($entity);
+		break;
+	case {crud_event_enum}::AFTER_READ:
+		$this->onAfterReadEntity($entity);
+		break;
+	case {crud_event_enum}::BEFORE_UPDATE:
+		$this->onBeforeUpdateEntity($entity);
+		break;
+	case {crud_event_enum}::AFTER_UPDATE:
+		$this->onAfterUpdateEntity($entity);
+		break;
+	case {crud_event_enum}::BEFORE_DELETE:
+		$this->onBeforeDeleteEntity($entity);
+		break;
+	case {crud_event_enum}::AFTER_DELETE:
+		$this->onAfterDeleteEntity($entity);
+		break;
+}', [
+				'crud_event_enum' => CRUDHandlerInterface::class,
+			])
+		);
+
+		$on_entity_event->newArgument('event')
+			->setType(CRUDHandlerInterface::class);
+		$on_entity_event->newArgument('entity')
+			->setType(Str::interpolate('\{db_namespace}\{entity_class_name}', $inject));
+
+		foreach ($methods as $method => $comment) {
 			$m = $class->newMethod($method)
 				->public()
-				->abstract()
 				->setReturnType('void');
 
-			$m->comment(Str::interpolate('@inheritDoc
-@param \{db_namespace}\{entity_class_name} $entity', $inject));
-			$m->newArgument('entity');
+			$m->comment(Str::interpolate('{comment}
+
+You can run your own business logic, verify ownership,
+or other access right on the entity
+
+@param \{db_namespace}\{entity_class_name} $entity', $inject + [
+				'comment' => $comment,
+			]));
+			$m->newArgument('entity')
+				->setType(Str::interpolate('\{db_namespace}\{entity_class_name}', $inject));
 		}
 
 		return $file->setContent($namespace)

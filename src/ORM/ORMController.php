@@ -15,6 +15,7 @@ namespace Gobl\ORM;
 
 use Closure;
 use Gobl\CRUD\CRUD;
+use Gobl\CRUD\CRUDEntityEvent;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\QBInsert;
 use Gobl\DBAL\Queries\QBSelect;
@@ -161,7 +162,7 @@ abstract class ORMController
 			$this->persistItem($instance);
 
 			$this->crud->getHandler()
-				->onAfterCreateEntity($instance);
+				->onEntityEvent($instance, CRUDEntityEvent::AFTER_CREATE);
 
 			return $instance;
 		});
@@ -194,14 +195,14 @@ abstract class ORMController
 
 			if ($entity) {
 				$this->crud->getHandler()
-					->onBeforeUpdateEntity($entity);
+					->onEntityEvent($entity, CRUDEntityEvent::BEFORE_UPDATE);
 
 				$entity->hydrate($new_values);
 
 				$this->persistItem($entity);
 
 				$this->crud->getHandler()
-					->onAfterUpdateEntity($entity);
+					->onEntityEvent($entity, CRUDEntityEvent::AFTER_UPDATE);
 			}
 
 			return $entity ?: null;
@@ -297,7 +298,7 @@ abstract class ORMController
 
 			if ($entity) {
 				$this->crud->getHandler()
-					->onBeforeDeleteEntity($entity);
+					->onEntityEvent($entity, CRUDEntityEvent::BEFORE_DELETE);
 
 				// we need to make sure that we delete the selected entity and only that
 				$tsf = $this->getScopedFiltersInstance($entity->toIdentityFilters());
@@ -307,7 +308,7 @@ abstract class ORMController
 					->execute();
 
 				$this->crud->getHandler()
-					->onAfterDeleteEntity($entity);
+					->onEntityEvent($entity, CRUDEntityEvent::AFTER_DELETE);
 
 				return $entity;
 			}
@@ -369,7 +370,7 @@ abstract class ORMController
 
 			if ($entity) {
 				$this->crud->getHandler()
-					->onAfterReadEntity($entity);
+					->onEntityEvent($entity, CRUDEntityEvent::AFTER_READ);
 			}
 
 			return $entity;
@@ -470,7 +471,7 @@ abstract class ORMController
 
 			if ($entity) {
 				$this->crud->getHandler()
-					->onAfterReadEntity($entity);
+					->onEntityEvent($entity, CRUDEntityEvent::AFTER_READ);
 			}
 
 			return $entity;

@@ -17,6 +17,7 @@ use Gobl\CRUD\CRUDColumnUpdate;
 use Gobl\CRUD\CRUDCreate;
 use Gobl\CRUD\CRUDDelete;
 use Gobl\CRUD\CRUDDeleteAll;
+use Gobl\CRUD\CRUDEntityEvent;
 use Gobl\CRUD\CRUDRead;
 use Gobl\CRUD\CRUDReadAll;
 use Gobl\CRUD\CRUDUpdate;
@@ -39,13 +40,6 @@ interface CRUDHandlerInterface
 	public function onBeforeCreate(CRUDCreate $action): bool;
 
 	/**
-	 * Called when an entity is created.
-	 *
-	 * @param \Gobl\ORM\ORMEntity $entity
-	 */
-	public function onAfterCreateEntity(ORMEntity $entity): void;
-
-	/**
 	 * Called to allow READ action on a table.
 	 *
 	 * @param \Gobl\CRUD\CRUDRead $action
@@ -53,13 +47,6 @@ interface CRUDHandlerInterface
 	 * @return bool true to allow or false to reject
 	 */
 	public function onBeforeRead(CRUDRead $action): bool;
-
-	/**
-	 * Called when we read an entity.
-	 *
-	 * @param \Gobl\ORM\ORMEntity $entity
-	 */
-	public function onAfterReadEntity(ORMEntity $entity): void;
 
 	/**
 	 * Called to allow UPDATE action on a table.
@@ -71,21 +58,15 @@ interface CRUDHandlerInterface
 	public function onBeforeUpdate(CRUDUpdate $action): bool;
 
 	/**
-	 * Called before an entity is updated.
+	 * Called when an action is targeting a single entity.
 	 *
-	 * PS: You can run your own logic, verify ownership,
-	 * or other right on the entity
+	 * You can run your own business logic, verify ownership,
+	 * or other access right on the entity
 	 *
-	 * @param \Gobl\ORM\ORMEntity $entity
+	 * @param \Gobl\ORM\ORMEntity        $entity
+	 * @param \Gobl\CRUD\CRUDEntityEvent $event
 	 */
-	public function onBeforeUpdateEntity(ORMEntity $entity): void;
-
-	/**
-	 * Called after an entity is updated.
-	 *
-	 * @param \Gobl\ORM\ORMEntity $entity
-	 */
-	public function onAfterUpdateEntity(ORMEntity $entity): void;
+	public function onEntityEvent(ORMEntity $entity, CRUDEntityEvent $event): void;
 
 	/**
 	 * Called to allow DELETE action on a table.
@@ -95,23 +76,6 @@ interface CRUDHandlerInterface
 	 * @return bool true to allow or false to reject
 	 */
 	public function onBeforeDelete(CRUDDelete $action): bool;
-
-	/**
-	 * Called before an entity is deleted.
-	 *
-	 * PS: You can run your own logic, verify ownership,
-	 * or other right on the entity
-	 *
-	 * @param \Gobl\ORM\ORMEntity $entity
-	 */
-	public function onBeforeDeleteEntity(ORMEntity $entity): void;
-
-	/**
-	 * Called after an entity is deleted.
-	 *
-	 * @param \Gobl\ORM\ORMEntity $entity
-	 */
-	public function onAfterDeleteEntity(ORMEntity $entity): void;
 
 	/**
 	 * Called to allow READ_ALL action on a table.

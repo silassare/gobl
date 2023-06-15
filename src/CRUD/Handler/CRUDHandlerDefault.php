@@ -17,12 +17,14 @@ use Gobl\CRUD\CRUDColumnUpdate;
 use Gobl\CRUD\CRUDCreate;
 use Gobl\CRUD\CRUDDelete;
 use Gobl\CRUD\CRUDDeleteAll;
+use Gobl\CRUD\CRUDEntityEvent;
 use Gobl\CRUD\CRUDRead;
 use Gobl\CRUD\CRUDReadAll;
 use Gobl\CRUD\CRUDUpdate;
 use Gobl\CRUD\CRUDUpdateAll;
 use Gobl\CRUD\Handler\Interfaces\CRUDHandlerInterface;
 use Gobl\DBAL\Column;
+use Gobl\ORM\ORMEntity;
 
 /**
  * Class CRUDHandlerDefault.
@@ -96,48 +98,6 @@ class CRUDHandlerDefault implements CRUDHandlerInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function onAfterCreateEntity($entity): void
-	{
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function onAfterReadEntity($entity): void
-	{
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function onBeforeUpdateEntity($entity): void
-	{
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function onAfterUpdateEntity($entity): void
-	{
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function onBeforeDeleteEntity($entity): void
-	{
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function onAfterDeleteEntity($entity): void
-	{
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
 	public function shouldWritePkColumn(Column $column, mixed $value): bool
 	{
 		return false;
@@ -162,6 +122,13 @@ class CRUDHandlerDefault implements CRUDHandlerInterface
 	 * {@inheritDoc}
 	 */
 	public function autoFillUpdateFormAndFilters(CRUDUpdateAll|CRUDUpdate $action): void
+	{
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function onEntityEvent(ORMEntity $entity, CRUDEntityEvent $event): void
 	{
 	}
 }
