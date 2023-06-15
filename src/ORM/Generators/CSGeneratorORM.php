@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\ORM\Generators;
 
+use Gobl\CRUD\CRUDEntityEvent;
 use Gobl\CRUD\Handler\Interfaces\CRUDHandlerInterface;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
@@ -409,6 +410,7 @@ return $this;', $col_inject));
 			'class_name'        => $class->getName(),
 			'entity_class_name' => $entity_class_name,
 			'db_namespace'      => $db_ns,
+			'crud_event_enum'   => CRUDEntityEvent::class,
 		];
 		$class->implements(CRUDHandlerInterface::class)
 			->abstract()
@@ -431,33 +433,31 @@ return $this;', $col_inject));
 			Str::interpolate('
 /** @var \{db_namespace}\{entity_class_name} $entity */
 switch ($event) {
-	case {crud_event_enum}::AFTER_CREATE:
+	case \{crud_event_enum}::AFTER_CREATE:
 		$this->onAfterCreateEntity($entity);
 		break;
-	case {crud_event_enum}::AFTER_READ:
+	case \{crud_event_enum}::AFTER_READ:
 		$this->onAfterReadEntity($entity);
 		break;
-	case {crud_event_enum}::BEFORE_UPDATE:
+	case \{crud_event_enum}::BEFORE_UPDATE:
 		$this->onBeforeUpdateEntity($entity);
 		break;
-	case {crud_event_enum}::AFTER_UPDATE:
+	case \{crud_event_enum}::AFTER_UPDATE:
 		$this->onAfterUpdateEntity($entity);
 		break;
-	case {crud_event_enum}::BEFORE_DELETE:
+	case \{crud_event_enum}::BEFORE_DELETE:
 		$this->onBeforeDeleteEntity($entity);
 		break;
-	case {crud_event_enum}::AFTER_DELETE:
+	case \{crud_event_enum}::AFTER_DELETE:
 		$this->onAfterDeleteEntity($entity);
 		break;
-}', [
-				'crud_event_enum' => CRUDHandlerInterface::class,
-			])
+}', $inject)
 		);
 
-		$on_entity_event->newArgument('event')
-			->setType(CRUDHandlerInterface::class);
 		$on_entity_event->newArgument('entity')
-			->setType(Str::interpolate('\{db_namespace}\{entity_class_name}', $inject));
+			->setType('\\' . ORMEntity::class);
+		$on_entity_event->newArgument('event')
+			->setType(Str::interpolate('\{crud_event_enum}', $inject));
 
 		foreach ($methods as $method => $comment) {
 			$m = $class->newMethod($method)
