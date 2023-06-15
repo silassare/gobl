@@ -230,7 +230,9 @@ Time: {$date}";
 		$class->extends(new PHPClass(ORMEntity::class))
 			->abstract();
 
-		$class->setComment(Str::interpolate('Class {class_name}.' . \PHP_EOL, $inject));
+		$class->setComment(Str::interpolate('Class {class_name}.
+
+@psalm-suppress UndefinedThisPropertyFetch' . \PHP_EOL, $inject));
 
 		$construct = $class->newMethod('__construct')
 			->public()
@@ -284,7 +286,7 @@ Time: {$date}";
 
 			$class->getComment()
 				?->addLines(Str::interpolate(
-					'@property-read {read_type_hint} ${column_name} Getter for column `{table_name}`.`{column_name}`.',
+					'@property {read_type_hint} ${column_name} Getter for column `{table_name}`.`{column_name}`.',
 					$col_inject
 				));
 			$class->newConstant($column_const, $column->getFullName())
