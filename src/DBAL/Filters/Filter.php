@@ -39,7 +39,7 @@ final class Filter implements FilterInterface
 	public function __construct(
 		protected Operator $operator,
 		protected string $left,
-		protected null|int|float|string|array|QBExpression|QBInterface $right,
+		protected null|int|bool|float|string|array|QBExpression|QBInterface $right,
 		protected string $left_str,
 		protected ?string $right_str,
 	) {
@@ -66,9 +66,9 @@ final class Filter implements FilterInterface
 	/**
 	 * Get filter right operand.
 	 *
-	 * @return null|array|float|\Gobl\DBAL\Queries\Interfaces\QBInterface|\Gobl\DBAL\Queries\QBExpression|int|string
+	 * @return null|array|bool|float|\Gobl\DBAL\Queries\Interfaces\QBInterface|\Gobl\DBAL\Queries\QBExpression|int|string
 	 */
-	public function getRightOperand(): null|int|float|string|array|QBExpression|QBInterface
+	public function getRightOperand(): null|int|bool|float|string|array|QBExpression|QBInterface
 	{
 		return $this->right;
 	}

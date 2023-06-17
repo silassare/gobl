@@ -175,6 +175,16 @@ final class Filters
 	}
 
 	/**
+	 * Create a sub group for complex filters.
+	 *
+	 * @return $this
+	 */
+	public function subGroup(): self
+	{
+		return new self($this->qb, $this->scope);
+	}
+
+	/**
 	 * Joins filters and following with AND condition.
 	 *
 	 * @param array|callable|self ...$filters
@@ -186,28 +196,6 @@ final class Filters
 		$this->group->ensureChainingCondition(true);
 
 		return !empty($filters) ? $this->where(...$filters) : $this;
-	}
-
-	/**
-	 * Joins filters and following with OR condition.
-	 *
-	 * @return $this
-	 */
-	public function or(array|self|callable ...$filters): self
-	{
-		$this->group->ensureChainingCondition(false);
-
-		return !empty($filters) ? $this->where(...$filters) : $this;
-	}
-
-	/**
-	 * Create a sub group for complex filters.
-	 *
-	 * @return $this
-	 */
-	public function subGroup(): self
-	{
-		return new self($this->qb, $this->scope);
 	}
 
 	/**
@@ -280,6 +268,18 @@ final class Filters
 	}
 
 	/**
+	 * Joins filters and following with OR condition.
+	 *
+	 * @return $this
+	 */
+	public function or(array|self|callable ...$filters): self
+	{
+		$this->group->ensureChainingCondition(false);
+
+		return !empty($filters) ? $this->where(...$filters) : $this;
+	}
+
+	/**
 	 * Adds a list of filters.
 	 *
 	 * @param \Gobl\DBAL\Operator $operator the operator to use
@@ -288,7 +288,7 @@ final class Filters
 	 *
 	 * @return $this
 	 */
-	public function add(Operator $operator, string $left, null|int|float|string|array|QBExpression|QBInterface $right = null): self
+	public function add(Operator $operator, string $left, null|int|bool|float|string|array|QBExpression|QBInterface $right = null): self
 	{
 		if (Operator::IS_TRUE === $operator) {
 			$operator = Operator::EQ;
@@ -409,103 +409,6 @@ final class Filters
 	}
 
 	/**
-	 * Checks if the right operand is a binding.
-	 *
-	 * @param mixed $right
-	 *
-	 * @return bool
-	 */
-	private function isRightOperandABinding(mixed $right): bool
-	{
-		return \is_string($right) && $right && ':' === $right[0] && $this->qb->isBoundParam(\substr($right, 1));
-	}
-
-	/**
-	 * Creates filters builder instance from string expression.
-	 *
-	 * ```php
-	 * <?php
-	 *   $filters = [
-	 *     ['foo', 'eq', "bla"],
-	 *     'and',
-	 *     [['bar', 'eq', 'kat']]
-	 *     'and'
-	 *     [['baz', 'eq', 8], 'or', ['baz', 'gt', 10]]
-	 *   ];
-	 *
-	 *   // same as
-	 *   $expression = 'foo eq :val1 and bar eq :val2 and (baz eq :val3 or baz gt :val4)';
-	 *   $inject = ['val1' => 'bla', 'val2' => 'kat', 'val3' => 8, 'val4' => 10];
-	 * ```
-	 *
-	 * @param string                                                   $expression
-	 * @param array                                                    $inject
-	 * @param \Gobl\DBAL\Queries\Interfaces\QBInterface                $qb
-	 * @param null|\Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface $scope
-	 *
-	 * @return \Gobl\DBAL\Filters\Filters
-	 */
-	private static function fromString(
-		string $expression,
-		array $inject,
-		QBInterface $qb,
-		?FiltersScopeInterface $scope = null
-	): self {
-		// TODO: implement
-		return new self($qb, $scope);
-	}
-
-	/**
-	 * Cleans operand.
-	 *
-	 * @param mixed       $operand
-	 * @param null|string &$found_table
-	 * @param null|string &$found_column
-	 *
-	 * @return string
-	 */
-	private function cleanOperand(mixed $operand, string &$found_table = null, string &$found_column = null): mixed
-	{
-		if ($operand instanceof QBExpression) {
-			$operand = (string) $operand;
-		} elseif (\is_string($operand) && \strlen($operand) > 2 && ':' !== $operand[0] && '(' !== $operand[0]) {
-			$parts = \explode('.', $operand);
-
-			if (2 === \count($parts) && !empty($parts[0]) && !empty($parts[1])) {
-				try {
-					$table_name = $this->qb->resolveTable($parts[0])
-						?->getFullName();
-					if ($table_name) {
-						$operand = $this->qb->fullyQualifiedName($parts[0], $parts[1]);
-						// we found a table and column
-						$fqn_parts = \explode('.', $operand);
-
-						if (2 === \count($fqn_parts)) {
-							$found_table  = $table_name;
-							$found_column = $fqn_parts[1];
-						}
-					}
-				} catch (Throwable) {
-				}
-			}
-		} elseif ($operand instanceof Column) {
-			$column = $operand;
-			$table  = $column->getTable();
-
-			if (null === $table) {
-				throw new DBALRuntimeException(\sprintf('attempt to use unlocked column "%s" in a query.', $column->getName()));
-			}
-
-			$found_table  = $table->getFullName();
-			$found_column = $column->getFullName();
-
-			$operand = $this->qb->fullyQualifiedName($found_table, $found_column);
-		}
-
-		return $operand;
-	}
-
-	/**
 	 * Creates filters builder instance from old array filters.
 	 *
 	 * ```
@@ -610,5 +513,102 @@ final class Filters
 		}
 
 		return $instance;
+	}
+
+	/**
+	 * Cleans operand.
+	 *
+	 * @param mixed       $operand
+	 * @param null|string &$found_table
+	 * @param null|string &$found_column
+	 *
+	 * @return string
+	 */
+	private function cleanOperand(mixed $operand, string &$found_table = null, string &$found_column = null): mixed
+	{
+		if ($operand instanceof QBExpression) {
+			$operand = (string) $operand;
+		} elseif (\is_string($operand) && \strlen($operand) > 2 && ':' !== $operand[0] && '(' !== $operand[0]) {
+			$parts = \explode('.', $operand);
+
+			if (2 === \count($parts) && !empty($parts[0]) && !empty($parts[1])) {
+				try {
+					$table_name = $this->qb->resolveTable($parts[0])
+						?->getFullName();
+					if ($table_name) {
+						$operand = $this->qb->fullyQualifiedName($parts[0], $parts[1]);
+						// we found a table and column
+						$fqn_parts = \explode('.', $operand);
+
+						if (2 === \count($fqn_parts)) {
+							$found_table  = $table_name;
+							$found_column = $fqn_parts[1];
+						}
+					}
+				} catch (Throwable) {
+				}
+			}
+		} elseif ($operand instanceof Column) {
+			$column = $operand;
+			$table  = $column->getTable();
+
+			if (null === $table) {
+				throw new DBALRuntimeException(\sprintf('attempt to use unlocked column "%s" in a query.', $column->getName()));
+			}
+
+			$found_table  = $table->getFullName();
+			$found_column = $column->getFullName();
+
+			$operand = $this->qb->fullyQualifiedName($found_table, $found_column);
+		}
+
+		return $operand;
+	}
+
+	/**
+	 * Checks if the right operand is a binding.
+	 *
+	 * @param mixed $right
+	 *
+	 * @return bool
+	 */
+	private function isRightOperandABinding(mixed $right): bool
+	{
+		return \is_string($right) && $right && ':' === $right[0] && $this->qb->isBoundParam(\substr($right, 1));
+	}
+
+	/**
+	 * Creates filters builder instance from string expression.
+	 *
+	 * ```php
+	 * <?php
+	 *   $filters = [
+	 *     ['foo', 'eq', "bla"],
+	 *     'and',
+	 *     [['bar', 'eq', 'kat']]
+	 *     'and'
+	 *     [['baz', 'eq', 8], 'or', ['baz', 'gt', 10]]
+	 *   ];
+	 *
+	 *   // same as
+	 *   $expression = 'foo eq :val1 and bar eq :val2 and (baz eq :val3 or baz gt :val4)';
+	 *   $inject = ['val1' => 'bla', 'val2' => 'kat', 'val3' => 8, 'val4' => 10];
+	 * ```
+	 *
+	 * @param string                                                   $expression
+	 * @param array                                                    $inject
+	 * @param \Gobl\DBAL\Queries\Interfaces\QBInterface                $qb
+	 * @param null|\Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface $scope
+	 *
+	 * @return \Gobl\DBAL\Filters\Filters
+	 */
+	private static function fromString(
+		string $expression,
+		array $inject,
+		QBInterface $qb,
+		?FiltersScopeInterface $scope = null
+	): self {
+		// TODO: implement
+		return new self($qb, $scope);
 	}
 }
