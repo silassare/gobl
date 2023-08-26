@@ -223,6 +223,14 @@ class TypeDate extends Type
 	/**
 	 * {@inheritDoc}
 	 */
+	public function shouldEnforceDefaultValue(RDBMSInterface $rdbms): bool
+	{
+		return false;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?string
 	{
 		if (null === $value) {
