@@ -1237,16 +1237,31 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 */
 	protected function getInsertQuery(QBInsert $qb): string
 	{
-		$cols    = $qb->getOptionsColumns();
-		$columns = \implode(' , ', \array_keys($cols));
-		$values  = \implode(' , ', $cols);
-		$table   = $qb->getOptionsTable();
+		$table         = $qb->getOptionsTable();
+		$cols          = $qb->getOptionsColumnsNames();
+		$values_params = $qb->getOptionsValuesParams();
 
 		if (empty($table)) {
 			throw new DBALRuntimeException('Table name required for insert query.');
 		}
 
-		return 'INSERT INTO ' . $table . ' (' . $columns . ') VALUES(' . $values . ')';
+		if (empty($cols)) {
+			throw new DBALRuntimeException('Columns names required for insert query.');
+		}
+
+		if (empty($values_params)) {
+			throw new DBALRuntimeException('Values params required for insert query.');
+		}
+
+		$parts = [];
+		foreach ($values_params as $entry) {
+			$parts[] = '(' . \implode(' , ', $entry) . ')';
+		}
+
+		$columns = \implode(' , ', $cols);
+		$values  = \implode(' , ', $parts);
+
+		return 'INSERT INTO ' . $table . ' (' . $columns . ') VALUES  ' . $values;
 	}
 
 	/**
