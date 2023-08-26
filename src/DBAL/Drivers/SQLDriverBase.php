@@ -225,6 +225,14 @@ abstract class SQLDriverBase extends Db
 	 */
 	public function insert($sql, array $params = null, array $params_types = []): string|false
 	{
+		// To be able to get the last inserted id
+		// This statement should not be run in a new transaction
+		// if we are in a transaction, no problem, we benefit from calling
+		// the pdo lastInsertId method before the commit happens
+		// also take in consideration that the lastInsertId method is not reliable
+		// when using multiple insert in one query
+		// see https://www.php.net/manual/en/pdo.lastinsertid.php#107622
+
 		$stmt    = $this->execute($sql, $params, $params_types);
 		$last_id = $this->getConnection()
 			->lastInsertId();
