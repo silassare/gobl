@@ -80,6 +80,20 @@ class TypeDate extends Type
 	}
 
 	/**
+	 * Sets the date precision to microseconds.
+	 *
+	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 */
+	public function microseconds(): self
+	{
+		$this->base_type = self::chooseBaseType(true);
+
+		return $this->setOption('precision', 'microseconds');
+	}
+
+	/**
 	 * Sets min date.
 	 *
 	 * @param string      $min
@@ -142,20 +156,6 @@ class TypeDate extends Type
 	}
 
 	/**
-	 * Sets the date precision to microseconds.
-	 *
-	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-	 */
-	public function microseconds(): self
-	{
-		$this->base_type = self::chooseBaseType(true);
-
-		return $this->setOption('precision', 'microseconds');
-	}
-
-	/**
 	 * Sets the date format.
 	 *
 	 * @param string $format
@@ -177,15 +177,6 @@ class TypeDate extends Type
 		return self::NAME;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public function default(mixed $default): self
-	{
-		$this->base_type->default($default);
-
-		return parent::default($default);
-	}
 
 	/**
 	 * {@inheritDoc}
@@ -199,6 +190,34 @@ class TypeDate extends Type
 		}
 
 		return $default;
+	}
+
+	/**
+	 * Checks if the auto value is enabled.
+	 */
+	public function isAuto(): bool
+	{
+		return (bool) $this->getOption('auto');
+	}
+
+	/**
+	 * Checks if the date precision is microseconds.
+	 *
+	 * @return bool
+	 */
+	public function isMicroseconds(): bool
+	{
+		return 'microseconds' === $this->getOption('precision');
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function default(mixed $default): self
+	{
+		$this->base_type->default($default);
+
+		return parent::default($default);
 	}
 
 	/**
@@ -226,24 +245,6 @@ class TypeDate extends Type
 		}
 
 		return (string) $value;
-	}
-
-	/**
-	 * Checks if the date precision is microseconds.
-	 *
-	 * @return bool
-	 */
-	public function isMicroseconds(): bool
-	{
-		return 'microseconds' === $this->getOption('precision');
-	}
-
-	/**
-	 * Checks if the auto value is enabled.
-	 */
-	public function isAuto(): bool
-	{
-		return (bool) $this->getOption('auto');
 	}
 
 	/**
@@ -294,16 +295,6 @@ class TypeDate extends Type
 	}
 
 	/**
-	 * Returns the current date.
-	 *
-	 * @return string
-	 */
-	protected function now(): string
-	{
-		return $this->isMicroseconds() ? (string) \microtime(true) : (string) \time();
-	}
-
-	/**
 	 * Choose appropriate base type.
 	 *
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
@@ -322,6 +313,16 @@ class TypeDate extends Type
 		}
 
 		return $base_type;
+	}
+
+	/**
+	 * Returns the current date.
+	 *
+	 * @return string
+	 */
+	protected function now(): string
+	{
+		return $this->isMicroseconds() ? (string) \microtime(true) : (string) \time();
 	}
 
 	/**
