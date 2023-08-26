@@ -135,9 +135,9 @@ abstract class SQLDriverBase extends Db
 		$sql,
 		array $params = null,
 		array $params_types = null,
-		$is_multi_queries = false,
-		$in_transaction = false,
-		$auto_close_transaction = false
+		bool $is_multi_queries = false,
+		bool $in_transaction = false,
+		bool $auto_close_transaction = false
 	): PDOStatement {
 		if (empty($sql)) {
 			throw new DBALException('Your query is empty.');
