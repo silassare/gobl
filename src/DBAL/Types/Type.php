@@ -92,6 +92,44 @@ abstract class Type implements TypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	public function dbQueryDefault(RDBMSInterface $rdbms): ?string
+	{
+		return null;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function shouldEnforceDefaultValue(RDBMSInterface $rdbms): bool
+	{
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function toArray(): array
+	{
+		$opt         = $this->options;
+		$opt['type'] = $this->getName();
+
+		return $opt;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function nullable(bool $nullable = true): self
+	{
+		// important as it will be used by the base type
+		$this->safelyCallOnBaseType(__FUNCTION__, [$nullable]);
+
+		return $this->setOption('nullable', $nullable);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function enforceQueryExpressionValueType(string $expression, RDBMSInterface $rdbms): string
 	{
 		return $expression;
@@ -122,28 +160,9 @@ abstract class Type implements TypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function nullable(bool $nullable = true): self
-	{
-		// important as it will be used by the base type
-		$this->safelyCallOnBaseType(__FUNCTION__, [$nullable]);
-
-		return $this->setOption('nullable', $nullable);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
 	public function isNullable(): bool
 	{
 		return (bool) $this->getOption('nullable', false);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getEmptyValueOfType(): mixed
-	{
-		return $this->safelyCallOnBaseType(__FUNCTION__, []);
 	}
 
 	/**
@@ -157,20 +176,17 @@ abstract class Type implements TypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function isAutoIncremented(): bool
+	public function getEmptyValueOfType(): mixed
 	{
-		return (bool) $this->getOption('auto_increment', false);
+		return $this->safelyCallOnBaseType(__FUNCTION__, []);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public function toArray(): array
+	public function isAutoIncremented(): bool
 	{
-		$opt         = $this->options;
-		$opt['type'] = $this->getName();
-
-		return $opt;
+		return (bool) $this->getOption('auto_increment', false);
 	}
 
 	/**
@@ -184,6 +200,9 @@ abstract class Type implements TypeInterface
 		return $this->setOption('auto_increment', $auto_increment);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function getDefault(): mixed
 	{
 		return $this->getOption('default');
@@ -352,9 +371,7 @@ abstract class Type implements TypeInterface
 		}
 
 		return $this->error_messages[$key] ?? $key;
-	}	/**
-	 * {@inheritDoc}
-	 */
+	}
 
 	/**
 	 * Call the base type method only it is not the same as the current instance.
@@ -374,4 +391,8 @@ abstract class Type implements TypeInterface
 
 		return \call_user_func_array([$this->base_type, $method], $args);
 	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 }

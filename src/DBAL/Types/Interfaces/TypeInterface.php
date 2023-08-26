@@ -157,6 +157,25 @@ interface TypeInterface extends ArrayCapableInterface
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): null|int|float|string;
 
 	/**
+	 * Should we enforce default value at the database level.
+	 *
+	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $rdbms
+	 *
+	 * @return bool
+	 */
+	public function shouldEnforceDefaultValue(RDBMSInterface $rdbms): bool;
+
+	/**
+	 * This is used to make sure that when the base type does not have a default value
+	 * we use a default value provided by the type.
+	 *
+	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $rdbms
+	 *
+	 * @return null|string
+	 */
+	public function dbQueryDefault(RDBMSInterface $rdbms): ?string;
+
+	/**
 	 * Asserts operator and value are allowed for this type.
 	 *
 	 * @param \Gobl\DBAL\Filters\Filter $filter
