@@ -55,7 +55,6 @@ use Gobl\DBAL\Queries\QBType;
 use Gobl\DBAL\Queries\QBUpdate;
 use Gobl\DBAL\Queries\QBUtils;
 use Gobl\DBAL\Table;
-use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
 use Gobl\DBAL\Types\TypeBigint;
 use Gobl\DBAL\Types\TypeBool;
 use Gobl\DBAL\Types\TypeDecimal;
@@ -744,12 +743,10 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	protected function getBoolColumnDefinition(Column $column): string
 	{
 		$column_name = $column->getFullName();
-		$type        = $column->getType()
-			->getBaseType();
 
 		$sql = ["`{$column_name}` tinyint(1)"];
 
-		self::defaultAndNullChunks($type, $sql);
+		$this->defaultAndNullChunks($column, $sql);
 
 		return \implode(' ', $sql);
 	}
@@ -790,7 +787,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 			$sql[] = 'integer(11)';
 		}
 
-		self::defaultAndNullChunks($type, $sql);
+		$this->defaultAndNullChunks($column, $sql);
 
 		if ($type->isAutoIncremented()) {
 			$sql[] = 'AUTO_INCREMENT';
@@ -819,7 +816,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 			$sql[] = 'unsigned';
 		}
 
-		self::defaultAndNullChunks($type, $sql);
+		$this->defaultAndNullChunks($column, $sql);
 
 		if ($type->isAutoIncremented()) {
 			$sql[] = 'AUTO_INCREMENT';
@@ -889,7 +886,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 			$sql[] = 'unsigned';
 		}
 
-		self::defaultAndNullChunks($type, $sql);
+		$this->defaultAndNullChunks($column, $sql);
 
 		return \implode(' ', $sql);
 	}
@@ -970,7 +967,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 			$sql[] = 'unsigned';
 		}
 
-		self::defaultAndNullChunks($type, $sql);
+		$this->defaultAndNullChunks($column, $sql);
 
 		return \implode(' ', $sql);
 	}
@@ -1448,27 +1445,37 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	/**
 	 * Add default and null parts to sql.
 	 *
-	 * @param \Gobl\DBAL\Types\Interfaces\BaseTypeInterface $type
-	 * @param array                                         &$sql_parts
+	 * @param \Gobl\DBAL\Column $column
+	 * @param array             &$sql_parts
 	 */
-	protected static function defaultAndNullChunks(BaseTypeInterface $type, array &$sql_parts): void
+	protected function defaultAndNullChunks(Column $column, array &$sql_parts): void
 	{
-		$null    = $type->isNullable();
-		$default = $type->getDefault();
+		$type              = $column->getType();
+		$base_type         = $type->getBaseType();
+		$null              = $base_type->isNullable();
+		$base_type_default = $base_type->getDefault();
+
+		if (null === $base_type_default) {
+			$type_default = $type->getDefault();
+
+			if (null !== $type_default) {
+				$base_type_default = $type->phpToDb($type_default, $this->db);
+			}
+		}
 
 		if (!$null) {
 			$sql_parts[] = 'NOT NULL';
 
-			if (null !== $default) {
-				$sql_parts[] = \sprintf('DEFAULT %s', static::singleQuote((string) $default));
+			if (null !== $base_type_default) {
+				$sql_parts[] = \sprintf('DEFAULT %s', static::singleQuote((string) $base_type_default));
 			}
 		} else {
 			$sql_parts[] = 'NULL';
 
-			if (null === $default) {
+			if (null === $base_type_default) {
 				$sql_parts[] = 'DEFAULT NULL';
 			} else {
-				$sql_parts[] = \sprintf('DEFAULT %s', static::singleQuote((string) $default));
+				$sql_parts[] = \sprintf('DEFAULT %s', static::singleQuote((string) $base_type_default));
 			}
 		}
 	}
