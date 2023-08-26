@@ -22,7 +22,6 @@ use Gobl\DBAL\Queries\Traits\QBHavingTrait;
 use Gobl\DBAL\Queries\Traits\QBJoinsTrait;
 use Gobl\DBAL\Queries\Traits\QBLimitTrait;
 use Gobl\DBAL\Queries\Traits\QBOrderByTrait;
-use Gobl\DBAL\Queries\Traits\QBSetColumnsTrait;
 use Gobl\DBAL\Queries\Traits\QBWhereTrait;
 use Gobl\DBAL\Table;
 use PDOStatement;
@@ -39,7 +38,6 @@ class QBSelect implements QBInterface
 	use QBJoinsTrait;
 	use QBLimitTrait;
 	use QBOrderByTrait;
-	use QBSetColumnsTrait;
 	use QBWhereTrait;
 
 	protected array $options_select = [];
@@ -59,20 +57,6 @@ class QBSelect implements QBInterface
 	public function getType(): QBType
 	{
 		return QBType::SELECT;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @return PDOStatement
-	 */
-	public function execute(): PDOStatement
-	{
-		$sql    = $this->getSqlQuery();
-		$values = $this->getBoundValues();
-		$types  = $this->getBoundValuesTypes();
-
-		return $this->db->select($sql, $values, $types);
 	}
 
 	/**
@@ -110,6 +94,20 @@ class QBSelect implements QBInterface
 		$this->options_limit_max    = $max;
 
 		return $req->fetchColumn();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @return PDOStatement
+	 */
+	public function execute(): PDOStatement
+	{
+		$sql    = $this->getSqlQuery();
+		$values = $this->getBoundValues();
+		$types  = $this->getBoundValuesTypes();
+
+		return $this->db->select($sql, $values, $types);
 	}
 
 	/**
