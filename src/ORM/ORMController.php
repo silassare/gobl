@@ -638,10 +638,10 @@ abstract class ORMController
 	 */
 	protected function getScopedFiltersInstance(array $filters): ORMTableQuery
 	{
-		/** @var \Gobl\ORM\ORMTableQuery $entity_class */
-		$entity_class = ORMClassKind::QUERY->getClassFQN($this->table);
+		/** @var \Gobl\ORM\ORMTableQuery $class */
+		$class = ORMClassKind::QUERY->getClassFQN($this->table);
 
-		return $entity_class::createInstance()
+		return $class::createInstance()
 			->where($filters);
 	}
 
