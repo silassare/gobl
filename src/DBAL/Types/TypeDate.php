@@ -177,7 +177,6 @@ class TypeDate extends Type
 		return self::NAME;
 	}
 
-
 	/**
 	 * {@inheritDoc}
 	 */
