@@ -18,7 +18,7 @@ use Gobl\DBAL\Queries\Interfaces\QBInterface;
 use Gobl\DBAL\Queries\Traits\QBCommonTrait;
 use Gobl\DBAL\Queries\Traits\QBLimitTrait;
 use Gobl\DBAL\Queries\Traits\QBOrderByTrait;
-use Gobl\DBAL\Queries\Traits\QBSetColumnsTrait;
+use Gobl\DBAL\Queries\Traits\QBSetColumnsValuesTrait;
 use Gobl\DBAL\Queries\Traits\QBWhereTrait;
 
 /**
@@ -29,10 +29,17 @@ class QBUpdate implements QBInterface
 	use QBCommonTrait;
 	use QBLimitTrait;
 	use QBOrderByTrait;
-	use QBSetColumnsTrait;
+	use QBSetColumnsValuesTrait;
 	use QBWhereTrait;
 
-	protected ?string $options_table              = null;
+	protected ?string $options_table = null;
+
+	/**
+	 * Map of columns and bound parameters.
+	 *
+	 * @var array<string, string>
+	 */
+	protected array   $options_columns            = [];
 	protected ?string $options_update_table_alias = '';
 
 	/**
@@ -67,22 +74,6 @@ class QBUpdate implements QBInterface
 	}
 
 	/**
-	 * @return null|string
-	 */
-	public function getOptionsUpdateTableAlias(): ?string
-	{
-		return $this->options_update_table_alias;
-	}
-
-	/**
-	 * @return null|string
-	 */
-	public function getOptionsTable(): ?string
-	{
-		return $this->options_table;
-	}
-
-	/**
 	 * Sets the table to update.
 	 *
 	 * @param string      $table
@@ -104,17 +95,49 @@ class QBUpdate implements QBInterface
 	}
 
 	/**
+	 * Gets the table to update alias.
+	 *
+	 * @return null|string
+	 */
+	public function getOptionsUpdateTableAlias(): ?string
+	{
+		return $this->options_update_table_alias;
+	}
+
+	/**
+	 * Gets the table to update.
+	 *
+	 * @return null|string
+	 */
+	public function getOptionsTable(): ?string
+	{
+		return $this->options_table;
+	}
+
+	/**
+	 * Gets the map of columns and bound parameters.
+	 *
+	 * @return array<string, string>
+	 */
+	public function getOptionsColumns(): array
+	{
+		return $this->options_columns;
+	}
+
+	/**
 	 * Sets the columns and values to update.
 	 *
-	 * @param array $columns_values_map
-	 * @param bool  $auto_prefix
+	 * @param array $values      the column => value map
+	 * @param bool  $auto_prefix if true, columns will be auto prefixed
 	 *
 	 * @return $this
 	 */
-	public function set(array $columns_values_map, bool $auto_prefix = true): self
+	public function set(array $values, bool $auto_prefix = true): self
 	{
 		$table = $this->options_table;
 
-		return $this->setInsertOrUpdateColumnsValues($table, $columns_values_map, $auto_prefix);
+		$this->options_columns = $this->bindColumnsValuesForInsertOrUpdate($table, $values, $auto_prefix);
+
+		return $this;
 	}
 }
