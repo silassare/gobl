@@ -17,7 +17,6 @@ use Closure;
 use Gobl\CRUD\CRUD;
 use Gobl\CRUD\CRUDEntityEvent;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
-use Gobl\DBAL\Queries\QBInsert;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Table;
@@ -682,9 +681,11 @@ abstract class ORMController
 				));
 			}
 
-			$row = $this->table->doPhpToDbConversion($values, $this->db);
-			$qb  = new QBInsert($this->db);
-			$qb->into($this->table->getFullName(), $row);
+			/** @var \Gobl\ORM\ORMTableQuery $class */
+			$class = ORMClassKind::QUERY->getClassFQN($this->table);
+
+			$qb = $class::createInstance()
+				->insert($values);
 
 			$result = $qb->execute();
 

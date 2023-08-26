@@ -20,6 +20,7 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Queries\Interfaces\QBInterface;
 use Gobl\DBAL\Queries\QBDelete;
+use Gobl\DBAL\Queries\QBInsert;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Queries\QBUpdate;
 use Gobl\DBAL\Queries\QBUtils;
@@ -100,13 +101,6 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 
 		return $this;
 	}
-
-	/**
-	 * Creates new instance.
-	 *
-	 * @return static
-	 */
-	abstract public static function createInstance(): static;
 
 	/**
 	 * Alias of {@see \Gobl\DBAL\Filters\Filters::and()}.
@@ -238,18 +232,64 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	}
 
 	/**
-	 * Create a {@see QBDelete} and apply the current filters.
+	 * Create a {@see QBInsert} instance for single row insertion.
 	 *
-	 * @return \Gobl\DBAL\Queries\QBDelete
+	 * @param array $values the column => value map
+	 *
+	 * @return \Gobl\DBAL\Queries\QBInsert
 	 */
-	public function delete(): QBDelete
+	public function insert(array $values): QBInsert
 	{
-		$del = new QBDelete($this->db);
-		$del->from($this->table->getFullName(), $this->getTableAlias())
+		$row = $this->table->doPhpToDbConversion($values, $this->db);
+		$qb  = new QBInsert($this->db);
+		$qb->into($this->table->getFullName())
+			->values($row);
+
+		return $qb;
+	}
+
+	/**
+	 * Create a {@see QBInsert} instance for multiple rows insertion.
+	 *
+	 * @param array<int, array> $values a 2 dimensional array of column => value map
+	 *
+	 * @return \Gobl\DBAL\Queries\QBInsert
+	 */
+	public function insertMulti(array $values): QBInsert
+	{
+		$qb = new QBInsert($this->db);
+		$qb->into($this->table->getFullName());
+
+		foreach ($values as $value) {
+			$row = $this->table->doPhpToDbConversion($value, $this->db);
+			$qb->values($row);
+		}
+
+		return $qb;
+	}
+
+	/**
+	 * Create a {@see QBUpdate} instance and apply the current filters.
+	 *
+	 * @param array $values new values
+	 *
+	 * @return \Gobl\DBAL\Queries\QBUpdate
+	 */
+	public function update(array $values): QBUpdate
+	{
+		if (!\count($values)) {
+			throw new ORMRuntimeException('Empty columns, can\'t update.');
+		}
+
+		$values = $this->table->doPhpToDbConversion($values, $this->db);
+
+		$upd = new QBUpdate($this->db);
+		$upd->update($this->table->getFullName(), $this->getTableAlias())
+			->set($values)
 			->where($this->getFilters())
 			->bindMergeFrom($this->getBindingSource());
 
-		return $del;
+		return $upd;
 	}
 
 	/**
@@ -281,27 +321,18 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	}
 
 	/**
-	 * Create a {@see QBUpdate} and apply the current filters.
+	 * Create a {@see QBDelete} instance and apply the current filters.
 	 *
-	 * @param array $columns_values_map new values
-	 *
-	 * @return \Gobl\DBAL\Queries\QBUpdate
+	 * @return \Gobl\DBAL\Queries\QBDelete
 	 */
-	public function update(array $columns_values_map): QBUpdate
+	public function delete(): QBDelete
 	{
-		if (!\count($columns_values_map)) {
-			throw new ORMRuntimeException('Empty columns, can\'t update.');
-		}
-
-		$values = $this->table->doPhpToDbConversion($columns_values_map, $this->db);
-
-		$upd = new QBUpdate($this->db);
-		$upd->update($this->table->getFullName(), $this->getTableAlias())
-			->set($values)
+		$del = new QBDelete($this->db);
+		$del->from($this->table->getFullName(), $this->getTableAlias())
 			->where($this->getFilters())
 			->bindMergeFrom($this->getBindingSource());
 
-		return $upd;
+		return $del;
 	}
 
 	/**
@@ -346,6 +377,13 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 
 		return $sel->limit($max, $offset);
 	}
+
+	/**
+	 * Creates new instance.
+	 *
+	 * @return static
+	 */
+	abstract public static function createInstance(): static;
 
 	/**
 	 * Create a {@see QBSelect} and apply the current filters and the relation's filters.
