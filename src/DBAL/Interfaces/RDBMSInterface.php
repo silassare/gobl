@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Interfaces;
 
+use Closure;
 use Gobl\DBAL\Builders\NamespaceBuilder;
 use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Table;
@@ -144,6 +145,17 @@ interface RDBMSInterface
 	 * @return string
 	 */
 	public function getType(): string;
+
+	/**
+	 * Runs a given callable in a transaction and return the value returned by the callable.
+	 *
+	 * @param Closure $callable
+	 *
+	 * @return mixed
+	 *
+	 * @throws \Gobl\Exceptions\GoblException
+	 */
+	public function runInTransaction(Closure $callable): mixed;
 
 	/**
 	 * Begin a new transaction.

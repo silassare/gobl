@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Drivers;
 
+use Closure;
 use Exception;
 use Gobl\DBAL\Db;
 use Gobl\DBAL\DbConfig;
@@ -46,6 +47,25 @@ abstract class SQLDriverBase extends Db
 	public function getConfig(): DbConfig
 	{
 		return $this->config;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function runInTransaction(Closure $callable): mixed
+	{
+		$failed  = true;
+		$started = false;
+
+		try {
+			$started = $this->beginTransaction();
+			$result  = $callable();
+			$failed  = !$this->commit();
+		} finally {
+			$started && $failed && $this->rollBack();
+		}
+
+		return $result;
 	}
 
 	/**

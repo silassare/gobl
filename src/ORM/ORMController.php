@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Gobl\ORM;
 
-use Closure;
 use Gobl\CRUD\CRUD;
 use Gobl\CRUD\CRUDEntityEvent;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
@@ -117,9 +116,7 @@ abstract class ORMController
 	 *
 	 * @return \Gobl\ORM\ORMEntity
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMException
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws \Gobl\Exceptions\GoblException
 	 */
 	public function addItem(array|ORMEntity $item = []): ORMEntity
 	{
@@ -136,7 +133,7 @@ abstract class ORMController
 			$values   = $item->toRow();
 		}
 
-		return $this->runInTransaction(function () use ($instance, $values): ORMEntity {
+		return $this->db->runInTransaction(function () use ($instance, $values): ORMEntity {
 			$values = $this->crud->assertCreate($values)
 				->getForm();
 
@@ -175,13 +172,11 @@ abstract class ORMController
 	 *
 	 * @return null|\Gobl\ORM\ORMEntity
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMException
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws \Gobl\Exceptions\GoblException
 	 */
 	public function updateOneItem(array $filters, array $new_values): ?ORMEntity
 	{
-		return $this->runInTransaction(function () use ($filters, $new_values): ?ORMEntity {
+		return $this->db->runInTransaction(function () use ($filters, $new_values): ?ORMEntity {
 			$tsf        = $this->getScopedFiltersInstance($filters);
 			$action     = $this->crud->assertUpdate($tsf, $new_values);
 			$new_values = $action->getForm();
@@ -253,13 +248,11 @@ abstract class ORMController
 	 *
 	 * @return int affected row count
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMException
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws \Gobl\Exceptions\GoblException
 	 */
 	public function updateAllItems(array $filters, array $new_values): int
 	{
-		return $this->runInTransaction(function () use ($filters, $new_values): int {
+		return $this->db->runInTransaction(function () use ($filters, $new_values): int {
 			$tsf        = $this->getScopedFiltersInstance($filters);
 			$action     = $this->crud->assertUpdateAll($tsf, $new_values);
 			$new_values = $action->getForm();
@@ -279,13 +272,11 @@ abstract class ORMController
 	 *
 	 * @return null|\Gobl\ORM\ORMEntity
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMException
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws \Gobl\Exceptions\GoblException
 	 */
 	public function deleteOneItem(array $filters): ?ORMEntity
 	{
-		return $this->runInTransaction(function () use ($filters): ?ORMEntity {
+		return $this->db->runInTransaction(function () use ($filters): ?ORMEntity {
 			$tsf = $this->getScopedFiltersInstance($filters);
 
 			$this->crud->assertDelete($tsf);
@@ -323,13 +314,11 @@ abstract class ORMController
 	 *
 	 * @return int affected row count
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMException
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws \Gobl\Exceptions\GoblException
 	 */
 	public function deleteAllItems(array $filters): int
 	{
-		return $this->runInTransaction(function () use ($filters): int {
+		return $this->db->runInTransaction(function () use ($filters): int {
 			$tsf = $this->getScopedFiltersInstance($filters);
 
 			$this->crud->assertDeleteAll($tsf);
@@ -349,15 +338,13 @@ abstract class ORMController
 	 *
 	 * @return null|\Gobl\ORM\ORMEntity
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMException
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws \Gobl\Exceptions\GoblException
 	 */
 	public function getItem(array $filters, array $order_by = []): ?ORMEntity
 	{
 		// we use transaction for reading too
 		// https://stackoverflow.com/questions/308905/should-there-be-a-transaction-for-read-queries
-		return $this->runInTransaction(function () use ($filters, $order_by): ?ORMEntity {
+		return $this->db->runInTransaction(function () use ($filters, $order_by): ?ORMEntity {
 			$tsf = $this->getScopedFiltersInstance($filters);
 
 			$this->crud->assertRead($tsf);
@@ -387,7 +374,7 @@ abstract class ORMController
 	 *
 	 * @return \Gobl\ORM\ORMEntity[]
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws \Gobl\Exceptions\GoblException
 	 */
 	public function getAllItems(
 		array $filters = [],
@@ -396,7 +383,7 @@ abstract class ORMController
 		array $order_by = [],
 		?int &$total = null
 	): array {
-		return $this->runInTransaction(function () use ($filters, $max, $offset, $order_by, &$total): array {
+		return $this->db->runInTransaction(function () use ($filters, $max, $offset, $order_by, &$total): array {
 			$tsf = $this->getScopedFiltersInstance($filters);
 
 			$this->crud->assertReadAll($tsf);
@@ -452,11 +439,11 @@ abstract class ORMController
 	 *
 	 * @return \Gobl\ORM\ORMEntity[]
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws \Gobl\Exceptions\GoblException
 	 */
 	public function getAllItemsCustom(QBSelect $qb, ?int $max = null, int $offset = 0, ?int &$total = null): array
 	{
-		return $this->runInTransaction(function () use ($qb, $max, $offset, &$total): array {
+		return $this->db->runInTransaction(function () use ($qb, $max, $offset, &$total): array {
 			$this->crud->assertReadAll($this->getScopedFiltersInstance([]));
 
 			$qb->limit($max, $offset);
@@ -481,11 +468,11 @@ abstract class ORMController
 	 *
 	 * @return null|\Gobl\ORM\ORMEntity
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws \Gobl\Exceptions\GoblException
 	 */
 	public function getRelative(ORMEntity $entity, Relation $relation, array $filters = [], array $order_by = []): ?ORMEntity
 	{
-		return $this->runInTransaction(function () use ($entity, $relation, $filters, $order_by): ?ORMEntity {
+		return $this->db->runInTransaction(function () use ($entity, $relation, $filters, $order_by): ?ORMEntity {
 			$tsf = $this->getScopedFiltersInstance($filters);
 
 			$this->crud->assertRead($tsf);
@@ -521,7 +508,7 @@ abstract class ORMController
 	 *
 	 * @return \Gobl\ORM\ORMEntity[]
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws \Gobl\Exceptions\GoblException
 	 */
 	public function getAllRelatives(
 		ORMEntity $entity,
@@ -532,7 +519,7 @@ abstract class ORMController
 		array $order_by = [],
 		?int &$total = null
 	): array {
-		return $this->runInTransaction(function () use ($entity, $relation, $filters, $max, $offset, $order_by, &$total): array {
+		return $this->db->runInTransaction(function () use ($entity, $relation, $filters, $max, $offset, $order_by, &$total): array {
 			$tsf = $this->getScopedFiltersInstance($filters);
 
 			$this->crud->assertReadAll($tsf);
@@ -551,29 +538,6 @@ abstract class ORMController
 
 			return $items;
 		});
-	}
-
-	/**
-	 * Runs a given callable in a transaction and return the value returned by the callable.
-	 *
-	 * @param Closure $callable
-	 *
-	 * @return mixed
-	 */
-	protected function runInTransaction(Closure $callable): mixed
-	{
-		$failed  = true;
-		$started = false;
-
-		try {
-			$started = $this->db->beginTransaction();
-			$result  = $callable();
-			$failed  = !$this->db->commit();
-		} finally {
-			$started && $failed && $this->db->rollBack();
-		}
-
-		return $result;
 	}
 
 	/**
