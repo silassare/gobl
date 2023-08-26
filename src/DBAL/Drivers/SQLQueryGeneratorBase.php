@@ -984,8 +984,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$column_name      = $column->getFullName();
 		$type             = $column->getType()
 			->getBaseType();
-		$null             = $type->isNullable();
-		$default          = $type->getDefault();
 		$force_no_default = false;
 		$min              = $type->getOption('min', 0);
 		$max              = $type->getOption('max', \INF);
@@ -1003,23 +1001,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 			$force_no_default = true;
 		}
 
-		if (!$null) {
-			$sql[] = 'NOT NULL';
-
-			if (!$force_no_default && null !== $default) {
-				$sql[] = \sprintf('DEFAULT %s', static::singleQuote((string) $default));
-			}
-		} else {
-			$sql[] = 'NULL';
-
-			if (!$force_no_default) {
-				if (null === $default) {
-					$sql[] = 'DEFAULT NULL';
-				} else {
-					$sql[] = \sprintf('DEFAULT %s', static::singleQuote((string) $default));
-				}
-			}
-		}
+		$this->defaultAndNullChunks($column, $sql, $force_no_default);
 
 		return \implode(' ', $sql);
 	}
@@ -1447,35 +1429,57 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 *
 	 * @param \Gobl\DBAL\Column $column
 	 * @param array             &$sql_parts
+	 * @param bool              $force_no_default
+	 * @param bool              $quote_default
 	 */
-	protected function defaultAndNullChunks(Column $column, array &$sql_parts): void
-	{
-		$type              = $column->getType();
-		$base_type         = $type->getBaseType();
-		$null              = $base_type->isNullable();
-		$base_type_default = $base_type->getDefault();
+	protected function defaultAndNullChunks(
+		Column $column,
+		array &$sql_parts,
+		bool $force_no_default = false,
+		bool $quote_default = true
+	): void {
+		$type           = $column->getType();
+		$base_type      = $type->getBaseType();
+		$null           = $base_type->isNullable();
+		$default_to_use = null;
 
-		if (null === $base_type_default) {
-			$type_default = $type->getDefault();
+		if (!$force_no_default && $type->shouldEnforceDefaultValue($this->db)) {
+			if (null !== ($d = $type->dbQueryDefault($this->db))) {
+				$default_to_use = $d;
+				$quote_default  = false;
+			} elseif (null !== ($d = $base_type->dbQueryDefault($this->db))) {
+				$default_to_use = $d;
+				$quote_default  = false;
+			} else {
+				$default_to_use = $base_type->getDefault();
+			}
 
-			if (null !== $type_default) {
-				$base_type_default = $type->phpToDb($type_default, $this->db);
+			if (null === $default_to_use) {
+				$type_default = $type->getDefault();
+
+				if (null !== $type_default) {
+					$default_to_use = $type->phpToDb($type_default, $this->db);
+				}
 			}
 		}
 
 		if (!$null) {
 			$sql_parts[] = 'NOT NULL';
 
-			if (null !== $base_type_default) {
-				$sql_parts[] = \sprintf('DEFAULT %s', static::singleQuote((string) $base_type_default));
+			if (!$force_no_default && null !== $default_to_use) {
+				$default_to_use = $quote_default ? static::singleQuote((string) $default_to_use) : (string) $default_to_use;
+				$sql_parts[]    = \sprintf('DEFAULT %s', $default_to_use);
 			}
 		} else {
 			$sql_parts[] = 'NULL';
 
-			if (null === $base_type_default) {
-				$sql_parts[] = 'DEFAULT NULL';
-			} else {
-				$sql_parts[] = \sprintf('DEFAULT %s', static::singleQuote((string) $base_type_default));
+			if (!$force_no_default) {
+				if (null === $default_to_use) {
+					$sql_parts[] = 'DEFAULT NULL';
+				} else {
+					$default_to_use = $quote_default ? static::singleQuote((string) $default_to_use) : (string) $default_to_use;
+					$sql_parts[]    = \sprintf('DEFAULT %s', $default_to_use);
+				}
 			}
 		}
 	}
