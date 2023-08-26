@@ -240,13 +240,20 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 */
 	public function insert(array $values): QBInsert
 	{
-		$row = $this->table->doPhpToDbConversion($values, $this->db);
+		$row = $this->table->doPhpToDbConversion($this->completeRow($values), $this->db);
 		$qb  = new QBInsert($this->db);
 		$qb->into($this->table->getFullName())
 			->values($row);
 
 		return $qb;
 	}
+
+	/**
+	 * Creates new instance.
+	 *
+	 * @return static
+	 */
+	abstract public static function createInstance(): static;
 
 	/**
 	 * Create a {@see QBInsert} instance for multiple rows insertion.
@@ -260,20 +267,14 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 		$qb = new QBInsert($this->db);
 		$qb->into($this->table->getFullName());
 
-		foreach ($values as $value) {
-			$row = $this->table->doPhpToDbConversion($value, $this->db);
+		foreach ($values as $entry) {
+			$entry = $this->completeRow($entry);
+			$row   = $this->table->doPhpToDbConversion($entry, $this->db);
 			$qb->values($row);
 		}
 
 		return $qb;
 	}
-
-	/**
-	 * Creates new instance.
-	 *
-	 * @return static
-	 */
-	abstract public static function createInstance(): static;
 
 	/**
 	 * Create a {@see QBUpdate} instance and apply the current filters.
@@ -437,5 +438,23 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 		$this->filters->add($operator, $column, $value);
 
 		return $this;
+	}
+
+	/**
+	 * Complete a row with default values if needed.
+	 *
+	 * @param array $row
+	 *
+	 * @return array
+	 */
+	private function completeRow(array $row): array
+	{
+		/** @var \Gobl\ORM\ORMEntity $entity_class */
+		$entity_class = ORMClassKind::ENTITY->getClassFQN($this->table);
+
+		$instance = $entity_class::createInstance();
+
+		return $instance->hydrate($row)
+			->toRow();
 	}
 }
