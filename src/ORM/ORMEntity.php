@@ -217,17 +217,6 @@ abstract class ORMEntity implements ArrayCapableInterface
 	}
 
 	/**
-	 * Creates new instance.
-	 *
-	 * @param bool $is_new true for new entity, false for entity fetched
-	 *                     from the database, default is true
-	 * @param bool $strict enable/disable strict mode
-	 *
-	 * @return static
-	 */
-	abstract public static function createInstance(bool $is_new = true, bool $strict = true): static;
-
-	/**
 	 * To check if this entity is new.
 	 *
 	 * ```php
@@ -307,7 +296,8 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 *
 	 * @throws \Gobl\CRUD\Exceptions\CRUDException
 	 * @throws \Gobl\ORM\Exceptions\ORMException
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 * @throws \Gobl\ORM\Exceptions\ORMException
+	 * @throws \Gobl\Exceptions\GoblException
 	 */
 	public function save(): bool
 	{
@@ -331,6 +321,17 @@ abstract class ORMEntity implements ArrayCapableInterface
 
 		return false;
 	}
+
+	/**
+	 * Creates new instance.
+	 *
+	 * @param bool $is_new true for new entity, false for entity fetched
+	 *                     from the database, default is true
+	 * @param bool $strict enable/disable strict mode
+	 *
+	 * @return static
+	 */
+	abstract public static function createInstance(bool $is_new = true, bool $strict = true): static;
 
 	/**
 	 * To check if this entity is saved.

@@ -251,7 +251,7 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	/**
 	 * Create a {@see QBInsert} instance for multiple rows insertion.
 	 *
-	 * @param array<int, array> $values a 2 dimensional array of column => value map
+	 * @param array<int, array> $values a two dimensional array of column => value map
 	 *
 	 * @return \Gobl\DBAL\Queries\QBInsert
 	 */
@@ -267,6 +267,13 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 
 		return $qb;
 	}
+
+	/**
+	 * Creates new instance.
+	 *
+	 * @return static
+	 */
+	abstract public static function createInstance(): static;
 
 	/**
 	 * Create a {@see QBUpdate} instance and apply the current filters.
@@ -377,13 +384,6 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 
 		return $sel->limit($max, $offset);
 	}
-
-	/**
-	 * Creates new instance.
-	 *
-	 * @return static
-	 */
-	abstract public static function createInstance(): static;
 
 	/**
 	 * Create a {@see QBSelect} and apply the current filters and the relation's filters.

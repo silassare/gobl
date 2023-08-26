@@ -68,17 +68,6 @@ abstract class Type implements TypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function toArray(): array
-	{
-		$opt         = $this->options;
-		$opt['type'] = $this->getName();
-
-		return $opt;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getBaseType(): BaseTypeInterface
 	{
 		return $this->base_type;
@@ -133,20 +122,20 @@ abstract class Type implements TypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function isNullable(): bool
-	{
-		return (bool) $this->getOption('nullable', false);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
 	public function nullable(bool $nullable = true): self
 	{
 		// important as it will be used by the base type
 		$this->safelyCallOnBaseType(__FUNCTION__, [$nullable]);
 
 		return $this->setOption('nullable', $nullable);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function isNullable(): bool
+	{
+		return (bool) $this->getOption('nullable', false);
 	}
 
 	/**
@@ -160,9 +149,28 @@ abstract class Type implements TypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	final public function getOption(string $key, mixed $default = null): mixed
+	{
+		return $this->options[$key] ?? $default;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function isAutoIncremented(): bool
 	{
 		return (bool) $this->getOption('auto_increment', false);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function toArray(): array
+	{
+		$opt         = $this->options;
+		$opt['type'] = $this->getName();
+
+		return $opt;
 	}
 
 	/**
@@ -176,9 +184,6 @@ abstract class Type implements TypeInterface
 		return $this->setOption('auto_increment', $auto_increment);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getDefault(): mixed
 	{
 		return $this->getOption('default');
@@ -236,8 +241,7 @@ abstract class Type implements TypeInterface
 		}
 
 		if (\array_key_exists('default', $options)) {
-			$default = $options['default'];
-			$this->default($default);
+			$this->default($options['default']);
 		}
 
 		return $this;
@@ -271,14 +275,6 @@ abstract class Type implements TypeInterface
 		$this->options[$key] = $value;
 
 		return $this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	final public function getOption(string $key, mixed $default = null): mixed
-	{
-		return $this->options[$key] ?? $default;
 	}
 
 	/**
@@ -356,7 +352,9 @@ abstract class Type implements TypeInterface
 		}
 
 		return $this->error_messages[$key] ?? $key;
-	}
+	}	/**
+	 * {@inheritDoc}
+	 */
 
 	/**
 	 * Call the base type method only it is not the same as the current instance.
