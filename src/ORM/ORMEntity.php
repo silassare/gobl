@@ -138,20 +138,26 @@ abstract class ORMEntity implements ArrayCapableInterface
 			$value     = $this->_oeb_row[$full_name] ?? null;
 			$type      = $column->getType();
 
-			if (null === $value && !$type->isNullable()) {
-				// this is an attempt to prevent returning null
-				// as the property is supposed to not have null value
-				$value = $type->getDefault();
-				if (null === $value) {
-					$value = $type->getEmptyValueOfType();
+			if (null === $value) {
+				if ($this->isNew() && $type->isAutoIncremented()) {
+					return null;
 				}
 
-				if (null === $value) {
-					throw new ORMRuntimeException(\sprintf(
-						'Missing required value for column "%s" defined in table "%s".',
-						$name,
-						$this->_oeb_table->getName()
-					));
+				if (!$type->isNullable()) {
+					// this is an attempt to prevent returning null
+					// as the property is supposed to not have null value
+					$value = $type->getDefault();
+					if (null === $value) {
+						$value = $type->getEmptyValueOfType();
+					}
+
+					if (null === $value) {
+						throw new ORMRuntimeException(\sprintf(
+							'Missing required value for column "%s" defined in table "%s".',
+							$name,
+							$this->_oeb_table->getName()
+						));
+					}
 				}
 			}
 
