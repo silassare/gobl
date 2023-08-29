@@ -118,6 +118,47 @@ class CRUD
 	}
 
 	/**
+	 * Checks columns values for create.
+	 *
+	 * @param \Gobl\CRUD\CRUDCreate $action
+	 *
+	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 */
+	private function checkFormColumnsForCreate(CRUDCreate $action): void
+	{
+		$debug = $this->debug;
+		$form  = $action->getForm();
+
+		foreach ($form as $field => $value) {
+			if ($this->table->hasColumn($field)) {
+				$debug['column'] = $field;
+
+				$column = $this->table->getColumnOrFail($field);
+
+				if ($column->isPrivate() && !$this->crud_handler->shouldWritePrivateColumn($column, $value)) {
+					$debug['_why'] = 'column_is_private';
+
+					throw new CRUDException('GOBL_COLUMN_WRITE_REFUSED', $debug);
+				}
+
+				if (null !== $value) {
+					if ($column->getType()
+							   ->isAutoIncremented()) {
+						$debug['_why'] = 'column_is_auto_incremented';
+						throw new CRUDException('GOBL_COLUMN_WRITE_REFUSED', $debug);
+					}
+
+					if ($this->table->isPartOfPrimaryKey($column) && !$this->crud_handler->shouldWritePkColumn($column, $value)) {
+						$debug['_why'] = 'column_is_part_of_pk';
+
+						throw new CRUDException('GOBL_COLUMN_WRITE_REFUSED', $debug);
+					}
+				}
+			}
+		}
+	}
+
+	/**
 	 * Read assertion.
 	 *
 	 * @param \Gobl\ORM\ORMTableQuery $filters
@@ -186,6 +227,48 @@ class CRUD
 		$this->crud_handler->autoFillUpdateFormAndFilters($action);
 
 		return $action;
+	}
+
+	/**
+	 * Checks columns values for update.
+	 *
+	 * @param \Gobl\CRUD\CRUDUpdate|\Gobl\CRUD\CRUDUpdateAll $action
+	 *
+	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 */
+	private function checkFormColumnsForUpdate(CRUDUpdateAll|CRUDUpdate $action): void
+	{
+		$debug = $this->debug;
+		$form  = $action->getForm();
+
+		foreach ($form as $field => $value) {
+			if ($this->table->hasColumn($field)) {
+				$debug['column'] = $field;
+
+				$column               = $this->table->getColumnOrFail($field);
+				$column_update_action = new CRUDColumnUpdate($this->table, $column, $action->getForm());
+
+				if ($column->isPrivate() && !$this->crud_handler->shouldWritePrivateColumn($column, $value)) {
+					$debug['_why'] = 'column_is_private';
+
+					throw new CRUDException('GOBL_COLUMN_WRITE_ERROR', $debug);
+				}
+
+				if ($this->table->isPartOfPrimaryKey($column) && !$this->crud_handler->shouldWritePkColumn($column, $value)) {
+					$debug['_why'] = 'column_is_part_of_pk';
+
+					throw new CRUDException('GOBL_COLUMN_WRITE_ERROR', $debug);
+				}
+
+				if (!$this->crud_handler->onBeforeColumnUpdate($column_update_action)) {
+					$debug['_why'] = 'column_update_rejected';
+
+					throw new CRUDException($action->getErrorMessage(), $debug);
+				}
+
+				$action->setForm($column_update_action->getForm());
+			}
+		}
 	}
 
 	/**
@@ -267,84 +350,5 @@ class CRUD
 	public function getHandler(): CRUDHandlerInterface
 	{
 		return $this->crud_handler;
-	}
-
-	/**
-	 * Checks columns values for create.
-	 *
-	 * @param \Gobl\CRUD\CRUDCreate $action
-	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 */
-	private function checkFormColumnsForCreate(CRUDCreate $action): void
-	{
-		$debug = $this->debug;
-		$form  = $action->getForm();
-
-		foreach ($form as $field => $value) {
-			if ($this->table->hasColumn($field)) {
-				$debug['column'] = $field;
-
-				$column = $this->table->getColumnOrFail($field);
-
-				if ($column->isPrivate() && !$this->crud_handler->shouldWritePrivateColumn($column, $value)) {
-					$debug['_why'] = 'column_is_private';
-
-					throw new CRUDException('GOBL_COLUMN_WRITE_REFUSED', $debug);
-				}
-
-				if (
-					null !== $value
-					&& $this->table->isPartOfPrimaryKey($column)
-					&& !$this->crud_handler->shouldWritePkColumn($column, $value)
-				) {
-					$debug['_why'] = 'column_is_part_of_pk';
-
-					throw new CRUDException('GOBL_COLUMN_WRITE_REFUSED', $debug);
-				}
-			}
-		}
-	}
-
-	/**
-	 * Checks columns values for update.
-	 *
-	 * @param \Gobl\CRUD\CRUDUpdate|\Gobl\CRUD\CRUDUpdateAll $action
-	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 */
-	private function checkFormColumnsForUpdate(CRUDUpdateAll|CRUDUpdate $action): void
-	{
-		$debug = $this->debug;
-		$form  = $action->getForm();
-
-		foreach ($form as $field => $value) {
-			if ($this->table->hasColumn($field)) {
-				$debug['column'] = $field;
-
-				$column               = $this->table->getColumnOrFail($field);
-				$column_update_action = new CRUDColumnUpdate($this->table, $column, $action->getForm());
-
-				if ($column->isPrivate() && !$this->crud_handler->shouldWritePrivateColumn($column, $value)) {
-					$debug['_why'] = 'column_is_private';
-
-					throw new CRUDException('GOBL_COLUMN_WRITE_ERROR', $debug);
-				}
-
-				if ($this->table->isPartOfPrimaryKey($column) && !$this->crud_handler->shouldWritePkColumn($column, $value)) {
-					$debug['_why'] = 'column_is_part_of_pk';
-
-					throw new CRUDException('GOBL_COLUMN_WRITE_ERROR', $debug);
-				}
-
-				if (!$this->crud_handler->onBeforeColumnUpdate($column_update_action)) {
-					$debug['_why'] = 'column_update_rejected';
-
-					throw new CRUDException($action->getErrorMessage(), $debug);
-				}
-
-				$action->setForm($column_update_action->getForm());
-			}
-		}
 	}
 }
