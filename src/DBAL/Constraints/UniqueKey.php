@@ -18,7 +18,7 @@ use Gobl\DBAL\Table;
 /**
  * Class UniqueKey.
  */
-class UniqueKey extends Constraint
+final class UniqueKey extends Constraint
 {
 	private array $columns = [];
 

@@ -60,14 +60,16 @@ class TypeEnum extends Type
 	 *
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
-	public function enumClass(string $enum_class, ?string $message = null): self
+	public function enumClass(string $enum_class, ?string $message = null): static
 	{
 		if (!\is_subclass_of($enum_class, BackedEnum::class)) {
-			throw new TypesException(\sprintf(
-				'invalid enum class, found "%s" while expecting subclass of "%s"',
-				$enum_class,
-				BackedEnum::class
-			));
+			throw new TypesException(
+				\sprintf(
+					'invalid enum class, found "%s" while expecting subclass of "%s"',
+					$enum_class,
+					BackedEnum::class
+				)
+			);
 		}
 
 		!empty($message) && $this->msg('invalid_enum_value_type', $message);
@@ -77,18 +79,10 @@ class TypeEnum extends Type
 
 	/**
 	 * {@inheritDoc}
-	 */
-	public static function getInstance(array $options): self
-	{
-		return (new static())->configure($options);
-	}
-
-	/**
-	 * {@inheritDoc}
 	 *
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
-	public function configure(array $options): self
+	public function configure(array $options): static
 	{
 		if (isset($options['enum_class'])) {
 			$this->enumClass($options['enum_class']);
@@ -99,10 +93,73 @@ class TypeEnum extends Type
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 */
+	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?BackedEnum
+	{
+		if (null === $value) {
+			return null;
+		}
+
+		return $this->toEnumValue($value);
+	}
+
+	/**
+	 * {@inheritDoc}
 	 */
 	public function getEmptyValueOfType(): ?BackedEnum
 	{
 		return null;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public static function getInstance(array $options): static
+	{
+		return (new self())->configure($options);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getName(): string
+	{
+		return self::NAME;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 */
+	public function getReadTypeHint(): ORMTypeHint
+	{
+		return ORMTypeHint::string()
+			->setPHPType(new PHPType(new PHPEnum($this->getEnumClass())));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 */
+	public function getWriteTypeHint(): ORMTypeHint
+	{
+		return ORMTypeHint::string()
+			->setPHPType(new PHPType(new PHPEnum($this->getEnumClass()), 'string'));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 */
+	public function phpToDb(mixed $value, RDBMSInterface $rdbms): null|int|string
+	{
+		return $this->validate($value)?->value;
 	}
 
 	/**
@@ -142,61 +199,6 @@ class TypeEnum extends Type
 		}
 
 		return $value;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-	 */
-	public function getWriteTypeHint(): ORMTypeHint
-	{
-		return ORMTypeHint::string()
-			->setPHPType(new PHPType(new PHPEnum($this->getEnumClass()), 'string'));
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-	 */
-	public function getReadTypeHint(): ORMTypeHint
-	{
-		return ORMTypeHint::string()
-			->setPHPType(new PHPType(new PHPEnum($this->getEnumClass())));
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-	 */
-	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?BackedEnum
-	{
-		if (null === $value) {
-			return null;
-		}
-
-		return $this->toEnumValue($value);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-	 */
-	public function phpToDb(mixed $value, RDBMSInterface $rdbms): null|int|string
-	{
-		return $this->validate($value)?->value;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getName(): string
-	{
-		return self::NAME;
 	}
 
 	/**

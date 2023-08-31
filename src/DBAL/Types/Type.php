@@ -58,24 +58,6 @@ abstract class Type implements TypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function lock(): self
-	{
-		$this->locked = true;
-
-		return $this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getBaseType(): BaseTypeInterface
-	{
-		return $this->base_type;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
 	public function assertFilterAllowed(Filter $filter): void
 	{
 		$this->safelyCallOnBaseType(__FUNCTION__, [$filter]);
@@ -84,9 +66,33 @@ abstract class Type implements TypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function shouldEnforceQueryExpressionValueType(RDBMSInterface $rdbms): bool
+	public function autoIncrement(bool $auto_increment = true): static
 	{
-		return false;
+		// important as it will be used by the base type
+		$this->safelyCallOnBaseType(__FUNCTION__, [$auto_increment]);
+
+		return $this->setOption('auto_increment', $auto_increment);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function configure(array $options): static
+	{
+		$nullable = $options['nullable'] ?? $options['null'] ?? null;
+		if (null !== $nullable) {
+			$this->nullable((bool) $nullable);
+		}
+
+		if (isset($options['auto_increment'])) {
+			$this->autoIncrement((bool) $options['auto_increment']);
+		}
+
+		if (\array_key_exists('default', $options)) {
+			$this->default($options['default']);
+		}
+
+		return $this;
 	}
 
 	/**
@@ -100,31 +106,22 @@ abstract class Type implements TypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function shouldEnforceDefaultValue(RDBMSInterface $rdbms): bool
+	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): mixed
 	{
-		return true;
+		return $this->safelyCallOnBaseType(__FUNCTION__, [$value, $rdbms]);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public function toArray(): array
+	public function default(mixed $default): static
 	{
-		$opt         = $this->options;
-		$opt['type'] = $this->getName();
-
-		return $opt;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function nullable(bool $nullable = true): self
-	{
-		// important as it will be used by the base type
-		$this->safelyCallOnBaseType(__FUNCTION__, [$nullable]);
-
-		return $this->setOption('nullable', $nullable);
+		// we don't call the base type here
+		// because the default value may not be a scalar value
+		// and as default value set on base type is used to
+		// generate table sql query it may cause errors
+		// if required a custom type should override this method
+		return $this->setOption('default', $default);
 	}
 
 	/**
@@ -160,44 +157,9 @@ abstract class Type implements TypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function isNullable(): bool
+	public function getBaseType(): BaseTypeInterface
 	{
-		return (bool) $this->getOption('nullable', false);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	final public function getOption(string $key, mixed $default = null): mixed
-	{
-		return $this->options[$key] ?? $default;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getEmptyValueOfType(): mixed
-	{
-		return $this->safelyCallOnBaseType(__FUNCTION__, []);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function isAutoIncremented(): bool
-	{
-		return (bool) $this->getOption('auto_increment', false);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function autoIncrement(bool $auto_increment = true): self
-	{
-		// important as it will be used by the base type
-		$this->safelyCallOnBaseType(__FUNCTION__, [$auto_increment]);
-
-		return $this->setOption('auto_increment', $auto_increment);
+		return $this->base_type;
 	}
 
 	/**
@@ -211,30 +173,17 @@ abstract class Type implements TypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function hasDefault(): bool
-	{
-		return null !== $this->getDefault();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function default(mixed $default): self
-	{
-		// we don't call the base type here
-		// because the default value may not be a scalar value
-		// and as default value set on base type is used to
-		// generate table sql query it may cause errors
-		// if required a custom type should override this method
-		return $this->setOption('default', $default);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getWriteTypeHint(): ORMTypeHint
+	public function getEmptyValueOfType(): mixed
 	{
 		return $this->safelyCallOnBaseType(__FUNCTION__, []);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	final public function getOption(string $key, mixed $default = null): mixed
+	{
+		return $this->options[$key] ?? $default;
 	}
 
 	/**
@@ -248,20 +197,41 @@ abstract class Type implements TypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function configure(array $options): self
+	public function getWriteTypeHint(): ORMTypeHint
 	{
-		$nullable = $options['nullable'] ?? $options['null'] ?? null;
-		if (null !== $nullable) {
-			$this->nullable((bool) $nullable);
-		}
+		return $this->safelyCallOnBaseType(__FUNCTION__, []);
+	}
 
-		if (isset($options['auto_increment'])) {
-			$this->autoIncrement((bool) $options['auto_increment']);
-		}
+	/**
+	 * {@inheritDoc}
+	 */
+	public function hasDefault(): bool
+	{
+		return null !== $this->getDefault();
+	}
 
-		if (\array_key_exists('default', $options)) {
-			$this->default($options['default']);
-		}
+	/**
+	 * {@inheritDoc}
+	 */
+	public function isAutoIncremented(): bool
+	{
+		return (bool) $this->getOption('auto_increment', false);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function isNullable(): bool
+	{
+		return (bool) $this->getOption('nullable', false);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function lock(): static
+	{
+		$this->locked = true;
 
 		return $this;
 	}
@@ -269,9 +239,12 @@ abstract class Type implements TypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): mixed
+	public function nullable(bool $nullable = true): static
 	{
-		return $this->safelyCallOnBaseType(__FUNCTION__, [$value, $rdbms]);
+		// important as it will be used by the base type
+		$this->safelyCallOnBaseType(__FUNCTION__, [$nullable]);
+
+		return $this->setOption('nullable', $nullable);
 	}
 
 	/**
@@ -285,7 +258,7 @@ abstract class Type implements TypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	final public function setOption(string $key, mixed $value): self
+	final public function setOption(string $key, mixed $value): static
 	{
 		if ($this->locked) {
 			throw new DBALRuntimeException('Locked type cannot be modified.');
@@ -297,26 +270,30 @@ abstract class Type implements TypeInterface
 	}
 
 	/**
-	 * Checks if the first argument is the smallest.
-	 *
-	 * @param bool  $or_equal
-	 * @param mixed $a
-	 * @param mixed $b
-	 *
-	 * @return bool
+	 * {@inheritDoc}
 	 */
-	final protected static function isLt(mixed $a, mixed $b, bool $or_equal): bool
+	public function shouldEnforceDefaultValue(RDBMSInterface $rdbms): bool
 	{
-		if ((\is_string($a) || \is_string($b)) && \function_exists('bccomp')) {
-			// make sure to have bcmath
-			$a = \sprintf('%F', $a);
-			$b = \sprintf('%F', $b);
-			$c = \bccomp($a, $b);
+		return true;
+	}
 
-			return $or_equal ? $c <= 0 : $c < 0;
-		}
+	/**
+	 * {@inheritDoc}
+	 */
+	public function shouldEnforceQueryExpressionValueType(RDBMSInterface $rdbms): bool
+	{
+		return false;
+	}
 
-		return $or_equal ? $a <= $b : $a < $b;
+	/**
+	 * {@inheritDoc}
+	 */
+	public function toArray(): array
+	{
+		$opt         = $this->options;
+		$opt['type'] = $this->getName();
+
+		return $opt;
 	}
 
 	/**
@@ -354,6 +331,28 @@ abstract class Type implements TypeInterface
 		if ($min > $max) {
 			throw new TypesException(\sprintf('min=%s and max=%s is not a valid condition.', $min, $max));
 		}
+	}
+
+	/**
+	 * Checks if the first argument is the smallest.
+	 *
+	 * @param bool  $or_equal
+	 * @param mixed $a
+	 * @param mixed $b
+	 *
+	 * @return bool
+	 */
+	final protected static function isLt(mixed $a, mixed $b, bool $or_equal): bool
+	{
+		if ((\is_string($a) || \is_string($b)) && \function_exists('bccomp')) {
+			$a = \sprintf('%F', $a);
+			$b = \sprintf('%F', $b);
+			$c = \bccomp($a, $b);
+
+			return $or_equal ? $c <= 0 : $c < 0;
+		}
+
+		return $or_equal ? $a <= $b : $a < $b;
 	}
 
 	/**

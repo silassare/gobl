@@ -38,14 +38,10 @@ final class Table implements ArrayCapableInterface
 	use ArrayCapableTrait;
 	use DiffAwareTrait;
 
-	public const NAME_PATTERN = '[a-z](?:[a-z0-9_]*[a-z0-9])?';
-
-	public const NAME_REG = '~^' . self::NAME_PATTERN . '$~';
-
-	public const ALIAS_PATTERN = '[a-zA-Z_][a-zA-Z0-9_]*';
-
-	public const ALIAS_REG = '~^' . self::ALIAS_PATTERN . '$~';
-
+	public const ALIAS_PATTERN  = '[a-zA-Z_][a-zA-Z0-9_]*';
+	public const ALIAS_REG      = '~^' . self::ALIAS_PATTERN . '$~';
+	public const NAME_PATTERN   = '[a-z](?:[a-z0-9_]*[a-z0-9])?';
+	public const NAME_REG       = '~^' . self::NAME_PATTERN . '$~';
 	public const PREFIX_PATTERN = '[a-zA-Z](?:[a-zA-Z0-9_]*[a-zA-Z0-9])?';
 
 	public const PREFIX_REG = '~^' . self::PREFIX_PATTERN . '$~';
@@ -176,7 +172,7 @@ final class Table implements ArrayCapableInterface
 	 *
 	 * @var \Gobl\DBAL\Collections\Collection[]
 	 */
-	private array $collections;
+	private array $collections = [];
 
 	/**
 	 * Table constructor.
@@ -315,12 +311,14 @@ final class Table implements ArrayCapableInterface
 		$this->assertNotLocked();
 
 		if (!\preg_match(self::NAME_REG, $plural_name)) {
-			throw new InvalidArgumentException(\sprintf(
-				'Table "%s" plural name "%s" should match: %s',
-				$this->name,
-				$plural_name,
-				self::NAME_PATTERN
-			));
+			throw new InvalidArgumentException(
+				\sprintf(
+					'Table "%s" plural name "%s" should match: %s',
+					$this->name,
+					$plural_name,
+					self::NAME_PATTERN
+				)
+			);
 		}
 
 		$this->plural_name = $plural_name;
@@ -352,12 +350,14 @@ final class Table implements ArrayCapableInterface
 		$this->assertNotLocked();
 
 		if (!\preg_match(self::NAME_REG, $singular_name)) {
-			throw new InvalidArgumentException(\sprintf(
-				'Table "%s" singular name "%s" should match: %s',
-				$this->name,
-				$singular_name,
-				self::NAME_PATTERN
-			));
+			throw new InvalidArgumentException(
+				\sprintf(
+					'Table "%s" singular name "%s" should match: %s',
+					$this->name,
+					$singular_name,
+					self::NAME_PATTERN
+				)
+			);
 		}
 
 		$this->singular_name = $singular_name;
@@ -388,12 +388,14 @@ final class Table implements ArrayCapableInterface
 		$this->assertNameNotLocked();
 
 		if (!empty($prefix) && !\preg_match(self::PREFIX_REG, $prefix)) {
-			throw new InvalidArgumentException(\sprintf(
-				'Table "%s" prefix "%s" should match: %s',
-				$this->name,
-				$prefix,
-				self::PREFIX_PATTERN
-			));
+			throw new InvalidArgumentException(
+				\sprintf(
+					'Table "%s" prefix "%s" should match: %s',
+					$this->name,
+					$prefix,
+					self::PREFIX_PATTERN
+				)
+			);
 		}
 
 		$this->prefix = $prefix;
@@ -424,12 +426,14 @@ final class Table implements ArrayCapableInterface
 		$this->assertNotLocked();
 
 		if (!empty($column_prefix) && !\preg_match(Column::PREFIX_REG, $column_prefix)) {
-			throw new InvalidArgumentException(\sprintf(
-				'Table "%s" column prefix "%s" should match: %s',
-				$this->name,
-				$column_prefix,
-				Column::PREFIX_PATTERN
-			));
+			throw new InvalidArgumentException(
+				\sprintf(
+					'Table "%s" column prefix "%s" should match: %s',
+					$this->name,
+					$column_prefix,
+					Column::PREFIX_PATTERN
+				)
+			);
 		}
 
 		$this->column_prefix          = $column_prefix;
@@ -444,12 +448,15 @@ final class Table implements ArrayCapableInterface
 	public function assertIsValid(): void
 	{
 		if (empty($this->columns)) {
-			throw new InvalidArgumentException(\sprintf(
-				'Table "%s" should have at least one column.',
-				$this->name
-			));
+			throw new InvalidArgumentException(
+				\sprintf(
+					'Table "%s" should have at least one column.',
+					$this->name
+				)
+			);
 		}
 
+		$missing = [];
 		if (empty($this->plural_name)) {
 			$missing[] = 'plural_name';
 		}
@@ -458,19 +465,23 @@ final class Table implements ArrayCapableInterface
 			$missing[] = 'singular_name';
 		}
 
-		if (isset($missing)) {
-			throw new InvalidArgumentException(\sprintf(
-				'Invalid table "%s" missing required properties: %s',
-				$this->name,
-				\implode(', ', $missing)
-			));
+		if (!empty($missing)) {
+			throw new InvalidArgumentException(
+				\sprintf(
+					'Invalid table "%s" missing required properties: %s',
+					$this->name,
+					\implode(', ', $missing)
+				)
+			);
 		}
 
 		if (!empty($this->plural_name) && $this->plural_name === $this->singular_name) {
-			throw new InvalidArgumentException(\sprintf(
-				'"plural_name" and "singular_name" should not be equal in table "%s".',
-				$this->name
-			));
+			throw new InvalidArgumentException(
+				\sprintf(
+					'"plural_name" and "singular_name" should not be equal in table "%s".',
+					$this->name
+				)
+			);
 		}
 	}
 
@@ -480,10 +491,12 @@ final class Table implements ArrayCapableInterface
 	public function assertNotLocked(): void
 	{
 		if ($this->locked) {
-			throw new DBALRuntimeException(\sprintf(
-				'You should not try to edit locked table "%s".',
-				$this->name
-			));
+			throw new DBALRuntimeException(
+				\sprintf(
+					'You should not try to edit locked table "%s".',
+					$this->name
+				)
+			);
 		}
 	}
 
@@ -493,10 +506,12 @@ final class Table implements ArrayCapableInterface
 	public function assertNameNotLocked(): void
 	{
 		if ($this->locked_name) {
-			throw new DBALRuntimeException(\sprintf(
-				'You should not try to edit locked table (%s) name or prefix.',
-				$this->name
-			));
+			throw new DBALRuntimeException(
+				\sprintf(
+					'You should not try to edit locked table (%s) name or prefix.',
+					$this->name
+				)
+			);
 		}
 	}
 
@@ -574,12 +589,14 @@ final class Table implements ArrayCapableInterface
 		}
 
 		if (!\preg_match(PHPNamespace::NAMESPACE_PATTERN, $namespace)) {
-			throw new InvalidArgumentException(\sprintf(
-				'Table "%s" namespace "%s" should match: %s',
-				$this->name,
-				$namespace,
-				PHPNamespace::NAMESPACE_PATTERN
-			));
+			throw new InvalidArgumentException(
+				\sprintf(
+					'Table "%s" namespace "%s" should match: %s',
+					$this->name,
+					$namespace,
+					PHPNamespace::NAMESPACE_PATTERN
+				)
+			);
 		}
 
 		$this->namespace = $namespace;
@@ -925,12 +942,14 @@ final class Table implements ArrayCapableInterface
 
 			if (isset($this->fk_constraints[$constraint_name])) {
 				if ($is_named_fk) {
-					throw new DBALException(\sprintf(
-						'Foreign key "%s" is already defined between the tables "%s" and "%s".',
-						$constraint_name,
-						$this->getName(),
-						$reference_table->getName()
-					));
+					throw new DBALException(
+						\sprintf(
+							'Foreign key "%s" is already defined between the tables "%s" and "%s".',
+							$constraint_name,
+							$this->getName(),
+							$reference_table->getName()
+						)
+					);
 				}
 
 				// only one default foreign key between two tables is allowed
@@ -949,11 +968,13 @@ final class Table implements ArrayCapableInterface
 				$constraint_name = 'fk_' . \md5($constraint_name . '_' . $suffix);
 
 				if (isset($this->fk_constraints[$constraint_name])) {
-					throw new DBALException(\sprintf(
-						'Foreign key constraint between the tables "%s" and "%s" with the same options already exists.',
-						$this->getName(),
-						$reference_table->getName()
-					));
+					throw new DBALException(
+						\sprintf(
+							'Foreign key constraint between the tables "%s" and "%s" with the same options already exists.',
+							$this->getName(),
+							$reference_table->getName()
+						)
+					);
 				}
 			}
 
@@ -1144,11 +1165,13 @@ final class Table implements ArrayCapableInterface
 			return $this->fk_constraints[$fk_name];
 		}
 
-		throw new DBALException(\sprintf(
-			'Foreign key from table "%s" not found in table "%s".',
-			$reference->getName(),
-			$this->name
-		));
+		throw new DBALException(
+			\sprintf(
+				'Foreign key from table "%s" not found in table "%s".',
+				$reference->getName(),
+				$this->name
+			)
+		);
 	}
 
 	/**
@@ -1184,7 +1207,7 @@ final class Table implements ArrayCapableInterface
 	{
 		$x = \count($columns_full_names);
 
-		if ($x && $this->hasPrimaryKeyConstraint()) {
+		if ($x && $this->pk_constraint) {
 			$pk_columns = $this->pk_constraint->getColumns();
 			$y          = \count($pk_columns);
 
@@ -1213,7 +1236,7 @@ final class Table implements ArrayCapableInterface
 	 */
 	public function isPartOfPrimaryKey(Column $column): bool
 	{
-		if ($this->hasPrimaryKeyConstraint()) {
+		if ($this->pk_constraint) {
 			$pk_columns = $this->pk_constraint->getColumns();
 
 			return \in_array($column->getFullName(), $pk_columns, true);
@@ -1288,7 +1311,7 @@ final class Table implements ArrayCapableInterface
 	 *
 	 * @return $this
 	 */
-	public function setPrivate(bool $private = true): self
+	public function setPrivate(bool $private = true): static
 	{
 		$this->assertNotLocked();
 
@@ -1369,11 +1392,13 @@ final class Table implements ArrayCapableInterface
 	public function assertHasColumn(string $name): void
 	{
 		if (!$this->hasColumn($name)) {
-			throw new DBALRuntimeException(\sprintf(
-				'The column "%s" does not exists in the table "%s".',
-				$name,
-				$this->getName()
-			));
+			throw new DBALRuntimeException(
+				\sprintf(
+					'The column "%s" does not exists in the table "%s".',
+					$name,
+					$this->getName()
+				)
+			);
 		}
 	}
 
@@ -1471,48 +1496,60 @@ final class Table implements ArrayCapableInterface
 		try {
 			$column->assertIsValid();
 		} catch (Throwable $t) {
-			throw new DBALException(\sprintf(
-				'Column "%s" could not be added to table "%s".',
-				$name,
-				$this->name
-			), null, $t);
+			throw new DBALException(
+				\sprintf(
+					'Column "%s" could not be added to table "%s".',
+					$name,
+					$this->name
+				),
+				null,
+				$t
+			);
 		}
 
 		// prevents column "name" conflict with another column "name" or "full name"
 		if ($this->hasColumn($name)) {
-			throw new DBALException(\sprintf(
-				'The column name "%s" conflict with an existing column name or full name in table "%s".',
-				$name,
-				$this->getName()
-			));
+			throw new DBALException(
+				\sprintf(
+					'The column name "%s" conflict with an existing column name or full name in table "%s".',
+					$name,
+					$this->getName()
+				)
+			);
 		}
 
 		$full_name = $column->getFullName();
 
 		// prevents column "full name" conflict with another column "name" or "full name"
 		if ($this->hasColumn($full_name)) {
-			throw new DBALException(\sprintf(
-				'The column "%s" full name "%s" conflict with an existing column name or full name in table "%s".',
-				$name,
-				$full_name,
-				$this->getName()
-			));
+			throw new DBALException(
+				\sprintf(
+					'The column "%s" full name "%s" conflict with an existing column name or full name in table "%s".',
+					$name,
+					$full_name,
+					$this->getName()
+				)
+			);
 		}
 
 		if ($this->hasRelation($name)) {
-			throw new DBALException(\sprintf(
-				'Column name "%s" conflict with an existing relation name in table "%s".',
-				$name,
-				$this->getName()
-			));
+			throw new DBALException(
+				\sprintf(
+					'Column name "%s" conflict with an existing relation name in table "%s".',
+					$name,
+					$this->getName()
+				)
+			);
 		}
 
 		if ($this->hasVirtualRelation($name)) {
-			throw new DBALException(\sprintf(
-				'Column name "%s" conflict with an existing virtual relation name in table "%s".',
-				$name,
-				$this->getName()
-			));
+			throw new DBALException(
+				\sprintf(
+					'Column name "%s" conflict with an existing virtual relation name in table "%s".',
+					$name,
+					$this->getName()
+				)
+			);
 		}
 	}
 
@@ -1528,47 +1565,57 @@ final class Table implements ArrayCapableInterface
 		$relation_name = $relation->getName();
 
 		if ($relation->getHostTable() !== $this) {
-			throw new DBALException(\sprintf(
-				'Table "%s" should be the host table of the relation "%s" between "%s"(host) and "%s"(target).',
-				$this->name,
-				$relation_name,
-				$relation->getHostTable()
-					->getName(),
-				$relation->getTargetTable()
-					->getName()
-			));
+			throw new DBALException(
+				\sprintf(
+					'Table "%s" should be the host table of the relation "%s" between "%s"(host) and "%s"(target).',
+					$this->name,
+					$relation_name,
+					$relation->getHostTable()
+						->getName(),
+					$relation->getTargetTable()
+						->getName()
+				)
+			);
 		}
 
 		if ($this->hasColumn($relation_name)) {
-			throw new DBALException(\sprintf(
-				'Relation name "%s" conflict with an existing column name or full name in table "%s".',
-				$relation_name,
-				$this->getName()
-			));
+			throw new DBALException(
+				\sprintf(
+					'Relation name "%s" conflict with an existing column name or full name in table "%s".',
+					$relation_name,
+					$this->getName()
+				)
+			);
 		}
 
 		if ($this->hasRelation($relation_name)) {
-			throw new DBALException(\sprintf(
-				'Relation name "%s" conflict with an existing relation name in table "%s".',
-				$relation_name,
-				$this->getName()
-			));
+			throw new DBALException(
+				\sprintf(
+					'Relation name "%s" conflict with an existing relation name in table "%s".',
+					$relation_name,
+					$this->getName()
+				)
+			);
 		}
 
 		if ($this->hasVirtualRelation($relation_name)) {
-			throw new DBALException(\sprintf(
-				'Relation name "%s" conflict with an existing virtual relation name in table "%s".',
-				$relation_name,
-				$this->getName()
-			));
+			throw new DBALException(
+				\sprintf(
+					'Relation name "%s" conflict with an existing virtual relation name in table "%s".',
+					$relation_name,
+					$this->getName()
+				)
+			);
 		}
 
 		if ($this->hasCollection($relation_name)) {
-			throw new DBALException(\sprintf(
-				'Relation name "%s" conflict with an existing collection name in table "%s".',
-				$relation_name,
-				$this->getName()
-			));
+			throw new DBALException(
+				\sprintf(
+					'Relation name "%s" conflict with an existing collection name in table "%s".',
+					$relation_name,
+					$this->getName()
+				)
+			);
 		}
 	}
 
@@ -1586,44 +1633,54 @@ final class Table implements ArrayCapableInterface
 			->getFullName();
 
 		if ($this->getFullName() !== $host_table_full_name) {
-			throw new DBALException(\sprintf(
-				'Virtual relation "%s" is for table "%s" not table "%s".',
-				$relation_name,
-				$host_table_full_name,
-				$this->getName()
-			));
+			throw new DBALException(
+				\sprintf(
+					'Virtual relation "%s" is for table "%s" not table "%s".',
+					$relation_name,
+					$host_table_full_name,
+					$this->getName()
+				)
+			);
 		}
 
 		if ($this->hasColumn($relation_name)) {
-			throw new DBALException(\sprintf(
-				'Virtual relation name "%s" conflict with an existing column name or full name in table "%s".',
-				$relation_name,
-				$this->getName()
-			));
+			throw new DBALException(
+				\sprintf(
+					'Virtual relation name "%s" conflict with an existing column name or full name in table "%s".',
+					$relation_name,
+					$this->getName()
+				)
+			);
 		}
 
 		if ($this->hasVirtualRelation($relation_name)) {
-			throw new DBALException(\sprintf(
-				'Virtual relation name "%s" conflict with an existing virtual relation name in table "%s".',
-				$relation_name,
-				$this->getName()
-			));
+			throw new DBALException(
+				\sprintf(
+					'Virtual relation name "%s" conflict with an existing virtual relation name in table "%s".',
+					$relation_name,
+					$this->getName()
+				)
+			);
 		}
 
 		if ($this->hasRelation($relation_name)) {
-			throw new DBALException(\sprintf(
-				'Virtual relation name "%s" conflict with an existing relation name in table "%s".',
-				$relation_name,
-				$this->getName()
-			));
+			throw new DBALException(
+				\sprintf(
+					'Virtual relation name "%s" conflict with an existing relation name in table "%s".',
+					$relation_name,
+					$this->getName()
+				)
+			);
 		}
 
 		if ($this->hasCollection($relation_name)) {
-			throw new DBALException(\sprintf(
-				'Virtual relation name "%s" conflict with an existing collection name in table "%s".',
-				$relation_name,
-				$this->getName()
-			));
+			throw new DBALException(
+				\sprintf(
+					'Virtual relation name "%s" conflict with an existing collection name in table "%s".',
+					$relation_name,
+					$this->getName()
+				)
+			);
 		}
 	}
 
@@ -1639,36 +1696,44 @@ final class Table implements ArrayCapableInterface
 		$name = $collection->getName();
 
 		if ($this->hasColumn($name)) {
-			throw new DBALException(\sprintf(
-				'Cannot use "%s" as collection name, column "%s" exists in table "%s".',
-				$name,
-				$name,
-				$this->getName()
-			));
+			throw new DBALException(
+				\sprintf(
+					'Cannot use "%s" as collection name, column "%s" exists in table "%s".',
+					$name,
+					$name,
+					$this->getName()
+				)
+			);
 		}
 
 		if ($this->hasCollection($name)) {
-			throw new DBALException(\sprintf(
-				'Cannot override collection "%s" in table "%s".',
-				$name,
-				$this->getName()
-			));
+			throw new DBALException(
+				\sprintf(
+					'Cannot override collection "%s" in table "%s".',
+					$name,
+					$this->getName()
+				)
+			);
 		}
 
 		if ($this->hasRelation($name)) {
-			throw new DBALException(\sprintf(
-				'Collection name and relation name conflict for "%s" in table "%s".',
-				$name,
-				$this->getName()
-			));
+			throw new DBALException(
+				\sprintf(
+					'Collection name and relation name conflict for "%s" in table "%s".',
+					$name,
+					$this->getName()
+				)
+			);
 		}
 
 		if ($this->hasVirtualRelation($name)) {
-			throw new DBALException(\sprintf(
-				'Collection name and virtual relation name conflict for "%s" in table "%s".',
-				$name,
-				$this->getName()
-			));
+			throw new DBALException(
+				\sprintf(
+					'Collection name and virtual relation name conflict for "%s" in table "%s".',
+					$name,
+					$this->getName()
+				)
+			);
 		}
 	}
 }

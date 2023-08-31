@@ -31,7 +31,7 @@ use PHPUtils\Str;
  */
 final class RelationBuilder
 {
-	private ?Table    $target_table = null;
+	private ?Table $target_table    = null;
 	private ?Relation $relation     = null;
 
 	/**

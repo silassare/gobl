@@ -64,7 +64,7 @@ class TypeFloat extends Type implements BaseTypeInterface
 	 *
 	 * @return $this
 	 */
-	public function unsigned(bool $unsigned = true, ?string $message = null): self
+	public function unsigned(bool $unsigned = true, ?string $message = null): static
 	{
 		!empty($message) && $this->msg('invalid_unsigned_float_type', $message);
 
@@ -81,7 +81,7 @@ class TypeFloat extends Type implements BaseTypeInterface
 	 *
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
-	public function min(float $min, ?string $message = null): self
+	public function min(float $min, ?string $message = null): static
 	{
 		if (0 > $min && $this->isUnsigned()) {
 			throw new TypesException(\sprintf('"%s" is not a valid unsigned float.', $min));
@@ -117,7 +117,7 @@ class TypeFloat extends Type implements BaseTypeInterface
 	 *
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
-	public function max(float $max, ?string $message = null): self
+	public function max(float $max, ?string $message = null): static
 	{
 		if (0.0 > $max && $this->isUnsigned()) {
 			throw new TypesException(\sprintf('"%s" is not a valid unsigned float.', $max));
@@ -137,63 +137,17 @@ class TypeFloat extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public static function getInstance(array $options): self
+	public static function getInstance(array $options): static
 	{
-		return (new static())->configure($options);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-	 */
-	public function configure(array $options): self
-	{
-		if (isset($options['min'])) {
-			$this->min((float) $options['min']);
-		}
-
-		if (isset($options['max'])) {
-			$this->max((float) $options['max']);
-		}
-
-		if (isset($options['unsigned'])) {
-			$this->unsigned((bool) $options['unsigned']);
-		}
-
-		if (isset($options['mantissa'])) {
-			$this->mantissa((int) $options['mantissa']);
-		}
-
-		return parent::configure($options);
-	}
-
-	/**
-	 * Sets the number of digits following the floating point.
-	 *
-	 * @param int $mantissa the mantissa
-	 *
-	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-	 */
-	public function mantissa(int $mantissa): self
-	{
-		if (0 > $mantissa) {
-			throw new TypesException(
-				'The number of digits following the floating point should be a positive integer.'
-			);
-		}
-
-		return $this->setOption('mantissa', $mantissa);
+		return (new self())->configure($options);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public function getEmptyValueOfType(): ?float
+	public function getName(): string
 	{
-		return $this->isNullable() ? null : 0.0;
+		return self::NAME;
 	}
 
 	/**
@@ -249,11 +203,44 @@ class TypeFloat extends Type implements BaseTypeInterface
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
-	public function getWriteTypeHint(): ORMTypeHint
+	public function configure(array $options): static
 	{
-		return ORMTypeHint::float()
-			->addUniversalTypes(ORMUniversalType::INT);
+		if (isset($options['min'])) {
+			$this->min((float) $options['min']);
+		}
+
+		if (isset($options['max'])) {
+			$this->max((float) $options['max']);
+		}
+
+		if (isset($options['unsigned'])) {
+			$this->unsigned((bool) $options['unsigned']);
+		}
+
+		if (isset($options['mantissa'])) {
+			$this->mantissa((int) $options['mantissa']);
+		}
+
+		return parent::configure($options);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?float
+	{
+		return null === $value ? null : (float) $value;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getEmptyValueOfType(): ?float
+	{
+		return $this->isNullable() ? null : 0.0;
 	}
 
 	/**
@@ -267,9 +254,10 @@ class TypeFloat extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?float
+	public function getWriteTypeHint(): ORMTypeHint
 	{
-		return null === $value ? null : (float) $value;
+		return ORMTypeHint::float()
+			->addUniversalTypes(ORMUniversalType::INT);
 	}
 
 	/**
@@ -283,10 +271,22 @@ class TypeFloat extends Type implements BaseTypeInterface
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * Sets the number of digits following the floating point.
+	 *
+	 * @param int $mantissa the mantissa
+	 *
+	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
-	public function getName(): string
+	public function mantissa(int $mantissa): static
 	{
-		return self::NAME;
+		if (0 > $mantissa) {
+			throw new TypesException(
+				'The number of digits following the floating point should be a positive integer.'
+			);
+		}
+
+		return $this->setOption('mantissa', $mantissa);
 	}
 }

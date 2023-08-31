@@ -25,11 +25,9 @@ use Gobl\ORM\ORMUniversalType;
  */
 class TypeBigint extends Type implements BaseTypeInterface
 {
-	public const NAME = 'bigint';
-
-	public const BIGINT_REG = '~[-+]?(?:[1-9]\d*|0)~';
-
+	public const BIGINT_REG          = '~[-+]?(?:[1-9]\d*|0)~';
 	public const BIGINT_UNSIGNED_REG = '~[+]?(?:[1-9]\d*|0)~';
+	public const NAME                = 'bigint';
 
 	/**
 	 * TypeBigint constructor.
@@ -72,7 +70,7 @@ class TypeBigint extends Type implements BaseTypeInterface
 	 *
 	 * @return $this
 	 */
-	public function unsigned(bool $unsigned = true, ?string $message = null): self
+	public function unsigned(bool $unsigned = true, ?string $message = null): static
 	{
 		!empty($message) && $this->msg('invalid_unsigned_bigint_type', $message);
 
@@ -89,7 +87,7 @@ class TypeBigint extends Type implements BaseTypeInterface
 	 *
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
-	public function min(string $min, ?string $message = null): self
+	public function min(string $min, ?string $message = null): static
 	{
 		self::assertValidBigint($min, $this->isUnsigned());
 
@@ -124,7 +122,7 @@ class TypeBigint extends Type implements BaseTypeInterface
 	 *
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
-	public function max(string $max, ?string $message = null): self
+	public function max(string $max, ?string $message = null): static
 	{
 		self::assertValidBigint($max, $this->isUnsigned());
 
@@ -140,31 +138,17 @@ class TypeBigint extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public static function getInstance(array $options): self
+	public static function getInstance(array $options): static
 	{
-		return (new static())->configure($options);
+		return (new self())->configure($options);
 	}
 
 	/**
 	 * {@inheritDoc}
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
-	public function configure(array $options): self
+	public function getName(): string
 	{
-		if (isset($options['min'])) {
-			$this->min((string) $options['min']);
-		}
-
-		if (isset($options['max'])) {
-			$this->max((string) $options['max']);
-		}
-
-		if (isset($options['unsigned'])) {
-			$this->unsigned((bool) $options['unsigned']);
-		}
-
-		return parent::configure($options);
+		return self::NAME;
 	}
 
 	/**
@@ -221,10 +205,24 @@ class TypeBigint extends Type implements BaseTypeInterface
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
-	public function getEmptyValueOfType(): ?int
+	public function configure(array $options): static
 	{
-		return $this->isNullable() ? null : 0;
+		if (isset($options['min'])) {
+			$this->min((string) $options['min']);
+		}
+
+		if (isset($options['max'])) {
+			$this->max((string) $options['max']);
+		}
+
+		if (isset($options['unsigned'])) {
+			$this->unsigned((bool) $options['unsigned']);
+		}
+
+		return parent::configure($options);
 	}
 
 	/**
@@ -237,21 +235,10 @@ class TypeBigint extends Type implements BaseTypeInterface
 
 	/**
 	 * {@inheritDoc}
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
-	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
+	public function getEmptyValueOfType(): ?int
 	{
-		return $this->validate($value);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getWriteTypeHint(): ORMTypeHint
-	{
-		return ORMTypeHint::bigint()
-			->addUniversalTypes(ORMUniversalType::INT);
+		return $this->isNullable() ? null : 0;
 	}
 
 	/**
@@ -265,9 +252,20 @@ class TypeBigint extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function getName(): string
+	public function getWriteTypeHint(): ORMTypeHint
 	{
-		return self::NAME;
+		return ORMTypeHint::bigint()
+			->addUniversalTypes(ORMUniversalType::INT);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 */
+	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
+	{
+		return $this->validate($value);
 	}
 
 	/**

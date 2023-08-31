@@ -140,7 +140,9 @@ final class Filters
 			} elseif (\is_array($cur)) {
 				$instance->where(self::fromArray($cur, $qb, $scope));
 			} else {
-				throw new DBALRuntimeException(\sprintf('unexpected "%s" will expecting "string|array".', \get_debug_type($cur)));
+				throw new DBALRuntimeException(
+					\sprintf('unexpected "%s" will expecting "string|array".', \get_debug_type($cur))
+				);
 			}
 
 			/**
@@ -151,7 +153,12 @@ final class Filters
 			if (\array_key_exists(++$i, $filters)) {
 				$cond = $filters[$i];
 				if (!\is_string($cond)) {
-					throw new DBALRuntimeException(\sprintf('unexpected "%s" will expecting conditional operator: "and|or".', \get_debug_type($cond)));
+					throw new DBALRuntimeException(
+						\sprintf(
+							'unexpected "%s" will expecting conditional operator: "and|or".',
+							\get_debug_type($cond)
+						)
+					);
 				}
 
 				$cond = \strtoupper($cond);
@@ -161,12 +168,16 @@ final class Filters
 				} elseif ('OR' === $cond) {
 					$instance->or();
 				} else {
-					throw new DBALRuntimeException(\sprintf('unexpected conditional operator "%s" allowed value are: "and|or".', $cond));
+					throw new DBALRuntimeException(
+						\sprintf('unexpected conditional operator "%s" allowed value are: "and|or".', $cond)
+					);
 				}
 
 				$next = $filters[++$i] ?? null;
 				if (null === $next) {
-					throw new DBALRuntimeException('a conditional operator should not be the last item in a filter or filter group.');
+					throw new DBALRuntimeException(
+						'a conditional operator should not be the last item in a filter or filter group.'
+					);
 				}
 			}
 		}
@@ -225,22 +236,30 @@ final class Filters
 		foreach ($filters as $entry) {
 			if ($entry instanceof self) {
 				if ($entry === $this) {
-					throw new DBALRuntimeException(\sprintf(
-						'Current instance used as sub group, you may need to create a sub group with: %s',
-						Str::callableName([$this, 'subGroup'])
-					));
+					throw new DBALRuntimeException(
+						\sprintf(
+							'Current instance used as sub group, you may need to create a sub group with: %s',
+							Str::callableName([$this, 'subGroup'])
+						)
+					);
 				}
 
 				if ($this->qb !== $entry->qb) {
-					throw (new DBALRuntimeException(\sprintf(
-						'Provided filters instance does not share the same "%s" instance as the current filters instance.',
-						QBInterface::class
-					)))->suspectObject($entry->qb);
+					throw (new DBALRuntimeException(
+						\sprintf(
+							'Provided filters instance does not share the same "%s" instance as the current filters instance.',
+							QBInterface::class
+						)
+					))->suspectObject($entry->qb);
 				}
 
 				if ($this->scope && (!$entry->scope || !$this->scope->shouldAllowFiltersScope($entry->scope))) {
-					throw (new DBALRuntimeException('Provided filters instance scope is not allowed by the current filter scope.'))
-						->suspectObject($entry->scope);
+					$e = (new DBALRuntimeException(
+						'Provided filters instance scope is not allowed by the current filter scope.'
+					));
+					$entry->scope && $e->suspectObject($entry->scope);
+
+					throw $e;
 				}
 
 				$filter = $entry->group;
@@ -249,10 +268,12 @@ final class Filters
 				$return = $entry($sub);
 
 				if ($return !== $sub) {
-					throw (new DBALRuntimeException(\sprintf(
-						'The sub-filters group callable should return the same instance of "%s" passed as argument.',
-						self::class
-					)))
+					throw (new DBALRuntimeException(
+						\sprintf(
+							'The sub-filters group callable should return the same instance of "%s" passed as argument.',
+							self::class
+						)
+					))
 						->suspectCallable($entry);
 				}
 
@@ -288,8 +309,11 @@ final class Filters
 	 *
 	 * @return $this
 	 */
-	public function add(Operator $operator, string $left, null|int|bool|float|string|array|QBExpression|QBInterface $right = null): self
-	{
+	public function add(
+		Operator $operator,
+		string $left,
+		null|int|bool|float|string|array|QBExpression|QBInterface $right = null
+	): self {
 		if (Operator::IS_TRUE === $operator) {
 			$operator = Operator::EQ;
 			$right    = true;
@@ -436,8 +460,11 @@ final class Filters
 	 *
 	 * @return \Gobl\DBAL\Filters\Filters
 	 */
-	private static function fromOldFiltersArray(array $filters, QBInterface $qb, ?FiltersScopeInterface $scope = null): self
-	{
+	private static function fromOldFiltersArray(
+		array $filters,
+		QBInterface $qb,
+		?FiltersScopeInterface $scope = null
+	): self {
 		$instance = new self($qb, $scope);
 
 		foreach ($filters as $left => $group) {
@@ -553,7 +580,9 @@ final class Filters
 			$table  = $column->getTable();
 
 			if (null === $table) {
-				throw new DBALRuntimeException(\sprintf('attempt to use unlocked column "%s" in a query.', $column->getName()));
+				throw new DBALRuntimeException(
+					\sprintf('attempt to use unlocked column "%s" in a query.', $column->getName())
+				);
 			}
 
 			$found_table  = $table->getFullName();

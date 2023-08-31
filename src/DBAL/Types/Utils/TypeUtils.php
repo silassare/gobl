@@ -102,7 +102,7 @@ class TypeUtils
 	/**
 	 * Returns base types class map.
 	 *
-	 * @return string[]
+	 * @return class-string<\Gobl\DBAL\Types\Interfaces\BaseTypeInterface>[]
 	 */
 	public static function getBaseTypes(): array
 	{

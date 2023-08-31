@@ -67,7 +67,7 @@ final class Column implements ArrayCapableInterface
 	 * @var \Gobl\DBAL\Types\Interfaces\TypeInterface
 	 */
 	private TypeInterface $type;
-	private ?string       $reference = null;
+	private ?string $reference = null;
 
 	private bool $locked = false;
 

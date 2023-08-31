@@ -66,7 +66,7 @@ class TypeBool extends Type implements BaseTypeInterface
 	 *
 	 * @return $this
 	 */
-	public function strict(bool $strict = true): self
+	public function strict(bool $strict = true): static
 	{
 		return $this->setOption('strict', $strict);
 	}
@@ -74,67 +74,17 @@ class TypeBool extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public static function getInstance(array $options): self
+	public static function getInstance(array $options): static
 	{
-		return (new static())->configure($options);
+		return (new self())->configure($options);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public function configure(array $options): self
+	public function getName(): string
 	{
-		if (isset($options['strict'])) {
-			$this->strict((bool) $options['strict']);
-		}
-
-		return parent::configure($options);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getEmptyValueOfType(): ?bool
-	{
-		return $this->isNullable() ? null : false;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function default(mixed $default): self
-	{
-		return parent::default((int) ((bool) $default));
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getAllowedFilterOperators(): array
-	{
-		$operators = [
-			Operator::EQ,
-			Operator::NEQ,
-			Operator::IS_FALSE,
-			Operator::IS_TRUE,
-		];
-
-		if ($this->isNullable()) {
-			$operators[] = Operator::IS_NULL;
-			$operators[] = Operator::IS_NOT_NULL;
-		}
-
-		return $operators;
-	}
-
-	/**
-	 * Checks if this is strict.
-	 *
-	 * @return bool
-	 */
-	public function isStrict(): bool
-	{
-		return (bool) $this->getOption('strict', true);
+		return self::NAME;
 	}
 
 	/**
@@ -176,9 +126,57 @@ class TypeBool extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function getWriteTypeHint(): ORMTypeHint
+	public function configure(array $options): static
 	{
-		return ORMTypeHint::bool();
+		if (isset($options['strict'])) {
+			$this->strict((bool) $options['strict']);
+		}
+
+		return parent::configure($options);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?bool
+	{
+		return null === $value ? null : (bool) $value;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function default(mixed $default): static
+	{
+		return parent::default((int) ((bool) $default));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getAllowedFilterOperators(): array
+	{
+		$operators = [
+			Operator::EQ,
+			Operator::NEQ,
+			Operator::IS_FALSE,
+			Operator::IS_TRUE,
+		];
+
+		if ($this->isNullable()) {
+			$operators[] = Operator::IS_NULL;
+			$operators[] = Operator::IS_NOT_NULL;
+		}
+
+		return $operators;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getEmptyValueOfType(): ?bool
+	{
+		return $this->isNullable() ? null : false;
 	}
 
 	/**
@@ -192,9 +190,9 @@ class TypeBool extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?bool
+	public function getWriteTypeHint(): ORMTypeHint
 	{
-		return null === $value ? null : (bool) $value;
+		return ORMTypeHint::bool();
 	}
 
 	/**
@@ -214,10 +212,12 @@ class TypeBool extends Type implements BaseTypeInterface
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * Checks if this is strict.
+	 *
+	 * @return bool
 	 */
-	public function getName(): string
+	public function isStrict(): bool
 	{
-		return self::NAME;
+		return (bool) $this->getOption('strict', true);
 	}
 }

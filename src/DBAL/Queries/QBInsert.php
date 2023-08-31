@@ -19,11 +19,13 @@ use Gobl\DBAL\Queries\Traits\QBCommonTrait;
 use Gobl\DBAL\Queries\Traits\QBSetColumnsValuesTrait;
 use Gobl\DBAL\Table;
 use InvalidArgumentException;
+use LogicException;
+use PHPUtils\Str;
 
 /**
  * Class QBInsert.
  */
-class QBInsert implements QBInterface
+final class QBInsert implements QBInterface
 {
 	use QBCommonTrait;
 	use QBSetColumnsValuesTrait;
@@ -53,14 +55,6 @@ class QBInsert implements QBInterface
 
 	/**
 	 * {@inheritDoc}
-	 */
-	public function getType(): QBType
-	{
-		return QBType::INSERT;
-	}
-
-	/**
-	 * {@inheritDoc}
 	 *
 	 * @return false|string
 	 */
@@ -71,6 +65,14 @@ class QBInsert implements QBInterface
 		$types  = $this->getBoundValuesTypes();
 
 		return $this->db->insert($sql, $values, $types);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getType(): QBType
+	{
+		return QBType::INSERT;
 	}
 
 	/**
@@ -100,6 +102,10 @@ class QBInsert implements QBInterface
 	 */
 	public function values(array $values): self
 	{
+		if (!isset($this->options_table)) {
+			throw new LogicException(\sprintf('You must call "%s" method first', Str::callableName([$this, 'into'])));
+		}
+
 		$map           = $this->bindColumnsValuesForInsertOrUpdate($this->options_table, $values, $this->auto_prefix);
 		$columns       = \array_keys($map);
 		$values_params = \array_values($map);
@@ -107,11 +113,13 @@ class QBInsert implements QBInterface
 		if (empty($this->options_columns_names)) {
 			$this->options_columns_names = $columns;
 		} elseif ($this->options_columns_names !== $columns) {
-			throw new InvalidArgumentException(\sprintf(
-				'Invalid columns for multi insert, expected "(%s)" got "(%s)"',
-				\implode(', ', $this->options_columns_names),
-				\implode(', ', $columns)
-			));
+			throw new InvalidArgumentException(
+				\sprintf(
+					'Invalid columns for multi insert, expected "(%s)" got "(%s)"',
+					\implode(', ', $this->options_columns_names),
+					\implode(', ', $columns)
+				)
+			);
 		}
 
 		$this->options_values_params[] = $values_params;

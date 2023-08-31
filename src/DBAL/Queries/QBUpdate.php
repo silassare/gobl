@@ -20,11 +20,13 @@ use Gobl\DBAL\Queries\Traits\QBLimitTrait;
 use Gobl\DBAL\Queries\Traits\QBOrderByTrait;
 use Gobl\DBAL\Queries\Traits\QBSetColumnsValuesTrait;
 use Gobl\DBAL\Queries\Traits\QBWhereTrait;
+use LogicException;
+use PHPUtils\Str;
 
 /**
  * Class QBUpdate.
  */
-class QBUpdate implements QBInterface
+final class QBUpdate implements QBInterface
 {
 	use QBCommonTrait;
 	use QBLimitTrait;
@@ -39,7 +41,7 @@ class QBUpdate implements QBInterface
 	 *
 	 * @var array<string, string>
 	 */
-	protected array   $options_columns            = [];
+	protected array $options_columns              = [];
 	protected ?string $options_update_table_alias = '';
 
 	/**
@@ -49,14 +51,6 @@ class QBUpdate implements QBInterface
 	 */
 	public function __construct(protected RDBMSInterface $db)
 	{
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getType(): QBType
-	{
-		return QBType::INSERT;
 	}
 
 	/**
@@ -71,6 +65,14 @@ class QBUpdate implements QBInterface
 		$types  = $this->getBoundValuesTypes();
 
 		return $this->db->update($sql, $values, $types);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getType(): QBType
+	{
+		return QBType::INSERT;
 	}
 
 	/**
@@ -134,9 +136,11 @@ class QBUpdate implements QBInterface
 	 */
 	public function set(array $values, bool $auto_prefix = true): self
 	{
-		$table = $this->options_table;
+		if (!isset($this->options_table)) {
+			throw new LogicException(\sprintf('You must call "%s" method first', Str::callableName([$this, 'update'])));
+		}
 
-		$this->options_columns = $this->bindColumnsValuesForInsertOrUpdate($table, $values, $auto_prefix);
+		$this->options_columns = $this->bindColumnsValuesForInsertOrUpdate($this->options_table, $values, $auto_prefix);
 
 		return $this;
 	}

@@ -28,12 +28,12 @@ interface RDBMSInterface
 	/**
 	 * Create instance.
 	 */
-	public static function createInstance(DbConfig $config): self;
+	public static function createInstance(DbConfig $config): static;
 
 	/**
 	 * Locks this db instance to prevent further changes.
 	 */
-	public function lock(): self;
+	public function lock(): static;
 
 	/**
 	 * Gets PDO connection.
@@ -64,7 +64,7 @@ interface RDBMSInterface
 	 *
 	 * @return $this
 	 */
-	public function addTable(Table $table): self;
+	public function addTable(Table $table): static;
 
 	/**
 	 * Loads tables from a given schema definition.
@@ -76,7 +76,7 @@ interface RDBMSInterface
 	 *
 	 * @return $this
 	 */
-	public function loadSchema(array $schema, string $desired_namespace = null): self;
+	public function loadSchema(array $schema, string $desired_namespace = null): static;
 
 	/**
 	 * Returns db namespace builder for a given namespace.

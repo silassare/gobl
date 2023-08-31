@@ -75,7 +75,7 @@ class TypeString extends Type implements BaseTypeInterface
 	 *
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
-	public function min(int $min, ?string $message = null): self
+	public function min(int $min, ?string $message = null): static
 	{
 		self::assertSafeIntRange($min, $this->getOption('max', \PHP_INT_MAX), 0);
 
@@ -94,7 +94,7 @@ class TypeString extends Type implements BaseTypeInterface
 	 *
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
-	public function max(int $max, ?string $message = null): self
+	public function max(int $max, ?string $message = null): static
 	{
 		self::assertSafeIntRange($this->getOption('min', 0), $max, 0);
 
@@ -113,7 +113,7 @@ class TypeString extends Type implements BaseTypeInterface
 	 *
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
-	public function pattern(string $pattern, ?string $message = null): self
+	public function pattern(string $pattern, ?string $message = null): static
 	{
 		if (false === \preg_match($pattern, '')) {
 			throw new TypesException(\sprintf('invalid regular expression: %s', $pattern));
@@ -132,7 +132,7 @@ class TypeString extends Type implements BaseTypeInterface
 	 *
 	 * @return $this
 	 */
-	public function oneOf(array $list, ?string $message = null): self
+	public function oneOf(array $list, ?string $message = null): static
 	{
 		!empty($message) && $this->msg('string_not_in_allowed_list', $message);
 
@@ -142,113 +142,17 @@ class TypeString extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public static function getInstance(array $options): self
+	public static function getInstance(array $options): static
 	{
-		return (new static())->configure($options);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-	 */
-	public function configure(array $options): self
-	{
-		if (isset($options['min'])) {
-			$this->min((int) $options['min']);
-		}
-
-		if (isset($options['max'])) {
-			$this->max((int) $options['max']);
-		}
-
-		if (isset($options['truncate'])) {
-			$this->truncate((bool) $options['truncate']);
-		}
-
-		if (isset($options['multiline'])) {
-			$this->multiline((bool) $options['multiline']);
-		}
-
-		if (isset($options['trim'])) {
-			$this->trim((bool) $options['trim']);
-		}
-
-		if (isset($options['pattern'])) {
-			$this->pattern((string) $options['pattern']);
-		}
-
-		if (isset($options['one_of']) && \is_array($options['one_of'])) {
-			$this->oneOf($options['one_of']);
-		}
-
-		return parent::configure($options);
-	}
-
-	/**
-	 * Enable truncating when string length greater than max.
-	 *
-	 * @param bool $truncate
-	 *
-	 * @return $this
-	 */
-	public function truncate(bool $truncate = true): self
-	{
-		return $this->setOption('truncate', $truncate);
-	}
-
-	/**
-	 * One line string.
-	 *
-	 * @param bool $one_line
-	 *
-	 * @return $this
-	 */
-	public function oneLine(bool $one_line = true): self
-	{
-		return $this->multiline(!$one_line);
-	}
-
-	/**
-	 * Multiline string.
-	 *
-	 * @param bool $multiline
-	 *
-	 * @return $this
-	 */
-	public function multiline(bool $multiline = true): self
-	{
-		return $this->setOption('multiline', $multiline);
-	}
-
-	/**
-	 * Checks if truncate is enabled.
-	 *
-	 * @return bool
-	 */
-	public function canTruncate(): bool
-	{
-		return (bool) $this->getOption('truncate', false);
-	}
-
-	/**
-	 * Trim string.
-	 *
-	 * @param bool $trim
-	 *
-	 * @return $this
-	 */
-	public function trim(bool $trim = true): self
-	{
-		return $this->setOption('trim', $trim);
+		return (new self())->configure($options);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public function getEmptyValueOfType(): ?string
+	public function getName(): string
 	{
-		return $this->isNullable() ? null : '';
+		return self::NAME;
 	}
 
 	/**
@@ -321,10 +225,56 @@ class TypeString extends Type implements BaseTypeInterface
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
-	public function getWriteTypeHint(): ORMTypeHint
+	public function configure(array $options): static
 	{
-		return ORMTypeHint::string();
+		if (isset($options['min'])) {
+			$this->min((int) $options['min']);
+		}
+
+		if (isset($options['max'])) {
+			$this->max((int) $options['max']);
+		}
+
+		if (isset($options['truncate'])) {
+			$this->truncate((bool) $options['truncate']);
+		}
+
+		if (isset($options['multiline'])) {
+			$this->multiline((bool) $options['multiline']);
+		}
+
+		if (isset($options['trim'])) {
+			$this->trim((bool) $options['trim']);
+		}
+
+		if (isset($options['pattern'])) {
+			$this->pattern((string) $options['pattern']);
+		}
+
+		if (isset($options['one_of']) && \is_array($options['one_of'])) {
+			$this->oneOf($options['one_of']);
+		}
+
+		return parent::configure($options);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?string
+	{
+		return null === $value ? null : (string) $value;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getEmptyValueOfType(): ?string
+	{
+		return $this->isNullable() ? null : '';
 	}
 
 	/**
@@ -338,9 +288,9 @@ class TypeString extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?string
+	public function getWriteTypeHint(): ORMTypeHint
 	{
-		return null === $value ? null : (string) $value;
+		return ORMTypeHint::string();
 	}
 
 	/**
@@ -354,10 +304,60 @@ class TypeString extends Type implements BaseTypeInterface
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * Enable truncating when string length greater than max.
+	 *
+	 * @param bool $truncate
+	 *
+	 * @return $this
 	 */
-	public function getName(): string
+	public function truncate(bool $truncate = true): static
 	{
-		return self::NAME;
+		return $this->setOption('truncate', $truncate);
+	}
+
+	/**
+	 * Multiline string.
+	 *
+	 * @param bool $multiline
+	 *
+	 * @return $this
+	 */
+	public function multiline(bool $multiline = true): static
+	{
+		return $this->setOption('multiline', $multiline);
+	}
+
+	/**
+	 * Trim string.
+	 *
+	 * @param bool $trim
+	 *
+	 * @return $this
+	 */
+	public function trim(bool $trim = true): static
+	{
+		return $this->setOption('trim', $trim);
+	}
+
+	/**
+	 * Checks if truncate is enabled.
+	 *
+	 * @return bool
+	 */
+	public function canTruncate(): bool
+	{
+		return (bool) $this->getOption('truncate', false);
+	}
+
+	/**
+	 * One line string.
+	 *
+	 * @param bool $one_line
+	 *
+	 * @return $this
+	 */
+	public function oneLine(bool $one_line = true): static
+	{
+		return $this->multiline(!$one_line);
 	}
 }

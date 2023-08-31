@@ -35,8 +35,11 @@ class NamedToPositionalParams
 	 * @param array  $params
 	 * @param array  $params_types
 	 */
-	public function __construct(protected string $query, protected array $params = [], protected array $params_types = [])
-	{
+	public function __construct(
+		protected string $query,
+		protected array $params = [],
+		protected array $params_types = []
+	) {
 		$this->new_query = (string) \preg_replace_callback('~:(\w+)~', [$this, 'replacer'], $query);
 	}
 
@@ -113,13 +116,13 @@ class NamedToPositionalParams
 	/**
 	 * Internal replacer.
 	 *
-	 * @param $matches
+	 * @param array $matches
 	 *
 	 * @return string
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
-	private function replacer($matches): string
+	private function replacer(array $matches): string
 	{
 		[$token, $key]  = $matches;
 		$replacement    = '?';

@@ -16,6 +16,7 @@ namespace Gobl\DBAL\Queries\Traits;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Queries\QBUtils;
 use Gobl\DBAL\Table;
+use Throwable;
 
 /**
  * Trait QBFromTrait.
@@ -138,7 +139,7 @@ trait QBFromTrait
 			try {
 				// if the table has a main alias we use it
 				$alias = $this->getMainAlias($table);
-			} catch (\Throwable) {
+			} catch (Throwable) {
 				// do nothing
 			}
 		}

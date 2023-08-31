@@ -40,10 +40,32 @@ class TypeMap extends Type
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * @throws JsonException
 	 */
-	public static function getInstance(array $options): self
+	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?array
 	{
-		return (new static())->configure($options);
+		return null === $value ? null : \json_decode($value, true, 512, \JSON_THROW_ON_ERROR);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getAllowedFilterOperators(): array
+	{
+		$operators = [
+			Operator::EQ,
+			Operator::NEQ,
+			Operator::LIKE,
+			Operator::NOT_LIKE,
+		];
+
+		if ($this->isNullable()) {
+			$operators[] = Operator::IS_NULL;
+			$operators[] = Operator::IS_NOT_NULL;
+		}
+
+		return $operators;
 	}
 
 	/**
@@ -52,6 +74,55 @@ class TypeMap extends Type
 	public function getEmptyValueOfType(): ?array
 	{
 		return $this->isNullable() ? null : [];
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public static function getInstance(array $options): static
+	{
+		return (new self())->configure($options);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getName(): string
+	{
+		return self::NAME;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getReadTypeHint(): ORMTypeHint
+	{
+		return ORMTypeHint::map();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getWriteTypeHint(): ORMTypeHint
+	{
+		return ORMTypeHint::map();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws JsonException
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
+	 */
+	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
+	{
+		$value = $this->validate($value);
+
+		if (null === $value) {
+			return null;
+		}
+
+		return empty($value) ? '{}' : \json_encode($value, \JSON_THROW_ON_ERROR);
 	}
 
 	/**
@@ -83,76 +154,5 @@ class TypeMap extends Type
 		}
 
 		return $value;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @throws JsonException
-	 */
-	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?array
-	{
-		return null === $value ? null : \json_decode($value, true, 512, \JSON_THROW_ON_ERROR);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @throws JsonException
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
-	 */
-	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
-	{
-		$value = $this->validate($value);
-
-		if (null === $value) {
-			return null;
-		}
-
-		return empty($value) ? '{}' : \json_encode($value, \JSON_THROW_ON_ERROR);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getAllowedFilterOperators(): array
-	{
-		$operators = [
-			Operator::EQ,
-			Operator::NEQ,
-			Operator::LIKE,
-			Operator::NOT_LIKE,
-		];
-
-		if ($this->isNullable()) {
-			$operators[] = Operator::IS_NULL;
-			$operators[] = Operator::IS_NOT_NULL;
-		}
-
-		return $operators;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getWriteTypeHint(): ORMTypeHint
-	{
-		return ORMTypeHint::map();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getReadTypeHint(): ORMTypeHint
-	{
-		return ORMTypeHint::map();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getName(): string
-	{
-		return self::NAME;
 	}
 }

@@ -19,7 +19,7 @@ use Gobl\DBAL\Table;
 /**
  * Class ForeignKey.
  */
-class ForeignKey extends Constraint
+final class ForeignKey extends Constraint
 {
 	/** @var \Gobl\DBAL\Table */
 	private Table $reference_table;
@@ -165,12 +165,14 @@ class ForeignKey extends Constraint
 		$columns = \array_unique($this->getReferenceColumns());
 
 		if (!$this->reference_table->isPrimaryKey($columns)) {
-			throw new DBALException(\sprintf(
-				'Foreign key "(%s)" in table "%s" should be primary key in the reference table "%s".',
-				\implode(', ', $columns),
-				$this->host_table->getName(),
-				$this->reference_table->getName(),
-			));
+			throw new DBALException(
+				\sprintf(
+					'Foreign key "(%s)" in table "%s" should be primary key in the reference table "%s".',
+					\implode(', ', $columns),
+					$this->host_table->getName(),
+					$this->reference_table->getName(),
+				)
+			);
 		}
 
 		foreach ($this->columns_map as $full_name => $target_full_name) {
@@ -180,35 +182,29 @@ class ForeignKey extends Constraint
 				&& !$col->getType()
 					->isNullable()
 			) {
-				throw new DBALException(\sprintf(
-					'The foreign column "%s" found in "%s" should be nullable to be able to "%s" on delete, as defined in the foreign key constraint.',
-					$full_name,
-					$this->host_table->getFullName(),
-					ForeignKeyAction::SET_NULL->value
-				));
+				throw new DBALException(
+					\sprintf(
+						'The foreign column "%s" found in "%s" should be nullable to be able to "%s" on delete, as defined in the foreign key constraint.',
+						$full_name,
+						$this->host_table->getFullName(),
+						ForeignKeyAction::SET_NULL->value
+					)
+				);
 			}
 			if (ForeignKeyAction::SET_NULL === $this->update_action
 				&& !$col->getType()
 					->isNullable()
 			) {
-				throw new DBALException(\sprintf(
-					'The foreign column "%s" found in "%s" should be nullable to be able to "%s" on update, as defined in the foreign key constraint.',
-					$full_name,
-					$this->host_table->getFullName(),
-					ForeignKeyAction::SET_NULL->value
-				));
+				throw new DBALException(
+					\sprintf(
+						'The foreign column "%s" found in "%s" should be nullable to be able to "%s" on update, as defined in the foreign key constraint.',
+						$full_name,
+						$this->host_table->getFullName(),
+						ForeignKeyAction::SET_NULL->value
+					)
+				);
 			}
 		}
-	}
-
-	/**
-	 * Gets reference columns.
-	 *
-	 * @return string[]
-	 */
-	public function getReferenceColumns(): array
-	{
-		return \array_values($this->columns_map);
 	}
 
 	/**
@@ -246,5 +242,15 @@ class ForeignKey extends Constraint
 		}
 
 		return $options;
+	}
+
+	/**
+	 * Gets reference columns.
+	 *
+	 * @return string[]
+	 */
+	public function getReferenceColumns(): array
+	{
+		return \array_values($this->columns_map);
 	}
 }

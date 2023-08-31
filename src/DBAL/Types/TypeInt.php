@@ -24,15 +24,11 @@ use Gobl\ORM\ORMTypeHint;
  */
 class TypeInt extends Type implements BaseTypeInterface
 {
-	public const NAME = 'int';
-
-	public const INT_SIGNED_MIN = -2147483648;
-
-	public const INT_SIGNED_MAX = 2147483647;
-
-	public const INT_UNSIGNED_MIN = 0;
-
+	public const INT_SIGNED_MAX   = 2147483647;
+	public const INT_SIGNED_MIN   = -2147483648;
 	public const INT_UNSIGNED_MAX = 4294967295;
+	public const INT_UNSIGNED_MIN = 0;
+	public const NAME             = 'int';
 
 	/**
 	 * TypeInt constructor.
@@ -71,7 +67,7 @@ class TypeInt extends Type implements BaseTypeInterface
 	 *
 	 * @return $this
 	 */
-	public function unsigned(bool $unsigned = true, ?string $message = null): self
+	public function unsigned(bool $unsigned = true, ?string $message = null): static
 	{
 		!empty($message) && $this->msg('invalid_unsigned_int_type', $message);
 
@@ -88,7 +84,7 @@ class TypeInt extends Type implements BaseTypeInterface
 	 *
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
-	public function min(int $min, ?string $message = null): self
+	public function min(int $min, ?string $message = null): static
 	{
 		self::assertValidInt($min, $this->isUnsigned());
 
@@ -123,7 +119,7 @@ class TypeInt extends Type implements BaseTypeInterface
 	 *
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
-	public function max(int $max, ?string $message = null): self
+	public function max(int $max, ?string $message = null): static
 	{
 		self::assertValidInt($max, $this->isUnsigned());
 
@@ -141,31 +137,17 @@ class TypeInt extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public static function getInstance(array $options): self
+	public static function getInstance(array $options): static
 	{
-		return (new static())->configure($options);
+		return (new self())->configure($options);
 	}
 
 	/**
 	 * {@inheritDoc}
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
-	public function configure(array $options): self
+	public function getName(): string
 	{
-		if (isset($options['min'])) {
-			$this->min((int) $options['min']);
-		}
-
-		if (isset($options['max'])) {
-			$this->max((int) $options['max']);
-		}
-
-		if (isset($options['unsigned'])) {
-			$this->unsigned((bool) $options['unsigned']);
-		}
-
-		return parent::configure($options);
+		return self::NAME;
 	}
 
 	/**
@@ -220,18 +202,54 @@ class TypeInt extends Type implements BaseTypeInterface
 		}
 
 		if ($value < ($this->isUnsigned() ? self::INT_UNSIGNED_MIN : self::INT_SIGNED_MIN)) {
-			throw new TypesInvalidValueException($this->msg(
-				'int_value_must_be_gt_or_equal_to_allowed_int_min'
-			), $debug);
+			throw new TypesInvalidValueException(
+				$this->msg(
+					'int_value_must_be_gt_or_equal_to_allowed_int_min'
+				),
+				$debug
+			);
 		}
 
 		if ($value > ($this->isUnsigned() ? self::INT_UNSIGNED_MAX : self::INT_SIGNED_MAX)) {
-			throw new TypesInvalidValueException($this->msg(
-				'int_value_must_be_lt_or_equal_to_allowed_int_max'
-			), $debug);
+			throw new TypesInvalidValueException(
+				$this->msg(
+					'int_value_must_be_lt_or_equal_to_allowed_int_max'
+				),
+				$debug
+			);
 		}
 
 		return $value;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 */
+	public function configure(array $options): static
+	{
+		if (isset($options['min'])) {
+			$this->min((int) $options['min']);
+		}
+
+		if (isset($options['max'])) {
+			$this->max((int) $options['max']);
+		}
+
+		if (isset($options['unsigned'])) {
+			$this->unsigned((bool) $options['unsigned']);
+		}
+
+		return parent::configure($options);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?int
+	{
+		return null === $value ? null : (int) $value;
 	}
 
 	/**
@@ -245,9 +263,17 @@ class TypeInt extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?int
+	public function getReadTypeHint(): ORMTypeHint
 	{
-		return null === $value ? null : (int) $value;
+		return ORMTypeHint::int();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getWriteTypeHint(): ORMTypeHint
+	{
+		return ORMTypeHint::int();
 	}
 
 	/**
@@ -261,30 +287,6 @@ class TypeInt extends Type implements BaseTypeInterface
 	}
 
 	/**
-	 * {@inheritDoc}
-	 */
-	public function getWriteTypeHint(): ORMTypeHint
-	{
-		return ORMTypeHint::int();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getReadTypeHint(): ORMTypeHint
-	{
-		return ORMTypeHint::int();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getName(): string
-	{
-		return self::NAME;
-	}
-
-	/**
 	 * @param int  $value
 	 * @param bool $unsigned
 	 *
@@ -294,32 +296,40 @@ class TypeInt extends Type implements BaseTypeInterface
 	{
 		if ($unsigned) {
 			if ($value < self::INT_UNSIGNED_MIN) {
-				throw new TypesException(\sprintf(
-					'"%s" is not a valid unsigned int. Allowed min=%s.',
-					$value,
-					self::INT_UNSIGNED_MIN
-				));
+				throw new TypesException(
+					\sprintf(
+						'"%s" is not a valid unsigned int. Allowed min=%s.',
+						$value,
+						self::INT_UNSIGNED_MIN
+					)
+				);
 			}
 
 			if ($value > self::INT_UNSIGNED_MAX) {
-				throw new TypesException(\sprintf(
-					'"%s" is not a valid unsigned int. Allowed max=%s.',
-					$value,
-					self::INT_UNSIGNED_MAX
-				));
+				throw new TypesException(
+					\sprintf(
+						'"%s" is not a valid unsigned int. Allowed max=%s.',
+						$value,
+						self::INT_UNSIGNED_MAX
+					)
+				);
 			}
 		} elseif ($value < self::INT_SIGNED_MIN) {
-			throw new TypesException(\sprintf(
-				'"%s" is not a valid signed int. Allowed min=%s.',
-				$value,
-				self::INT_SIGNED_MIN
-			));
+			throw new TypesException(
+				\sprintf(
+					'"%s" is not a valid signed int. Allowed min=%s.',
+					$value,
+					self::INT_SIGNED_MIN
+				)
+			);
 		} elseif ($value > self::INT_SIGNED_MAX) {
-			throw new TypesException(\sprintf(
-				'"%s" is not a valid signed int. Allowed max=%s.',
-				$value,
-				self::INT_SIGNED_MAX
-			));
+			throw new TypesException(
+				\sprintf(
+					'"%s" is not a valid signed int. Allowed max=%s.',
+					$value,
+					self::INT_SIGNED_MAX
+				)
+			);
 		}
 	}
 }

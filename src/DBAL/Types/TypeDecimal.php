@@ -68,7 +68,7 @@ class TypeDecimal extends Type implements BaseTypeInterface
 	 *
 	 * @return $this
 	 */
-	public function unsigned(bool $unsigned = true, ?string $message = null): self
+	public function unsigned(bool $unsigned = true, ?string $message = null): static
 	{
 		!empty($message) && $this->msg('invalid_unsigned_decimal_type', $message);
 
@@ -85,7 +85,7 @@ class TypeDecimal extends Type implements BaseTypeInterface
 	 *
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
-	public function min(string $min, ?string $message = null): self
+	public function min(string $min, ?string $message = null): static
 	{
 		if (0 > $min && $this->isUnsigned()) {
 			throw new TypesException(\sprintf('"%s" is not a valid unsigned decimal.', $min));
@@ -121,7 +121,7 @@ class TypeDecimal extends Type implements BaseTypeInterface
 	 *
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
-	public function max(string $max, ?string $message = null): self
+	public function max(string $max, ?string $message = null): static
 	{
 		if (0.0 > $max && $this->isUnsigned()) {
 			throw new TypesException(\sprintf('"%s" is not a valid unsigned decimal.', $max));
@@ -141,82 +141,17 @@ class TypeDecimal extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public static function getInstance(array $options): self
+	public static function getInstance(array $options): static
 	{
-		return (new static())->configure($options);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-	 */
-	public function configure(array $options): self
-	{
-		if (isset($options['min'])) {
-			$this->min((string) $options['min']);
-		}
-
-		if (isset($options['max'])) {
-			$this->max((string) $options['max']);
-		}
-
-		if (isset($options['unsigned'])) {
-			$this->unsigned((bool) $options['unsigned']);
-		}
-
-		if (isset($options['precision'])) {
-			if (isset($options['scale'])) {
-				$this->precision((int) $options['precision'], (int) $options['scale']);
-			} else {
-				$this->precision($options['precision']);
-			}
-		}
-
-		return parent::configure($options);
-	}
-
-	/**
-	 * Sets the total number of digits and the scale.
-	 *
-	 * @param int      $precision the number of digits before the fixed point
-	 * @param null|int $scale     the number of digits following the fixed point
-	 *
-	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-	 */
-	public function precision(int $precision, ?int $scale = null): self
-	{
-		if (1 > $precision) {
-			throw new TypesException(
-				'The total number of digits should be an integer greater than 1.'
-			);
-		}
-
-		if (null !== $scale) {
-			if (0 > $scale || $precision < $scale) {
-				throw new TypesException(
-					\sprintf(
-						'The number of digits following the fixed point should be an integer between %s and %s.',
-						0,
-						$precision
-					)
-				);
-			}
-
-			$this->setOption('scale', $scale);
-		}
-
-		return $this->setOption('precision', $precision);
+		return (new self())->configure($options);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public function getEmptyValueOfType(): ?float
+	public function getName(): string
 	{
-		return $this->isNullable() ? null : 0.0;
+		return self::NAME;
 	}
 
 	/**
@@ -264,11 +199,48 @@ class TypeDecimal extends Type implements BaseTypeInterface
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
-	public function getWriteTypeHint(): ORMTypeHint
+	public function configure(array $options): static
 	{
-		return ORMTypeHint::decimal()
-			->addUniversalTypes(ORMUniversalType::FLOAT, ORMUniversalType::INT);
+		if (isset($options['min'])) {
+			$this->min((string) $options['min']);
+		}
+
+		if (isset($options['max'])) {
+			$this->max((string) $options['max']);
+		}
+
+		if (isset($options['unsigned'])) {
+			$this->unsigned((bool) $options['unsigned']);
+		}
+
+		if (isset($options['precision'])) {
+			if (isset($options['scale'])) {
+				$this->precision((int) $options['precision'], (int) $options['scale']);
+			} else {
+				$this->precision($options['precision']);
+			}
+		}
+
+		return parent::configure($options);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?string
+	{
+		return null === $value ? null : (string) $value;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getEmptyValueOfType(): ?float
+	{
+		return $this->isNullable() ? null : 0.0;
 	}
 
 	/**
@@ -282,9 +254,10 @@ class TypeDecimal extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?string
+	public function getWriteTypeHint(): ORMTypeHint
 	{
-		return null === $value ? null : (string) $value;
+		return ORMTypeHint::decimal()
+			->addUniversalTypes(ORMUniversalType::FLOAT, ORMUniversalType::INT);
 	}
 
 	/**
@@ -298,10 +271,37 @@ class TypeDecimal extends Type implements BaseTypeInterface
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * Sets the total number of digits and the scale.
+	 *
+	 * @param int      $precision the number of digits before the fixed point
+	 * @param null|int $scale     the number of digits following the fixed point
+	 *
+	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
 	 */
-	public function getName(): string
+	public function precision(int $precision, ?int $scale = null): static
 	{
-		return self::NAME;
+		if (1 > $precision) {
+			throw new TypesException(
+				'The total number of digits should be an integer greater than 1.'
+			);
+		}
+
+		if (null !== $scale) {
+			if (0 > $scale || $precision < $scale) {
+				throw new TypesException(
+					\sprintf(
+						'The number of digits following the fixed point should be an integer between %s and %s.',
+						0,
+						$precision
+					)
+				);
+			}
+
+			$this->setOption('scale', $scale);
+		}
+
+		return $this->setOption('precision', $precision);
 	}
 }

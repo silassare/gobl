@@ -16,6 +16,7 @@ namespace Gobl\DBAL\Queries\Traits;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Table;
 use PDO;
+use Throwable;
 
 /**
  * Trait QBCommonTrait.
@@ -36,13 +37,6 @@ trait QBCommonTrait
 	}
 
 	/**
-	 * Disable clone.
-	 */
-	private function __clone()
-	{
-	}
-
-	/**
 	 * Magic method __toString.
 	 *
 	 * @return string
@@ -50,6 +44,71 @@ trait QBCommonTrait
 	public function __toString(): string
 	{
 		return $this->getSqlQuery();
+	}
+
+	/**
+	 * Disable clone.
+	 */
+	private function __clone()
+	{
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function fullyQualifiedName(string|Table $table_name_or_alias, string $column): string
+	{
+		return $this->fullyQualifiedNameArray($table_name_or_alias, [$column])[0];
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function fullyQualifiedNameArray(string|Table $table_name_or_alias, array $columns = []): array
+	{
+		$table = $this->resolveTable($table_name_or_alias);
+
+		/** @var string $table_name */
+		$table_name = $table?->getFullName() ?? $table_name_or_alias;
+
+		// if the provided argument is an alias, use it as the head
+		if (\is_string($table_name_or_alias) && $this->isDeclaredAlias($table_name_or_alias)) {
+			$head = $table_name_or_alias;
+		} else {
+			// try get the main alias or fallback to the table name / provided argument
+			try {
+				$head = $this->getMainAlias($table_name);
+			} catch (Throwable) {
+				$head = $table_name;
+			}
+		}
+
+		$out = [];
+
+		if (empty($columns)) {
+			return [$head . '.*'];
+		}
+
+		foreach ($columns as $column) {
+			if ($table) {
+				$column = $table->getColumnOrFail($column)
+					->getFullName();
+			}
+
+			$out[] = $head . '.' . $column;
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Returns the RDBMS.
+	 *
+	 * @return \Gobl\DBAL\Interfaces\RDBMSInterface
+	 */
+	public function getRDBMS(): RDBMSInterface
+	{
+		return $this->db;
 	}
 
 	/**
@@ -78,16 +137,6 @@ trait QBCommonTrait
 	}
 
 	/**
-	 * Returns the RDBMS.
-	 *
-	 * @return \Gobl\DBAL\Interfaces\RDBMSInterface
-	 */
-	public function getRDBMS(): RDBMSInterface
-	{
-		return $this->db;
-	}
-
-	/**
 	 * {@inheritDoc}
 	 */
 	public function resolveTable(string|Table $table_name_or_alias): ?Table
@@ -110,51 +159,5 @@ trait QBCommonTrait
 		}
 
 		return $resolved_table;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function fullyQualifiedName(string|Table $table_name_or_alias, string $column): string
-	{
-		return $this->fullyQualifiedNameArray($table_name_or_alias, [$column])[0];
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function fullyQualifiedNameArray(string|Table $table_name_or_alias, array $columns = []): array
-	{
-		$table      = $this->resolveTable($table_name_or_alias);
-		$table_name = $table?->getFullName() ?? $table_name_or_alias;
-
-		// if the provided argument is an alias, use it as the head
-		if (\is_string($table_name_or_alias) && $this->isDeclaredAlias($table_name_or_alias)) {
-			$head = $table_name_or_alias;
-		} else {
-			// try get the main alias or fallback to the table name / provided argument
-			try {
-				$head = $this->getMainAlias($table_name);
-			} catch (\Throwable) {
-				$head = $table_name;
-			}
-		}
-
-		$out = [];
-
-		if (empty($columns)) {
-			return [$head . '.*'];
-		}
-
-		foreach ($columns as $column) {
-			if ($table) {
-				$column = $table->getColumnOrFail($column)
-					->getFullName();
-			}
-
-			$out[] = $head . '.' . $column;
-		}
-
-		return $out;
 	}
 }

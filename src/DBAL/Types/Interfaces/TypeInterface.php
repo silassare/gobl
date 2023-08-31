@@ -32,14 +32,14 @@ interface TypeInterface extends ArrayCapableInterface
 	 *
 	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException when options is invalid
 	 */
-	public static function getInstance(array $options): self;
+	public static function getInstance(array $options): static;
 
 	/**
 	 * Locks the type to prevent further changes.
 	 *
 	 * @return $this
 	 */
-	public function lock(): self;
+	public function lock(): static;
 
 	/**
 	 * @return \Gobl\DBAL\Types\Interfaces\BaseTypeInterface
@@ -60,7 +60,7 @@ interface TypeInterface extends ArrayCapableInterface
 	 *
 	 * @return $this
 	 */
-	public function nullable(bool $nullable = true): self;
+	public function nullable(bool $nullable = true): static;
 
 	/**
 	 * This is used to prevent returning empty value when the column
@@ -85,7 +85,7 @@ interface TypeInterface extends ArrayCapableInterface
 	 *
 	 * @return $this
 	 */
-	public function autoIncrement(bool $auto_increment = true): self;
+	public function autoIncrement(bool $auto_increment = true): static;
 
 	/**
 	 * Checks if the type is auto-incremented.
@@ -118,7 +118,7 @@ interface TypeInterface extends ArrayCapableInterface
 	 *
 	 * @return $this
 	 */
-	public function default(mixed $default): self;
+	public function default(mixed $default): static;
 
 	/**
 	 * Called to validate a form field value.
@@ -216,7 +216,7 @@ interface TypeInterface extends ArrayCapableInterface
 	 *
 	 * @return $this
 	 */
-	public function setOption(string $key, mixed $value): self;
+	public function setOption(string $key, mixed $value): static;
 
 	/**
 	 * Gets a given option key value.
@@ -253,5 +253,5 @@ interface TypeInterface extends ArrayCapableInterface
 	 *
 	 * @return $this
 	 */
-	public function configure(array $options): self;
+	public function configure(array $options): static;
 }

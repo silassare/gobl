@@ -19,7 +19,7 @@ use Gobl\DBAL\Table;
 /**
  * Class PrimaryKey.
  */
-class PrimaryKey extends Constraint
+final class PrimaryKey extends Constraint
 {
 	private array $columns = [];
 
@@ -51,12 +51,14 @@ class PrimaryKey extends Constraint
 
 		if ($column->getType()
 			->isNullable()) {
-			throw new DBALException(\sprintf(
-				'All parts of a PRIMARY KEY must be NOT NULL; if you need NULL in a key,'
-				. ' use UNIQUE instead; check column "%s" in table "%s".',
-				$name,
-				$this->host_table->getName()
-			));
+			throw new DBALException(
+				\sprintf(
+					'All parts of a PRIMARY KEY must be NOT NULL; if you need NULL in a key,'
+					. ' use UNIQUE instead; check column "%s" in table "%s".',
+					$name,
+					$this->host_table->getName()
+				)
+			);
 		}
 
 		$this->columns[] = $column->getFullName();
