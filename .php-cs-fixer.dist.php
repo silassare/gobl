@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>.
+ *
+ * This file is part of the Gobl package.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+require_once './vendor/autoload.php';
+
 use OLIUP\CS\PhpCS;
 use PhpCsFixer\Finder;
 
@@ -32,10 +43,10 @@ $rules = [
 		'header'       => $header,
 		'comment_type' => 'PHPDoc',
 		'separate'     => 'both',
-		'location'     => 'after_open'
+		'location'     => 'after_open',
 	],
 	'comment_to_phpdoc' => [],
 ];
 
 return (new PhpCS())->mergeRules($finder, $rules)
-					->setRiskyAllowed(true);
+	->setRiskyAllowed(true);

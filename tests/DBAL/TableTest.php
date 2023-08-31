@@ -32,18 +32,18 @@ final class TableTest extends BaseTestCase
 
 		$table = new Table($name, $prefix);
 
-		static::assertSame($name, $table->getName());
-		static::assertSame($prefix, $table->getPrefix());
-		static::assertSame($prefix . '_' . $name, $table->getFullName());
-		static::assertSame($name . '_entity', $table->getSingularName());
-		static::assertSame($name . '_entities', $table->getPluralName());
+		self::assertSame($name, $table->getName());
+		self::assertSame($prefix, $table->getPrefix());
+		self::assertSame($prefix . '_' . $name, $table->getFullName());
+		self::assertSame($name . '_entity', $table->getSingularName());
+		self::assertSame($name . '_entities', $table->getPluralName());
 
 		$table = new Table($name);
 
-		static::assertSame($name, $table->getName());
-		static::assertSame('', $table->getPrefix());
-		static::assertSame($name, $table->getFullName());
-		static::assertSame($name . '_entity', $table->getSingularName());
-		static::assertSame($name . '_entities', $table->getPluralName());
+		self::assertSame($name, $table->getName());
+		self::assertSame('', $table->getPrefix());
+		self::assertSame($name, $table->getFullName());
+		self::assertSame($name . '_entity', $table->getSingularName());
+		self::assertSame($name . '_entities', $table->getPluralName());
 	}
 }

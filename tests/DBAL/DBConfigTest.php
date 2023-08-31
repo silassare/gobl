@@ -26,7 +26,7 @@ use Gobl\Tests\BaseTestCase;
 final class DBConfigTest extends BaseTestCase
 {
 	private DBConfig $config;
-	private array    $declared = [
+	private array $declared = [
 		'db_table_prefix' => 'gObL',
 		'db_host'         => 'localhost',
 		'db_name'         => 'gobl_test_db',
@@ -44,36 +44,36 @@ final class DBConfigTest extends BaseTestCase
 
 	public function testGetDbUser(): void
 	{
-		static::assertSame($this->declared['db_user'], $this->config->getDbUser());
+		self::assertSame($this->declared['db_user'], $this->config->getDbUser());
 	}
 
 	public function testGetDbCharset(): void
 	{
-		static::assertSame($this->declared['db_charset'], $this->config->getDbCharset());
+		self::assertSame($this->declared['db_charset'], $this->config->getDbCharset());
 	}
 
 	public function testGetDbCollate(): void
 	{
-		static::assertSame($this->declared['db_collate'], $this->config->getDbCollate());
+		self::assertSame($this->declared['db_collate'], $this->config->getDbCollate());
 	}
 
 	public function testGetDbHost(): void
 	{
-		static::assertSame($this->declared['db_host'], $this->config->getDbHost());
+		self::assertSame($this->declared['db_host'], $this->config->getDbHost());
 	}
 
 	public function testGetDbName(): void
 	{
-		static::assertSame($this->declared['db_name'], $this->config->getDbName());
+		self::assertSame($this->declared['db_name'], $this->config->getDbName());
 	}
 
 	public function testGetDbPass(): void
 	{
-		static::assertSame($this->declared['db_pass'], $this->config->getDbPass());
+		self::assertSame($this->declared['db_pass'], $this->config->getDbPass());
 	}
 
 	public function testGetDbTablePrefix(): void
 	{
-		static::assertSame($this->declared['db_table_prefix'], $this->config->getDbTablePrefix());
+		self::assertSame($this->declared['db_table_prefix'], $this->config->getDbTablePrefix());
 	}
 }

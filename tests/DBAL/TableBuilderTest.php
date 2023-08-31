@@ -31,7 +31,7 @@ final class TableBuilderTest extends BaseTestCase
 	{
 		$db = self::getSampleDB();
 
-		static::assertSame([
+		self::assertSame([
 			'users',
 			'roles',
 			'tags',
@@ -41,14 +41,14 @@ final class TableBuilderTest extends BaseTestCase
 
 		$tbl_users = $db->getTable('users');
 
-		static::assertSame([
+		self::assertSame([
 			'id',
 			'name',
 		], \array_keys($tbl_users->getColumns()));
 
 		$tbl_roles = $db->getTable('roles');
 
-		static::assertSame([
+		self::assertSame([
 			'id',
 			'title',
 			'user_id',
@@ -56,13 +56,13 @@ final class TableBuilderTest extends BaseTestCase
 
 		$role_user_id_column = $tbl_roles->getColumn('user_id');
 
-		static::assertSame([
+		self::assertSame([
 			'type'     => 'bigint',
 			'unsigned' => true,
 		], $role_user_id_column->getType()
 			->toArray());
 
-		static::assertSame([
+		self::assertSame([
 			'diff_key' => $role_user_id_column->getDiffKey(),
 			'type'     => 'ref:users.id',
 			'unsigned' => true,

@@ -37,23 +37,23 @@ final class ColumnTest extends BaseTestCase
 
 		$column = new Column($name, $prefix);
 
-		static::assertSame($name, $column->getName());
-		static::assertSame($prefix, $column->getPrefix());
-		static::assertSame($prefix . '_' . $name, $column->getFullName());
+		self::assertSame($name, $column->getName());
+		self::assertSame($prefix, $column->getPrefix());
+		self::assertSame($prefix . '_' . $name, $column->getFullName());
 
-		static::assertInstanceOf(TypeString::class, $column->getType());
+		self::assertInstanceOf(TypeString::class, $column->getType());
 
 		$column = new Column($name);
 
-		static::assertSame($name, $column->getName());
-		static::assertSame('', $column->getPrefix());
-		static::assertSame($name, $column->getFullName());
+		self::assertSame($name, $column->getName());
+		self::assertSame('', $column->getPrefix());
+		self::assertSame($name, $column->getFullName());
 
 		$column = new Column($name, null, [
 			'type' => 'int',
 		]);
 
-		static::assertInstanceOf(TypeInt::class, $column->getType());
+		self::assertInstanceOf(TypeInt::class, $column->getType());
 	}
 
 	/**
@@ -66,11 +66,11 @@ final class ColumnTest extends BaseTestCase
 
 		$column = new Column($name);
 
-		static::assertSame($name, $column->getName());
+		self::assertSame($name, $column->getName());
 
 		$column->setName($name = 'new_name');
 
-		static::assertSame($name, $column->getName());
+		self::assertSame($name, $column->getName());
 
 		$this->expectException(InvalidArgumentException::class);
 		$this->expectExceptionMessage('Column name "_new_name" should match');
@@ -85,11 +85,11 @@ final class ColumnTest extends BaseTestCase
 
 		$column = new Column($name);
 
-		static::assertSame($name, $column->getFullName());
+		self::assertSame($name, $column->getFullName());
 
 		$column->setPrefix($prefix);
 
-		static::assertSame($prefix . '_' . $name, $column->getFullName());
+		self::assertSame($prefix . '_' . $name, $column->getFullName());
 	}
 
 	public function testSetGetPrefix(): void
@@ -97,7 +97,7 @@ final class ColumnTest extends BaseTestCase
 		$column = new Column('name');
 		$column->setPrefix('user');
 
-		static::assertSame('user', $column->getPrefix());
+		self::assertSame('user', $column->getPrefix());
 
 		$this->expectException(InvalidArgumentException::class);
 		$this->expectExceptionMessage('Column prefix "invalid_" for column "name" should match');
@@ -116,7 +116,7 @@ final class ColumnTest extends BaseTestCase
 		$table->addColumn($column)
 			->lock();
 
-		static::assertSame($table, $column->getTable());
+		self::assertSame($table, $column->getTable());
 	}
 
 	public function testLock(): void
@@ -126,7 +126,7 @@ final class ColumnTest extends BaseTestCase
 
 		$column->lock($table);
 
-		static::assertSame($table, $column->getTable());
+		self::assertSame($table, $column->getTable());
 	}
 
 	public function testSetPrivate(): void
@@ -134,33 +134,33 @@ final class ColumnTest extends BaseTestCase
 		$column = new Column('name');
 
 		$column->setPrivate();
-		static::assertTrue($column->isPrivate());
+		self::assertTrue($column->isPrivate());
 		$column->setPrivate(false);
-		static::assertFalse($column->isPrivate());
+		self::assertFalse($column->isPrivate());
 	}
 
 	public function testIsPrivate(): void
 	{
 		$column = new Column('name');
 
-		static::assertFalse($column->isPrivate());
+		self::assertFalse($column->isPrivate());
 
 		$column->setPrivate();
 
-		static::assertTrue($column->isPrivate());
+		self::assertTrue($column->isPrivate());
 	}
 
 	public function testSetGetType(): void
 	{
 		$column = new Column('name');
 
-		static::assertInstanceOf(TypeString::class, $column->getType());
+		self::assertInstanceOf(TypeString::class, $column->getType());
 
 		$column->setType($type = new TypeBigint());
 
-		static::assertInstanceOf(TypeBigint::class, $column->getType());
+		self::assertInstanceOf(TypeBigint::class, $column->getType());
 
-		static::assertSame($type->toArray(), $column->getType()
+		self::assertSame($type->toArray(), $column->getType()
 			->toArray());
 	}
 
@@ -168,21 +168,21 @@ final class ColumnTest extends BaseTestCase
 	{
 		$column = new Column('name');
 
-		static::assertInstanceOf(TypeString::class, $column->getType());
+		self::assertInstanceOf(TypeString::class, $column->getType());
 
 		$column->setTypeFromOptions([
 			'type' => 'int',
 		]);
 
-		static::assertInstanceOf(TypeInt::class, $column->getType());
+		self::assertInstanceOf(TypeInt::class, $column->getType());
 
 		$column->setTypeFromOptions([
 			'type'           => 'bigint',
 			'auto_increment' => true,
 		]);
 
-		static::assertInstanceOf(TypeBigint::class, $type = $column->getType());
+		self::assertInstanceOf(TypeBigint::class, $type = $column->getType());
 
-		static::assertTrue($type->isAutoIncremented());
+		self::assertTrue($type->isAutoIncremented());
 	}
 }

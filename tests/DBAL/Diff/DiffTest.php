@@ -33,7 +33,7 @@ final class DiffTest extends BaseTestCase
 
 		$diff = new Diff($db_a, $db_a);
 
-		static::assertSame([], $diff->getDiff());
+		self::assertSame([], $diff->getDiff());
 
 		$db_b = Db::createInstanceOf($db_a->getType(), $db_a->getConfig());
 
@@ -49,10 +49,10 @@ final class DiffTest extends BaseTestCase
 		$expected = require GOBL_TEST_ASSETS . '/diff.out.php';
 		$actual   = require GOBL_TEST_OUTPUT . '/diff.out.php';
 
-		static::assertInstanceOf(MigrationInterface::class, $actual);
+		self::assertInstanceOf(MigrationInterface::class, $actual);
 
-		static::assertSame($expected->getVersion(), $actual->getVersion());
-		static::assertSame($expected->up(), $actual->up());
-		static::assertSame($expected->down(), $actual->down());
+		self::assertSame($expected->getVersion(), $actual->getVersion());
+		self::assertSame($expected->up(), $actual->up());
+		self::assertSame($expected->down(), $actual->down());
 	}
 }

@@ -31,14 +31,14 @@ final class QueryBuilderTest extends BaseTestCase
 	{
 		$db    = self::getEmptyDb();
 		$ns    = $db->ns('test');
-		$users = $ns->table('users', function (TableBuilder $t) {
+		$users = $ns->table('users', static function (TableBuilder $t) {
 			$t->columnPrefix('usr');
 			$t->id();
 			$t->string('name');
 			$t->string('phone');
 		});
 
-		$commands = $ns->table('commands', function (TableBuilder $t) {
+		$commands = $ns->table('commands', static function (TableBuilder $t) {
 			$t->columnPrefix('cmd');
 			$t->id();
 			$t->string('title');
@@ -53,30 +53,30 @@ final class QueryBuilderTest extends BaseTestCase
 		$qb->alias('users', 'b'); // another alias
 		$qb->from('commands', 'c');
 
-		static::assertSame('u.usr_name', $qb->fullyQualifiedName('u', 'name'));
-		static::assertSame(['c.cmd_id', 'c.cmd_phone', 'c.cmd_title'], $qb->fullyQualifiedNameArray('c', [
+		self::assertSame('u.usr_name', $qb->fullyQualifiedName('u', 'name'));
+		self::assertSame(['c.cmd_id', 'c.cmd_phone', 'c.cmd_title'], $qb->fullyQualifiedNameArray('c', [
 			'id',
 			'phone',
 			'title',
 		]));
 
-		static::assertSame(['foo.bar', 'foo.tar'], $qb->fullyQualifiedNameArray('foo', ['bar', 'tar']));
+		self::assertSame(['foo.bar', 'foo.tar'], $qb->fullyQualifiedNameArray('foo', ['bar', 'tar']));
 
-		static::assertSame(['u.usr_name'], $qb->fullyQualifiedNameArray('u', ['name']));
-		static::assertSame(['c.cmd_id', 'c.cmd_phone', 'c.cmd_title'], $qb->fullyQualifiedNameArray('commands', [
+		self::assertSame(['u.usr_name'], $qb->fullyQualifiedNameArray('u', ['name']));
+		self::assertSame(['c.cmd_id', 'c.cmd_phone', 'c.cmd_title'], $qb->fullyQualifiedNameArray('commands', [
 			'id',
 			'phone',
 			'title',
 		]));
 
-		static::assertSame(['c.*'], $qb->fullyQualifiedNameArray('c'));
-		static::assertSame(['foo.*'], $qb->fullyQualifiedNameArray('foo'));
+		self::assertSame(['c.*'], $qb->fullyQualifiedNameArray('c'));
+		self::assertSame(['foo.*'], $qb->fullyQualifiedNameArray('foo'));
 
 		// when a specific alias is provided it should use it
-		static::assertSame(['b.usr_name'], $qb->fullyQualifiedNameArray('b', ['name']));
+		self::assertSame(['b.usr_name'], $qb->fullyQualifiedNameArray('b', ['name']));
 
 		// correctly resolve main alias
-		static::assertSame(['u.usr_name'], $qb->fullyQualifiedNameArray('users', ['name']));
+		self::assertSame(['u.usr_name'], $qb->fullyQualifiedNameArray('users', ['name']));
 	}
 
 	/**
@@ -110,8 +110,8 @@ final class QueryBuilderTest extends BaseTestCase
 		$sql = $qb->getSqlQuery();
 		$n   = new NamedToPositionalParams($sql, $bound_values, $qb->getBoundValuesTypes());
 
-		static::assertSame("SELECT * FROM {$tags_full_name} {$tags_alias}  INNER JOIN {$taggables_full_name} {$taggables_alias} ON ({$tags_alias}.id = {$taggables_alias}.tag_id) INNER JOIN {$articles_full_name} {$articles_alias} ON ({$taggables_alias}.taggable_id = {$articles_alias}.id AND {$taggables_alias}.taggable_type = ?) WHERE 1 = 1", $n->getNewQuery());
+		self::assertSame("SELECT * FROM {$tags_full_name} {$tags_alias}  INNER JOIN {$taggables_full_name} {$taggables_alias} ON ({$tags_alias}.id = {$taggables_alias}.tag_id) INNER JOIN {$articles_full_name} {$articles_alias} ON ({$taggables_alias}.taggable_id = {$articles_alias}.id AND {$taggables_alias}.taggable_type = ?) WHERE 1 = 1", $n->getNewQuery());
 
-		static::assertSame(['articles'], $n->getNewParams());
+		self::assertSame(['articles'], $n->getNewParams());
 	}
 }

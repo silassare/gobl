@@ -32,13 +32,13 @@ final class OperatorTest extends BaseTestCase
 
 		foreach (Operator::cases() as $op) {
 			$expected[$op->name] = [
-				'operator_count' => $op->isUnary() ? 1 : 2,
+				'operands_count' => $op->isUnary() ? 1 : 2,
 			];
 			$found[$op->name]    = [
-				'operator_count' => $op->getOperandsCount(),
+				'operands_count' => $op->getOperandsCount(),
 			];
 		}
 
-		static::assertSame($expected, $found);
+		self::assertSame($expected, $found);
 	}
 }

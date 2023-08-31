@@ -30,10 +30,10 @@ final class GoblTest extends BaseTestCase
 		$non_existent_path = GOBL_TEST_PROJECT_DIR . '/nothing';
 
 		Gobl::setProjectCacheDir(GOBL_TEST_PROJECT_DIR);
-		static::assertSame(GOBL_TEST_PROJECT_DIR, Gobl::getProjectCacheDir());
+		self::assertSame(GOBL_TEST_PROJECT_DIR, Gobl::getProjectCacheDir());
 
 		Gobl::setProjectCacheDir(GOBL_TEST_PROJECT_DIR . \DIRECTORY_SEPARATOR);
-		static::assertSame(GOBL_TEST_PROJECT_DIR, Gobl::getProjectCacheDir());
+		self::assertSame(GOBL_TEST_PROJECT_DIR, Gobl::getProjectCacheDir());
 
 		$this->expectException(GoblRuntimeException::class);
 		Gobl::setProjectCacheDir($non_existent_path);
@@ -42,14 +42,14 @@ final class GoblTest extends BaseTestCase
 	public function testGetRootDir(): void
 	{
 		Gobl::setProjectCacheDir(GOBL_TEST_PROJECT_DIR);
-		static::assertSame(GOBL_TEST_PROJECT_DIR, Gobl::getProjectCacheDir());
+		self::assertSame(GOBL_TEST_PROJECT_DIR, Gobl::getProjectCacheDir());
 	}
 
 	public function testGetCacheDir(): void
 	{
 		Gobl::setProjectCacheDir(GOBL_TEST_PROJECT_DIR);
 		$expected = GOBL_TEST_PROJECT_DIR . \DIRECTORY_SEPARATOR . '.gobl' . \DIRECTORY_SEPARATOR . 'cache';
-		static::assertSame($expected, Gobl::getGoblCacheDir());
+		self::assertSame($expected, Gobl::getGoblCacheDir());
 	}
 
 	public function testAddTemplate(): void
@@ -60,7 +60,7 @@ final class GoblTest extends BaseTestCase
 
 		Gobl::addTemplate($template_name, $template_path);
 
-		static::assertFileExists(Gobl::getTemplateFilePath($template_name));
+		self::assertFileExists(Gobl::getTemplateFilePath($template_name));
 
 		$this->expectException(GoblRuntimeException::class);
 		$this->expectExceptionMessage(\sprintf(
@@ -78,7 +78,7 @@ final class GoblTest extends BaseTestCase
 
 		Gobl::addTemplates(['test_template_array' => ['path' => $template]]);
 
-		static::assertFileExists(Gobl::getTemplateFilePath('test_template_array'));
+		self::assertFileExists(Gobl::getTemplateFilePath('test_template_array'));
 
 		Gobl::addTemplates(['test_template_array' => ['path' => $template]]);
 	}
@@ -87,7 +87,7 @@ final class GoblTest extends BaseTestCase
 	{
 		$expected = Gobl::getGoblCacheDir() . \DIRECTORY_SEPARATOR . 'test_template.otpl';
 
-		static::assertSame($expected, Gobl::getTemplateFilePath('test_template'));
+		self::assertSame($expected, Gobl::getTemplateFilePath('test_template'));
 	}
 
 	public function testGetUnknownTemplateCompiler(): void

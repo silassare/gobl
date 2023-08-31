@@ -33,35 +33,35 @@ final class DBTest extends BaseTestCase
 {
 	public function testInstantiate(): void
 	{
-		static::assertInstanceOf(MySQL::class, Db::createInstanceOf(MySQL::NAME, self::getDbConfig(MySQL::NAME)));
+		self::assertInstanceOf(MySQL::class, Db::createInstanceOf(MySQL::NAME, self::getDbConfig(MySQL::NAME)));
 
-		static::assertInstanceOf(SQLLite::class, Db::createInstanceOf(SQLLite::NAME, self::getDbConfig(SQLLite::NAME)));
+		self::assertInstanceOf(SQLLite::class, Db::createInstanceOf(SQLLite::NAME, self::getDbConfig(SQLLite::NAME)));
 	}
 
 	public function testParseColumnReference(): void
 	{
-		static::assertSame([
+		self::assertSame([
 			'clone'  => false,
 			'table'  => 'users',
 			'column' => 'id',
 		], Db::parseColumnReference('ref:users.id'));
 
-		static::assertSame([
+		self::assertSame([
 			'clone'  => true,
 			'table'  => 'users',
 			'column' => 'id',
 		], Db::parseColumnReference('cp:users.id'));
 
-		static::assertNull(Db::parseColumnReference('cp:users.'));
+		self::assertNull(Db::parseColumnReference('cp:users.'));
 	}
 
 	public function testIsColumnReference(): void
 	{
-		static::assertTrue(Db::isColumnReference('ref:users.id'));
+		self::assertTrue(Db::isColumnReference('ref:users.id'));
 
-		static::assertTrue(Db::isColumnReference('cp:users.id'));
+		self::assertTrue(Db::isColumnReference('cp:users.id'));
 
-		static::assertFalse(Db::isColumnReference('cp:users.'));
+		self::assertFalse(Db::isColumnReference('cp:users.'));
 	}
 
 	public function testHasTable(): void
@@ -76,7 +76,7 @@ final class DBTest extends BaseTestCase
 			$expected[$name] = true;
 		}
 
-		static::assertSame($expected, $found);
+		self::assertSame($expected, $found);
 
 		$found    = [];
 		$expected = [];
@@ -87,7 +87,7 @@ final class DBTest extends BaseTestCase
 			$expected[$full_name] = true;
 		}
 
-		static::assertSame($expected, $found);
+		self::assertSame($expected, $found);
 	}
 
 	public function testAssertHasTable(): void
@@ -105,13 +105,13 @@ final class DBTest extends BaseTestCase
 		$db   = self::getDb();
 		$name = \uniqid('table_', false);
 
-		static::assertNull($db->getTable($name));
+		self::assertNull($db->getTable($name));
 
 		$tables = self::getTablesDefinitions();
 		$first  = \key($tables);
 
-		static::assertInstanceOf(Table::class, $table = $db->getTable($first));
-		static::assertSame($table, $db->getTable($table->getFullName()));
+		self::assertInstanceOf(Table::class, $table = $db->getTable($first));
+		self::assertSame($table, $db->getTable($table->getFullName()));
 	}
 
 	public function testGetType(): void
@@ -119,7 +119,7 @@ final class DBTest extends BaseTestCase
 		$types = \array_keys(self::getTestRDBMSList());
 		foreach ($types as $type) {
 			$db = self::getEmptyDb($type);
-			static::assertSame($type, $db->getType());
+			self::assertSame($type, $db->getType());
 		}
 	}
 
@@ -131,16 +131,16 @@ final class DBTest extends BaseTestCase
 
 		$db->addTable((new Table('users', 'pr'))->addColumn(new Column('id')));
 
-		static::assertTrue($db->hasTable('users'));
-		static::assertTrue($db->hasTable('pr_users'));
-		static::assertFalse($db->hasTable($tbl_prefix . '_users'));
+		self::assertTrue($db->hasTable('users'));
+		self::assertTrue($db->hasTable('pr_users'));
+		self::assertFalse($db->hasTable($tbl_prefix . '_users'));
 
 		$db->addTable($member = (new Table('members'))->addColumn(new Column('id')));
 
-		static::assertTrue($db->hasTable('members'));
-		static::assertTrue($db->hasTable($tbl_prefix . '_members'));
+		self::assertTrue($db->hasTable('members'));
+		self::assertTrue($db->hasTable($tbl_prefix . '_members'));
 
-		static::assertSame($member, $db->getTable('members'));
+		self::assertSame($member, $db->getTable('members'));
 
 		$this->expectException(DBALException::class);
 		$this->expectExceptionMessage('The table name conflict with an existing table name or full name: "members".');
@@ -182,27 +182,27 @@ final class DBTest extends BaseTestCase
 				->setNamespace($foo_bar_namespace),
 		], $foo_bar_namespace);
 
-		static::assertTrue($db->hasTable('users'));
-		static::assertTrue($db->hasTable('ur_users'));
-		static::assertFalse($db->hasTable($tbl_prefix . '_users'));
-		static::assertTrue($db->hasTable('tags'));
+		self::assertTrue($db->hasTable('users'));
+		self::assertTrue($db->hasTable('ur_users'));
+		self::assertFalse($db->hasTable($tbl_prefix . '_users'));
+		self::assertTrue($db->hasTable('tags'));
 
-		static::assertTrue($db->hasTable('members'));
-		static::assertTrue($db->hasTable($tbl_prefix . '_members'));
+		self::assertTrue($db->hasTable('members'));
+		self::assertTrue($db->hasTable($tbl_prefix . '_members'));
 
-		static::assertSame(['users', 'members', 'tags', 'posts'], \array_keys($db->getTables()));
-		static::assertSame(['users'], \array_keys($db->getTables($custom_namespace)));
+		self::assertSame(['users', 'members', 'tags', 'posts'], \array_keys($db->getTables()));
+		self::assertSame(['users'], \array_keys($db->getTables($custom_namespace)));
 
-		static::assertSame(Table::TABLE_DEFAULT_NAMESPACE, $db->getTable('members')
+		self::assertSame(Table::TABLE_DEFAULT_NAMESPACE, $db->getTable('members')
 			->getNamespace());
 
-		static::assertSame($custom_namespace, $db->getTable('users')
+		self::assertSame($custom_namespace, $db->getTable('users')
 			->getNamespace());
 
-		static::assertSame($foo_bar_namespace, $db->getTable('posts')
+		self::assertSame($foo_bar_namespace, $db->getTable('posts')
 			->getNamespace());
 
-		static::assertSame(['tags', 'posts'], \array_keys($db->getTables($foo_bar_namespace)));
+		self::assertSame(['tags', 'posts'], \array_keys($db->getTables($foo_bar_namespace)));
 	}
 
 	public function testGetTables(): void
@@ -216,6 +216,6 @@ final class DBTest extends BaseTestCase
 			'members',
 		];
 
-		static::assertSame($expected, \array_keys($db->getTables()));
+		self::assertSame($expected, \array_keys($db->getTables()));
 	}
 }
