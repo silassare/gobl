@@ -468,7 +468,6 @@ return $this;',
 			'db_namespace'      => $db_ns,
 		];
 		$class->extends(CRUDEventProducer::class)
-			->abstract()
 			->comment(
 				Str::interpolate(
 					'Class {class_name}.
