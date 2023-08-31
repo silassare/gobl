@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\ORM\Generators;
 
-use Gobl\CRUD\CRUDEntityEvent;
-use Gobl\CRUD\Handler\Interfaces\CRUDHandlerInterface;
+use Gobl\CRUD\CRUDEventProducer;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Queries\QBSelect;
@@ -25,7 +24,6 @@ use Gobl\Gobl;
 use Gobl\ORM\Events\ORMTableFilesGenerated;
 use Gobl\ORM\ORMController;
 use Gobl\ORM\ORMEntity;
-use Gobl\ORM\ORMRequest;
 use Gobl\ORM\ORMResults;
 use Gobl\ORM\ORMTableQuery;
 use Gobl\ORM\ORMTypeHint;
@@ -35,7 +33,6 @@ use OLIUP\CG\PHPClass;
 use OLIUP\CG\PHPFile;
 use OLIUP\CG\PHPNamespace;
 use OLIUP\CG\PHPType;
-use PHPUtils\Events\Event;
 use PHPUtils\FS\FSUtils;
 use PHPUtils\Str;
 
@@ -88,6 +85,44 @@ Time: {$date}";
 	/**
 	 * {@inheritDoc}
 	 */
+	public function generate(array $tables, string $path, string $header = ''): static
+	{
+		$fs = new FSUtils($path);
+
+		$fs->filter()
+			->isDir()
+			->isWritable()
+			->assert('.');
+
+		$path      = $fs->getRoot();
+		$ds        = \DIRECTORY_SEPARATOR;
+		$path_base = $path . $ds . 'Base';
+
+		$fs->mkdir($path_base);
+
+		foreach ($tables as $table) {
+			$files = [];
+			foreach (ORMClassKind::cases() as $kind) {
+				$files[$kind->value] = $this->getClassFile($table, $kind);
+			}
+
+			(new ORMTableFilesGenerated($table, $files))->dispatch();
+
+			foreach (ORMClassKind::cases() as $kind) {
+				$code       = (string) $files[$kind->value];
+				$class_name = $kind->getClassName($table);
+				$is_base    = $kind->isBaseClass();
+
+				$this->writeFile(($is_base ? $path_base : $path) . $ds . $class_name . '.php', $code, $is_base);
+			}
+		}
+
+		return $this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function toTypeHintString(ORMTypeHint $type_hint): string
 	{
 		if ($php_type = $type_hint->getPHPType()) {
@@ -112,68 +147,9 @@ Time: {$date}";
 		return \implode('|', $php_types);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public function generate(array $tables, string $path, string $header = ''): self
-	{
-		$fs = new FSUtils($path);
-
-		$fs->filter()
-			->isDir()
-			->isWritable()
-			->assert('.');
-
-		$path      = $fs->getRoot();
-		$ds        = \DIRECTORY_SEPARATOR;
-		$path_base = $path . $ds . 'Base';
-
-		$fs->mkdir($path_base);
-
-		foreach ($tables as $table) {
-			$files = [];
-			foreach (ORMClassKind::cases() as $kind) {
-				$files[$kind->value] = $this->getClassFile($table, $kind);
-			}
-
-			Event::trigger(new ORMTableFilesGenerated($table, $files));
-
-			foreach (ORMClassKind::cases() as $kind) {
-				$code       = (string) $files[$kind->value];
-				$class_name = $kind->getClassName($table);
-				$is_base    = $kind->isBaseClass();
-
-				$this->writeFile(($is_base ? $path_base : $path) . $ds . $class_name . '.php', $code, $is_base);
-			}
-		}
-
-		return $this;
-	}
-
-	/**
-	 * Returns property getter name.
-	 *
-	 * @param string $column_name
-	 *
-	 * @return string
-	 */
-	private static function propertyGetterName(string $column_name): string
-	{
-		if (\str_starts_with($column_name, 'is_')) {
-			$verb = \substr($column_name, 3);
-
-			return 'is' . Str::toClassName($verb);
-		}
-		if (\str_ends_with($column_name, 'ed')) {
-			return 'is' . Str::toClassName($column_name);
-		}
-
-		return 'get' . Str::toClassName($column_name);
-	}
-
 	private function getClassFile(Table $table, ORMClassKind $kind): PHPFile
 	{
-		return match ($kind) {
+		$file = match ($kind) {
 			ORMClassKind::ENTITY,
 			ORMClassKind::ENTITY_VR,
 			ORMClassKind::CRUD,
@@ -187,6 +163,12 @@ Time: {$date}";
 			ORMClassKind::BASE_RESULTS    => $this->getBaseResults($table),
 			ORMClassKind::BASE_CONTROLLER => $this->getBaseController($table),
 		};
+
+		$comment = $kind->isBaseClass() ? $this->not_editable_header : $this->editable_header;
+
+		$file->setComment($comment);
+
+		return $file;
 	}
 
 	private function getExtendsOf(Table $table, ORMClassKind $kind): PHPFile
@@ -210,8 +192,7 @@ Time: {$date}";
 			$class->abstract();
 		}
 
-		return $file->setContent($namespace)
-			->setComment($this->editable_header);
+		return $file->setContent($namespace);
 	}
 
 	private function getBaseEntity(Table $table): PHPFile
@@ -230,24 +211,39 @@ Time: {$date}";
 		$class->extends(new PHPClass(ORMEntity::class))
 			->abstract();
 
-		$class->setComment(Str::interpolate('Class {class_name}.
+		$class->setComment(
+			Str::interpolate(
+				'Class {class_name}.
 
-@psalm-suppress UndefinedThisPropertyFetch' . \PHP_EOL, $inject));
+@psalm-suppress UndefinedThisPropertyFetch' . \PHP_EOL,
+				$inject
+			)
+		);
 
 		$construct = $class->newMethod('__construct')
 			->public()
-			->addChild(Str::interpolate('parent::__construct(
+			->addChild(
+				Str::interpolate(
+					'parent::__construct(
 	self::TABLE_NAMESPACE,
 	self::TABLE_NAME,
 	$is_new,
 	$strict
 );
-', $inject));
-		$construct->setComment(Str::interpolate('{class_name} constructor.
+',
+					$inject
+				)
+			);
+		$construct->setComment(
+			Str::interpolate(
+				'{class_name} constructor.
 
 @param bool $is_new true for new entity false for entity fetched
                      from the database, default is true
-@param bool $strict Enable/disable strict mode', $inject));
+@param bool $strict Enable/disable strict mode',
+				$inject
+			)
+		);
 
 		$construct->newArgument('is_new')
 			->setType('bool')
@@ -259,14 +255,24 @@ Time: {$date}";
 		$create_instance = $class->newMethod('createInstance')
 			->static()
 			->public()
-			->addChild(Str::interpolate('return new \{db_namespace}\{class_name}($is_new, $strict);', $inject))
+			->addChild(
+				Str::interpolate(
+					'return new \{db_namespace}\{class_name}($is_new, $strict);',
+					$inject
+				)
+			)
 			->setReturnType('static');
 		$create_instance->addArgument($construct->getArgument('is_new'));
 		$create_instance->addArgument($construct->getArgument('strict'));
 
-		$create_instance->comment(Str::interpolate('@inheritDoc
+		$create_instance->comment(
+			Str::interpolate(
+				'@inheritDoc
 
-@return static', $inject));
+@return static',
+				$inject
+			)
+		);
 
 		$class->newConstant('TABLE_NAME', $table->getName())
 			->public();
@@ -285,32 +291,49 @@ Time: {$date}";
 			];
 
 			$class->getComment()
-				?->addLines(Str::interpolate(
-					'@property {read_type_hint} ${column_name} Getter for column `{table_name}`.`{column_name}`.',
-					$col_inject
-				));
+				?->addLines(
+					Str::interpolate(
+						'@property {read_type_hint} ${column_name} Getter for column `{table_name}`.`{column_name}`.',
+						$col_inject
+					)
+				);
 			$class->newConstant($column_const, $column->getFullName())
 				->public();
 
 			$get = $class->newMethod(self::propertyGetterName($column_name))
 				->public()
-				->setComment(Str::interpolate('Getter for column `{table_name}`.`{column_name}`.
+				->setComment(
+					Str::interpolate(
+						'Getter for column `{table_name}`.`{column_name}`.
 
-@return {read_type_hint}', $col_inject))
+@return {read_type_hint}',
+						$col_inject
+					)
+				)
 				->setContent(Str::interpolate('return $this->{self::{column_name_const}};', $col_inject));
 
 			$get->setReturnType($col_inject['read_type_hint']);
 
 			$set = $class->newMethod('set' . Str::toClassName($column_name))
 				->public()
-				->setComment(Str::interpolate('Setter for column `{table_name}`.`{column_name}`.
+				->setComment(
+					Str::interpolate(
+						'Setter for column `{table_name}`.`{column_name}`.
 
 @param {write_type_hint} ${column_name}
 
-@return static', $col_inject))
-				->setContent(Str::interpolate('$this->{self::{column_name_const}} = ${column_name};
+@return static',
+						$col_inject
+					)
+				)
+				->setContent(
+					Str::interpolate(
+						'$this->{self::{column_name_const}} = ${column_name};
 
-return $this;', $col_inject));
+return $this;',
+						$col_inject
+					)
+				);
 
 			$set->setReturnType('static')
 				->newArgument($column_name)
@@ -336,7 +359,8 @@ return $this;', $col_inject));
 			];
 
 			if ($relation_type->isMultiple()) {
-				$comment .= Str::interpolate('
+				$comment .= Str::interpolate(
+					'
 
 @param array    $filters  the row filters
 @param null|int $max      maximum row to retrieve
@@ -345,7 +369,9 @@ return $this;', $col_inject));
 @param null|int $total    total rows without limit
 
 @throws \Gobl\CRUD\Exceptions\CRUDException
-@return {target_entity_class_fqn}[]', $rel_inject);
+@return {target_entity_class_fqn}[]',
+					$rel_inject
+				);
 
 				$m->newArgument('filters')
 					->setType('array')
@@ -366,7 +392,9 @@ return $this;', $col_inject));
 
 				$m->setReturnType('array');
 
-				$m->addChild(Str::interpolate('return (new {target_entity_controller_class_fqn}())->getAllRelatives(
+				$m->addChild(
+					Str::interpolate(
+						'return (new {target_entity_controller_class_fqn}())->getAllRelatives(
 	$this,
 	$this->_oeb_table->getRelation(\'{relation_name}\'),
 	$filters,
@@ -374,29 +402,55 @@ return $this;', $col_inject));
 	$offset,
 	$order_by,
 	$total
-);', $rel_inject));
+);',
+						$rel_inject
+					)
+				);
 			} else {
-				$comment .= Str::interpolate('
+				$comment .= Str::interpolate(
+					'
 
 @throws \Gobl\CRUD\Exceptions\CRUDException
-@return ?{target_entity_class_fqn}', $rel_inject);
+@return ?{target_entity_class_fqn}',
+					$rel_inject
+				);
 				$m->setReturnType(new PHPType('null', $rel_inject['target_entity_class_fqn']));
-				$m->addChild(Str::interpolate(
-					'return (new {target_entity_controller_class_fqn}())->getRelative(
+				$m->addChild(
+					Str::interpolate(
+						'return (new {target_entity_controller_class_fqn}())->getRelative(
 	$this,
 	$this->_oeb_table->getRelation(\'{relation_name}\')
 );',
-					$rel_inject
-				));
+						$rel_inject
+					)
+				);
 			}
 
 			$m->setComment($comment);
 		}
 
-		$file->setContent($namespace)
-			->setComment($this->not_editable_header);
+		return $file->setContent($namespace);
+	}
 
-		return $file;
+	/**
+	 * Returns property getter name.
+	 *
+	 * @param string $column_name
+	 *
+	 * @return string
+	 */
+	private static function propertyGetterName(string $column_name): string
+	{
+		if (\str_starts_with($column_name, 'is_')) {
+			$verb = \substr($column_name, 3);
+
+			return 'is' . Str::toClassName($verb);
+		}
+		if (\str_ends_with($column_name, 'ed')) {
+			return 'is' . Str::toClassName($column_name);
+		}
+
+		return 'get' . Str::toClassName($column_name);
 	}
 
 	private function getBaseCRUD(Table $table): PHPFile
@@ -412,74 +466,35 @@ return $this;', $col_inject));
 			'class_name'        => $class->getName(),
 			'entity_class_name' => $entity_class_name,
 			'db_namespace'      => $db_ns,
-			'crud_event_enum'   => CRUDEntityEvent::class,
 		];
-		$class->implements(CRUDHandlerInterface::class)
+		$class->extends(CRUDEventProducer::class)
 			->abstract()
-			->comment(Str::interpolate('Class {class_name}.', $inject));
+			->comment(
+				Str::interpolate(
+					'Class {class_name}.
 
-		$methods = [
-			'onAfterCreateEntity'  => 'Called when an entity is created.',
-			'onAfterReadEntity'    => 'Called when we read an entity.',
-			'onBeforeUpdateEntity' => 'Called before an entity is updated.',
-			'onAfterUpdateEntity'  => 'Called after an entity is updated.',
-			'onBeforeDeleteEntity' => 'Called before an entity is deleted.',
-			'onAfterDeleteEntity'  => 'Called after an entity is deleted.',
-		];
+@extends \Gobl\CRUD\CRUDEventProducer<\{db_namespace}\{entity_class_name}>
+',
+					$inject
+				)
+			);
 
-		$on_entity_event = $class->newMethod('onEntityEvent')
+		$construct = $class->newMethod('__construct')
 			->public()
-			->setReturnType('void');
-		$on_entity_event->comment('@inheritdoc');
-		$on_entity_event->setContent(
-			Str::interpolate('
-/** @var \{db_namespace}\{entity_class_name} $entity */
-switch ($event) {
-	case \{crud_event_enum}::AFTER_CREATE:
-		$this->onAfterCreateEntity($entity);
-		break;
-	case \{crud_event_enum}::AFTER_READ:
-		$this->onAfterReadEntity($entity);
-		break;
-	case \{crud_event_enum}::BEFORE_UPDATE:
-		$this->onBeforeUpdateEntity($entity);
-		break;
-	case \{crud_event_enum}::AFTER_UPDATE:
-		$this->onAfterUpdateEntity($entity);
-		break;
-	case \{crud_event_enum}::BEFORE_DELETE:
-		$this->onBeforeDeleteEntity($entity);
-		break;
-	case \{crud_event_enum}::AFTER_DELETE:
-		$this->onAfterDeleteEntity($entity);
-		break;
-}', $inject)
-		);
+			->addChild(
+				Str::interpolate(
+					'parent::__construct(
+	\{db_namespace}\{entity_class_name}::TABLE_NAMESPACE,
+	\{db_namespace}\{entity_class_name}::TABLE_NAME
+);
+',
+					$inject
+				)
+			);
 
-		$on_entity_event->newArgument('entity')
-			->setType('\\' . ORMEntity::class);
-		$on_entity_event->newArgument('event')
-			->setType(Str::interpolate('\{crud_event_enum}', $inject));
+		$construct->comment(Str::interpolate('{class_name} constructor.', $inject));
 
-		foreach ($methods as $method => $comment) {
-			$m = $class->newMethod($method)
-				->public()
-				->setReturnType('void');
-
-			$m->comment(Str::interpolate('{comment}
-
-You can run your own business logic, verify ownership,
-or other access right on the entity
-
-@param \{db_namespace}\{entity_class_name} $entity', $inject + [
-				'comment' => $comment,
-			]));
-			$m->newArgument('entity')
-				->setType(Str::interpolate('\{db_namespace}\{entity_class_name}', $inject));
-		}
-
-		return $file->setContent($namespace)
-			->setComment($this->not_editable_header);
+		return $file->setContent($namespace);
 	}
 
 	private function getBaseEntityVR(Table $table): PHPFile
@@ -499,37 +514,47 @@ or other access right on the entity
 
 		$class->extends(VirtualRelation::class)
 			->abstract()
-			->comment(Str::interpolate('Class {entity_vr_class_name}.', $inject));
+			->comment(
+				Str::interpolate(
+					'Class {entity_vr_class_name}.
 
-		$get = $class->newMethod('get')
+@template TRelationResult
+@extends \Gobl\DBAL\Relations\VirtualRelation<\{db_namespace}\{entity_class_name}, TRelationResult>
+',
+					$inject
+				)
+			);
+
+		$construct = $class->newMethod('__construct')
 			->public()
-			->setReturnType('mixed');
-		$get->comment('@inheritDoc');
-		$get->newArgument('target')
-			->setType(new PHPClass(ORMEntity::class));
-		$get->newArgument('request')
-			->setType(new PHPClass(ORMRequest::class));
-		$get->newArgument('total_records')
-			->setType(new PHPType('int', 'null'))
-			->setValue(null)
-			->reference();
+			->addChild(
+				Str::interpolate(
+					'parent::__construct(
+	\{db_namespace}\{entity_class_name}::TABLE_NAMESPACE,
+	\{db_namespace}\{entity_class_name}::TABLE_NAME,
+	$name,
+	$paginated
+);
+',
+					$inject
+				)
+			);
 
-		$get->addChild(Str::interpolate('if ($target instanceof \{db_namespace}\{entity_class_name}) {
-	return $this->getItemRelation($target, $request, $total_records);
-}
-throw new \InvalidArgumentException(\'Target item should be an instance of: \' . \{db_namespace}\{entity_class_name}::class);
-', $inject));
+		$construct->comment(
+			Str::interpolate(
+				'{class_name} constructor.
+@param string $name      the relation name
+@param bool   $paginated true if the relation returns paginated items',
+				$inject
+			)
+		);
 
-		$getItemRelation = clone $get;
-		$getItemRelation->setName('getItemRelation')
-			->abstract()
-			->protected()
-			->comment('Gets a relation for a given target item.');
+		$construct->newArgument('name')
+			->setType('string');
+		$construct->newArgument('paginated')
+			->setType('bool');
 
-		$class->addMethod($getItemRelation);
-
-		return $file->setContent($namespace)
-			->setComment($this->not_editable_header);
+		return $file->setContent($namespace);
 	}
 
 	private function getBaseQuery(Table $table): PHPFile
@@ -541,27 +566,36 @@ throw new \InvalidArgumentException(\'Target item should be an instance of: \' .
 		$class      = $namespace->newClass($class_name);
 
 		$inject = [
-			'class_name'         => $class->getName(),
-			'entity_class_name'  => ORMClassKind::ENTITY->getClassName($table),
-			'results_class_name' => ORMClassKind::RESULTS->getClassName($table),
-			'db_namespace'       => $db_ns,
+			'class_name'        => $class->getName(),
+			'entity_class_name' => ORMClassKind::ENTITY->getClassName($table),
+			'db_namespace'      => $db_ns,
 		];
 
 		$namespace->use(Operator::class);
 
-		$class->extends(new PHPClass(ORMTableQuery::class))
-			->abstract()
-			->setComment(Str::interpolate('Class {class_name}.
+		$class_comment_lines   = [];
+		$class_comment_lines[] = Str::interpolate('Class {class_name}.', $inject);
+		$class_comment_lines[] = '';
+		$class_comment_lines[] = Str::interpolate(
+			'@extends \Gobl\ORM\ORMTableQuery<\{db_namespace}\{entity_class_name}>',
+			$inject
+		);
 
-@method \{db_namespace}\{results_class_name} find(?int $max = null, int $offset = 0, array $order_by = [])', $inject));
+		$class->extends(new PHPClass(ORMTableQuery::class))
+			->abstract();
 
 		$construct = $class->newMethod('__construct')
 			->public()
-			->addChild(Str::interpolate('parent::__construct(
+			->addChild(
+				Str::interpolate(
+					'parent::__construct(
 	\{db_namespace}\{entity_class_name}::TABLE_NAMESPACE,
 	\{db_namespace}\{entity_class_name}::TABLE_NAME
 );
-', $inject));
+',
+					$inject
+				)
+			);
 
 		$construct->comment(Str::interpolate('{class_name} constructor.', $inject));
 
@@ -570,20 +604,14 @@ throw new \InvalidArgumentException(\'Target item should be an instance of: \' .
 			->public()
 			->addChild(Str::interpolate('return new \{db_namespace}\{class_name};', $inject))
 			->setReturnType('static')
-			->comment(Str::interpolate('@inheritDoc
+			->comment(
+				Str::interpolate(
+					'@inheritDoc
 
-@return static', $inject));
-
-		$class->newMethod('subGroup')
-			->public()
-			->addChild('$instance              = new static();
-$instance->qb          = $this->qb;
-$instance->filters     = $this->filters->subGroup();
-$instance->table_alias = $this->table_alias;
-
-return $instance;')
-			->setReturnType('static')
-			->setComment('{@inheritDoc}');
+@return static',
+					$inject
+				)
+			);
 
 		foreach ($table->getColumns() as $column) {
 			$type = $column->getType();
@@ -591,52 +619,32 @@ return $instance;')
 				$method = Str::toMethodName('where_' . $operator->getFilterSuffix($column));
 
 				$col_inject = $inject + [
-					'rule_name'         => $operator->value,
-					'table_name'        => $table->getName(),
-					'column_name'       => $column->getName(),
-					'column_name_const' => self::toColumnNameConst($column),
-					'arg_type'          => $this->toTypeHintString(ORMTypeHint::getOperatorRightOperandTypesHint($type, $operator)),
+					'rule_name'   => $operator->value,
+					'table_name'  => $table->getName(),
+					'column_name' => $column->getName(),
 				];
-				$no_arg     = 1 === $operator->getOperandsCount();
-				if ($no_arg) {
-					$class->newMethod($method)
-						->public()
-						->setComment(Str::interpolate(
-							'Filters rows with `{rule_name}` condition on column `{table_name}`.`{column_name}`.
 
-@return static',
-							$col_inject
-						))
-						->setReturnType('self')
-						->setContent(str::interpolate('return $this->filterBy(
-	Operator::from(\'{rule_name}\'),
-	\{db_namespace}\{entity_class_name}::{column_name_const}
-);', $col_inject));
+				$comment = Str::interpolate(
+					'Filters rows with `{rule_name}` condition on column `{table_name}`.`{column_name}`.',
+					$col_inject
+				);
+
+				$has_no_arg = 1 === $operator->getOperandsCount();
+
+				if ($has_no_arg) {
+					$class_comment_lines[] = '@method $this ' . $method . '() ' . $comment;
 				} else {
-					$class->newMethod($method)
-						->public()
-						->setComment(Str::interpolate(
-							'Filters rows with `{rule_name}` condition on column `{table_name}`.`{column_name}`.
-
-@param {arg_type} $value the filter value
-
-@return static',
-							$col_inject
-						))
-						->setReturnType('self')
-						->setContent(str::interpolate('return $this->filterBy(
-	Operator::from(\'{rule_name}\'),
-	\{db_namespace}\{entity_class_name}::{column_name_const},
-	$value
-);', $col_inject))
-						->newArgument('value')
-						->setType($col_inject['arg_type']);
+					$arg_type              = $this->toTypeHintString(
+						ORMTypeHint::getOperatorRightOperandTypesHint($type, $operator)
+					);
+					$class_comment_lines[] = '@method $this ' . $method . '(' . $arg_type . ' $value) ' . $comment;
 				}
 			}
 		}
 
-		$file->setContent($namespace)
-			->setComment($this->not_editable_header);
+		$class->setComment(\implode(\PHP_EOL, $class_comment_lines));
+
+		$file->setContent($namespace);
 
 		return $file;
 	}
@@ -658,22 +666,28 @@ return $instance;')
 
 		$class->extends(new PHPClass(ORMResults::class))
 			->abstract()
-			->setComment(Str::interpolate('Class {class_name}.
+			->setComment(
+				Str::interpolate(
+					'Class {class_name}.
 
-@method null|\{db_namespace}\{entity_class_name} current()
-@method null|\{db_namespace}\{entity_class_name} fetchClass(bool $strict = true)
-@method \{db_namespace}\{entity_class_name}[] fetchAllClass(bool $strict = true)
-@method \Generator<\{db_namespace}\{entity_class_name}> lazy(bool $strict = true, int $max = 100)
-@method null|\{db_namespace}\{entity_class_name} updateOneItem(array $filters, array $new_values)', $inject));
+@extends \Gobl\ORM\ORMResults<\{db_namespace}\{entity_class_name}>',
+					$inject
+				)
+			);
 
 		$construct = $class->newMethod('__construct')
 			->public()
-			->addChild(Str::interpolate('parent::__construct(
+			->addChild(
+				Str::interpolate(
+					'parent::__construct(
 	\{db_namespace}\{entity_class_name}::TABLE_NAMESPACE,
 	\{db_namespace}\{entity_class_name}::TABLE_NAME,
 	$query
 );
-', $inject));
+',
+					$inject
+				)
+			);
 
 		$construct->newArgument('query')
 			->setType(new PHPClass(QBSelect::class));
@@ -682,33 +696,43 @@ return $instance;')
 		$create_instance = $class->newMethod('createInstance')
 			->static()
 			->public()
-			->addChild(Str::interpolate('return new \{db_namespace}\{class_name}($query);', $inject))
+			->addChild(
+				Str::interpolate('return new \{db_namespace}\{class_name}($query);', $inject)
+			)
 			->setReturnType('static');
 		$create_instance->newArgument('query')
 			->setType(new PHPClass(QBSelect::class));
-		$create_instance->comment(Str::interpolate('@inheritDoc
+		$create_instance->comment(
+			Str::interpolate(
+				'@inheritDoc
 
-@return static', $inject));
+@return static',
+				$inject
+			)
+		);
 
-		$file->setContent($namespace)
-			->setComment($this->not_editable_header);
+		$file->setContent($namespace);
 
 		return $file;
 	}
 
 	private function getBaseController(Table $table): PHPFile
 	{
-		$db_ns             = $table->getNamespace();
-		$class_name        = ORMClassKind::BASE_CONTROLLER->getClassName($table);
-		$entity_class_name = ORMClassKind::ENTITY->getClassName($table);
-		$file              = new PHPFile();
-		$namespace         = new PHPNamespace(\sprintf('%s\Base', $db_ns));
-		$class             = $namespace->newClass($class_name);
+		$db_ns              = $table->getNamespace();
+		$class_name         = ORMClassKind::BASE_CONTROLLER->getClassName($table);
+		$entity_class_name  = ORMClassKind::ENTITY->getClassName($table);
+		$results_class_name = ORMClassKind::RESULTS->getClassName($table);
+		$query_class_name   = ORMClassKind::QUERY->getClassName($table);
+		$file               = new PHPFile();
+		$namespace          = new PHPNamespace(\sprintf('%s\Base', $db_ns));
+		$class              = $namespace->newClass($class_name);
 
 		$inject = [
-			'class_name'        => $class->getName(),
-			'entity_class_name' => $entity_class_name,
-			'db_namespace'      => $db_ns,
+			'class_name'         => $class->getName(),
+			'entity_class_name'  => $entity_class_name,
+			'results_class_name' => $results_class_name,
+			'query_class_name'   => $query_class_name,
+			'db_namespace'       => $db_ns,
 		];
 
 		$namespace->use(QBSelect::class)
@@ -717,24 +741,28 @@ return $instance;')
 
 		$class->extends(new PHPClass(ORMController::class))
 			->abstract()
-			->setComment(Str::interpolate('Class {class_name}.
+			->setComment(
+				Str::interpolate(
+					'Class {class_name}.
 
-@method \{db_namespace}\{entity_class_name} addItem(array|\{db_namespace}\{entity_class_name} $item = [])
-@method null|\{db_namespace}\{entity_class_name} getItem(array $filters, array $order_by = [])
-@method null|\{db_namespace}\{entity_class_name} deleteOneItem(array $filters)
-@method \{db_namespace}\{entity_class_name}[] getAllItems(array $filters = [], int $max = null, int $offset = 0, array $order_by = [], ?int &$total = null)
-@method \{db_namespace}\{entity_class_name}[] getAllItemsCustom(QBSelect $qb, int $max = null, int $offset = 0, ?int &$total = null)
-@method \{db_namespace}\{entity_class_name} getRelative(ORMEntity $entity, Relation $relation, array $filters = [], array $order_by = [])
-@method \{db_namespace}\{entity_class_name}[] getAllRelatives(ORMEntity $entity, Relation $relation, array $filters = [], int $max = null, int $offset = 0, array $order_by = [], ?int &$total = null)
-@method null|\{db_namespace}\{entity_class_name} updateOneItem(array $filters, array $new_values)', $inject));
+@extends \Gobl\ORM\ORMController<\{db_namespace}\{entity_class_name}, \{db_namespace}\{query_class_name}, \{db_namespace}\{results_class_name}>
+',
+					$inject
+				)
+			);
 
 		$class->newMethod('__construct')
 			->public()
-			->addChild(Str::interpolate('parent::__construct(
+			->addChild(
+				Str::interpolate(
+					'parent::__construct(
 	\{db_namespace}\{entity_class_name}::TABLE_NAMESPACE,
 	\{db_namespace}\{entity_class_name}::TABLE_NAME
 );
-', $inject))
+',
+					$inject
+				)
+			)
 			->comment(Str::interpolate('{class_name} constructor.', $inject));
 
 		$class->newMethod('createInstance')
@@ -742,13 +770,15 @@ return $instance;')
 			->public()
 			->addChild(Str::interpolate('return new \{db_namespace}\{class_name}();', $inject))
 			->setReturnType('static')
-			->comment(Str::interpolate('@inheritDoc
+			->comment(
+				Str::interpolate(
+					'@inheritDoc
 
-@return static', $inject));
+@return static',
+					$inject
+				)
+			);
 
-		$file->setContent($namespace)
-			->setComment($this->not_editable_header);
-
-		return $file;
+		return $file->setContent($namespace);
 	}
 }

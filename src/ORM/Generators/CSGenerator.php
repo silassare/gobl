@@ -120,12 +120,14 @@ abstract class CSGenerator
 		$filtersRules = [];
 
 		foreach ($type->getAllowedFilterOperators() as $operator) {
-			$method_suffix = Str::toMethodName('where_' . $operator->getFilterSuffix($column));
+			$method = Str::toMethodName('where_' . $operator->getFilterSuffix($column));
 
 			$rule = [
 				'name'                 => $operator->value,
-				'methodSuffix'         => $method_suffix,
-				'rightOperandTypeHint' => $this->toTypeHintString(ORMTypeHint::getOperatorRightOperandTypesHint($type, $operator)),
+				'method'               => $method,
+				'rightOperandTypeHint' => $this->toTypeHintString(
+					ORMTypeHint::getOperatorRightOperandTypesHint($type, $operator)
+				),
 				'noArg'                => 1 === $operator->getOperandsCount(),
 			];
 
@@ -148,6 +150,15 @@ abstract class CSGenerator
 			'readTypeHint'      => $this->getColumnReadTypeHintString($column),
 		];
 	}
+
+	/**
+	 * Map type to custom type string.
+	 *
+	 * @param \Gobl\ORM\ORMTypeHint $type_hint
+	 *
+	 * @return string
+	 */
+	abstract public function toTypeHintString(ORMTypeHint $type_hint): string;
 
 	/**
 	 * Returns column name constants name.
@@ -234,8 +245,14 @@ abstract class CSGenerator
 			$host_table   = $relation->getHostTable();
 			$target_table = $relation->getTargetTable();
 
-			$use[] = ORMClassKind::CONTROLLER->getClassFQN($target_table, true) . ' as ' . ORMClassKind::CONTROLLER->getClassName($target_table) . 'RealR';
-			$use[] = ORMClassKind::ENTITY->getClassFQN($target_table, true) . ' as ' . ORMClassKind::ENTITY->getClassName($target_table) . 'RealR';
+			$use[] = ORMClassKind::CONTROLLER->getClassFQN(
+				$target_table,
+				true
+			) . ' as ' . ORMClassKind::CONTROLLER->getClassName($target_table) . 'RealR';
+			$use[] = ORMClassKind::ENTITY->getClassFQN(
+				$target_table,
+				true
+			) . ' as ' . ORMClassKind::ENTITY->getClassName($target_table) . 'RealR';
 
 			$r_name = $relation->getName();
 			$list[] = [
@@ -262,16 +279,7 @@ abstract class CSGenerator
 	 *
 	 * @return $this
 	 */
-	abstract public function generate(array $tables, string $path, string $header = ''): self;
-
-	/**
-	 * Map type to custom type string.
-	 *
-	 * @param \Gobl\ORM\ORMTypeHint $type_hint
-	 *
-	 * @return string
-	 */
-	abstract public function toTypeHintString(ORMTypeHint $type_hint): string;
+	abstract public function generate(array $tables, string $path, string $header = ''): static;
 
 	/**
 	 * Returns file header doc.

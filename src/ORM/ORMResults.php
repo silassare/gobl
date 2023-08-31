@@ -25,6 +25,10 @@ use PDOStatement;
 
 /**
  * Class ORMResults.
+ *
+ * @template TEntity of \Gobl\ORM\ORMEntity
+ *
+ * @implements  \Iterator<int,TEntity>
  */
 abstract class ORMResults implements Countable, Iterator
 {
@@ -52,7 +56,11 @@ abstract class ORMResults implements Countable, Iterator
 	/** @var null|PDOStatement */
 	protected ?PDOStatement $statement = null;
 
-	/** @var null|\Gobl\ORM\ORMEntity */
+	/**
+	 * @var null|\Gobl\ORM\ORMEntity
+	 *
+	 * @psalm-var null|TEntity
+	 */
 	protected ?ORMEntity $current = null;
 
 	/** @var string */
@@ -95,7 +103,7 @@ abstract class ORMResults implements Countable, Iterator
 	 * @param bool $strict
 	 * @param int  $max
 	 *
-	 * @return Generator<\Gobl\ORM\ORMEntity>
+	 * @return Generator<int,TEntity>
 	 */
 	public function lazy(bool $strict = true, int $max = 100): Generator
 	{
@@ -117,11 +125,37 @@ abstract class ORMResults implements Countable, Iterator
 	}
 
 	/**
+	 * Fetches  the next row into table of the entity class instance.
+	 *
+	 * @param bool $strict enable/disable strict mode on class fetch
+	 *
+	 * @return null|TEntity
+	 */
+	public function fetchClass(bool $strict = true): ?ORMEntity
+	{
+		/** @var \Gobl\ORM\ORMEntity $entity_class */
+		$entity_class = $this->entity_class;
+		$entity       = $entity_class::createInstance(false, $strict);
+		$stmt         = $this->getStatement();
+
+		$stmt->setFetchMode(PDO::FETCH_INTO, $entity);
+		$entity = $stmt->fetch();
+
+		if ($entity instanceof $entity_class) {
+			$entity->isSaved(true); // the entity is fetched from the database
+
+			return $entity;
+		}
+
+		return null;
+	}
+
+	/**
 	 * Creates new instance.
 	 *
 	 * @param \Gobl\DBAL\Queries\QBSelect $query the select query builder instance
 	 *
-	 * @return static
+	 * @return static<TEntity>
 	 */
 	abstract public static function createInstance(QBSelect $query): static;
 
@@ -146,6 +180,24 @@ abstract class ORMResults implements Countable, Iterator
 		}
 
 		return $row;
+	}
+
+	/**
+	 * Fetches  all rows and return array of the entity class instance.
+	 *
+	 * @param bool $strict enable/disable strict mode on class fetch
+	 *
+	 * @return TEntity[]
+	 */
+	public function fetchAllClass(bool $strict = true): array
+	{
+		// according to https://phpdelusions.net/pdo/fetch_modes#FETCH_CLASS
+		// in PDO::FETCH_CLASS mode, PDO assign class properties before calling a constructor.
+		// To amend this behavior, use the following flag \PDO::FETCH_PROPS_LATE.
+		$fetch_style = PDO::FETCH_CLASS | PDO::FETCH_PROPS_LATE;
+
+		return $this->getStatement()
+			->fetchAll($fetch_style, $this->entity_class, [false, $strict]);
 	}
 
 	/**
@@ -175,24 +227,6 @@ abstract class ORMResults implements Countable, Iterator
 	}
 
 	/**
-	 * Fetches  all rows and return array of the entity class instance.
-	 *
-	 * @param bool $strict enable/disable strict mode on class fetch
-	 *
-	 * @return \Gobl\ORM\ORMEntity[]
-	 */
-	public function fetchAllClass(bool $strict = true): array
-	{
-		// according to https://phpdelusions.net/pdo/fetch_modes#FETCH_CLASS
-		// in PDO::FETCH_CLASS mode, PDO assign class properties before calling a constructor.
-		// To amend this behavior, use the following flag \PDO::FETCH_PROPS_LATE.
-		$fetch_style = PDO::FETCH_CLASS | PDO::FETCH_PROPS_LATE;
-
-		return $this->getStatement()
-			->fetchAll($fetch_style, $this->entity_class, [false, $strict]);
-	}
-
-	/**
 	 * Returns the key of the current element.
 	 *
 	 * @return int scalar on success, or null on failure
@@ -212,32 +246,6 @@ abstract class ORMResults implements Countable, Iterator
 		if ($this->current) {
 			++$this->index;
 		}
-	}
-
-	/**
-	 * Fetches  the next row into table of the entity class instance.
-	 *
-	 * @param bool $strict enable/disable strict mode on class fetch
-	 *
-	 * @return null|\Gobl\ORM\ORMEntity
-	 */
-	public function fetchClass(bool $strict = true): ?ORMEntity
-	{
-		/** @var \Gobl\ORM\ORMEntity $entity_class */
-		$entity_class = $this->entity_class;
-		$entity       = $entity_class::createInstance(false, $strict);
-		$stmt         = $this->getStatement();
-
-		$stmt->setFetchMode(PDO::FETCH_INTO, $entity);
-		$entity = $stmt->fetch();
-
-		if ($entity instanceof $entity_class) {
-			$entity->isSaved(true); // the entity is fetched from the database
-
-			return $entity;
-		}
-
-		return null;
 	}
 
 	/**
@@ -268,7 +276,7 @@ abstract class ORMResults implements Countable, Iterator
 	/**
 	 * Returns the current element.
 	 *
-	 * @return null|\Gobl\ORM\ORMEntity
+	 * @return null|TEntity
 	 */
 	public function current(): ?ORMEntity
 	{

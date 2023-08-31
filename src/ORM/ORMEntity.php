@@ -114,6 +114,8 @@ abstract class ORMEntity implements ArrayCapableInterface
 	}
 
 	/**
+	 * Magic isset for column.
+	 *
 	 * @param $name
 	 *
 	 * @return bool
@@ -223,6 +225,17 @@ abstract class ORMEntity implements ArrayCapableInterface
 	}
 
 	/**
+	 * Creates new instance.
+	 *
+	 * @param bool $is_new true for new entity, false for entity fetched
+	 *                     from the database, default is true
+	 * @param bool $strict enable/disable strict mode
+	 *
+	 * @return static
+	 */
+	abstract public static function createInstance(bool $is_new = true, bool $strict = true): static;
+
+	/**
 	 * To check if this entity is new.
 	 *
 	 * ```php
@@ -329,17 +342,6 @@ abstract class ORMEntity implements ArrayCapableInterface
 	}
 
 	/**
-	 * Creates new instance.
-	 *
-	 * @param bool $is_new true for new entity, false for entity fetched
-	 *                     from the database, default is true
-	 * @param bool $strict enable/disable strict mode
-	 *
-	 * @return static
-	 */
-	abstract public static function createInstance(bool $is_new = true, bool $strict = true): static;
-
-	/**
 	 * To check if this entity is saved.
 	 *
 	 * @param bool $set_as_saved if true the entity will be considered as saved
@@ -410,9 +412,9 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 *
 	 * @param array $row map column name to column value
 	 *
-	 * @return static
+	 * @return $this
 	 */
-	public function hydrate(array $row): self
+	public function hydrate(array $row): static
 	{
 		foreach ($row as $column_name => $value) {
 			$this->{$column_name} = $value;

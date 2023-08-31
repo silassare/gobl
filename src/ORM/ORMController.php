@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Gobl\ORM;
 
 use Gobl\CRUD\CRUD;
-use Gobl\CRUD\CRUDEntityEvent;
+use Gobl\CRUD\Enums\EntityEventType;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Relations\Relation;
@@ -25,6 +25,10 @@ use Gobl\ORM\Utils\ORMClassKind;
 
 /**
  * Class ORMController.
+ *
+ * @template TEntity of \Gobl\ORM\ORMEntity
+ * @template TQuery of \Gobl\ORM\ORMTableQuery<TEntity>
+ * @template TResults of \Gobl\ORM\ORMResults<TEntity>
  */
 abstract class ORMController
 {
@@ -112,14 +116,15 @@ abstract class ORMController
 	/**
 	 * Adds item to the table.
 	 *
-	 * @param array|\Gobl\ORM\ORMEntity $item
+	 * @psalm-param array|TEntity $item
 	 *
-	 * @return \Gobl\ORM\ORMEntity
+	 * @return TEntity
 	 *
 	 * @throws \Gobl\Exceptions\GoblException
 	 */
 	public function addItem(array|ORMEntity $item = []): ORMEntity
 	{
+		/** @var null|TEntity $instance */
 		$instance = null;
 
 		if (\is_array($item)) {
@@ -150,8 +155,7 @@ abstract class ORMController
 
 			$this->persistItem($instance);
 
-			$this->crud->getHandler()
-				->onEntityEvent($instance, CRUDEntityEvent::AFTER_CREATE);
+			$this->crud->dispatchEntityEvent($instance, EntityEventType::AFTER_CREATE);
 
 			return $instance;
 		});
@@ -160,7 +164,7 @@ abstract class ORMController
 	/**
 	 * Creates new instance.
 	 *
-	 * @return static
+	 * @return static<TEntity, TQuery, TResults>
 	 */
 	abstract public static function createInstance(): static;
 
@@ -170,7 +174,7 @@ abstract class ORMController
 	 * @param array $filters    the row filters
 	 * @param array $new_values the new values
 	 *
-	 * @return null|\Gobl\ORM\ORMEntity
+	 * @return null|TEntity
 	 *
 	 * @throws \Gobl\Exceptions\GoblException
 	 */
@@ -188,56 +192,17 @@ abstract class ORMController
 				->fetchClass();
 
 			if ($entity) {
-				$this->crud->getHandler()
-					->onEntityEvent($entity, CRUDEntityEvent::BEFORE_UPDATE);
+				$this->crud->dispatchEntityEvent($entity, EntityEventType::BEFORE_UPDATE);
 
 				$entity->hydrate($new_values);
 
 				$this->persistItem($entity);
 
-				$this->crud->getHandler()
-					->onEntityEvent($entity, CRUDEntityEvent::AFTER_UPDATE);
+				$this->crud->dispatchEntityEvent($entity, EntityEventType::AFTER_UPDATE);
 			}
 
 			return $entity ?: null;
 		});
-	}
-
-	/**
-	 * Asserts that the filters are not empty.
-	 *
-	 * @param \Gobl\ORM\ORMTableQuery $filters the row filters
-	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-	 */
-	public static function assertFiltersNotEmpty(ORMTableQuery $filters): void
-	{
-		if ($filters->getFilters()
-			->isEmpty()) {
-			throw new ORMQueryException('GOBL_ORM_REQUEST_FILTERS_EMPTY');
-		}
-	}
-
-	/**
-	 * Asserts that there is at least one column to update and
-	 * the column(s) to update really exists in the table.
-	 *
-	 * @param Table $table   The table
-	 * @param array $columns The columns to update
-	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-	 */
-	public static function assertUpdateColumns(Table $table, array $columns = []): void
-	{
-		if (empty($columns)) {
-			throw new ORMQueryException('GOBL_ORM_REQUEST_NO_FIELDS_TO_UPDATE');
-		}
-
-		foreach ($columns as $column) {
-			if (!$table->hasColumn($column)) {
-				throw new ORMQueryException('GOBL_ORM_REQUEST_UNKNOWN_FIELDS', [$column]);
-			}
-		}
 	}
 
 	/**
@@ -270,7 +235,7 @@ abstract class ORMController
 	 *
 	 * @param array $filters the row filters
 	 *
-	 * @return null|\Gobl\ORM\ORMEntity
+	 * @return null|TEntity
 	 *
 	 * @throws \Gobl\Exceptions\GoblException
 	 */
@@ -287,8 +252,7 @@ abstract class ORMController
 				->fetchClass();
 
 			if ($entity) {
-				$this->crud->getHandler()
-					->onEntityEvent($entity, CRUDEntityEvent::BEFORE_DELETE);
+				$this->crud->dispatchEntityEvent($entity, EntityEventType::BEFORE_DELETE);
 
 				// we need to make sure that we delete the selected entity and only that
 				$tsf = $this->getScopedFiltersInstance($entity->toIdentityFilters());
@@ -297,8 +261,7 @@ abstract class ORMController
 					->limit(1)
 					->execute();
 
-				$this->crud->getHandler()
-					->onEntityEvent($entity, CRUDEntityEvent::AFTER_DELETE);
+				$this->crud->dispatchEntityEvent($entity, EntityEventType::AFTER_DELETE);
 
 				return $entity;
 			}
@@ -336,7 +299,7 @@ abstract class ORMController
 	 * @param array $filters  the row filters
 	 * @param array $order_by order by rules
 	 *
-	 * @return null|\Gobl\ORM\ORMEntity
+	 * @return null|TEntity
 	 *
 	 * @throws \Gobl\Exceptions\GoblException
 	 */
@@ -355,8 +318,7 @@ abstract class ORMController
 				->fetchClass();
 
 			if ($entity) {
-				$this->crud->getHandler()
-					->onEntityEvent($entity, CRUDEntityEvent::AFTER_READ);
+				$this->crud->dispatchEntityEvent($entity, EntityEventType::AFTER_READ);
 			}
 
 			return $entity;
@@ -372,7 +334,7 @@ abstract class ORMController
 	 * @param array    $order_by order by rules
 	 * @param null|int &$total   total rows without limit
 	 *
-	 * @return \Gobl\ORM\ORMEntity[]
+	 * @return TEntity[]
 	 *
 	 * @throws \Gobl\Exceptions\GoblException
 	 */
@@ -399,37 +361,6 @@ abstract class ORMController
 	}
 
 	/**
-	 * Lazily count total row that match a select query according to the current results and current pagination info.
-	 *
-	 * @param \Gobl\ORM\ORMResults $results
-	 * @param int                  $found
-	 * @param null|int             $max
-	 * @param int                  $offset
-	 *
-	 * @return int
-	 */
-	public static function lazyTotalResultsCount(
-		ORMResults $results,
-		int $found = 0,
-		?int $max = null,
-		int $offset = 0
-	): int {
-		if (isset($max)) {
-			if ($found < $max) {
-				$total = $offset + $found;
-			} else {
-				$total = $results->totalCount();
-			}
-		} elseif (0 === $offset) {
-			$total = $found;
-		} else {
-			$total = $results->totalCount();
-		}
-
-		return $total;
-	}
-
-	/**
 	 * Gets all items from the table with a custom query builder instance.
 	 *
 	 * @param \Gobl\DBAL\Queries\QBSelect $qb     the custom select query instance
@@ -437,7 +368,7 @@ abstract class ORMController
 	 * @param int                         $offset first row offset
 	 * @param null|int                    $total  total rows without limit
 	 *
-	 * @return \Gobl\ORM\ORMEntity[]
+	 * @return TEntity[]
 	 *
 	 * @throws \Gobl\Exceptions\GoblException
 	 */
@@ -487,8 +418,7 @@ abstract class ORMController
 			$entity  = $results->fetchClass();
 
 			if ($entity) {
-				$this->crud->getHandler()
-					->onEntityEvent($entity, CRUDEntityEvent::AFTER_READ);
+				$this->crud->dispatchEntityEvent($entity, EntityEventType::AFTER_READ);
 			}
 
 			return $entity;
@@ -597,11 +527,11 @@ abstract class ORMController
 	 *
 	 * @param array $filters
 	 *
-	 * @return \Gobl\ORM\ORMTableQuery
+	 * @return TQuery
 	 */
 	protected function getScopedFiltersInstance(array $filters): ORMTableQuery
 	{
-		/** @var \Gobl\ORM\ORMTableQuery $class */
+		/** @var TQuery $class */
 		$class = ORMClassKind::QUERY->getClassFQN($this->table);
 
 		return $class::createInstance()
@@ -609,15 +539,83 @@ abstract class ORMController
 	}
 
 	/**
+	 * Asserts that the filters are not empty.
+	 *
+	 * @param \Gobl\ORM\ORMTableQuery $filters the row filters
+	 *
+	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 */
+	protected static function assertFiltersNotEmpty(ORMTableQuery $filters): void
+	{
+		if ($filters->getFilters()
+			->isEmpty()) {
+			throw new ORMQueryException('GOBL_ORM_REQUEST_FILTERS_EMPTY');
+		}
+	}
+
+	/**
+	 * Asserts that there is at least one column to update and
+	 * the column(s) to update really exists in the table.
+	 *
+	 * @param Table $table   The table
+	 * @param array $columns The columns to update
+	 *
+	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 */
+	protected static function assertUpdateColumns(Table $table, array $columns = []): void
+	{
+		if (empty($columns)) {
+			throw new ORMQueryException('GOBL_ORM_REQUEST_NO_FIELDS_TO_UPDATE');
+		}
+
+		foreach ($columns as $column) {
+			if (!$table->hasColumn($column)) {
+				throw new ORMQueryException('GOBL_ORM_REQUEST_UNKNOWN_FIELDS', [$column]);
+			}
+		}
+	}
+
+	/**
+	 * Lazily count total row that match a select query according to the current results and current pagination info.
+	 *
+	 * @param ORMResults $results
+	 * @param int        $found
+	 * @param null|int   $max
+	 * @param int        $offset
+	 *
+	 * @return int
+	 */
+	protected static function lazyTotalResultsCount(
+		ORMResults $results,
+		int $found = 0,
+		?int $max = null,
+		int $offset = 0
+	): int {
+		if (isset($max)) {
+			if ($found < $max) {
+				$total = $offset + $found;
+			} else {
+				$total = $results->totalCount();
+			}
+		} elseif (0 === $offset) {
+			$total = $found;
+		} else {
+			$total = $results->totalCount();
+		}
+
+		return $total;
+	}
+
+	/**
 	 * Gets results class instance.
 	 *
 	 * @param \Gobl\DBAL\Queries\QBSelect $qb
 	 *
-	 * @return \Gobl\ORM\ORMResults
+	 * @return TResults
 	 */
 	protected function getResultsInstance(QBSelect $qb): ORMResults
 	{
-		/** @var \Gobl\ORM\ORMResults $results_class */
+		/** @var TResults $results_class */
 		$results_class = ORMClassKind::RESULTS->getClassFQN($this->table);
 
 		return $results_class::createInstance($qb);
@@ -626,7 +624,7 @@ abstract class ORMController
 	/**
 	 * Persists (CREATE or UPDATE) a given entity instance in the database.
 	 *
-	 * @param \Gobl\ORM\ORMEntity $entity
+	 * @psalm-param TEntity $entity
 	 *
 	 * @throws \Gobl\ORM\Exceptions\ORMException
 	 */
@@ -645,7 +643,7 @@ abstract class ORMController
 				));
 			}
 
-			/** @var \Gobl\ORM\ORMTableQuery $class */
+			/** @var TQuery $class */
 			$class = ORMClassKind::QUERY->getClassFQN($this->table);
 
 			$qb = $class::createInstance()

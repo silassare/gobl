@@ -46,16 +46,6 @@ enum ORMClassKind: string
 	case BASE_CONTROLLER = 'base.controller';
 
 	/**
-	 * Checks if this class kind is base class.
-	 *
-	 * @return bool
-	 */
-	public function isBaseClass(): bool
-	{
-		return \str_starts_with($this->value, 'base');
-	}
-
-	/**
 	 * Returns FQN class name for a given table.
 	 *
 	 * @param \Gobl\DBAL\Table $table
@@ -68,6 +58,16 @@ enum ORMClassKind: string
 		$fqn = '\\' . $table->getNamespace() . '\\' . ($this->isBaseClass() ? 'Base\\' : '') . $this->getClassName($table);
 
 		return $use ? \ltrim($fqn, '\\') : $fqn;
+	}
+
+	/**
+	 * Checks if this class kind is base class.
+	 *
+	 * @return bool
+	 */
+	public function isBaseClass(): bool
+	{
+		return \str_starts_with($this->value, 'base');
 	}
 
 	/**

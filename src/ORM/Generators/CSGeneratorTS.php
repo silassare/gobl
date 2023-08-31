@@ -31,33 +31,10 @@ class CSGeneratorTS extends CSGenerator
 
 	/**
 	 * {@inheritDoc}
-	 */
-	public function toTypeHintString(ORMTypeHint $type_hint): string
-	{
-		$types    = $type_hint->getUniversalTypes();
-		$ts_types = [];
-
-		foreach ($types as $type) {
-			$ts_types[] = match ($type) {
-				ORMUniversalType::ARRAY => 'unknown[]',
-				ORMUniversalType::MAP   => 'Record<string, unknown>',
-				ORMUniversalType::STRING, ORMUniversalType::DECIMAL, ORMUniversalType::BIGINT => 'string',
-				ORMUniversalType::FLOAT, ORMUniversalType::INT => 'number',
-				ORMUniversalType::BOOL  => 'boolean',
-				ORMUniversalType::NULL  => 'null',
-				ORMUniversalType::MIXED => 'any',
-			};
-		}
-
-		return \implode('|', $ts_types);
-	}
-
-	/**
-	 * {@inheritDoc}
 	 *
 	 * @throws Exception
 	 */
-	public function generate(array $tables, string $path, string $header = ''): self
+	public function generate(array $tables, string $path, string $header = ''): static
 	{
 		if (!self::$templates_registered) {
 			self::$templates_registered = true;
@@ -122,5 +99,28 @@ class CSGeneratorTS extends CSGenerator
 		$this->writeFile($path_gobl . $ds . 'index.ts', $ts_bundle_tpl->runGet($bundle_inject));
 
 		return $this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function toTypeHintString(ORMTypeHint $type_hint): string
+	{
+		$types    = $type_hint->getUniversalTypes();
+		$ts_types = [];
+
+		foreach ($types as $type) {
+			$ts_types[] = match ($type) {
+				ORMUniversalType::ARRAY => 'unknown[]',
+				ORMUniversalType::MAP   => 'Record<string, unknown>',
+				ORMUniversalType::STRING, ORMUniversalType::DECIMAL, ORMUniversalType::BIGINT => 'string',
+				ORMUniversalType::FLOAT, ORMUniversalType::INT => 'number',
+				ORMUniversalType::BOOL  => 'boolean',
+				ORMUniversalType::NULL  => 'null',
+				ORMUniversalType::MIXED => 'any',
+			};
+		}
+
+		return \implode('|', $ts_types);
 	}
 }

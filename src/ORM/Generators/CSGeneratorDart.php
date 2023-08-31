@@ -31,33 +31,10 @@ class CSGeneratorDart extends CSGenerator
 
 	/**
 	 * {@inheritDoc}
-	 */
-	public function toTypeHintString(ORMTypeHint $type_hint): string
-	{
-		$types      = $type_hint->getUniversalTypes();
-		$dart_types = [];
-
-		foreach ($types as $type) {
-			$dart_types[] = match ($type) {
-				ORMUniversalType::ARRAY => 'List',
-				ORMUniversalType::MAP   => 'Map',
-				ORMUniversalType::STRING, ORMUniversalType::DECIMAL, ORMUniversalType::BIGINT => 'String',
-				ORMUniversalType::FLOAT, ORMUniversalType::INT => 'num',
-				ORMUniversalType::BOOL  => 'bool',
-				ORMUniversalType::NULL  => 'null',
-				ORMUniversalType::MIXED => 'dynamic',
-			};
-		}
-
-		return \implode('|', $dart_types);
-	}
-
-	/**
-	 * {@inheritDoc}
 	 *
 	 * @throws Exception
 	 */
-	public function generate(array $tables, string $path, string $header = ''): self
+	public function generate(array $tables, string $path, string $header = ''): static
 	{
 		if (!self::$templates_registered) {
 			self::$templates_registered = true;
@@ -134,5 +111,28 @@ class CSGeneratorDart extends CSGenerator
 		$this->writeFile($path_gobl . $ds . 'register.dart', $dart_register_tpl->runGet($bundle_inject));
 
 		return $this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function toTypeHintString(ORMTypeHint $type_hint): string
+	{
+		$types      = $type_hint->getUniversalTypes();
+		$dart_types = [];
+
+		foreach ($types as $type) {
+			$dart_types[] = match ($type) {
+				ORMUniversalType::ARRAY => 'List',
+				ORMUniversalType::MAP   => 'Map',
+				ORMUniversalType::STRING, ORMUniversalType::DECIMAL, ORMUniversalType::BIGINT => 'String',
+				ORMUniversalType::FLOAT, ORMUniversalType::INT => 'num',
+				ORMUniversalType::BOOL  => 'bool',
+				ORMUniversalType::NULL  => 'null',
+				ORMUniversalType::MIXED => 'dynamic',
+			};
+		}
+
+		return \implode('|', $dart_types);
 	}
 }

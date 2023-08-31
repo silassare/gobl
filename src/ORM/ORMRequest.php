@@ -23,23 +23,16 @@ use Gobl\ORM\Exceptions\ORMQueryException;
  */
 class ORMRequest
 {
-	public const SCOPES_PARAM = 'scopes';
-
-	public const FORM_DATA_PARAM = 'form_data';
-
-	public const RELATIONS_PARAM = 'relations';
-
 	public const COLLECTION_PARAM = 'collection';
+	public const DELIMITER        = '|';
+	public const FILTERS_PARAM    = 'filters';
+	public const FORM_DATA_PARAM  = 'form_data';
+	public const MAX_PARAM        = 'max';
+	public const ORDER_BY_PARAM   = 'order_by';
 
-	public const FILTERS_PARAM = 'filters';
-
-	public const ORDER_BY_PARAM = 'order_by';
-
-	public const PAGE_PARAM = 'page';
-
-	public const MAX_PARAM = 'max';
-
-	public const DELIMITER = '|';
+	public const PAGE_PARAM      = 'page';
+	public const RELATIONS_PARAM = 'relations';
+	public const SCOPES_PARAM    = 'scopes';
 
 	/**
 	 * @var array
@@ -91,8 +84,12 @@ class ORMRequest
 	 *
 	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 */
-	public function __construct(protected array $payload = [], string $scope = '', int $max_default = 10, int $max_allowed = 2000)
-	{
+	public function __construct(
+		protected array $payload = [],
+		string $scope = '',
+		int $max_default = 10,
+		int $max_allowed = 2000
+	) {
 		$this->max_default = $max_default;
 		$this->max_allowed = $max_allowed;
 		$scope_payload     = $this->payload;
@@ -101,11 +98,13 @@ class ORMRequest
 			$scope_payload = $this->payload[self::SCOPES_PARAM][$scope] ?? [];
 
 			if (!\is_array($scope_payload)) {
-				throw new ORMQueryException(\sprintf(
-					'Scope "%s" request data should be of type "array" not "%s".',
-					$scope,
-					\get_debug_type($scope_payload)
-				));
+				throw new ORMQueryException(
+					\sprintf(
+						'Scope "%s" request data should be of type "array" not "%s".',
+						$scope,
+						\get_debug_type($scope_payload)
+					)
+				);
 			}
 		}
 
@@ -117,11 +116,11 @@ class ORMRequest
 	 *
 	 * @param string $scope
 	 *
-	 * @return \Gobl\ORM\ORMRequest
+	 * @return static
 	 *
 	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 */
-	public function createScopedInstance(string $scope): self
+	public function createScopedInstance(string $scope): static
 	{
 		return new self($this->payload, $scope);
 	}
@@ -187,26 +186,6 @@ class ORMRequest
 	}
 
 	/**
-	 * Sets the requested collection.
-	 *
-	 * @param string $name
-	 *
-	 * @return $this
-	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-	 */
-	public function setRequestedCollection(string $name): self
-	{
-		if (!self::isValidCollectionName($name)) {
-			throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_COLLECTION_NAME', [self::COLLECTION_PARAM => $name]);
-		}
-
-		$this->collection = $name;
-
-		return $this;
-	}
-
-	/**
 	 * Returns the request filters.
 	 *
 	 * @return array
@@ -225,13 +204,53 @@ class ORMRequest
 	}
 
 	/**
+	 * Returns requested relations.
+	 *
+	 * @return array
+	 */
+	public function getRequestedRelations(): array
+	{
+		return $this->relations;
+	}
+
+	/**
+	 * Returns the request order by rules.
+	 *
+	 * @return array
+	 */
+	public function getOrderBy(): array
+	{
+		return $this->order_by;
+	}
+
+	/**
+	 * Sets the requested collection.
+	 *
+	 * @param string $name
+	 *
+	 * @return $this
+	 *
+	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 */
+	public function setRequestedCollection(string $name): static
+	{
+		if (!self::isValidCollectionName($name)) {
+			throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_COLLECTION_NAME', [self::COLLECTION_PARAM => $name]);
+		}
+
+		$this->collection = $name;
+
+		return $this;
+	}
+
+	/**
 	 * Add filters to limit user filters.
 	 *
 	 * @param array $filters
 	 *
 	 * @return $this
 	 */
-	public function ensureOnlyFilters(array $filters): self
+	public function ensureOnlyFilters(array $filters): static
 	{
 		if (!empty($filters)) {
 			if (!empty($this->ensure_only_filters)) {
@@ -244,16 +263,6 @@ class ORMRequest
 	}
 
 	/**
-	 * Returns requested relations.
-	 *
-	 * @return array
-	 */
-	public function getRequestedRelations(): array
-	{
-		return $this->relations;
-	}
-
-	/**
 	 * Adds the relation to requested relations list.
 	 *
 	 * @param string $name
@@ -262,7 +271,7 @@ class ORMRequest
 	 *
 	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
 	 */
-	public function addRequestedRelation(string $name): self
+	public function addRequestedRelation(string $name): static
 	{
 		if (!self::isValidRelationName($name)) {
 			throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_RELATION_NAME', ['relation' => $name]);
@@ -273,16 +282,6 @@ class ORMRequest
 		}
 
 		return $this;
-	}
-
-	/**
-	 * Returns the request order by rules.
-	 *
-	 * @return array
-	 */
-	public function getOrderBy(): array
-	{
-		return $this->order_by;
 	}
 
 	/**
@@ -306,7 +305,7 @@ class ORMRequest
 	 *
 	 * @return $this
 	 */
-	public function setFormField(string $name, mixed $value): self
+	public function setFormField(string $name, mixed $value): static
 	{
 		$this->form_data[$name] = $value;
 
@@ -320,7 +319,7 @@ class ORMRequest
 	 *
 	 * @return $this
 	 */
-	public function removeFormField(string $name): self
+	public function removeFormField(string $name): static
 	{
 		unset($this->form_data[$name]);
 
@@ -342,7 +341,7 @@ class ORMRequest
 	 *
 	 * @return $this
 	 */
-	public function setMax(?int $max = null): self
+	public function setMax(?int $max = null): static
 	{
 		$this->max = $max;
 
@@ -364,9 +363,9 @@ class ORMRequest
 	 *
 	 * @return $this
 	 */
-	public function setPage(?int $page = null): self
+	public function setPage(?int $page = null): static
 	{
-		$this->page = $page;
+		$this->page = !$page ? 1 : $page;
 
 		return $this;
 	}
@@ -515,6 +514,18 @@ class ORMRequest
 	}
 
 	/**
+	 * Checks for valid collection name.
+	 *
+	 * @param mixed $name
+	 *
+	 * @return bool
+	 */
+	private static function isValidCollectionName(mixed $name): bool
+	{
+		return \is_string($name) && '' !== $name && \preg_match(Collection::NAME_REG, $name);
+	}
+
+	/**
 	 * Decode request relations.
 	 *
 	 * @param array $request
@@ -570,18 +581,6 @@ class ORMRequest
 	private static function isValidRelationName(mixed $name): bool
 	{
 		return \is_string($name) && '' !== $name && \preg_match(Relation::NAME_REG, $name);
-	}
-
-	/**
-	 * Checks for valid collection name.
-	 *
-	 * @param mixed $name
-	 *
-	 * @return bool
-	 */
-	private static function isValidCollectionName(mixed $name): bool
-	{
-		return \is_string($name) && '' !== $name && \preg_match(Collection::NAME_REG, $name);
 	}
 
 	/**

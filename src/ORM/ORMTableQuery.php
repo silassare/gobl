@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\ORM;
 
+use BadMethodCallException;
 use Gobl\DBAL\Filters\Filter;
 use Gobl\DBAL\Filters\Filters;
 use Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface;
@@ -34,6 +35,8 @@ use Throwable;
 
 /**
  * Class ORMTableQuery.
+ *
+ * @template TEntity of \Gobl\ORM\ORMEntity
  */
 abstract class ORMTableQuery implements FiltersScopeInterface
 {
@@ -89,13 +92,53 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	}
 
 	/**
+	 * Magic method to handle filters.
+	 *
+	 * @param string $name
+	 * @param array  $arguments
+	 *
+	 * @return $this|\Gobl\ORM\ORMTableQuery
+	 */
+	public function __call(string $name, array $arguments)
+	{
+		/** @var array<string, array<string, array{0:string, 1:Operator}>> $filters_methods */
+		static $filters_methods = [];
+
+		if (!isset($filters_methods[$this->table_name])) {
+			/** @var array<string, array{0:string, 1:Operator}> $methods */
+			$methods = [];
+
+			foreach ($this->table->getColumns() as $column) {
+				$type = $column->getType();
+				foreach ($type->getAllowedFilterOperators() as $operator) {
+					$method           = Str::toMethodName('where_' . $operator->getFilterSuffix($column));
+					$methods[$method] = [$column->getFullName(), $operator];
+				}
+			}
+
+			$filters_methods[$this->table_name] = $methods;
+		} else {
+			$methods = $filters_methods[$this->table_name];
+		}
+
+		if (isset($methods[$name])) {
+			[$column, $op] = $methods[$name];
+			$value         = $arguments[0] ?? null;
+
+			return $this->filterBy($op, $column, $value);
+		}
+
+		throw new BadMethodCallException('Call to undefined method ' . static::class . '::' . $name . '()');
+	}
+
+	/**
 	 * Enable or disable filtering on private columns.
 	 *
 	 * @param bool $allow
 	 *
 	 * @return $this
 	 */
-	public function allowPrivateColumnInFilters(bool $allow = true): self
+	public function allowPrivateColumnInFilters(bool $allow = true): static
 	{
 		$this->allow_private_column_in_filters = $allow;
 
@@ -128,10 +171,12 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 		foreach ($filters as $entry) {
 			if ($entry instanceof self) {
 				if ($entry === $this) {
-					throw new ORMRuntimeException(\sprintf(
-						'Current instance used as sub group, you may need to create a sub group with: %s',
-						Str::callableName([$this, 'subGroup'])
-					));
+					throw new ORMRuntimeException(
+						\sprintf(
+							'Current instance used as sub group, you may need to create a sub group with: %s',
+							Str::callableName([$this, 'subGroup'])
+						)
+					);
 				}
 				$this->filters->where($entry->filters);
 			} elseif (\is_callable($entry)) {
@@ -139,10 +184,12 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 				$return = $entry($sub);
 
 				if ($return !== $sub) {
-					throw (new ORMRuntimeException(\sprintf(
-						'The sub-filters group callable should return the same instance of "%s" passed as argument.',
-						static::class
-					)))
+					throw (new ORMRuntimeException(
+						\sprintf(
+							'The sub-filters group callable should return the same instance of "%s" passed as argument.',
+							static::class
+						)
+					))
 						->suspectCallable($entry);
 				}
 
@@ -158,9 +205,24 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	/**
 	 * Create a sub group for complex filters.
 	 *
-	 * @return $this
+	 * @return static
 	 */
-	abstract public function subGroup(): static;
+	public function subGroup(): static
+	{
+		$instance              = static::createInstance();
+		$instance->qb          = $this->qb;
+		$instance->filters     = $this->filters->subGroup();
+		$instance->table_alias = $this->table_alias;
+
+		return $instance;
+	}
+
+	/**
+	 * Creates new instance.
+	 *
+	 * @return static<TEntity>
+	 */
+	abstract public static function createInstance(): static;
 
 	/**
 	 * Alias of {@see \Gobl\DBAL\Filters\Filters::or()}.
@@ -247,13 +309,6 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 
 		return $qb;
 	}
-
-	/**
-	 * Creates new instance.
-	 *
-	 * @return static
-	 */
-	abstract public static function createInstance(): static;
 
 	/**
 	 * Create a {@see QBInsert} instance for multiple rows insertion.
@@ -350,13 +405,13 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 * @param int      $offset   first row offset
 	 * @param array    $order_by order by rules
 	 *
-	 * @return ORMResults
+	 * @return ORMResults<TEntity>
 	 */
 	public function find(?int $max = null, int $offset = 0, array $order_by = []): ORMResults
 	{
 		$qb = $this->select($max, $offset, $order_by);
 
-		/** @var \Gobl\ORM\ORMResults $class_name */
+		/** @var \Gobl\ORM\ORMResults<TEntity> $class_name */
 		$class_name = ORMClassKind::RESULTS->getClassFQN($this->table);
 
 		return $class_name::createInstance($qb);

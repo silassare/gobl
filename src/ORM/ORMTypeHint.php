@@ -20,14 +20,14 @@ use OLIUP\CG\PHPType;
 /**
  * Class ORMTypeHint.
  */
-class ORMTypeHint
+final class ORMTypeHint
 {
 	/**
 	 * @var array<string,\Gobl\ORM\ORMUniversalType> the universal types
 	 */
-	protected array $universal_types = [];
+	private array $universal_types = [];
 
-	protected ?PHPType $php_type = null;
+	private ?PHPType $php_type = null;
 
 	/**
 	 * ORMTypeHint constructor.
@@ -38,40 +38,6 @@ class ORMTypeHint
 	public function __construct(ORMUniversalType $universal_type, ORMUniversalType ...$others_universal_types)
 	{
 		$this->addUniversalTypes($universal_type, ...$others_universal_types);
-	}
-
-	/**
-	 * Gets the PHP type.
-	 *
-	 * @return null|\OLIUP\CG\PHPType
-	 */
-	public function getPHPType(): ?PHPType
-	{
-		return $this->php_type;
-	}
-
-	/**
-	 * Sets the PHP type.
-	 *
-	 * @param null|\OLIUP\CG\PHPType $php_type
-	 *
-	 * @return $this
-	 */
-	public function setPHPType(?PHPType $php_type): self
-	{
-		$this->php_type = $php_type;
-
-		return $this;
-	}
-
-	/**
-	 * Gets the universal type.
-	 *
-	 * @return ORMUniversalType[]
-	 */
-	public function getUniversalTypes(): array
-	{
-		return \array_values($this->universal_types);
 	}
 
 	/**
@@ -90,18 +56,6 @@ class ORMTypeHint
 		}
 
 		return $this;
-	}
-
-	/**
-	 * Sets as nullable.
-	 *
-	 * @return $this
-	 */
-	public function nullable(): self
-	{
-		$this->php_type?->nullable();
-
-		return $this->addUniversalTypes(ORMUniversalType::NULL);
 	}
 
 	/**
@@ -126,46 +80,6 @@ class ORMTypeHint
 	}
 
 	/**
-	 * Creates integer type hint instance.
-	 *
-	 * @return self
-	 */
-	public static function int(): self
-	{
-		return new self(ORMUniversalType::INT);
-	}
-
-	/**
-	 * Creates float type hint instance.
-	 *
-	 * @return self
-	 */
-	public static function float(): self
-	{
-		return new self(ORMUniversalType::FLOAT);
-	}
-
-	/**
-	 * Creates boolean type hint instance.
-	 *
-	 * @return self
-	 */
-	public static function bool(): self
-	{
-		return new self(ORMUniversalType::BOOL);
-	}
-
-	/**
-	 * Creates array type hint instance.
-	 *
-	 * @return self
-	 */
-	public static function array(): self
-	{
-		return new self(ORMUniversalType::ARRAY);
-	}
-
-	/**
 	 * Creates string type hint instance.
 	 *
 	 * @return self
@@ -183,6 +97,46 @@ class ORMTypeHint
 	public static function null(): self
 	{
 		return new self(ORMUniversalType::NULL);
+	}
+
+	/**
+	 * Creates array type hint instance.
+	 *
+	 * @return self
+	 */
+	public static function array(): self
+	{
+		return new self(ORMUniversalType::ARRAY);
+	}
+
+	/**
+	 * Creates boolean type hint instance.
+	 *
+	 * @return self
+	 */
+	public static function bool(): self
+	{
+		return new self(ORMUniversalType::BOOL);
+	}
+
+	/**
+	 * Creates integer type hint instance.
+	 *
+	 * @return self
+	 */
+	public static function int(): self
+	{
+		return new self(ORMUniversalType::INT);
+	}
+
+	/**
+	 * Creates float type hint instance.
+	 *
+	 * @return self
+	 */
+	public static function float(): self
+	{
+		return new self(ORMUniversalType::FLOAT);
 	}
 
 	/**
@@ -223,5 +177,51 @@ class ORMTypeHint
 	public static function map(): self
 	{
 		return new self(ORMUniversalType::MAP);
+	}
+
+	/**
+	 * Gets the PHP type.
+	 *
+	 * @return null|\OLIUP\CG\PHPType
+	 */
+	public function getPHPType(): ?PHPType
+	{
+		return $this->php_type;
+	}
+
+	/**
+	 * Sets the PHP type.
+	 *
+	 * @param null|\OLIUP\CG\PHPType $php_type
+	 *
+	 * @return $this
+	 */
+	public function setPHPType(?PHPType $php_type): self
+	{
+		$this->php_type = $php_type;
+
+		return $this;
+	}
+
+	/**
+	 * Gets the universal type.
+	 *
+	 * @return ORMUniversalType[]
+	 */
+	public function getUniversalTypes(): array
+	{
+		return \array_values($this->universal_types);
+	}
+
+	/**
+	 * Sets as nullable.
+	 *
+	 * @return $this
+	 */
+	public function nullable(): self
+	{
+		$this->php_type?->nullable();
+
+		return $this->addUniversalTypes(ORMUniversalType::NULL);
 	}
 }

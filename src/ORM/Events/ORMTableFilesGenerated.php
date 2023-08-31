@@ -32,7 +32,7 @@ class ORMTableFilesGenerated extends Event
 	 * @param \Gobl\DBAL\Table    $table
 	 * @param \OLIUP\CG\PHPFile[] $files
 	 */
-	public function __construct(private Table $table, protected array $files)
+	public function __construct(private readonly Table $table, protected array $files)
 	{
 	}
 
