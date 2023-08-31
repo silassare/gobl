@@ -11,24 +11,30 @@
 
 declare(strict_types=1);
 
-namespace Gobl\CRUD;
+namespace Gobl\CRUD\Events;
 
+use Gobl\CRUD\CRUDEvent;
+use Gobl\CRUD\Traits\HasFilters;
 use Gobl\DBAL\Table;
 use Gobl\ORM\ORMTableQuery;
 
 /**
- * Class CRUDDelete.
+ * Class BeforeDeleteFlush.
  */
-class CRUDDelete extends CRUDActionFilterable
+class BeforeDeleteFlush extends CRUDEvent
 {
+	use HasFilters;
+
 	/**
-	 * CRUDDelete constructor.
+	 * BeforeDeleteFlush constructor.
 	 *
 	 * @param \Gobl\DBAL\Table        $table
 	 * @param \Gobl\ORM\ORMTableQuery $filters
 	 */
 	public function __construct(Table $table, ORMTableQuery $filters)
 	{
-		parent::__construct(CRUDActionType::DELETE, $table, $filters);
+		parent::__construct($table);
+
+		$this->filters = $filters;
 	}
 }

@@ -11,18 +11,24 @@
 
 declare(strict_types=1);
 
-namespace Gobl\CRUD;
+namespace Gobl\CRUD\Events;
 
+use Gobl\CRUD\CRUDEvent;
+use Gobl\CRUD\Traits\HasFilters;
+use Gobl\CRUD\Traits\HasFormEditable;
 use Gobl\DBAL\Table;
 use Gobl\ORM\ORMTableQuery;
 
 /**
- * Class CRUDUpdate.
+ * Class BeforeUpdateAllFlush.
  */
-class CRUDUpdate extends CRUDActionFilterable
+class BeforeUpdateAllFlush extends CRUDEvent
 {
+	use HasFilters;
+	use HasFormEditable;
+
 	/**
-	 * CRUDUpdate constructor.
+	 * BeforeUpdateAllFlush constructor.
 	 *
 	 * @param \Gobl\DBAL\Table        $table
 	 * @param \Gobl\ORM\ORMTableQuery $filters
@@ -30,6 +36,8 @@ class CRUDUpdate extends CRUDActionFilterable
 	 */
 	public function __construct(Table $table, ORMTableQuery $filters, array $form)
 	{
-		parent::__construct(CRUDActionType::UPDATE, $table, $filters, $form);
+		parent::__construct($table, $form);
+
+		$this->filters = $filters;
 	}
 }

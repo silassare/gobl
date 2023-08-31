@@ -11,18 +11,20 @@
 
 declare(strict_types=1);
 
-namespace Gobl\CRUD;
+namespace Gobl\CRUD\Events;
 
+use Gobl\CRUD\CRUDAction;
+use Gobl\CRUD\Enums\ActionType;
 use Gobl\DBAL\Column;
 use Gobl\DBAL\Table;
 
 /**
- * Class CRUDColumnUpdate.
+ * Class BeforePrivateColumnWrite.
  */
-class CRUDColumnUpdate extends CRUDAction
+class BeforePrivateColumnWrite extends CRUDAction
 {
 	/**
-	 * CRUDColumnUpdate constructor.
+	 * BeforePrivateColumnWrite constructor.
 	 *
 	 * @param \Gobl\DBAL\Table  $table
 	 * @param \Gobl\DBAL\Column $column
@@ -30,11 +32,11 @@ class CRUDColumnUpdate extends CRUDAction
 	 */
 	public function __construct(Table $table, protected Column $column, array $form)
 	{
-		parent::__construct(CRUDActionType::COLUMN_UPDATE, $table, $form);
+		parent::__construct(ActionType::PRIVATE_COLUMN_WRITE, $table, $form);
 	}
 
 	/**
-	 * Returns the column that is being updated.
+	 * Returns the column that is being written.
 	 *
 	 * @return \Gobl\DBAL\Column
 	 */

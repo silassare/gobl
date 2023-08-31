@@ -11,23 +11,25 @@
 
 declare(strict_types=1);
 
-namespace Gobl\CRUD;
+namespace Gobl\CRUD\Events;
 
+use Gobl\CRUD\CRUDAction;
+use Gobl\CRUD\Enums\ActionType;
 use Gobl\DBAL\Table;
 
 /**
- * Class CRUDCreate.
+ * Class BeforeCreate.
  */
-class CRUDCreate extends CRUDAction
+class BeforeCreate extends CRUDAction
 {
 	/**
-	 * CRUDCreate constructor.
+	 * BeforeCreate constructor.
 	 *
 	 * @param \Gobl\DBAL\Table $table
 	 * @param array            $form
 	 */
 	public function __construct(Table $table, array $form)
 	{
-		parent::__construct(CRUDActionType::CREATE, $table, $form);
+		parent::__construct(ActionType::CREATE, $table, $form);
 	}
 }

@@ -11,12 +11,14 @@
 
 declare(strict_types=1);
 
-namespace Gobl\CRUD;
+namespace Gobl\CRUD\Enums;
 
 /**
- * Enum CRUDEntityEvent.
+ * Enum CRUDEntityEventType.
+ *
+ * @internal
  */
-enum CRUDEntityEvent: string
+enum EntityEventType: string
 {
 	case AFTER_CREATE = 'after_create';
 

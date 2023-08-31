@@ -13,12 +13,13 @@ declare(strict_types=1);
 
 namespace Gobl\CRUD;
 
+use Gobl\CRUD\Enums\ActionType;
 use Gobl\DBAL\Table;
 
 /**
  * Class CRUDAction.
  */
-class CRUDAction
+class CRUDAction extends CRUDEvent
 {
 	protected ?string $success_message = null;
 	protected ?string $error_message   = null;
@@ -26,91 +27,16 @@ class CRUDAction
 	/**
 	 * CRUDAction constructor.
 	 *
-	 * @param \Gobl\CRUD\CRUDActionType $type
-	 * @param \Gobl\DBAL\Table          $table
-	 * @param array                     $form
+	 * @param \Gobl\CRUD\Enums\ActionType $type
+	 * @param \Gobl\DBAL\Table            $table
+	 * @param array                       $form
 	 */
 	protected function __construct(
-		protected CRUDActionType $type,
+		protected ActionType $type,
 		protected Table $table,
 		protected array $form = []
 	) {
-	}
-
-	/**
-	 * Returns CRUD action type.
-	 *
-	 * @return \Gobl\CRUD\CRUDActionType
-	 */
-	public function getType(): CRUDActionType
-	{
-		return $this->type;
-	}
-
-	/**
-	 * Returns target table.
-	 *
-	 * @return \Gobl\DBAL\Table
-	 */
-	public function getTable(): Table
-	{
-		return $this->table;
-	}
-
-	/**
-	 * Form getter.
-	 *
-	 * @return array
-	 */
-	public function getForm(): array
-	{
-		return $this->form;
-	}
-
-	/**
-	 * Form setter.
-	 *
-	 * @param array $form
-	 *
-	 * @return $this
-	 */
-	public function setForm(array $form): static
-	{
-		$this->form = $form;
-
-		return $this;
-	}
-
-	/**
-	 * Sets field value.
-	 *
-	 * @param string $field
-	 * @param mixed  $value
-	 *
-	 * @return $this
-	 */
-	public function setField(string $field, mixed $value): static
-	{
-		$field              = $this->table->getColumnOrFail($field)
-			->getFullName();
-		$this->form[$field] = $value;
-
-		return $this;
-	}
-
-	/**
-	 * Gets field value.
-	 *
-	 * @param string $field
-	 *
-	 * @return mixed
-	 */
-	public function getField(string $field): mixed
-	{
-		$field = $this->table->getColumnOrFail($field)
-			->getFullName();
-
-		return $this->form[$field] ?? null;
+		parent::__construct($table, $form);
 	}
 
 	/**
@@ -126,13 +52,13 @@ class CRUDAction
 	/**
 	 * Sets error message.
 	 *
-	 * @param string $error
+	 * @param string $message
 	 *
 	 * @return $this
 	 */
-	public function setErrorMessage(string $error): static
+	public function setErrorMessage(string $message): static
 	{
-		$this->error_message = $error;
+		$this->error_message = $message;
 
 		return $this;
 	}
@@ -150,13 +76,13 @@ class CRUDAction
 	/**
 	 * Sets success message.
 	 *
-	 * @param string $success
+	 * @param string $message
 	 *
 	 * @return $this
 	 */
-	public function setSuccessMessage(string $success): static
+	public function setSuccessMessage(string $message): static
 	{
-		$this->success_message = $success;
+		$this->success_message = $message;
 
 		return $this;
 	}

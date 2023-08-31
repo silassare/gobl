@@ -11,24 +11,31 @@
 
 declare(strict_types=1);
 
-namespace Gobl\CRUD;
+namespace Gobl\CRUD\Events;
 
+use Gobl\CRUD\CRUDAction;
+use Gobl\CRUD\Enums\ActionType;
+use Gobl\CRUD\Traits\HasFilters;
 use Gobl\DBAL\Table;
 use Gobl\ORM\ORMTableQuery;
 
 /**
- * Class CRUDRead.
+ * Class BeforeRead.
  */
-class CRUDRead extends CRUDActionFilterable
+class BeforeRead extends CRUDAction
 {
+	use HasFilters;
+
 	/**
-	 * CRUDRead constructor.
+	 * BeforeRead constructor.
 	 *
 	 * @param \Gobl\DBAL\Table        $table
 	 * @param \Gobl\ORM\ORMTableQuery $filters
 	 */
 	public function __construct(Table $table, ORMTableQuery $filters)
 	{
-		parent::__construct(CRUDActionType::READ, $table, $filters);
+		parent::__construct(ActionType::READ, $table);
+
+		$this->filters = $filters;
 	}
 }
