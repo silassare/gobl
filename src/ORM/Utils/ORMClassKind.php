@@ -55,7 +55,9 @@ enum ORMClassKind: string
 	 */
 	public function getClassFQN(Table $table, bool $use = false): string
 	{
-		$fqn = '\\' . $table->getNamespace() . '\\' . ($this->isBaseClass() ? 'Base\\' : '') . $this->getClassName($table);
+		$fqn = '\\' . $table->getNamespace() . '\\' . ($this->isBaseClass() ? 'Base\\' : '') . $this->getClassName(
+			$table
+		);
 
 		return $use ? \ltrim($fqn, '\\') : $fqn;
 	}

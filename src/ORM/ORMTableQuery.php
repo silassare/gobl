@@ -209,7 +209,7 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 */
 	public function subGroup(): static
 	{
-		$instance              = static::createInstance();
+		$instance              = static::new();
 		$instance->qb          = $this->qb;
 		$instance->filters     = $this->filters->subGroup();
 		$instance->table_alias = $this->table_alias;
@@ -218,11 +218,11 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	}
 
 	/**
-	 * Creates new instance.
+	 * Returns new instance.
 	 *
 	 * @return static<TEntity>
 	 */
-	abstract public static function createInstance(): static;
+	abstract public static function new(): static;
 
 	/**
 	 * Alias of {@see \Gobl\DBAL\Filters\Filters::or()}.
@@ -405,7 +405,7 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 * @param int      $offset   first row offset
 	 * @param array    $order_by order by rules
 	 *
-	 * @return ORMResults<TEntity>
+	 * @return \Gobl\ORM\ORMResults<TEntity>
 	 */
 	public function find(?int $max = null, int $offset = 0, array $order_by = []): ORMResults
 	{
@@ -414,7 +414,7 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 		/** @var \Gobl\ORM\ORMResults<TEntity> $class_name */
 		$class_name = ORMClassKind::RESULTS->getClassFQN($this->table);
 
-		return $class_name::createInstance($qb);
+		return $class_name::new($qb);
 	}
 
 	/**
@@ -464,7 +464,7 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 			);
 		}
 
-		$target_qb = static::createInstance();
+		$target_qb = static::new();
 
 		$sel = $target_qb->select($max, $offset, $order_by);
 
@@ -507,7 +507,7 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 		/** @var \Gobl\ORM\ORMEntity $entity_class */
 		$entity_class = ORMClassKind::ENTITY->getClassFQN($this->table);
 
-		$instance = $entity_class::createInstance();
+		$instance = $entity_class::new();
 
 		return $instance->hydrate($row)
 			->toRow();

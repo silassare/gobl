@@ -16,11 +16,11 @@ namespace Gobl\ORM;
 use Gobl\DBAL\Column;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
+use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\ORM\Exceptions\ORMException;
 use Gobl\ORM\Exceptions\ORMRuntimeException;
-use Gobl\ORM\Utils\ORMClassKind;
 use PHPUtils\Interfaces\ArrayCapableInterface;
 use PHPUtils\Traits\ArrayCapableTrait;
 use Throwable;
@@ -28,44 +28,42 @@ use Throwable;
 /**
  * Class ORMEntity.
  *
- * ```
  * To prevent conflict between:
  * - entity class property name and column magic getter and setter
  * - entity class method and column method (getter and setter)
  * We only use:
  * - a prefix with a single `_` for property
- * - camelCase method name avoiding prefixing with `get` or `set` so
+ * - camelCase method name avoiding prefixing with `get` or `set`
  * So don't use:
  * - `getSomething`, `setSomething` or `our_property`
  * Use instead:
  * - `_getSomething`, `_setSomething`, `doSomething` or `_our_property`
- * ```
  */
 abstract class ORMEntity implements ArrayCapableInterface
 {
 	use ArrayCapableTrait;
 
 	/** @var \Gobl\DBAL\Table */
-	protected Table $_oeb_table;
+	private Table $_oeb_table;
 
 	/** @var bool */
-	protected bool $_oeb_is_new;
+	private bool $_oeb_is_new;
 
 	/** @var bool */
-	protected bool $_oeb_is_saved;
+	private bool $_oeb_is_saved;
 
 	/**
 	 * To enable/disable strict mode.
 	 *
 	 * @var bool
 	 */
-	protected bool $_oeb_strict;
+	private bool $_oeb_strict;
 
 	/** @var string */
-	protected string $_oeb_table_name;
+	private string $_oeb_table_name;
 
 	/** @var \Gobl\DBAL\Interfaces\RDBMSInterface */
-	protected RDBMSInterface $_oeb_db;
+	private RDBMSInterface $_oeb_db;
 
 	/** @var array */
 	private array $_oeb_row = [];
@@ -154,11 +152,13 @@ abstract class ORMEntity implements ArrayCapableInterface
 					}
 
 					if (null === $value) {
-						throw new ORMRuntimeException(\sprintf(
-							'Missing required value for column "%s" defined in table "%s".',
-							$name,
-							$this->_oeb_table->getName()
-						));
+						throw new ORMRuntimeException(
+							\sprintf(
+								'Missing required value for column "%s" defined in table "%s".',
+								$name,
+								$this->_oeb_table->getName()
+							)
+						);
 					}
 				}
 			}
@@ -223,17 +223,6 @@ abstract class ORMEntity implements ArrayCapableInterface
 	{
 		return ['instance_of' => static::class, 'data' => $this->toRow()];
 	}
-
-	/**
-	 * Creates new instance.
-	 *
-	 * @param bool $is_new true for new entity, false for entity fetched
-	 *                     from the database, default is true
-	 * @param bool $strict enable/disable strict mode
-	 *
-	 * @return static
-	 */
-	abstract public static function createInstance(bool $is_new = true, bool $strict = true): static;
 
 	/**
 	 * To check if this entity is new.
@@ -320,18 +309,15 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 */
 	public function save(): bool
 	{
-		/** @var \Gobl\ORM\ORMController $ctrl_class */
-		$ctrl_class = ORMClassKind::CONTROLLER->getClassFQN($this->_oeb_table);
-
 		if ($this->isNew()) {
-			$ctrl_class::createInstance()
+			static::ctrl()
 				->addItem($this);
 
 			return true;
 		}
 
 		if (!empty($this->_oeb_row_saved) && !$this->isSaved()) {
-			$saved = $ctrl_class::createInstance()
+			$saved = static::ctrl()
 				->updateOneItem($this->toIdentityFilters(), $this->_oeb_row);
 
 			return $saved && $this->hydrate($saved->toRow())
@@ -430,13 +416,59 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 */
 	public function selfDelete(): static
 	{
-		/** @var \Gobl\ORM\ORMController $ctrl_class */
-		$ctrl_class = ORMClassKind::CONTROLLER->getClassFQN($this->_oeb_table);
-		$ctrl_class::createInstance()
+		static::ctrl()
 			->deleteOneItem($this->toIdentityFilters());
 
 		return $this;
 	}
+
+	/**
+	 * Returns new instance.
+	 *
+	 * @param bool $is_new true for new entity, false for entity fetched
+	 *                     from the database, default is true
+	 * @param bool $strict enable/disable strict mode
+	 *
+	 * @return static
+	 */
+	abstract public static function new(bool $is_new = true, bool $strict = true): static;
+
+	/**
+	 * Returns the table instance.
+	 *
+	 * @return \Gobl\DBAL\Table
+	 */
+	abstract public static function table(): Table;
+
+	/**
+	 * Returns the table controller instance.
+	 *
+	 * @return \Gobl\ORM\ORMController
+	 */
+	abstract public static function ctrl(): ORMController;
+
+	/**
+	 * Returns the table query builder instance.
+	 *
+	 * @return \Gobl\ORM\ORMTableQuery
+	 */
+	abstract public static function qb(): ORMTableQuery;
+
+	/**
+	 * Returns the table results instance.
+	 *
+	 * @param \Gobl\DBAL\Queries\QBSelect $query
+	 *
+	 * @return \Gobl\ORM\ORMResults
+	 */
+	abstract public static function results(QBSelect $query): ORMResults;
+
+	/**
+	 * Returns the table crud event producer instance.
+	 *
+	 * @return \Gobl\ORM\ORMEntityCRUD
+	 */
+	abstract public static function crud(): ORMEntityCRUD;
 
 	/**
 	 * Sets a column value.
@@ -471,33 +503,5 @@ abstract class ORMEntity implements ArrayCapableInterface
 		}
 
 		return $value;
-	}
-
-	/**
-	 * Build restricted filters bundle for relations.
-	 *
-	 * @param array $relation_filters_getters
-	 * @param array $user_filters
-	 *
-	 * @return null|array
-	 */
-	protected function buildRelationFilter(array $relation_filters_getters, array $user_filters): ?array
-	{
-		$relation_filters = [];
-
-		foreach ($relation_filters_getters as $filter_key => $getter) {
-			/** @var mixed $v */
-			if (($v = $getter()) !== null) {
-				if (isset($relation_filters[0])) {
-					$relation_filters[] = 'and';
-				}
-
-				$relation_filters[] = [$filter_key, Operator::EQ->value, $v];
-			} else {
-				return null;
-			}
-		}
-
-		return empty($user_filters) ? $relation_filters : [$relation_filters, 'and', $user_filters];
 	}
 }

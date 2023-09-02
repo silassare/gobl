@@ -13,17 +13,19 @@ declare(strict_types=1);
 
 namespace Gobl\ORM\Generators;
 
-use Gobl\CRUD\CRUDEventProducer;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Relations\VirtualRelation;
 use Gobl\DBAL\Table;
+use Gobl\Exceptions\GoblException;
 use Gobl\Gobl;
 use Gobl\ORM\Events\ORMTableFilesGenerated;
+use Gobl\ORM\ORM;
 use Gobl\ORM\ORMController;
 use Gobl\ORM\ORMEntity;
+use Gobl\ORM\ORMEntityCRUD;
 use Gobl\ORM\ORMResults;
 use Gobl\ORM\ORMTableQuery;
 use Gobl\ORM\ORMTypeHint;
@@ -109,7 +111,8 @@ Time: {$date}";
 			(new ORMTableFilesGenerated($table, $files))->dispatch();
 
 			foreach (ORMClassKind::cases() as $kind) {
-				$code       = (string) $files[$kind->value];
+				$code = (string) $files[$kind->value];
+
 				$class_name = $kind->getClassName($table);
 				$is_base    = $kind->isBaseClass();
 
@@ -164,9 +167,11 @@ Time: {$date}";
 			ORMClassKind::BASE_CONTROLLER => $this->getBaseController($table),
 		};
 
-		$comment = $kind->isBaseClass() ? $this->not_editable_header : $this->editable_header;
+		if (!\defined('GOBL_TEST_MODE')) {
+			$comment = $kind->isBaseClass() ? $this->not_editable_header : $this->editable_header;
 
-		$file->setComment($comment);
+			$file->setComment($comment);
+		}
 
 		return $file;
 	}
@@ -188,8 +193,17 @@ Time: {$date}";
 			->setContent($this->editable_body_comment)
 			->comment(Str::interpolate('Class {class_name}.', $inject));
 
-		if (ORMClassKind::CRUD === $kind || ORMClassKind::ENTITY_VR === $kind) {
+		if (ORMClassKind::ENTITY_VR === $kind) {
 			$class->abstract();
+			$class->comment(
+				Str::interpolate(
+					'Class {class_name}.
+
+@template TRelationResult
+@extends \{db_namespace}\Base\{class_name}<TRelationResult>',
+					$inject
+				)
+			);
 		}
 
 		return $file->setContent($namespace);
@@ -204,8 +218,12 @@ Time: {$date}";
 		$class      = $namespace->newClass($class_name);
 
 		$inject = [
-			'class_name'   => $class->getName(),
-			'db_namespace' => $db_ns,
+			'class_name'         => $class->getName(),
+			'ctrl_class_name'    => ORMClassKind::CONTROLLER->getClassName($table),
+			'qb_class_name'      => ORMClassKind::QUERY->getClassName($table),
+			'results_class_name' => ORMClassKind::RESULTS->getClassName($table),
+			'crud_class_name'    => ORMClassKind::CRUD->getClassName($table),
+			'db_namespace'       => $db_ns,
 		];
 
 		$class->extends(new PHPClass(ORMEntity::class))
@@ -213,9 +231,7 @@ Time: {$date}";
 
 		$class->setComment(
 			Str::interpolate(
-				'Class {class_name}.
-
-@psalm-suppress UndefinedThisPropertyFetch' . \PHP_EOL,
+				'Class {class_name}.',
 				$inject
 			)
 		);
@@ -252,7 +268,7 @@ Time: {$date}";
 			->setType('bool')
 			->setValue(true);
 
-		$create_instance = $class->newMethod('createInstance')
+		$create_instance = $class->newMethod('new')
 			->static()
 			->public()
 			->addChild(
@@ -262,17 +278,91 @@ Time: {$date}";
 				)
 			)
 			->setReturnType('static');
+
 		$create_instance->addArgument($construct->getArgument('is_new'));
 		$create_instance->addArgument($construct->getArgument('strict'));
 
 		$create_instance->comment(
 			Str::interpolate(
-				'@inheritDoc
+				'{@inheritDoc}
 
 @return static',
 				$inject
 			)
 		);
+
+		$static_helpers = [
+			'crud'    => [
+				'comment' => '{@inheritDoc}
+
+@return \{db_namespace}\{crud_class_name}',
+				'return'  => '\{db_namespace}\{crud_class_name}',
+				'body'    => 'return \{db_namespace}\{crud_class_name}::new();',
+			],
+			'ctrl'    => [
+				'comment' => '{@inheritDoc}
+
+@return \{db_namespace}\{ctrl_class_name}',
+				'return'  => '\{db_namespace}\{ctrl_class_name}',
+				'body'    => 'return \{db_namespace}\{ctrl_class_name}::new();',
+			],
+			'qb'      => [
+				'comment' => '{@inheritDoc}
+
+@return \{db_namespace}\{qb_class_name}',
+				'return'  => '\{db_namespace}\{qb_class_name}',
+				'body'    => 'return \{db_namespace}\{qb_class_name}::new();',
+			],
+			'results' => [
+				'comment' => '{@inheritDoc}
+
+@return \{db_namespace}\{results_class_name}',
+				'return'  => '\{db_namespace}\{results_class_name}',
+				'body'    => 'return \{db_namespace}\{results_class_name}::new($query);',
+				'args'    => [
+					'query' => '\\' . QBSelect::class,
+				],
+			],
+			'table'   => [
+				'comment' => '{@inheritDoc}',
+				'return'  => '\\' . Table::class,
+				'body'    => 'return \\' . Str::callableName(
+					[ORM::class, 'table']
+				) . '(static::TABLE_NAMESPACE, static::TABLE_NAME);',
+			],
+		];
+
+		foreach ($static_helpers as $helper => $helper_opt) {
+			$helper_method = $class->newMethod($helper)
+				->static()
+				->public()
+				->addChild(
+					Str::interpolate(
+						$helper_opt['body'],
+						$inject
+					)
+				)
+				->setReturnType(
+					Str::interpolate(
+						$helper_opt['return'],
+						$inject
+					)
+				);
+
+			$helper_method->comment(
+				Str::interpolate(
+					$helper_opt['comment'],
+					$inject
+				)
+			);
+
+			$args = $helper_opt['args'] ?? [];
+
+			foreach ($args as $arg_name => $arg_type) {
+				$helper_method->newArgument($arg_name)
+					->setType($arg_type);
+			}
+		}
 
 		$class->newConstant('TABLE_NAME', $table->getName())
 			->public();
@@ -310,7 +400,7 @@ Time: {$date}";
 						$col_inject
 					)
 				)
-				->setContent(Str::interpolate('return $this->{self::{column_name_const}};', $col_inject));
+				->setContent(Str::interpolate('return $this->{column_name};', $col_inject));
 
 			$get->setReturnType($col_inject['read_type_hint']);
 
@@ -328,7 +418,7 @@ Time: {$date}";
 				)
 				->setContent(
 					Str::interpolate(
-						'$this->{self::{column_name_const}} = ${column_name};
+						'$this->{column_name} = ${column_name};
 
 return $this;',
 						$col_inject
@@ -353,9 +443,8 @@ return $this;',
 				$target->getName()
 			);
 			$rel_inject    = [
-				'target_entity_class_fqn'            => ORMClassKind::ENTITY->getClassFQN($target),
-				'target_entity_controller_class_fqn' => ORMClassKind::CONTROLLER->getClassFQN($target),
-				'relation_name'                      => $relation->getName(),
+				'target_entity_class_fqn' => ORMClassKind::ENTITY->getClassFQN($target),
+				'relation_name'           => $relation->getName(),
 			];
 
 			if ($relation_type->isMultiple()) {
@@ -368,7 +457,7 @@ return $this;',
 @param array    $order_by order by rules
 @param null|int $total    total rows without limit
 
-@throws \Gobl\CRUD\Exceptions\CRUDException
+@throws \\' . GoblException::class . '
 @return {target_entity_class_fqn}[]',
 					$rel_inject
 				);
@@ -394,9 +483,9 @@ return $this;',
 
 				$m->addChild(
 					Str::interpolate(
-						'return (new {target_entity_controller_class_fqn}())->getAllRelatives(
+						'return {target_entity_class_fqn}::ctrl()->getAllRelatives(
 	$this,
-	$this->_oeb_table->getRelation(\'{relation_name}\'),
+	static::table()->getRelation(\'{relation_name}\'),
 	$filters,
 	$max,
 	$offset,
@@ -410,16 +499,16 @@ return $this;',
 				$comment .= Str::interpolate(
 					'
 
-@throws \Gobl\CRUD\Exceptions\CRUDException
+@throws \\' . GoblException::class . '
 @return ?{target_entity_class_fqn}',
 					$rel_inject
 				);
 				$m->setReturnType(new PHPType('null', $rel_inject['target_entity_class_fqn']));
 				$m->addChild(
 					Str::interpolate(
-						'return (new {target_entity_controller_class_fqn}())->getRelative(
+						'return {target_entity_class_fqn}::ctrl()->getRelative(
 	$this,
-	$this->_oeb_table->getRelation(\'{relation_name}\')
+	static::table()->getRelation(\'{relation_name}\')
 );',
 						$rel_inject
 					)
@@ -467,12 +556,12 @@ return $this;',
 			'entity_class_name' => $entity_class_name,
 			'db_namespace'      => $db_ns,
 		];
-		$class->extends(CRUDEventProducer::class)
+		$class->extends(ORMEntityCRUD::class)
 			->comment(
 				Str::interpolate(
 					'Class {class_name}.
 
-@extends \Gobl\CRUD\CRUDEventProducer<\{db_namespace}\{entity_class_name}>
+@extends \\' . ORMEntityCRUD::class . '<\{db_namespace}\{entity_class_name}>
 ',
 					$inject
 				)
@@ -492,6 +581,20 @@ return $this;',
 			);
 
 		$construct->comment(Str::interpolate('{class_name} constructor.', $inject));
+
+		$class->newMethod('new')
+			->static()
+			->public()
+			->addChild(Str::interpolate('return new \{db_namespace}\{class_name};', $inject))
+			->setReturnType('static')
+			->comment(
+				Str::interpolate(
+					'{@inheritDoc}
+
+@return static',
+					$inject
+				)
+			);
 
 		return $file->setContent($namespace);
 	}
@@ -518,7 +621,7 @@ return $this;',
 					'Class {entity_vr_class_name}.
 
 @template TRelationResult
-@extends \Gobl\DBAL\Relations\VirtualRelation<\{db_namespace}\{entity_class_name}, TRelationResult>
+@extends \\' . VirtualRelation::class . '<\{db_namespace}\{entity_class_name}, TRelationResult>
 ',
 					$inject
 				)
@@ -576,7 +679,7 @@ return $this;',
 		$class_comment_lines[] = Str::interpolate('Class {class_name}.', $inject);
 		$class_comment_lines[] = '';
 		$class_comment_lines[] = Str::interpolate(
-			'@extends \Gobl\ORM\ORMTableQuery<\{db_namespace}\{entity_class_name}>',
+			'@extends \\' . ORMTableQuery::class . '<\{db_namespace}\{entity_class_name}>',
 			$inject
 		);
 
@@ -598,14 +701,14 @@ return $this;',
 
 		$construct->comment(Str::interpolate('{class_name} constructor.', $inject));
 
-		$class->newMethod('createInstance')
+		$class->newMethod('new')
 			->static()
 			->public()
 			->addChild(Str::interpolate('return new \{db_namespace}\{class_name};', $inject))
 			->setReturnType('static')
 			->comment(
 				Str::interpolate(
-					'@inheritDoc
+					'{@inheritDoc}
 
 @return static',
 					$inject
@@ -669,7 +772,7 @@ return $this;',
 				Str::interpolate(
 					'Class {class_name}.
 
-@extends \Gobl\ORM\ORMResults<\{db_namespace}\{entity_class_name}>',
+@extends \\' . ORMResults::class . '<\{db_namespace}\{entity_class_name}>',
 					$inject
 				)
 			);
@@ -692,7 +795,7 @@ return $this;',
 			->setType(new PHPClass(QBSelect::class));
 		$construct->comment(Str::interpolate('{class_name} constructor.', $inject));
 
-		$create_instance = $class->newMethod('createInstance')
+		$create_instance = $class->newMethod('new')
 			->static()
 			->public()
 			->addChild(
@@ -703,7 +806,7 @@ return $this;',
 			->setType(new PHPClass(QBSelect::class));
 		$create_instance->comment(
 			Str::interpolate(
-				'@inheritDoc
+				'{@inheritDoc}
 
 @return static',
 				$inject
@@ -744,7 +847,7 @@ return $this;',
 				Str::interpolate(
 					'Class {class_name}.
 
-@extends \Gobl\ORM\ORMController<\{db_namespace}\{entity_class_name}, \{db_namespace}\{query_class_name}, \{db_namespace}\{results_class_name}>
+@extends \\' . ORMController::class . '<\{db_namespace}\{entity_class_name}, \{db_namespace}\{query_class_name}, \{db_namespace}\{results_class_name}>
 ',
 					$inject
 				)
@@ -764,14 +867,14 @@ return $this;',
 			)
 			->comment(Str::interpolate('{class_name} constructor.', $inject));
 
-		$class->newMethod('createInstance')
+		$class->newMethod('new')
 			->static()
 			->public()
 			->addChild(Str::interpolate('return new \{db_namespace}\{class_name}();', $inject))
 			->setReturnType('static')
 			->comment(
 				Str::interpolate(
-					'@inheritDoc
+					'{@inheritDoc}
 
 @return static',
 					$inject

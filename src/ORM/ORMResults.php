@@ -135,7 +135,7 @@ abstract class ORMResults implements Countable, Iterator
 	{
 		/** @var \Gobl\ORM\ORMEntity $entity_class */
 		$entity_class = $this->entity_class;
-		$entity       = $entity_class::createInstance(false, $strict);
+		$entity       = $entity_class::new(false, $strict);
 		$stmt         = $this->getStatement();
 
 		$stmt->setFetchMode(PDO::FETCH_INTO, $entity);
@@ -151,13 +151,13 @@ abstract class ORMResults implements Countable, Iterator
 	}
 
 	/**
-	 * Creates new instance.
+	 * Returns new instance.
 	 *
 	 * @param \Gobl\DBAL\Queries\QBSelect $query the select query builder instance
 	 *
 	 * @return static<TEntity>
 	 */
-	abstract public static function createInstance(QBSelect $query): static;
+	abstract public static function new(QBSelect $query): static;
 
 	/**
 	 * Fetches the next row.
@@ -227,6 +227,16 @@ abstract class ORMResults implements Countable, Iterator
 	}
 
 	/**
+	 * Returns the current element.
+	 *
+	 * @return null|TEntity
+	 */
+	public function current(): ?ORMEntity
+	{
+		return $this->current;
+	}
+
+	/**
 	 * Returns the key of the current element.
 	 *
 	 * @return int scalar on success, or null on failure
@@ -249,16 +259,6 @@ abstract class ORMResults implements Countable, Iterator
 	}
 
 	/**
-	 * Checks if current position is valid.
-	 *
-	 * @return bool returns true on success or false on failure
-	 */
-	public function valid(): bool
-	{
-		return (bool) $this->current;
-	}
-
-	/**
 	 * Rewind the Iterator to the first element.
 	 */
 	public function rewind(): void
@@ -274,13 +274,13 @@ abstract class ORMResults implements Countable, Iterator
 	}
 
 	/**
-	 * Returns the current element.
+	 * Checks if current position is valid.
 	 *
-	 * @return null|TEntity
+	 * @return bool returns true on success or false on failure
 	 */
-	public function current(): ?ORMEntity
+	public function valid(): bool
 	{
-		return $this->current;
+		return (bool) $this->current;
 	}
 
 	/**

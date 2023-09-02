@@ -148,7 +148,7 @@ abstract class ORMController
 				/** @var \Gobl\ORM\ORMEntity $entity_class */
 				$entity_class = ORMClassKind::ENTITY->getClassFQN($this->table);
 
-				$instance = $entity_class::createInstance();
+				$instance = $entity_class::new();
 
 				$instance->hydrate($values);
 			}
@@ -162,11 +162,11 @@ abstract class ORMController
 	}
 
 	/**
-	 * Creates new instance.
+	 * Returns new instance.
 	 *
 	 * @return static<TEntity, TQuery, TResults>
 	 */
-	abstract public static function createInstance(): static;
+	abstract public static function new(): static;
 
 	/**
 	 * Updates one item in the table.
@@ -401,8 +401,12 @@ abstract class ORMController
 	 *
 	 * @throws \Gobl\Exceptions\GoblException
 	 */
-	public function getRelative(ORMEntity $entity, Relation $relation, array $filters = [], array $order_by = []): ?ORMEntity
-	{
+	public function getRelative(
+		ORMEntity $entity,
+		Relation $relation,
+		array $filters = [],
+		array $order_by = []
+	): ?ORMEntity {
 		return $this->db->runInTransaction(function () use ($entity, $relation, $filters, $order_by): ?ORMEntity {
 			$tsf = $this->getScopedFiltersInstance($filters);
 
@@ -449,25 +453,27 @@ abstract class ORMController
 		array $order_by = [],
 		?int &$total = null
 	): array {
-		return $this->db->runInTransaction(function () use ($entity, $relation, $filters, $max, $offset, $order_by, &$total): array {
-			$tsf = $this->getScopedFiltersInstance($filters);
+		return $this->db->runInTransaction(
+			function () use ($entity, $relation, $filters, $max, $offset, $order_by, &$total): array {
+				$tsf = $this->getScopedFiltersInstance($filters);
 
-			$this->crud->assertReadAll($tsf);
+				$this->crud->assertReadAll($tsf);
 
-			$qb = $tsf->selectRelatives($relation, $entity, $max, $offset, $order_by);
+				$qb = $tsf->selectRelatives($relation, $entity, $max, $offset, $order_by);
 
-			if (!$qb) {
-				return [];
+				if (!$qb) {
+					return [];
+				}
+
+				$results = $this->getResultsInstance($qb);
+
+				$items = $results->fetchAllClass();
+
+				$total = static::lazyTotalResultsCount($results, \count($items), $max, $offset);
+
+				return $items;
 			}
-
-			$results = $this->getResultsInstance($qb);
-
-			$items = $results->fetchAllClass();
-
-			$total = static::lazyTotalResultsCount($results, \count($items), $max, $offset);
-
-			return $items;
-		});
+		);
 	}
 
 	/**
@@ -534,7 +540,7 @@ abstract class ORMController
 		/** @var TQuery $class */
 		$class = ORMClassKind::QUERY->getClassFQN($this->table);
 
-		return $class::createInstance()
+		return $class::new()
 			->where($filters);
 	}
 
@@ -618,7 +624,7 @@ abstract class ORMController
 		/** @var TResults $results_class */
 		$results_class = ORMClassKind::RESULTS->getClassFQN($this->table);
 
-		return $results_class::createInstance($qb);
+		return $results_class::new($qb);
 	}
 
 	/**
@@ -637,28 +643,32 @@ abstract class ORMController
 			$aic_full_name = $this->ai_column_full_name;
 
 			if (!empty($aic_full_name) && null !== $values[$aic_full_name]) {
-				throw new ORMException(\sprintf(
-					'Auto increment column "%s" should be set to null.',
-					$aic_full_name
-				));
+				throw new ORMException(
+					\sprintf(
+						'Auto increment column "%s" should be set to null.',
+						$aic_full_name
+					)
+				);
 			}
 
 			/** @var TQuery $class */
 			$class = ORMClassKind::QUERY->getClassFQN($this->table);
 
-			$qb = $class::createInstance()
+			$qb = $class::new()
 				->insert($values);
 
 			$result = $qb->execute();
 
 			if (!empty($aic_full_name)) {
 				if (!\is_string($result)) {
-					throw new ORMException(\sprintf(
-						'Unable to get last insert id for column "%s" in table "%s". Got "%s" while expecting "string|int".',
-						$aic_full_name,
-						$this->table->getName(),
-						\get_debug_type($result),
-					));
+					throw new ORMException(
+						\sprintf(
+							'Unable to get last insert id for column "%s" in table "%s". Got "%s" while expecting "string|int".',
+							$aic_full_name,
+							$this->table->getName(),
+							\get_debug_type($result),
+						)
+					);
 				}
 
 				$last_insert_id = $result;
