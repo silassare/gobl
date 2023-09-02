@@ -46,7 +46,7 @@ use PHPUtils\Events\EventManager;
  */
 class CRUDEventProducer
 {
-	protected string $scope;
+	protected string $event_channel;
 
 	/**
 	 * CRUDEventProducer constructor.
@@ -56,7 +56,7 @@ class CRUDEventProducer
 	 */
 	public function __construct(string $namespace, string $table_name)
 	{
-		$this->scope = ORM::table($namespace, $table_name)
+		$this->event_channel = ORM::table($namespace, $table_name)
 			->getFullName();
 	}
 
@@ -329,6 +329,6 @@ class CRUDEventProducer
 	 */
 	protected function addListener(string $event, callable $listener): void
 	{
-		EventManager::listen($event, $listener, Event::RUN_DEFAULT, $this->scope);
+		EventManager::listen($event, $listener, Event::RUN_DEFAULT, $this->event_channel);
 	}
 }

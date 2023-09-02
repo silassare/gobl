@@ -48,7 +48,7 @@ use Gobl\ORM\ORMTableQuery;
 class CRUD
 {
 	private Table $table;
-	private string $scope;
+	private string $event_channel;
 	private string $message = 'OK';
 	private array $debug;
 
@@ -59,8 +59,8 @@ class CRUD
 	 */
 	public function __construct(Table $table)
 	{
-		$this->table = $table;
-		$this->scope = $table->getFullName();
+		$this->table         = $table;
+		$this->event_channel = $table->getFullName();
 
 		$this->debug = [
 			'_table' => $table->getName(),
@@ -98,7 +98,7 @@ class CRUD
 
 		$this->checkFormColumnsForCreate($action);
 
-		return (new BeforeCreateFlush($this->table, $form))->dispatch(null, $this->scope);
+		return (new BeforeCreateFlush($this->table, $form))->dispatch(null, $this->event_channel);
 	}
 
 	/**
@@ -167,7 +167,7 @@ class CRUD
 
 		$this->checkFormColumnsForUpdate($action);
 
-		return (new BeforeUpdateFlush($this->table, $filters, $form))->dispatch(null, $this->scope);
+		return (new BeforeUpdateFlush($this->table, $filters, $form))->dispatch(null, $this->event_channel);
 	}
 
 	/**
@@ -192,7 +192,7 @@ class CRUD
 
 		$this->checkFormColumnsForUpdate($action);
 
-		return (new BeforeUpdateAllFlush($this->table, $filters, $form))->dispatch(null, $this->scope);
+		return (new BeforeUpdateAllFlush($this->table, $filters, $form))->dispatch(null, $this->event_channel);
 	}
 
 	/**
@@ -214,7 +214,7 @@ class CRUD
 
 		$this->message = $action->getSuccessMessage();
 
-		return (new BeforeDeleteFlush($this->table, $filters))->dispatch(null, $this->scope);
+		return (new BeforeDeleteFlush($this->table, $filters))->dispatch(null, $this->event_channel);
 	}
 
 	/**
@@ -236,7 +236,7 @@ class CRUD
 
 		$this->message = $action->getSuccessMessage();
 
-		return (new BeforeDeleteAllFlush($this->table, $filters))->dispatch(null, $this->scope);
+		return (new BeforeDeleteAllFlush($this->table, $filters))->dispatch(null, $this->event_channel);
 	}
 
 	/**
@@ -258,7 +258,7 @@ class CRUD
 			EntityEventType::AFTER_DELETE  => new AfterEntityDeletion($entity),
 		};
 
-		return $event->dispatch(null, $this->scope);
+		return $event->dispatch(null, $this->event_channel);
 	}
 
 	/**
@@ -279,7 +279,7 @@ class CRUD
 			if (!$allowed) {
 				$action->stopPropagation();
 			}
-		}, $this->scope);
+		}, $this->event_channel);
 
 		return $allowed;
 	}
