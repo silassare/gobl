@@ -96,11 +96,13 @@ final class Column implements ArrayCapableInterface
 			} elseif ($type instanceof TypeInterface) {
 				$this->setType($type);
 			} else {
-				throw new InvalidArgumentException(\sprintf(
-					'Column "%s" type should be an array or an instance of "%s".',
-					$this->name,
-					TypeInterface::class
-				));
+				throw new InvalidArgumentException(
+					\sprintf(
+						'Column "%s" type should be an array or an instance of "%s".',
+						$this->name,
+						TypeInterface::class
+					)
+				);
 			}
 		} else {
 			$this->type = new TypeString();
@@ -154,18 +156,24 @@ final class Column implements ArrayCapableInterface
 				if ($ti) {
 					$this->type = $ti;
 				} else {
-					throw new InvalidArgumentException(\sprintf(
-						'Unsupported type "%s" defined for column "%s".',
-						$type,
-						$this->name
-					));
+					throw new InvalidArgumentException(
+						\sprintf(
+							'Unsupported type "%s" defined for column "%s".',
+							$type,
+							$this->name
+						)
+					);
 				}
 			} catch (Throwable $t) {
-				throw new DBALRuntimeException(\sprintf(
-					'Unable to instantiate column type "%s" defined for "%s".',
-					$type,
-					$this->name
-				), null, $t);
+				throw new DBALRuntimeException(
+					\sprintf(
+						'Unable to instantiate column type "%s" defined for "%s".',
+						$type,
+						$this->name
+					),
+					null,
+					$t
+				);
 			}
 		} else {
 			throw new InvalidArgumentException(\sprintf('Invalid type defined for column "%s".', $this->name));
@@ -179,12 +187,13 @@ final class Column implements ArrayCapableInterface
 	 */
 	public function assertIsValid(): void
 	{
-		// noop
-		if (\in_array($this->name, Gobl::getForbiddenColumnsName(), true)) {
-			throw new DBALRuntimeException(\sprintf(
-				'Column name "%s" is not allowed.',
-				$this->name
-			));
+		if (!Gobl::isAllowedColumnName($this->name)) {
+			throw new DBALRuntimeException(
+				\sprintf(
+					'Column name "%s" is not allowed.',
+					$this->name
+				)
+			);
 		}
 	}
 
@@ -194,10 +203,12 @@ final class Column implements ArrayCapableInterface
 	public function assertNotLocked(): void
 	{
 		if ($this->locked) {
-			throw new DBALRuntimeException(\sprintf(
-				'You should not try to edit locked column "%s".',
-				$this->name
-			));
+			throw new DBALRuntimeException(
+				\sprintf(
+					'You should not try to edit locked column "%s".',
+					$this->name
+				)
+			);
 		}
 	}
 
@@ -207,10 +218,12 @@ final class Column implements ArrayCapableInterface
 	public function assertNameNotLocked(): void
 	{
 		if ($this->locked_name) {
-			throw new DBALRuntimeException(\sprintf(
-				'You should not try to edit locked column (%s) name or prefix.',
-				$this->name
-			));
+			throw new DBALRuntimeException(
+				\sprintf(
+					'You should not try to edit locked column (%s) name or prefix.',
+					$this->name
+				)
+			);
 		}
 	}
 
@@ -237,11 +250,13 @@ final class Column implements ArrayCapableInterface
 		$this->assertNameNotLocked();
 
 		if (!\preg_match(self::NAME_REG, $name)) {
-			throw new InvalidArgumentException(\sprintf(
-				'Column name "%s" should match: %s',
-				$name,
-				self::NAME_PATTERN
-			));
+			throw new InvalidArgumentException(
+				\sprintf(
+					'Column name "%s" should match: %s',
+					$name,
+					self::NAME_PATTERN
+				)
+			);
 		}
 
 		$this->name = $name;
@@ -274,12 +289,14 @@ final class Column implements ArrayCapableInterface
 			$this->table  = $table;
 			$this->type->lock();
 		} elseif ($table !== $this->table) {
-			throw new DBALRuntimeException(\sprintf(
-				'Can\'t lock column "%s" in table "%s" as it is already locked in "%s".',
-				$this->getName(),
-				$table->getName(),
-				$this->table->getName()
-			));
+			throw new DBALRuntimeException(
+				\sprintf(
+					'Can\'t lock column "%s" in table "%s" as it is already locked in "%s".',
+					$this->getName(),
+					$table->getName(),
+					$this->table->getName()
+				)
+			);
 		}
 
 		return $this;
@@ -312,13 +329,21 @@ final class Column implements ArrayCapableInterface
 			$this->reference = null;
 		} elseif (\is_string($reference)) {
 			if (!Db::isColumnReference($reference)) {
-				throw new InvalidArgumentException(\sprintf('Invalid column reference "%s" for column "%s".', $reference, $this->getName()));
+				throw new InvalidArgumentException(
+					\sprintf('Invalid column reference "%s" for column "%s".', $reference, $this->getName())
+				);
 			}
 			$this->reference = $reference;
 		} elseif ($table = $reference->getTable()) {
 			$this->reference = ($copy ? 'cp' : 'ref') . ':' . $table->getName() . '.' . $reference->getName();
 		} else {
-			throw new InvalidArgumentException(\sprintf('Column "%s" not added to a known table could not be added as reference for column "%s".', $reference->getName(), $this->getName()));
+			throw new InvalidArgumentException(
+				\sprintf(
+					'Column "%s" not added to a known table could not be added as reference for column "%s".',
+					$reference->getName(),
+					$this->getName()
+				)
+			);
 		}
 
 		return $this;
@@ -407,12 +432,14 @@ final class Column implements ArrayCapableInterface
 		$this->assertNameNotLocked();
 
 		if (!empty($prefix) && !\preg_match(self::PREFIX_REG, $prefix)) {
-			throw new InvalidArgumentException(\sprintf(
-				'Column prefix "%s" for column "%s" should match: %s',
-				$prefix,
-				$this->name,
-				self::PREFIX_PATTERN
-			));
+			throw new InvalidArgumentException(
+				\sprintf(
+					'Column prefix "%s" for column "%s" should match: %s',
+					$prefix,
+					$this->name,
+					self::PREFIX_PATTERN
+				)
+			);
 		}
 
 		$this->prefix = $prefix;

@@ -14,9 +14,11 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Relations;
 
 use Gobl\DBAL\Exceptions\DBALException;
+use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Relations\Interfaces\LinkInterface;
 use Gobl\DBAL\Table;
+use Gobl\Gobl;
 use InvalidArgumentException;
 use PHPUtils\Interfaces\ArrayCapableInterface;
 use PHPUtils\Str;
@@ -48,11 +50,21 @@ abstract class Relation implements ArrayCapableInterface
 		protected LinkInterface $link,
 	) {
 		if (!\preg_match(self::NAME_REG, $name)) {
-			throw new InvalidArgumentException(\sprintf(
-				'Relation name "%s" should match: %s',
-				$name,
-				self::NAME_PATTERN
-			));
+			throw new InvalidArgumentException(
+				\sprintf(
+					'Relation name "%s" should match: %s',
+					$name,
+					self::NAME_PATTERN
+				)
+			);
+		}
+		if (!Gobl::isAllowedRelationName($name)) {
+			throw new DBALRuntimeException(
+				\sprintf(
+					'Relation name "%s" is not allowed.',
+					$this->name
+				)
+			);
 		}
 	}
 
@@ -184,8 +196,12 @@ abstract class Relation implements ArrayCapableInterface
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
-	public static function createLink(RDBMSInterface $rdbms, Table $host_table, Table $target_table, array $options): LinkInterface
-	{
+	public static function createLink(
+		RDBMSInterface $rdbms,
+		Table $host_table,
+		Table $target_table,
+		array $options
+	): LinkInterface {
 		$type = $options['type'] ?? null;
 
 		if (\is_string($type)) {
@@ -208,7 +224,9 @@ abstract class Relation implements ArrayCapableInterface
 			$pivot_table = $options['pivot_table'] ?? null;
 
 			if (!$pivot_table) {
-				throw new DBALException(\sprintf('property "pivot_table" is required for relation link type "%s".', $type->value));
+				throw new DBALException(
+					\sprintf('property "pivot_table" is required for relation link type "%s".', $type->value)
+				);
 			}
 
 			if (\is_string($pivot_table)) {
@@ -216,12 +234,14 @@ abstract class Relation implements ArrayCapableInterface
 			}
 
 			if (!$pivot_table instanceof Table) {
-				throw new DBALException(\sprintf(
-					'property "pivot_table" defined for relation link type "%s" should be of string|%s type not "%s".',
-					$type->value,
-					Table::class,
-					\get_debug_type($pivot_table)
-				));
+				throw new DBALException(
+					\sprintf(
+						'property "pivot_table" defined for relation link type "%s" should be of string|%s type not "%s".',
+						$type->value,
+						Table::class,
+						\get_debug_type($pivot_table)
+					)
+				);
 			}
 
 			return new LinkThrough($rdbms, $host_table, $target_table, $pivot_table, $options);

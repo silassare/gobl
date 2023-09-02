@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Relations;
 
+use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Table;
+use Gobl\Gobl;
 use Gobl\ORM\ORM;
 use Gobl\ORM\ORMEntity;
 use Gobl\ORM\ORMRequest;
@@ -51,16 +53,25 @@ abstract class VirtualRelation
 	public function __construct(string $namespace, string $table_name, string $name, bool $paginated)
 	{
 		if (!\preg_match(self::NAME_REG, $name)) {
-			throw new InvalidArgumentException(\sprintf(
-				'Virtual relation name "%s" should match: %s',
-				$name,
-				self::NAME_PATTERN
-			));
+			throw new InvalidArgumentException(
+				\sprintf(
+					'Virtual relation name "%s" should match: %s',
+					$name,
+					self::NAME_PATTERN
+				)
+			);
+		}
+		if (!Gobl::isAllowedRelationName($name)) {
+			throw new DBALRuntimeException(
+				\sprintf(
+					'Virtual relation name "%s" is not allowed.',
+					$this->name
+				)
+			);
 		}
 
 		$this->name       = $name;
-		$this->host_table = ORM::getDatabase($namespace)
-			->getTableOrFail($table_name);
+		$this->host_table = ORM::table($namespace, $table_name);
 		$this->paginated  = $paginated;
 	}
 

@@ -108,17 +108,21 @@ class Gobl
 				$path     = $template['path'] ?? null;
 
 				if (!\is_string($path)) {
-					throw new InvalidArgumentException(\sprintf(
-						'Template "%s" option "path" is invalid, expect "string".',
-						$name,
-					));
+					throw new InvalidArgumentException(
+						\sprintf(
+							'Template "%s" option "path" is invalid, expect "string".',
+							$name,
+						)
+					);
 				}
 
 				if (!\is_array($replaces)) {
-					throw new InvalidArgumentException(\sprintf(
-						'Template "%s" option "replaces" is invalid, expect "array".',
-						$name,
-					));
+					throw new InvalidArgumentException(
+						\sprintf(
+							'Template "%s" option "replaces" is invalid, expect "array".',
+							$name,
+						)
+					);
 				}
 
 				try {
@@ -127,11 +131,15 @@ class Gobl
 						->isReadable()
 						->assert($path);
 				} catch (Throwable $t) {
-					throw new GoblRuntimeException(\sprintf(
-						'Template "%s" path "%s" should be a valid file path.',
-						$name,
-						$path,
-					), null, $t);
+					throw new GoblRuntimeException(
+						\sprintf(
+							'Template "%s" path "%s" should be a valid file path.',
+							$name,
+							$path,
+						),
+						null,
+						$t
+					);
 				}
 
 				$path = $fs->resolve($template['path']);
@@ -251,18 +259,62 @@ class Gobl
 	/**
 	 * Returns forbidden column name.
 	 *
-	 * @return string[]
+	 * @return array<string, int>
 	 */
 	public static function getForbiddenColumnsName(): array
 	{
 		return [
-			'save',
-			'saved',
-			'is_saved',
-			'new',
-			'is_new',
-			'hydrate',
+			'save'     => 1,
+			'saved'    => 1,
+			'is_saved' => 1,
+			'new'      => 1,
+			'is_new'   => 1,
+			'hydrate'  => 1,
+			// static helpers to get some instances
+			'table'    => 1,
+			'crud'     => 1,
+			'qb'       => 1,
+			'ctrl'     => 1,
+			'results'  => 1,
 		];
+	}
+
+	/**
+	 * Returns forbidden relation name.
+	 *
+	 * @return array<string, int>
+	 */
+	public static function getForbiddenRelationsName(): array
+	{
+		return self::getForbiddenColumnsName();
+	}
+
+	/**
+	 * Checks if a given column name is allowed.
+	 *
+	 * @param string $name
+	 *
+	 * @return bool
+	 */
+	public static function isAllowedColumnName(string $name): bool
+	{
+		$list = self::getForbiddenColumnsName();
+
+		return !isset($list[$name]);
+	}
+
+	/**
+	 * Checks if a given relation name is allowed.
+	 *
+	 * @param string $name
+	 *
+	 * @return bool
+	 */
+	public static function isAllowedRelationName(string $name): bool
+	{
+		$list = self::getForbiddenRelationsName();
+
+		return !isset($list[$name]);
 	}
 
 	/**
