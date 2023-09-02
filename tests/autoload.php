@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 require_once \dirname(__DIR__) . '/vendor/autoload.php';
 
+\define('GOBL_TEST_MODE', true);
 \define('GOBL_TEST_ROOT', __DIR__);
 \define('GOBL_TEST_ASSETS', GOBL_TEST_ROOT . \DIRECTORY_SEPARATOR . 'assets');
 \define('GOBL_TEST_PROJECT_DIR', GOBL_TEST_ROOT . \DIRECTORY_SEPARATOR . 'tmp');
@@ -61,10 +62,12 @@ if (!\function_exists('gobl_test_log')) {
 
 	function gobl_test_error_handler(int $code, string $message, string $file, int $line): mixed
 	{
-		gobl_test_log("\n\tFile    : {$file}"
-					  . "\n\tLine    : {$line}"
-					  . "\n\tCode    : {$code}"
-					  . "\n\tMessage : {$message}");
+		gobl_test_log(
+			"\n\tFile    : {$file}"
+			. "\n\tLine    : {$line}"
+			. "\n\tCode    : {$code}"
+			. "\n\tMessage : {$message}"
+		);
 
 		return null;
 	}
