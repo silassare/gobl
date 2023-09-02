@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Gobl\ORM;
 
 use Gobl\DBAL\Interfaces\RDBMSInterface;
+use Gobl\DBAL\Table;
 use Gobl\Gobl;
 use Gobl\ORM\Exceptions\ORMRuntimeException;
 use PHPUtils\FS\FSUtils;
@@ -74,6 +75,20 @@ class ORM
 		}
 
 		return self::$namespaces[$namespace]['db'];
+	}
+
+	/**
+	 * Returns the table instance for a given table name in a given namespace.
+	 *
+	 * @param string $namespace  the database namespace
+	 * @param string $table_name the table name
+	 *
+	 * @return \Gobl\DBAL\Table
+	 */
+	public static function table(string $namespace, string $table_name): Table
+	{
+		return self::getDatabase($namespace)
+			->getTableOrFail($table_name);
 	}
 
 	/**

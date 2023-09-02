@@ -56,8 +56,7 @@ class CRUDEventProducer
 	 */
 	public function __construct(string $namespace, string $table_name)
 	{
-		$this->scope = ORM::getDatabase($namespace)
-			->getTableOrFail($table_name)
+		$this->scope = ORM::table($namespace, $table_name)
 			->getFullName();
 	}
 
