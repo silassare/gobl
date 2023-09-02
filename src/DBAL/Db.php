@@ -116,7 +116,7 @@ abstract class Db implements RDBMSInterface
 	 *
 	 * @return RDBMSInterface
 	 */
-	public static function createInstanceOf(string $rdbms_type, DbConfig $config): RDBMSInterface
+	public static function newInstanceOf(string $rdbms_type, DbConfig $config): RDBMSInterface
 	{
 		if (!isset(self::$rdbms_map[$rdbms_type])) {
 			throw new InvalidArgumentException(\sprintf('Undefined rdbms: %s.', $rdbms_type));
@@ -125,7 +125,7 @@ abstract class Db implements RDBMSInterface
 		/** @var RDBMSInterface $rdbms_class */
 		$rdbms_class = self::$rdbms_map[$rdbms_type];
 
-		return $rdbms_class::createInstance($config);
+		return $rdbms_class::new($config);
 	}
 
 	/**

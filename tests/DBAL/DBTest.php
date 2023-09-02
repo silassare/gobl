@@ -33,9 +33,9 @@ final class DBTest extends BaseTestCase
 {
 	public function testInstantiate(): void
 	{
-		self::assertInstanceOf(MySQL::class, Db::createInstanceOf(MySQL::NAME, self::getDbConfig(MySQL::NAME)));
+		self::assertInstanceOf(MySQL::class, Db::newInstanceOf(MySQL::NAME, self::getDbConfig(MySQL::NAME)));
 
-		self::assertInstanceOf(SQLLite::class, Db::createInstanceOf(SQLLite::NAME, self::getDbConfig(SQLLite::NAME)));
+		self::assertInstanceOf(SQLLite::class, Db::newInstanceOf(SQLLite::NAME, self::getDbConfig(SQLLite::NAME)));
 	}
 
 	public function testParseColumnReference(): void
@@ -148,6 +148,9 @@ final class DBTest extends BaseTestCase
 		$db->addTable((new Table('members'))->addColumn(new Column('id')));
 	}
 
+	/**
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 */
 	public function testAddTables(): void
 	{
 		$db         = self::getEmptyDb();
@@ -193,14 +196,23 @@ final class DBTest extends BaseTestCase
 		self::assertSame(['users', 'members', 'tags', 'posts'], \array_keys($db->getTables()));
 		self::assertSame(['users'], \array_keys($db->getTables($custom_namespace)));
 
-		self::assertSame(Table::TABLE_DEFAULT_NAMESPACE, $db->getTable('members')
-			->getNamespace());
+		self::assertSame(
+			Table::TABLE_DEFAULT_NAMESPACE,
+			$db->getTable('members')
+				->getNamespace()
+		);
 
-		self::assertSame($custom_namespace, $db->getTable('users')
-			->getNamespace());
+		self::assertSame(
+			$custom_namespace,
+			$db->getTable('users')
+				->getNamespace()
+		);
 
-		self::assertSame($foo_bar_namespace, $db->getTable('posts')
-			->getNamespace());
+		self::assertSame(
+			$foo_bar_namespace,
+			$db->getTable('posts')
+				->getNamespace()
+		);
 
 		self::assertSame(['tags', 'posts'], \array_keys($db->getTables($foo_bar_namespace)));
 	}

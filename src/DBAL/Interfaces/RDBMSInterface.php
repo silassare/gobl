@@ -28,7 +28,7 @@ interface RDBMSInterface
 	/**
 	 * Create instance.
 	 */
-	public static function createInstance(DbConfig $config): static;
+	public static function new(DbConfig $config): static;
 
 	/**
 	 * Locks this db instance to prevent further changes.

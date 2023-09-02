@@ -79,7 +79,7 @@ abstract class BaseTestCase extends TestCase
 	{
 		$config = self::getDbConfig($type);
 
-		return Db::createInstanceOf($type, $config);
+		return Db::newInstanceOf($type, $config);
 	}
 
 	/**

@@ -27,14 +27,6 @@ class SQLLite extends SQLDriverBase
 	/**
 	 * {@inheritDoc}
 	 */
-	public static function createInstance(DbConfig $config): static
-	{
-		return new self($config);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getGenerator(): SQLLiteQueryGenerator
 	{
 		return new SQLLiteQueryGenerator($this, $this->config);
@@ -46,6 +38,14 @@ class SQLLite extends SQLDriverBase
 	public function getType(): string
 	{
 		return self::NAME;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public static function new(DbConfig $config): static
+	{
+		return new self($config);
 	}
 
 	/**
