@@ -105,17 +105,28 @@ final class Filters
 			if (\is_string($cur)) {
 				$left    = $cur;
 				$op_name = $filters[++$i] ?? null;
-				if (!\is_string($op_name)) {
-					throw new DBALRuntimeException('unexpected "%s" while expecting operator.', [
-						'after'      => $left,
-						'unexpected' => $op_name,
-					]);
+
+				if ($op_name instanceof Operator) {
+					$op_name = $op_name->name;
+				} elseif (!\is_string($op_name)) {
+					throw new DBALRuntimeException(
+						\sprintf(
+							'unexpected "%s" while expecting operator.',
+							\get_debug_type($op_name)
+						),
+						[
+							'_after'      => $left,
+							'_unexpected' => $op_name,
+							'_filters'    => $filters,
+						]
+					);
 				}
 
 				$operator = Operator::tryFrom($op_name);
 				if (!$operator) {
 					throw new DBALRuntimeException('invalid operator.', [
-						'found' => $op_name,
+						'_found'   => $op_name,
+						'_filters' => $filters,
 					]);
 				}
 				if ($operator->isUnary()) {
@@ -130,7 +141,8 @@ final class Filters
 							$operator = Operator::IS_NOT_NULL;
 						} else {
 							throw new DBALRuntimeException('invalid right operand.', [
-								'filter' => [$left, $op_name, $right],
+								'_filter'  => [$left, $op_name, $right],
+								'_filters' => $filters,
 							]);
 						}
 					}
@@ -141,7 +153,11 @@ final class Filters
 				$instance->where(self::fromArray($cur, $qb, $scope));
 			} else {
 				throw new DBALRuntimeException(
-					\sprintf('unexpected "%s" will expecting "string|array".', \get_debug_type($cur))
+					\sprintf('unexpected "%s" will expecting "string|array".', \get_debug_type($cur)),
+					[
+						'_unexpected' => $cur,
+						'_filters'    => $filters,
+					]
 				);
 			}
 
