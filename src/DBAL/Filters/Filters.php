@@ -103,32 +103,35 @@ final class Filters
 		$i = 0;
 		while ($cur = $filters[$i] ?? null) {
 			if (\is_string($cur)) {
-				$left    = $cur;
-				$op_name = $filters[++$i] ?? null;
+				$left = $cur;
+				$op   = $filters[++$i] ?? null;
 
-				if ($op_name instanceof Operator) {
-					$op_name = $op_name->name;
-				} elseif (!\is_string($op_name)) {
+				if ($op instanceof Operator) {
+					$op = $op->value;
+				} elseif (!\is_string($op)) {
 					throw new DBALRuntimeException(
 						\sprintf(
 							'unexpected "%s" while expecting operator.',
-							\get_debug_type($op_name)
+							\get_debug_type($op)
 						),
 						[
 							'_after'      => $left,
-							'_unexpected' => $op_name,
+							'_unexpected' => $op,
 							'_filters'    => $filters,
 						]
 					);
 				}
 
-				$operator = Operator::tryFrom($op_name);
+				$op       = \strtolower($op);
+				$operator = Operator::tryFrom($op);
+
 				if (!$operator) {
 					throw new DBALRuntimeException('invalid operator.', [
-						'_found'   => $op_name,
+						'_found'   => $op,
 						'_filters' => $filters,
 					]);
 				}
+
 				if ($operator->isUnary()) {
 					$instance->add($operator, $left);
 				} else {
@@ -141,7 +144,7 @@ final class Filters
 							$operator = Operator::IS_NOT_NULL;
 						} else {
 							throw new DBALRuntimeException('invalid right operand.', [
-								'_filter'  => [$left, $op_name, $right],
+								'_filter'  => [$left, $op, $right],
 								'_filters' => $filters,
 							]);
 						}
