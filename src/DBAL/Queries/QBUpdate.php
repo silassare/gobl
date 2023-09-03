@@ -72,7 +72,7 @@ final class QBUpdate implements QBInterface
 	 */
 	public function getType(): QBType
 	{
-		return QBType::INSERT;
+		return QBType::UPDATE;
 	}
 
 	/**
