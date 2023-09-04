@@ -148,6 +148,7 @@ abstract class CSGenerator
 			'argName'           => $column_name,
 			'writeTypeHint'     => $this->getColumnWriteTypeHintString($column),
 			'readTypeHint'      => $this->getColumnReadTypeHintString($column),
+			'readTypeHintSaved' => $this->getColumnReadTypeHintString($column, true),
 		];
 	}
 
@@ -191,15 +192,21 @@ abstract class CSGenerator
 
 	/**
 	 * @param \Gobl\DBAL\Column $column
+	 * @param bool              $saved
 	 *
 	 * @return string
 	 */
-	public function getColumnReadTypeHintString(Column $column): string
+	public function getColumnReadTypeHintString(Column $column, bool $saved = false): string
 	{
-		$type      = $column->getType();
-		$type_hint = $type->getReadTypeHint();
+		$type        = $column->getType();
+		$type_hint   = $type->getReadTypeHint();
+		$is_nullable = $type->isNullable();
 
-		if ($type->isAutoIncremented() || $type->isNullable()) {
+		if ($type->isAutoIncremented() && !$saved) {
+			$is_nullable = true;
+		}
+
+		if ($is_nullable) {
 			$type_hint->nullable();
 		}
 
