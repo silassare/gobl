@@ -19,8 +19,12 @@ export default abstract class MyEntityBase extends GoblEntity {
 //@<%loop($.columns : $column){%>	public static readonly <%$column.const%>: string = '<%$column.fullName%>';
 //@<%}%>
 //@<%@var $len = @length($.pk_columns);%><%if($len == 1){%>
-//@	public singlePKValue() {
-//@		return this.<%$.pk_columns[0].name%>;
+//@	public singlePKValue():string {
+//@		const id = this.<%$.pk_columns[0].name%>;
+//@		if (id === undefined || id === null) {
+//@			throw new Error('Cannot get single PK value for unsaved <%$.class.entity%>.');
+//@		}
+//@		return String(id);
 //@	}<%}%>
 //@<%if($len){%>
 //@	public identifierColumns(): string[] {
