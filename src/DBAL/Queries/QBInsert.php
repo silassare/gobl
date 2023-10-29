@@ -78,14 +78,14 @@ final class QBInsert implements QBInterface
 	/**
 	 * Specify the table to insert into.
 	 *
-	 * @param \Gobl\DBAL\Table|string $table
-	 * @param bool                    $auto_prefix
+	 * @param string|Table $table
+	 * @param bool         $auto_prefix
 	 *
 	 * @return $this
 	 */
 	public function into(string|Table $table, bool $auto_prefix = true): self
 	{
-		$table_name          = $this->resolveTable($table)
+		$table_name = $this->resolveTable($table)
 			?->getFullName() ?? $table;
 		$this->options_table = $table_name;
 		$this->auto_prefix   = $auto_prefix;
@@ -96,17 +96,40 @@ final class QBInsert implements QBInterface
 	/**
 	 * Specify values to insert.
 	 *
-	 * @param array<string, mixed> $values the column => value map
+	 * @param array<int, array<string, mixed>>|array<string, mixed> $values the column => value map or array of column => value map for multi insert
 	 *
 	 * @return $this
 	 */
 	public function values(array $values): self
 	{
+		$key = \array_keys($values)[0];
+
+		if (\is_string($key)) {
+			/** @var array<string, mixed> $values */
+			$this->singleValue($values);
+		} else {
+			foreach ($values as $value) {
+				$this->singleValue($value);
+			}
+		}
+
+		return $this;
+	}
+
+	/**
+	 * Specify value to insert.
+	 *
+	 * @param array<string, mixed> $value the column => value map
+	 *
+	 * @return $this
+	 */
+	public function singleValue(array $value): self
+	{
 		if (!isset($this->options_table)) {
 			throw new LogicException(\sprintf('You must call "%s" method first', Str::callableName([$this, 'into'])));
 		}
 
-		$map           = $this->bindColumnsValuesForInsertOrUpdate($this->options_table, $values, $this->auto_prefix);
+		$map           = $this->bindColumnsValuesForInsertOrUpdate($this->options_table, $value, $this->auto_prefix);
 		$columns       = \array_keys($map);
 		$values_params = \array_values($map);
 
