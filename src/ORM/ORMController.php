@@ -208,16 +208,22 @@ abstract class ORMController
 	/**
 	 * Updates all items in the table that match the given item filters.
 	 *
-	 * @param array $filters    the row filters
-	 * @param array $new_values the new values
+	 * @param array    $filters    the row filters
+	 * @param array    $new_values the new values
+	 * @param null|int $max        maximum row to update. If null, all rows will be updated.
+	 * @param array    $order_by   order by rules
 	 *
 	 * @return int affected row count
 	 *
 	 * @throws \Gobl\Exceptions\GoblException
 	 */
-	public function updateAllItems(array $filters, array $new_values): int
-	{
-		return $this->db->runInTransaction(function () use ($filters, $new_values): int {
+	public function updateAllItems(
+		array $filters,
+		array $new_values,
+		?int $max = null,
+		array $order_by = []
+	): int {
+		return $this->db->runInTransaction(function () use ($filters, $new_values, $max, $order_by): int {
 			$tsf        = $this->getScopedFiltersInstance($filters);
 			$action     = $this->crud->assertUpdateAll($tsf, $new_values);
 			$new_values = $action->getForm();
@@ -226,6 +232,8 @@ abstract class ORMController
 			static::assertUpdateColumns($this->table, \array_keys($new_values));
 
 			return $tsf->update($new_values)
+				->limit($max)
+				->orderBy($order_by)
 				->execute();
 		});
 	}
@@ -273,15 +281,20 @@ abstract class ORMController
 	/**
 	 * Deletes all items in the table that match the given item filters.
 	 *
-	 * @param array $filters the row filters
+	 * @param array    $filters  the row filters
+	 * @param null|int $max      maximum row to delete. If null, all rows will be deleted.
+	 * @param array    $order_by order by rules
 	 *
 	 * @return int affected row count
 	 *
 	 * @throws \Gobl\Exceptions\GoblException
 	 */
-	public function deleteAllItems(array $filters): int
-	{
-		return $this->db->runInTransaction(function () use ($filters): int {
+	public function deleteAllItems(
+		array $filters,
+		?int $max = null,
+		array $order_by = []
+	): int {
+		return $this->db->runInTransaction(function () use ($order_by, $max, $filters): int {
 			$tsf = $this->getScopedFiltersInstance($filters);
 
 			$this->crud->assertDeleteAll($tsf);
@@ -289,6 +302,8 @@ abstract class ORMController
 			static::assertFiltersNotEmpty($tsf);
 
 			return $tsf->delete()
+				->limit($max)
+				->orderBy($order_by)
 				->execute();
 		});
 	}
