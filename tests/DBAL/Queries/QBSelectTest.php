@@ -11,9 +11,10 @@
 
 declare(strict_types=1);
 
-namespace Gobl\Tests\DBAL;
+namespace Gobl\Tests\DBAL\Queries;
 
 use Gobl\DBAL\Builders\TableBuilder;
+use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Queries\NamedToPositionalParams;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\Tests\BaseTestCase;
@@ -21,12 +22,15 @@ use Gobl\Tests\BaseTestCase;
 /**
  * Class QBSelectTest.
  *
- * @covers \Gobl\DBAL\Db
+ * @covers \Gobl\DBAL\Queries\QBSelect
  *
  * @internal
  */
-final class QueryBuilderTest extends BaseTestCase
+final class QBSelectTest extends BaseTestCase
 {
+	/**
+	 * @throws DBALException
+	 */
 	public function testFullyQualifiedNameArray(): void
 	{
 		$db    = self::getEmptyDb();
@@ -80,7 +84,7 @@ final class QueryBuilderTest extends BaseTestCase
 	}
 
 	/**
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function testRelationQuery(): void
 	{
@@ -95,15 +99,15 @@ final class QueryBuilderTest extends BaseTestCase
 			->getLink()
 			->apply($qb);
 
-		$tags_full_name      = $db->getTableOrFail('tags')
+		$tags_full_name = $db->getTableOrFail('tags')
 			->getFullName();
-		$tags_alias          = $qb->getMainAlias($tags_full_name);
-		$articles_full_name  = $db->getTableOrFail('articles')
+		$tags_alias         = $qb->getMainAlias($tags_full_name);
+		$articles_full_name = $db->getTableOrFail('articles')
 			->getFullName();
 		$articles_alias      = $qb->getMainAlias($articles_full_name);
 		$taggables_full_name = $db->getTableOrFail('taggables')
 			->getFullName();
-		$taggables_alias     = $qb->getMainAlias($taggables_full_name);
+		$taggables_alias = $qb->getMainAlias($taggables_full_name);
 
 		$bound_values = $qb->getBoundValues();
 
