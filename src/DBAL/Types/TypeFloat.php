@@ -83,7 +83,7 @@ class TypeFloat extends Type implements BaseTypeInterface
 	 */
 	public function min(float $min, ?string $message = null): static
 	{
-		if (0 > $min && $this->isUnsigned()) {
+		if (0.0 > $min && $this->isUnsigned()) {
 			throw new TypesException(\sprintf('"%s" is not a valid unsigned float.', $min));
 		}
 		$max = $this->getOption('max');
@@ -144,10 +144,99 @@ class TypeFloat extends Type implements BaseTypeInterface
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 */
+	public function configure(array $options): static
+	{
+		if (isset($options['min'])) {
+			$this->min((float) $options['min']);
+		}
+
+		if (isset($options['max'])) {
+			$this->max((float) $options['max']);
+		}
+
+		if (isset($options['unsigned'])) {
+			$this->unsigned((bool) $options['unsigned']);
+		}
+
+		if (isset($options['mantissa'])) {
+			$this->mantissa((int) $options['mantissa']);
+		}
+
+		return parent::configure($options);
+	}
+
+	/**
+	 * Sets the number of digits following the floating point.
+	 *
+	 * @param int $mantissa the mantissa
+	 *
+	 * @return $this
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 */
+	public function mantissa(int $mantissa): static
+	{
+		if (0 > $mantissa) {
+			throw new TypesException(
+				'The number of digits following the floating point should be a positive integer.'
+			);
+		}
+
+		return $this->setOption('mantissa', $mantissa);
+	}
+
+	/**
+	 * {@inheritDoc}
 	 */
 	public function getName(): string
 	{
 		return self::NAME;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?float
+	{
+		return null === $value ? null : (float) $value;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getEmptyValueOfType(): ?float
+	{
+		return $this->isNullable() ? null : 0.0;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getReadTypeHint(): ORMTypeHint
+	{
+		return ORMTypeHint::float();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getWriteTypeHint(): ORMTypeHint
+	{
+		return ORMTypeHint::float()
+			->addUniversalTypes(ORMUniversalType::INT);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
+	 */
+	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?float
+	{
+		return $this->validate($value);
 	}
 
 	/**
@@ -199,94 +288,5 @@ class TypeFloat extends Type implements BaseTypeInterface
 		}
 
 		return (float) $value;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-	 */
-	public function configure(array $options): static
-	{
-		if (isset($options['min'])) {
-			$this->min((float) $options['min']);
-		}
-
-		if (isset($options['max'])) {
-			$this->max((float) $options['max']);
-		}
-
-		if (isset($options['unsigned'])) {
-			$this->unsigned((bool) $options['unsigned']);
-		}
-
-		if (isset($options['mantissa'])) {
-			$this->mantissa((int) $options['mantissa']);
-		}
-
-		return parent::configure($options);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?float
-	{
-		return null === $value ? null : (float) $value;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getEmptyValueOfType(): ?float
-	{
-		return $this->isNullable() ? null : 0.0;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getReadTypeHint(): ORMTypeHint
-	{
-		return ORMTypeHint::float();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getWriteTypeHint(): ORMTypeHint
-	{
-		return ORMTypeHint::float()
-			->addUniversalTypes(ORMUniversalType::INT);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
-	 */
-	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?float
-	{
-		return $this->validate($value);
-	}
-
-	/**
-	 * Sets the number of digits following the floating point.
-	 *
-	 * @param int $mantissa the mantissa
-	 *
-	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-	 */
-	public function mantissa(int $mantissa): static
-	{
-		if (0 > $mantissa) {
-			throw new TypesException(
-				'The number of digits following the floating point should be a positive integer.'
-			);
-		}
-
-		return $this->setOption('mantissa', $mantissa);
 	}
 }

@@ -35,7 +35,7 @@ class TypeDecimal extends Type implements BaseTypeInterface
 	 * @param bool        $unsigned as unsigned decimal value
 	 * @param null|string $message  the error message
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function __construct(
 		?string $min = null,
@@ -78,16 +78,16 @@ class TypeDecimal extends Type implements BaseTypeInterface
 	/**
 	 * Sets min value.
 	 *
-	 * @param string      $min
-	 * @param null|string $message
+	 * @param float|string $min
+	 * @param null|string  $message
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
-	public function min(string $min, ?string $message = null): static
+	public function min(string|float $min, ?string $message = null): static
 	{
-		if (0 > $min && $this->isUnsigned()) {
+		if (0.0 > $min && $this->isUnsigned()) {
 			throw new TypesException(\sprintf('"%s" is not a valid unsigned decimal.', $min));
 		}
 		$max = $this->getOption('max');
@@ -114,14 +114,14 @@ class TypeDecimal extends Type implements BaseTypeInterface
 	/**
 	 * Sets max value.
 	 *
-	 * @param string      $max
-	 * @param null|string $message
+	 * @param float|string $max
+	 * @param null|string  $message
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
-	public function max(string $max, ?string $message = null): static
+	public function max(string|float $max, ?string $message = null): static
 	{
 		if (0.0 > $max && $this->isUnsigned()) {
 			throw new TypesException(\sprintf('"%s" is not a valid unsigned decimal.', $max));
@@ -148,59 +148,8 @@ class TypeDecimal extends Type implements BaseTypeInterface
 
 	/**
 	 * {@inheritDoc}
-	 */
-	public function getName(): string
-	{
-		return self::NAME;
-	}
-
-	/**
-	 * {@inheritDoc}
 	 *
-	 * @return null|string
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
-	 */
-	public function validate(mixed $value): ?string
-	{
-		$debug = [
-			'value' => $value,
-		];
-
-		if (null === $value) {
-			$value = $this->getDefault();
-
-			if (null === $value && $this->isNullable()) {
-				return null;
-			}
-		}
-
-		if (!\is_numeric($value) && !\is_float($value) && !\is_int($value)) {
-			throw new TypesInvalidValueException($this->msg('invalid_decimal_type'), $debug);
-		}
-
-		if (0 > $value && $this->isUnsigned()) {
-			throw new TypesInvalidValueException($this->msg('invalid_unsigned_decimal_type'), $debug);
-		}
-
-		$min = $this->getOption('min');
-
-		if (null !== $min && !self::isLt($min, $value, true)) {
-			throw new TypesInvalidValueException($this->msg('decimal_value_must_be_gt_or_equal_to_min'), $debug);
-		}
-		$max = $this->getOption('max');
-
-		if (null !== $max && !self::isLt($value, $max, true)) {
-			throw new TypesInvalidValueException($this->msg('decimal_value_must_be_lt_or_equal_to_max'), $debug);
-		}
-
-		return (string) $value;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function configure(array $options): static
 	{
@@ -225,6 +174,49 @@ class TypeDecimal extends Type implements BaseTypeInterface
 		}
 
 		return parent::configure($options);
+	}
+
+	/**
+	 * Sets the total number of digits and the scale.
+	 *
+	 * @param int      $precision the number of digits before the fixed point
+	 * @param null|int $scale     the number of digits following the fixed point
+	 *
+	 * @return $this
+	 *
+	 * @throws TypesException
+	 */
+	public function precision(int $precision, ?int $scale = null): static
+	{
+		if (1 > $precision) {
+			throw new TypesException(
+				'The total number of digits should be an integer greater than 1.'
+			);
+		}
+
+		if (null !== $scale) {
+			if (0 > $scale || $precision < $scale) {
+				throw new TypesException(
+					\sprintf(
+						'The number of digits following the fixed point should be an integer between %s and %s.',
+						0,
+						$precision
+					)
+				);
+			}
+
+			$this->setOption('scale', $scale);
+		}
+
+		return $this->setOption('precision', $precision);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getName(): string
+	{
+		return self::NAME;
 	}
 
 	/**
@@ -271,37 +263,45 @@ class TypeDecimal extends Type implements BaseTypeInterface
 	}
 
 	/**
-	 * Sets the total number of digits and the scale.
+	 * {@inheritDoc}
 	 *
-	 * @param int      $precision the number of digits before the fixed point
-	 * @param null|int $scale     the number of digits following the fixed point
+	 * @return null|string
 	 *
-	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
 	 */
-	public function precision(int $precision, ?int $scale = null): static
+	public function validate(mixed $value): ?string
 	{
-		if (1 > $precision) {
-			throw new TypesException(
-				'The total number of digits should be an integer greater than 1.'
-			);
-		}
+		$debug = [
+			'value' => $value,
+		];
 
-		if (null !== $scale) {
-			if (0 > $scale || $precision < $scale) {
-				throw new TypesException(
-					\sprintf(
-						'The number of digits following the fixed point should be an integer between %s and %s.',
-						0,
-						$precision
-					)
-				);
+		if (null === $value) {
+			$value = $this->getDefault();
+
+			if (null === $value && $this->isNullable()) {
+				return null;
 			}
-
-			$this->setOption('scale', $scale);
 		}
 
-		return $this->setOption('precision', $precision);
+		if (!\is_numeric($value) && !\is_float($value) && !\is_int($value)) {
+			throw new TypesInvalidValueException($this->msg('invalid_decimal_type'), $debug);
+		}
+
+		if (0 > $value && $this->isUnsigned()) {
+			throw new TypesInvalidValueException($this->msg('invalid_unsigned_decimal_type'), $debug);
+		}
+
+		$min = $this->getOption('min');
+
+		if (null !== $min && !self::isLt($min, $value, true)) {
+			throw new TypesInvalidValueException($this->msg('decimal_value_must_be_gt_or_equal_to_min'), $debug);
+		}
+		$max = $this->getOption('max');
+
+		if (null !== $max && !self::isLt($value, $max, true)) {
+			throw new TypesInvalidValueException($this->msg('decimal_value_must_be_lt_or_equal_to_max'), $debug);
+		}
+
+		return (string) $value;
 	}
 }
