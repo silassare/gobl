@@ -111,9 +111,6 @@ interface TypeInterface extends ArrayCapableInterface
 	/**
 	 * Explicitly set the default value.
 	 *
-	 * the default should comply with all rules or not ?
-	 * the answer is up to you.
-	 *
 	 * @param mixed $default the value to use as default
 	 *
 	 * @return $this
