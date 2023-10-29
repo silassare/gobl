@@ -86,7 +86,7 @@ class Diff
 		$m_get_version = $class->newMethod('getVersion')
 			->public()
 			->setReturnType('int');
-		$m_get_label   = $class->newMethod('getLabel')
+		$m_get_label = $class->newMethod('getLabel')
 			->public()
 			->setReturnType('string');
 
@@ -149,16 +149,6 @@ DIFF_SQL;
 			->comment('@inheritDoc');
 
 		return $file->addChild('return ' . $class . ';');
-	}
-
-	/**
-	 * Check if db has changes.
-	 *
-	 * @return bool
-	 */
-	public function hasChanges(): bool
-	{
-		return \count($this->getDiff()) > 0;
 	}
 
 	/**
@@ -230,20 +220,14 @@ DIFF_SQL;
 		return $diff;
 	}
 
-	protected function getConstraintAddedClassInstance(Constraint $constraint, string $reason = ''): ForeignKeyConstraintAdded|PrimaryKeyConstraintAdded|UniqueKeyConstraintAdded
+	/**
+	 * Check if db has changes.
+	 *
+	 * @return bool
+	 */
+	public function hasChanges(): bool
 	{
-		if ($constraint instanceof PrimaryKey) {
-			$c = new PrimaryKeyConstraintAdded($constraint, $reason);
-		} elseif ($constraint instanceof UniqueKey) {
-			$c = new UniqueKeyConstraintAdded($constraint, $reason);
-		} else {
-			/** @var \Gobl\DBAL\Constraints\ForeignKey $constraint */
-			$c = new ForeignKeyConstraintAdded($constraint, $reason);
-		}
-
-		!empty($reason) && $c->setReason($reason);
-
-		return $c;
+		return \count($this->getDiff()) > 0;
 	}
 
 	protected function getConstraintDeletedClassInstance(Constraint $constraint, string $reason = ''): PrimaryKeyConstraintDeleted|ForeignKeyConstraintDeleted|UniqueKeyConstraintDeleted
@@ -356,6 +340,22 @@ DIFF_SQL;
 		}
 	}
 
+	protected function getConstraintAddedClassInstance(Constraint $constraint, string $reason = ''): ForeignKeyConstraintAdded|PrimaryKeyConstraintAdded|UniqueKeyConstraintAdded
+	{
+		if ($constraint instanceof PrimaryKey) {
+			$c = new PrimaryKeyConstraintAdded($constraint, $reason);
+		} elseif ($constraint instanceof UniqueKey) {
+			$c = new UniqueKeyConstraintAdded($constraint, $reason);
+		} else {
+			/** @var \Gobl\DBAL\Constraints\ForeignKey $constraint */
+			$c = new ForeignKeyConstraintAdded($constraint, $reason);
+		}
+
+		!empty($reason) && $c->setReason($reason);
+
+		return $c;
+	}
+
 	protected function diffTableFKConstraints(Table $from_table, Table $to_table, array &$diff): void
 	{
 		$from = $from_table->getForeignKeyConstraints();
@@ -443,7 +443,7 @@ DIFF_SQL;
 				$c_columns = \array_merge(\array_diff($a_columns, $b_columns), \array_diff($b_columns, $a_columns));
 				if (!empty($c_columns)) {
 					// there is a change in the constraint columns
-					$reason = \sprintf('constraint columns (%s) has changed: rename, addition or deletion.', \implode(' , ', $c_columns));
+					$reason = \sprintf('constraint columns (%s) has changed: rename, addition or deletion.', \implode(', ', $c_columns));
 					$diff[] = $this->getConstraintDeletedClassInstance($from_constraint, $reason);
 					$diff[] = $this->getConstraintAddedClassInstance($to_constraint, $reason);
 				}
