@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Queries\Traits;
 
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
+use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Queries\QBUtils;
 use Gobl\DBAL\Table;
 use Throwable;
@@ -42,6 +43,79 @@ trait QBFromTrait
 	}
 
 	/**
+	 * Sets the from clause.
+	 *
+	 * @param array|QBSelect|string|Table $table
+	 * @param null|string                 $alias
+	 *
+	 * ```php
+	 * $this->from('users');
+	 * $this->from('users','u');
+	 * $this->from(['users', 'articles' => 'a', 'another_table']);
+	 * ```
+	 *
+	 * @return $this
+	 */
+	public function from(array|string|Table|QBSelect $table, ?string $alias = null): static
+	{
+		if (
+			$this->disable_multiple_from
+			&& (!empty($this->options_from) || (\is_array($table) && \count($table) > 1))
+		) {
+			throw new DBALRuntimeException(
+				\sprintf(
+					'Multiple table definition for "from" clause are disabled for query type "%s" provided in "%s".',
+					$this->getType()->name,
+					static::class
+				)
+			);
+		}
+
+		// it is a derived table
+		if ($table instanceof QBSelect) {
+			if (!$alias) {
+				throw new DBALRuntimeException(
+					\sprintf(
+						'Alias is required for derived table in "from" clause for query type "%s" provided in "%s".',
+						$this->getType()->name,
+						static::class
+					)
+				);
+			}
+
+			$query = $table;
+			$sql   = $query->getSqlQuery();
+			if (empty($sql)) {
+				throw (new DBALRuntimeException(
+					\sprintf(
+						'Derived table query is empty in "from" clause for query type "%s" provided in "%s".',
+						$this->getType()->name,
+						static::class
+					)
+				))->suspectObject($query);
+			}
+
+			$this->bindMergeFrom($query);
+
+			$this->addFromOptions('(' . $sql . ')', $alias);
+		} elseif (\is_array($table)) {
+			foreach ($table as $key => $value) {
+				if (\is_int($key)) {
+					$this->addFromOptions($value);
+				} else {
+					$this->addFromOptions($key, $value);
+				}
+			}
+		} elseif ($table instanceof Table) {
+			$this->addFromOptions($table->getFullName(), $alias);
+		} else {
+			$this->addFromOptions($table, $alias);
+		}
+
+		return $this;
+	}
+
+	/**
 	 * Checks if a table is in the from clause.
 	 * If an alias is provided, it will check if the table is in the from clause
 	 * with the provided alias.
@@ -62,52 +136,6 @@ trait QBFromTrait
 		}
 
 		return $found_table;
-	}
-
-	/**
-	 * Sets the from clause.
-	 *
-	 * @param array|\Gobl\DBAL\Table|string $table
-	 * @param null|string                   $alias
-	 *
-	 * ```php
-	 * $this->from('users');
-	 * $this->from('users','u');
-	 * $this->from(['users', 'articles' => 'a', 'another_table']);
-	 * ```
-	 *
-	 * @return $this
-	 */
-	public function from(array|string|Table $table, ?string $alias = null): static
-	{
-		if (
-			$this->disable_multiple_from
-			&& (!empty($this->options_from) || (\is_array($table) && \count($table) > 1))
-		) {
-			throw new DBALRuntimeException(
-				\sprintf(
-					'Multiple table definition for "from" clause are disabled for query type "%s" provided in "%s".',
-					$this->getType()->name,
-					static::class
-				)
-			);
-		}
-
-		if (\is_array($table)) {
-			foreach ($table as $key => $value) {
-				if (\is_int($key)) {
-					$this->addFromOptions($value);
-				} else {
-					$this->addFromOptions($key, $value);
-				}
-			}
-		} elseif ($table instanceof Table) {
-			$this->addFromOptions($table->getFullName(), $alias);
-		} else {
-			$this->addFromOptions($table, $alias);
-		}
-
-		return $this;
 	}
 
 	/**
