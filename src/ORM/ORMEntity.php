@@ -225,6 +225,47 @@ abstract class ORMEntity implements ArrayCapableInterface
 	}
 
 	/**
+	 * Returns new instance.
+	 *
+	 * @param bool $is_new true for new entity, false for entity fetched
+	 *                     from the database, default is true
+	 * @param bool $strict enable/disable strict mode
+	 *
+	 * @return static
+	 */
+	abstract public static function new(bool $is_new = true, bool $strict = true): static;
+
+	/**
+	 * Returns the table instance.
+	 *
+	 * @return \Gobl\DBAL\Table
+	 */
+	abstract public static function table(): Table;
+
+	/**
+	 * Returns the table query builder instance.
+	 *
+	 * @return \Gobl\ORM\ORMTableQuery
+	 */
+	abstract public static function qb(): ORMTableQuery;
+
+	/**
+	 * Returns the table results instance.
+	 *
+	 * @param \Gobl\DBAL\Queries\QBSelect $query
+	 *
+	 * @return \Gobl\ORM\ORMResults
+	 */
+	abstract public static function results(QBSelect $query): ORMResults;
+
+	/**
+	 * Returns the table crud event producer instance.
+	 *
+	 * @return \Gobl\ORM\ORMEntityCRUD
+	 */
+	abstract public static function crud(): ORMEntityCRUD;
+
+	/**
 	 * To check if this entity is new.
 	 *
 	 * ```php
@@ -317,15 +358,32 @@ abstract class ORMEntity implements ArrayCapableInterface
 		}
 
 		if (!empty($this->_oeb_row_saved) && !$this->isSaved()) {
-			$saved = static::ctrl()
-				->updateOneItem($this->toIdentityFilters(), $this->_oeb_row);
+			$to_update = [];
 
-			return $saved && $this->hydrate($saved->toRow())
-				->isSaved(true);
+			foreach ($this->_oeb_row as $column_name => $value) {
+				if ($this->_oeb_row_saved[$column_name] !== $value) {
+					$to_update[$column_name] = $value;
+				}
+			}
+
+			if (!empty($to_update)) {
+				$saved = static::ctrl()
+					->updateOneItem($this->toIdentityFilters(), $to_update);
+
+				return $saved && $this->hydrate($saved->toRow())
+					->isSaved(true);
+			}
 		}
 
 		return false;
 	}
+
+	/**
+	 * Returns the table controller instance.
+	 *
+	 * @return \Gobl\ORM\ORMController
+	 */
+	abstract public static function ctrl(): ORMController;
 
 	/**
 	 * To check if this entity is saved.
@@ -421,54 +479,6 @@ abstract class ORMEntity implements ArrayCapableInterface
 
 		return $this;
 	}
-
-	/**
-	 * Returns new instance.
-	 *
-	 * @param bool $is_new true for new entity, false for entity fetched
-	 *                     from the database, default is true
-	 * @param bool $strict enable/disable strict mode
-	 *
-	 * @return static
-	 */
-	abstract public static function new(bool $is_new = true, bool $strict = true): static;
-
-	/**
-	 * Returns the table instance.
-	 *
-	 * @return \Gobl\DBAL\Table
-	 */
-	abstract public static function table(): Table;
-
-	/**
-	 * Returns the table controller instance.
-	 *
-	 * @return \Gobl\ORM\ORMController
-	 */
-	abstract public static function ctrl(): ORMController;
-
-	/**
-	 * Returns the table query builder instance.
-	 *
-	 * @return \Gobl\ORM\ORMTableQuery
-	 */
-	abstract public static function qb(): ORMTableQuery;
-
-	/**
-	 * Returns the table results instance.
-	 *
-	 * @param \Gobl\DBAL\Queries\QBSelect $query
-	 *
-	 * @return \Gobl\ORM\ORMResults
-	 */
-	abstract public static function results(QBSelect $query): ORMResults;
-
-	/**
-	 * Returns the table crud event producer instance.
-	 *
-	 * @return \Gobl\ORM\ORMEntityCRUD
-	 */
-	abstract public static function crud(): ORMEntityCRUD;
 
 	/**
 	 * Sets a column value.
