@@ -66,6 +66,14 @@ class TypeString extends Type implements BaseTypeInterface
 	}
 
 	/**
+	 * {@inheritDoc}
+	 */
+	public static function getInstance(array $options): static
+	{
+		return (new self())->configure($options);
+	}
+
+	/**
 	 * Sets string min length.
 	 *
 	 * @param int         $min
@@ -137,14 +145,6 @@ class TypeString extends Type implements BaseTypeInterface
 		!empty($message) && $this->msg('string_not_in_allowed_list', $message);
 
 		return $this->setOption('one_of', \array_unique($list));
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public static function getInstance(array $options): static
-	{
-		return (new self())->configure($options);
 	}
 
 	/**
