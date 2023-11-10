@@ -86,7 +86,7 @@ class Diff
 		$m_get_version = $class->newMethod('getVersion')
 			->public()
 			->setReturnType('int');
-		$m_get_label = $class->newMethod('getLabel')
+		$m_get_label   = $class->newMethod('getLabel')
 			->public()
 			->setReturnType('string');
 
