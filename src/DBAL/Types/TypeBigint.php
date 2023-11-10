@@ -80,14 +80,14 @@ class TypeBigint extends Type implements BaseTypeInterface
 	/**
 	 * Sets min value.
 	 *
-	 * @param string      $min
+	 * @param int|string  $min
 	 * @param null|string $message
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
-	public function min(string $min, ?string $message = null): static
+	public function min(string|int $min, ?string $message = null): static
 	{
 		self::assertValidBigint($min, $this->isUnsigned());
 
@@ -115,14 +115,14 @@ class TypeBigint extends Type implements BaseTypeInterface
 	/**
 	 * Sets max value.
 	 *
-	 * @param string      $max
+	 * @param int|string  $max
 	 * @param null|string $message
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
-	public function max(string $max, ?string $message = null): static
+	public function max(string|int $max, ?string $message = null): static
 	{
 		self::assertValidBigint($max, $this->isUnsigned());
 
@@ -145,10 +145,75 @@ class TypeBigint extends Type implements BaseTypeInterface
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 */
+	public function configure(array $options): static
+	{
+		if (isset($options['min'])) {
+			$this->min((string) $options['min']);
+		}
+
+		if (isset($options['max'])) {
+			$this->max((string) $options['max']);
+		}
+
+		if (isset($options['unsigned'])) {
+			$this->unsigned((bool) $options['unsigned']);
+		}
+
+		return parent::configure($options);
+	}
+
+	/**
+	 * {@inheritDoc}
 	 */
 	public function getName(): string
 	{
 		return self::NAME;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?string
+	{
+		return null === $value ? null : (string) $value;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getEmptyValueOfType(): ?int
+	{
+		return $this->isNullable() ? null : 0;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getReadTypeHint(): ORMTypeHint
+	{
+		return ORMTypeHint::bigint();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getWriteTypeHint(): ORMTypeHint
+	{
+		return ORMTypeHint::bigint()
+			->addUniversalTypes(ORMUniversalType::INT);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 */
+	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
+	{
+		return $this->validate($value);
 	}
 
 	/**
@@ -201,71 +266,6 @@ class TypeBigint extends Type implements BaseTypeInterface
 		}
 
 		return (string) $value;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-	 */
-	public function configure(array $options): static
-	{
-		if (isset($options['min'])) {
-			$this->min((string) $options['min']);
-		}
-
-		if (isset($options['max'])) {
-			$this->max((string) $options['max']);
-		}
-
-		if (isset($options['unsigned'])) {
-			$this->unsigned((bool) $options['unsigned']);
-		}
-
-		return parent::configure($options);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?string
-	{
-		return null === $value ? null : (string) $value;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getEmptyValueOfType(): ?int
-	{
-		return $this->isNullable() ? null : 0;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getReadTypeHint(): ORMTypeHint
-	{
-		return ORMTypeHint::bigint();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getWriteTypeHint(): ORMTypeHint
-	{
-		return ORMTypeHint::bigint()
-			->addUniversalTypes(ORMUniversalType::INT);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
-	 */
-	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
-	{
-		return $this->validate($value);
 	}
 
 	/**
