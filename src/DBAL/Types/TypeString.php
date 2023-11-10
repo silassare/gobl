@@ -173,9 +173,11 @@ class TypeString extends Type implements BaseTypeInterface
 		}
 
 		if (null === $value || '' === $value) {
-			$value = $this->getDefault();
+			$def = $this->getDefault();
 
-			if (null === $value && $this->isNullable()) {
+			if (null !== $def) {
+				$value = $def;
+			} elseif ($this->isNullable()) {
 				return null;
 			}
 		}
