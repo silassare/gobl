@@ -38,7 +38,7 @@ final class QBDeleteTest extends BaseTestCase
 		$sql          = $qb->getSqlQuery();
 		$bound_values = $qb->getBoundValues();
 		$n            = new NamedToPositionalParams($sql, $bound_values, $qb->getBoundValuesTypes());
-		self::assertSame('DELETE _a_ FROM gObL_clients _a_ WHERE ((id = ?))', $n->getNewQuery());
+		self::assertSame('DELETE FROM gObL_clients _a_ WHERE ((id = ?))', $n->getNewQuery());
 		self::assertSame([1], $n->getNewParams());
 	}
 }

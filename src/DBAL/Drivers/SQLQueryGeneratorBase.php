@@ -1512,15 +1512,20 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 			$x = [...$x, ...$aliases];
 		}
 
-		$delete_alias = \implode(', ', $x);
+		$multi_table_delete = \count($x) > 1;
 
-		$query = 'DELETE ' . $delete_alias . ' FROM ' . $from . ' WHERE ' . $where;
+		$delete_alias = $multi_table_delete ? ' ' . \implode(', ', $x) : '';
+
+		$query = 'DELETE' . $delete_alias . ' FROM ' . $from . ' WHERE ' . $where;
 
 		if (!empty($order_by)) {
 			$query .= ' ' . $order_by;
 		}
 
 		if (\is_int($max)) {
+			if ($multi_table_delete) {
+				throw new DBALRuntimeException('LIMIT is not supported for multi-table deletes.');
+			}
 			$query .= ' LIMIT ' . $max;
 		}
 
