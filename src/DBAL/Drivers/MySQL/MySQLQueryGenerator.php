@@ -13,12 +13,15 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Drivers\MySQL;
 
+use Gobl\DBAL\Constraints\ForeignKey;
+use Gobl\DBAL\Constraints\ForeignKeyAction;
 use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Diff\Actions\ColumnTypeChanged;
 use Gobl\DBAL\Diff\Actions\ForeignKeyConstraintDeleted;
 use Gobl\DBAL\Diff\Actions\PrimaryKeyConstraintDeleted;
 use Gobl\DBAL\Diff\Actions\UniqueKeyConstraintDeleted;
 use Gobl\DBAL\Drivers\SQLQueryGeneratorBase;
+use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\QBDelete;
 use Gobl\DBAL\Queries\QBSelect;
@@ -54,6 +57,30 @@ class MySQLQueryGenerator extends SQLQueryGeneratorBase
 				'mysql_create_table' => ['path' => GOBL_ASSETS_DIR . '/mysql/create_table.sql'],
 			]);
 		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws DBALException
+	 */
+	protected function getForeignKeySQL(ForeignKey $fk, bool $alter): string
+	{
+		$update_action = $fk->getUpdateAction();
+		$delete_action = $fk->getDeleteAction();
+		$error_message = \sprintf(
+			'MySQL default engine InnoDB does not support SET DEFAULT action. Defined on table "%s" for columns (%s).',
+			$fk->getHostTable()->getFullName(),
+			\implode(', ', \array_keys($fk->getColumnsMapping()))
+		);
+		if (ForeignKeyAction::SET_DEFAULT === $update_action) {
+			throw new DBALException($error_message);
+		}
+		if (ForeignKeyAction::SET_DEFAULT === $delete_action) {
+			throw new DBALException($error_message);
+		}
+
+		return parent::getForeignKeySQL($fk, $alter);
 	}
 
 	/**

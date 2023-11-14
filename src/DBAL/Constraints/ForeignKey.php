@@ -28,6 +28,9 @@ final class ForeignKey extends Constraint
 
 	private ForeignKeyAction $delete_action = ForeignKeyAction::NO_ACTION;
 
+	/**
+	 * @var array<string , string>
+	 */
 	private array $columns_map = [];
 
 	/**
@@ -87,6 +90,28 @@ final class ForeignKey extends Constraint
 	}
 
 	/**
+	 * Gets on delete action.
+	 *
+	 * @return ForeignKeyAction
+	 */
+	public function getDeleteAction(): ForeignKeyAction
+	{
+		return $this->delete_action;
+	}
+
+	/**
+	 * Sets on update action to cascade.
+	 *
+	 * @return $this
+	 *
+	 * @throws DBALException
+	 */
+	public function onUpdateCascade(): self
+	{
+		return $this->onUpdate(ForeignKeyAction::CASCADE);
+	}
+
+	/**
 	 * Sets on update action.
 	 *
 	 * @param ForeignKeyAction $action
@@ -95,7 +120,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
-	public function setUpdateAction(ForeignKeyAction $action): self
+	public function onUpdate(ForeignKeyAction $action): self
 	{
 		$this->assertNotLocked();
 
@@ -105,13 +130,63 @@ final class ForeignKey extends Constraint
 	}
 
 	/**
-	 * Gets on delete action.
+	 * Sets on update action to set null.
 	 *
-	 * @return ForeignKeyAction
+	 * @return $this
+	 *
+	 * @throws DBALException
 	 */
-	public function getDeleteAction(): ForeignKeyAction
+	public function onUpdateSetNull(): self
 	{
-		return $this->delete_action;
+		return $this->onUpdate(ForeignKeyAction::SET_NULL);
+	}
+
+	/**
+	 * Sets on update action to set default.
+	 *
+	 * @return $this
+	 *
+	 * @throws DBALException
+	 */
+	public function onUpdateSetDefault(): self
+	{
+		return $this->onUpdate(ForeignKeyAction::SET_DEFAULT);
+	}
+
+	/**
+	 * Sets on update action to restrict.
+	 *
+	 * @return $this
+	 *
+	 * @throws DBALException
+	 */
+	public function onUpdateRestrict(): self
+	{
+		return $this->onUpdate(ForeignKeyAction::RESTRICT);
+	}
+
+	/**
+	 * Sets on update action to no action.
+	 *
+	 * @return $this
+	 *
+	 * @throws DBALException
+	 */
+	public function onUpdateNoAction(): self
+	{
+		return $this->onUpdate(ForeignKeyAction::NO_ACTION);
+	}
+
+	/**
+	 * Sets on delete action to cascade.
+	 *
+	 * @return $this
+	 *
+	 * @throws DBALException
+	 */
+	public function onDeleteCascade(): self
+	{
+		return $this->onDelete(ForeignKeyAction::CASCADE);
 	}
 
 	/**
@@ -123,13 +198,61 @@ final class ForeignKey extends Constraint
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
-	public function setDeleteAction(ForeignKeyAction $action): self
+	public function onDelete(ForeignKeyAction $action): self
 	{
 		$this->assertNotLocked();
 
 		$this->delete_action = $action;
 
 		return $this;
+	}
+
+	/**
+	 * Sets on delete action to set null.
+	 *
+	 * @return $this
+	 *
+	 * @throws DBALException
+	 */
+	public function onDeleteSetNull(): self
+	{
+		return $this->onDelete(ForeignKeyAction::SET_NULL);
+	}
+
+	/**
+	 * Sets on delete action to set default.
+	 *
+	 * @return $this
+	 *
+	 * @throws DBALException
+	 */
+	public function onDeleteSetDefault(): self
+	{
+		return $this->onDelete(ForeignKeyAction::SET_DEFAULT);
+	}
+
+	/**
+	 * Sets on delete action to restrict.
+	 *
+	 * @return $this
+	 *
+	 * @throws DBALException
+	 */
+	public function onDeleteRestrict(): self
+	{
+		return $this->onDelete(ForeignKeyAction::RESTRICT);
+	}
+
+	/**
+	 * Sets on delete action to no action.
+	 *
+	 * @return $this
+	 *
+	 * @throws DBALException
+	 */
+	public function onDeleteNoAction(): self
+	{
+		return $this->onDelete(ForeignKeyAction::NO_ACTION);
 	}
 
 	/**
@@ -145,7 +268,7 @@ final class ForeignKey extends Constraint
 	/**
 	 * Gets foreign key columns mapping.
 	 *
-	 * @return string[]
+	 * @return array<string, string>
 	 */
 	public function getColumnsMapping(): array
 	{
@@ -208,6 +331,16 @@ final class ForeignKey extends Constraint
 	}
 
 	/**
+	 * Gets reference columns.
+	 *
+	 * @return string[]
+	 */
+	public function getReferenceColumns(): array
+	{
+		return \array_values($this->columns_map);
+	}
+
+	/**
 	 * {@inheritDoc}
 	 */
 	public function toArray(): array
@@ -215,7 +348,7 @@ final class ForeignKey extends Constraint
 		$columns = [];
 
 		foreach ($this->columns_map as $full_name => $target_full_name) {
-			$key           = $this->host_table->getColumnOrFail($full_name)
+			$key = $this->host_table->getColumnOrFail($full_name)
 				->getName();
 			$columns[$key] = $this->reference_table->getColumnOrFail($target_full_name)
 				->getName();
@@ -242,15 +375,5 @@ final class ForeignKey extends Constraint
 		}
 
 		return $options;
-	}
-
-	/**
-	 * Gets reference columns.
-	 *
-	 * @return string[]
-	 */
-	public function getReferenceColumns(): array
-	{
-		return \array_values($this->columns_map);
 	}
 }

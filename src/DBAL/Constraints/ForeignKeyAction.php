@@ -22,6 +22,8 @@ enum ForeignKeyAction: string
 
 	case SET_NULL = 'set_null';
 
+	case SET_DEFAULT = 'set_default';
+
 	case CASCADE = 'cascade';
 
 	case RESTRICT = 'restrict';
