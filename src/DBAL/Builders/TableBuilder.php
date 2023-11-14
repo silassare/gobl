@@ -16,9 +16,9 @@ namespace Gobl\DBAL\Builders;
 use BackedEnum;
 use Gobl\DBAL\Column;
 use Gobl\DBAL\Constraints\ForeignKey;
-use Gobl\DBAL\Constraints\ForeignKeyAction;
 use Gobl\DBAL\Constraints\PrimaryKey;
 use Gobl\DBAL\Constraints\UniqueKey;
+use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Relations\Relation;
@@ -280,14 +280,20 @@ final class TableBuilder
 	 * The column will be created with the same type as the foreign column.
 	 * A foreign key constraint will be added to the table.
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @param string                     $column_name
+	 * @param string                     $foreign_table
+	 * @param string                     $foreign_column
+	 * @param null|callable(Column):void $callable
+	 *
+	 * @return ForeignKey
+	 *
+	 * @throws DBALException
 	 */
 	public function foreign(
 		string $column_name,
 		string $foreign_table,
 		string $foreign_column,
-		?ForeignKeyAction $update_action = null,
-		?ForeignKeyAction $delete_action = null,
+		?callable $callable = null
 	): ForeignKey {
 		$ref_table = $this->rdbms->getTableOrFail($foreign_table);
 
@@ -300,13 +306,11 @@ final class TableBuilder
 
 		$this->table->addColumn($column);
 
-		return $this->table->addForeignKeyConstraint(
-			null,
-			$ref_table,
-			[$column_name => $foreign_column],
-			$update_action,
-			$delete_action
-		);
+		if ($callable) {
+			$callable($column);
+		}
+
+		return $this->table->addForeignKeyConstraint(null, $ref_table, [$column_name => $foreign_column]);
 	}
 
 	/**
