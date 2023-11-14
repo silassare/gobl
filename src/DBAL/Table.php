@@ -939,8 +939,8 @@ final class Table implements ArrayCapableInterface
 		?string $constraint_name,
 		self $reference_table,
 		array $columns,
-		?ForeignKeyAction $update_action,
-		?ForeignKeyAction $delete_action
+		?ForeignKeyAction $update_action = null,
+		?ForeignKeyAction $delete_action = null
 	): ForeignKey {
 		$this->assertNotLocked();
 
