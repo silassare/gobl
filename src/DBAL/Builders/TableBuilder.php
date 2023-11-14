@@ -486,22 +486,22 @@ final class TableBuilder
 		$target_type_column_name = "{$prefix}_type";
 
 		if ($target_id_column_type) {
-			$id_col = $this->column($target_id_column_name, $target_id_column_type);
+			$id_col_type = $this->column($target_id_column_name, $target_id_column_type)->getType();
 		} else {
-			$id_col = $this->bigint($target_id_column_name)
+			$id_col_type = $this->bigint($target_id_column_name)
 				->unsigned();
 		}
 
 		if ($target_type_column_type) {
-			$type_col = $this->column($target_type_column_name, $target_type_column_type);
+			$type_col_type = $this->column($target_type_column_name, $target_type_column_type)->getType();
 		} else {
-			$type_col = $this->string($target_type_column_name)
+			$type_col_type = $this->string($target_type_column_name)
 				->max(64);
 		}
 
 		if ($nullable) {
-			$id_col->nullable();
-			$type_col->nullable();
+			$id_col_type->nullable();
+			$type_col_type->nullable();
 		}
 
 		return $this;
