@@ -15,7 +15,10 @@ namespace Gobl\DBAL\Builders;
 
 use BackedEnum;
 use Gobl\DBAL\Column;
+use Gobl\DBAL\Constraints\ForeignKey;
 use Gobl\DBAL\Constraints\ForeignKeyAction;
+use Gobl\DBAL\Constraints\PrimaryKey;
+use Gobl\DBAL\Constraints\UniqueKey;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Relations\Relation;
@@ -140,6 +143,22 @@ final class TableBuilder
 	}
 
 	/**
+	 * Creates a new column of type int.
+	 *
+	 * @param string $column_name
+	 *
+	 * @return \Gobl\DBAL\Types\TypeInt
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 */
+	public function int(string $column_name): TypeInt
+	{
+		$this->column($column_name, $type = new TypeInt());
+
+		return $type;
+	}
+
+	/**
 	 * Adds a new column to the table.
 	 *
 	 * @param string                   $column_name
@@ -156,54 +175,6 @@ final class TableBuilder
 		$this->table->addColumn($column);
 
 		return $column;
-	}
-
-	/**
-	 * Creates a new column of type string.
-	 *
-	 * @param string $column_name
-	 *
-	 * @return \Gobl\DBAL\Types\TypeString
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 */
-	public function string(string $column_name): TypeString
-	{
-		$this->column($column_name, $type = new TypeString());
-
-		return $type;
-	}
-
-	/**
-	 * Creates a new column of type bigint.
-	 *
-	 * @param string $column_name
-	 *
-	 * @return \Gobl\DBAL\Types\TypeBigint
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 */
-	public function bigint(string $column_name): TypeBigint
-	{
-		$this->column($column_name, $type = new TypeBigint());
-
-		return $type;
-	}
-
-	/**
-	 * Creates a new column of type int.
-	 *
-	 * @param string $column_name
-	 *
-	 * @return \Gobl\DBAL\Types\TypeInt
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 */
-	public function int(string $column_name): TypeInt
-	{
-		$this->column($column_name, $type = new TypeInt());
-
-		return $type;
 	}
 
 	/**
@@ -256,22 +227,6 @@ final class TableBuilder
 	}
 
 	/**
-	 * Creates a new column of type bool.
-	 *
-	 * @param string $column_name
-	 *
-	 * @return \Gobl\DBAL\Types\TypeBool
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 */
-	public function bool(string $column_name): TypeBool
-	{
-		$this->column($column_name, $type = new TypeBool());
-
-		return $type;
-	}
-
-	/**
 	 * Creates a new column of type date.
 	 *
 	 * @param string $column_name
@@ -285,22 +240,6 @@ final class TableBuilder
 		$this->column($column_name, $type = new TypeDate());
 
 		return $type;
-	}
-
-	/**
-	 * Creates a new column of type date formatted as timestamp.
-	 *
-	 * @param string $column_name
-	 *
-	 * @return \Gobl\DBAL\Types\TypeDate
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 */
-	public function timestamp(string $column_name): TypeDate
-	{
-		$this->column($column_name, $type = new TypeDate());
-
-		return $type->format('timestamp');
 	}
 
 	/**
@@ -349,7 +288,7 @@ final class TableBuilder
 		string $foreign_column,
 		?ForeignKeyAction $update_action = null,
 		?ForeignKeyAction $delete_action = null,
-	): TypeInterface {
+	): ForeignKey {
 		$ref_table = $this->rdbms->getTableOrFail($foreign_table);
 
 		$ref        = 'ref:' . $foreign_table . '.' . $foreign_column;
@@ -361,9 +300,13 @@ final class TableBuilder
 
 		$this->table->addColumn($column);
 
-		$this->table->addForeignKeyConstraint(null, $ref_table, [$column_name => $foreign_column], $update_action, $delete_action);
-
-		return $column->getType();
+		return $this->table->addForeignKeyConstraint(
+			null,
+			$ref_table,
+			[$column_name => $foreign_column],
+			$update_action,
+			$delete_action
+		);
 	}
 
 	/**
@@ -396,31 +339,13 @@ final class TableBuilder
 	 *
 	 * @param \Gobl\DBAL\Column|string ...$columns
 	 *
-	 * @return $this
+	 * @return UniqueKey
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
-	public function unique(string|Column ...$columns): self
+	public function unique(string|Column ...$columns): UniqueKey
 	{
-		$this->table->addUniqueKeyConstraint($columns);
-
-		return $this;
-	}
-
-	/**
-	 * Adds a primary key constraint to the table.
-	 *
-	 * @param \Gobl\DBAL\Column|string ...$columns
-	 *
-	 * @return $this
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 */
-	public function primary(string|Column ...$columns): self
-	{
-		$this->table->addPrimaryKeyConstraint($columns);
-
-		return $this;
+		return $this->table->addUniqueKeyConstraint($columns);
 	}
 
 	/**
@@ -441,6 +366,22 @@ final class TableBuilder
 	}
 
 	/**
+	 * Creates a new column of type date formatted as timestamp.
+	 *
+	 * @param string $column_name
+	 *
+	 * @return \Gobl\DBAL\Types\TypeDate
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 */
+	public function timestamp(string $column_name): TypeDate
+	{
+		$this->column($column_name, $type = new TypeDate());
+
+		return $type->format('timestamp');
+	}
+
+	/**
 	 * Adds `deleted_at` and `deleted` columns.
 	 *
 	 * @return $this
@@ -455,6 +396,22 @@ final class TableBuilder
 			->nullable();
 
 		return $this;
+	}
+
+	/**
+	 * Creates a new column of type bool.
+	 *
+	 * @param string $column_name
+	 *
+	 * @return \Gobl\DBAL\Types\TypeBool
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 */
+	public function bool(string $column_name): TypeBool
+	{
+		$this->column($column_name, $type = new TypeBool());
+
+		return $type;
 	}
 
 	/**
@@ -477,6 +434,36 @@ final class TableBuilder
 		$this->primary($column_name);
 
 		return $this;
+	}
+
+	/**
+	 * Creates a new column of type bigint.
+	 *
+	 * @param string $column_name
+	 *
+	 * @return \Gobl\DBAL\Types\TypeBigint
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 */
+	public function bigint(string $column_name): TypeBigint
+	{
+		$this->column($column_name, $type = new TypeBigint());
+
+		return $type;
+	}
+
+	/**
+	 * Adds a primary key constraint to the table.
+	 *
+	 * @param \Gobl\DBAL\Column|string ...$columns
+	 *
+	 * @return PrimaryKey
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 */
+	public function primary(string|Column ...$columns): PrimaryKey
+	{
+		return $this->table->addPrimaryKeyConstraint($columns);
 	}
 
 	/**
@@ -514,6 +501,22 @@ final class TableBuilder
 		}
 
 		return $this;
+	}
+
+	/**
+	 * Creates a new column of type string.
+	 *
+	 * @param string $column_name
+	 *
+	 * @return \Gobl\DBAL\Types\TypeString
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 */
+	public function string(string $column_name): TypeString
+	{
+		$this->column($column_name, $type = new TypeString());
+
+		return $type;
 	}
 
 	/**

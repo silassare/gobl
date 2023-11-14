@@ -276,15 +276,46 @@ final class Table implements ArrayCapableInterface
 	}
 
 	/**
-	 * Lock table name.
-	 *
-	 * @return $this
+	 * Asserts if this column definition/instance is valid.
 	 */
-	public function lockName(): self
+	public function assertIsValid(): void
 	{
-		$this->locked_name = true;
+		if (empty($this->columns)) {
+			throw new InvalidArgumentException(
+				\sprintf(
+					'Table "%s" should have at least one column.',
+					$this->name
+				)
+			);
+		}
 
-		return $this;
+		$missing = [];
+		if (empty($this->plural_name)) {
+			$missing[] = 'plural_name';
+		}
+
+		if (empty($this->singular_name)) {
+			$missing[] = 'singular_name';
+		}
+
+		if (!empty($missing)) {
+			throw new InvalidArgumentException(
+				\sprintf(
+					'Invalid table "%s" missing required properties: %s',
+					$this->name,
+					\implode(', ', $missing)
+				)
+			);
+		}
+
+		if (!empty($this->plural_name) && $this->plural_name === $this->singular_name) {
+			throw new InvalidArgumentException(
+				\sprintf(
+					'"plural_name" and "singular_name" should not be equal in table "%s".',
+					$this->name
+				)
+			);
+		}
 	}
 
 	/**
@@ -366,44 +397,6 @@ final class Table implements ArrayCapableInterface
 	}
 
 	/**
-	 * Gets table prefix.
-	 *
-	 * @return string
-	 */
-	public function getPrefix(): string
-	{
-		return $this->prefix;
-	}
-
-	/**
-	 * Sets table prefix.
-	 *
-	 * @param string $prefix
-	 *
-	 * @return $this
-	 */
-	public function setPrefix(string $prefix): self
-	{
-		$this->assertNotLocked();
-		$this->assertNameNotLocked();
-
-		if (!empty($prefix) && !\preg_match(self::PREFIX_REG, $prefix)) {
-			throw new InvalidArgumentException(
-				\sprintf(
-					'Table "%s" prefix "%s" should match: %s',
-					$this->name,
-					$prefix,
-					self::PREFIX_PATTERN
-				)
-			);
-		}
-
-		$this->prefix = $prefix;
-
-		return $this;
-	}
-
-	/**
 	 * Gets table columns prefix.
 	 *
 	 * @return string
@@ -440,49 +433,6 @@ final class Table implements ArrayCapableInterface
 		$this->column_prefix_override = $override;
 
 		return $this;
-	}
-
-	/**
-	 * Asserts if this column definition/instance is valid.
-	 */
-	public function assertIsValid(): void
-	{
-		if (empty($this->columns)) {
-			throw new InvalidArgumentException(
-				\sprintf(
-					'Table "%s" should have at least one column.',
-					$this->name
-				)
-			);
-		}
-
-		$missing = [];
-		if (empty($this->plural_name)) {
-			$missing[] = 'plural_name';
-		}
-
-		if (empty($this->singular_name)) {
-			$missing[] = 'singular_name';
-		}
-
-		if (!empty($missing)) {
-			throw new InvalidArgumentException(
-				\sprintf(
-					'Invalid table "%s" missing required properties: %s',
-					$this->name,
-					\implode(', ', $missing)
-				)
-			);
-		}
-
-		if (!empty($this->plural_name) && $this->plural_name === $this->singular_name) {
-			throw new InvalidArgumentException(
-				\sprintf(
-					'"plural_name" and "singular_name" should not be equal in table "%s".',
-					$this->name
-				)
-			);
-		}
 	}
 
 	/**
@@ -605,31 +555,6 @@ final class Table implements ArrayCapableInterface
 	}
 
 	/**
-	 * Gets columns.
-	 *
-	 * @param bool $include_private if false private column will not be included.
-	 *                              Default is true.
-	 *
-	 * @return \Gobl\DBAL\Column[]
-	 */
-	public function getColumns(bool $include_private = true): array
-	{
-		if (false === $include_private) {
-			$columns = [];
-
-			foreach ($this->columns as $name => $column) {
-				if (!$column->isPrivate()) {
-					$columns[$name] = $column;
-				}
-			}
-
-			return $columns;
-		}
-
-		return $this->columns;
-	}
-
-	/**
 	 * Gets columns full names list.
 	 *
 	 * @param bool $include_private if false private column will not be included.
@@ -648,6 +573,44 @@ final class Table implements ArrayCapableInterface
 		}
 
 		return $names;
+	}
+
+	/**
+	 * Checks if the table is private.
+	 *
+	 * @return bool
+	 */
+	public function isPrivate(): bool
+	{
+		return $this->private;
+	}
+
+	/**
+	 * Sets this table as private.
+	 *
+	 * @return $this
+	 */
+	public function setPrivate(bool $private = true): static
+	{
+		$this->assertNotLocked();
+
+		$this->private = $private;
+
+		return $this;
+	}
+
+	/**
+	 * Gets table full name.
+	 *
+	 * @return string
+	 */
+	public function getFullName(): string
+	{
+		if (empty($this->prefix)) {
+			return $this->name;
+		}
+
+		return $this->prefix . '_' . $this->name;
 	}
 
 	/**
@@ -690,34 +653,20 @@ final class Table implements ArrayCapableInterface
 	}
 
 	/**
-	 * Adds a given column to the current table.
+	 * Adds relation to this table.
 	 *
-	 * @param \Gobl\DBAL\Column $column the column to add
+	 * @param \Gobl\DBAL\Relations\Relation $relation
 	 *
-	 * @return $this
+	 * @return \Gobl\DBAL\Table
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
-	public function addColumn(Column $column): self
+	public function addRelation(Relation $relation): self
 	{
 		$this->assertNotLocked();
-		$this->assertCanAddColumn($column);
+		$this->assertCanAddRelation($relation);
 
-		if (!empty($this->column_prefix)) {
-			$prefix = $column->getPrefix();
-
-			if (empty($prefix) || ($this->column_prefix_override && $prefix !== $this->column_prefix)) {
-				$column->setPrefix($this->column_prefix);
-			}
-		}
-
-		// this column name and prefix should not be modified
-		$column->lockName();
-
-		$name                                = $column->getName();
-		$full_name                           = $column->getFullName();
-		$this->columns[$name]                = $column;
-		$this->col_full_name_map[$full_name] = $name;
+		$this->relations[$relation->getName()] = $relation;
 
 		return $this;
 	}
@@ -759,25 +708,6 @@ final class Table implements ArrayCapableInterface
 	}
 
 	/**
-	 * Adds relation to this table.
-	 *
-	 * @param \Gobl\DBAL\Relations\Relation $relation
-	 *
-	 * @return \Gobl\DBAL\Table
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 */
-	public function addRelation(Relation $relation): self
-	{
-		$this->assertNotLocked();
-		$this->assertCanAddRelation($relation);
-
-		$this->relations[$relation->getName()] = $relation;
-
-		return $this;
-	}
-
-	/**
 	 * Checks if a given collection is defined.
 	 *
 	 * @param string $name the collection name
@@ -809,20 +739,6 @@ final class Table implements ArrayCapableInterface
 	}
 
 	/**
-	 * Gets table full name.
-	 *
-	 * @return string
-	 */
-	public function getFullName(): string
-	{
-		if (empty($this->prefix)) {
-			return $this->name;
-		}
-
-		return $this->prefix . '_' . $this->name;
-	}
-
-	/**
 	 * Adds collection to this table.
 	 *
 	 * @param \Gobl\DBAL\Collections\Collection $collection
@@ -846,36 +762,125 @@ final class Table implements ArrayCapableInterface
 	 *
 	 * @param array<\Gobl\DBAL\Column|string> $columns the columns
 	 *
+	 * @return UniqueKey
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 */
+	public function addUniqueKeyConstraint(array $columns): UniqueKey
+	{
+		$this->assertNotLocked();
+
+		if (empty($columns)) {
+			throw new DBALException(
+				\sprintf(
+					'Unique key constraint on table "%s" should have at least one column.',
+					$this->getFullName()
+				)
+			);
+		}
+		$c_names = \array_values($columns);
+
+		\sort($c_names);
+
+		$key = \md5(\implode('_', $c_names));
+
+		$constraint_name = \sprintf('uc_%s_%d', $this->getFullName(), $key);
+
+		if (!isset($this->uc_constraints[$constraint_name])) {
+			$uc = new UniqueKey($constraint_name, $this);
+
+			foreach ($columns as $column_name) {
+				if ($column_name instanceof Column) {
+					$column_name = $column_name->getName();
+				}
+				$uc->addColumn($column_name);
+			}
+
+			$this->uc_constraints[$constraint_name] = $uc;
+		}
+
+		return $this->uc_constraints[$constraint_name];
+	}
+
+	/**
+	 * Adds a given column to the current table.
+	 *
+	 * @param \Gobl\DBAL\Column $column the column to add
+	 *
 	 * @return $this
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
-	public function addUniqueKeyConstraint(array $columns): self
+	public function addColumn(Column $column): self
 	{
 		$this->assertNotLocked();
+		$this->assertCanAddColumn($column);
 
-		if (!empty($columns)) {
-			$c_names = \array_values($columns);
+		if (!empty($this->column_prefix)) {
+			$prefix = $column->getPrefix();
 
-			\sort($c_names);
-
-			$key = \md5(\implode('_', $c_names));
-
-			$constraint_name = \sprintf('uc_%s_%d', $this->getFullName(), $key);
-
-			if (!isset($this->uc_constraints[$constraint_name])) {
-				$uc = new UniqueKey($constraint_name, $this);
-
-				foreach ($columns as $column_name) {
-					if ($column_name instanceof Column) {
-						$column_name = $column_name->getName();
-					}
-					$uc->addColumn($column_name);
-				}
-
-				$this->uc_constraints[$constraint_name] = $uc;
+			if (empty($prefix) || ($this->column_prefix_override && $prefix !== $this->column_prefix)) {
+				$column->setPrefix($this->column_prefix);
 			}
 		}
+
+		// this column name and prefix should not be modified
+		$column->lockName();
+
+		$name                                = $column->getName();
+		$full_name                           = $column->getFullName();
+		$this->columns[$name]                = $column;
+		$this->col_full_name_map[$full_name] = $name;
+
+		return $this;
+	}
+
+	/**
+	 * Gets table prefix.
+	 *
+	 * @return string
+	 */
+	public function getPrefix(): string
+	{
+		return $this->prefix;
+	}
+
+	/**
+	 * Sets table prefix.
+	 *
+	 * @param string $prefix
+	 *
+	 * @return $this
+	 */
+	public function setPrefix(string $prefix): self
+	{
+		$this->assertNotLocked();
+		$this->assertNameNotLocked();
+
+		if (!empty($prefix) && !\preg_match(self::PREFIX_REG, $prefix)) {
+			throw new InvalidArgumentException(
+				\sprintf(
+					'Table "%s" prefix "%s" should match: %s',
+					$this->name,
+					$prefix,
+					self::PREFIX_PATTERN
+				)
+			);
+		}
+
+		$this->prefix = $prefix;
+
+		return $this;
+	}
+
+	/**
+	 * Lock table name.
+	 *
+	 * @return $this
+	 */
+	public function lockName(): self
+	{
+		$this->locked_name = true;
 
 		return $this;
 	}
@@ -885,29 +890,36 @@ final class Table implements ArrayCapableInterface
 	 *
 	 * @param array<\Gobl\DBAL\Column|string> $columns the columns
 	 *
-	 * @return $this
+	 * @return PrimaryKey
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
-	public function addPrimaryKeyConstraint(array $columns): self
+	public function addPrimaryKeyConstraint(array $columns): PrimaryKey
 	{
 		$this->assertNotLocked();
 
-		if (!empty($columns)) {
-			if (!isset($this->pk_constraint)) {
-				$constraint_name     = \sprintf('pk_%s', $this->getFullName());
-				$this->pk_constraint = new PrimaryKey($constraint_name, $this);
-			}
-
-			foreach ($columns as $column_name) {
-				if ($column_name instanceof Column) {
-					$column_name = $column_name->getName();
-				}
-				$this->pk_constraint->addColumn($column_name);
-			}
+		if (!$this->pk_constraint && empty($columns)) {
+			throw new DBALException(
+				\sprintf(
+					'Primary key constraint on table "%s" should have at least one column.',
+					$this->getFullName()
+				)
+			);
 		}
 
-		return $this;
+		if (!isset($this->pk_constraint)) {
+			$constraint_name     = \sprintf('pk_%s', $this->getFullName());
+			$this->pk_constraint = new PrimaryKey($constraint_name, $this);
+		}
+
+		foreach ($columns as $column_name) {
+			if ($column_name instanceof Column) {
+				$column_name = $column_name->getName();
+			}
+			$this->pk_constraint->addColumn($column_name);
+		}
+
+		return $this->pk_constraint;
 	}
 
 	/**
@@ -919,7 +931,7 @@ final class Table implements ArrayCapableInterface
 	 * @param null|ForeignKeyAction $update_action   the reference column update action
 	 * @param null|ForeignKeyAction $delete_action   the reference column delete action
 	 *
-	 * @return $this
+	 * @return ForeignKey
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
@@ -929,66 +941,73 @@ final class Table implements ArrayCapableInterface
 		array $columns,
 		?ForeignKeyAction $update_action,
 		?ForeignKeyAction $delete_action
-	): self {
+	): ForeignKey {
 		$this->assertNotLocked();
 
-		if (!empty($columns)) {
-			$is_named_fk = true;
-
-			if (empty($constraint_name)) {
-				$constraint_name = $this->defaultForeignKeyName($reference_table);
-				$is_named_fk     = false;
-			}
-
-			if (isset($this->fk_constraints[$constraint_name])) {
-				if ($is_named_fk) {
-					throw new DBALException(
-						\sprintf(
-							'Foreign key "%s" is already defined between the tables "%s" and "%s".',
-							$constraint_name,
-							$this->getName(),
-							$reference_table->getName()
-						)
-					);
-				}
-
-				// only one default foreign key between two tables is allowed
-				// any other foreign key constraint should be named or unique
-
-				$suffix = [];
-
-				foreach ($columns as $left => $right) {
-					$suffix[] = $left . '_' . $right;
-				}
-
-				\sort($suffix);
-
-				$suffix = \implode('_', $suffix);
-
-				$constraint_name = 'fk_' . \md5($constraint_name . '_' . $suffix);
-
-				if (isset($this->fk_constraints[$constraint_name])) {
-					throw new DBALException(
-						\sprintf(
-							'Foreign key constraint between the tables "%s" and "%s" with the same options already exists.',
-							$this->getName(),
-							$reference_table->getName()
-						)
-					);
-				}
-			}
-
-			$fk = $this->fk_constraints[$constraint_name] = new ForeignKey($constraint_name, $this, $reference_table);
-
-			foreach ($columns as $column_name => $reference_column) {
-				$fk->addColumn($column_name, $reference_column);
-			}
-
-			$update_action && $fk->setUpdateAction($update_action);
-			$delete_action && $fk->setDeleteAction($delete_action);
+		if (empty($columns)) {
+			throw new DBALException(
+				\sprintf(
+					'Foreign key constraint on table "%s" cannot be defined without columns.',
+					$this->getFullName()
+				)
+			);
 		}
 
-		return $this;
+		$is_named_fk = true;
+
+		if (empty($constraint_name)) {
+			$constraint_name = $this->defaultForeignKeyName($reference_table);
+			$is_named_fk     = false;
+		}
+
+		if (isset($this->fk_constraints[$constraint_name])) {
+			if ($is_named_fk) {
+				throw new DBALException(
+					\sprintf(
+						'Foreign key "%s" is already defined between the tables "%s" and "%s".',
+						$constraint_name,
+						$this->getName(),
+						$reference_table->getName()
+					)
+				);
+			}
+
+			// only one default foreign key between two tables is allowed
+			// any other foreign key constraint should be named or unique
+
+			$suffix = [];
+
+			foreach ($columns as $left => $right) {
+				$suffix[] = $left . '_' . $right;
+			}
+
+			\sort($suffix);
+
+			$suffix = \implode('_', $suffix);
+
+			$constraint_name = 'fk_' . \md5($constraint_name . '_' . $suffix);
+
+			if (isset($this->fk_constraints[$constraint_name])) {
+				throw new DBALException(
+					\sprintf(
+						'Foreign key constraint between the tables "%s" and "%s" with the same options already exists.',
+						$this->getName(),
+						$reference_table->getName()
+					)
+				);
+			}
+		}
+
+		$fk = $this->fk_constraints[$constraint_name] = new ForeignKey($constraint_name, $this, $reference_table);
+
+		foreach ($columns as $column_name => $reference_column) {
+			$fk->addColumn($column_name, $reference_column);
+		}
+
+		$update_action && $fk->onUpdate($update_action);
+		$delete_action && $fk->onDelete($delete_action);
+
+		return $fk;
 	}
 
 	/**
@@ -1218,6 +1237,31 @@ final class Table implements ArrayCapableInterface
 	}
 
 	/**
+	 * Gets columns.
+	 *
+	 * @param bool $include_private if false private column will not be included.
+	 *                              Default is true.
+	 *
+	 * @return \Gobl\DBAL\Column[]
+	 */
+	public function getColumns(bool $include_private = true): array
+	{
+		if (false === $include_private) {
+			$columns = [];
+
+			foreach ($this->columns as $name => $column) {
+				if (!$column->isPrivate()) {
+					$columns[$name] = $column;
+				}
+			}
+
+			return $columns;
+		}
+
+		return $this->columns;
+	}
+
+	/**
 	 * Checks if the table has primary key constraint.
 	 *
 	 * @return bool
@@ -1294,30 +1338,6 @@ final class Table implements ArrayCapableInterface
 		}
 
 		return false;
-	}
-
-	/**
-	 * Checks if the table is private.
-	 *
-	 * @return bool
-	 */
-	public function isPrivate(): bool
-	{
-		return $this->private;
-	}
-
-	/**
-	 * Sets this table as private.
-	 *
-	 * @return $this
-	 */
-	public function setPrivate(bool $private = true): static
-	{
-		$this->assertNotLocked();
-
-		$this->private = $private;
-
-		return $this;
 	}
 
 	/**
@@ -1480,77 +1500,6 @@ final class Table implements ArrayCapableInterface
 		}
 
 		return $options;
-	}
-
-	/**
-	 * Asserts if we can add the column to this table.
-	 *
-	 * @param \Gobl\DBAL\Column $column
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 */
-	private function assertCanAddColumn(Column $column): void
-	{
-		$name = $column->getName();
-
-		try {
-			$column->assertIsValid();
-		} catch (Throwable $t) {
-			throw new DBALException(
-				\sprintf(
-					'Column "%s" could not be added to table "%s".',
-					$name,
-					$this->name
-				),
-				null,
-				$t
-			);
-		}
-
-		// prevents column "name" conflict with another column "name" or "full name"
-		if ($this->hasColumn($name)) {
-			throw new DBALException(
-				\sprintf(
-					'The column name "%s" conflict with an existing column name or full name in table "%s".',
-					$name,
-					$this->getName()
-				)
-			);
-		}
-
-		$full_name = $column->getFullName();
-
-		// prevents column "full name" conflict with another column "name" or "full name"
-		if ($this->hasColumn($full_name)) {
-			throw new DBALException(
-				\sprintf(
-					'The column "%s" full name "%s" conflict with an existing column name or full name in table "%s".',
-					$name,
-					$full_name,
-					$this->getName()
-				)
-			);
-		}
-
-		if ($this->hasRelation($name)) {
-			throw new DBALException(
-				\sprintf(
-					'Column name "%s" conflict with an existing relation name in table "%s".',
-					$name,
-					$this->getName()
-				)
-			);
-		}
-
-		if ($this->hasVirtualRelation($name)) {
-			throw new DBALException(
-				\sprintf(
-					'Column name "%s" conflict with an existing virtual relation name in table "%s".',
-					$name,
-					$this->getName()
-				)
-			);
-		}
 	}
 
 	/**
@@ -1730,6 +1679,77 @@ final class Table implements ArrayCapableInterface
 			throw new DBALException(
 				\sprintf(
 					'Collection name and virtual relation name conflict for "%s" in table "%s".',
+					$name,
+					$this->getName()
+				)
+			);
+		}
+	}
+
+	/**
+	 * Asserts if we can add the column to this table.
+	 *
+	 * @param \Gobl\DBAL\Column $column
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 */
+	private function assertCanAddColumn(Column $column): void
+	{
+		$name = $column->getName();
+
+		try {
+			$column->assertIsValid();
+		} catch (Throwable $t) {
+			throw new DBALException(
+				\sprintf(
+					'Column "%s" could not be added to table "%s".',
+					$name,
+					$this->name
+				),
+				null,
+				$t
+			);
+		}
+
+		// prevents column "name" conflict with another column "name" or "full name"
+		if ($this->hasColumn($name)) {
+			throw new DBALException(
+				\sprintf(
+					'The column name "%s" conflict with an existing column name or full name in table "%s".',
+					$name,
+					$this->getName()
+				)
+			);
+		}
+
+		$full_name = $column->getFullName();
+
+		// prevents column "full name" conflict with another column "name" or "full name"
+		if ($this->hasColumn($full_name)) {
+			throw new DBALException(
+				\sprintf(
+					'The column "%s" full name "%s" conflict with an existing column name or full name in table "%s".',
+					$name,
+					$full_name,
+					$this->getName()
+				)
+			);
+		}
+
+		if ($this->hasRelation($name)) {
+			throw new DBALException(
+				\sprintf(
+					'Column name "%s" conflict with an existing relation name in table "%s".',
+					$name,
+					$this->getName()
+				)
+			);
+		}
+
+		if ($this->hasVirtualRelation($name)) {
+			throw new DBALException(
+				\sprintf(
+					'Column name "%s" conflict with an existing virtual relation name in table "%s".',
 					$name,
 					$this->getName()
 				)
