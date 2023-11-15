@@ -722,6 +722,33 @@ final class Table implements ArrayCapableInterface
 	}
 
 	/**
+	 * Asserts if the table entities are soft deletable.
+	 *
+	 * @throws DBALException
+	 */
+	public function assertSoftDeletable(): void
+	{
+		if (!$this->isSoftDeletable()) {
+			throw new DBALException(
+				\sprintf(
+					'Table "%s" is not soft deletable.',
+					$this->getFullName()
+				)
+			);
+		}
+	}
+
+	/**
+	 * Checks if the table entities are soft deletable.
+	 *
+	 * @return bool
+	 */
+	public function isSoftDeletable(): bool
+	{
+		return $this->hasColumn(self::COLUMN_SOFT_DELETED) && $this->hasColumn(self::COLUMN_SOFT_DELETED_AT);
+	}
+
+	/**
 	 * Adds virtual relation to this table.
 	 *
 	 * @param \Gobl\DBAL\Relations\VirtualRelation $virtual_relation

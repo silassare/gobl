@@ -15,6 +15,7 @@ namespace Gobl\ORM;
 
 use Gobl\CRUD\CRUD;
 use Gobl\CRUD\Enums\EntityEventType;
+use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Relations\Relation;
@@ -241,20 +242,30 @@ abstract class ORMController
 	/**
 	 * Deletes one item from the table.
 	 *
-	 * @param array $filters the row filters
+	 * @param array     $filters the row filters
+	 * @param null|bool $soft    soft delete
 	 *
 	 * @return null|TEntity
 	 *
 	 * @throws \Gobl\Exceptions\GoblException
 	 */
-	public function deleteOneItem(array $filters): ?ORMEntity
+	public function deleteOneItem(array $filters, ?bool $soft = null): ?ORMEntity
 	{
-		return $this->db->runInTransaction(function () use ($filters): ?ORMEntity {
+		$soft = $this->clarifyUserSoftDeleteStrategy($soft);
+
+		return $this->db->runInTransaction(function () use ($filters, $soft): ?ORMEntity {
 			$tsf = $this->getScopedFiltersInstance($filters);
 
 			$this->crud->assertDelete($tsf);
 
 			static::assertFiltersNotEmpty($tsf);
+
+			// because soft deleted rows are not included by default
+			// this make sure if the entity is already soft deleted we don't need to do it again
+			// but when the user intention is a hard delete we need to include soft deleted rows
+			if (!$soft) {
+				$tsf->includeSoftDeletedRows();
+			}
 
 			$entity = $tsf->find(1)
 				->fetchClass();
@@ -265,9 +276,9 @@ abstract class ORMController
 				// we need to make sure that we delete the selected entity and only that
 				$tsf = $this->getScopedFiltersInstance($entity->toIdentityFilters());
 
-				$tsf->delete()
-					->limit(1)
-					->execute();
+				$qb = $soft ? $tsf->softDelete() : $tsf->delete();
+
+				$qb->limit(1)->execute();
 
 				$this->crud->dispatchEntityEvent($entity, EntityEventType::AFTER_DELETE);
 
@@ -281,9 +292,10 @@ abstract class ORMController
 	/**
 	 * Deletes all items in the table that match the given item filters.
 	 *
-	 * @param array    $filters  the row filters
-	 * @param null|int $max      maximum row to delete. If null, all rows will be deleted.
-	 * @param array    $order_by order by rules
+	 * @param array     $filters  the row filters
+	 * @param null|int  $max      maximum row to delete. If null, all rows will be deleted.
+	 * @param array     $order_by order by rules
+	 * @param null|bool $soft     soft delete
 	 *
 	 * @return int affected row count
 	 *
@@ -292,17 +304,21 @@ abstract class ORMController
 	public function deleteAllItems(
 		array $filters,
 		?int $max = null,
-		array $order_by = []
+		array $order_by = [],
+		?bool $soft = null
 	): int {
-		return $this->db->runInTransaction(function () use ($order_by, $max, $filters): int {
+		$soft = $this->clarifyUserSoftDeleteStrategy($soft);
+
+		return $this->db->runInTransaction(function () use ($order_by, $max, $filters, $soft): int {
 			$tsf = $this->getScopedFiltersInstance($filters);
 
 			$this->crud->assertDeleteAll($tsf);
 
 			static::assertFiltersNotEmpty($tsf);
 
-			return $tsf->delete()
-				->limit($max)
+			$qb = $soft ? $tsf->softDelete() : $tsf->delete();
+
+			return $qb->limit($max)
 				->orderBy($order_by)
 				->execute();
 		});
@@ -700,5 +716,28 @@ abstract class ORMController
 
 			$entity->isSaved(true);
 		}
+	}
+
+	/**
+	 * Clarify the user soft delete strategy intention.
+	 *
+	 * @throws DBALException
+	 */
+	private function clarifyUserSoftDeleteStrategy(?bool $soft): bool
+	{
+		if (true === $soft) {
+			// the user clearly defined the soft delete strategy
+			// so we ensure it's possible
+			$this->table->assertSoftDeletable();
+
+			return true;
+		}
+
+		if (null === $soft) {
+			// we choose depending on the table capabilities
+			return $this->table->isSoftDeletable();
+		}
+
+		return false;
 	}
 }

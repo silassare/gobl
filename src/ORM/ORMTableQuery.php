@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Gobl\ORM;
 
 use BadMethodCallException;
+use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Filters\Filter;
 use Gobl\DBAL\Filters\Filters;
 use Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface;
@@ -49,13 +50,14 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	/** @var \Gobl\DBAL\Queries\Interfaces\QBInterface */
 	protected QBInterface $qb;
 
-	/** @var \Gobl\DBAL\Filters\Filters */
+	/** @var Filters */
 	protected Filters $filters;
 
 	/** @var \Gobl\DBAL\Table */
 	protected Table $table;
 
 	protected bool $allow_private_column_in_filters = false;
+	protected bool $include_soft_deleted_rows       = false;
 
 	/**
 	 * ORMTableQuery constructor.
@@ -132,6 +134,20 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	}
 
 	/**
+	 * Exclude soft deleted rows in select/update query.
+	 *
+	 * Soft deleted rows are excluded by default.
+	 *
+	 * @return $this
+	 */
+	public function excludeSoftDeletedRows(): static
+	{
+		$this->include_soft_deleted_rows = false;
+
+		return $this;
+	}
+
+	/**
 	 * Enable or disable filtering on private columns.
 	 *
 	 * @param bool $allow
@@ -146,7 +162,7 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	}
 
 	/**
-	 * Alias of {@see \Gobl\DBAL\Filters\Filters::and()}.
+	 * Alias of {@see Filters::and}.
 	 *
 	 * @param array|callable|static ...$filters
 	 *
@@ -225,7 +241,7 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	abstract public static function new(): static;
 
 	/**
-	 * Alias of {@see \Gobl\DBAL\Filters\Filters::or()}.
+	 * Alias of {@see Filters::or}.
 	 *
 	 * @param array|callable|static ...$filters
 	 *
@@ -332,6 +348,74 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	}
 
 	/**
+	 * Create a {@see QBDelete} instance and apply the current filters.
+	 *
+	 * @return \Gobl\DBAL\Queries\QBDelete
+	 */
+	public function delete(): QBDelete
+	{
+		$del = new QBDelete($this->db);
+		$del->from($this->table->getFullName(), $this->getTableAlias())
+			->where($this->getFilters())
+			->bindMergeFrom($this->getBindingSource());
+
+		return $del;
+	}
+
+	/**
+	 * Gets table alias.
+	 *
+	 * @return string
+	 */
+	public function getTableAlias(): string
+	{
+		return $this->table_alias;
+	}
+
+	/**
+	 * Gets a copy of the current filters.
+	 *
+	 * @return Filters
+	 */
+	public function getFilters(): Filters
+	{
+		return $this->filters;
+	}
+
+	/**
+	 * Gets query data binding source.
+	 */
+	public function getBindingSource(): QBInterface
+	{
+		return $this->qb;
+	}
+
+	/**
+	 * Soft delete rows in the table using the current filters.
+	 *
+	 * @return \Gobl\DBAL\Queries\QBUpdate
+	 *
+	 * @throws DBALException
+	 */
+	public function softDelete(): QBUpdate
+	{
+		$this->table->assertSoftDeletable();
+
+		$upd = new QBUpdate($this->db);
+		$upd->update($this->table->getFullName(), $this->getTableAlias())
+			->set([
+				Table::COLUMN_SOFT_DELETED    => true,
+				Table::COLUMN_SOFT_DELETED_AT => \time(),
+			])
+			->where($this->getFilters())
+			->bindMergeFrom($this->getBindingSource());
+
+		$this->applySoftDeletedLogic($upd, true);
+
+		return $upd;
+	}
+
+	/**
 	 * Create a {@see QBUpdate} instance and apply the current filters.
 	 *
 	 * @param array $values new values
@@ -352,50 +436,9 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 			->where($this->getFilters())
 			->bindMergeFrom($this->getBindingSource());
 
+		$this->applySoftDeletedLogic($upd);
+
 		return $upd;
-	}
-
-	/**
-	 * Gets table alias.
-	 *
-	 * @return string
-	 */
-	public function getTableAlias(): string
-	{
-		return $this->table_alias;
-	}
-
-	/**
-	 * Gets filters.
-	 *
-	 * @return \Gobl\DBAL\Filters\Filters
-	 */
-	public function getFilters(): Filters
-	{
-		return $this->filters;
-	}
-
-	/**
-	 * Gets query data binding source.
-	 */
-	public function getBindingSource(): QBInterface
-	{
-		return $this->qb;
-	}
-
-	/**
-	 * Create a {@see QBDelete} instance and apply the current filters.
-	 *
-	 * @return \Gobl\DBAL\Queries\QBDelete
-	 */
-	public function delete(): QBDelete
-	{
-		$del = new QBDelete($this->db);
-		$del->from($this->table->getFullName(), $this->getTableAlias())
-			->where($this->getFilters())
-			->bindMergeFrom($this->getBindingSource());
-
-		return $del;
 	}
 
 	/**
@@ -434,6 +477,8 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 			->where($this->getFilters())
 			->bindMergeFrom($this->getBindingSource());
 
+		$this->applySoftDeletedLogic($sel);
+
 		if (!empty($order_by)) {
 			$sel->orderBy($order_by);
 		}
@@ -449,7 +494,7 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 		?ORMEntity $entity = null,
 		?int $max = null,
 		int $offset = 0,
-		array $order_by = []
+		array $order_by = [],
 	): ?QBSelect {
 		$target = $relation->getTargetTable();
 
@@ -466,6 +511,8 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 
 		$target_qb = static::new();
 
+		$this->include_soft_deleted_rows && $target_qb->includeSoftDeletedRows();
+
 		$sel = $target_qb->select($max, $offset, $order_by);
 
 		$l = $relation->getLink();
@@ -475,6 +522,20 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 		}
 
 		return null;
+	}
+
+	/**
+	 * Include soft deleted rows in select/update/delete query.
+	 *
+	 * Soft deleted rows are excluded by default.
+	 *
+	 * @return $this
+	 */
+	public function includeSoftDeletedRows(): static
+	{
+		$this->include_soft_deleted_rows = true;
+
+		return $this;
 	}
 
 	/**
@@ -493,6 +554,21 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 		$this->filters->add($operator, $column, $value);
 
 		return $this;
+	}
+
+	/**
+	 * Make sure the soft deleted logic is applied to the query.
+	 *
+	 * @param QBSelect|QBUpdate $qb
+	 * @param bool              $force_exclude
+	 */
+	protected function applySoftDeletedLogic(QBUpdate|QBSelect $qb, bool $force_exclude = false): void
+	{
+		if ((!$this->include_soft_deleted_rows || $force_exclude) && $this->table->isSoftDeletable()) {
+			$column = $this->table->getColumnOrFail(Table::COLUMN_SOFT_DELETED);
+			$filter = $qb->filters()->isFalse($this->getTableAlias() . '.' . $column->getFullName());
+			$qb->andWhere($filter);
+		}
 	}
 
 	/**

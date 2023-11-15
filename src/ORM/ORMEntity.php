@@ -19,11 +19,11 @@ use Gobl\DBAL\Operator;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
+use Gobl\Exceptions\GoblException;
 use Gobl\ORM\Exceptions\ORMException;
 use Gobl\ORM\Exceptions\ORMRuntimeException;
 use PHPUtils\Interfaces\ArrayCapableInterface;
 use PHPUtils\Traits\ArrayCapableTrait;
-use Throwable;
 
 /**
  * Class ORMEntity.
@@ -470,12 +470,17 @@ abstract class ORMEntity implements ArrayCapableInterface
 	/**
 	 * Self delete the entity.
 	 *
-	 * @throws Throwable
+	 * @param null|bool $soft
+	 *
+	 * @return static
+	 *
+	 * @throws ORMException
+	 * @throws GoblException
 	 */
-	public function selfDelete(): static
+	public function selfDelete(?bool $soft = null): static
 	{
 		static::ctrl()
-			->deleteOneItem($this->toIdentityFilters());
+			->deleteOneItem($this->toIdentityFilters(), $soft);
 
 		return $this;
 	}
