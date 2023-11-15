@@ -592,7 +592,7 @@ final class Table implements ArrayCapableInterface
 	 *
 	 * @return $this
 	 */
-	public function setPrivate(bool $private = true): static
+	public function setPrivate(bool $private = true): self
 	{
 		$this->assertNotLocked();
 
