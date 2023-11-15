@@ -394,9 +394,9 @@ final class TableBuilder
 	 */
 	public function softDeletable(): self
 	{
-		$this->bool('deleted')
+		$this->bool(Table::COLUMN_SOFT_DELETED)
 			->default(false);
-		$this->timestamp('deleted_at')
+		$this->timestamp(Table::COLUMN_SOFT_DELETED_AT)
 			->nullable();
 
 		return $this;
