@@ -48,20 +48,18 @@ final class NamespaceBuilder
 	 */
 	public function table(string $name, ?callable $factory = null): TableBuilder
 	{
-		if (isset($this->cache[$name])) {
-			return $this->cache[$name];
+		if (!isset($this->cache[$name])) {
+			$this->cache[$name] = new TableBuilder($this->rdbms, $this->namespace, $name);
+
+			// we add the table before running the factory
+			// because the factory may need to access the table
+			// or use it in column type reference.
+			$this->rdbms->addTable($this->cache[$name]->getTable());
 		}
 
-		$this->cache[$name] = $table_builder = new TableBuilder($this->rdbms, $this->namespace, $name);
+		$factory && $this->cache[$name]->factory($factory);
 
-		// we add the table before running the factory
-		// because the factory may need to access the table
-		// or use it in column type reference.
-		$this->rdbms->addTable($table_builder->getTable());
-
-		$factory && $table_builder->factory($factory);
-
-		return $table_builder;
+		return $this->cache[$name];
 	}
 
 	/**
