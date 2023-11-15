@@ -26,12 +26,12 @@ trait FiltersOperatorsHelpersTrait
 	/**
 	 * Adds equal condition.
 	 *
-	 * @param string                                                                            $left
-	 * @param null|float|\Gobl\DBAL\Queries\QBExpression|\Gobl\DBAL\Queries\QBSelect|int|string $right
+	 * @param string                                           $left
+	 * @param null|bool|float|int|QBExpression|QBSelect|string $right
 	 *
 	 * @return $this
 	 */
-	public function eq(string $left, null|int|float|string|QBSelect|QBExpression $right): static
+	public function eq(string $left, null|int|bool|float|string|QBSelect|QBExpression $right): static
 	{
 		if (null === $right) {
 			return $this->add(Operator::IS_NULL, $left);
@@ -43,12 +43,12 @@ trait FiltersOperatorsHelpersTrait
 	/**
 	 * Adds not equal condition.
 	 *
-	 * @param string                                                                            $left
-	 * @param null|float|\Gobl\DBAL\Queries\QBExpression|\Gobl\DBAL\Queries\QBSelect|int|string $right
+	 * @param string                                           $left
+	 * @param null|bool|float|int|QBExpression|QBSelect|string $right
 	 *
 	 * @return $this
 	 */
-	public function neq(string $left, null|int|float|string|QBSelect|QBExpression $right): static
+	public function neq(string $left, null|int|bool|float|string|QBSelect|QBExpression $right): static
 	{
 		if (null === $right) {
 			return $this->add(Operator::IS_NOT_NULL, $left);
@@ -203,5 +203,29 @@ trait FiltersOperatorsHelpersTrait
 		}
 
 		return $this->add(Operator::NOT_IN, $left, $right);
+	}
+
+	/**
+	 * Adds IS TRUE condition.
+	 *
+	 * @param string $left
+	 *
+	 * @return $this
+	 */
+	public function isTrue(string $left): static
+	{
+		return $this->add(Operator::IS_TRUE, $left);
+	}
+
+	/**
+	 * Adds IS FALSE condition.
+	 *
+	 * @param string $left
+	 *
+	 * @return $this
+	 */
+	public function isFalse(string $left): static
+	{
+		return $this->add(Operator::IS_FALSE, $left);
 	}
 }
