@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Builders;
 
+use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\ORM\ORM;
 
@@ -82,11 +83,28 @@ final class NamespaceBuilder
 	 * @param string $out_dir The ORM output directory
 	 *
 	 * @return $this
+	 *
+	 * @throws DBALException
 	 */
 	public function enableORM(string $out_dir): self
 	{
+		$this->pack();
 		ORM::declareNamespace($this->namespace, $this->rdbms, $out_dir);
 
 		return $this;
+	}
+
+	/**
+	 * Packs all tables in this namespace.
+	 *
+	 * @throws DBALException
+	 *
+	 * @internal should be called only by the RDBMS instance before locking
+	 */
+	public function pack(): void
+	{
+		foreach ($this->cache as $tb) {
+			$tb->pack();
+		}
 	}
 }

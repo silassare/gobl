@@ -47,6 +47,15 @@ final class TableBuilder
 	/** @var RelationBuilder[] */
 	private array $collected_relations = [];
 
+	/** @var array<int, callable():void> */
+	private array $indexes_factories = [];
+
+	/** @var array<int, callable():void> */
+	private array $fk_factories = [];
+
+	/** @var array<int, callable():void> */
+	private array $relations_factories = [];
+
 	/**
 	 * TableBuilder constructor.
 	 */
@@ -75,14 +84,7 @@ final class TableBuilder
 			// run the factory
 			$factory($this);
 
-			// register collected relations
-			foreach ($this->collected_relations as $rb) {
-				$relation = $rb->getRelation();
-				$this->table->addRelation($relation);
-			}
-
-			// clear
-			$this->collected_relations = [];
+			$this->registerCollectedRelations();
 		} catch (Throwable $t) {
 			throw (new DBALRuntimeException('Failed to build table', null, $t))->suspectCallable($factory);
 		}
@@ -587,5 +589,108 @@ final class TableBuilder
 		}
 
 		return $this;
+	}
+
+	/**
+	 * Add a collect foreign key factory.
+	 *
+	 * This solve the problem of foreign key that reference a table that is not yet created.
+	 *
+	 * @param callable $factory
+	 *
+	 * @return $this
+	 */
+	public function collectFk(callable $factory): self
+	{
+		$this->fk_factories[] = $factory;
+
+		return $this;
+	}
+
+	/**
+	 * Add a collect index factory.
+	 *
+	 * This solve the problem of index that reference a table that is not yet created.
+	 *
+	 * @param callable $factory
+	 *
+	 * @return $this
+	 */
+	public function collectIndex(callable $factory): self
+	{
+		$this->indexes_factories[] = $factory;
+
+		return $this;
+	}
+
+	/**
+	 * Add a collect relation factory.
+	 *
+	 * This solve the problem of relation that reference a table that is not yet created.
+	 *
+	 * @param callable $factory
+	 *
+	 * @return $this
+	 */
+	public function collectRelation(callable $factory): self
+	{
+		$this->relations_factories[] = $factory;
+
+		return $this;
+	}
+
+	/**
+	 * Collects all relations, indexes and foreign keys and register them to the table.
+	 *
+	 * @return $this
+	 *
+	 * @throws DBALException
+	 *
+	 * @internal this method should be called only by the RDBMS namespace builder
+	 */
+	public function pack(): self
+	{
+		// we collect foreign keys before indexes because
+		// indexes may need to reference foreign keys
+		foreach ($this->fk_factories as $factory) {
+			$factory();
+		}
+
+		// collect indexes
+		foreach ($this->indexes_factories as $factory) {
+			$factory();
+		}
+
+		// collect relations
+		foreach ($this->relations_factories as $factory) {
+			$factory();
+		}
+
+		// register collected relations
+		$this->registerCollectedRelations();
+
+		// clear
+		$this->fk_factories        = [];
+		$this->indexes_factories   = [];
+		$this->relations_factories = [];
+
+		return $this;
+	}
+
+	/**
+	 * Registers all collected relations.
+	 *
+	 * @throws DBALException
+	 */
+	private function registerCollectedRelations(): void
+	{
+		// register collected relations
+		foreach ($this->collected_relations as $rb) {
+			$relation = $rb->getRelation();
+			$this->table->addRelation($relation);
+		}
+
+		// clear
+		$this->collected_relations = [];
 	}
 }

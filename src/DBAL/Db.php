@@ -129,132 +129,6 @@ abstract class Db implements RDBMSInterface
 	}
 
 	/**
-	 * Checks if a given string is a column reference.
-	 *
-	 * @param string $str
-	 *
-	 * @return bool
-	 */
-	public static function isColumnReference(string $str): bool
-	{
-		return null !== static::parseColumnReference($str);
-	}
-
-	/**
-	 * Parse a column reference.
-	 *
-	 * @param string $reference The column reference
-	 *
-	 * @return null|array{clone: bool, table: string, column: string}
-	 */
-	public static function parseColumnReference(string $reference): ?array
-	{
-		if (\preg_match(self::REG_COLUMN_REF, $reference, $parts)) {
-			$head  = $parts[1];
-			$clone = 'cp' === $head;
-
-			return [
-				'clone'  => $clone,
-				'table'  => $parts[2],
-				'column' => $parts[3],
-			];
-		}
-
-		return null;
-	}
-
-	/**
-	 * Clean column type options.
-	 *
-	 * @param array $options The column type options
-	 * @param bool  $clone   Whether the column is cloned or not
-	 *
-	 * @return array
-	 */
-	public static function cleanColumnTypeOptionsForReference(array $options, bool $clone): array
-	{
-		if (!$clone) {
-			unset($options['auto_increment']);
-		}
-
-		unset($options['diff_key']);
-
-		return $options;
-	}
-
-	/**
-	 * Asserts the database is not locked.
-	 */
-	public function assertNotLocked(): void
-	{
-		if ($this->locked) {
-			throw new DBALRuntimeException('The database is locked.');
-		}
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 */
-	public function addTable(Table $table): static
-	{
-		$this->assertNotLocked();
-
-		$name = $table->getName();
-
-		try {
-			$table->assertNotLocked();
-		} catch (Throwable $t) {
-			throw new DBALException(
-				\sprintf(
-					'Table "%s" could not be added.',
-					$name,
-				),
-				null,
-				$t
-			);
-		}
-
-		if (empty($table->getPrefix()) && !empty(
-			$prefix = $this->getConfig()
-				->getDbTablePrefix()
-		)) {
-			$table->setPrefix($prefix);
-		}
-
-		$full_name = $table->getFullname();
-		// prevents table "name" conflict with another table "name" or "full name"
-		if ($this->hasTable($name)) {
-			throw new DBALException(
-				\sprintf('The table name conflict with an existing table name or full name: "%s".', $name)
-			);
-		}
-
-		// prevents table "full name" conflict with another table "name" or "full name"
-		if ($this->hasTable($full_name)) {
-			throw new DBALException(
-				\sprintf('The table full name conflict with an existing table name or full name: "%s".', $full_name)
-			);
-		}
-
-		$this->tbl_full_name_map[$full_name] = $name;
-		$this->tables[$name]                 = $table->lockName();
-
-		return $this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function assertHasTable(string $name): void
-	{
-		if (!$this->hasTable($name)) {
-			throw new DBALRuntimeException(\sprintf('The table "%s" is not defined.', $name));
-		}
-	}
-
-	/**
 	 * {@inheritDoc}
 	 */
 	public function getConnection(): PDO
@@ -270,32 +144,23 @@ abstract class Db implements RDBMSInterface
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * @throws DBALException
 	 */
-	public function getTable(string $name): ?Table
+	public function lock(): static
 	{
-		if ($this->hasTable($name)) {
-			if (isset($this->tbl_full_name_map[$name])) {
-				$name = $this->tbl_full_name_map[$name];
+		if (!$this->locked) {
+			$this->locked = true;
+			foreach ($this->namespaces as $namespace) {
+				$namespace->pack();
 			}
 
-			return $this->tables[$name];
+			foreach ($this->tables as $table) {
+				$table->lock();
+			}
 		}
 
-		return null;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getTableOrFail(string $name): Table
-	{
-		$this->assertHasTable($name);
-
-		if (isset($this->tbl_full_name_map[$name])) {
-			$name = $this->tbl_full_name_map[$name];
-		}
-
-		return $this->tables[$name];
+		return $this;
 	}
 
 	/**
@@ -318,14 +183,6 @@ abstract class Db implements RDBMSInterface
 		}
 
 		return $this->tables;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function hasTable(string $name): bool
-	{
-		return isset($this->tables[$name]) || isset($this->tbl_full_name_map[$name]);
 	}
 
 	/**
@@ -804,18 +661,175 @@ abstract class Db implements RDBMSInterface
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * Checks if a given string is a column reference.
+	 *
+	 * @param string $str
+	 *
+	 * @return bool
 	 */
-	public function lock(): static
+	public static function isColumnReference(string $str): bool
 	{
-		if (!$this->locked) {
-			$this->locked = true;
-			foreach ($this->tables as $table) {
-				$table->lock();
-			}
+		return null !== static::parseColumnReference($str);
+	}
+
+	/**
+	 * Parse a column reference.
+	 *
+	 * @param string $reference The column reference
+	 *
+	 * @return null|array{clone: bool, table: string, column: string}
+	 */
+	public static function parseColumnReference(string $reference): ?array
+	{
+		if (\preg_match(self::REG_COLUMN_REF, $reference, $parts)) {
+			$head  = $parts[1];
+			$clone = 'cp' === $head;
+
+			return [
+				'clone'  => $clone,
+				'table'  => $parts[2],
+				'column' => $parts[3],
+			];
 		}
 
+		return null;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getTable(string $name): ?Table
+	{
+		if ($this->hasTable($name)) {
+			if (isset($this->tbl_full_name_map[$name])) {
+				$name = $this->tbl_full_name_map[$name];
+			}
+
+			return $this->tables[$name];
+		}
+
+		return null;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function hasTable(string $name): bool
+	{
+		return isset($this->tables[$name]) || isset($this->tbl_full_name_map[$name]);
+	}
+
+	/**
+	 * Clean column type options.
+	 *
+	 * @param array $options The column type options
+	 * @param bool  $clone   Whether the column is cloned or not
+	 *
+	 * @return array
+	 */
+	public static function cleanColumnTypeOptionsForReference(array $options, bool $clone): array
+	{
+		if (!$clone) {
+			unset($options['auto_increment']);
+		}
+
+		unset($options['diff_key']);
+
+		return $options;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 */
+	public function addTable(Table $table): static
+	{
+		$this->assertNotLocked();
+
+		$name = $table->getName();
+
+		try {
+			$table->assertNotLocked();
+		} catch (Throwable $t) {
+			throw new DBALException(
+				\sprintf(
+					'Table "%s" could not be added.',
+					$name,
+				),
+				null,
+				$t
+			);
+		}
+
+		if (empty($table->getPrefix()) && !empty(
+			$prefix = $this->getConfig()
+				->getDbTablePrefix()
+		)) {
+			$table->setPrefix($prefix);
+		}
+
+		$full_name = $table->getFullname();
+		// prevents table "name" conflict with another table "name" or "full name"
+		if ($this->hasTable($name)) {
+			throw new DBALException(
+				\sprintf('The table name conflict with an existing table name or full name: "%s".', $name)
+			);
+		}
+
+		// prevents table "full name" conflict with another table "name" or "full name"
+		if ($this->hasTable($full_name)) {
+			throw new DBALException(
+				\sprintf('The table full name conflict with an existing table name or full name: "%s".', $full_name)
+			);
+		}
+
+		$this->tbl_full_name_map[$full_name] = $name;
+		$this->tables[$name]                 = $table->lockName();
+
 		return $this;
+	}
+
+	/**
+	 * Asserts the database is not locked.
+	 */
+	public function assertNotLocked(): void
+	{
+		if ($this->locked) {
+			throw new DBALRuntimeException('The database is locked.');
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getTableOrFail(string $name): Table
+	{
+		$this->assertHasTable($name);
+
+		if (isset($this->tbl_full_name_map[$name])) {
+			$name = $this->tbl_full_name_map[$name];
+		}
+
+		return $this->tables[$name];
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function assertHasTable(string $name): void
+	{
+		if (!$this->hasTable($name)) {
+			throw new DBALRuntimeException(\sprintf('The table "%s" is not defined.', $name));
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function ns(string $namespace): NamespaceBuilder
+	{
+		return $this->namespace($namespace);
 	}
 
 	/**
@@ -828,14 +842,6 @@ abstract class Db implements RDBMSInterface
 		}
 
 		return $this->namespaces[$namespace];
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function ns(string $namespace): NamespaceBuilder
-	{
-		return $this->namespace($namespace);
 	}
 
 	/**
