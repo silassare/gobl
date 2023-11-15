@@ -83,6 +83,27 @@ abstract class BaseTestCase extends TestCase
 	}
 
 	/**
+	 * @param string $type
+	 *
+	 * @return \Gobl\DBAL\DbConfig
+	 */
+	public static function getDbConfig(string $type): DbConfig
+	{
+		$configs = require GOBL_TEST_ROOT . \DIRECTORY_SEPARATOR . 'db.configs.php';
+
+		if (!isset($configs[$type])) {
+			throw new InvalidArgumentException(\sprintf('"%s" db config not set.', $type));
+		}
+
+		return new DbConfig($configs[$type]);
+	}
+
+	public static function getTablesDefinitions(): array
+	{
+		return require GOBL_TEST_ROOT . \DIRECTORY_SEPARATOR . 'tables.php';
+	}
+
+	/**
 	 * Returns a sample db instance with some tables.
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
@@ -95,6 +116,7 @@ abstract class BaseTestCase extends TestCase
 		$users = $ns->table('users', static function (TableBuilder $t) {
 			$t->id();
 			$t->string('name');
+			$t->softDeletable();
 		});
 
 		$roles = $ns->table('roles', static function (TableBuilder $t) {
@@ -147,27 +169,6 @@ abstract class BaseTestCase extends TestCase
 		});
 
 		return $db->lock();
-	}
-
-	/**
-	 * @param string $type
-	 *
-	 * @return \Gobl\DBAL\DbConfig
-	 */
-	public static function getDbConfig(string $type): DbConfig
-	{
-		$configs = require GOBL_TEST_ROOT . \DIRECTORY_SEPARATOR . 'db.configs.php';
-
-		if (!isset($configs[$type])) {
-			throw new InvalidArgumentException(\sprintf('"%s" db config not set.', $type));
-		}
-
-		return new DbConfig($configs[$type]);
-	}
-
-	public static function getTablesDefinitions(): array
-	{
-		return require GOBL_TEST_ROOT . \DIRECTORY_SEPARATOR . 'tables.php';
 	}
 
 	public static function getTablesDiffDefinitions(): array
