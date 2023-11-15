@@ -47,8 +47,8 @@ final class Table implements ArrayCapableInterface
 	public const PREFIX_REG = '~^' . self::PREFIX_PATTERN . '$~';
 
 	public const TABLE_DEFAULT_NAMESPACE = 'Gobl\\DefaultNamespace';
-	public const COLUMN_SOFT_DELETED     = 'delete';
-	public const COLUMN_SOFT_DELETED_AT  = 'delete_at';
+	public const COLUMN_SOFT_DELETED     = 'deleted';
+	public const COLUMN_SOFT_DELETED_AT  = 'deleted_at';
 
 	/**
 	 * The table name.
