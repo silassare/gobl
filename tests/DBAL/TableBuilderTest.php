@@ -44,8 +44,8 @@ final class TableBuilderTest extends BaseTestCase
 		self::assertSame([
 			'id',
 			'name',
-			'delete',
-			'delete_at',
+			'deleted',
+			'deleted_at',
 		], \array_keys($tbl_users->getColumns()));
 
 		$tbl_roles = $db->getTable('roles');
