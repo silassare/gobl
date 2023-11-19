@@ -345,6 +345,10 @@ abstract class Db implements RDBMSInterface
 						try {
 							$col = new Column($column_name, $table_col_prefix, $col_options);
 
+							if (isset($col_options['diff_key'])) {
+								$col->setDiffKey($col_options['diff_key']);
+							}
+
 							if (isset($col_options['private'])) {
 								$col->setPrivate((bool) $col_options['private']);
 							}

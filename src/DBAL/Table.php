@@ -18,7 +18,7 @@ use Gobl\DBAL\Constraints\ForeignKey;
 use Gobl\DBAL\Constraints\ForeignKeyAction;
 use Gobl\DBAL\Constraints\PrimaryKey;
 use Gobl\DBAL\Constraints\UniqueKey;
-use Gobl\DBAL\Diff\Traits\DiffAwareTrait;
+use Gobl\DBAL\Diff\Interfaces\DiffCapableInterface;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
@@ -33,10 +33,9 @@ use Throwable;
 /**
  * Class Table.
  */
-final class Table implements ArrayCapableInterface
+final class Table implements ArrayCapableInterface, DiffCapableInterface
 {
 	use ArrayCapableTrait;
-	use DiffAwareTrait;
 
 	public const ALIAS_PATTERN  = '[a-zA-Z_][a-zA-Z0-9_]*';
 	public const ALIAS_REG      = '~^' . self::ALIAS_PATTERN . '$~';
@@ -49,6 +48,13 @@ final class Table implements ArrayCapableInterface
 	public const TABLE_DEFAULT_NAMESPACE = 'Gobl\\DefaultNamespace';
 	public const COLUMN_SOFT_DELETED     = 'deleted';
 	public const COLUMN_SOFT_DELETED_AT  = 'deleted_at';
+
+	/**
+	 * The table diff key.
+	 *
+	 * @var null|string
+	 */
+	private ?string $diff_key = null;
 
 	/**
 	 * The table name.
@@ -1529,6 +1535,34 @@ final class Table implements ArrayCapableInterface
 		}
 
 		return $options;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getDiffKey(): string
+	{
+		if (empty($this->diff_key)) {
+			$this->diff_key = \md5($this->namespace . '/' . $this->name);
+		}
+
+		return $this->diff_key;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function setDiffKey(string $diff_key): self
+	{
+		$this->assertNotLocked();
+
+		if (empty($diff_key)) {
+			throw new InvalidArgumentException(\sprintf('Table "%s" diff key should not be empty', $this->name));
+		}
+
+		$this->diff_key = $diff_key;
+
+		return $this;
 	}
 
 	/**

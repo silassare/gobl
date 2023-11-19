@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL;
 
-use Gobl\DBAL\Diff\Traits\DiffAwareTrait;
+use Gobl\DBAL\Diff\Interfaces\DiffCapableInterface;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
 use Gobl\DBAL\Types\TypeString;
@@ -27,10 +27,9 @@ use Throwable;
 /**
  * Class Column.
  */
-final class Column implements ArrayCapableInterface
+final class Column implements ArrayCapableInterface, DiffCapableInterface
 {
 	use ArrayCapableTrait;
-	use DiffAwareTrait;
 
 	public const NAME_PATTERN = '[a-z](?:[a-z0-9_]*[a-z0-9])?';
 
@@ -39,6 +38,13 @@ final class Column implements ArrayCapableInterface
 	public const PREFIX_PATTERN = '[a-z](?:[a-z0-9_]*[a-z0-9])?';
 
 	public const PREFIX_REG = '~^' . self::PREFIX_PATTERN . '$~';
+
+	/**
+	 * The column diff key.
+	 *
+	 * @var null|string
+	 */
+	private ?string $diff_key = null;
 
 	/**
 	 * The column name.
@@ -183,21 +189,6 @@ final class Column implements ArrayCapableInterface
 	}
 
 	/**
-	 * Asserts if this column definition/instance is valid.
-	 */
-	public function assertIsValid(): void
-	{
-		if (!Gobl::isAllowedColumnName($this->name)) {
-			throw new DBALRuntimeException(
-				\sprintf(
-					'Column name "%s" is not allowed.',
-					$this->name
-				)
-			);
-		}
-	}
-
-	/**
 	 * Asserts if this column is not locked.
 	 */
 	public function assertNotLocked(): void
@@ -206,21 +197,6 @@ final class Column implements ArrayCapableInterface
 			throw new DBALRuntimeException(
 				\sprintf(
 					'You should not try to edit locked column "%s".',
-					$this->name
-				)
-			);
-		}
-	}
-
-	/**
-	 * Asserts if this table name is not locked.
-	 */
-	public function assertNameNotLocked(): void
-	{
-		if ($this->locked_name) {
-			throw new DBALRuntimeException(
-				\sprintf(
-					'You should not try to edit locked column (%s) name or prefix.',
 					$this->name
 				)
 			);
@@ -265,6 +241,21 @@ final class Column implements ArrayCapableInterface
 	}
 
 	/**
+	 * Asserts if this table name is not locked.
+	 */
+	public function assertNameNotLocked(): void
+	{
+		if ($this->locked_name) {
+			throw new DBALRuntimeException(
+				\sprintf(
+					'You should not try to edit locked column (%s) name or prefix.',
+					$this->name
+				)
+			);
+		}
+	}
+
+	/**
 	 * Lock column name.
 	 *
 	 * @return $this
@@ -300,6 +291,21 @@ final class Column implements ArrayCapableInterface
 		}
 
 		return $this;
+	}
+
+	/**
+	 * Asserts if this column definition/instance is valid.
+	 */
+	public function assertIsValid(): void
+	{
+		if (!Gobl::isAllowedColumnName($this->name)) {
+			throw new DBALRuntimeException(
+				\sprintf(
+					'Column name "%s" is not allowed.',
+					$this->name
+				)
+			);
+		}
 	}
 
 	/**
@@ -448,20 +454,6 @@ final class Column implements ArrayCapableInterface
 	}
 
 	/**
-	 * Gets column full name.
-	 *
-	 * @return string
-	 */
-	public function getFullName(): string
-	{
-		if (empty($this->prefix)) {
-			return $this->name;
-		}
-
-		return $this->prefix . '_' . $this->name;
-	}
-
-	/**
 	 * {@inheritDoc}
 	 */
 	public function toArray(): array
@@ -486,5 +478,48 @@ final class Column implements ArrayCapableInterface
 		}
 
 		return $options;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getDiffKey(): string
+	{
+		if (empty($this->diff_key)) {
+			$table_key      = $this->table ? $this->table->getDiffKey() : \uniqid('', true);
+			$this->diff_key = \md5($table_key . '/' . $this->getFullName());
+		}
+
+		return $this->diff_key;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function setDiffKey(string $diff_key): self
+	{
+		$this->assertNotLocked();
+
+		if (empty($diff_key)) {
+			throw new InvalidArgumentException(\sprintf('Column "%s" diff key should not be empty', $this->name));
+		}
+
+		$this->diff_key = $diff_key;
+
+		return $this;
+	}
+
+	/**
+	 * Gets column full name.
+	 *
+	 * @return string
+	 */
+	public function getFullName(): string
+	{
+		if (empty($this->prefix)) {
+			return $this->name;
+		}
+
+		return $this->prefix . '_' . $this->name;
 	}
 }
