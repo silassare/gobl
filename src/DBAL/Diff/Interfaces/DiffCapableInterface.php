@@ -19,15 +19,6 @@ namespace Gobl\DBAL\Diff\Interfaces;
 interface DiffCapableInterface
 {
 	/**
-	 * Returns diff action for a given target.
-	 *
-	 * @param static $target
-	 *
-	 * @return \Gobl\DBAL\Diff\DiffAction[]
-	 */
-	public function diff(self $target): array;
-
-	/**
 	 * Returns the diff key used to track changes.
 	 *
 	 * @return string
@@ -41,5 +32,5 @@ interface DiffCapableInterface
 	 *
 	 * @return $this
 	 */
-	public function setDiffKey(string $diff_key): static;
+	public function setDiffKey(string $diff_key): self;
 }
