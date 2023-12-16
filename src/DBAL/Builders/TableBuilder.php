@@ -47,13 +47,13 @@ final class TableBuilder
 	/** @var RelationBuilder[] */
 	private array $collected_relations = [];
 
-	/** @var array<int, callable():void> */
+	/** @var array<int, callable($this):void> */
 	private array $indexes_factories = [];
 
-	/** @var array<int, callable():void> */
+	/** @var array<int, callable($this):void> */
 	private array $fk_factories = [];
 
-	/** @var array<int, callable():void> */
+	/** @var array<int, callable($this):void> */
 	private array $relations_factories = [];
 
 	/**
@@ -596,7 +596,7 @@ final class TableBuilder
 	 *
 	 * This solve the problem of foreign key that reference a table that is not yet created.
 	 *
-	 * @param callable $factory
+	 * @param callable($this):void $factory
 	 *
 	 * @return $this
 	 */
@@ -612,7 +612,7 @@ final class TableBuilder
 	 *
 	 * This solve the problem of index that reference a table that is not yet created.
 	 *
-	 * @param callable $factory
+	 * @param callable($this):void $factory
 	 *
 	 * @return $this
 	 */
@@ -628,7 +628,7 @@ final class TableBuilder
 	 *
 	 * This solve the problem of relation that reference a table that is not yet created.
 	 *
-	 * @param callable $factory
+	 * @param callable($this):void $factory
 	 *
 	 * @return $this
 	 */
@@ -653,17 +653,17 @@ final class TableBuilder
 		// we collect foreign keys before indexes because
 		// indexes may need to reference foreign keys
 		foreach ($this->fk_factories as $factory) {
-			$factory();
+			$factory($this);
 		}
 
 		// collect indexes
 		foreach ($this->indexes_factories as $factory) {
-			$factory();
+			$factory($this);
 		}
 
 		// collect relations
 		foreach ($this->relations_factories as $factory) {
-			$factory();
+			$factory($this);
 		}
 
 		// register collected relations
