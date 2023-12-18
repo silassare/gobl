@@ -57,7 +57,7 @@ final class LinkThrough extends Link
 					->getColumnsMapping();
 				$htp_options = [
 					'type'    => LinkType::COLUMNS->value,
-					'columns' => $columns_map,
+					'columns' => \array_flip($columns_map),
 				];
 			} else {
 				throw new DBALException(\sprintf(
