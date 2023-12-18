@@ -31,8 +31,8 @@ use PHPUtils\Str;
  */
 final class RelationBuilder
 {
-	private ?Table $target_table    = null;
-	private ?Relation $relation     = null;
+	private ?Table $target_table = null;
+	private ?Relation $relation  = null;
 
 	/**
 	 * RelationBuilder constructor.
@@ -63,24 +63,6 @@ final class RelationBuilder
 	}
 
 	/**
-	 * Sets the target table.
-	 *
-	 * @param string|Table $table
-	 *
-	 * @return $this
-	 */
-	public function from(string|Table $table): self
-	{
-		if ($table instanceof Table) {
-			$this->target_table = $table;
-		} else {
-			$this->target_table = $this->rdbms->getTableOrFail($table);
-		}
-
-		return $this;
-	}
-
-	/**
 	 * Specify a relation link of type "columns".
 	 *
 	 * @param array<string, string> $host_to_target_columns_map
@@ -93,55 +75,6 @@ final class RelationBuilder
 			'type'    => LinkType::COLUMNS->value,
 			'columns' => $host_to_target_columns_map,
 		]);
-	}
-
-	/**
-	 * Specify a relation link of type "morph".
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 */
-	public function usingMorph(string $prefix, ?string $host_type = null): Relation
-	{
-		$options = [
-			'type'   => LinkType::MORPH->value,
-			'prefix' => $prefix,
-		];
-
-		if ($host_type) {
-			$options['host_type'] = $host_type;
-		}
-
-		return $this->using($options);
-	}
-
-	/**
-	 * Specify a relation link of type "through".
-	 *
-	 * @param string|Table                   $pivot_table
-	 * @param array<string, LinkType|string> $host_to_pivot_link_options
-	 * @param array<string, LinkType|string> $pivot_to_target_link_options
-	 *
-	 * @return \Gobl\DBAL\Relations\Relation
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 */
-	public function through(
-		string|Table $pivot_table,
-		array $host_to_pivot_link_options = [],
-		array $pivot_to_target_link_options = []
-	): Relation {
-		if (\is_string($pivot_table)) {
-			$pivot_table = $this->rdbms->getTableOrFail($pivot_table);
-		}
-
-		$options = [
-			'type'            => LinkType::THROUGH->value,
-			'pivot_table'     => $pivot_table,
-			'host_to_pivot'   => $host_to_pivot_link_options,
-			'pivot_to_target' => $pivot_to_target_link_options,
-		];
-
-		return $this->using($options);
 	}
 
 	/**
@@ -186,5 +119,76 @@ final class RelationBuilder
 		$this->relation = $r;
 
 		return $r;
+	}
+
+	/**
+	 * Sets the target table.
+	 *
+	 * @param string|Table $table
+	 *
+	 * @return $this
+	 */
+	public function from(string|Table $table): self
+	{
+		if ($table instanceof Table) {
+			$this->target_table = $table;
+		} else {
+			$this->target_table = $this->rdbms->getTableOrFail($table);
+		}
+
+		return $this;
+	}
+
+	/**
+	 * Specify a relation link of type "morph".
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 */
+	public function usingMorph(string $prefix, ?string $parent_type = null, ?bool $inverted = false): Relation
+	{
+		$options = [
+			'type'   => LinkType::MORPH->value,
+			'prefix' => $prefix,
+		];
+
+		if ($parent_type) {
+			$options['parent_type'] = $parent_type;
+		}
+
+		if ($inverted) {
+			$options['inverted'] = $inverted;
+		}
+
+		return $this->using($options);
+	}
+
+	/**
+	 * Specify a relation link of type "through".
+	 *
+	 * @param string|Table                   $pivot_table
+	 * @param array<string, LinkType|string> $host_to_pivot_link_options
+	 * @param array<string, LinkType|string> $pivot_to_target_link_options
+	 *
+	 * @return \Gobl\DBAL\Relations\Relation
+	 *
+	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 */
+	public function through(
+		string|Table $pivot_table,
+		array $host_to_pivot_link_options = [],
+		array $pivot_to_target_link_options = []
+	): Relation {
+		if (\is_string($pivot_table)) {
+			$pivot_table = $this->rdbms->getTableOrFail($pivot_table);
+		}
+
+		$options = [
+			'type'            => LinkType::THROUGH->value,
+			'pivot_table'     => $pivot_table,
+			'host_to_pivot'   => $host_to_pivot_link_options,
+			'pivot_to_target' => $pivot_to_target_link_options,
+		];
+
+		return $this->using($options);
 	}
 }
