@@ -285,6 +285,7 @@ final class TableBuilder
 	 * @param string                     $column_name
 	 * @param string                     $foreign_table
 	 * @param string                     $foreign_column
+	 * @param null|bool                  $nullable
 	 * @param null|callable(Column):void $callable
 	 *
 	 * @return ForeignKey
@@ -295,6 +296,7 @@ final class TableBuilder
 		string $column_name,
 		string $foreign_table,
 		string $foreign_column,
+		?bool $nullable = false,
 		?callable $callable = null
 	): ForeignKey {
 		$ref_table = $this->rdbms->getTableOrFail($foreign_table);
@@ -307,6 +309,8 @@ final class TableBuilder
 		$column->setReference($ref);
 
 		$this->table->addColumn($column);
+
+		$column->getType()->nullable($nullable);
 
 		if ($callable) {
 			$callable($column);
