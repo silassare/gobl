@@ -644,7 +644,7 @@ final class TableBuilder
 	}
 
 	/**
-	 * Collects all relations, indexes and foreign keys and register them to the table.
+	 * Collects indexes and foreign keys and register them to the table.
 	 *
 	 * @return $this
 	 *
@@ -652,7 +652,7 @@ final class TableBuilder
 	 *
 	 * @internal this method should be called only by the RDBMS namespace builder
 	 */
-	public function pack(): self
+	public function packConstraints(): self
 	{
 		// we collect foreign keys before indexes because
 		// indexes may need to reference foreign keys
@@ -665,6 +665,24 @@ final class TableBuilder
 			$factory($this);
 		}
 
+		// clear
+		$this->fk_factories      = [];
+		$this->indexes_factories = [];
+
+		return $this;
+	}
+
+	/**
+	 * Collects all relations and register them to the table.
+	 *
+	 * @return $this
+	 *
+	 * @throws DBALException
+	 *
+	 * @internal this method should be called only by the RDBMS namespace builder
+	 */
+	public function packRelations(): self
+	{
 		// collect relations
 		foreach ($this->relations_factories as $factory) {
 			$factory($this);
@@ -674,8 +692,6 @@ final class TableBuilder
 		$this->registerCollectedRelations();
 
 		// clear
-		$this->fk_factories        = [];
-		$this->indexes_factories   = [];
 		$this->relations_factories = [];
 
 		return $this;

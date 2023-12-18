@@ -104,7 +104,10 @@ final class NamespaceBuilder
 	public function pack(): void
 	{
 		foreach ($this->cache as $tb) {
-			$tb->pack();
+			$tb->packConstraints();
+		}
+		foreach ($this->cache as $tb) {
+			$tb->packRelations();
 		}
 	}
 }
