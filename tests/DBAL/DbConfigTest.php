@@ -17,15 +17,15 @@ use Gobl\DBAL\DbConfig;
 use Gobl\Tests\BaseTestCase;
 
 /**
- * Class DBConfigTest.
+ * Class DbConfigTest.
  *
  * @covers \Gobl\DBAL\DBConfig
  *
  * @internal
  */
-final class DBConfigTest extends BaseTestCase
+final class DbConfigTest extends BaseTestCase
 {
-	private DBConfig $config;
+	private DbConfig $config;
 	private array $declared = [
 		'db_table_prefix' => 'gObL',
 		'db_host'         => 'localhost',

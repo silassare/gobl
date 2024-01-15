@@ -23,13 +23,13 @@ use Gobl\DBAL\Table;
 use Gobl\Tests\BaseTestCase;
 
 /**
- * Class DBTest.
+ * Class DbTest.
  *
  * @covers \Gobl\DBAL\Db
  *
  * @internal
  */
-final class DBTest extends BaseTestCase
+final class DbTest extends BaseTestCase
 {
 	public function testInstantiate(): void
 	{
