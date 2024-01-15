@@ -36,7 +36,7 @@ final class TableCollateChanged extends DiffAction
 	}
 
 	/**
-	 * @return \Gobl\DBAL\Table
+	 * @return Table
 	 */
 	public function getTable(): Table
 	{

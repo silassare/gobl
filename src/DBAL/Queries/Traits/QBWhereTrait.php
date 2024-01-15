@@ -24,7 +24,7 @@ trait QBWhereTrait
 {
 	use QBFilterableTrait;
 
-	protected FilterGroup|null $options_where = null;
+	protected null|FilterGroup $options_where = null;
 
 	/**
 	 * Adds a where condition.
@@ -33,7 +33,7 @@ trait QBWhereTrait
 	 *
 	 * @return $this
 	 */
-	public function where(Filters|FilterInterface|callable|string $condition): static
+	public function where(callable|FilterInterface|Filters|string $condition): static
 	{
 		return $this->ensureWhere(true, $condition);
 	}
@@ -45,7 +45,7 @@ trait QBWhereTrait
 	 *
 	 * @return $this
 	 */
-	public function andWhere(Filters|FilterInterface|callable|string $condition): static
+	public function andWhere(callable|FilterInterface|Filters|string $condition): static
 	{
 		return $this->ensureWhere(true, $condition);
 	}
@@ -57,7 +57,7 @@ trait QBWhereTrait
 	 *
 	 * @return $this
 	 */
-	public function orWhere(Filters|FilterInterface|callable|string $condition): static
+	public function orWhere(callable|FilterInterface|Filters|string $condition): static
 	{
 		return $this->ensureWhere(false, $condition);
 	}
@@ -65,7 +65,7 @@ trait QBWhereTrait
 	/**
 	 * @return null|FilterGroup
 	 */
-	public function getOptionsWhere(): FilterGroup|null
+	public function getOptionsWhere(): null|FilterGroup
 	{
 		return $this->options_where;
 	}
@@ -81,7 +81,7 @@ trait QBWhereTrait
 	 *
 	 * @return $this
 	 */
-	private function ensureWhere(bool $is_and, Filters|FilterInterface|callable|string $condition): static
+	private function ensureWhere(bool $is_and, callable|FilterInterface|Filters|string $condition): static
 	{
 		if (!$this->options_where) {
 			$this->options_where = new FilterGroup($is_and);

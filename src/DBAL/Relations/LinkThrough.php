@@ -31,13 +31,13 @@ final class LinkThrough extends Link
 	/**
 	 * LinkThrough constructor.
 	 *
-	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $rdbms
-	 * @param \Gobl\DBAL\Table                     $host_table
-	 * @param \Gobl\DBAL\Table                     $target_table
-	 * @param \Gobl\DBAL\Table                     $pivot_table
-	 * @param array                                $options
+	 * @param RDBMSInterface $rdbms
+	 * @param Table          $host_table
+	 * @param Table          $target_table
+	 * @param Table          $pivot_table
+	 * @param array          $options
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function __construct(
 		private readonly RDBMSInterface $rdbms,
@@ -98,7 +98,7 @@ final class LinkThrough extends Link
 	/**
 	 * Gets the pivot table.
 	 *
-	 * @return \Gobl\DBAL\Table
+	 * @return Table
 	 */
 	public function getPivotTable(): Table
 	{
@@ -108,7 +108,7 @@ final class LinkThrough extends Link
 	/**
 	 * Gets the link between the host table and the pivot table.
 	 *
-	 * @return \Gobl\DBAL\Relations\Interfaces\LinkInterface
+	 * @return LinkInterface
 	 */
 	public function getHostToThroughLink(): LinkInterface
 	{
@@ -118,7 +118,7 @@ final class LinkThrough extends Link
 	/**
 	 * Gets the link between the pivot table and the target table.
 	 *
-	 * @return \Gobl\DBAL\Relations\Interfaces\LinkInterface
+	 * @return LinkInterface
 	 */
 	public function getThroughToTargetLink(): LinkInterface
 	{
@@ -151,7 +151,7 @@ final class LinkThrough extends Link
 	/**
 	 * Creates a link between two tables.
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	private function link(Table $host_table, Table $target_table, array $options): LinkInterface
 	{

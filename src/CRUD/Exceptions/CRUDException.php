@@ -30,7 +30,7 @@ class CRUDException extends GoblException
 	 * @param null|Throwable               $previous
 	 * @param int                          $code
 	 */
-	public function __construct(string|CRUDAction $message, array $data = null, Throwable $previous = null, int $code = 0)
+	public function __construct(CRUDAction|string $message, array $data = null, Throwable $previous = null, int $code = 0)
 	{
 		$action  = \is_string($message) ? null : $message;
 		$message = $action ? $action->getErrorMessage() : $message;

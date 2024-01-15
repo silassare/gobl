@@ -48,8 +48,8 @@ enum ORMClassKind: string
 	/**
 	 * Returns FQN class name for a given table.
 	 *
-	 * @param \Gobl\DBAL\Table $table
-	 * @param bool             $use
+	 * @param Table $table
+	 * @param bool  $use
 	 *
 	 * @return string
 	 */
@@ -75,7 +75,7 @@ enum ORMClassKind: string
 	/**
 	 * Returns class name for a given table.
 	 *
-	 * @param \Gobl\DBAL\Table $table
+	 * @param Table $table
 	 *
 	 * @return string
 	 */

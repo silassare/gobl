@@ -36,7 +36,7 @@ final class DBCollateChanged extends DiffAction
 	}
 
 	/**
-	 * @return \Gobl\DBAL\Interfaces\RDBMSInterface
+	 * @return RDBMSInterface
 	 */
 	public function getDb(): RDBMSInterface
 	{

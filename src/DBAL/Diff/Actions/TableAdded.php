@@ -28,7 +28,7 @@ final class TableAdded extends DiffAction
 	}
 
 	/**
-	 * @return \Gobl\DBAL\Table
+	 * @return Table
 	 */
 	public function getTable(): Table
 	{

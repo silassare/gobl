@@ -20,12 +20,12 @@ use Gobl\DBAL\Filters\Filters;
  */
 trait QBHavingTrait
 {
-	protected Filters|string|null $options_having = null;
+	protected null|Filters|string $options_having = null;
 
 	/**
 	 * @return null|\Gobl\DBAL\Filters\Filters|string
 	 */
-	public function getOptionsHaving(): Filters|string|null
+	public function getOptionsHaving(): null|Filters|string
 	{
 		return $this->options_having;
 	}
@@ -35,7 +35,7 @@ trait QBHavingTrait
 	 *
 	 * @return $this
 	 */
-	public function having(Filters|string|null $condition): static
+	public function having(null|Filters|string $condition): static
 	{
 		$this->options_having = $condition;
 

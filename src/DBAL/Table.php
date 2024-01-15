@@ -218,9 +218,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 		return ['instance_of' => self::class, 'table_name' => $this->getName()];
 	}
 
-	private function __clone()
-	{
-	}
+	private function __clone() {}
 
 	/**
 	 * Gets table name.
@@ -488,7 +486,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	 *
 	 * @param null|string $collate
 	 *
-	 * @return \Gobl\DBAL\Table
+	 * @return Table
 	 */
 	public function setCollate(?string $collate): self
 	{
@@ -512,7 +510,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	 *
 	 * @param null|string $charset
 	 *
-	 * @return \Gobl\DBAL\Table
+	 * @return Table
 	 */
 	public function setCharset(?string $charset): self
 	{
@@ -663,11 +661,11 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Adds relation to this table.
 	 *
-	 * @param \Gobl\DBAL\Relations\Relation $relation
+	 * @param Relation $relation
 	 *
-	 * @return \Gobl\DBAL\Table
+	 * @return Table
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function addRelation(Relation $relation): self
 	{
@@ -757,11 +755,11 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Adds virtual relation to this table.
 	 *
-	 * @param \Gobl\DBAL\Relations\VirtualRelation $virtual_relation
+	 * @param VirtualRelation $virtual_relation
 	 *
-	 * @return \Gobl\DBAL\Table
+	 * @return Table
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function addVirtualRelation(VirtualRelation $virtual_relation): self
 	{
@@ -776,11 +774,11 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Adds collection to this table.
 	 *
-	 * @param \Gobl\DBAL\Collections\Collection $collection
+	 * @param Collection $collection
 	 *
-	 * @return \Gobl\DBAL\Table
+	 * @return Table
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function addCollection(Collection $collection): self
 	{
@@ -799,7 +797,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	 *
 	 * @return UniqueKey
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function addUniqueKeyConstraint(array $columns): UniqueKey
 	{
@@ -840,11 +838,11 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Adds a given column to the current table.
 	 *
-	 * @param \Gobl\DBAL\Column $column the column to add
+	 * @param Column $column the column to add
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function addColumn(Column $column): self
 	{
@@ -927,7 +925,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	 *
 	 * @return PrimaryKey
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function addPrimaryKeyConstraint(array $columns): PrimaryKey
 	{
@@ -961,14 +959,14 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	 * Adds a foreign key constraint on columns.
 	 *
 	 * @param null|string           $constraint_name the constraint name
-	 * @param \Gobl\DBAL\Table      $reference_table the reference table
+	 * @param Table                 $reference_table the reference table
 	 * @param array                 $columns         the columns
 	 * @param null|ForeignKeyAction $update_action   the reference column update action
 	 * @param null|ForeignKeyAction $delete_action   the reference column delete action
 	 *
 	 * @return ForeignKey
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function addForeignKeyConstraint(
 		?string $constraint_name,
@@ -1048,7 +1046,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Returns default foreign key name for a given reference table.
 	 *
-	 * @param \Gobl\DBAL\Table $reference
+	 * @param Table $reference
 	 *
 	 * @return string
 	 */
@@ -1169,8 +1167,8 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	 * Checks if the current table has foreign key that refer
 	 * to the given columns from the reference table.
 	 *
-	 * @param \Gobl\DBAL\Table $reference the reference table
-	 * @param array            $columns   the foreign columns
+	 * @param Table $reference the reference table
+	 * @param array $columns   the foreign columns
 	 *
 	 * @return bool
 	 */
@@ -1205,11 +1203,11 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Gets default foreign key constraint that have the given table as reference table.
 	 *
-	 * @param \Gobl\DBAL\Table $reference the reference table
+	 * @param Table $reference the reference table
 	 *
-	 * @return \Gobl\DBAL\Constraints\ForeignKey
+	 * @return ForeignKey
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function getDefaultForeignKeyConstraintFrom(self $reference): ForeignKey
 	{
@@ -1231,7 +1229,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Checks if the table has a default foreign key constraint with column from a given reference table.
 	 *
-	 * @param \Gobl\DBAL\Table $reference the reference table
+	 * @param Table $reference the reference table
 	 *
 	 * @return bool
 	 */
@@ -1309,7 +1307,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Checks if a given column is part of the primary key of this table.
 	 *
-	 * @param \Gobl\DBAL\Column $column
+	 * @param Column $column
 	 *
 	 * @return bool
 	 */
@@ -1378,8 +1376,8 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Prepare data for database query.
 	 *
-	 * @param array                                $row
-	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $rdbms
+	 * @param array          $row
+	 * @param RDBMSInterface $rdbms
 	 *
 	 * @return array
 	 */
@@ -1426,7 +1424,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	 *
 	 * @param string $name the column name or full name
 	 *
-	 * @return \Gobl\DBAL\Column
+	 * @return Column
 	 */
 	public function getColumnOrFail(string $name): Column
 	{
@@ -1460,8 +1458,8 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Convert db raw data to php data type.
 	 *
-	 * @param array                                $row
-	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $rdbms
+	 * @param array          $row
+	 * @param RDBMSInterface $rdbms
 	 *
 	 * @return array
 	 */
@@ -1568,9 +1566,9 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Asserts if we can add the relation to this table.
 	 *
-	 * @param \Gobl\DBAL\Relations\Relation $relation
+	 * @param Relation $relation
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	private function assertCanAddRelation(Relation $relation): void
 	{
@@ -1634,9 +1632,9 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Asserts if we can add the virtual relation to this table.
 	 *
-	 * @param \Gobl\DBAL\Relations\VirtualRelation $virtual_relation
+	 * @param VirtualRelation $virtual_relation
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	private function assertCanAddVirtualRelation(VirtualRelation $virtual_relation): void
 	{
@@ -1699,9 +1697,9 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Asserts if we can add the collection to this table.
 	 *
-	 * @param \Gobl\DBAL\Collections\Collection $collection
+	 * @param Collection $collection
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	private function assertCanAddCollection(Collection $collection): void
 	{
@@ -1752,9 +1750,9 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Asserts if we can add the column to this table.
 	 *
-	 * @param \Gobl\DBAL\Column $column
+	 * @param Column $column
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	private function assertCanAddColumn(Column $column): void
 	{

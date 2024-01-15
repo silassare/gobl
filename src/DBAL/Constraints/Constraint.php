@@ -42,7 +42,7 @@ abstract class Constraint implements ArrayCapableInterface
 	/** @var string */
 	protected string $name;
 
-	/** @var \Gobl\DBAL\Table */
+	/** @var Table */
 	protected Table $host_table;
 
 	/** @var bool */
@@ -51,9 +51,9 @@ abstract class Constraint implements ArrayCapableInterface
 	/**
 	 * Constraint constructor.
 	 *
-	 * @param string           $name       the constraint name
-	 * @param \Gobl\DBAL\Table $host_table the table in which the constraint was defined
-	 * @param int              $type       the constraint type
+	 * @param string $name       the constraint name
+	 * @param Table  $host_table the table in which the constraint was defined
+	 * @param int    $type       the constraint type
 	 */
 	public function __construct(string $name, Table $host_table, int $type)
 	{
@@ -74,7 +74,7 @@ abstract class Constraint implements ArrayCapableInterface
 	/**
 	 * Returns constraints host table.
 	 *
-	 * @return \Gobl\DBAL\Table
+	 * @return Table
 	 */
 	public function getHostTable(): Table
 	{
@@ -105,7 +105,7 @@ abstract class Constraint implements ArrayCapableInterface
 	/**
 	 * Asserts if this constraint is not locked.
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function assertNotLocked(): void
 	{

@@ -82,7 +82,7 @@ class ORMRequest
 	 * @param int    $max_default
 	 * @param int    $max_allowed
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 * @throws ORMQueryException
 	 */
 	public function __construct(
 		protected array $payload = [],
@@ -118,7 +118,7 @@ class ORMRequest
 	 *
 	 * @return static
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 * @throws ORMQueryException
 	 */
 	public function createScopedInstance(string $scope): static
 	{
@@ -230,7 +230,7 @@ class ORMRequest
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 * @throws ORMQueryException
 	 */
 	public function setRequestedCollection(string $name): static
 	{
@@ -269,7 +269,7 @@ class ORMRequest
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 * @throws ORMQueryException
 	 */
 	public function addRequestedRelation(string $name): static
 	{
@@ -389,7 +389,7 @@ class ORMRequest
 	 *
 	 * @param array $request
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 * @throws ORMQueryException
 	 */
 	private function parse(array $request): void
 	{
@@ -446,7 +446,7 @@ class ORMRequest
 	 *
 	 * @return array
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 * @throws ORMQueryException
 	 */
 	private static function paginate(array $request, int $max_default, int $max_allowed): array
 	{
@@ -490,7 +490,7 @@ class ORMRequest
 	 *
 	 * @return null|string
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 * @throws ORMQueryException
 	 */
 	private static function decodeCollection(array $request): ?string
 	{
@@ -532,7 +532,7 @@ class ORMRequest
 	 *
 	 * @return array
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 * @throws ORMQueryException
 	 */
 	private static function decodeRelations(array $request): array
 	{
@@ -590,7 +590,7 @@ class ORMRequest
 	 *
 	 * @return array
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 * @throws ORMQueryException
 	 */
 	private static function decodeOrderBy(array $request): array
 	{

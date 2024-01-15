@@ -24,19 +24,18 @@ abstract class CRUDEvent extends Event
 	/**
 	 * CRUDEvent constructor.
 	 *
-	 * @param \Gobl\DBAL\Table $table
-	 * @param array            $form
+	 * @param Table $table
+	 * @param array $form
 	 */
 	public function __construct(
 		protected Table $table,
 		protected array $form = []
-	) {
-	}
+	) {}
 
 	/**
 	 * Returns target table.
 	 *
-	 * @return \Gobl\DBAL\Table
+	 * @return Table
 	 */
 	public function getTable(): Table
 	{

@@ -35,7 +35,7 @@ class TypeFloat extends Type implements BaseTypeInterface
 	 * @param bool        $unsigned as unsigned float value
 	 * @param null|string $message  the error message
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function __construct(?float $min = null, ?float $max = null, bool $unsigned = false, ?string $message = null)
 	{
@@ -79,7 +79,7 @@ class TypeFloat extends Type implements BaseTypeInterface
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function min(float $min, ?string $message = null): static
 	{
@@ -115,7 +115,7 @@ class TypeFloat extends Type implements BaseTypeInterface
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function max(float $max, ?string $message = null): static
 	{
@@ -145,7 +145,7 @@ class TypeFloat extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function configure(array $options): static
 	{
@@ -175,7 +175,7 @@ class TypeFloat extends Type implements BaseTypeInterface
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function mantissa(int $mantissa): static
 	{
@@ -232,7 +232,7 @@ class TypeFloat extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
+	 * @throws TypesInvalidValueException
 	 */
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?float
 	{
@@ -244,7 +244,7 @@ class TypeFloat extends Type implements BaseTypeInterface
 	 *
 	 * @return null|float
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
+	 * @throws TypesInvalidValueException
 	 */
 	public function validate(mixed $value): ?float
 	{

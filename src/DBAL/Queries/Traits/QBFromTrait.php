@@ -56,7 +56,7 @@ trait QBFromTrait
 	 *
 	 * @return $this
 	 */
-	public function from(array|string|Table|QBSelect $table, ?string $alias = null): static
+	public function from(array|QBSelect|string|Table $table, ?string $alias = null): static
 	{
 		if (
 			$this->disable_multiple_from

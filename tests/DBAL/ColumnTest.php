@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Gobl\Tests\DBAL;
 
 use Gobl\DBAL\Column;
+use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\TypeBigint;
 use Gobl\DBAL\Types\TypeInt;
@@ -106,7 +107,7 @@ final class ColumnTest extends BaseTestCase
 	}
 
 	/**
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function testGetTable(): void
 	{

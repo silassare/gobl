@@ -30,14 +30,14 @@ if (!\function_exists('gobl_test_log')) {
 			$log = (string) $value;
 		} elseif (\is_array($value)) {
 			$log = \var_export($value, true);
-		} elseif ($value instanceof \Throwable) {
+		} elseif ($value instanceof Throwable) {
 			$e   = $value;
 			$log = (string) $e;
 
 			while ($e = $e->getPrevious()) {
 				$log .= $prev_sep . \PHP_EOL . $e;
 			}
-		} elseif ($value instanceof \JsonSerializable) {
+		} elseif ($value instanceof JsonSerializable) {
 			$log = \json_encode($value, \JSON_PRETTY_PRINT);
 		} else {
 			$log = \get_debug_type($value);

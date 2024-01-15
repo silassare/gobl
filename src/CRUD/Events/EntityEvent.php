@@ -30,8 +30,7 @@ class EntityEvent extends Event
 	 */
 	public function __construct(
 		protected ORMEntity $entity,
-	) {
-	}
+	) {}
 
 	/**
 	 * Return the target entity.

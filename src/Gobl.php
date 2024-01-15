@@ -233,7 +233,7 @@ class Gobl
 	 *
 	 * @param string $name the template name
 	 *
-	 * @return \OTpl\OTpl
+	 * @return OTpl
 	 */
 	public static function getTemplateCompiler(string $name): OTpl
 	{

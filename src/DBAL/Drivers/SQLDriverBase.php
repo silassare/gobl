@@ -35,11 +35,9 @@ abstract class SQLDriverBase extends Db
 	/**
 	 * SQLDriverBase constructor.
 	 *
-	 * @param \Gobl\DBAL\DbConfig $config
+	 * @param DbConfig $config
 	 */
-	protected function __construct(protected DbConfig $config)
-	{
-	}
+	protected function __construct(protected DbConfig $config) {}
 
 	/**
 	 * {@inheritDoc}
@@ -129,7 +127,7 @@ abstract class SQLDriverBase extends Db
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function execute(
 		$sql,
@@ -201,7 +199,7 @@ abstract class SQLDriverBase extends Db
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function select($sql, array $params = null, array $params_types = []): PDOStatement
 	{
@@ -211,7 +209,7 @@ abstract class SQLDriverBase extends Db
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function delete($sql, array $params = null, array $params_types = []): int
 	{
@@ -221,9 +219,9 @@ abstract class SQLDriverBase extends Db
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
-	public function insert($sql, array $params = null, array $params_types = []): string|false
+	public function insert($sql, array $params = null, array $params_types = []): false|string
 	{
 		// To be able to get the last inserted id
 		// This statement should not be run in a new transaction
@@ -245,7 +243,7 @@ abstract class SQLDriverBase extends Db
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function update($sql, array $params = null, array $params_types = []): int
 	{
@@ -259,7 +257,7 @@ abstract class SQLDriverBase extends Db
 	 *
 	 * @return int
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	protected function query(string $sql, array $params = null, array $params_types = []): int
 	{

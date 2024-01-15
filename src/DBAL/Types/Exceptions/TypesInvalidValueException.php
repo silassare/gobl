@@ -16,6 +16,4 @@ namespace Gobl\DBAL\Types\Exceptions;
 /**
  * Class TypesInvalidValueException.
  */
-class TypesInvalidValueException extends TypesException
-{
-}
+class TypesInvalidValueException extends TypesException {}

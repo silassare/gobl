@@ -28,8 +28,8 @@ class BeforeDeleteFlush extends CRUDEvent
 	/**
 	 * BeforeDeleteFlush constructor.
 	 *
-	 * @param \Gobl\DBAL\Table        $table
-	 * @param \Gobl\ORM\ORMTableQuery $filters
+	 * @param Table         $table
+	 * @param ORMTableQuery $filters
 	 */
 	public function __construct(Table $table, ORMTableQuery $filters)
 	{

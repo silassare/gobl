@@ -68,7 +68,7 @@ trait QBBindTrait
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function bindNamed(string $name, mixed $value, ?int $type = null): static
 	{
@@ -80,7 +80,7 @@ trait QBBindTrait
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function bindPositional(int $offset, mixed $value, ?int $type = null): static
 	{
@@ -104,7 +104,7 @@ trait QBBindTrait
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function bindArrayForInList(array $list, array $types = [], bool $return_placeholders = false): array
 	{
@@ -140,7 +140,7 @@ trait QBBindTrait
 	 * @param null|int   $type                 Any \PDO::PARAM_* constants
 	 * @param bool       $overwrite_positional To force overwrite positional parameter
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	protected function bind(int|string $param, mixed $value, ?int $type = null, bool $overwrite_positional = false): void
 	{

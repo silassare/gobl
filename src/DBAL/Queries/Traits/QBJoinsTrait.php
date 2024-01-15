@@ -47,7 +47,7 @@ trait QBJoinsTrait
 	 * @param \Gobl\DBAL\Table|string $table
 	 * @param null|string             $alias
 	 *
-	 * @return \Gobl\DBAL\Builders\JoinBuilder
+	 * @return JoinBuilder
 	 */
 	public function innerJoin(
 		string|Table $table,
@@ -64,7 +64,7 @@ trait QBJoinsTrait
 	 * @param \Gobl\DBAL\Table|string $table
 	 * @param null|string             $alias
 	 *
-	 * @return \Gobl\DBAL\Builders\JoinBuilder
+	 * @return JoinBuilder
 	 */
 	public function leftJoin(
 		string|Table $table,
@@ -81,7 +81,7 @@ trait QBJoinsTrait
 	 * @param \Gobl\DBAL\Table|string $table
 	 * @param null|string             $alias
 	 *
-	 * @return \Gobl\DBAL\Builders\JoinBuilder
+	 * @return JoinBuilder
 	 */
 	public function rightJoin(
 		string|Table $table,
@@ -93,9 +93,9 @@ trait QBJoinsTrait
 	/**
 	 * Creates a join query.
 	 *
-	 * @param \Gobl\DBAL\Queries\JoinType $type
-	 * @param \Gobl\DBAL\Table|string     $firstTable
-	 * @param null|string                 $alias
+	 * @param JoinType                $type
+	 * @param \Gobl\DBAL\Table|string $firstTable
+	 * @param null|string             $alias
 	 *
 	 * @return JoinBuilder
 	 */

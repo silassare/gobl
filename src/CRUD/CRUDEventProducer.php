@@ -63,7 +63,7 @@ class CRUDEventProducer
 	/**
 	 * Register a listener for an event.
 	 *
-	 * @param \Gobl\CRUD\Interfaces\CRUDEventListenerInterface $listener
+	 * @param CRUDEventListenerInterface $listener
 	 *
 	 * @return $this
 	 */

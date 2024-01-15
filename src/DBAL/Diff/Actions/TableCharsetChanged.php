@@ -36,7 +36,7 @@ final class TableCharsetChanged extends DiffAction
 	}
 
 	/**
-	 * @return \Gobl\DBAL\Table
+	 * @return Table
 	 */
 	public function getTable(): Table
 	{

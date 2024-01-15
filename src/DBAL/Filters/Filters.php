@@ -39,7 +39,7 @@ final class Filters
 	/**
 	 * FiltersBuilder constructor.
 	 *
-	 * @param \Gobl\DBAL\Queries\Interfaces\QBInterface                $qb
+	 * @param QBInterface                                              $qb
 	 * @param null|\Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface $scope
 	 */
 	public function __construct(protected QBInterface $qb, protected ?FiltersScopeInterface $scope = null)
@@ -85,7 +85,7 @@ final class Filters
 	 *```
 	 *
 	 * @param array                                                    $filters
-	 * @param \Gobl\DBAL\Queries\Interfaces\QBInterface                $qb
+	 * @param QBInterface                                              $qb
 	 * @param null|\Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface $scope
 	 *
 	 * @return static
@@ -221,7 +221,7 @@ final class Filters
 	 *
 	 * @return $this
 	 */
-	public function and(array|self|callable ...$filters): self
+	public function and(array|callable|self ...$filters): self
 	{
 		$this->group->ensureChainingCondition(true);
 
@@ -250,7 +250,7 @@ final class Filters
 	 *
 	 * @return $this
 	 */
-	public function where(array|self|callable ...$filters): self
+	public function where(array|callable|self ...$filters): self
 	{
 		foreach ($filters as $entry) {
 			if ($entry instanceof self) {
@@ -312,7 +312,7 @@ final class Filters
 	 *
 	 * @return $this
 	 */
-	public function or(array|self|callable ...$filters): self
+	public function or(array|callable|self ...$filters): self
 	{
 		$this->group->ensureChainingCondition(false);
 
@@ -322,16 +322,16 @@ final class Filters
 	/**
 	 * Adds a list of filters.
 	 *
-	 * @param \Gobl\DBAL\Operator $operator the operator to use
-	 * @param string              $left     the left operand
-	 * @param null|mixed          $right    the right operand if allowed
+	 * @param Operator   $operator the operator to use
+	 * @param string     $left     the left operand
+	 * @param null|mixed $right    the right operand if allowed
 	 *
 	 * @return $this
 	 */
 	public function add(
 		Operator $operator,
 		string $left,
-		null|int|bool|float|string|array|QBExpression|QBInterface $right = null
+		null|array|bool|float|int|QBExpression|QBInterface|string $right = null
 	): self {
 		if (Operator::IS_TRUE === $operator) {
 			$operator = Operator::EQ;
@@ -474,10 +474,10 @@ final class Filters
 	 * ```
 	 *
 	 * @param array                                                    $filters
-	 * @param \Gobl\DBAL\Queries\Interfaces\QBInterface                $qb
+	 * @param QBInterface                                              $qb
 	 * @param null|\Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface $scope
 	 *
-	 * @return \Gobl\DBAL\Filters\Filters
+	 * @return Filters
 	 */
 	private static function fromOldFiltersArray(
 		array $filters,
@@ -645,10 +645,10 @@ final class Filters
 	 *
 	 * @param string                                                   $expression
 	 * @param array                                                    $inject
-	 * @param \Gobl\DBAL\Queries\Interfaces\QBInterface                $qb
+	 * @param QBInterface                                              $qb
 	 * @param null|\Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface $scope
 	 *
-	 * @return \Gobl\DBAL\Filters\Filters
+	 * @return Filters
 	 */
 	private static function fromString(
 		string $expression,

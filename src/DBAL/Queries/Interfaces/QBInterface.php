@@ -43,7 +43,7 @@ interface QBInterface
 	 *
 	 * @return bool|int|PDOStatement|string
 	 */
-	public function execute(): bool|int|string|PDOStatement;
+	public function execute(): bool|int|PDOStatement|string;
 
 	/**
 	 * Returns query string to be executed by the rdbms.
@@ -65,7 +65,7 @@ interface QBInterface
 	/**
 	 * Returns the RDBMS.
 	 *
-	 * @return \Gobl\DBAL\Interfaces\RDBMSInterface
+	 * @return RDBMSInterface
 	 */
 	public function getRDBMS(): RDBMSInterface;
 

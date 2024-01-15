@@ -104,9 +104,7 @@ abstract class Db implements RDBMSInterface
 	/**
 	 * Disable clone.
 	 */
-	private function __clone()
-	{
-	}
+	private function __clone() {}
 
 	/**
 	 * Creates a new database instance of the given rdbms name.
@@ -188,7 +186,7 @@ abstract class Db implements RDBMSInterface
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function loadSchema(array $schema, string $desired_namespace = null): static
 	{
@@ -745,7 +743,7 @@ abstract class Db implements RDBMSInterface
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function addTable(Table $table): static
 	{
@@ -851,7 +849,7 @@ abstract class Db implements RDBMSInterface
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function resolveColumn(string $reference, string $used_in_table_name): array
 	{
@@ -875,7 +873,7 @@ abstract class Db implements RDBMSInterface
 	 *
 	 * @return array
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 *
 	 * @internal
 	 */

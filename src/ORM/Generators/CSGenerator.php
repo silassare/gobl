@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Gobl\ORM\Generators;
 
 use Gobl\DBAL\Column;
+use Gobl\DBAL\Constraints\PrimaryKey;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Table;
 use Gobl\Gobl;
@@ -52,7 +53,7 @@ abstract class CSGenerator
 	/**
 	 * Returns array that can be used to generate file.
 	 *
-	 * @param \Gobl\DBAL\Table $table
+	 * @param Table $table
 	 *
 	 * @return array
 	 */
@@ -68,7 +69,7 @@ abstract class CSGenerator
 	/**
 	 * Gets data to be used in template file for a given table.
 	 *
-	 * @param \Gobl\DBAL\Table $table the table object
+	 * @param Table $table the table object
 	 *
 	 * @return array
 	 */
@@ -78,7 +79,7 @@ abstract class CSGenerator
 		$pk_columns = [];
 
 		if ($table->hasPrimaryKeyConstraint()) {
-			/** @var \Gobl\DBAL\Constraints\PrimaryKey $pk */
+			/** @var PrimaryKey $pk */
 			$pk = $table->getPrimaryKeyConstraint();
 
 			foreach ($pk->getColumns() as $column_name) {
@@ -108,7 +109,7 @@ abstract class CSGenerator
 	/**
 	 * Gets column data to be used in template file.
 	 *
-	 * @param \Gobl\DBAL\Column $column
+	 * @param Column $column
 	 *
 	 * @return array
 	 */
@@ -155,7 +156,7 @@ abstract class CSGenerator
 	/**
 	 * Map type to custom type string.
 	 *
-	 * @param \Gobl\ORM\ORMTypeHint $type_hint
+	 * @param ORMTypeHint $type_hint
 	 *
 	 * @return string
 	 */
@@ -164,7 +165,7 @@ abstract class CSGenerator
 	/**
 	 * Returns column name constants name.
 	 *
-	 * @param \Gobl\DBAL\Column $column
+	 * @param Column $column
 	 *
 	 * @return string
 	 */
@@ -174,7 +175,7 @@ abstract class CSGenerator
 	}
 
 	/**
-	 * @param \Gobl\DBAL\Column $column
+	 * @param Column $column
 	 *
 	 * @return string
 	 */
@@ -191,8 +192,8 @@ abstract class CSGenerator
 	}
 
 	/**
-	 * @param \Gobl\DBAL\Column $column
-	 * @param bool              $saved
+	 * @param Column $column
+	 * @param bool   $saved
 	 *
 	 * @return string
 	 */
@@ -216,7 +217,7 @@ abstract class CSGenerator
 	/**
 	 * Gets columns data to be used in template file for a given table.
 	 *
-	 * @param \Gobl\DBAL\Table $table the table object
+	 * @param Table $table the table object
 	 *
 	 * @return array
 	 */
@@ -237,7 +238,7 @@ abstract class CSGenerator
 	/**
 	 * Gets relations data to be used in template file for a given table.
 	 *
-	 * @param \Gobl\DBAL\Table $table the table object
+	 * @param Table $table the table object
 	 *
 	 * @return array
 	 */

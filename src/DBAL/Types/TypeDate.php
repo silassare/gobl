@@ -32,7 +32,7 @@ class TypeDate extends Type
 	 *
 	 * @param null|string $message the error message
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function __construct(?string $message = null)
 	{
@@ -44,7 +44,7 @@ class TypeDate extends Type
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function configure(array $options): static
 	{
@@ -141,7 +141,7 @@ class TypeDate extends Type
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
+	 * @throws TypesInvalidValueException
 	 */
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
 	{
@@ -198,7 +198,7 @@ class TypeDate extends Type
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function microseconds(): static
 	{
@@ -215,7 +215,7 @@ class TypeDate extends Type
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function min(string $min, ?string $message = null): static
 	{
@@ -225,7 +225,7 @@ class TypeDate extends Type
 			throw new TypesException(\sprintf('min=%s is not a valid date string.', $min));
 		}
 
-		/** @var \Gobl\DBAL\Types\TypeBigint $bt */
+		/** @var TypeBigint $bt */
 		$bt = $this->base_type;
 
 		$bt->min($min_parsed, !empty($message) ? $message : 'date_value_must_be_gt_or_equal_to_min');
@@ -241,7 +241,7 @@ class TypeDate extends Type
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function max(string $max, ?string $message = null): static
 	{
@@ -251,7 +251,7 @@ class TypeDate extends Type
 			throw new TypesException(\sprintf('max=%s is not a valid date string.', $max));
 		}
 
-		/** @var \Gobl\DBAL\Types\TypeBigint $bt */
+		/** @var TypeBigint $bt */
 		$bt = $this->base_type;
 
 		$bt->max($max_parsed, !empty($message) ? $message : 'date_value_must_be_lt_or_equal_to_max');
@@ -304,7 +304,7 @@ class TypeDate extends Type
 	/**
 	 * Choose appropriate base type.
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	protected static function chooseBaseType(bool $microseconds = false): BaseTypeInterface
 	{

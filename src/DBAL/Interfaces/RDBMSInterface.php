@@ -17,6 +17,7 @@ use Closure;
 use Gobl\DBAL\Builders\NamespaceBuilder;
 use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Table;
+use Gobl\Exceptions\GoblException;
 use PDO;
 use PDOStatement;
 
@@ -60,7 +61,7 @@ interface RDBMSInterface
 	/**
 	 * Adds table.
 	 *
-	 * @param \Gobl\DBAL\Table $table The table to add
+	 * @param Table $table The table to add
 	 *
 	 * @return $this
 	 */
@@ -83,7 +84,7 @@ interface RDBMSInterface
 	 *
 	 * @param string $namespace
 	 *
-	 * @return \Gobl\DBAL\Builders\NamespaceBuilder
+	 * @return NamespaceBuilder
 	 */
 	public function namespace(string $namespace): NamespaceBuilder;
 
@@ -92,7 +93,7 @@ interface RDBMSInterface
 	 *
 	 * @param string $namespace
 	 *
-	 * @return \Gobl\DBAL\Builders\NamespaceBuilder
+	 * @return NamespaceBuilder
 	 */
 	public function ns(string $namespace): NamespaceBuilder;
 
@@ -126,7 +127,7 @@ interface RDBMSInterface
 	 *
 	 * @param string $name the table name or table full name
 	 *
-	 * @return \Gobl\DBAL\Table
+	 * @return Table
 	 */
 	public function getTableOrFail(string $name): Table;
 
@@ -153,7 +154,7 @@ interface RDBMSInterface
 	 *
 	 * @return mixed
 	 *
-	 * @throws \Gobl\Exceptions\GoblException
+	 * @throws GoblException
 	 */
 	public function runInTransaction(Closure $callable): mixed;
 
@@ -241,7 +242,7 @@ interface RDBMSInterface
 	 *
 	 * @return false|string The last insert id
 	 */
-	public function insert(string $sql, array $params = null, array $params_types = []): string|false;
+	public function insert(string $sql, array $params = null, array $params_types = []): false|string;
 
 	/**
 	 * Executes update queries.
@@ -257,7 +258,7 @@ interface RDBMSInterface
 	/**
 	 * Gets this rdbms query generator.
 	 *
-	 * @return \Gobl\DBAL\Interfaces\QueryGeneratorInterface
+	 * @return QueryGeneratorInterface
 	 */
 	public function getGenerator(): QueryGeneratorInterface;
 }

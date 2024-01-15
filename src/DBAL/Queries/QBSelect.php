@@ -45,11 +45,9 @@ class QBSelect implements QBInterface
 	/**
 	 * QBSelect constructor.
 	 *
-	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $db
+	 * @param RDBMSInterface $db
 	 */
-	public function __construct(protected RDBMSInterface $db)
-	{
-	}
+	public function __construct(protected RDBMSInterface $db) {}
 
 	/**
 	 * {@inheritDoc}

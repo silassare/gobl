@@ -250,7 +250,7 @@ abstract class Type implements TypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function phpToDb(mixed $value, RDBMSInterface $rdbms): null|int|float|string
+	public function phpToDb(mixed $value, RDBMSInterface $rdbms): null|float|int|string
 	{
 		return $this->safelyCallOnBaseType(__FUNCTION__, [$value, $rdbms]);
 	}
@@ -304,7 +304,7 @@ abstract class Type implements TypeInterface
 	 * @param int   $range_min
 	 * @param int   $range_max
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	final protected static function assertSafeIntRange(
 		mixed $min,

@@ -29,7 +29,7 @@ final class ColumnTypeChanged extends DiffAction
 	}
 
 	/**
-	 * @return \Gobl\DBAL\Table
+	 * @return Table
 	 */
 	public function getTable(): Table
 	{
@@ -37,7 +37,7 @@ final class ColumnTypeChanged extends DiffAction
 	}
 
 	/**
-	 * @return \Gobl\DBAL\Column
+	 * @return Column
 	 */
 	public function getOldColumn(): Column
 	{
@@ -45,7 +45,7 @@ final class ColumnTypeChanged extends DiffAction
 	}
 
 	/**
-	 * @return \Gobl\DBAL\Column
+	 * @return Column
 	 */
 	public function getNewColumn(): Column
 	{

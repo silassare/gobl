@@ -32,8 +32,8 @@ final class ORMTypeHint
 	/**
 	 * ORMTypeHint constructor.
 	 *
-	 * @param \Gobl\ORM\ORMUniversalType $universal_type            the universal type, we require at least one
-	 * @param \Gobl\ORM\ORMUniversalType ...$others_universal_types the other universal types
+	 * @param ORMUniversalType $universal_type            the universal type, we require at least one
+	 * @param ORMUniversalType ...$others_universal_types the other universal types
 	 */
 	public function __construct(ORMUniversalType $universal_type, ORMUniversalType ...$others_universal_types)
 	{
@@ -43,7 +43,7 @@ final class ORMTypeHint
 	/**
 	 * Adds a universal type.
 	 *
-	 * @param \Gobl\ORM\ORMUniversalType ...$types
+	 * @param ORMUniversalType ...$types
 	 *
 	 * @return $this
 	 */
@@ -61,10 +61,10 @@ final class ORMTypeHint
 	/**
 	 * Returns the type hint for the given operator right operand.
 	 *
-	 * @param \Gobl\DBAL\Types\Interfaces\TypeInterface $type
-	 * @param \Gobl\DBAL\Operator                       $operator
+	 * @param TypeInterface $type
+	 * @param Operator      $operator
 	 *
-	 * @return \Gobl\ORM\ORMTypeHint
+	 * @return ORMTypeHint
 	 *
 	 * @internal
 	 */

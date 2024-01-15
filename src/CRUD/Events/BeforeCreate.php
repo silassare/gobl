@@ -25,8 +25,8 @@ class BeforeCreate extends CRUDAction
 	/**
 	 * BeforeCreate constructor.
 	 *
-	 * @param \Gobl\DBAL\Table $table
-	 * @param array            $form
+	 * @param Table $table
+	 * @param array $form
 	 */
 	public function __construct(Table $table, array $form)
 	{

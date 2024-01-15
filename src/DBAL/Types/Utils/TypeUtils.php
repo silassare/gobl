@@ -50,7 +50,7 @@ class TypeUtils
 	 *
 	 * @return null|\Gobl\DBAL\Types\Interfaces\TypeInterface
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public static function getTypeInstance(string $name, array $options): ?TypeInterface
 	{
@@ -119,10 +119,10 @@ class TypeUtils
 	/**
 	 * This enforce query expression value type (support array as value).
 	 *
-	 * @param string                               $table_name
-	 * @param string                               $column_name
-	 * @param string|string[]                      $expression
-	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $rdbms
+	 * @param string          $table_name
+	 * @param string          $column_name
+	 * @param string|string[] $expression
+	 * @param RDBMSInterface  $rdbms
 	 *
 	 * @return string|string[]
 	 */

@@ -28,7 +28,7 @@ final class PrimaryKeyConstraintAdded extends DiffAction
 	}
 
 	/**
-	 * @return \Gobl\DBAL\Constraints\PrimaryKey
+	 * @return PrimaryKey
 	 */
 	public function getConstraint(): PrimaryKey
 	{

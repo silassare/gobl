@@ -26,9 +26,9 @@ class BeforePKColumnWrite extends CRUDAction
 	/**
 	 * BeforePKColumnWrite constructor.
 	 *
-	 * @param \Gobl\DBAL\Table  $table
-	 * @param \Gobl\DBAL\Column $column
-	 * @param array             $form
+	 * @param Table  $table
+	 * @param Column $column
+	 * @param array  $form
 	 */
 	public function __construct(Table $table, protected Column $column, array $form)
 	{
@@ -38,7 +38,7 @@ class BeforePKColumnWrite extends CRUDAction
 	/**
 	 * Returns the column that is being written.
 	 *
-	 * @return \Gobl\DBAL\Column
+	 * @return Column
 	 */
 	public function getColumn(): Column
 	{

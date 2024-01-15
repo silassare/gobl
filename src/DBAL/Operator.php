@@ -49,7 +49,7 @@ enum Operator: string
 	/**
 	 * Gets operand filter suffix used in ORM.
 	 *
-	 * @param \Gobl\DBAL\Column $column
+	 * @param Column $column
 	 *
 	 * @return string
 	 */

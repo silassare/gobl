@@ -38,8 +38,8 @@ final class LinkMorph extends Link
 	/**
 	 * LinkMorph constructor.
 	 *
-	 * @param \Gobl\DBAL\Table $host_table
-	 * @param \Gobl\DBAL\Table $target_table
+	 * @param Table $host_table
+	 * @param Table $target_table
 	 * @param array{
 	 *        prefix?: string,
 	 *        parent_type?: string,
@@ -48,7 +48,7 @@ final class LinkMorph extends Link
 	 *        child_type_column?: string,
 	 *     } $options
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function __construct(
 		Table $host_table,

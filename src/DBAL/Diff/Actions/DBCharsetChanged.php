@@ -36,7 +36,7 @@ final class DBCharsetChanged extends DiffAction
 	}
 
 	/**
-	 * @return \Gobl\DBAL\Interfaces\RDBMSInterface
+	 * @return RDBMSInterface
 	 */
 	public function getDb(): RDBMSInterface
 	{

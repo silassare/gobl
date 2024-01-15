@@ -31,7 +31,7 @@ trait FiltersOperatorsHelpersTrait
 	 *
 	 * @return $this
 	 */
-	public function eq(string $left, null|int|bool|float|string|QBSelect|QBExpression $right): static
+	public function eq(string $left, null|bool|float|int|QBExpression|QBSelect|string $right): static
 	{
 		if (null === $right) {
 			return $this->add(Operator::IS_NULL, $left);
@@ -48,7 +48,7 @@ trait FiltersOperatorsHelpersTrait
 	 *
 	 * @return $this
 	 */
-	public function neq(string $left, null|int|bool|float|string|QBSelect|QBExpression $right): static
+	public function neq(string $left, null|bool|float|int|QBExpression|QBSelect|string $right): static
 	{
 		if (null === $right) {
 			return $this->add(Operator::IS_NOT_NULL, $left);
@@ -91,7 +91,7 @@ trait FiltersOperatorsHelpersTrait
 	 *
 	 * @return $this
 	 */
-	public function lt(string $left, int|float|string|QBSelect|QBExpression $right): static
+	public function lt(string $left, float|int|QBExpression|QBSelect|string $right): static
 	{
 		return $this->add(Operator::LT, $left, $right);
 	}
@@ -104,7 +104,7 @@ trait FiltersOperatorsHelpersTrait
 	 *
 	 * @return $this
 	 */
-	public function lte(string $left, int|float|string|QBSelect|QBExpression $right): static
+	public function lte(string $left, float|int|QBExpression|QBSelect|string $right): static
 	{
 		return $this->add(Operator::LTE, $left, $right);
 	}
@@ -117,7 +117,7 @@ trait FiltersOperatorsHelpersTrait
 	 *
 	 * @return $this
 	 */
-	public function gt(string $left, int|float|string|QBSelect|QBExpression $right): static
+	public function gt(string $left, float|int|QBExpression|QBSelect|string $right): static
 	{
 		return $this->add(Operator::GT, $left, $right);
 	}
@@ -130,7 +130,7 @@ trait FiltersOperatorsHelpersTrait
 	 *
 	 * @return $this
 	 */
-	public function gte(string $left, int|float|string|QBSelect|QBExpression $right): static
+	public function gte(string $left, float|int|QBExpression|QBSelect|string $right): static
 	{
 		return $this->add(Operator::GTE, $left, $right);
 	}
@@ -167,9 +167,9 @@ trait FiltersOperatorsHelpersTrait
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
-	public function in(string $left, array|QBSelect|QBExpression $right): static
+	public function in(string $left, array|QBExpression|QBSelect $right): static
 	{
 		if ('' === $left) {
 			throw new DBALException('the left operand must be a non-empty string.');
@@ -190,9 +190,9 @@ trait FiltersOperatorsHelpersTrait
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
-	public function notIn(string $left, array|QBSelect|QBExpression $right): static
+	public function notIn(string $left, array|QBExpression|QBSelect $right): static
 	{
 		if ('' === $left) {
 			throw new DBALException('the left operand must be a non-empty string.');

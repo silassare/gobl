@@ -55,7 +55,7 @@ class CRUD
 	/**
 	 * CRUD constructor.
 	 *
-	 * @param \Gobl\DBAL\Table $table the target table
+	 * @param Table $table the target table
 	 */
 	public function __construct(Table $table)
 	{
@@ -82,9 +82,9 @@ class CRUD
 	 *
 	 * @param array $form
 	 *
-	 * @return \Gobl\CRUD\Events\BeforeCreateFlush
+	 * @return BeforeCreateFlush
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws CRUDException
 	 */
 	public function assertCreate(array $form): BeforeCreateFlush
 	{
@@ -104,11 +104,11 @@ class CRUD
 	/**
 	 * Read assertion.
 	 *
-	 * @param \Gobl\ORM\ORMTableQuery $filters
+	 * @param ORMTableQuery $filters
 	 *
-	 * @return \Gobl\CRUD\Events\BeforeRead
+	 * @return BeforeRead
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws CRUDException
 	 */
 	public function assertRead(ORMTableQuery $filters): BeforeRead
 	{
@@ -126,11 +126,11 @@ class CRUD
 	/**
 	 * Read all assertion.
 	 *
-	 * @param \Gobl\ORM\ORMTableQuery $filters
+	 * @param ORMTableQuery $filters
 	 *
-	 * @return \Gobl\CRUD\Events\BeforeReadAll
+	 * @return BeforeReadAll
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws CRUDException
 	 */
 	public function assertReadAll(ORMTableQuery $filters): BeforeReadAll
 	{
@@ -148,12 +148,12 @@ class CRUD
 	/**
 	 * Update assertion.
 	 *
-	 * @param \Gobl\ORM\ORMTableQuery $filters
-	 * @param array                   $form
+	 * @param ORMTableQuery $filters
+	 * @param array         $form
 	 *
-	 * @return \Gobl\CRUD\Events\BeforeUpdateFlush
+	 * @return BeforeUpdateFlush
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws CRUDException
 	 */
 	public function assertUpdate(ORMTableQuery $filters, array $form): BeforeUpdateFlush
 	{
@@ -173,12 +173,12 @@ class CRUD
 	/**
 	 * Update all assertion.
 	 *
-	 * @param \Gobl\ORM\ORMTableQuery $filters
-	 * @param array                   $form
+	 * @param ORMTableQuery $filters
+	 * @param array         $form
 	 *
-	 * @return \Gobl\CRUD\Events\BeforeUpdateAllFlush
+	 * @return BeforeUpdateAllFlush
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws CRUDException
 	 */
 	public function assertUpdateAll(ORMTableQuery $filters, array $form): BeforeUpdateAllFlush
 	{
@@ -198,11 +198,11 @@ class CRUD
 	/**
 	 * Delete assertion.
 	 *
-	 * @param \Gobl\ORM\ORMTableQuery $filters
+	 * @param ORMTableQuery $filters
 	 *
-	 * @return \Gobl\CRUD\Events\BeforeDeleteFlush
+	 * @return BeforeDeleteFlush
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws CRUDException
 	 */
 	public function assertDelete(ORMTableQuery $filters): BeforeDeleteFlush
 	{
@@ -220,11 +220,11 @@ class CRUD
 	/**
 	 * Delete all assertion.
 	 *
-	 * @param \Gobl\ORM\ORMTableQuery $filters
+	 * @param ORMTableQuery $filters
 	 *
-	 * @return \Gobl\CRUD\Events\BeforeDeleteAllFlush
+	 * @return BeforeDeleteAllFlush
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws CRUDException
 	 */
 	public function assertDeleteAll(ORMTableQuery $filters): BeforeDeleteAllFlush
 	{
@@ -242,10 +242,10 @@ class CRUD
 	/**
 	 * Dispatches entity events.
 	 *
-	 * @param \Gobl\ORM\ORMEntity              $entity
-	 * @param \Gobl\CRUD\Enums\EntityEventType $event_type
+	 * @param ORMEntity       $entity
+	 * @param EntityEventType $event_type
 	 *
-	 * @return \Gobl\CRUD\Events\EntityEvent
+	 * @return EntityEvent
 	 */
 	public function dispatchEntityEvent(ORMEntity $entity, EntityEventType $event_type): EntityEvent
 	{
@@ -264,8 +264,8 @@ class CRUD
 	/**
 	 * Dispatches the given action for authorisation.
 	 *
-	 * @param \Gobl\CRUD\CRUDAction $action
-	 * @param bool                  $default
+	 * @param CRUDAction $action
+	 * @param bool       $default
 	 *
 	 * @return bool
 	 */
@@ -287,9 +287,9 @@ class CRUD
 	/**
 	 * Checks columns values for create.
 	 *
-	 * @param \Gobl\CRUD\Events\BeforeCreate $create_action
+	 * @param BeforeCreate $create_action
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws CRUDException
 	 */
 	private function checkFormColumnsForCreate(BeforeCreate $create_action): void
 	{
@@ -321,11 +321,11 @@ class CRUD
 	/**
 	 * Checks if the given column is private and can be written.
 	 *
-	 * @param \Gobl\DBAL\Column $column
-	 * @param array             $form
-	 * @param string            $field
+	 * @param Column $column
+	 * @param array  $form
+	 * @param string $field
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws CRUDException
 	 */
 	private function checkForPrivateColumnWrite(Column $column, array $form, string $field): void
 	{
@@ -346,11 +346,11 @@ class CRUD
 	/**
 	 * Checks if the given column is part of the primary key and can be written.
 	 *
-	 * @param \Gobl\DBAL\Column $column
-	 * @param array             $form
-	 * @param string            $field
+	 * @param Column $column
+	 * @param array  $form
+	 * @param string $field
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws CRUDException
 	 */
 	private function checkForPKColumnWrite(Column $column, array $form, string $field): void
 	{
@@ -373,9 +373,9 @@ class CRUD
 	 *
 	 * @param \Gobl\CRUD\Events\BeforeUpdate|\Gobl\CRUD\Events\BeforeUpdateAll $base_action
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws CRUDException
 	 */
-	private function checkFormColumnsForUpdate(BeforeUpdateAll|BeforeUpdate $base_action): void
+	private function checkFormColumnsForUpdate(BeforeUpdate|BeforeUpdateAll $base_action): void
 	{
 		$form = $base_action->getForm();
 

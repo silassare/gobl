@@ -27,9 +27,9 @@ class CRUDAction extends CRUDEvent
 	/**
 	 * CRUDAction constructor.
 	 *
-	 * @param \Gobl\CRUD\Enums\ActionType $type
-	 * @param \Gobl\DBAL\Table            $table
-	 * @param array                       $form
+	 * @param ActionType $type
+	 * @param Table      $table
+	 * @param array      $form
 	 */
 	protected function __construct(
 		protected ActionType $type,

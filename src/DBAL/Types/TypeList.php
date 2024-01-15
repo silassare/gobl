@@ -112,7 +112,7 @@ class TypeList extends Type
 	 * {@inheritDoc}
 	 *
 	 * @throws JsonException
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
+	 * @throws TypesInvalidValueException
 	 */
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
 	{

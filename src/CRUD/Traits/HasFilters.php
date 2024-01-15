@@ -25,7 +25,7 @@ trait HasFilters
 	/**
 	 * Returns the filters.
 	 *
-	 * @return \Gobl\ORM\ORMTableQuery
+	 * @return ORMTableQuery
 	 */
 	public function getFilters(): ORMTableQuery
 	{

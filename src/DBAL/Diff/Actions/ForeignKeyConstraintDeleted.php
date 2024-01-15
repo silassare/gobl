@@ -28,7 +28,7 @@ final class ForeignKeyConstraintDeleted extends DiffAction
 	}
 
 	/**
-	 * @return \Gobl\DBAL\Constraints\ForeignKey
+	 * @return ForeignKey
 	 */
 	public function getConstraint(): ForeignKey
 	{

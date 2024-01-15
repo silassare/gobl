@@ -20,6 +20,7 @@ use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Drivers\MySQL\MySQLQueryGenerator;
 use Gobl\DBAL\Drivers\SQLLite\SQLLite;
 use Gobl\DBAL\Drivers\SQLLite\SQLLiteQueryGenerator;
+use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Relations\LinkType;
 use Gobl\Exceptions\GoblRuntimeException;
@@ -49,7 +50,7 @@ abstract class BaseTestCase extends TestCase
 	/**
 	 * @param string $type
 	 *
-	 * @return \Gobl\DBAL\Interfaces\RDBMSInterface
+	 * @return RDBMSInterface
 	 */
 	public static function getDb(string $type = self::DEFAULT_RDBMS): RDBMSInterface
 	{
@@ -73,7 +74,7 @@ abstract class BaseTestCase extends TestCase
 	 *
 	 * @param string $type
 	 *
-	 * @return \Gobl\DBAL\Interfaces\RDBMSInterface
+	 * @return RDBMSInterface
 	 */
 	public static function getEmptyDb(string $type = self::DEFAULT_RDBMS): RDBMSInterface
 	{
@@ -85,7 +86,7 @@ abstract class BaseTestCase extends TestCase
 	/**
 	 * @param string $type
 	 *
-	 * @return \Gobl\DBAL\DbConfig
+	 * @return DbConfig
 	 */
 	public static function getDbConfig(string $type): DbConfig
 	{
@@ -106,7 +107,7 @@ abstract class BaseTestCase extends TestCase
 	/**
 	 * Returns a sample db instance with some tables.
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public static function getSampleDB(): RDBMSInterface
 	{

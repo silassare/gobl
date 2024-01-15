@@ -30,9 +30,7 @@ final class FilterRaw implements FilterInterface
 	 *
 	 * @param string $filter_query_string
 	 */
-	public function __construct(protected string $filter_query_string)
-	{
-	}
+	public function __construct(protected string $filter_query_string) {}
 
 	public function __toString(): string
 	{

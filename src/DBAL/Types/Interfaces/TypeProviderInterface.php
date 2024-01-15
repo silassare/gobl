@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Types\Interfaces;
 
+use Gobl\DBAL\Types\Exceptions\TypesException;
+
 /**
  * Interface TypeProviderInterface.
  */
@@ -26,8 +28,8 @@ interface TypeProviderInterface
 	 *
 	 * @return null|\Gobl\DBAL\Types\Interfaces\TypeInterface
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException when a type with the given name was found
-	 *                                                    but options is invalid
+	 * @throws TypesException when a type with the given name was found
+	 *                        but options is invalid
 	 */
 	public function getTypeInstance(string $name, array $options): ?TypeInterface;
 

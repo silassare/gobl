@@ -18,6 +18,4 @@ use Gobl\Exceptions\GoblRuntimeException;
 /**
  * Class ORMRuntimeException.
  */
-class ORMRuntimeException extends GoblRuntimeException
-{
-}
+class ORMRuntimeException extends GoblRuntimeException {}

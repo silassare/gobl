@@ -28,7 +28,7 @@ final class TableRenamed extends DiffAction
 	}
 
 	/**
-	 * @return \Gobl\DBAL\Table
+	 * @return Table
 	 */
 	public function getOldTable(): Table
 	{
@@ -36,7 +36,7 @@ final class TableRenamed extends DiffAction
 	}
 
 	/**
-	 * @return \Gobl\DBAL\Table
+	 * @return Table
 	 */
 	public function getNewTable(): Table
 	{

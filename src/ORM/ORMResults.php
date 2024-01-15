@@ -35,7 +35,7 @@ abstract class ORMResults implements Countable, Iterator
 	/** @var RDBMSInterface */
 	protected RDBMSInterface $db;
 
-	/** @var \Gobl\DBAL\Queries\QBSelect */
+	/** @var QBSelect */
 	protected QBSelect $query;
 
 	/** @var int */
@@ -69,9 +69,9 @@ abstract class ORMResults implements Countable, Iterator
 	/**
 	 * ORMResults constructor.
 	 *
-	 * @param string                      $namespace  the table namespace
-	 * @param string                      $table_name the table name
-	 * @param \Gobl\DBAL\Queries\QBSelect $query      the select query builder instance
+	 * @param string   $namespace  the table namespace
+	 * @param string   $table_name the table name
+	 * @param QBSelect $query      the select query builder instance
 	 */
 	protected function __construct(string $namespace, protected string $table_name, QBSelect $query)
 	{
@@ -133,7 +133,7 @@ abstract class ORMResults implements Countable, Iterator
 	 */
 	public function fetchClass(bool $strict = true): ?ORMEntity
 	{
-		/** @var \Gobl\ORM\ORMEntity $entity_class */
+		/** @var ORMEntity $entity_class */
 		$entity_class = $this->entity_class;
 		$entity       = $entity_class::new(false, $strict);
 		$stmt         = $this->getStatement();
@@ -153,7 +153,7 @@ abstract class ORMResults implements Countable, Iterator
 	/**
 	 * Returns new instance.
 	 *
-	 * @param \Gobl\DBAL\Queries\QBSelect $query the select query builder instance
+	 * @param QBSelect $query the select query builder instance
 	 *
 	 * @return static<TEntity>
 	 */

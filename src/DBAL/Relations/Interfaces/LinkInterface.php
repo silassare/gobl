@@ -27,14 +27,14 @@ interface LinkInterface extends ArrayCapableInterface
 	/**
 	 * Get the host table.
 	 *
-	 * @return \Gobl\DBAL\Table
+	 * @return Table
 	 */
 	public function getHostTable(): Table;
 
 	/**
 	 * Get the target table.
 	 *
-	 * @return \Gobl\DBAL\Table
+	 * @return Table
 	 */
 	public function getTargetTable(): Table;
 
@@ -51,8 +51,8 @@ interface LinkInterface extends ArrayCapableInterface
 	 * When a hast entity is provided the link is applied only if the host entity has all the required
 	 * columns values.
 	 *
-	 * @param \Gobl\DBAL\Queries\QBSelect $target_qb   a select query builder on the target table
-	 * @param null|\Gobl\ORM\ORMEntity    $host_entity the host entity if any
+	 * @param QBSelect                 $target_qb   a select query builder on the target table
+	 * @param null|\Gobl\ORM\ORMEntity $host_entity the host entity if any
 	 *
 	 * @return bool returns true if the relation link was applied, false otherwise
 	 */

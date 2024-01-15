@@ -38,7 +38,7 @@ class TypeInt extends Type implements BaseTypeInterface
 	 * @param bool        $unsigned as unsigned int value
 	 * @param null|string $message  the error message
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function __construct(?int $min = null, ?int $max = null, bool $unsigned = false, ?string $message = null)
 	{
@@ -82,7 +82,7 @@ class TypeInt extends Type implements BaseTypeInterface
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function min(int $min, ?string $message = null): static
 	{
@@ -117,7 +117,7 @@ class TypeInt extends Type implements BaseTypeInterface
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function max(int $max, ?string $message = null): static
 	{
@@ -155,7 +155,7 @@ class TypeInt extends Type implements BaseTypeInterface
 	 *
 	 * @return null|int
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
+	 * @throws TypesInvalidValueException
 	 */
 	public function validate(mixed $value): ?int
 	{
@@ -225,7 +225,7 @@ class TypeInt extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function configure(array $options): static
 	{
@@ -279,7 +279,7 @@ class TypeInt extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
+	 * @throws TypesInvalidValueException
 	 */
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?int
 	{
@@ -290,7 +290,7 @@ class TypeInt extends Type implements BaseTypeInterface
 	 * @param int  $value
 	 * @param bool $unsigned
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	private static function assertValidInt(int $value, bool $unsigned): void
 	{

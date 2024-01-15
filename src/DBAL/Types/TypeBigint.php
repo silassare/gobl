@@ -37,7 +37,7 @@ class TypeBigint extends Type implements BaseTypeInterface
 	 * @param bool        $unsigned as unsigned bigint value
 	 * @param null|string $message  the error message
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function __construct(
 		?string $min = null,
@@ -87,7 +87,7 @@ class TypeBigint extends Type implements BaseTypeInterface
 	 *
 	 * @throws TypesException
 	 */
-	public function min(string|int $min, ?string $message = null): static
+	public function min(int|string $min, ?string $message = null): static
 	{
 		self::assertValidBigint($min, $this->isUnsigned());
 
@@ -122,7 +122,7 @@ class TypeBigint extends Type implements BaseTypeInterface
 	 *
 	 * @throws TypesException
 	 */
-	public function max(string|int $max, ?string $message = null): static
+	public function max(int|string $max, ?string $message = null): static
 	{
 		self::assertValidBigint($max, $this->isUnsigned());
 
@@ -146,7 +146,7 @@ class TypeBigint extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function configure(array $options): static
 	{
@@ -209,7 +209,7 @@ class TypeBigint extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
 	{
@@ -221,7 +221,7 @@ class TypeBigint extends Type implements BaseTypeInterface
 	 *
 	 * @return null|string
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
+	 * @throws TypesInvalidValueException
 	 */
 	public function validate(mixed $value): ?string
 	{
@@ -274,7 +274,7 @@ class TypeBigint extends Type implements BaseTypeInterface
 	 * @param mixed $value
 	 * @param bool  $unsigned
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	private static function assertValidBigint(mixed $value, bool $unsigned): void
 	{

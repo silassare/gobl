@@ -29,17 +29,15 @@ class ORMTableFilesGenerated extends Event
 	/**
 	 * ORMTableFilesGenerated constructor.
 	 *
-	 * @param \Gobl\DBAL\Table    $table
-	 * @param \OLIUP\CG\PHPFile[] $files
+	 * @param Table               $table
+	 * @param PHPFile[] $files
 	 */
-	public function __construct(private readonly Table $table, protected array $files)
-	{
-	}
+	public function __construct(private readonly Table $table, protected array $files) {}
 
 	/**
 	 * Return the table to which these files belongs to.
 	 *
-	 * @return \Gobl\DBAL\Table
+	 * @return Table
 	 */
 	public function getTable(): Table
 	{
@@ -49,7 +47,7 @@ class ORMTableFilesGenerated extends Event
 	/**
 	 * Returns the generated files instances.
 	 *
-	 * @return \OLIUP\CG\PHPFile[]
+	 * @return PHPFile[]
 	 */
 	public function getFiles(): array
 	{
@@ -59,9 +57,9 @@ class ORMTableFilesGenerated extends Event
 	/**
 	 * Returns the generated file instance for a given class kind.
 	 *
-	 * @param \Gobl\ORM\Utils\ORMClassKind $kind
+	 * @param ORMClassKind $kind
 	 *
-	 * @return \OLIUP\CG\PHPFile
+	 * @return PHPFile
 	 */
 	public function getFile(ORMClassKind $kind): PHPFile
 	{
@@ -71,9 +69,9 @@ class ORMTableFilesGenerated extends Event
 	/**
 	 * Returns the generated class instance for a given class kind.
 	 *
-	 * @param \Gobl\ORM\Utils\ORMClassKind $kind
+	 * @param ORMClassKind $kind
 	 *
-	 * @return \OLIUP\CG\PHPClass
+	 * @return PHPClass
 	 */
 	public function getClass(ORMClassKind $kind): PHPClass
 	{

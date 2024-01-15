@@ -21,8 +21,8 @@ final class ManyToMany extends Relation
 	/**
 	 * ManyToMany constructor.
 	 *
-	 * @param string                           $name
-	 * @param \Gobl\DBAL\Relations\LinkThrough $link_through
+	 * @param string      $name
+	 * @param LinkThrough $link_through
 	 */
 	public function __construct(string $name, LinkThrough $link_through)
 	{

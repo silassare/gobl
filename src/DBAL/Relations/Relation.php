@@ -40,9 +40,9 @@ abstract class Relation implements ArrayCapableInterface
 	/**
 	 * Relation constructor.
 	 *
-	 * @param RelationType                                  $type
-	 * @param string                                        $name
-	 * @param \Gobl\DBAL\Relations\Interfaces\LinkInterface $link
+	 * @param RelationType  $type
+	 * @param string        $name
+	 * @param LinkInterface $link
 	 */
 	public function __construct(
 		protected RelationType $type,
@@ -71,7 +71,7 @@ abstract class Relation implements ArrayCapableInterface
 	/**
 	 * Gets the relation link.
 	 *
-	 * @return \Gobl\DBAL\Relations\Interfaces\LinkInterface
+	 * @return LinkInterface
 	 */
 	public function getLink(): LinkInterface
 	{
@@ -93,7 +93,7 @@ abstract class Relation implements ArrayCapableInterface
 	/**
 	 * Gets the relation host table.
 	 *
-	 * @return \Gobl\DBAL\Table
+	 * @return Table
 	 */
 	public function getHostTable(): Table
 	{
@@ -103,7 +103,7 @@ abstract class Relation implements ArrayCapableInterface
 	/**
 	 * Gets the relation target table.
 	 *
-	 * @return \Gobl\DBAL\Table
+	 * @return Table
 	 */
 	public function getTargetTable(): Table
 	{
@@ -187,14 +187,14 @@ abstract class Relation implements ArrayCapableInterface
 	/**
 	 * Create a relation link from options.
 	 *
-	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $rdbms
-	 * @param Table                                $host_table
-	 * @param Table                                $target_table
-	 * @param array                                $options
+	 * @param RDBMSInterface $rdbms
+	 * @param Table          $host_table
+	 * @param Table          $target_table
+	 * @param array          $options
 	 *
 	 * @return LinkInterface
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public static function createLink(
 		RDBMSInterface $rdbms,

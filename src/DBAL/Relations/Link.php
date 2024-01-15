@@ -27,16 +27,15 @@ abstract class Link implements LinkInterface
 	/**
 	 * Link constructor.
 	 *
-	 * @param \Gobl\DBAL\Relations\LinkType $type
-	 * @param \Gobl\DBAL\Table              $host_table
-	 * @param \Gobl\DBAL\Table              $target_table
+	 * @param LinkType $type
+	 * @param Table    $host_table
+	 * @param Table    $target_table
 	 */
 	public function __construct(
 		protected readonly LinkType $type,
 		protected readonly Table $host_table,
 		protected readonly Table $target_table,
-	) {
-	}
+	) {}
 
 	/**
 	 * {@inheritDoc}

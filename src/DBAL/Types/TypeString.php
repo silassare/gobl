@@ -35,7 +35,7 @@ class TypeString extends Type implements BaseTypeInterface
 	 * @param string[]    $one_of  the list of allowed string
 	 * @param null|string $message the error message
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function __construct(
 		?int $min = null,
@@ -81,7 +81,7 @@ class TypeString extends Type implements BaseTypeInterface
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function min(int $min, ?string $message = null): static
 	{
@@ -100,7 +100,7 @@ class TypeString extends Type implements BaseTypeInterface
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function max(int $max, ?string $message = null): static
 	{
@@ -119,7 +119,7 @@ class TypeString extends Type implements BaseTypeInterface
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function pattern(string $pattern, ?string $message = null): static
 	{
@@ -160,7 +160,7 @@ class TypeString extends Type implements BaseTypeInterface
 	 *
 	 * @return null|string
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
+	 * @throws TypesInvalidValueException
 	 */
 	public function validate(mixed $value): ?string
 	{
@@ -228,7 +228,7 @@ class TypeString extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function configure(array $options): static
 	{
@@ -298,7 +298,7 @@ class TypeString extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
+	 * @throws TypesInvalidValueException
 	 */
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
 	{

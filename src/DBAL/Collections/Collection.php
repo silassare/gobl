@@ -61,8 +61,8 @@ abstract class Collection
 	/**
 	 * Returns the collection items.
 	 *
-	 * @param \Gobl\ORM\ORMRequest $request
-	 * @param null|int             &$total_records
+	 * @param ORMRequest $request
+	 * @param null|int   &$total_records
 	 *
 	 * @return \Gobl\ORM\ORMEntity[]
 	 */
@@ -74,7 +74,7 @@ abstract class Collection
 	 * @param string   $name    the collection name
 	 * @param callable $factory the collection factory
 	 *
-	 * @return \Gobl\DBAL\Collections\CollectionFactory
+	 * @return CollectionFactory
 	 */
 	final public static function fromFactory(string $name, callable $factory): CollectionFactory
 	{

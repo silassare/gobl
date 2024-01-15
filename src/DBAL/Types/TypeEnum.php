@@ -35,7 +35,7 @@ class TypeEnum extends Type
 	 * @param null|class-string<BackedEnum> $enum_class
 	 * @param null|string                   $message
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function __construct(
 		?string $enum_class = null,
@@ -58,7 +58,7 @@ class TypeEnum extends Type
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function enumClass(string $enum_class, ?string $message = null): static
 	{
@@ -80,7 +80,7 @@ class TypeEnum extends Type
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function configure(array $options): static
 	{
@@ -94,7 +94,7 @@ class TypeEnum extends Type
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?BackedEnum
 	{
@@ -132,7 +132,7 @@ class TypeEnum extends Type
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function getReadTypeHint(): ORMTypeHint
 	{
@@ -143,7 +143,7 @@ class TypeEnum extends Type
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	public function getWriteTypeHint(): ORMTypeHint
 	{
@@ -154,8 +154,8 @@ class TypeEnum extends Type
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesInvalidValueException
+	 * @throws TypesException
 	 */
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): null|int|string
 	{
@@ -167,8 +167,8 @@ class TypeEnum extends Type
 	 *
 	 * @return null|BackedEnum
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesInvalidValueException
+	 * @throws TypesException
 	 */
 	public function validate(mixed $value): ?BackedEnum
 	{
@@ -206,7 +206,7 @@ class TypeEnum extends Type
 	 *
 	 * @return string
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
 	protected function getEnumClass(): string
 	{
@@ -226,9 +226,9 @@ class TypeEnum extends Type
 	 *
 	 * @return BackedEnum
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
-	protected function toEnumValue(string|int $value): BackedEnum
+	protected function toEnumValue(int|string $value): BackedEnum
 	{
 		/** @var class-string<BackedEnum> $cls */
 		$cls = $this->getEnumClass();

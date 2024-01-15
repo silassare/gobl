@@ -29,9 +29,9 @@ class ORM
 	private static array $namespaces = [];
 
 	/**
-	 * @param string                               $namespace
-	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $db
-	 * @param string                               $out_dir
+	 * @param string         $namespace
+	 * @param RDBMSInterface $db
+	 * @param string         $out_dir
 	 */
 	public static function declareNamespace(string $namespace, RDBMSInterface $db, string $out_dir): void
 	{
@@ -83,7 +83,7 @@ class ORM
 	 * @param string $namespace  the database namespace
 	 * @param string $table_name the table name
 	 *
-	 * @return \Gobl\DBAL\Table
+	 * @return Table
 	 */
 	public static function table(string $namespace, string $table_name): Table
 	{

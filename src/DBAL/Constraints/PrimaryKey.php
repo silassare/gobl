@@ -26,8 +26,8 @@ final class PrimaryKey extends Constraint
 	/**
 	 * PrimaryKey constructor.
 	 *
-	 * @param string           $name       the constraint name
-	 * @param \Gobl\DBAL\Table $host_table the table in which the constraint was defined
+	 * @param string $name       the constraint name
+	 * @param Table  $host_table the table in which the constraint was defined
 	 */
 	public function __construct(string $name, Table $host_table)
 	{
@@ -41,7 +41,7 @@ final class PrimaryKey extends Constraint
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function addColumn(string $name): self
 	{
@@ -79,9 +79,7 @@ final class PrimaryKey extends Constraint
 	/**
 	 * {@inheritDoc}
 	 */
-	public function assertIsValid(): void
-	{
-	}
+	public function assertIsValid(): void {}
 
 	/**
 	 * {@inheritDoc}

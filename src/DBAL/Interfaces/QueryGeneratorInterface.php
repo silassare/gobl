@@ -29,15 +29,15 @@ interface QueryGeneratorInterface
 	/**
 	 * QueryGeneratorInterface constructor.
 	 *
-	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $db
-	 * @param \Gobl\DBAL\DbConfig                  $config
+	 * @param RDBMSInterface $db
+	 * @param DbConfig       $config
 	 */
 	public function __construct(RDBMSInterface $db, DbConfig $config);
 
 	/**
 	 * Converts query object into the rdbms query language.
 	 *
-	 * @param \Gobl\DBAL\Queries\Interfaces\QBInterface $qb
+	 * @param QBInterface $qb
 	 *
 	 * @return string
 	 */
@@ -46,7 +46,7 @@ interface QueryGeneratorInterface
 	/**
 	 * Converts diff action object into the rdbms query language.
 	 *
-	 * @param \Gobl\DBAL\Diff\DiffAction $action
+	 * @param DiffAction $action
 	 *
 	 * @return string
 	 */
@@ -67,7 +67,7 @@ interface QueryGeneratorInterface
 	/**
 	 * Gets total row count query with a given select query object.
 	 *
-	 * @param \Gobl\DBAL\Queries\QBSelect $qb
+	 * @param QBSelect $qb
 	 *
 	 * @return string
 	 */
@@ -85,8 +85,8 @@ interface QueryGeneratorInterface
 	/**
 	 * Checks if two given columns has the same type definition.
 	 *
-	 * @param \Gobl\DBAL\Column $a
-	 * @param \Gobl\DBAL\Column $b
+	 * @param Column $a
+	 * @param Column $b
 	 *
 	 * @return bool
 	 */

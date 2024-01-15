@@ -15,6 +15,7 @@ namespace Gobl\DBAL\Diff;
 
 use Gobl\DBAL\Column;
 use Gobl\DBAL\Constraints\Constraint;
+use Gobl\DBAL\Constraints\ForeignKey;
 use Gobl\DBAL\Constraints\PrimaryKey;
 use Gobl\DBAL\Constraints\UniqueKey;
 use Gobl\DBAL\Diff\Actions\ColumnAdded;
@@ -46,12 +47,10 @@ class Diff
 	/**
 	 * Diff constructor.
 	 *
-	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $db_from
-	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $db_to
+	 * @param RDBMSInterface $db_from
+	 * @param RDBMSInterface $db_to
 	 */
-	public function __construct(protected RDBMSInterface $db_from, protected RDBMSInterface $db_to)
-	{
-	}
+	public function __construct(protected RDBMSInterface $db_from, protected RDBMSInterface $db_to) {}
 
 	/**
 	 * Diff destructor.
@@ -66,7 +65,7 @@ class Diff
 	 *
 	 * @param int $version
 	 *
-	 * @return \OLIUP\CG\PHPFile
+	 * @return PHPFile
 	 */
 	public function generateMigrationFile(int $version): PHPFile
 	{
@@ -230,14 +229,14 @@ DIFF_SQL;
 		return \count($this->getDiff()) > 0;
 	}
 
-	protected function getConstraintDeletedClassInstance(Constraint $constraint, string $reason = ''): PrimaryKeyConstraintDeleted|ForeignKeyConstraintDeleted|UniqueKeyConstraintDeleted
+	protected function getConstraintDeletedClassInstance(Constraint $constraint, string $reason = ''): ForeignKeyConstraintDeleted|PrimaryKeyConstraintDeleted|UniqueKeyConstraintDeleted
 	{
 		if ($constraint instanceof PrimaryKey) {
 			$c = new PrimaryKeyConstraintDeleted($constraint);
 		} elseif ($constraint instanceof UniqueKey) {
 			$c = new UniqueKeyConstraintDeleted($constraint);
 		} else {
-			/** @var \Gobl\DBAL\Constraints\ForeignKey $constraint */
+			/** @var ForeignKey $constraint */
 			$c = new ForeignKeyConstraintDeleted($constraint);
 		}
 
@@ -271,9 +270,9 @@ DIFF_SQL;
 	/**
 	 * Diff tables columns.
 	 *
-	 * @param \Gobl\DBAL\Table $from_table
-	 * @param \Gobl\DBAL\Table $to_table
-	 * @param array            $diff
+	 * @param Table $from_table
+	 * @param Table $to_table
+	 * @param array $diff
 	 */
 	protected function diffTableColumns(Table $from_table, Table $to_table, array &$diff): void
 	{
@@ -347,7 +346,7 @@ DIFF_SQL;
 		} elseif ($constraint instanceof UniqueKey) {
 			$c = new UniqueKeyConstraintAdded($constraint, $reason);
 		} else {
-			/** @var \Gobl\DBAL\Constraints\ForeignKey $constraint */
+			/** @var ForeignKey $constraint */
 			$c = new ForeignKeyConstraintAdded($constraint, $reason);
 		}
 
@@ -458,7 +457,7 @@ DIFF_SQL;
 	}
 
 	/**
-	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $db
+	 * @param RDBMSInterface $db
 	 *
 	 * @return array<string, \Gobl\DBAL\Table>
 	 */

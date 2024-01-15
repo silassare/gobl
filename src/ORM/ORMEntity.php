@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace Gobl\ORM;
 
+use Gobl\CRUD\Exceptions\CRUDException;
 use Gobl\DBAL\Column;
+use Gobl\DBAL\Constraints\PrimaryKey;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Queries\QBSelect;
@@ -43,7 +45,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 {
 	use ArrayCapableTrait;
 
-	/** @var \Gobl\DBAL\Table */
+	/** @var Table */
 	private Table $_oeb_table;
 
 	/** @var bool */
@@ -62,7 +64,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 	/** @var string */
 	private string $_oeb_table_name;
 
-	/** @var \Gobl\DBAL\Interfaces\RDBMSInterface */
+	/** @var RDBMSInterface */
 	private RDBMSInterface $_oeb_db;
 
 	/** @var array */
@@ -183,7 +185,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 * @param string $name  the column full name or name
 	 * @param mixed  $value the column value
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
+	 * @throws TypesInvalidValueException
 	 */
 	final public function __set(string $name, mixed $value): void
 	{
@@ -238,30 +240,30 @@ abstract class ORMEntity implements ArrayCapableInterface
 	/**
 	 * Returns the table instance.
 	 *
-	 * @return \Gobl\DBAL\Table
+	 * @return Table
 	 */
 	abstract public static function table(): Table;
 
 	/**
 	 * Returns the table query builder instance.
 	 *
-	 * @return \Gobl\ORM\ORMTableQuery
+	 * @return ORMTableQuery
 	 */
 	abstract public static function qb(): ORMTableQuery;
 
 	/**
 	 * Returns the table results instance.
 	 *
-	 * @param \Gobl\DBAL\Queries\QBSelect $query
+	 * @param QBSelect $query
 	 *
-	 * @return \Gobl\ORM\ORMResults
+	 * @return ORMResults
 	 */
 	abstract public static function results(QBSelect $query): ORMResults;
 
 	/**
 	 * Returns the table crud event producer instance.
 	 *
-	 * @return \Gobl\ORM\ORMEntityCRUD
+	 * @return ORMEntityCRUD
 	 */
 	abstract public static function crud(): ORMEntityCRUD;
 
@@ -343,10 +345,10 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 * @return bool `true` when an insert or update occur,
 	 *              `false` when nothing is done
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
-	 * @throws \Gobl\ORM\Exceptions\ORMException
-	 * @throws \Gobl\ORM\Exceptions\ORMException
-	 * @throws \Gobl\Exceptions\GoblException
+	 * @throws CRUDException
+	 * @throws ORMException
+	 * @throws ORMException
+	 * @throws GoblException
 	 */
 	public function save(): bool
 	{
@@ -381,7 +383,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 	/**
 	 * Returns the table controller instance.
 	 *
-	 * @return \Gobl\ORM\ORMController
+	 * @return ORMController
 	 */
 	abstract public static function ctrl(): ORMController;
 
@@ -408,12 +410,12 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 *
 	 * @return array
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMException
+	 * @throws ORMException
 	 */
 	public function toIdentityFilters(): array
 	{
 		if ($this->_oeb_table->hasPrimaryKeyConstraint()) {
-			/** @var \Gobl\DBAL\Constraints\PrimaryKey $pk */
+			/** @var PrimaryKey $pk */
 			$pk = $this->_oeb_table->getPrimaryKeyConstraint();
 
 			$columns = $pk->getColumns();
@@ -493,7 +495,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 *
 	 * @return mixed
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
+	 * @throws TypesInvalidValueException
 	 */
 	protected function doValidation(string $name, mixed $value): mixed
 	{

@@ -18,6 +18,4 @@ use Gobl\DBAL\Exceptions\DBALException;
 /**
  * Class TypesException.
  */
-class TypesException extends DBALException
-{
-}
+class TypesException extends DBALException {}

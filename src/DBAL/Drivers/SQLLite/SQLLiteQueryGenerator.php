@@ -30,8 +30,8 @@ class SQLLiteQueryGenerator extends SQLQueryGeneratorBase
 	/**
 	 * SQLLiteQueryGenerator constructor.
 	 *
-	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $db
-	 * @param \Gobl\DBAL\DbConfig                  $config
+	 * @param RDBMSInterface $db
+	 * @param DbConfig       $config
 	 */
 	public function __construct(RDBMSInterface $db, DbConfig $config)
 	{

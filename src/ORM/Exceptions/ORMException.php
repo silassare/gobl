@@ -18,6 +18,4 @@ use Gobl\Exceptions\GoblException;
 /**
  * Class ORMException.
  */
-class ORMException extends GoblException
-{
-}
+class ORMException extends GoblException {}

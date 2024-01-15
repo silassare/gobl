@@ -47,18 +47,16 @@ final class QBInsert implements QBInterface
 	/**
 	 * QBInsert constructor.
 	 *
-	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $db
+	 * @param RDBMSInterface $db
 	 */
-	public function __construct(protected RDBMSInterface $db)
-	{
-	}
+	public function __construct(protected RDBMSInterface $db) {}
 
 	/**
 	 * {@inheritDoc}
 	 *
 	 * @return false|string
 	 */
-	public function execute(): string|false
+	public function execute(): false|string
 	{
 		$sql    = $this->getSqlQuery();
 		$values = $this->getBoundValues();

@@ -23,9 +23,7 @@ abstract class DiffAction implements ArrayCapableInterface
 {
 	use ArrayCapableTrait;
 
-	public function __construct(protected DiffActionType $type, protected string $reason)
-	{
-	}
+	public function __construct(protected DiffActionType $type, protected string $reason) {}
 
 	/**
 	 * Gets the reason.
@@ -54,7 +52,7 @@ abstract class DiffAction implements ArrayCapableInterface
 	/**
 	 * Gets the type.
 	 *
-	 * @return \Gobl\DBAL\Diff\DiffActionType
+	 * @return DiffActionType
 	 */
 	public function getType(): DiffActionType
 	{

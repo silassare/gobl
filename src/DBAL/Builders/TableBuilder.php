@@ -24,6 +24,7 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Relations\RelationType;
 use Gobl\DBAL\Table;
+use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
 use Gobl\DBAL\Types\TypeBigint;
 use Gobl\DBAL\Types\TypeBool;
@@ -76,7 +77,7 @@ final class TableBuilder
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function factory(callable $factory): self
 	{
@@ -95,7 +96,7 @@ final class TableBuilder
 	/**
 	 * Returns the table.
 	 *
-	 * @return \Gobl\DBAL\Table
+	 * @return Table
 	 */
 	public function getTable(): Table
 	{
@@ -149,9 +150,9 @@ final class TableBuilder
 	 *
 	 * @param string $column_name
 	 *
-	 * @return \Gobl\DBAL\Types\TypeInt
+	 * @return TypeInt
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function int(string $column_name): TypeInt
 	{
@@ -166,11 +167,11 @@ final class TableBuilder
 	 * @param string                   $column_name
 	 * @param null|array|TypeInterface $type
 	 *
-	 * @return \Gobl\DBAL\Column
+	 * @return Column
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
-	public function column(string $column_name, TypeInterface|array $type = null): Column
+	public function column(string $column_name, array|TypeInterface $type = null): Column
 	{
 		$column = new Column($column_name, null, $type);
 
@@ -184,9 +185,9 @@ final class TableBuilder
 	 *
 	 * @param string $column_name
 	 *
-	 * @return \Gobl\DBAL\Types\TypeDecimal
+	 * @return TypeDecimal
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function decimal(string $column_name): TypeDecimal
 	{
@@ -200,9 +201,9 @@ final class TableBuilder
 	 *
 	 * @param string $column_name
 	 *
-	 * @return \Gobl\DBAL\Types\TypeFloat
+	 * @return TypeFloat
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function float(string $column_name): TypeFloat
 	{
@@ -217,9 +218,9 @@ final class TableBuilder
 	 * @param string                   $column_name
 	 * @param class-string<BackedEnum> $enum_class
 	 *
-	 * @return \Gobl\DBAL\Types\TypeEnum
+	 * @return TypeEnum
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function enum(string $column_name, string $enum_class): TypeEnum
 	{
@@ -233,9 +234,9 @@ final class TableBuilder
 	 *
 	 * @param string $column_name
 	 *
-	 * @return \Gobl\DBAL\Types\TypeDate
+	 * @return TypeDate
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function date(string $column_name): TypeDate
 	{
@@ -249,9 +250,9 @@ final class TableBuilder
 	 *
 	 * @param string $column_name
 	 *
-	 * @return \Gobl\DBAL\Types\TypeList
+	 * @return TypeList
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function list(string $column_name): TypeList
 	{
@@ -265,9 +266,9 @@ final class TableBuilder
 	 *
 	 * @param string $column_name
 	 *
-	 * @return \Gobl\DBAL\Types\TypeMap
+	 * @return TypeMap
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function map(string $column_name): TypeMap
 	{
@@ -326,9 +327,9 @@ final class TableBuilder
 	 * @param string $source_table
 	 * @param string $source_column
 	 *
-	 * @return \Gobl\DBAL\Types\Interfaces\TypeInterface
+	 * @return TypeInterface
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function sameAs(string $column_name, string $source_table, string $source_column): TypeInterface
 	{
@@ -351,9 +352,9 @@ final class TableBuilder
 	 *
 	 * @return UniqueKey
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
-	public function unique(string|Column ...$columns): UniqueKey
+	public function unique(Column|string ...$columns): UniqueKey
 	{
 		return $this->table->addUniqueKeyConstraint($columns);
 	}
@@ -363,7 +364,7 @@ final class TableBuilder
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function timestamps(): self
 	{
@@ -380,9 +381,9 @@ final class TableBuilder
 	 *
 	 * @param string $column_name
 	 *
-	 * @return \Gobl\DBAL\Types\TypeDate
+	 * @return TypeDate
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function timestamp(string $column_name): TypeDate
 	{
@@ -396,7 +397,7 @@ final class TableBuilder
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function softDeletable(): self
 	{
@@ -413,9 +414,9 @@ final class TableBuilder
 	 *
 	 * @param string $column_name
 	 *
-	 * @return \Gobl\DBAL\Types\TypeBool
+	 * @return TypeBool
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function bool(string $column_name): TypeBool
 	{
@@ -433,7 +434,7 @@ final class TableBuilder
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function id(string $column_name = 'id'): self
 	{
@@ -451,9 +452,9 @@ final class TableBuilder
 	 *
 	 * @param string $column_name
 	 *
-	 * @return \Gobl\DBAL\Types\TypeBigint
+	 * @return TypeBigint
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function bigint(string $column_name): TypeBigint
 	{
@@ -469,9 +470,9 @@ final class TableBuilder
 	 *
 	 * @return PrimaryKey
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
-	public function primary(string|Column ...$columns): PrimaryKey
+	public function primary(Column|string ...$columns): PrimaryKey
 	{
 		return $this->table->addPrimaryKeyConstraint($columns);
 	}
@@ -479,13 +480,13 @@ final class TableBuilder
 	/**
 	 * Adds polymorphic columns.
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws DBALException
+	 * @throws TypesException
 	 */
 	public function morph(
 		string $prefix,
-		TypeInterface|array $id_column_type = null,
-		TypeInterface|array $type_column_type = null,
+		array|TypeInterface $id_column_type = null,
+		array|TypeInterface $type_column_type = null,
 		bool $nullable = false
 	): self {
 		$id_column_name   = "{$prefix}_id";
@@ -516,9 +517,9 @@ final class TableBuilder
 	 *
 	 * @param string $column_name
 	 *
-	 * @return \Gobl\DBAL\Types\TypeString
+	 * @return TypeString
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function string(string $column_name): TypeString
 	{
@@ -532,7 +533,7 @@ final class TableBuilder
 	 *
 	 * @param string $relation_name
 	 *
-	 * @return \Gobl\DBAL\Builders\RelationBuilder
+	 * @return RelationBuilder
 	 */
 	public function hasMany(string $relation_name): RelationBuilder
 	{
@@ -544,7 +545,7 @@ final class TableBuilder
 	 *
 	 * @param string $relation_name
 	 *
-	 * @return \Gobl\DBAL\Builders\RelationBuilder
+	 * @return RelationBuilder
 	 */
 	public function hasOne(string $relation_name): RelationBuilder
 	{
@@ -556,7 +557,7 @@ final class TableBuilder
 	 *
 	 * @param string $relation_name
 	 *
-	 * @return \Gobl\DBAL\Builders\RelationBuilder
+	 * @return RelationBuilder
 	 */
 	public function belongsTo(string $relation_name): RelationBuilder
 	{
@@ -568,7 +569,7 @@ final class TableBuilder
 	 *
 	 * @param string $relation_name
 	 *
-	 * @return \Gobl\DBAL\Builders\RelationBuilder
+	 * @return RelationBuilder
 	 */
 	public function belongsToMany(string $relation_name): RelationBuilder
 	{
@@ -578,7 +579,7 @@ final class TableBuilder
 	/**
 	 * Adds relations to the table.
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function relations(Relation|RelationBuilder ...$relations): self
 	{

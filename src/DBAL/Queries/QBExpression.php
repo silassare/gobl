@@ -23,9 +23,7 @@ class QBExpression
 	 *
 	 * @param string $expression
 	 */
-	public function __construct(protected string $expression)
-	{
-	}
+	public function __construct(protected string $expression) {}
 
 	/**
 	 * Magic method __toString.

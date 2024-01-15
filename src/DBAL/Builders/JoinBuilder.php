@@ -26,23 +26,22 @@ final class JoinBuilder
 {
 	private null|string $table_to_join               = null;
 	private null|string $table_to_join_alias         = null;
-	private null|string|Filters $condition           = null;
+	private null|Filters|string $condition           = null;
 
 	/**
 	 * JoinBuilder constructor.
 	 *
-	 * @param \Gobl\DBAL\Queries\JoinType               $type
-	 * @param \Gobl\DBAL\Queries\Interfaces\QBInterface $qb
-	 * @param string                                    $table
-	 * @param string                                    $table_alias
+	 * @param JoinType    $type
+	 * @param QBInterface $qb
+	 * @param string      $table
+	 * @param string      $table_alias
 	 */
 	public function __construct(
 		private readonly JoinType $type,
 		private readonly QBInterface $qb,
 		private readonly string $table,
 		private readonly string $table_alias,
-	) {
-	}
+	) {}
 
 	/**
 	 * Sets the table to join.
@@ -73,7 +72,7 @@ final class JoinBuilder
 	 *
 	 * @return $this
 	 */
-	public function on(string|Filters $condition): self
+	public function on(Filters|string $condition): self
 	{
 		$this->condition = $condition;
 
@@ -83,7 +82,7 @@ final class JoinBuilder
 	/**
 	 * Returns the join type.
 	 *
-	 * @return \Gobl\DBAL\Queries\JoinType
+	 * @return JoinType
 	 */
 	public function getType(): JoinType
 	{

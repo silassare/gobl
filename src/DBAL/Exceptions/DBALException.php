@@ -18,6 +18,4 @@ use Gobl\Exceptions\GoblException;
 /**
  * Class DBALException.
  */
-class DBALException extends GoblException
-{
-}
+class DBALException extends GoblException {}

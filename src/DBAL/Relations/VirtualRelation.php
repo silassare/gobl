@@ -100,7 +100,7 @@ abstract class VirtualRelation
 	/**
 	 * Gets the virtual relation host table.
 	 *
-	 * @return \Gobl\DBAL\Table
+	 * @return Table
 	 */
 	public function getHostTable(): Table
 	{
@@ -110,9 +110,9 @@ abstract class VirtualRelation
 	/**
 	 * Gets a relation for a given target item.
 	 *
-	 * @param \Gobl\ORM\ORMEntity  $target
-	 * @param \Gobl\ORM\ORMRequest $request
-	 * @param null|int             &$total_records
+	 * @param ORMEntity  $target
+	 * @param ORMRequest $request
+	 * @param null|int   &$total_records
 	 *
 	 * @psalm-param TEntity         $target
 	 *

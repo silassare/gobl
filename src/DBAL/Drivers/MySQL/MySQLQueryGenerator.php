@@ -42,8 +42,8 @@ class MySQLQueryGenerator extends SQLQueryGeneratorBase
 	/**
 	 * MySQLQueryGenerator constructor.
 	 *
-	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $db
-	 * @param \Gobl\DBAL\DbConfig                  $config
+	 * @param RDBMSInterface $db
+	 * @param DbConfig       $config
 	 */
 	public function __construct(RDBMSInterface $db, DbConfig $config)
 	{
@@ -86,7 +86,7 @@ class MySQLQueryGenerator extends SQLQueryGeneratorBase
 	/**
 	 * {@inheritDoc}
 	 */
-	protected function getLimitQuery(QBSelect|QBUpdate|QBDelete $qb): string
+	protected function getLimitQuery(QBDelete|QBSelect|QBUpdate $qb): string
 	{
 		$ignore_offset = $qb instanceof QBUpdate || $qb instanceof QBDelete;
 		$offset        = $qb->getOptionsLimitOffset();
@@ -145,7 +145,7 @@ class MySQLQueryGenerator extends SQLQueryGeneratorBase
 	}
 
 	/**
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	protected function getColumnTypeChangedString(ColumnTypeChanged $action): string
 	{

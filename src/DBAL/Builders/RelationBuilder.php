@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Builders;
 
+use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Relations\LinkThrough;
@@ -37,25 +38,24 @@ final class RelationBuilder
 	/**
 	 * RelationBuilder constructor.
 	 *
-	 * @param \Gobl\DBAL\Relations\RelationType    $type
-	 * @param string                               $name
-	 * @param \Gobl\DBAL\Table                     $host_table
-	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $rdbms
+	 * @param RelationType   $type
+	 * @param string         $name
+	 * @param Table          $host_table
+	 * @param RDBMSInterface $rdbms
 	 */
 	public function __construct(
 		private readonly RelationType $type,
 		private readonly string $name,
 		private readonly Table $host_table,
 		private readonly RDBMSInterface $rdbms,
-	) {
-	}
+	) {}
 
 	/**
 	 * Gets the relation.
 	 *
-	 * @return \Gobl\DBAL\Relations\Relation
+	 * @return Relation
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function getRelation(): Relation
 	{
@@ -67,7 +67,7 @@ final class RelationBuilder
 	 *
 	 * @param array<string, string> $host_to_target_columns_map
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function usingColumns(array $host_to_target_columns_map = []): Relation
 	{
@@ -82,9 +82,9 @@ final class RelationBuilder
 	 *
 	 * @param array $link_options
 	 *
-	 * @return \Gobl\DBAL\Relations\Relation
+	 * @return Relation
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function using(array $link_options): Relation
 	{
@@ -142,7 +142,7 @@ final class RelationBuilder
 	/**
 	 * Specify a relation link of type "morph".
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function usingMorph(string $prefix, ?string $parent_type = null): Relation
 	{
@@ -165,9 +165,9 @@ final class RelationBuilder
 	 * @param array<string, mixed> $host_to_pivot_link_options
 	 * @param array<string, mixed> $pivot_to_target_link_options
 	 *
-	 * @return \Gobl\DBAL\Relations\Relation
+	 * @return Relation
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function through(
 		string|Table $pivot_table,

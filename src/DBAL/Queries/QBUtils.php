@@ -24,11 +24,11 @@ class QBUtils
 	protected static int $GEN_IDENTIFIER_COUNTER = 0;
 
 	/**
-	 * Wrap an expression string in a query builder expression {@see \Gobl\DBAL\Queries\QBExpression}.
+	 * Wrap an expression string in a query builder expression {@see QBExpression}.
 	 *
 	 * @param string $expression
 	 *
-	 * @return \Gobl\DBAL\Queries\QBExpression
+	 * @return QBExpression
 	 */
 	public static function exp(string $expression): QBExpression
 	{

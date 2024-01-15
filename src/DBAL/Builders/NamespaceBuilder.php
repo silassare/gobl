@@ -30,14 +30,13 @@ final class NamespaceBuilder
 	/**
 	 * NamespaceBuilder constructor.
 	 *
-	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $rdbms     The database
-	 * @param string                               $namespace The database namespace
+	 * @param RDBMSInterface $rdbms     The database
+	 * @param string         $namespace The database namespace
 	 */
 	public function __construct(
 		private readonly RDBMSInterface $rdbms,
 		private readonly string $namespace,
-	) {
-	}
+	) {}
 
 	/**
 	 * Returns the table builder instance for the given table name.
@@ -45,7 +44,7 @@ final class NamespaceBuilder
 	 * @param string                           $name    The table name
 	 * @param null|callable(TableBuilder):void $factory The table factory
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function table(string $name, ?callable $factory = null): TableBuilder
 	{

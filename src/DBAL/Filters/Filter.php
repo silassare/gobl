@@ -29,21 +29,20 @@ final class Filter implements FilterInterface
 	/**
 	 * Filter constructor.
 	 *
-	 * @param \Gobl\DBAL\Operator $operator  The operator
-	 * @param string              $left      The left operand as provided by the user
-	 * @param mixed               $right     The right operand as provided by the user
-	 * @param string              $left_str  The left operand as string to be used in the query
-	 * @param null|string         $right_str The right operand as string to be used in the query
-	 *                                       or null if not yet defined like for prepared statements
+	 * @param Operator    $operator  The operator
+	 * @param string      $left      The left operand as provided by the user
+	 * @param mixed       $right     The right operand as provided by the user
+	 * @param string      $left_str  The left operand as string to be used in the query
+	 * @param null|string $right_str The right operand as string to be used in the query
+	 *                               or null if not yet defined like for prepared statements
 	 */
 	public function __construct(
 		protected Operator $operator,
 		protected string $left,
-		protected null|int|bool|float|string|array|QBExpression|QBInterface $right,
+		protected null|array|bool|float|int|QBExpression|QBInterface|string $right,
 		protected string $left_str,
 		protected ?string $right_str,
-	) {
-	}
+	) {}
 
 	/**
 	 * Filter destructor.
@@ -68,7 +67,7 @@ final class Filter implements FilterInterface
 	 *
 	 * @return null|array|bool|float|\Gobl\DBAL\Queries\Interfaces\QBInterface|\Gobl\DBAL\Queries\QBExpression|int|string
 	 */
-	public function getRightOperand(): null|int|bool|float|string|array|QBExpression|QBInterface
+	public function getRightOperand(): null|array|bool|float|int|QBExpression|QBInterface|string
 	{
 		return $this->right;
 	}

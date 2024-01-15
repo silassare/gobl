@@ -50,9 +50,9 @@ class CSGeneratorORM extends CSGenerator
 	/**
 	 * CSGeneratorORM constructor.
 	 *
-	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $db
-	 * @param bool                                 $ignore_private_table
-	 * @param bool                                 $ignore_private_column
+	 * @param RDBMSInterface $db
+	 * @param bool           $ignore_private_table
+	 * @param bool           $ignore_private_column
 	 */
 	public function __construct(
 		RDBMSInterface $db,

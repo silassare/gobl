@@ -44,16 +44,16 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	/** @var string */
 	protected string $table_alias;
 
-	/** @var \Gobl\DBAL\Interfaces\RDBMSInterface */
+	/** @var RDBMSInterface */
 	protected RDBMSInterface $db;
 
-	/** @var \Gobl\DBAL\Queries\Interfaces\QBInterface */
+	/** @var QBInterface */
 	protected QBInterface $qb;
 
 	/** @var Filters */
 	protected Filters $filters;
 
-	/** @var \Gobl\DBAL\Table */
+	/** @var Table */
 	protected Table $table;
 
 	protected bool $allow_private_column_in_filters = false;
@@ -168,7 +168,7 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 *
 	 * @return $this
 	 */
-	public function and(array|self|callable ...$filters): static
+	public function and(array|callable|self ...$filters): static
 	{
 		$this->filters->and();
 
@@ -182,7 +182,7 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 *
 	 * @return $this
 	 */
-	public function where(array|self|callable ...$filters): static
+	public function where(array|callable|self ...$filters): static
 	{
 		foreach ($filters as $entry) {
 			if ($entry instanceof self) {
@@ -247,7 +247,7 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 *
 	 * @return $this
 	 */
-	public function or(array|self|callable ...$filters): static
+	public function or(array|callable|self ...$filters): static
 	{
 		$this->filters->or();
 
@@ -257,7 +257,7 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 * @throws ORMQueryException
 	 */
 	public function assertFilterAllowed(Filter $filter): void
 	{
@@ -314,7 +314,7 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 *
 	 * @param array $values the column => value map
 	 *
-	 * @return \Gobl\DBAL\Queries\QBInsert
+	 * @return QBInsert
 	 */
 	public function insert(array $values): QBInsert
 	{
@@ -331,7 +331,7 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 *
 	 * @param array<int, array> $values a two dimensional array of column => value map
 	 *
-	 * @return \Gobl\DBAL\Queries\QBInsert
+	 * @return QBInsert
 	 */
 	public function insertMulti(array $values): QBInsert
 	{
@@ -350,7 +350,7 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	/**
 	 * Create a {@see QBDelete} instance and apply the current filters.
 	 *
-	 * @return \Gobl\DBAL\Queries\QBDelete
+	 * @return QBDelete
 	 */
 	public function delete(): QBDelete
 	{
@@ -393,7 +393,7 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	/**
 	 * Soft delete rows in the table using the current filters.
 	 *
-	 * @return \Gobl\DBAL\Queries\QBUpdate
+	 * @return QBUpdate
 	 *
 	 * @throws DBALException
 	 */
@@ -420,7 +420,7 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 *
 	 * @param array $values new values
 	 *
-	 * @return \Gobl\DBAL\Queries\QBUpdate
+	 * @return QBUpdate
 	 */
 	public function update(array $values): QBUpdate
 	{
@@ -467,7 +467,7 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 * @param int      $offset   first row offset
 	 * @param array    $order_by order by rules
 	 *
-	 * @return \Gobl\DBAL\Queries\QBSelect
+	 * @return QBSelect
 	 */
 	public function select(?int $max = null, int $offset = 0, array $order_by = []): QBSelect
 	{
@@ -562,7 +562,7 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 * @param QBSelect|QBUpdate $qb
 	 * @param bool              $force_exclude
 	 */
-	protected function applySoftDeletedLogic(QBUpdate|QBSelect $qb, bool $force_exclude = false): void
+	protected function applySoftDeletedLogic(QBSelect|QBUpdate $qb, bool $force_exclude = false): void
 	{
 		if ((!$this->include_soft_deleted_rows || $force_exclude) && $this->table->isSoftDeletable()) {
 			$column = $this->table->getColumnOrFail(Table::COLUMN_SOFT_DELETED);
@@ -580,7 +580,7 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 */
 	private function completeRow(array $row): array
 	{
-		/** @var \Gobl\ORM\ORMEntity $entity_class */
+		/** @var ORMEntity $entity_class */
 		$entity_class = ORMClassKind::ENTITY->getClassFQN($this->table);
 
 		$instance = $entity_class::new();

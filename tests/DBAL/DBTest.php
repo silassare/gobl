@@ -149,7 +149,7 @@ final class DBTest extends BaseTestCase
 	}
 
 	/**
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function testAddTables(): void
 	{

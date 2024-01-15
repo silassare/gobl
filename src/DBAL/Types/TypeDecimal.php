@@ -85,7 +85,7 @@ class TypeDecimal extends Type implements BaseTypeInterface
 	 *
 	 * @throws TypesException
 	 */
-	public function min(string|float $min, ?string $message = null): static
+	public function min(float|string $min, ?string $message = null): static
 	{
 		if (0.0 > $min && $this->isUnsigned()) {
 			throw new TypesException(\sprintf('"%s" is not a valid unsigned decimal.', $min));
@@ -121,7 +121,7 @@ class TypeDecimal extends Type implements BaseTypeInterface
 	 *
 	 * @throws TypesException
 	 */
-	public function max(string|float $max, ?string $message = null): static
+	public function max(float|string $max, ?string $message = null): static
 	{
 		if (0.0 > $max && $this->isUnsigned()) {
 			throw new TypesException(\sprintf('"%s" is not a valid unsigned decimal.', $max));
@@ -255,7 +255,7 @@ class TypeDecimal extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
+	 * @throws TypesInvalidValueException
 	 */
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
 	{
@@ -267,7 +267,7 @@ class TypeDecimal extends Type implements BaseTypeInterface
 	 *
 	 * @return null|string
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
+	 * @throws TypesInvalidValueException
 	 */
 	public function validate(mixed $value): ?string
 	{

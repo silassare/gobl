@@ -83,9 +83,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 * @param RDBMSInterface $db
 	 * @param DbConfig       $config
 	 */
-	public function __construct(protected RDBMSInterface $db, protected DbConfig $config)
-	{
-	}
+	public function __construct(protected RDBMSInterface $db, protected DbConfig $config) {}
 
 	/**
 	 * Destructor.
@@ -1232,7 +1230,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 *
 	 * @return string
 	 */
-	protected function getWhereQuery(QBSelect|QBDelete|QBUpdate $qb): string
+	protected function getWhereQuery(QBDelete|QBSelect|QBUpdate $qb): string
 	{
 		$rule = $qb->getOptionsWhere();
 
@@ -1285,7 +1283,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 *
 	 * @return string
 	 */
-	protected function getFromQuery(QBSelect|QBDelete $qb): string
+	protected function getFromQuery(QBDelete|QBSelect $qb): string
 	{
 		$from = $qb->getOptionsFrom();
 		$x    = [];
@@ -1307,7 +1305,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 *
 	 * @return string
 	 */
-	protected function getJoinQueryFor(QBSelect|QBDelete $qb, string $table_alias): string
+	protected function getJoinQueryFor(QBDelete|QBSelect $qb, string $table_alias): string
 	{
 		$sql   = '';
 		$joins = $qb->getOptionsJoins();
@@ -1381,7 +1379,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 *
 	 * @return string
 	 */
-	protected function getOrderByQuery(QBSelect|QBDelete|QBUpdate $qb): string
+	protected function getOrderByQuery(QBDelete|QBSelect|QBUpdate $qb): string
 	{
 		$order_by = $qb->getOptionsOrderBy();
 
@@ -1399,7 +1397,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 *
 	 * @return string
 	 */
-	protected function getLimitQuery(QBSelect|QBUpdate|QBDelete $qb): string
+	protected function getLimitQuery(QBDelete|QBSelect|QBUpdate $qb): string
 	{
 		$offset = $qb->getOptionsLimitOffset();
 		$max    = $qb->getOptionsLimitMax();

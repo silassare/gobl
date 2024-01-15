@@ -21,7 +21,7 @@ use Gobl\DBAL\Table;
  */
 final class ForeignKey extends Constraint
 {
-	/** @var \Gobl\DBAL\Table */
+	/** @var Table */
 	private Table $reference_table;
 
 	private ForeignKeyAction $update_action = ForeignKeyAction::NO_ACTION;
@@ -36,9 +36,9 @@ final class ForeignKey extends Constraint
 	/**
 	 * ForeignKey constructor.
 	 *
-	 * @param string           $name            the constraint name
-	 * @param \Gobl\DBAL\Table $host_table      the table in which the constraint was defined
-	 * @param \Gobl\DBAL\Table $reference_table the reference table
+	 * @param string $name            the constraint name
+	 * @param Table  $host_table      the table in which the constraint was defined
+	 * @param Table  $reference_table the reference table
 	 */
 	public function __construct(string $name, Table $host_table, Table $reference_table)
 	{
@@ -55,7 +55,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function addColumn(string $host_column_name, string $reference_column_name): self
 	{
@@ -72,7 +72,7 @@ final class ForeignKey extends Constraint
 	/**
 	 * Gets the foreign keys reference table.
 	 *
-	 * @return \Gobl\DBAL\Table
+	 * @return Table
 	 */
 	public function getReferenceTable(): Table
 	{
@@ -118,7 +118,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function onUpdate(ForeignKeyAction $action): self
 	{
@@ -196,7 +196,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function onDelete(ForeignKeyAction $action): self
 	{
@@ -278,7 +278,7 @@ final class ForeignKey extends Constraint
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function assertIsValid(): void
 	{

@@ -16,6 +16,4 @@ namespace Gobl\DBAL\Types\Interfaces;
 /**
  * Interface BaseTypeInterface.
  */
-interface BaseTypeInterface extends TypeInterface
-{
-}
+interface BaseTypeInterface extends TypeInterface {}

@@ -20,6 +20,7 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Table;
+use Gobl\Exceptions\GoblException;
 use Gobl\ORM\Exceptions\ORMException;
 use Gobl\ORM\Exceptions\ORMQueryException;
 use Gobl\ORM\Utils\ORMClassKind;
@@ -39,7 +40,7 @@ abstract class ORMController
 	protected array $form_fields = [];
 
 	/**
-	 * @var \Gobl\DBAL\Interfaces\RDBMSInterface
+	 * @var RDBMSInterface
 	 */
 	protected RDBMSInterface $db;
 
@@ -107,7 +108,7 @@ abstract class ORMController
 	/**
 	 * Returns CRUD.
 	 *
-	 * @return \Gobl\CRUD\CRUD
+	 * @return CRUD
 	 */
 	public function getCRUD(): CRUD
 	{
@@ -121,7 +122,7 @@ abstract class ORMController
 	 *
 	 * @return TEntity
 	 *
-	 * @throws \Gobl\Exceptions\GoblException
+	 * @throws GoblException
 	 */
 	public function addItem(array|ORMEntity $item = []): ORMEntity
 	{
@@ -146,7 +147,7 @@ abstract class ORMController
 			$this->fillRequiredFields($values);
 
 			if (!$instance) {
-				/** @var \Gobl\ORM\ORMEntity $entity_class */
+				/** @var ORMEntity $entity_class */
 				$entity_class = ORMClassKind::ENTITY->getClassFQN($this->table);
 
 				$instance = $entity_class::new();
@@ -177,7 +178,7 @@ abstract class ORMController
 	 *
 	 * @return null|TEntity
 	 *
-	 * @throws \Gobl\Exceptions\GoblException
+	 * @throws GoblException
 	 */
 	public function updateOneItem(array $filters, array $new_values): ?ORMEntity
 	{
@@ -216,7 +217,7 @@ abstract class ORMController
 	 *
 	 * @return int affected row count
 	 *
-	 * @throws \Gobl\Exceptions\GoblException
+	 * @throws GoblException
 	 */
 	public function updateAllItems(
 		array $filters,
@@ -247,7 +248,7 @@ abstract class ORMController
 	 *
 	 * @return null|TEntity
 	 *
-	 * @throws \Gobl\Exceptions\GoblException
+	 * @throws GoblException
 	 */
 	public function deleteOneItem(array $filters, ?bool $soft = null): ?ORMEntity
 	{
@@ -299,7 +300,7 @@ abstract class ORMController
 	 *
 	 * @return int affected row count
 	 *
-	 * @throws \Gobl\Exceptions\GoblException
+	 * @throws GoblException
 	 */
 	public function deleteAllItems(
 		array $filters,
@@ -332,7 +333,7 @@ abstract class ORMController
 	 *
 	 * @return null|TEntity
 	 *
-	 * @throws \Gobl\Exceptions\GoblException
+	 * @throws GoblException
 	 */
 	public function getItem(array $filters, array $order_by = []): ?ORMEntity
 	{
@@ -367,7 +368,7 @@ abstract class ORMController
 	 *
 	 * @return TEntity[]
 	 *
-	 * @throws \Gobl\Exceptions\GoblException
+	 * @throws GoblException
 	 */
 	public function getAllItems(
 		array $filters = [],
@@ -394,14 +395,14 @@ abstract class ORMController
 	/**
 	 * Gets all items from the table with a custom query builder instance.
 	 *
-	 * @param \Gobl\DBAL\Queries\QBSelect $qb     the custom select query instance
-	 * @param null|int                    $max    maximum row to retrieve
-	 * @param int                         $offset first row offset
-	 * @param null|int                    $total  total rows without limit
+	 * @param QBSelect $qb     the custom select query instance
+	 * @param null|int $max    maximum row to retrieve
+	 * @param int      $offset first row offset
+	 * @param null|int $total  total rows without limit
 	 *
 	 * @return TEntity[]
 	 *
-	 * @throws \Gobl\Exceptions\GoblException
+	 * @throws GoblException
 	 */
 	public function getAllItemsCustom(QBSelect $qb, ?int $max = null, int $offset = 0, ?int &$total = null): array
 	{
@@ -423,14 +424,14 @@ abstract class ORMController
 	/**
 	 * Gets a given item relative.
 	 *
-	 * @param \Gobl\ORM\ORMEntity           $entity
-	 * @param \Gobl\DBAL\Relations\Relation $relation
-	 * @param array                         $filters
-	 * @param array                         $order_by
+	 * @param ORMEntity $entity
+	 * @param Relation  $relation
+	 * @param array     $filters
+	 * @param array     $order_by
 	 *
 	 * @return null|\Gobl\ORM\ORMEntity
 	 *
-	 * @throws \Gobl\Exceptions\GoblException
+	 * @throws GoblException
 	 */
 	public function getRelative(
 		ORMEntity $entity,
@@ -463,17 +464,17 @@ abstract class ORMController
 	/**
 	 * Gets a given item relatives.
 	 *
-	 * @param \Gobl\ORM\ORMEntity           $entity
-	 * @param \Gobl\DBAL\Relations\Relation $relation
-	 * @param array                         $filters
-	 * @param null|int                      $max
-	 * @param int                           $offset
-	 * @param array                         $order_by
-	 * @param null|int                      $total
+	 * @param ORMEntity $entity
+	 * @param Relation  $relation
+	 * @param array     $filters
+	 * @param null|int  $max
+	 * @param int       $offset
+	 * @param array     $order_by
+	 * @param null|int  $total
 	 *
 	 * @return \Gobl\ORM\ORMEntity[]
 	 *
-	 * @throws \Gobl\Exceptions\GoblException
+	 * @throws GoblException
 	 */
 	public function getAllRelatives(
 		ORMEntity $entity,
@@ -512,8 +513,8 @@ abstract class ORMController
 	 *
 	 * @param array &$form The form
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
-	 * @throws \Gobl\ORM\Exceptions\ORMException
+	 * @throws ORMQueryException
+	 * @throws ORMException
 	 */
 	protected function fillRequiredFields(array &$form): void
 	{
@@ -578,9 +579,9 @@ abstract class ORMController
 	/**
 	 * Asserts that the filters are not empty.
 	 *
-	 * @param \Gobl\ORM\ORMTableQuery $filters the row filters
+	 * @param ORMTableQuery $filters the row filters
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 * @throws ORMQueryException
 	 */
 	protected static function assertFiltersNotEmpty(ORMTableQuery $filters): void
 	{
@@ -597,7 +598,7 @@ abstract class ORMController
 	 * @param Table $table   The table
 	 * @param array $columns The columns to update
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMQueryException
+	 * @throws ORMQueryException
 	 */
 	protected static function assertUpdateColumns(Table $table, array $columns = []): void
 	{
@@ -646,7 +647,7 @@ abstract class ORMController
 	/**
 	 * Gets results class instance.
 	 *
-	 * @param \Gobl\DBAL\Queries\QBSelect $qb
+	 * @param QBSelect $qb
 	 *
 	 * @return TResults
 	 */
@@ -663,7 +664,7 @@ abstract class ORMController
 	 *
 	 * @psalm-param TEntity $entity
 	 *
-	 * @throws \Gobl\ORM\Exceptions\ORMException
+	 * @throws ORMException
 	 */
 	private function persistItem(ORMEntity $entity): void
 	{

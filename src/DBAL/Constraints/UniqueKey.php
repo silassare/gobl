@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Constraints;
 
+use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Table;
 
 /**
@@ -25,8 +26,8 @@ final class UniqueKey extends Constraint
 	/**
 	 * UniqueKey constructor.
 	 *
-	 * @param string           $name       the constraint name
-	 * @param \Gobl\DBAL\Table $host_table the table in which the constraint was defined
+	 * @param string $name       the constraint name
+	 * @param Table  $host_table the table in which the constraint was defined
 	 */
 	public function __construct(string $name, Table $host_table)
 	{
@@ -40,7 +41,7 @@ final class UniqueKey extends Constraint
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function addColumn(string $name): self
 	{
@@ -65,9 +66,7 @@ final class UniqueKey extends Constraint
 	/**
 	 * {@inheritDoc}
 	 */
-	public function assertIsValid(): void
-	{
-	}
+	public function assertIsValid(): void {}
 
 	/**
 	 * {@inheritDoc}

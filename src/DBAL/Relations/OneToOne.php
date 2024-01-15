@@ -23,8 +23,8 @@ final class OneToOne extends Relation
 	/**
 	 * OneToOne constructor.
 	 *
-	 * @param string                                        $name
-	 * @param \Gobl\DBAL\Relations\Interfaces\LinkInterface $link
+	 * @param string        $name
+	 * @param LinkInterface $link
 	 */
 	public function __construct(string $name, LinkInterface $link)
 	{

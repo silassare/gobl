@@ -59,7 +59,7 @@ interface CRUDEventListenerInterface
 	 *     that can't be updated though request
 	 *     should not be added before a call to this
 	 *
-	 * @param \Gobl\CRUD\Events\BeforeCreateFlush $action
+	 * @param BeforeCreateFlush $action
 	 */
 	public function onBeforeCreateFlush(BeforeCreateFlush $action): void;
 

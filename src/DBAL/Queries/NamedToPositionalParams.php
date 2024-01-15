@@ -120,7 +120,7 @@ class NamedToPositionalParams
 	 *
 	 * @return string
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	private function replacer(array $matches): string
 	{

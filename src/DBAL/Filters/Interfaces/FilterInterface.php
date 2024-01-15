@@ -18,6 +18,4 @@ use PHPUtils\Interfaces\ArrayCapableInterface;
 /**
  * Interface FilterInterface.
  */
-interface FilterInterface extends ArrayCapableInterface
-{
-}
+interface FilterInterface extends ArrayCapableInterface {}

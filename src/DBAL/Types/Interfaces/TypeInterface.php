@@ -15,6 +15,8 @@ namespace Gobl\DBAL\Types\Interfaces;
 
 use Gobl\DBAL\Filters\Filter;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
+use Gobl\DBAL\Types\Exceptions\TypesException;
+use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\ORM\ORMTypeHint;
 use PHPUtils\Interfaces\ArrayCapableInterface;
 
@@ -30,7 +32,7 @@ interface TypeInterface extends ArrayCapableInterface
 	 *
 	 * @return $this
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException when options is invalid
+	 * @throws TypesException when options is invalid
 	 */
 	public static function getInstance(array $options): static;
 
@@ -42,7 +44,7 @@ interface TypeInterface extends ArrayCapableInterface
 	public function lock(): static;
 
 	/**
-	 * @return \Gobl\DBAL\Types\Interfaces\BaseTypeInterface
+	 * @return BaseTypeInterface
 	 */
 	public function getBaseType(): BaseTypeInterface;
 
@@ -124,15 +126,15 @@ interface TypeInterface extends ArrayCapableInterface
 	 *
 	 * @return mixed the cleaned value to use
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
+	 * @throws TypesInvalidValueException
 	 */
 	public function validate(mixed $value): mixed;
 
 	/**
 	 * Called to convert db value to php compatible value.
 	 *
-	 * @param null|mixed                           $value the value to convert
-	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $rdbms the RDBMS
+	 * @param null|mixed     $value the value to convert
+	 * @param RDBMSInterface $rdbms the RDBMS
 	 *
 	 * @return mixed
 	 */
@@ -146,17 +148,17 @@ interface TypeInterface extends ArrayCapableInterface
 	 * according to the current type options.
 	 * ```
 	 *
-	 * @param null|mixed                           $value the value to convert
-	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $rdbms the RDBMS
+	 * @param null|mixed     $value the value to convert
+	 * @param RDBMSInterface $rdbms the RDBMS
 	 *
 	 * @return null|float|int|string
 	 */
-	public function phpToDb(mixed $value, RDBMSInterface $rdbms): null|int|float|string;
+	public function phpToDb(mixed $value, RDBMSInterface $rdbms): null|float|int|string;
 
 	/**
 	 * Should we enforce default value at the database level.
 	 *
-	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $rdbms
+	 * @param RDBMSInterface $rdbms
 	 *
 	 * @return bool
 	 */
@@ -166,7 +168,7 @@ interface TypeInterface extends ArrayCapableInterface
 	 * This is used to make sure that when the base type does not have a default value
 	 * we use a default value provided by the type.
 	 *
-	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $rdbms
+	 * @param RDBMSInterface $rdbms
 	 *
 	 * @return null|string
 	 */
@@ -175,14 +177,14 @@ interface TypeInterface extends ArrayCapableInterface
 	/**
 	 * Asserts operator and value are allowed for this type.
 	 *
-	 * @param \Gobl\DBAL\Filters\Filter $filter
+	 * @param Filter $filter
 	 */
 	public function assertFilterAllowed(Filter $filter): void;
 
 	/**
 	 * Should we enforce query expression value type.
 	 *
-	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $rdbms the RDBMS
+	 * @param RDBMSInterface $rdbms the RDBMS
 	 *
 	 * @return bool
 	 */
@@ -191,8 +193,8 @@ interface TypeInterface extends ArrayCapableInterface
 	/**
 	 * Called to enforce query expression value type.
 	 *
-	 * @param string                               $expression the query expression
-	 * @param \Gobl\DBAL\Interfaces\RDBMSInterface $rdbms      the RDBMS
+	 * @param string         $expression the query expression
+	 * @param RDBMSInterface $rdbms      the RDBMS
 	 *
 	 * @return string
 	 */

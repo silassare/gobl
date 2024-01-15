@@ -28,7 +28,7 @@ final class UniqueKeyConstraintDeleted extends DiffAction
 	}
 
 	/**
-	 * @return \Gobl\DBAL\Constraints\UniqueKey
+	 * @return UniqueKey
 	 */
 	public function getConstraint(): UniqueKey
 	{

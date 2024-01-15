@@ -30,9 +30,9 @@ class BeforeUpdateFlush extends CRUDEvent
 	/**
 	 * BeforeUpdateFlush constructor.
 	 *
-	 * @param \Gobl\DBAL\Table        $table
-	 * @param \Gobl\ORM\ORMTableQuery $filters
-	 * @param array                   $form
+	 * @param Table         $table
+	 * @param ORMTableQuery $filters
+	 * @param array         $form
 	 */
 	public function __construct(Table $table, ORMTableQuery $filters, array $form)
 	{

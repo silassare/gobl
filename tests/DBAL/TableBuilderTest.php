@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\DBAL;
 
+use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\Tests\BaseTestCase;
 
 /**
@@ -25,7 +26,7 @@ use Gobl\Tests\BaseTestCase;
 final class TableBuilderTest extends BaseTestCase
 {
 	/**
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @throws DBALException
 	 */
 	public function testTableBuilder(): void
 	{

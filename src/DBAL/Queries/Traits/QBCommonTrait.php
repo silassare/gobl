@@ -49,9 +49,7 @@ trait QBCommonTrait
 	/**
 	 * Disable clone.
 	 */
-	private function __clone()
-	{
-	}
+	private function __clone() {}
 
 	/**
 	 * {@inheritDoc}
@@ -104,7 +102,7 @@ trait QBCommonTrait
 	/**
 	 * Returns the RDBMS.
 	 *
-	 * @return \Gobl\DBAL\Interfaces\RDBMSInterface
+	 * @return RDBMSInterface
 	 */
 	public function getRDBMS(): RDBMSInterface
 	{

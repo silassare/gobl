@@ -31,9 +31,7 @@ final class FilterGroup implements FilterInterface
 	 *
 	 * @param bool $is_and
 	 */
-	public function __construct(protected bool $is_and)
-	{
-	}
+	public function __construct(protected bool $is_and) {}
 
 	/**
 	 * Returns filters in this group.

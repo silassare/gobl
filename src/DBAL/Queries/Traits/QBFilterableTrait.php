@@ -26,7 +26,7 @@ trait QBFilterableTrait
 	 *
 	 * @param null|\Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface $scope
 	 *
-	 * @return \Gobl\DBAL\Filters\Filters
+	 * @return Filters
 	 */
 	public function filters(?FiltersScopeInterface $scope = null): Filters
 	{

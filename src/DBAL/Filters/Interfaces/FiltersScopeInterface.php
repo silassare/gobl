@@ -23,7 +23,7 @@ interface FiltersScopeInterface
 	/**
 	 * Asserts if a filter is allowed.
 	 *
-	 * @param \Gobl\DBAL\Filters\Filter $filter
+	 * @param Filter $filter
 	 */
 	public function assertFilterAllowed(Filter $filter): void;
 
@@ -43,7 +43,7 @@ interface FiltersScopeInterface
 	 *
 	 * This is helpful to safely merge filters.
 	 *
-	 * @param \Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface $scope
+	 * @param FiltersScopeInterface $scope
 	 *
 	 * @return bool
 	 */

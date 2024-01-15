@@ -70,7 +70,7 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * The column type instance.
 	 *
-	 * @var \Gobl\DBAL\Types\Interfaces\TypeInterface
+	 * @var TypeInterface
 	 */
 	private TypeInterface $type;
 	private ?string $reference = null;
@@ -88,7 +88,7 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	 * @param null|string              $prefix the column prefix
 	 * @param null|array|TypeInterface $type   the column type or type options
 	 */
-	public function __construct(string $name, ?string $prefix = null, TypeInterface|array $type = null)
+	public function __construct(string $name, ?string $prefix = null, array|TypeInterface $type = null)
 	{
 		$this->setName($name);
 
@@ -325,9 +325,9 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	 * @param bool                          $copy      If true and reference is a column instance, the column type will
 	 *                                                 be considered as a copy of the reference column type
 	 *
-	 * @return \Gobl\DBAL\Column
+	 * @return Column
 	 */
-	public function setReference(null|string|self $reference, bool $copy = false): self
+	public function setReference(null|self|string $reference, bool $copy = false): self
 	{
 		$this->assertNotLocked();
 
@@ -402,7 +402,7 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Sets the column type.
 	 *
-	 * @param \Gobl\DBAL\Types\Interfaces\TypeInterface $type
+	 * @param TypeInterface $type
 	 *
 	 * @return $this
 	 */
