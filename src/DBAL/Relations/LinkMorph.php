@@ -29,11 +29,11 @@ final class LinkMorph extends Link
 	private string $morph_child_type_column;
 
 	/**
-	 * This is used to know which table to use for the morph parent type.
+	 * If the host table is the parent.
 	 *
 	 * @var bool
 	 */
-	private bool $inverted;
+	private bool $host_is_parent;
 
 	/**
 	 * LinkMorph constructor.
@@ -41,7 +41,6 @@ final class LinkMorph extends Link
 	 * @param \Gobl\DBAL\Table $host_table
 	 * @param \Gobl\DBAL\Table $target_table
 	 * @param array{
-	 *        inverted?: bool,
 	 *        prefix?: string,
 	 *        parent_type?: string,
 	 *        parent_key_column?: string,
@@ -58,12 +57,6 @@ final class LinkMorph extends Link
 	) {
 		parent::__construct(LinkType::MORPH, $host_table, $target_table);
 
-		$this->inverted     = $this->options['inverted'] ?? false;
-		$polymorphic_parent = $this->inverted ? $target_table : $host_table;
-		$polymorphic_child  = $this->inverted ? $host_table : $target_table;
-
-		$this->morph_parent_type = $this->options['parent_type'] ?? $polymorphic_parent->getName();
-
 		if (isset($this->options['prefix'])) {
 			$this->morph_child_key_column  = $this->options['prefix'] . '_id';
 			$this->morph_child_type_column = $this->options['prefix'] . '_type';
@@ -78,8 +71,29 @@ final class LinkMorph extends Link
 			$this->morph_child_type_column = $this->options['child_type_column'];
 		}
 
-		$polymorphic_child->assertHasColumn($this->morph_child_key_column);
-		$polymorphic_child->assertHasColumn($this->morph_child_type_column);
+		if (
+			$host_table->hasColumn($this->morph_child_key_column)
+			&& $host_table->hasColumn($this->morph_child_type_column)
+		) {
+			$this->host_is_parent = false;
+			$polymorphic_parent   = $target_table;
+		} elseif (
+			$target_table->hasColumn($this->morph_child_key_column)
+			&& $target_table->hasColumn($this->morph_child_type_column)
+		) {
+			$this->host_is_parent = true;
+			$polymorphic_parent   = $host_table;
+		} else {
+			throw new DBALException(\sprintf(
+				'Neither table "%s" nor table "%s" has the columns "%s" and "%s" required for the morph link.',
+				$this->host_table->getName(),
+				$this->target_table->getName(),
+				$this->morph_child_key_column,
+				$this->morph_child_type_column
+			));
+		}
+
+		$this->morph_parent_type = $this->options['parent_type'] ?? $polymorphic_parent->getName();
 
 		if (empty($this->options['parent_key_column'])) {
 			$pk = $polymorphic_parent->getPrimaryKeyConstraint();
@@ -112,18 +126,6 @@ final class LinkMorph extends Link
 
 			$this->morph_parent_key_column = $column->getName();
 		}
-	}
-
-	/**
-	 * Check if the morph relation is inverted.
-	 *
-	 * Inverted means the morph parent is the target table and the morph child is the host table.
-	 *
-	 * @return bool
-	 */
-	public function isInverted(): bool
-	{
-		return $this->inverted;
 	}
 
 	/**
@@ -173,15 +175,23 @@ final class LinkMorph extends Link
 	{
 		$filters = $target_qb->filters();
 
-		if ($this->inverted) {
+		if ($this->host_is_parent) {
 			if ($host_entity) {
-				$key = $host_entity->{$this->morph_child_key_column};
+				$key = $host_entity->{$this->morph_parent_key_column};
 
 				if (null === $key) {
 					return false;
 				}
 
-				$filters->eq($target_qb->fullyQualifiedName($this->target_table, $this->morph_parent_key_column), $key);
+				$filters->eq(
+					$target_qb->fullyQualifiedName($this->target_table, $this->morph_child_type_column),
+					$this->morph_parent_type
+				);
+				$filters->eq(
+					$target_qb->fullyQualifiedName($this->target_table, $this->morph_child_key_column),
+					$key
+				);
+
 				$target_qb->andWhere($filters);
 
 				return true;
@@ -192,8 +202,12 @@ final class LinkMorph extends Link
 				->on($filters);
 
 			$filters->eq(
-				$target_qb->fullyQualifiedName($this->target_table, $this->morph_parent_key_column),
-				$target_qb->fullyQualifiedName($this->host_table, $this->morph_child_key_column)
+				$target_qb->fullyQualifiedName($this->target_table, $this->morph_child_key_column),
+				$target_qb->fullyQualifiedName($this->host_table, $this->morph_parent_key_column)
+			);
+			$filters->eq(
+				$target_qb->fullyQualifiedName($this->target_table, $this->morph_child_type_column),
+				$this->morph_parent_type
 			);
 
 			return true;
@@ -206,8 +220,14 @@ final class LinkMorph extends Link
 				return false;
 			}
 
-			$filters->eq($target_qb->fullyQualifiedName($this->target_table, $this->morph_parent_key_column), $key);
-			$filters->eq($target_qb->fullyQualifiedName($this->target_table, $this->morph_parent_type), $this->morph_parent_type);
+			$filters->eq(
+				$target_qb->fullyQualifiedName($this->target_table, $this->morph_parent_key_column),
+				$key
+			);
+			$filters->eq(
+				$target_qb->fullyQualifiedName($this->target_table, $this->morph_parent_type),
+				$this->morph_parent_type
+			);
 
 			$target_qb->andWhere($filters);
 

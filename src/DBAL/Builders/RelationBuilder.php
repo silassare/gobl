@@ -144,7 +144,7 @@ final class RelationBuilder
 	 *
 	 * @throws \Gobl\DBAL\Exceptions\DBALException
 	 */
-	public function usingMorph(string $prefix, ?string $parent_type = null, ?bool $inverted = false): Relation
+	public function usingMorph(string $prefix, ?string $parent_type = null): Relation
 	{
 		$options = [
 			'type'   => LinkType::MORPH->value,
@@ -153,10 +153,6 @@ final class RelationBuilder
 
 		if ($parent_type) {
 			$options['parent_type'] = $parent_type;
-		}
-
-		if ($inverted) {
-			$options['inverted'] = $inverted;
 		}
 
 		return $this->using($options);
