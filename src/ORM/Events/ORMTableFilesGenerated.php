@@ -29,7 +29,7 @@ class ORMTableFilesGenerated extends Event
 	/**
 	 * ORMTableFilesGenerated constructor.
 	 *
-	 * @param Table               $table
+	 * @param Table     $table
 	 * @param PHPFile[] $files
 	 */
 	public function __construct(private readonly Table $table, protected array $files) {}
