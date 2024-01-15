@@ -231,6 +231,11 @@ Time: {$date}";
 			'db_namespace'       => $db_ns,
 		];
 
+		$sub_class       = Str::interpolate('{db_namespace}\{class_name}', $inject);
+		$sub_class_alias = Str::interpolate('{class_name}Real', $inject);
+
+		$namespace->use($sub_class, $sub_class_alias);
+
 		$class->extends(new PHPClass(ORMEntity::class))
 			->abstract();
 
@@ -278,7 +283,7 @@ Time: {$date}";
 			->public()
 			->addChild(
 				Str::interpolate(
-					'return new \{db_namespace}\{class_name}($is_new, $strict);',
+					'return new {class_name}Real($is_new, $strict);',
 					$inject
 				)
 			)
@@ -561,6 +566,12 @@ return $this;',
 			'entity_class_name' => $entity_class_name,
 			'db_namespace'      => $db_ns,
 		];
+
+		$sub_class       = Str::interpolate('{db_namespace}\{class_name}', $inject);
+		$sub_class_alias = Str::interpolate('{class_name}Real', $inject);
+
+		$namespace->use($sub_class, $sub_class_alias);
+
 		$class->extends(ORMEntityCRUD::class)
 			->comment(
 				Str::interpolate(
@@ -590,7 +601,7 @@ return $this;',
 		$class->newMethod('new')
 			->static()
 			->public()
-			->addChild(Str::interpolate('return new \{db_namespace}\{class_name};', $inject))
+			->addChild(Str::interpolate('return new {class_name}Real();', $inject))
 			->setReturnType('static')
 			->comment(
 				Str::interpolate(
@@ -678,6 +689,11 @@ return $this;',
 			'db_namespace'      => $db_ns,
 		];
 
+		$sub_class       = Str::interpolate('{db_namespace}\{class_name}', $inject);
+		$sub_class_alias = Str::interpolate('{class_name}Real', $inject);
+
+		$namespace->use($sub_class, $sub_class_alias);
+
 		$namespace->use(Operator::class);
 
 		$class_comment_lines   = [];
@@ -709,7 +725,7 @@ return $this;',
 		$class->newMethod('new')
 			->static()
 			->public()
-			->addChild(Str::interpolate('return new \{db_namespace}\{class_name};', $inject))
+			->addChild(Str::interpolate('return new {class_name}Real();', $inject))
 			->setReturnType('static')
 			->comment(
 				Str::interpolate(
@@ -771,6 +787,11 @@ return $this;',
 			'db_namespace'      => $db_ns,
 		];
 
+		$sub_class       = Str::interpolate('{db_namespace}\{class_name}', $inject);
+		$sub_class_alias = Str::interpolate('{class_name}Real', $inject);
+
+		$namespace->use($sub_class, $sub_class_alias);
+
 		$class->extends(new PHPClass(ORMResults::class))
 			->abstract()
 			->setComment(
@@ -804,7 +825,7 @@ return $this;',
 			->static()
 			->public()
 			->addChild(
-				Str::interpolate('return new \{db_namespace}\{class_name}($query);', $inject)
+				Str::interpolate('return new {class_name}Real($query);', $inject)
 			)
 			->setReturnType('static');
 		$create_instance->newArgument('query')
@@ -842,7 +863,11 @@ return $this;',
 			'db_namespace'       => $db_ns,
 		];
 
-		$namespace->use(QBSelect::class)
+		$sub_class       = Str::interpolate('{db_namespace}\{class_name}', $inject);
+		$sub_class_alias = Str::interpolate('{class_name}Real', $inject);
+
+		$namespace->use($sub_class, $sub_class_alias)
+			->use(QBSelect::class)
 			->use(ORMEntity::class)
 			->use(Relation::class);
 
@@ -875,7 +900,7 @@ return $this;',
 		$class->newMethod('new')
 			->static()
 			->public()
-			->addChild(Str::interpolate('return new \{db_namespace}\{class_name}();', $inject))
+			->addChild(Str::interpolate('return new {class_name}Real();', $inject))
 			->setReturnType('static')
 			->comment(
 				Str::interpolate(
