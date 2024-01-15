@@ -189,7 +189,12 @@ Time: {$date}";
 			'db_namespace' => $db_ns,
 		];
 
-		$class->extends(Str::interpolate('Base\{class_name}', $inject))
+		$base_class       = Str::interpolate('{db_namespace}\Base\{class_name}', $inject);
+		$base_class_alias = Str::interpolate('{class_name}Base', $inject);
+
+		$namespace->use($base_class, $base_class_alias);
+
+		$class->extends($base_class_alias)
 			->setContent($this->editable_body_comment)
 			->comment(Str::interpolate('Class {class_name}.', $inject));
 
