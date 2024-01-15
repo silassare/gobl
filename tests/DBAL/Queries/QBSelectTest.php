@@ -99,15 +99,15 @@ final class QBSelectTest extends BaseTestCase
 			->getLink()
 			->apply($qb);
 
-		$tags_full_name = $db->getTableOrFail('tags')
+		$tags_full_name      = $db->getTableOrFail('tags')
 			->getFullName();
-		$tags_alias         = $qb->getMainAlias($tags_full_name);
-		$articles_full_name = $db->getTableOrFail('articles')
+		$tags_alias          = $qb->getMainAlias($tags_full_name);
+		$articles_full_name  = $db->getTableOrFail('articles')
 			->getFullName();
 		$articles_alias      = $qb->getMainAlias($articles_full_name);
 		$taggables_full_name = $db->getTableOrFail('taggables')
 			->getFullName();
-		$taggables_alias = $qb->getMainAlias($taggables_full_name);
+		$taggables_alias     = $qb->getMainAlias($taggables_full_name);
 
 		$bound_values = $qb->getBoundValues();
 
