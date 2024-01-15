@@ -137,13 +137,13 @@ Time: {$date}";
 
 		foreach ($types as $type) {
 			$php_types[] = match ($type) {
-				ORMUniversalType::ARRAY, ORMUniversalType::MAP => 'array',
+				ORMUniversalType::ARRAY, ORMUniversalType::MAP                                => 'array',
 				ORMUniversalType::DECIMAL, ORMUniversalType::STRING, ORMUniversalType::BIGINT => 'string',
-				ORMUniversalType::BOOL  => 'bool',
-				ORMUniversalType::FLOAT => 'float',
-				ORMUniversalType::INT   => 'int',
-				ORMUniversalType::NULL  => 'null',
-				ORMUniversalType::MIXED => 'mixed',
+				ORMUniversalType::BOOL                                                        => 'bool',
+				ORMUniversalType::FLOAT                                                       => 'float',
+				ORMUniversalType::INT                                                         => 'int',
+				ORMUniversalType::NULL                                                        => 'null',
+				ORMUniversalType::MIXED                                                       => 'mixed',
 			};
 		}
 
@@ -189,7 +189,7 @@ Time: {$date}";
 			'db_namespace' => $db_ns,
 		];
 
-		$class->extends(Str::interpolate('{db_namespace}\Base\{class_name}', $inject))
+		$class->extends(Str::interpolate('Base\{class_name}', $inject))
 			->setContent($this->editable_body_comment)
 			->comment(Str::interpolate('Class {class_name}.', $inject));
 
