@@ -63,11 +63,12 @@ class Diff
 	/**
 	 * Create diff file using two db.
 	 *
-	 * @param int $version
+	 * @param int         $version the migration version
+	 * @param null|string $label   the migration label
 	 *
 	 * @return PHPFile
 	 */
-	public function generateMigrationFile(int $version): PHPFile
+	public function generateMigrationFile(int $version, ?string $label = 'Auto generated.'): PHPFile
 	{
 		$up       = $this->getDiff();
 		$down     = (new self($this->db_to, $this->db_from))->getDiff();
@@ -95,7 +96,10 @@ class Diff
 
 		$time = \time();
 
-		$m_get_label->addChild('return \'Auto generated.\';')
+		$m_get_label->addChild(\sprintf('return <<<DIFF_LABEL
+%s
+DIFF_LABEL;
+', $label))
 			->comment('@inheritDoc');
 
 		$file->comment('Generated on: ' . \date('jS F Y, g:i:s a', $time));
