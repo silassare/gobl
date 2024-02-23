@@ -258,7 +258,9 @@ class CRUD
 			EntityEventType::AFTER_DELETE  => new AfterEntityDeletion($entity),
 		};
 
-		return $event->dispatch(null, $this->event_channel);
+		return $event->dispatch(static function ($listener) use ($entity, $event): void {
+			$listener($entity, $event);
+		}, $this->event_channel);
 	}
 
 	/**
