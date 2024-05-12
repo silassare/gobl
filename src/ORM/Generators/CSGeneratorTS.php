@@ -111,13 +111,13 @@ class CSGeneratorTS extends CSGenerator
 
 		foreach ($types as $type) {
 			$ts_types[] = match ($type) {
-				ORMUniversalType::ARRAY => 'unknown[]',
-				ORMUniversalType::MAP   => 'Record<string, unknown>',
+				ORMUniversalType::ARRAY                                                       => 'unknown[]',
+				ORMUniversalType::MAP                                                         => 'Record<string, unknown>',
 				ORMUniversalType::STRING, ORMUniversalType::DECIMAL, ORMUniversalType::BIGINT => 'string',
-				ORMUniversalType::FLOAT, ORMUniversalType::INT => 'number',
-				ORMUniversalType::BOOL  => 'boolean',
-				ORMUniversalType::NULL  => 'null',
-				ORMUniversalType::MIXED => 'any',
+				ORMUniversalType::FLOAT, ORMUniversalType::INT                                => 'number',
+				ORMUniversalType::BOOL                                                        => 'boolean',
+				ORMUniversalType::NULL                                                        => 'null',
+				ORMUniversalType::MIXED                                                       => 'any',
 			};
 		}
 
