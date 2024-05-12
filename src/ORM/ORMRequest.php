@@ -404,7 +404,7 @@ class ORMRequest
 		}
 
 		// pagination
-		$pg         = self::paginate($request, $this->max_default, $this->max_allowed);
+		$pg         = $this->paginate($request);
 		$this->page = $pg[self::PAGE_PARAM];
 		$this->max  = $pg[self::MAX_PARAM];
 
@@ -437,18 +437,16 @@ class ORMRequest
 	 * ```
 	 * ?max=8&page=2    => ['max' => 8, 'page' => 2, 'offset' => 8 ]
 	 * ?page=2          => ['max' => default|10, 'page' => 2, 'offset' => 10 ]
-	 * ?                => ['max' => null, 'page' => 1, 'offset' => 0 ]
+	 * ?                => ['max' => default|10, 'page' => 1, 'offset' => 0 ]
 	 * ```
 	 *
 	 * @param array $request
-	 * @param int   $max_default default max
-	 * @param int   $max_allowed maximum value allowed
 	 *
-	 * @return array
+	 * @return array{max:int, page:int, offset:int}
 	 *
 	 * @throws ORMQueryException
 	 */
-	private static function paginate(array $request, int $max_default, int $max_allowed): array
+	private function paginate(array $request): array
 	{
 		$offset = 0;
 		$page   = 1;
@@ -457,9 +455,13 @@ class ORMRequest
 		if (isset($request[self::MAX_PARAM])) {
 			$max = $request[self::MAX_PARAM];
 
-			if (!\is_numeric($max) || ($max = (int) $max) <= 0 || $max > $max_allowed) {
+			if (!\is_numeric($max) || ($max = (int) $max) <= 0 || $max > $this->max_allowed) {
 				throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_PAGINATION_MAX', $request);
 			}
+		}
+
+		if (!$max) {
+			$max = $this->max_default;
 		}
 
 		if (isset($request[self::PAGE_PARAM])) {
@@ -467,10 +469,6 @@ class ORMRequest
 
 			if (!\is_numeric($page) || ($page = (int) $page) <= 0) {
 				throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_PAGINATION_PAGE', $request);
-			}
-
-			if (!$max) {
-				$max = $max_default;
 			}
 
 			$offset = ($page - 1) * $max;
