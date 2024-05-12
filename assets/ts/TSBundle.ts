@@ -9,7 +9,7 @@
  */
 //@<%}%>
 
-import { register } from 'gobl-utils-ts';
+//@import { register } from 'gobl-utils-ts';
 
 //@<%loop($.entities : $name : $content){%>import <%$name%> from './db/<%$name%>';
 //@<%}%>
@@ -17,7 +17,7 @@ import { register } from 'gobl-utils-ts';
 //@<%loop($.entities : $name : $content){%>register('<%$name%>', <%$name%>);
 //@<%}%>
 
-export {
+//@export {
 //@<%loop($.entities : $name : $content){%><%$name%>,
 //@<%}%>
-};
+//@};
