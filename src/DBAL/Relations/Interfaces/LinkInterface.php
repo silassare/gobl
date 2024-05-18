@@ -46,9 +46,9 @@ interface LinkInterface extends ArrayCapableInterface
 	public function getType(): LinkType;
 
 	/**
-	 * Applies the relation link filter to the target query builder.
+	 * Applies the relation link filters to the target query builder.
 	 *
-	 * When a hast entity is provided the link is applied only if the host entity has all the required
+	 * When an entity is provided the link is applied only if the host entity has all the required
 	 * columns values.
 	 *
 	 * @param QBSelect                 $target_qb   a select query builder on the target table

@@ -36,18 +36,21 @@ final class LinkColumns extends Link
 	 *
 	 * @param Table $host_table
 	 * @param Table $target_table
-	 * @param array $options
+	 * @param array{
+	 *         columns?: array<string,string>,
+	 *         filters?: array
+	 *      } $options
 	 *
 	 * @throws DBALException
 	 */
 	public function __construct(
 		Table $host_table,
 		Table $target_table,
-		private readonly array $options = []
+		array $options = []
 	) {
-		parent::__construct(LinkType::COLUMNS, $host_table, $target_table);
+		parent::__construct(LinkType::COLUMNS, $host_table, $target_table, $options);
 
-		$this->columns_mapping = $options['columns'] ?? [];
+		$this->columns_mapping = $this->options['columns'] ?? [];
 
 		if (empty($this->columns_mapping)) {
 			if ($this->target_table->hasDefaultForeignKeyConstraint($this->host_table)) {
@@ -88,7 +91,7 @@ final class LinkColumns extends Link
 	/**
 	 * {@inheritDoc}
 	 */
-	public function apply(QBSelect $target_qb, ?ORMEntity $host_entity = null): bool
+	public function runLinkTypeApplyLogic(QBSelect $target_qb, ?ORMEntity $host_entity = null): bool
 	{
 		if ($host_entity) {
 			// we use array to not pollute the query builder filters

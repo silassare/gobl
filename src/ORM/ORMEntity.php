@@ -61,9 +61,6 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 */
 	private bool $_oeb_strict;
 
-	/** @var string */
-	private string $_oeb_table_name;
-
 	/** @var RDBMSInterface */
 	private RDBMSInterface $_oeb_db;
 
@@ -88,13 +85,12 @@ abstract class ORMEntity implements ArrayCapableInterface
 		bool $is_new,
 		bool $strict
 	) {
-		$this->_oeb_db         = ORM::getDatabase($namespace);
-		$this->_oeb_table_name = $table_name;
-		$this->_oeb_table      = $this->_oeb_db->getTableOrFail($table_name);
-		$columns               = $this->_oeb_table->getColumns();
-		$this->_oeb_is_new     = $is_new;
-		$this->_oeb_is_saved   = !$is_new;
-		$this->_oeb_strict     = $strict;
+		$this->_oeb_db       = ORM::getDatabase($namespace);
+		$this->_oeb_table    = $this->_oeb_db->getTableOrFail($table_name);
+		$columns             = $this->_oeb_table->getColumns();
+		$this->_oeb_is_new   = $is_new;
+		$this->_oeb_is_saved = !$is_new;
+		$this->_oeb_strict   = $strict;
 
 		if ($this->_oeb_is_new) {
 			foreach ($columns as $column) {
@@ -419,38 +415,33 @@ abstract class ORMEntity implements ArrayCapableInterface
 			$pk = $this->_oeb_table->getPrimaryKeyConstraint();
 
 			$columns = $pk->getColumns();
-		} elseif ($this->_oeb_table->hasUniqueKeyConstraint()) {
-			$uq = $this->_oeb_table->getUniqueKeyConstraints()[0];
+			$filters = $this->_toIdentityFilters($columns, $missing);
 
-			$columns = $uq->getColumns();
-		} else {
-			throw new ORMException('Unable to uniquely identify the entity.');
-		}
-
-		$filters = [];
-		$head    = true;
-
-		foreach ($columns as $entry) {
-			/** @var Column $column */
-			$column         = $this->_oeb_table->getColumn($entry);
-			$column_name_fn = $column->getFullName();
-			$value          = $this->{$column_name_fn};
-
-			if (null === $value && !$column->getType()
-				->isNullable()) {// unique constraint may be nullable
-				throw new ORMException(\sprintf('Required identity column "%s" value was not set.', $column_name_fn));
+			if (!empty($missing)) {
+				throw new ORMException(\sprintf('Required identity column(s) "%s" value was not set.', \implode(', ', $missing)));
 			}
 
-			if (!$head) {
-				$filters[] = 'and';
-			}
-
-			$filters[] = [$column_name_fn, Operator::EQ, $value];
-
-			$head = false;
+			return $filters;
 		}
 
-		return $filters;
+		if ($this->_oeb_table->hasUniqueKeyConstraint()) {
+			$all_missing = [];
+			foreach ($this->_oeb_table->getUniqueKeyConstraints() as $uq) {
+				$columns = $uq->getColumns();
+				$m       = [];
+				$filters = $this->_toIdentityFilters($columns, $m);
+
+				if (empty($m)) {
+					return $filters;
+				}
+
+				$all_missing += $m;
+			}
+
+			throw new ORMException(\sprintf('All or some required identity column(s) "%s" value was not set.', \implode(', ', $all_missing)));
+		}
+
+		throw new ORMException('Unable to uniquely identify the entity.');
 	}
 
 	/**
@@ -520,5 +511,43 @@ abstract class ORMEntity implements ArrayCapableInterface
 		}
 
 		return $value;
+	}
+
+	/**
+	 * Returns filters that uniquely identify the current entity.
+	 *
+	 * @param string[]      $columns
+	 * @param null|string[] $missing
+	 *
+	 * @return array
+	 */
+	private function _toIdentityFilters(array $columns, ?array &$missing = []): array
+	{
+		$filters = [];
+		$head    = true;
+
+		foreach ($columns as $entry) {
+			/** @var Column $column */
+			$column         = $this->_oeb_table->getColumn($entry);
+			$column_name_fn = $column->getFullName();
+			$value          = $this->{$column_name_fn};
+
+			if (null === $value && !$column->getType()
+				->isNullable()) {// unique constraint may be nullable
+				$missing[] = $column_name_fn;
+
+				continue;
+			}
+
+			if (!$head) {
+				$filters[] = 'and';
+			}
+
+			$filters[] = [$column_name_fn, Operator::EQ, $value];
+
+			$head = false;
+		}
+
+		return $filters;
 	}
 }

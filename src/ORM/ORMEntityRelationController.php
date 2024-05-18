@@ -1,0 +1,174 @@
+<?php
+
+/**
+ * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>.
+ *
+ * This file is part of the Gobl package.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+namespace Gobl\ORM;
+
+use Gobl\DBAL\Exceptions\DBALException;
+use Gobl\DBAL\Relations\Interfaces\RelationControllerInterface;
+use Gobl\DBAL\Relations\Relation;
+use Gobl\DBAL\Table;
+use Gobl\Exceptions\GoblException;
+use Gobl\ORM\Exceptions\ORMException;
+use Throwable;
+
+/**
+ * Class ORMEntityRelationController.
+ *
+ * @template TEntity of ORMEntity
+ *
+ * @implements RelationControllerInterface<TEntity,ORMEntity,array,array>
+ */
+class ORMEntityRelationController implements RelationControllerInterface
+{
+	protected Table $table;
+	protected ORMController $controller;
+
+	/**
+	 * ORMRelatives constructor.
+	 */
+	public function __construct(protected Relation $relation)
+	{
+		$table            = $relation->getTargetTable();
+		$this->controller = ORM::ctrl($table);
+		$this->table      = $table;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws GoblException
+	 */
+	public function get(ORMEntity $entity, ORMRequest $request): null|ORMEntity
+	{
+		$order_by = $request->getOrderBy();
+		$filters  = $request->getFilters();
+
+		return $this->controller->getRelative($entity, $this->relation, $order_by, $filters);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws GoblException
+	 */
+	public function list(ORMEntity $entity, ORMRequest $request, ?int &$total_records = null): array
+	{
+		$max      = $request->getMax();
+		$offset   = $request->getOffset();
+		$order_by = $request->getOrderBy();
+		$filters  = $request->getFilters();
+
+		return $this->controller->getAllRelatives(
+			$entity,
+			$this->relation,
+			$filters,
+			$max,
+			$offset,
+			$order_by,
+			$total_records
+		);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws DBALException
+	 * @throws GoblException
+	 */
+	public function create(ORMEntity $entity, array $payload): mixed
+	{
+		ORMTableQuery::assertCanManageRelatives($this->table, $this->relation, $entity);
+
+		$fk      = $this->table->getDefaultForeignKeyConstraintFrom($this->relation->getHostTable());
+		$columns = $fk->getColumnsMapping();
+
+		foreach ($columns as $target_col => $source_col) {
+			$payload[$target_col] = $entity->{$source_col};
+		}
+
+		return $this->controller->addItem($payload);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws ORMException
+	 * @throws GoblException
+	 */
+	public function update(ORMEntity $entity, array $payload): ORMEntity
+	{
+		$target = $this->identify($entity, $payload)->hydrate($payload);
+
+		$target->save();
+
+		return $target;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws ORMException
+	 * @throws GoblException
+	 */
+	public function delete(ORMEntity $entity, array $payload): ORMEntity
+	{
+		return $this->identify($entity, $payload)->selfDelete();
+	}
+
+	/**
+	 * Identify the relative.
+	 *
+	 * @throws GoblException
+	 * @throws ORMException
+	 */
+	private function identify(ORMEntity $entity, array $relative): ORMEntity
+	{
+		$filters = $this->extractFilters($relative);
+
+		$target = $this->controller->getRelative(
+			$entity,
+			$this->relation,
+			$filters
+		);
+
+		if (!$target) {
+			throw new ORMException('Unable to identify relative.');
+		}
+
+		return $target;
+	}
+
+	/**
+	 * Try to extract the relative identity filters from the payload.
+	 *
+	 * @param mixed $payload
+	 *
+	 * @return array
+	 *
+	 * @throws ORMException
+	 */
+	private function extractFilters(array $payload): array
+	{
+		try {
+			if (empty($payload)) {
+				throw new ORMException('Empty relative payload.');
+			}
+
+			$instance = ORM::entity($this->table, false, false);
+
+			return $instance->hydrate($payload)->toIdentityFilters();
+		} catch (Throwable $t) {
+			throw new ORMException('Invalid relative data.', null, $t);
+		}
+	}
+}

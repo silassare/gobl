@@ -17,8 +17,12 @@ use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Relations\Interfaces\LinkInterface;
+use Gobl\DBAL\Relations\Interfaces\RelationControllerInterface;
+use Gobl\DBAL\Relations\Interfaces\RelationInterface;
 use Gobl\DBAL\Table;
 use Gobl\Gobl;
+use Gobl\ORM\ORMEntity;
+use Gobl\ORM\ORMEntityRelationController;
 use InvalidArgumentException;
 use PHPUtils\Interfaces\ArrayCapableInterface;
 use PHPUtils\Str;
@@ -26,16 +30,12 @@ use PHPUtils\Traits\ArrayCapableTrait;
 
 /**
  * Class Relation.
+ *
+ * @implements RelationInterface<ORMEntity,ORMEntity,array,array>
  */
-abstract class Relation implements ArrayCapableInterface
+abstract class Relation implements RelationInterface, ArrayCapableInterface
 {
 	use ArrayCapableTrait;
-
-	public const NAME_PATTERN = '[a-zA-Z](?:[a-zA-Z0-9_-]*[a-zA-Z0-9])?';
-
-	public const NAME_REG = '~^' . self::NAME_PATTERN . '$~';
-
-	protected ?array $target_custom_filters = null;
 
 	/**
 	 * Relation constructor.
@@ -69,122 +69,6 @@ abstract class Relation implements ArrayCapableInterface
 	}
 
 	/**
-	 * Gets the relation link.
-	 *
-	 * @return LinkInterface
-	 */
-	public function getLink(): LinkInterface
-	{
-		return $this->link;
-	}
-
-	/**
-	 * Checks if the relation returns paginated items.
-	 *
-	 * ie: all relation items can't be retrieved at once.
-	 *
-	 * @return bool
-	 */
-	public function isPaginated(): bool
-	{
-		return $this->type->isMultiple();
-	}
-
-	/**
-	 * Gets the relation host table.
-	 *
-	 * @return Table
-	 */
-	public function getHostTable(): Table
-	{
-		return $this->link->getHostTable();
-	}
-
-	/**
-	 * Gets the relation target table.
-	 *
-	 * @return Table
-	 */
-	public function getTargetTable(): Table
-	{
-		return $this->link->getTargetTable();
-	}
-
-	/**
-	 * Gets the relation type.
-	 *
-	 * @return RelationType
-	 */
-	public function getType(): RelationType
-	{
-		return $this->type;
-	}
-
-	/**
-	 * Gets relation getter method name.
-	 *
-	 * @return string
-	 */
-	public function getGetterName(): string
-	{
-		return Str::toGetterName($this->getName());
-	}
-
-	/**
-	 * Gets the relation name.
-	 *
-	 * @return string
-	 */
-	public function getName(): string
-	{
-		return $this->name;
-	}
-
-	/**
-	 * Gets relation target custom filters.
-	 *
-	 * @return null|array
-	 */
-	public function getTargetCustomFilters(): ?array
-	{
-		return $this->target_custom_filters;
-	}
-
-	/**
-	 * Sets relation target custom filters.
-	 *
-	 * @param null|array $filters
-	 *
-	 * @return $this
-	 */
-	public function setTargetCustomFilters(?array $filters): static
-	{
-		// we can't check if the filters are valid here
-		// because the target table classes files may not be yet generated
-
-		$this->target_custom_filters = $filters;
-
-		return $this;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function toArray(): array
-	{
-		$options['type']   = $this->type->value;
-		$options['target'] = $this->getTargetTable()
-			->getName();
-		$options['link']   = $this->link->toArray();
-
-		if ($this->target_custom_filters) {
-			$options['filters'] = $this->target_custom_filters;
-		}
-
-		return $options;
-	}
-
-	/**
 	 * Create a relation link from options.
 	 *
 	 * @param RDBMSInterface $rdbms
@@ -202,10 +86,22 @@ abstract class Relation implements ArrayCapableInterface
 		Table $target_table,
 		array $options
 	): LinkInterface {
-		$type = $options['type'] ?? null;
+		$type    = $options['type'] ?? null;
+		$filters = $options['filters'] ?? null;
 
 		if (\is_string($type)) {
 			$type = LinkType::tryFrom($type);
+		}
+
+		// It will be good if we can validate the filters here
+		// for now we can't do that because the target table classes files may not be yet generated
+		if ($filters && !\is_array($filters)) {
+			throw new DBALException(
+				\sprintf(
+					'property "filters" defined in relation link should be of array type not "%s".',
+					\get_debug_type($filters)
+				)
+			);
 		}
 
 		if (!$type instanceof LinkType) {
@@ -248,5 +144,90 @@ abstract class Relation implements ArrayCapableInterface
 		}
 
 		throw new DBALException(\sprintf('Unsupported link type "%s".', $type->value));
+	}
+
+	/**
+	 * Gets the relation link.
+	 *
+	 * @return LinkInterface
+	 */
+	public function getLink(): LinkInterface
+	{
+		return $this->link;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function isPaginated(): bool
+	{
+		return $this->type->isMultiple();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getHostTable(): Table
+	{
+		return $this->link->getHostTable();
+	}
+
+	/**
+	 * Gets the relation type.
+	 *
+	 * @return RelationType
+	 */
+	public function getType(): RelationType
+	{
+		return $this->type;
+	}
+
+	/**
+	 * Gets relation getter method name.
+	 *
+	 * @return string
+	 */
+	public function getGetterName(): string
+	{
+		return Str::toGetterName($this->getName());
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getName(): string
+	{
+		return $this->name;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function toArray(): array
+	{
+		$options['type']   = $this->type->value;
+		$options['target'] = $this->getTargetTable()
+			->getName();
+		$options['link']   = $this->link->toArray();
+
+		return $options;
+	}
+
+	/**
+	 * Gets the relation target table.
+	 *
+	 * @return Table
+	 */
+	public function getTargetTable(): Table
+	{
+		return $this->link->getTargetTable();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getController(): RelationControllerInterface
+	{
+		return new ORMEntityRelationController($this);
 	}
 }

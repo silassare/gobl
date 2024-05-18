@@ -66,14 +66,16 @@ final class RelationBuilder
 	 * Specify a relation link of type "columns".
 	 *
 	 * @param array<string, string> $host_to_target_columns_map
+	 * @param array                 $filters
 	 *
 	 * @throws DBALException
 	 */
-	public function usingColumns(array $host_to_target_columns_map = []): Relation
+	public function usingColumns(array $host_to_target_columns_map = [], array $filters = []): Relation
 	{
 		return $this->using([
 			'type'    => LinkType::COLUMNS->value,
 			'columns' => $host_to_target_columns_map,
+			'filters' => $filters,
 		]);
 	}
 
@@ -144,11 +146,12 @@ final class RelationBuilder
 	 *
 	 * @throws DBALException
 	 */
-	public function usingMorph(string $prefix, ?string $parent_type = null): Relation
+	public function usingMorph(string $prefix, ?string $parent_type = null, array $filters = []): Relation
 	{
 		$options = [
-			'type'   => LinkType::MORPH->value,
-			'prefix' => $prefix,
+			'type'    => LinkType::MORPH->value,
+			'prefix'  => $prefix,
+			'filters' => $filters,
 		];
 
 		if ($parent_type) {
@@ -164,6 +167,7 @@ final class RelationBuilder
 	 * @param string|Table         $pivot_table
 	 * @param array<string, mixed> $host_to_pivot_link_options
 	 * @param array<string, mixed> $pivot_to_target_link_options
+	 * @param array                $filters
 	 *
 	 * @return Relation
 	 *
@@ -172,7 +176,8 @@ final class RelationBuilder
 	public function through(
 		string|Table $pivot_table,
 		array $host_to_pivot_link_options = [],
-		array $pivot_to_target_link_options = []
+		array $pivot_to_target_link_options = [],
+		array $filters = [],
 	): Relation {
 		if (\is_string($pivot_table)) {
 			$pivot_table = $this->rdbms->getTableOrFail($pivot_table);
@@ -183,6 +188,7 @@ final class RelationBuilder
 			'pivot_table'     => $pivot_table,
 			'host_to_pivot'   => $host_to_pivot_link_options,
 			'pivot_to_target' => $pivot_to_target_link_options,
+			'filters'         => $filters,
 		];
 
 		return $this->using($options);

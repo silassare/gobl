@@ -14,25 +14,24 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Relations;
 
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
+use Gobl\DBAL\Relations\Interfaces\RelationInterface;
 use Gobl\DBAL\Table;
 use Gobl\Gobl;
 use Gobl\ORM\ORM;
-use Gobl\ORM\ORMEntity;
-use Gobl\ORM\ORMRequest;
 use InvalidArgumentException;
 
 /**
  * Class VirtualRelation.
  *
  * @template TEntity of \Gobl\ORM\ORMEntity
- * @template TRelationResult
+ * @template TRelative of null|string|int|float|bool|array|\JsonSerializable
+ * @template TRelativeCreatePayload of array
+ * @template TRelativeIdentityPayload of array
+ *
+ * @implements RelationInterface<TEntity,TRelative,TRelativeCreatePayload,TRelativeIdentityPayload>
  */
-abstract class VirtualRelation
+abstract class VirtualRelation implements RelationInterface
 {
-	public const NAME_PATTERN = Relation::NAME_PATTERN;
-
-	public const NAME_REG = Relation::NAME_REG;
-
 	/** @var string */
 	protected string $name;
 
@@ -76,11 +75,7 @@ abstract class VirtualRelation
 	}
 
 	/**
-	 * Checks if the virtual relation returns paginated items.
-	 *
-	 * ie: all relation items can't be retrieved at once.
-	 *
-	 * @return bool
+	 * {@inheritDoc}
 	 */
 	public function isPaginated(): bool
 	{
@@ -88,9 +83,7 @@ abstract class VirtualRelation
 	}
 
 	/**
-	 * Gets the virtual relation name.
-	 *
-	 * @return string
+	 * {@inheritDoc}
 	 */
 	public function getName(): string
 	{
@@ -98,29 +91,10 @@ abstract class VirtualRelation
 	}
 
 	/**
-	 * Gets the virtual relation host table.
-	 *
-	 * @return Table
+	 * {@inheritDoc}
 	 */
 	public function getHostTable(): Table
 	{
 		return $this->host_table;
 	}
-
-	/**
-	 * Gets a relation for a given target item.
-	 *
-	 * @param ORMEntity  $target
-	 * @param ORMRequest $request
-	 * @param null|int   &$total_records
-	 *
-	 * @psalm-param TEntity         $target
-	 *
-	 * @return TRelationResult
-	 */
-	abstract public function get(
-		ORMEntity $target,
-		ORMRequest $request,
-		?int &$total_records = null
-	): mixed;
 }

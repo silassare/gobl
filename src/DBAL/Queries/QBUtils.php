@@ -36,6 +36,15 @@ class QBUtils
 	}
 
 	/**
+	 * Reset the identifier generator counter.
+	 * Useful for testing.
+	 */
+	public static function resetIdentifierCounter(): void
+	{
+		self::$GEN_IDENTIFIER_COUNTER = 0;
+	}
+
+	/**
 	 * Generate a new unique (table) alias.
 	 *
 	 * @return string

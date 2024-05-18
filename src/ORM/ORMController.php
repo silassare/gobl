@@ -23,7 +23,6 @@ use Gobl\DBAL\Table;
 use Gobl\Exceptions\GoblException;
 use Gobl\ORM\Exceptions\ORMException;
 use Gobl\ORM\Exceptions\ORMQueryException;
-use Gobl\ORM\Utils\ORMClassKind;
 
 /**
  * Class ORMController.
@@ -106,6 +105,13 @@ abstract class ORMController
 	}
 
 	/**
+	 * Returns new instance.
+	 *
+	 * @return static<TEntity, TQuery, TResults>
+	 */
+	abstract public static function new(): static;
+
+	/**
 	 * Returns CRUD.
 	 *
 	 * @return CRUD
@@ -132,12 +138,13 @@ abstract class ORMController
 		if (\is_array($item)) {
 			$values = $item;
 		} else {
-			if ($item->isSaved()) {
-				return $item;
+			$instance = $item;
+
+			if ($instance->isSaved()) {
+				return $instance;
 			}
 
-			$instance = $item;
-			$values   = $item->toRow();
+			$values = $instance->toRow();
 		}
 
 		return $this->db->runInTransaction(function () use ($instance, $values): ORMEntity {
@@ -147,10 +154,8 @@ abstract class ORMController
 			$this->fillRequiredFields($values);
 
 			if (!$instance) {
-				/** @var ORMEntity $entity_class */
-				$entity_class = ORMClassKind::ENTITY->getClassFQN($this->table);
-
-				$instance = $entity_class::new();
+				/** @var TEntity $instance */
+				$instance = ORM::entity($this->table);
 
 				$instance->hydrate($values);
 			}
@@ -162,13 +167,6 @@ abstract class ORMController
 			return $instance;
 		});
 	}
-
-	/**
-	 * Returns new instance.
-	 *
-	 * @return static<TEntity, TQuery, TResults>
-	 */
-	abstract public static function new(): static;
 
 	/**
 	 * Updates one item in the table.
@@ -183,20 +181,21 @@ abstract class ORMController
 	public function updateOneItem(array $filters, array $new_values): ?ORMEntity
 	{
 		return $this->db->runInTransaction(function () use ($filters, $new_values): ?ORMEntity {
-			$tsf        = $this->getScopedFiltersInstance($filters);
-			$action     = $this->crud->assertUpdate($tsf, $new_values);
+			/** @var TQuery $tq */
+			$tq         = ORM::query($this->table, $filters);
+			$action     = $this->crud->assertUpdate($tq, $new_values);
 			$new_values = $action->getForm();
 
-			static::assertFiltersNotEmpty($tsf);
-			static::assertUpdateColumns($this->table, \array_keys($new_values));
+			static::assertFiltersNotEmpty($tq);
+			$payload = $this->scopeUpdateValues($new_values);
 
-			$entity = $tsf->find(1)
+			$entity = $tq->find(1)
 				->fetchClass();
 
 			if ($entity) {
 				$this->crud->dispatchEntityEvent($entity, EntityEventType::BEFORE_UPDATE);
 
-				$entity->hydrate($new_values);
+				$entity->hydrate($payload);
 
 				$this->persistItem($entity);
 
@@ -226,14 +225,16 @@ abstract class ORMController
 		array $order_by = []
 	): int {
 		return $this->db->runInTransaction(function () use ($filters, $new_values, $max, $order_by): int {
-			$tsf        = $this->getScopedFiltersInstance($filters);
-			$action     = $this->crud->assertUpdateAll($tsf, $new_values);
+			/** @var TQuery $tq */
+			$tq         = ORM::query($this->table, $filters);
+			$action     = $this->crud->assertUpdateAll($tq, $new_values);
 			$new_values = $action->getForm();
 
-			static::assertFiltersNotEmpty($tsf);
-			static::assertUpdateColumns($this->table, \array_keys($new_values));
+			static::assertFiltersNotEmpty($tq);
 
-			return $tsf->update($new_values)
+			$payload = $this->scopeUpdateValues($new_values);
+
+			return $tq->update($payload)
 				->limit($max)
 				->orderBy($order_by)
 				->execute();
@@ -255,29 +256,31 @@ abstract class ORMController
 		$soft = $this->clarifyUserSoftDeleteStrategy($soft);
 
 		return $this->db->runInTransaction(function () use ($filters, $soft): ?ORMEntity {
-			$tsf = $this->getScopedFiltersInstance($filters);
+			/** @var TQuery $tq */
+			$tq = ORM::query($this->table, $filters);
 
-			$this->crud->assertDelete($tsf);
+			$this->crud->assertDelete($tq);
 
-			static::assertFiltersNotEmpty($tsf);
+			static::assertFiltersNotEmpty($tq);
 
 			// because soft deleted rows are not included by default
 			// this make sure if the entity is already soft deleted we don't need to do it again
 			// but when the user intention is a hard delete we need to include soft deleted rows
 			if (!$soft) {
-				$tsf->includeSoftDeletedRows();
+				$tq->includeSoftDeletedRows();
 			}
 
-			$entity = $tsf->find(1)
+			$entity = $tq->find(1)
 				->fetchClass();
 
 			if ($entity) {
 				$this->crud->dispatchEntityEvent($entity, EntityEventType::BEFORE_DELETE);
 
 				// we need to make sure that we delete the selected entity and only that
-				$tsf = $this->getScopedFiltersInstance($entity->toIdentityFilters());
+				/** @var TQuery $tq */
+				$tq = ORM::query($this->table, $entity->toIdentityFilters());
 
-				$qb = $soft ? $tsf->softDelete() : $tsf->delete();
+				$qb = $soft ? $tq->softDelete() : $tq->delete();
 
 				$qb->limit(1)->execute();
 
@@ -311,13 +314,14 @@ abstract class ORMController
 		$soft = $this->clarifyUserSoftDeleteStrategy($soft);
 
 		return $this->db->runInTransaction(function () use ($order_by, $max, $filters, $soft): int {
-			$tsf = $this->getScopedFiltersInstance($filters);
+			/** @var TQuery $tq */
+			$tq = ORM::query($this->table, $filters);
 
-			$this->crud->assertDeleteAll($tsf);
+			$this->crud->assertDeleteAll($tq);
 
-			static::assertFiltersNotEmpty($tsf);
+			static::assertFiltersNotEmpty($tq);
 
-			$qb = $soft ? $tsf->softDelete() : $tsf->delete();
+			$qb = $soft ? $tq->softDelete() : $tq->delete();
 
 			return $qb->limit($max)
 				->orderBy($order_by)
@@ -340,13 +344,14 @@ abstract class ORMController
 		// we use transaction for reading too
 		// https://stackoverflow.com/questions/308905/should-there-be-a-transaction-for-read-queries
 		return $this->db->runInTransaction(function () use ($filters, $order_by): ?ORMEntity {
-			$tsf = $this->getScopedFiltersInstance($filters);
+			/** @var TQuery $tq */
+			$tq = ORM::query($this->table, $filters);
 
-			$this->crud->assertRead($tsf);
+			$this->crud->assertRead($tq);
 
-			static::assertFiltersNotEmpty($tsf);
+			static::assertFiltersNotEmpty($tq);
 
-			$entity = $tsf->find(1, 0, $order_by)
+			$entity = $tq->find(1, 0, $order_by)
 				->fetchClass();
 
 			if ($entity) {
@@ -378,11 +383,12 @@ abstract class ORMController
 		?int &$total = null
 	): array {
 		return $this->db->runInTransaction(function () use ($filters, $max, $offset, $order_by, &$total): array {
-			$tsf = $this->getScopedFiltersInstance($filters);
+			/** @var TQuery $tq */
+			$tq = ORM::query($this->table, $filters);
 
-			$this->crud->assertReadAll($tsf);
+			$this->crud->assertReadAll($tq);
 
-			$results = $tsf->find($max, $offset, $order_by);
+			$results = $tq->find($max, $offset, $order_by);
 
 			$items = $results->fetchAllClass();
 
@@ -407,11 +413,12 @@ abstract class ORMController
 	public function getAllItemsCustom(QBSelect $qb, ?int $max = null, int $offset = 0, ?int &$total = null): array
 	{
 		return $this->db->runInTransaction(function () use ($qb, $max, $offset, &$total): array {
-			$this->crud->assertReadAll($this->getScopedFiltersInstance([]));
+			$this->crud->assertReadAll(ORM::query($this->table));
 
 			$qb->limit($max, $offset);
 
-			$results = $this->getResultsInstance($qb);
+			/** @var TResults $results */
+			$results = ORM::results($this->table, $qb);
 
 			$items = $results->fetchAllClass(false);
 
@@ -429,7 +436,7 @@ abstract class ORMController
 	 * @param array     $filters
 	 * @param array     $order_by
 	 *
-	 * @return null|\Gobl\ORM\ORMEntity
+	 * @return null|TEntity
 	 *
 	 * @throws GoblException
 	 */
@@ -440,17 +447,19 @@ abstract class ORMController
 		array $order_by = []
 	): ?ORMEntity {
 		return $this->db->runInTransaction(function () use ($entity, $relation, $filters, $order_by): ?ORMEntity {
-			$tsf = $this->getScopedFiltersInstance($filters);
+			/** @var TQuery $tq */
+			$tq = ORM::query($this->table, $filters);
 
-			$this->crud->assertRead($tsf);
+			$this->crud->assertRead($tq);
 
-			$qb = $tsf->selectRelatives($relation, $entity, 1, 0, $order_by);
+			$qb = $tq->selectRelatives($relation, $entity, 1, 0, $order_by);
 
 			if (!$qb) {
 				return null;
 			}
 
-			$results = $this->getResultsInstance($qb);
+			/** @var TResults $results */
+			$results = ORM::results($this->table, $qb);
 			$entity  = $results->fetchClass();
 
 			if ($entity) {
@@ -472,7 +481,7 @@ abstract class ORMController
 	 * @param array     $order_by
 	 * @param null|int  $total
 	 *
-	 * @return \Gobl\ORM\ORMEntity[]
+	 * @return TEntity[]
 	 *
 	 * @throws GoblException
 	 */
@@ -487,17 +496,19 @@ abstract class ORMController
 	): array {
 		return $this->db->runInTransaction(
 			function () use ($entity, $relation, $filters, $max, $offset, $order_by, &$total): array {
-				$tsf = $this->getScopedFiltersInstance($filters);
+				/** @var TQuery $tq */
+				$tq = ORM::query($this->table, $filters);
 
-				$this->crud->assertReadAll($tsf);
+				$this->crud->assertReadAll($tq);
 
-				$qb = $tsf->selectRelatives($relation, $entity, $max, $offset, $order_by);
+				$qb = $tq->selectRelatives($relation, $entity, $max, $offset, $order_by);
 
 				if (!$qb) {
 					return [];
 				}
 
-				$results = $this->getResultsInstance($qb);
+				/** @var TResults $results */
+				$results = ORM::results($this->table, $qb);
 
 				$items = $results->fetchAllClass();
 
@@ -561,22 +572,6 @@ abstract class ORMController
 	}
 
 	/**
-	 * Gets filters class instance.
-	 *
-	 * @param array $filters
-	 *
-	 * @return TQuery
-	 */
-	protected function getScopedFiltersInstance(array $filters): ORMTableQuery
-	{
-		/** @var TQuery $class */
-		$class = ORMClassKind::QUERY->getClassFQN($this->table);
-
-		return $class::new()
-			->where($filters);
-	}
-
-	/**
 	 * Asserts that the filters are not empty.
 	 *
 	 * @param ORMTableQuery $filters the row filters
@@ -592,25 +587,27 @@ abstract class ORMController
 	}
 
 	/**
-	 * Asserts that there is at least one column to update and
-	 * the column(s) to update really exists in the table.
+	 * Keeps only the values for fields that are columns in the table.
+	 * If no column is found, an exception is thrown.
 	 *
-	 * @param Table $table   The table
-	 * @param array $columns The columns to update
+	 * @param array $values the values
 	 *
 	 * @throws ORMQueryException
 	 */
-	protected static function assertUpdateColumns(Table $table, array $columns = []): void
+	protected function scopeUpdateValues(array $values = []): array
 	{
-		if (empty($columns)) {
+		$scope_values = [];
+		foreach ($values as $column => $value) {
+			if ($this->table->hasColumn($column)) {
+				$scope_values[$column] = $value;
+			}
+		}
+
+		if (empty($scope_values)) {
 			throw new ORMQueryException('GOBL_ORM_REQUEST_NO_FIELDS_TO_UPDATE');
 		}
 
-		foreach ($columns as $column) {
-			if (!$table->hasColumn($column)) {
-				throw new ORMQueryException('GOBL_ORM_REQUEST_UNKNOWN_FIELDS', [$column]);
-			}
-		}
+		return $scope_values;
 	}
 
 	/**
@@ -645,21 +642,6 @@ abstract class ORMController
 	}
 
 	/**
-	 * Gets results class instance.
-	 *
-	 * @param QBSelect $qb
-	 *
-	 * @return TResults
-	 */
-	protected function getResultsInstance(QBSelect $qb): ORMResults
-	{
-		/** @var TResults $results_class */
-		$results_class = ORMClassKind::RESULTS->getClassFQN($this->table);
-
-		return $results_class::new($qb);
-	}
-
-	/**
 	 * Persists (CREATE or UPDATE) a given entity instance in the database.
 	 *
 	 * @psalm-param TEntity $entity
@@ -683,11 +665,10 @@ abstract class ORMController
 				);
 			}
 
-			/** @var TQuery $class */
-			$class = ORMClassKind::QUERY->getClassFQN($this->table);
+			/** @var TQuery $tq */
+			$tq = ORM::query($this->table);
 
-			$qb = $class::new()
-				->insert($values);
+			$qb = $tq->insert($values);
 
 			$result = $qb->execute();
 
@@ -709,9 +690,10 @@ abstract class ORMController
 			}
 		} elseif (!empty($values) && !$entity->isSaved()) {
 			// its an update
-			$tsf = $this->getScopedFiltersInstance($entity->toIdentityFilters());
+			/** @var TQuery $tq */
+			$tq = ORM::query($this->table, $entity->toIdentityFilters());
 
-			$tsf->update($values)
+			$tq->update($values)
 				->limit(1)
 				->execute();
 

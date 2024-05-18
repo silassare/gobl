@@ -35,7 +35,11 @@ final class LinkThrough extends Link
 	 * @param Table          $host_table
 	 * @param Table          $target_table
 	 * @param Table          $pivot_table
-	 * @param array          $options
+	 * @param array{
+	 *          filters?: array,
+	 *          host_to_pivot?: array,
+	 *          pivot_to_target?: array
+	 *       } $options
 	 *
 	 * @throws DBALException
 	 */
@@ -44,12 +48,12 @@ final class LinkThrough extends Link
 		Table $host_table,
 		Table $target_table,
 		private readonly Table $pivot_table,
-		private readonly array $options = [],
+		array $options = [],
 	) {
-		parent::__construct(LinkType::THROUGH, $host_table, $target_table);
+		parent::__construct(LinkType::THROUGH, $host_table, $target_table, $options);
 
-		$htp_options = $options['host_to_pivot'] ?? null;
-		$ptt_options = $options['pivot_to_target'] ?? null;
+		$htp_options = $this->options['host_to_pivot'] ?? null;
+		$ptt_options = $this->options['pivot_to_target'] ?? null;
 
 		if (empty($htp_options)) {
 			if ($this->pivot_table->hasDefaultForeignKeyConstraint($this->host_table)) {
@@ -128,24 +132,24 @@ final class LinkThrough extends Link
 	/**
 	 * {@inheritDoc}
 	 */
-	public function toArray(): array
-	{
-		return [
-			'type'        => $this->type->value,
-			'pivot_table' => $this->pivot_table->getName(),
-		] + $this->options;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function apply(QBSelect $target_qb, ?ORMEntity $host_entity = null): bool
+	public function runLinkTypeApplyLogic(QBSelect $target_qb, ?ORMEntity $host_entity = null): bool
 	{
 		if ($this->pivot_to_target_link->apply($target_qb)) {
 			return $this->host_to_pivot_link->apply($target_qb, $host_entity);
 		}
 
 		return false;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function toArray(): array
+	{
+		return [
+			'type'        => $this->type->value,
+			'pivot_table' => $this->pivot_table->getName(),
+		] + $this->options;
 	}
 
 	/**

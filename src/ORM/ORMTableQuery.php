@@ -17,7 +17,7 @@ use BadMethodCallException;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Filters\Filter;
 use Gobl\DBAL\Filters\Filters;
-use Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface;
+use Gobl\DBAL\Filters\FiltersTableScope;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Queries\Interfaces\QBInterface;
@@ -25,7 +25,6 @@ use Gobl\DBAL\Queries\QBDelete;
 use Gobl\DBAL\Queries\QBInsert;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Queries\QBUpdate;
-use Gobl\DBAL\Queries\QBUtils;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Table;
 use Gobl\ORM\Exceptions\ORMQueryException;
@@ -39,11 +38,8 @@ use Throwable;
  *
  * @template TEntity of \Gobl\ORM\ORMEntity
  */
-abstract class ORMTableQuery implements FiltersScopeInterface
+abstract class ORMTableQuery extends FiltersTableScope
 {
-	/** @var string */
-	protected string $table_alias;
-
 	/** @var RDBMSInterface */
 	protected RDBMSInterface $db;
 
@@ -53,11 +49,7 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	/** @var Filters */
 	protected Filters $filters;
 
-	/** @var Table */
-	protected Table $table;
-
-	protected bool $allow_private_column_in_filters = false;
-	protected bool $include_soft_deleted_rows       = false;
+	protected bool $include_soft_deleted_rows = false;
 
 	/**
 	 * ORMTableQuery constructor.
@@ -69,10 +61,10 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	{
 		$this->db = ORM::getDatabase($namespace);
 
-		$this->table       = $this->db->getTableOrFail($table_name);
-		$this->table_alias = QBUtils::newAlias();
-		$this->qb          = new QBSelect($this->db);
-		$this->filters     = $this->qb->filters($this);
+		parent::__construct($this->db->getTableOrFail($table_name));
+
+		$this->qb      = new QBSelect($this->db);
+		$this->filters = $this->qb->filters($this);
 	}
 
 	/**
@@ -134,6 +126,20 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws ORMQueryException
+	 */
+	public function assertFilterAllowed(Filter $filter): void
+	{
+		try {
+			parent::assertFilterAllowed($filter);
+		} catch (Throwable $t) {
+			throw new ORMQueryException('GOBL_ORM_FILTER_NOT_ALLOWED', $filter->toArray(), $t);
+		}
+	}
+
+	/**
 	 * Exclude soft deleted rows in select/update query.
 	 *
 	 * Soft deleted rows are excluded by default.
@@ -143,20 +149,6 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	public function excludeSoftDeletedRows(): static
 	{
 		$this->include_soft_deleted_rows = false;
-
-		return $this;
-	}
-
-	/**
-	 * Enable or disable filtering on private columns.
-	 *
-	 * @param bool $allow
-	 *
-	 * @return $this
-	 */
-	public function allowPrivateColumnInFilters(bool $allow = true): static
-	{
-		$this->allow_private_column_in_filters = $allow;
 
 		return $this;
 	}
@@ -252,48 +244,6 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 		$this->filters->or();
 
 		return $this->where(...$filters);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @throws ORMQueryException
-	 */
-	public function assertFilterAllowed(Filter $filter): void
-	{
-		try {
-			// left operand should be a column
-			$column = $this->table->getColumnOrFail($filter->getLeftOperand());
-
-			if (!$this->allow_private_column_in_filters && $column->isPrivate()) {
-				throw new ORMRuntimeException('Private column not allowed in filters.');
-			}
-
-			$column->getType()
-				->assertFilterAllowed($filter);
-		} catch (Throwable $t) {
-			throw new ORMQueryException('GOBL_ORM_FILTER_NOT_ALLOWED', $filter->toArray(), $t);
-		}
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getColumnFQName($column_name): string
-	{
-		if ($col = $this->table->getColumn($column_name)) {
-			return $this->table_alias . '.' . $col->getFullName();
-		}
-
-		return $column_name;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function shouldAllowFiltersScope(FiltersScopeInterface $scope): bool
-	{
-		return \is_a($scope, static::class);
 	}
 
 	/**
@@ -448,13 +398,13 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 * @param int      $offset   first row offset
 	 * @param array    $order_by order by rules
 	 *
-	 * @return \Gobl\ORM\ORMResults<TEntity>
+	 * @return ORMResults<TEntity>
 	 */
 	public function find(?int $max = null, int $offset = 0, array $order_by = []): ORMResults
 	{
 		$qb = $this->select($max, $offset, $order_by);
 
-		/** @var \Gobl\ORM\ORMResults<TEntity> $class_name */
+		/** @var ORMResults<TEntity> $class_name */
 		$class_name = ORMClassKind::RESULTS->getClassFQN($this->table);
 
 		return $class_name::new($qb);
@@ -496,32 +446,61 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 		int $offset = 0,
 		array $order_by = [],
 	): ?QBSelect {
-		$target = $relation->getTargetTable();
+		self::assertCanManageRelatives($this->table, $relation, $entity);
 
-		if ($relation->getTargetTable() !== $this->table) {
-			throw new ORMRuntimeException(
-				\sprintf(
-					'The relation "%s" target table "%s" is not the same as the current table "%s".',
-					$relation->getName(),
-					$target->getFullName(),
-					$this->table->getFullName()
-				)
-			);
-		}
-
-		$target_qb = static::new();
-
-		$this->include_soft_deleted_rows && $target_qb->includeSoftDeletedRows();
-
-		$sel = $target_qb->select($max, $offset, $order_by);
-
-		$l = $relation->getLink();
+		$sel = $this->select($max, $offset, $order_by);
+		$l   = $relation->getLink();
 
 		if ($l->apply($sel, $entity)) {
 			return $sel;
 		}
 
 		return null;
+	}
+
+	/**
+	 * Assert if relatives can be retrieved.
+	 *
+	 * @param Table          $expected_target_table
+	 * @param Relation       $relation
+	 * @param null|ORMEntity $entity
+	 *
+	 * @internal
+	 */
+	public static function assertCanManageRelatives(Table $expected_target_table, Relation $relation, ?ORMEntity $entity)
+	{
+		$target_table = $relation->getTargetTable();
+		$host_table   = $relation->getHostTable();
+
+		if ($target_table !== $expected_target_table) {
+			throw new ORMRuntimeException(
+				\sprintf(
+					'The relation "%s" target table "%s" is not the same as the expected target table "%s".',
+					$relation->getName(),
+					$target_table->getFullName(),
+					$expected_target_table->getFullName()
+				)
+			);
+		}
+
+		if ($entity) {
+			if (!$entity->isSaved()) {
+				throw new ORMRuntimeException('Entity should be persisted to get relatives.');
+			}
+
+			if ($entity::table() !== $host_table) {
+				$expected_entity_class = ORMClassKind::ENTITY->getClassFQN($host_table);
+
+				throw new ORMRuntimeException(
+					\sprintf(
+						'To get relatives for the relation "%s" the entity should be an instance of "%s" not "%s".',
+						$relation->getName(),
+						$expected_entity_class,
+						\get_class($entity)
+					)
+				);
+			}
+		}
 	}
 
 	/**
@@ -580,12 +559,6 @@ abstract class ORMTableQuery implements FiltersScopeInterface
 	 */
 	private function completeRow(array $row): array
 	{
-		/** @var ORMEntity $entity_class */
-		$entity_class = ORMClassKind::ENTITY->getClassFQN($this->table);
-
-		$instance = $entity_class::new();
-
-		return $instance->hydrate($row)
-			->toRow();
+		return ORM::entity($this->table)->hydrate($row)->toRow();
 	}
 }

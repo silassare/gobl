@@ -554,19 +554,6 @@ abstract class Db implements RDBMSInterface
 							);
 						}
 
-						$filters = $rel_options['filters'] ?? null;
-
-						if ($filters && !\is_array($filters)) {
-							throw new DBALException(
-								\sprintf(
-									'property "filters" defined for relation "%s" in table "%s" should be of array type not "%s".',
-									$relation_name,
-									$table_name,
-									\get_debug_type($filters)
-								)
-							);
-						}
-
 						$link_options = $rel_options['link'] ?? null;
 
 						if ($link_options) {
@@ -634,8 +621,6 @@ abstract class Db implements RDBMSInterface
 
 							$r = new ManyToMany($relation_name, $link);
 						}
-
-						$r && $filters && $r->setTargetCustomFilters($filters);
 					}
 
 					if (null === $r) {

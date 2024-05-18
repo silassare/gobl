@@ -28,6 +28,7 @@ class ORMRequest
 	public const FILTERS_PARAM    = 'filters';
 	public const FORM_DATA_PARAM  = 'form_data';
 	public const MAX_PARAM        = 'max';
+	public const DELETE_PARAM     = '_delete';
 	public const ORDER_BY_PARAM   = 'order_by';
 
 	public const PAGE_PARAM      = 'page';

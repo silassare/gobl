@@ -17,6 +17,7 @@ use Countable;
 use Generator;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\QBSelect;
+use Gobl\DBAL\Table;
 use Gobl\ORM\Exceptions\ORMRuntimeException;
 use Gobl\ORM\Utils\ORMClassKind;
 use Iterator;
@@ -26,7 +27,7 @@ use PDOStatement;
 /**
  * Class ORMResults.
  *
- * @template TEntity of \Gobl\ORM\ORMEntity
+ * @template TEntity of ORMEntity
  *
  * @implements  \Iterator<int,TEntity>
  */
@@ -34,6 +35,9 @@ abstract class ORMResults implements Countable, Iterator
 {
 	/** @var RDBMSInterface */
 	protected RDBMSInterface $db;
+
+	/** @var Table */
+	protected Table $table;
 
 	/** @var QBSelect */
 	protected QBSelect $query;
@@ -57,13 +61,13 @@ abstract class ORMResults implements Countable, Iterator
 	protected ?PDOStatement $statement = null;
 
 	/**
-	 * @var null|\Gobl\ORM\ORMEntity
+	 * @var null|ORMEntity
 	 *
 	 * @psalm-var null|TEntity
 	 */
 	protected ?ORMEntity $current = null;
 
-	/** @var string */
+	/** @var class-string<TEntity> */
 	protected string $entity_class;
 
 	/**
@@ -76,6 +80,7 @@ abstract class ORMResults implements Countable, Iterator
 	protected function __construct(string $namespace, protected string $table_name, QBSelect $query)
 	{
 		$this->db           = ORM::getDatabase($namespace);
+		$this->table        = $this->db->getTable($this->table_name);
 		$this->entity_class = ORMClassKind::ENTITY->getClassFQN($this->db->getTableOrFail($table_name));
 		$this->query        = $query;
 		$driver             = $this->db->getConnection()
@@ -96,6 +101,15 @@ abstract class ORMResults implements Countable, Iterator
 	{
 		return ['instance_of' => static::class];
 	}
+
+	/**
+	 * Returns new instance.
+	 *
+	 * @param QBSelect $query the select query builder instance
+	 *
+	 * @return static<TEntity>
+	 */
+	abstract public static function new(QBSelect $query): static;
 
 	/**
 	 * Lazily iterate through large result set.
@@ -133,15 +147,13 @@ abstract class ORMResults implements Countable, Iterator
 	 */
 	public function fetchClass(bool $strict = true): ?ORMEntity
 	{
-		/** @var ORMEntity $entity_class */
-		$entity_class = $this->entity_class;
-		$entity       = $entity_class::new(false, $strict);
-		$stmt         = $this->getStatement();
+		$entity = ORM::entity($this->table, false, $strict);
+		$stmt   = $this->getStatement();
 
 		$stmt->setFetchMode(PDO::FETCH_INTO, $entity);
 		$entity = $stmt->fetch();
 
-		if ($entity instanceof $entity_class) {
+		if ($entity instanceof $this->entity_class) {
 			$entity->isSaved(true); // the entity is fetched from the database
 
 			return $entity;
@@ -149,15 +161,6 @@ abstract class ORMResults implements Countable, Iterator
 
 		return null;
 	}
-
-	/**
-	 * Returns new instance.
-	 *
-	 * @param QBSelect $query the select query builder instance
-	 *
-	 * @return static<TEntity>
-	 */
-	abstract public static function new(QBSelect $query): static;
 
 	/**
 	 * Fetches the next row.

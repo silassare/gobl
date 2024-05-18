@@ -41,6 +41,7 @@ final class LinkMorph extends Link
 	 * @param Table $host_table
 	 * @param Table $target_table
 	 * @param array{
+	 *        filters?: array,
 	 *        prefix?: string,
 	 *        parent_type?: string,
 	 *        parent_key_column?: string,
@@ -53,9 +54,9 @@ final class LinkMorph extends Link
 	public function __construct(
 		Table $host_table,
 		Table $target_table,
-		private readonly array $options = []
+		array $options = []
 	) {
-		parent::__construct(LinkType::MORPH, $host_table, $target_table);
+		parent::__construct(LinkType::MORPH, $host_table, $target_table, $options);
 
 		if (isset($this->options['prefix'])) {
 			$this->morph_child_key_column  = $this->options['prefix'] . '_id';
@@ -171,7 +172,7 @@ final class LinkMorph extends Link
 	/**
 	 * {@inheritDoc}
 	 */
-	public function apply(QBSelect $target_qb, ?ORMEntity $host_entity = null): bool
+	public function runLinkTypeApplyLogic(QBSelect $target_qb, ?ORMEntity $host_entity = null): bool
 	{
 		$filters = $target_qb->filters();
 

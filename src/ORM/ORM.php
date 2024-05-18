@@ -14,9 +14,11 @@ declare(strict_types=1);
 namespace Gobl\ORM;
 
 use Gobl\DBAL\Interfaces\RDBMSInterface;
+use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Table;
 use Gobl\Gobl;
 use Gobl\ORM\Exceptions\ORMRuntimeException;
+use Gobl\ORM\Utils\ORMClassKind;
 use PHPUtils\FS\FSUtils;
 use Throwable;
 
@@ -62,6 +64,20 @@ class ORM
 	}
 
 	/**
+	 * Returns the table instance for a given table name in a given namespace.
+	 *
+	 * @param string $namespace  the database namespace
+	 * @param string $table_name the table name
+	 *
+	 * @return Table
+	 */
+	public static function table(string $namespace, string $table_name): Table
+	{
+		return self::getDatabase($namespace)
+			->getTableOrFail($table_name);
+	}
+
+	/**
 	 * Returns the db instance for the given namespace.
 	 *
 	 * @param string $namespace the database namespace
@@ -78,20 +94,6 @@ class ORM
 	}
 
 	/**
-	 * Returns the table instance for a given table name in a given namespace.
-	 *
-	 * @param string $namespace  the database namespace
-	 * @param string $table_name the table name
-	 *
-	 * @return Table
-	 */
-	public static function table(string $namespace, string $table_name): Table
-	{
-		return self::getDatabase($namespace)
-			->getTableOrFail($table_name);
-	}
-
-	/**
 	 * Returns the output directory for the given namespace.
 	 *
 	 * @param string $namespace the database namespace
@@ -105,5 +107,75 @@ class ORM
 		}
 
 		return self::$namespaces[$namespace]['out_dir'];
+	}
+
+	/**
+	 * Returns a new entity controller instance for a given table.
+	 *
+	 * @param Table $table
+	 *
+	 * @return ORMController
+	 */
+	public static function ctrl(Table $table): ORMController
+	{
+		/** @var ORMController $ctrl_class */
+		$ctrl_class = ORMClassKind::CONTROLLER->getClassFQN($table);
+
+		return $ctrl_class::new();
+	}
+
+	/**
+	 * Returns a new entity instance for a given table.
+	 *
+	 * @param Table $table
+	 * @param bool  $is_new
+	 * @param bool  $strict
+	 *
+	 * @return ORMEntity
+	 */
+	public static function entity(Table $table, bool $is_new = true, bool $strict = true): ORMEntity
+	{
+		/** @var ORMEntity $entity_class */
+		$entity_class = ORMClassKind::ENTITY->getClassFQN($table);
+
+		return $entity_class::new($is_new, $strict);
+	}
+
+	/**
+	 * Returns a new entity results instance for a given table and queries.
+	 *
+	 * @param Table    $table
+	 * @param QBSelect $qb
+	 *
+	 * @return ORMResults
+	 */
+	public static function results(Table $table, QBSelect $qb): ORMResults
+	{
+		/** @var ORMResults $results_class */
+		$results_class = ORMClassKind::RESULTS->getClassFQN($table);
+
+		return $results_class::new($qb);
+	}
+
+	/**
+	 * Returns a new table query instance for a given table and filters.
+	 *
+	 * @param Table $table
+	 * @param array $filters
+	 *
+	 * @return ORMTableQuery
+	 */
+	public static function query(Table $table, array $filters = []): ORMTableQuery
+	{
+		/** @var ORMTableQuery $class */
+		$class = ORMClassKind::QUERY->getClassFQN($table);
+
+		$tq = $class::new();
+
+		if (!empty($filters)) {
+			$tq->where($filters);
+		}
+
+		return $tq;
 	}
 }
