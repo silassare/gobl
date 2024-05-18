@@ -94,7 +94,6 @@ abstract class CSGenerator
 			'class'      => [
 				'crud'       => ORMClassKind::CRUD->getClassName($table),
 				'entity'     => ORMClassKind::ENTITY->getClassName($table),
-				'entity_vr'  => ORMClassKind::ENTITY_VR->getClassName($table),
 				'results'    => ORMClassKind::RESULTS->getClassName($table),
 				'query'      => ORMClassKind::QUERY->getClassName($table),
 				'controller' => ORMClassKind::CONTROLLER->getClassName($table),

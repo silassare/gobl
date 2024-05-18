@@ -23,8 +23,6 @@ enum ORMClassKind: string
 {
 	case ENTITY = 'entity';
 
-	case ENTITY_VR = 'entity_vr';
-
 	case QUERY = 'query';
 
 	case RESULTS = 'results';
@@ -36,8 +34,6 @@ enum ORMClassKind: string
 	case BASE_ENTITY = 'base.entity';
 
 	case BASE_CRUD = 'base.crud';
-
-	case BASE_ENTITY_VR = 'base.entity_vr';
 
 	case BASE_QUERY = 'base.query';
 
@@ -82,12 +78,11 @@ enum ORMClassKind: string
 	public function getClassName(Table $table): string
 	{
 		return match ($this) {
-			self::ENTITY, self::BASE_ENTITY => Str::toClassName($table->getSingularName()),
-			self::ENTITY_VR, self::BASE_ENTITY_VR => Str::toClassName($table->getSingularName() . '_vr'),
-			self::QUERY, self::BASE_QUERY => Str::toClassName($table->getPluralName() . '_query'),
+			self::ENTITY, self::BASE_ENTITY         => Str::toClassName($table->getSingularName()),
+			self::QUERY, self::BASE_QUERY           => Str::toClassName($table->getPluralName() . '_query'),
 			self::CONTROLLER, self::BASE_CONTROLLER => Str::toClassName($table->getPluralName() . '_controller'),
-			self::CRUD, self::BASE_CRUD => Str::toClassName($table->getPluralName() . '_crud'),
-			self::RESULTS, self::BASE_RESULTS => Str::toClassName($table->getPluralName() . '_results')
+			self::CRUD, self::BASE_CRUD             => Str::toClassName($table->getPluralName() . '_crud'),
+			self::RESULTS, self::BASE_RESULTS       => Str::toClassName($table->getPluralName() . '_results')
 		};
 	}
 }

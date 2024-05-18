@@ -17,7 +17,6 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Relations\Relation;
-use Gobl\DBAL\Relations\VirtualRelation;
 use Gobl\DBAL\Table;
 use Gobl\Exceptions\GoblException;
 use Gobl\Gobl;
@@ -154,14 +153,12 @@ Time: {$date}";
 	{
 		$file = match ($kind) {
 			ORMClassKind::ENTITY,
-			ORMClassKind::ENTITY_VR,
 			ORMClassKind::CRUD,
 			ORMClassKind::CONTROLLER,
 			ORMClassKind::RESULTS,
 			ORMClassKind::QUERY           => $this->getExtendsOf($table, $kind),
 			ORMClassKind::BASE_ENTITY     => $this->getBaseEntity($table),
 			ORMClassKind::BASE_CRUD       => $this->getBaseCRUD($table),
-			ORMClassKind::BASE_ENTITY_VR  => $this->getBaseEntityVR($table),
 			ORMClassKind::BASE_QUERY      => $this->getBaseQuery($table),
 			ORMClassKind::BASE_RESULTS    => $this->getBaseResults($table),
 			ORMClassKind::BASE_CONTROLLER => $this->getBaseController($table),
@@ -185,7 +182,7 @@ Time: {$date}";
 		$class      = $namespace->newClass($class_name);
 
 		$inject = [
-			'class_name'   => $class_name,
+			'class_name'   => $class->getName(),
 			'db_namespace' => $db_ns,
 		];
 
@@ -197,19 +194,6 @@ Time: {$date}";
 		$class->extends($base_class_alias)
 			->setContent($this->editable_body_comment)
 			->comment(Str::interpolate('Class {class_name}.', $inject));
-
-		if (ORMClassKind::ENTITY_VR === $kind) {
-			$class->abstract();
-			$class->comment(
-				Str::interpolate(
-					'Class {class_name}.
-
-@template TRelationResult
-@extends \{db_namespace}\Base\{class_name}<TRelationResult>',
-					$inject
-				)
-			);
-		}
 
 		return $file->setContent($namespace);
 	}
@@ -611,66 +595,6 @@ return $this;',
 					$inject
 				)
 			);
-
-		return $file->setContent($namespace);
-	}
-
-	private function getBaseEntityVR(Table $table): PHPFile
-	{
-		$db_ns                = $table->getNamespace();
-		$entity_vr_class_name = ORMClassKind::BASE_ENTITY_VR->getClassName($table);
-		$entity_class_name    = ORMClassKind::ENTITY->getClassName($table);
-		$file                 = new PHPFile();
-		$namespace            = new PHPNamespace(\sprintf('%s\Base', $db_ns));
-		$class                = $namespace->newClass($entity_vr_class_name);
-
-		$inject = [
-			'entity_vr_class_name' => $class->getName(),
-			'entity_class_name'    => $entity_class_name,
-			'db_namespace'         => $db_ns,
-		];
-
-		$class->extends(VirtualRelation::class)
-			->abstract()
-			->comment(
-				Str::interpolate(
-					'Class {entity_vr_class_name}.
-
-@template TRelationResult
-@extends \\' . VirtualRelation::class . '<\{db_namespace}\{entity_class_name}, TRelationResult>
-',
-					$inject
-				)
-			);
-
-		$construct = $class->newMethod('__construct')
-			->public()
-			->addChild(
-				Str::interpolate(
-					'parent::__construct(
-	\{db_namespace}\{entity_class_name}::TABLE_NAMESPACE,
-	\{db_namespace}\{entity_class_name}::TABLE_NAME,
-	$name,
-	$paginated
-);
-',
-					$inject
-				)
-			);
-
-		$construct->comment(
-			Str::interpolate(
-				'{class_name} constructor.
-@param string $name      the relation name
-@param bool   $paginated true if the relation returns paginated items',
-				$inject
-			)
-		);
-
-		$construct->newArgument('name')
-			->setType('string');
-		$construct->newArgument('paginated')
-			->setType('bool');
 
 		return $file->setContent($namespace);
 	}
