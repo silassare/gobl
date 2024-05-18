@@ -15,7 +15,6 @@ namespace Gobl\Tests\DBAL\Queries;
 
 use Gobl\DBAL\Builders\TableBuilder;
 use Gobl\DBAL\Exceptions\DBALException;
-use Gobl\DBAL\Queries\NamedToPositionalParams;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\Tests\BaseTestCase;
 
@@ -33,16 +32,16 @@ final class QBSelectTest extends BaseTestCase
 	 */
 	public function testFullyQualifiedNameArray(): void
 	{
-		$db    = self::getEmptyDb();
-		$ns    = $db->ns('test');
-		$users = $ns->table('users', static function (TableBuilder $t) {
+		$db = self::getEmptyDb();
+		$ns = $db->ns('test');
+		$ns->table('users', static function (TableBuilder $t) {
 			$t->columnPrefix('usr');
 			$t->id();
 			$t->string('name');
 			$t->string('phone');
 		});
 
-		$commands = $ns->table('commands', static function (TableBuilder $t) {
+		$ns->table('commands', static function (TableBuilder $t) {
 			$t->columnPrefix('cmd');
 			$t->id();
 			$t->string('title');
@@ -88,34 +87,32 @@ final class QBSelectTest extends BaseTestCase
 	 */
 	public function testRelationQuery(): void
 	{
-		$db = self::getSampleDB();
+		$db       = self::getSampleDB();
+		$articles = $db->getTableOrFail('articles');
 
-		$qb = new QBSelect($db);
-		$qb->select()
+		$qb_a = new QBSelect($db);
+		$qb_a->select()
 			->from('tags');
 
-		$db->getTableOrFail('articles')
-			->getRelation('tags')
+		$articles->getRelation('tags')
 			->getLink()
-			->apply($qb);
+			->apply($qb_a);
 
-		$tags_full_name      = $db->getTableOrFail('tags')
-			->getFullName();
-		$tags_alias          = $qb->getMainAlias($tags_full_name);
-		$articles_full_name  = $db->getTableOrFail('articles')
-			->getFullName();
-		$articles_alias      = $qb->getMainAlias($articles_full_name);
-		$taggables_full_name = $db->getTableOrFail('taggables')
-			->getFullName();
-		$taggables_alias     = $qb->getMainAlias($taggables_full_name);
+		self::assertSame('SELECT * FROM gObL_tags _a_  INNER JOIN gObL_taggables _b_ ON (_a_.id = _b_.tag_id) INNER JOIN gObL_articles _c_ ON (_b_.taggable_id = _c_.id AND _b_.taggable_type = :_val_d) WHERE 1 = 1', $qb_a->getSqlQuery());
+		self::assertSame(['_val_d' => 'articles'], $qb_a->getBoundValues());
 
-		$bound_values = $qb->getBoundValues();
+		$qb_b = new QBSelect($db);
+		$qb_b->select()
+			->from('tags');
 
-		$sql = $qb->getSqlQuery();
-		$n   = new NamedToPositionalParams($sql, $bound_values, $qb->getBoundValuesTypes());
+		$articles->getRelation('recently_added_tags')
+			->getLink()
+			->apply($qb_b);
 
-		self::assertSame("SELECT * FROM {$tags_full_name} {$tags_alias}  INNER JOIN {$taggables_full_name} {$taggables_alias} ON ({$tags_alias}.id = {$taggables_alias}.tag_id) INNER JOIN {$articles_full_name} {$articles_alias} ON ({$taggables_alias}.taggable_id = {$articles_alias}.id AND {$taggables_alias}.taggable_type = ?) WHERE 1 = 1", $n->getNewQuery());
-
-		self::assertSame(['articles'], $n->getNewParams());
+		self::assertSame('SELECT * FROM gObL_tags _e_  INNER JOIN gObL_taggables _f_ ON (_e_.id = _f_.tag_id) INNER JOIN gObL_articles _g_ ON (_f_.taggable_id = _g_.id AND _f_.taggable_type = :_val_h) WHERE ((_f_.created_at > :_val_i))', $qb_b->getSqlQuery());
+		self::assertSame([
+			'_val_h' => 'articles',
+			'_val_i' => '2020-01-01',
+		], $qb_b->getBoundValues());
 	}
 }

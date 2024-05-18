@@ -22,6 +22,7 @@ use Gobl\DBAL\Drivers\SQLLite\SQLLite;
 use Gobl\DBAL\Drivers\SQLLite\SQLLiteQueryGenerator;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
+use Gobl\DBAL\Queries\QBUtils;
 use Gobl\DBAL\Relations\LinkType;
 use Gobl\Exceptions\GoblRuntimeException;
 use InvalidArgumentException;
@@ -44,6 +45,7 @@ abstract class BaseTestCase extends TestCase
 	protected function tearDown(): void
 	{
 		parent::tearDown();
+		QBUtils::resetIdentifierCounter();
 		self::$rdbms = [];
 	}
 
@@ -137,6 +139,7 @@ abstract class BaseTestCase extends TestCase
 		$taggables = $ns->table('taggables', static function (TableBuilder $t) {
 			$t->id();
 			$t->foreign('tag_id', 'tags', 'id');
+			$t->timestamps();
 			$t->morph('taggable');
 
 			$t->belongsTo('tag')
@@ -156,6 +159,13 @@ abstract class BaseTestCase extends TestCase
 				->through('taggables', [
 					'type'   => LinkType::MORPH,
 					'prefix' => 'taggable',
+				]);
+			$t->hasMany('recently_added_tags')
+				->from('tags')
+				->through('taggables', [
+					'type'    => LinkType::MORPH,
+					'prefix'  => 'taggable',
+					'filters' => ['created_at', 'gt', '2020-01-01'],
 				]);
 		});
 
