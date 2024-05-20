@@ -91,6 +91,25 @@ final class LinkColumns extends Link
 	/**
 	 * {@inheritDoc}
 	 */
+	public function fillRelation(ORMEntity $host_entity, array &$target_data = []): bool
+	{
+		foreach ($this->columns_mapping as $host_column => $target_column) {
+			$value = $host_entity->{$host_column};
+
+			// a null value makes the relation invalid
+			if (null === $value) {
+				return false;
+			}
+
+			$target_data[$target_column] = $value;
+		}
+
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function runLinkTypeApplyLogic(QBSelect $target_qb, ?ORMEntity $host_entity = null): bool
 	{
 		if ($host_entity) {

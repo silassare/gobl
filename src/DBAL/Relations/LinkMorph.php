@@ -172,6 +172,30 @@ final class LinkMorph extends Link
 	/**
 	 * {@inheritDoc}
 	 */
+	public function fillRelation(ORMEntity $host_entity, array &$target_data = []): bool
+	{
+		if ($this->host_is_parent) {
+			$key = $host_entity->{$this->morph_parent_key_column};
+
+			if (null === $key) {
+				return false;
+			}
+
+			$key_column  = $this->target_table->getColumnOrFail($this->morph_child_key_column)->getFullName();
+			$type_column = $this->target_table->getColumnOrFail($this->morph_child_type_column)->getFullName();
+
+			$target_data[$key_column]  = $key;
+			$target_data[$type_column] = $this->morph_parent_type;
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function runLinkTypeApplyLogic(QBSelect $target_qb, ?ORMEntity $host_entity = null): bool
 	{
 		$filters = $target_qb->filters();

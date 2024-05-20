@@ -132,6 +132,14 @@ final class LinkThrough extends Link
 	/**
 	 * {@inheritDoc}
 	 */
+	public function fillRelation(ORMEntity $host_entity, array &$target_data = []): bool
+	{
+		return false;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function runLinkTypeApplyLogic(QBSelect $target_qb, ?ORMEntity $host_entity = null): bool
 	{
 		if ($this->pivot_to_target_link->apply($target_qb)) {
