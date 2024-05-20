@@ -30,57 +30,50 @@ use Gobl\ORM\ORMRequest;
 interface RelationControllerInterface
 {
 	/**
-	 * Gets a relative for a given target item.
+	 * Gets a relative of a given item.
 	 *
-	 * @psalm-param ORMEntity $entity
+	 * @psalm-param ORMEntity $host_entity
 	 *
 	 * @return TRelative
 	 */
-	public function get(
-		ORMEntity $entity,
-		ORMRequest $request,
-	): mixed;
+	public function get(ORMEntity $host_entity, ORMRequest $request): mixed;
 
 	/**
-	 * Gets a list of relatives for a given target item.
+	 * Gets a list of relatives of a given item.
 	 *
-	 * @psalm-param ORMEntity $entity
+	 * @psalm-param ORMEntity $host_entity
 	 *
 	 * @return TRelative[]
 	 */
-	public function list(
-		ORMEntity $entity,
-		ORMRequest $request,
-		?int &$total_records = null
-	): array;
+	public function list(ORMEntity $host_entity, ORMRequest $request, ?int &$total_records = null): array;
 
 	/**
-	 * Create a relative to a target item relation.
+	 * Create a relative for a given item.
 	 *
-	 * @psalm-param ORMEntity $entity
+	 * @psalm-param ORMEntity $host_entity
 	 * @psalm-param TRelativeCreatePayload $payload
 	 *
 	 * @return TRelative
 	 */
-	public function create(ORMEntity $entity, array $payload): mixed;
+	public function create(ORMEntity $host_entity, array $payload): mixed;
 
 	/**
-	 * Update a relative in a target item relation.
+	 * Update a relative of a given item.
 	 *
-	 * @psalm-param ORMEntity $entity
+	 * @psalm-param ORMEntity $host_entity
 	 * @psalm-param TRelativeIdentityPayload $payload
 	 *
 	 * @return TRelative
 	 */
-	public function update(ORMEntity $entity, array $payload): mixed;
+	public function update(ORMEntity $host_entity, array $payload): mixed;
 
 	/**
-	 * Delete a relative from a target item relation.
+	 * Delete a relative of a given item.
 	 *
-	 * @psalm-param ORMEntity $entity
+	 * @psalm-param ORMEntity $host_entity
 	 * @psalm-param TRelativeIdentityPayload $payload
 	 *
 	 * @return TRelative
 	 */
-	public function delete(ORMEntity $entity, array $payload): mixed;
+	public function delete(ORMEntity $host_entity, array $payload): mixed;
 }

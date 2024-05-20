@@ -48,12 +48,12 @@ class ORMEntityRelationController implements RelationControllerInterface
 	 *
 	 * @throws GoblException
 	 */
-	public function get(ORMEntity $entity, ORMRequest $request): null|ORMEntity
+	public function get(ORMEntity $host_entity, ORMRequest $request): null|ORMEntity
 	{
 		$order_by = $request->getOrderBy();
 		$filters  = $request->getFilters();
 
-		return $this->controller->getRelative($entity, $this->relation, $order_by, $filters);
+		return $this->controller->getRelative($host_entity, $this->relation, $order_by, $filters);
 	}
 
 	/**
@@ -61,7 +61,7 @@ class ORMEntityRelationController implements RelationControllerInterface
 	 *
 	 * @throws GoblException
 	 */
-	public function list(ORMEntity $entity, ORMRequest $request, ?int &$total_records = null): array
+	public function list(ORMEntity $host_entity, ORMRequest $request, ?int &$total_records = null): array
 	{
 		$max      = $request->getMax();
 		$offset   = $request->getOffset();
@@ -69,7 +69,7 @@ class ORMEntityRelationController implements RelationControllerInterface
 		$filters  = $request->getFilters();
 
 		return $this->controller->getAllRelatives(
-			$entity,
+			$host_entity,
 			$this->relation,
 			$filters,
 			$max,
@@ -85,9 +85,9 @@ class ORMEntityRelationController implements RelationControllerInterface
 	 * @throws DBALException
 	 * @throws GoblException
 	 */
-	public function create(ORMEntity $entity, array $payload): mixed
+	public function create(ORMEntity $host_entity, array $payload): mixed
 	{
-		ORMTableQuery::assertCanManageRelatives($this->table, $this->relation, $entity);
+		ORMTableQuery::assertCanManageRelatives($this->table, $this->relation, $host_entity);
 
 		$fk      = $this->table->getDefaultForeignKeyConstraintFrom($this->relation->getHostTable());
 		$columns = $fk->getColumnsMapping();
@@ -105,9 +105,9 @@ class ORMEntityRelationController implements RelationControllerInterface
 	 * @throws ORMException
 	 * @throws GoblException
 	 */
-	public function update(ORMEntity $entity, array $payload): ORMEntity
+	public function update(ORMEntity $host_entity, array $payload): ORMEntity
 	{
-		$target = $this->identify($entity, $payload)->hydrate($payload);
+		$target = $this->identify($host_entity, $payload)->hydrate($payload);
 
 		$target->save();
 
@@ -120,9 +120,9 @@ class ORMEntityRelationController implements RelationControllerInterface
 	 * @throws ORMException
 	 * @throws GoblException
 	 */
-	public function delete(ORMEntity $entity, array $payload): ORMEntity
+	public function delete(ORMEntity $host_entity, array $payload): ORMEntity
 	{
-		return $this->identify($entity, $payload)->selfDelete();
+		return $this->identify($host_entity, $payload)->selfDelete();
 	}
 
 	/**
@@ -131,12 +131,12 @@ class ORMEntityRelationController implements RelationControllerInterface
 	 * @throws GoblException
 	 * @throws ORMException
 	 */
-	private function identify(ORMEntity $entity, array $relative): ORMEntity
+	private function identify(ORMEntity $host_entity, array $relative): ORMEntity
 	{
 		$filters = $this->extractFilters($relative);
 
 		$target = $this->controller->getRelative(
-			$entity,
+			$host_entity,
 			$this->relation,
 			$filters
 		);
