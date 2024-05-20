@@ -89,11 +89,10 @@ class ORMEntityRelationController implements RelationControllerInterface
 	{
 		ORMTableQuery::assertCanManageRelatives($this->table, $this->relation, $host_entity);
 
-		$fk      = $this->table->getDefaultForeignKeyConstraintFrom($this->relation->getHostTable());
-		$columns = $fk->getColumnsMapping();
+		$link = $this->relation->getLink();
 
-		foreach ($columns as $target_col => $source_col) {
-			$payload[$target_col] = $entity->{$source_col};
+		if (!$link->fillRelation($host_entity, $payload)) {
+			throw new ORMException('Unable to fill relation.');
 		}
 
 		return $this->controller->addItem($payload);
