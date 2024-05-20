@@ -441,17 +441,17 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 */
 	public function selectRelatives(
 		Relation $relation,
-		?ORMEntity $entity = null,
+		?ORMEntity $host_entity = null,
 		?int $max = null,
 		int $offset = 0,
 		array $order_by = [],
 	): ?QBSelect {
-		self::assertCanManageRelatives($this->table, $relation, $entity);
+		self::assertCanManageRelatives($this->table, $relation, $host_entity);
 
 		$sel = $this->select($max, $offset, $order_by);
 		$l   = $relation->getLink();
 
-		if ($l->apply($sel, $entity)) {
+		if ($l->apply($sel, $host_entity)) {
 			return $sel;
 		}
 
@@ -463,11 +463,11 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 *
 	 * @param Table          $expected_target_table
 	 * @param Relation       $relation
-	 * @param null|ORMEntity $entity
+	 * @param null|ORMEntity $host_entity
 	 *
 	 * @internal
 	 */
-	public static function assertCanManageRelatives(Table $expected_target_table, Relation $relation, ?ORMEntity $entity)
+	public static function assertCanManageRelatives(Table $expected_target_table, Relation $relation, ?ORMEntity $host_entity): void
 	{
 		$target_table = $relation->getTargetTable();
 		$host_table   = $relation->getHostTable();
@@ -483,12 +483,12 @@ abstract class ORMTableQuery extends FiltersTableScope
 			);
 		}
 
-		if ($entity) {
-			if (!$entity->isSaved()) {
+		if ($host_entity) {
+			if (!$host_entity->isSaved()) {
 				throw new ORMRuntimeException('Entity should be persisted to get relatives.');
 			}
 
-			if ($entity::table() !== $host_table) {
+			if ($host_entity::table() !== $host_table) {
 				$expected_entity_class = ORMClassKind::ENTITY->getClassFQN($host_table);
 
 				throw new ORMRuntimeException(
@@ -496,7 +496,7 @@ abstract class ORMTableQuery extends FiltersTableScope
 						'To get relatives for the relation "%s" the entity should be an instance of "%s" not "%s".',
 						$relation->getName(),
 						$expected_entity_class,
-						\get_class($entity)
+						\get_class($host_entity)
 					)
 				);
 			}
