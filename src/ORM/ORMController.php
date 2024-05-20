@@ -431,7 +431,7 @@ abstract class ORMController
 	/**
 	 * Gets a given item relative.
 	 *
-	 * @param ORMEntity $entity
+	 * @param ORMEntity $host_entity
 	 * @param Relation  $relation
 	 * @param array     $filters
 	 * @param array     $order_by
@@ -441,39 +441,39 @@ abstract class ORMController
 	 * @throws GoblException
 	 */
 	public function getRelative(
-		ORMEntity $entity,
+		ORMEntity $host_entity,
 		Relation $relation,
 		array $filters = [],
 		array $order_by = []
 	): ?ORMEntity {
-		return $this->db->runInTransaction(function () use ($entity, $relation, $filters, $order_by): ?ORMEntity {
+		return $this->db->runInTransaction(function () use ($host_entity, $relation, $filters, $order_by): ?ORMEntity {
 			/** @var TQuery $tq */
 			$tq = ORM::query($this->table, $filters);
 
 			$this->crud->assertRead($tq);
 
-			$qb = $tq->selectRelatives($relation, $entity, 1, 0, $order_by);
+			$qb = $tq->selectRelatives($relation, $host_entity, 1, 0, $order_by);
 
 			if (!$qb) {
 				return null;
 			}
 
 			/** @var TResults $results */
-			$results = ORM::results($this->table, $qb);
-			$entity  = $results->fetchClass();
+			$results       = ORM::results($this->table, $qb);
+			$target_entity = $results->fetchClass();
 
-			if ($entity) {
-				$this->crud->dispatchEntityEvent($entity, EntityEventType::AFTER_READ);
+			if ($target_entity) {
+				$this->crud->dispatchEntityEvent($target_entity, EntityEventType::AFTER_READ);
 			}
 
-			return $entity;
+			return $target_entity;
 		});
 	}
 
 	/**
 	 * Gets a given item relatives.
 	 *
-	 * @param ORMEntity $entity
+	 * @param ORMEntity $host_entity
 	 * @param Relation  $relation
 	 * @param array     $filters
 	 * @param null|int  $max
@@ -486,7 +486,7 @@ abstract class ORMController
 	 * @throws GoblException
 	 */
 	public function getAllRelatives(
-		ORMEntity $entity,
+		ORMEntity $host_entity,
 		Relation $relation,
 		array $filters = [],
 		?int $max = null,
@@ -495,13 +495,13 @@ abstract class ORMController
 		?int &$total = null
 	): array {
 		return $this->db->runInTransaction(
-			function () use ($entity, $relation, $filters, $max, $offset, $order_by, &$total): array {
+			function () use ($host_entity, $relation, $filters, $max, $offset, $order_by, &$total): array {
 				/** @var TQuery $tq */
 				$tq = ORM::query($this->table, $filters);
 
 				$this->crud->assertReadAll($tq);
 
-				$qb = $tq->selectRelatives($relation, $entity, $max, $offset, $order_by);
+				$qb = $tq->selectRelatives($relation, $host_entity, $max, $offset, $order_by);
 
 				if (!$qb) {
 					return [];
