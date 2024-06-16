@@ -111,9 +111,9 @@ class QBSelect implements QBInterface
 	/**
 	 * Adds columns to select.
 	 *
-	 * @param null|\Gobl\DBAL\Table|string $table_name_or_alias
-	 * @param array                        $columns
-	 * @param bool                         $auto_prefix
+	 * @param null|string|Table $table_name_or_alias
+	 * @param array             $columns
+	 * @param bool              $auto_prefix
 	 *
 	 * @return $this
 	 */

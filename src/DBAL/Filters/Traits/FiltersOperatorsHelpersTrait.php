@@ -86,8 +86,8 @@ trait FiltersOperatorsHelpersTrait
 	/**
 	 * Adds less than condition.
 	 *
-	 * @param string                                                                       $left
-	 * @param float|\Gobl\DBAL\Queries\QBExpression|\Gobl\DBAL\Queries\QBSelect|int|string $right
+	 * @param string                                 $left
+	 * @param float|int|QBExpression|QBSelect|string $right
 	 *
 	 * @return $this
 	 */
@@ -99,8 +99,8 @@ trait FiltersOperatorsHelpersTrait
 	/**
 	 * Adds less than or equal condition.
 	 *
-	 * @param string                                                                       $left
-	 * @param float|\Gobl\DBAL\Queries\QBExpression|\Gobl\DBAL\Queries\QBSelect|int|string $right
+	 * @param string                                 $left
+	 * @param float|int|QBExpression|QBSelect|string $right
 	 *
 	 * @return $this
 	 */
@@ -112,8 +112,8 @@ trait FiltersOperatorsHelpersTrait
 	/**
 	 * Adds greater than condition.
 	 *
-	 * @param string                                                                       $left
-	 * @param float|\Gobl\DBAL\Queries\QBExpression|\Gobl\DBAL\Queries\QBSelect|int|string $right
+	 * @param string                                 $left
+	 * @param float|int|QBExpression|QBSelect|string $right
 	 *
 	 * @return $this
 	 */
@@ -125,8 +125,8 @@ trait FiltersOperatorsHelpersTrait
 	/**
 	 * Adds greater than or equal condition.
 	 *
-	 * @param string                                                                       $left
-	 * @param float|\Gobl\DBAL\Queries\QBExpression|\Gobl\DBAL\Queries\QBSelect|int|string $right
+	 * @param string                                 $left
+	 * @param float|int|QBExpression|QBSelect|string $right
 	 *
 	 * @return $this
 	 */
@@ -162,8 +162,8 @@ trait FiltersOperatorsHelpersTrait
 	/**
 	 * Adds IN list condition.
 	 *
-	 * @param string                                                            $left
-	 * @param array|\Gobl\DBAL\Queries\QBExpression|\Gobl\DBAL\Queries\QBSelect $right
+	 * @param string                      $left
+	 * @param array|QBExpression|QBSelect $right
 	 *
 	 * @return $this
 	 *
@@ -185,8 +185,8 @@ trait FiltersOperatorsHelpersTrait
 	/**
 	 * Adds NOT IN list condition.
 	 *
-	 * @param string                                                            $left
-	 * @param array|\Gobl\DBAL\Queries\QBExpression|\Gobl\DBAL\Queries\QBSelect $right
+	 * @param string                      $left
+	 * @param array|QBExpression|QBSelect $right
 	 *
 	 * @return $this
 	 *

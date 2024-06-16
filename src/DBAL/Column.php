@@ -88,7 +88,7 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	 * @param null|string              $prefix the column prefix
 	 * @param null|array|TypeInterface $type   the column type or type options
 	 */
-	public function __construct(string $name, ?string $prefix = null, array|TypeInterface $type = null)
+	public function __construct(string $name, ?string $prefix = null, null|array|TypeInterface $type = null)
 	{
 		$this->setName($name);
 
@@ -321,9 +321,9 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Sets column reference.
 	 *
-	 * @param null|\Gobl\DBAL\Column|string $reference Column instance or column reference string
-	 * @param bool                          $copy      If true and reference is a column instance, the column type will
-	 *                                                 be considered as a copy of the reference column type
+	 * @param null|Column|string $reference Column instance or column reference string
+	 * @param bool               $copy      If true and reference is a column instance, the column type will
+	 *                                      be considered as a copy of the reference column type
 	 *
 	 * @return Column
 	 */
@@ -358,7 +358,7 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Gets the table in which the column is locked.
 	 *
-	 * @return null|\Gobl\DBAL\Table
+	 * @return null|Table
 	 */
 	public function getTable(): ?Table
 	{

@@ -39,8 +39,8 @@ final class Filters
 	/**
 	 * FiltersBuilder constructor.
 	 *
-	 * @param QBInterface                                              $qb
-	 * @param null|\Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface $scope
+	 * @param QBInterface                $qb
+	 * @param null|FiltersScopeInterface $scope
 	 */
 	public function __construct(protected QBInterface $qb, protected ?FiltersScopeInterface $scope = null)
 	{
@@ -84,9 +84,9 @@ final class Filters
 	 * ]
 	 *```
 	 *
-	 * @param array                                                    $filters
-	 * @param QBInterface                                              $qb
-	 * @param null|\Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface $scope
+	 * @param array                      $filters
+	 * @param QBInterface                $qb
+	 * @param null|FiltersScopeInterface $scope
 	 *
 	 * @return static
 	 */
@@ -246,7 +246,7 @@ final class Filters
 	 * in the actual filters scope...
 	 * ```
 	 *
-	 * @param array|callable|\Gobl\DBAL\Filters\Filters ...$filters
+	 * @param array|callable|Filters ...$filters
 	 *
 	 * @return $this
 	 */
@@ -473,9 +473,9 @@ final class Filters
 	 * ]
 	 * ```
 	 *
-	 * @param array                                                    $filters
-	 * @param QBInterface                                              $qb
-	 * @param null|\Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface $scope
+	 * @param array                      $filters
+	 * @param QBInterface                $qb
+	 * @param null|FiltersScopeInterface $scope
 	 *
 	 * @return Filters
 	 */
@@ -570,7 +570,7 @@ final class Filters
 	 *
 	 * @return string
 	 */
-	private function cleanOperand(mixed $operand, string &$found_table = null, string &$found_column = null): mixed
+	private function cleanOperand(mixed $operand, ?string &$found_table = null, ?string &$found_column = null): mixed
 	{
 		if ($operand instanceof QBExpression) {
 			$operand = (string) $operand;
@@ -643,10 +643,10 @@ final class Filters
 	 *   $inject = ['val1' => 'bla', 'val2' => 'kat', 'val3' => 8, 'val4' => 10];
 	 * ```
 	 *
-	 * @param string                                                   $expression
-	 * @param array                                                    $inject
-	 * @param QBInterface                                              $qb
-	 * @param null|\Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface $scope
+	 * @param string                     $expression
+	 * @param array                      $inject
+	 * @param QBInterface                $qb
+	 * @param null|FiltersScopeInterface $scope
 	 *
 	 * @return Filters
 	 */

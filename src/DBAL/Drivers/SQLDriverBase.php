@@ -131,8 +131,8 @@ abstract class SQLDriverBase extends Db
 	 */
 	public function execute(
 		$sql,
-		array $params = null,
-		array $params_types = null,
+		?array $params = null,
+		?array $params_types = null,
 		bool $is_multi_queries = false,
 		bool $in_transaction = false,
 		bool $auto_close_transaction = false
@@ -201,7 +201,7 @@ abstract class SQLDriverBase extends Db
 	 *
 	 * @throws DBALException
 	 */
-	public function select($sql, array $params = null, array $params_types = []): PDOStatement
+	public function select($sql, ?array $params = null, array $params_types = []): PDOStatement
 	{
 		return $this->execute($sql, $params, $params_types);
 	}
@@ -211,7 +211,7 @@ abstract class SQLDriverBase extends Db
 	 *
 	 * @throws DBALException
 	 */
-	public function delete($sql, array $params = null, array $params_types = []): int
+	public function delete($sql, ?array $params = null, array $params_types = []): int
 	{
 		return $this->query($sql, $params, $params_types);
 	}
@@ -221,7 +221,7 @@ abstract class SQLDriverBase extends Db
 	 *
 	 * @throws DBALException
 	 */
-	public function insert($sql, array $params = null, array $params_types = []): false|string
+	public function insert($sql, ?array $params = null, array $params_types = []): false|string
 	{
 		// To be able to get the last inserted id
 		// This statement should not be run in a new transaction
@@ -245,7 +245,7 @@ abstract class SQLDriverBase extends Db
 	 *
 	 * @throws DBALException
 	 */
-	public function update($sql, array $params = null, array $params_types = []): int
+	public function update($sql, ?array $params = null, array $params_types = []): int
 	{
 		return $this->query($sql, $params, $params_types);
 	}
@@ -259,7 +259,7 @@ abstract class SQLDriverBase extends Db
 	 *
 	 * @throws DBALException
 	 */
-	protected function query(string $sql, array $params = null, array $params_types = []): int
+	protected function query(string $sql, ?array $params = null, array $params_types = []): int
 	{
 		return $this->execute($sql, $params, $params_types)
 			->rowCount();

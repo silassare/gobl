@@ -373,7 +373,7 @@ class CRUD
 	/**
 	 * Checks columns values for update.
 	 *
-	 * @param \Gobl\CRUD\Events\BeforeUpdate|\Gobl\CRUD\Events\BeforeUpdateAll $base_action
+	 * @param BeforeUpdate|BeforeUpdateAll $base_action
 	 *
 	 * @throws CRUDException
 	 */

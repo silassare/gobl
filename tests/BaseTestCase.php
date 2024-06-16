@@ -37,7 +37,7 @@ use Throwable;
 abstract class BaseTestCase extends TestCase
 {
 	public const DEFAULT_RDBMS     = MySQL::NAME;
-	public const TEST_DB_NAMESPACE = 'Gobl\\Tests\\Db';
+	public const TEST_DB_NAMESPACE = 'Gobl\Tests\Db';
 
 	/** @var RDBMSInterface[] */
 	private static array $rdbms = [];

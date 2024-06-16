@@ -48,7 +48,7 @@ class CollectionFactory extends Collection
 	/**
 	 * {@inheritDoc}
 	 */
-	public function getItems(ORMRequest $request, int &$total_records = null): array
+	public function getItems(ORMRequest $request, ?int &$total_records = null): array
 	{
 		return ($this->factory)($request, $total_records);
 	}

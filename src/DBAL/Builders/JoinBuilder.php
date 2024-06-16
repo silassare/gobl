@@ -24,8 +24,8 @@ use Gobl\DBAL\Table;
  */
 final class JoinBuilder
 {
-	private null|string $table_to_join               = null;
-	private null|string $table_to_join_alias         = null;
+	private ?string $table_to_join                   = null;
+	private ?string $table_to_join_alias             = null;
 	private null|Filters|string $condition           = null;
 
 	/**
@@ -46,12 +46,12 @@ final class JoinBuilder
 	/**
 	 * Sets the table to join.
 	 *
-	 * @param \Gobl\DBAL\Table|string $table_to_join
-	 * @param null|string             $alias
+	 * @param string|Table $table_to_join
+	 * @param null|string  $alias
 	 *
 	 * @return $this
 	 */
-	public function to(string|Table $table_to_join, string $alias = null): self
+	public function to(string|Table $table_to_join, ?string $alias = null): self
 	{
 		$this->table_to_join = $this->qb->resolveTable($table_to_join)
 			?->getFullName() ?? $table_to_join;
@@ -68,7 +68,7 @@ final class JoinBuilder
 	/**
 	 * Sets the join condition.
 	 *
-	 * @param \Gobl\DBAL\Filters\Filters|string $condition
+	 * @param Filters|string $condition
 	 *
 	 * @return $this
 	 */

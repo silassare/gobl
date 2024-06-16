@@ -45,7 +45,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 
 	public const PREFIX_REG = '~^' . self::PREFIX_PATTERN . '$~';
 
-	public const TABLE_DEFAULT_NAMESPACE = 'Gobl\\DefaultNamespace';
+	public const TABLE_DEFAULT_NAMESPACE = 'Gobl\DefaultNamespace';
 	public const COLUMN_SOFT_DELETED     = 'deleted';
 	public const COLUMN_SOFT_DELETED_AT  = 'deleted_at';
 
@@ -150,7 +150,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Primary key constraint.
 	 *
-	 * @var null|\Gobl\DBAL\Constraints\PrimaryKey
+	 * @var null|PrimaryKey
 	 */
 	private ?PrimaryKey $pk_constraint = null;
 
@@ -1060,7 +1060,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	 *
 	 * @param string $name the relation name
 	 *
-	 * @return null|\Gobl\DBAL\Relations\Relation
+	 * @return null|Relation
 	 */
 	public function getRelation(string $name): ?Relation
 	{
@@ -1086,7 +1086,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	 *
 	 * @param string $name the virtual relation name
 	 *
-	 * @return null|\Gobl\DBAL\Relations\VirtualRelation
+	 * @return null|VirtualRelation
 	 */
 	public function getVirtualRelation(string $name): ?VirtualRelation
 	{
@@ -1112,7 +1112,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	 *
 	 * @param string $name the collection name
 	 *
-	 * @return null|\Gobl\DBAL\Collections\Collection
+	 * @return null|Collection
 	 */
 	public function getCollection(string $name): ?Collection
 	{
@@ -1146,7 +1146,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Gets primary key constraint.
 	 *
-	 * @return null|\Gobl\DBAL\Constraints\PrimaryKey
+	 * @return null|PrimaryKey
 	 */
 	public function getPrimaryKeyConstraint(): ?PrimaryKey
 	{
@@ -1404,7 +1404,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	 *
 	 * @param string $name the column name or full name
 	 *
-	 * @return null|\Gobl\DBAL\Column
+	 * @return null|Column
 	 */
 	public function getColumn(string $name): ?Column
 	{

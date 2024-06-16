@@ -66,7 +66,7 @@ abstract class Collection
 	 *
 	 * @return \Gobl\ORM\ORMEntity[]
 	 */
-	abstract public function getItems(ORMRequest $request, int &$total_records = null): array;
+	abstract public function getItems(ORMRequest $request, ?int &$total_records = null): array;
 
 	/**
 	 * Creates a new collection using a callable.

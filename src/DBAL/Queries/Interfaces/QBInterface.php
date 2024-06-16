@@ -150,8 +150,8 @@ interface QBInterface
 	/**
 	 * Sets the main alias for a given table.
 	 *
-	 * @param \Gobl\DBAL\Table|string $table
-	 * @param string                  $alias
+	 * @param string|Table $table
+	 * @param string       $alias
 	 *
 	 * @return $this
 	 */
@@ -160,17 +160,17 @@ interface QBInterface
 	/**
 	 * Resolve a table name or alias to a table instance.
 	 *
-	 * @param \Gobl\DBAL\Table|string $table_name_or_alias
+	 * @param string|Table $table_name_or_alias
 	 *
-	 * @return null|\Gobl\DBAL\Table
+	 * @return null|Table
 	 */
 	public function resolveTable(string|Table $table_name_or_alias): ?Table;
 
 	/**
 	 * Returns the fully qualified name of a column.
 	 *
-	 * @param \Gobl\DBAL\Table|string $table_name_or_alias
-	 * @param string                  $column
+	 * @param string|Table $table_name_or_alias
+	 * @param string       $column
 	 *
 	 * @return string
 	 */
@@ -181,8 +181,8 @@ interface QBInterface
 	 *
 	 * If columns is empty, it returns the fully qualified name used to select all ie: users.*
 	 *
-	 * @param \Gobl\DBAL\Table|string $table_name_or_alias
-	 * @param array                   $columns
+	 * @param string|Table $table_name_or_alias
+	 * @param array        $columns
 	 *
 	 * @return array
 	 */
@@ -191,8 +191,8 @@ interface QBInterface
 	/**
 	 * Gets the main alias for a given table.
 	 *
-	 * @param \Gobl\DBAL\Table|string $table
-	 * @param bool                    $declare
+	 * @param string|Table $table
+	 * @param bool         $declare
 	 *
 	 * @return string
 	 */
@@ -219,8 +219,8 @@ interface QBInterface
 	/**
 	 * Adds table alias to query.
 	 *
-	 * @param \Gobl\DBAL\Table|string $table
-	 * @param string                  $alias
+	 * @param string|Table $table
+	 * @param string       $alias
 	 *
 	 * @return $this
 	 */

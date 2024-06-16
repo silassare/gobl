@@ -44,14 +44,14 @@ trait QBJoinsTrait
 	 *
 	 * Selects records that have matching values in both tables.
 	 *
-	 * @param \Gobl\DBAL\Table|string $table
-	 * @param null|string             $alias
+	 * @param string|Table $table
+	 * @param null|string  $alias
 	 *
 	 * @return JoinBuilder
 	 */
 	public function innerJoin(
 		string|Table $table,
-		string $alias = null,
+		?string $alias = null,
 	): JoinBuilder {
 		return $this->join(JoinType::INNER, $table, $alias);
 	}
@@ -61,14 +61,14 @@ trait QBJoinsTrait
 	 *
 	 * Selects all records from the left table, and the matched records from the right table.
 	 *
-	 * @param \Gobl\DBAL\Table|string $table
-	 * @param null|string             $alias
+	 * @param string|Table $table
+	 * @param null|string  $alias
 	 *
 	 * @return JoinBuilder
 	 */
 	public function leftJoin(
 		string|Table $table,
-		string $alias = null,
+		?string $alias = null,
 	): JoinBuilder {
 		return $this->join(JoinType::LEFT, $table, $alias);
 	}
@@ -78,14 +78,14 @@ trait QBJoinsTrait
 	 *
 	 * Selects all records from the right table, and the matched records from the left table.
 	 *
-	 * @param \Gobl\DBAL\Table|string $table
-	 * @param null|string             $alias
+	 * @param string|Table $table
+	 * @param null|string  $alias
 	 *
 	 * @return JoinBuilder
 	 */
 	public function rightJoin(
 		string|Table $table,
-		string $alias = null,
+		?string $alias = null,
 	): JoinBuilder {
 		return $this->join(JoinType::RIGHT, $table, $alias);
 	}
@@ -93,9 +93,9 @@ trait QBJoinsTrait
 	/**
 	 * Creates a join query.
 	 *
-	 * @param JoinType                $type
-	 * @param \Gobl\DBAL\Table|string $firstTable
-	 * @param null|string             $alias
+	 * @param JoinType     $type
+	 * @param string|Table $firstTable
+	 * @param null|string  $alias
 	 *
 	 * @return JoinBuilder
 	 */

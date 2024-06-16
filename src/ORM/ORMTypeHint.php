@@ -182,7 +182,7 @@ final class ORMTypeHint
 	/**
 	 * Gets the PHP type.
 	 *
-	 * @return null|\OLIUP\CG\PHPType
+	 * @return null|PHPType
 	 */
 	public function getPHPType(): ?PHPType
 	{
@@ -192,7 +192,7 @@ final class ORMTypeHint
 	/**
 	 * Sets the PHP type.
 	 *
-	 * @param null|\OLIUP\CG\PHPType $php_type
+	 * @param null|PHPType $php_type
 	 *
 	 * @return $this
 	 */

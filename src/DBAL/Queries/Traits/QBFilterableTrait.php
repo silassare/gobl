@@ -24,7 +24,7 @@ trait QBFilterableTrait
 	/**
 	 * Gets query filters instance.
 	 *
-	 * @param null|\Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface $scope
+	 * @param null|FiltersScopeInterface $scope
 	 *
 	 * @return Filters
 	 */

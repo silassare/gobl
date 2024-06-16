@@ -120,12 +120,12 @@ trait QBFromTrait
 	 * If an alias is provided, it will check if the table is in the from clause
 	 * with the provided alias.
 	 *
-	 * @param \Gobl\DBAL\Table|string $table
-	 * @param null|string             $alias
+	 * @param string|Table $table
+	 * @param null|string  $alias
 	 *
 	 * @return bool
 	 */
-	public function inFromClause(string|Table $table, string $alias = null): bool
+	public function inFromClause(string|Table $table, ?string $alias = null): bool
 	{
 		$table = $table instanceof Table ? $table->getFullName() : $table;
 

@@ -48,7 +48,7 @@ class TypeUtils
 	 * @param string $name
 	 * @param array  $options
 	 *
-	 * @return null|\Gobl\DBAL\Types\Interfaces\TypeInterface
+	 * @return null|TypeInterface
 	 *
 	 * @throws TypesException
 	 */

@@ -77,7 +77,7 @@ interface RDBMSInterface
 	 *
 	 * @return $this
 	 */
-	public function loadSchema(array $schema, string $desired_namespace = null): static;
+	public function loadSchema(array $schema, ?string $desired_namespace = null): static;
 
 	/**
 	 * Returns db namespace builder for a given namespace.
@@ -118,7 +118,7 @@ interface RDBMSInterface
 	 *
 	 * @param string $name the table name or table full name
 	 *
-	 * @return null|\Gobl\DBAL\Table
+	 * @return null|Table
 	 */
 	public function getTable(string $name): ?Table;
 
@@ -193,8 +193,8 @@ interface RDBMSInterface
 	 */
 	public function execute(
 		string $sql,
-		array $params = null,
-		array $params_types = null,
+		?array $params = null,
+		?array $params_types = null,
 		bool $is_multi_queries = false,
 		bool $in_transaction = false,
 		bool $auto_close_transaction = false
@@ -220,7 +220,7 @@ interface RDBMSInterface
 	 *
 	 * @return PDOStatement
 	 */
-	public function select(string $sql, array $params = null, array $params_types = []): PDOStatement;
+	public function select(string $sql, ?array $params = null, array $params_types = []): PDOStatement;
 
 	/**
 	 * Executes delete queries.
@@ -231,7 +231,7 @@ interface RDBMSInterface
 	 *
 	 * @return int Affected row count
 	 */
-	public function delete(string $sql, array $params = null, array $params_types = []): int;
+	public function delete(string $sql, ?array $params = null, array $params_types = []): int;
 
 	/**
 	 * Executes insert queries.
@@ -242,7 +242,7 @@ interface RDBMSInterface
 	 *
 	 * @return false|string The last insert id
 	 */
-	public function insert(string $sql, array $params = null, array $params_types = []): false|string;
+	public function insert(string $sql, ?array $params = null, array $params_types = []): false|string;
 
 	/**
 	 * Executes update queries.
@@ -253,7 +253,7 @@ interface RDBMSInterface
 	 *
 	 * @return int Affected row count
 	 */
-	public function update(string $sql, array $params = null, array $params_types = []): int;
+	public function update(string $sql, ?array $params = null, array $params_types = []): int;
 
 	/**
 	 * Gets this rdbms query generator.

@@ -23,7 +23,7 @@ trait QBHavingTrait
 	protected null|Filters|string $options_having = null;
 
 	/**
-	 * @return null|\Gobl\DBAL\Filters\Filters|string
+	 * @return null|Filters|string
 	 */
 	public function getOptionsHaving(): null|Filters|string
 	{

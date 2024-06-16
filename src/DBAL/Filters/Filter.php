@@ -65,7 +65,7 @@ final class Filter implements FilterInterface
 	/**
 	 * Get filter right operand.
 	 *
-	 * @return null|array|bool|float|\Gobl\DBAL\Queries\Interfaces\QBInterface|\Gobl\DBAL\Queries\QBExpression|int|string
+	 * @return null|array|bool|float|int|QBExpression|QBInterface|string
 	 */
 	public function getRightOperand(): null|array|bool|float|int|QBExpression|QBInterface|string
 	{

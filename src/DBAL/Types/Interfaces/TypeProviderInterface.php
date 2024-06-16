@@ -26,7 +26,7 @@ interface TypeProviderInterface
 	 * @param string $name    the type name
 	 * @param array  $options the options
 	 *
-	 * @return null|\Gobl\DBAL\Types\Interfaces\TypeInterface
+	 * @return null|TypeInterface
 	 *
 	 * @throws TypesException when a type with the given name was found
 	 *                        but options is invalid

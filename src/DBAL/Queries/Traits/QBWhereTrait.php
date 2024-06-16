@@ -24,12 +24,12 @@ trait QBWhereTrait
 {
 	use QBFilterableTrait;
 
-	protected null|FilterGroup $options_where = null;
+	protected ?FilterGroup $options_where = null;
 
 	/**
 	 * Adds a where condition.
 	 *
-	 * @param callable|\Gobl\DBAL\Filters\Filters|\Gobl\DBAL\Filters\Interfaces\FilterInterface|string $condition
+	 * @param callable|FilterInterface|Filters|string $condition
 	 *
 	 * @return $this
 	 */
@@ -41,7 +41,7 @@ trait QBWhereTrait
 	/**
 	 * Adds a where condition with an AND chaining condition.
 	 *
-	 * @param callable|\Gobl\DBAL\Filters\Filters|\Gobl\DBAL\Filters\Interfaces\FilterInterface|string $condition
+	 * @param callable|FilterInterface|Filters|string $condition
 	 *
 	 * @return $this
 	 */
@@ -53,7 +53,7 @@ trait QBWhereTrait
 	/**
 	 * Adds a where condition with an OR chaining condition.
 	 *
-	 * @param callable|\Gobl\DBAL\Filters\Filters|\Gobl\DBAL\Filters\Interfaces\FilterInterface|string $condition
+	 * @param callable|FilterInterface|Filters|string $condition
 	 *
 	 * @return $this
 	 */
@@ -65,7 +65,7 @@ trait QBWhereTrait
 	/**
 	 * @return null|FilterGroup
 	 */
-	public function getOptionsWhere(): null|FilterGroup
+	public function getOptionsWhere(): ?FilterGroup
 	{
 		return $this->options_where;
 	}
@@ -76,8 +76,8 @@ trait QBWhereTrait
 	 * If not, it creates a new one.
 	 * If yes, it ensures the chaining condition is the same as the given one.
 	 *
-	 * @param bool                                                                                     $is_and
-	 * @param callable|\Gobl\DBAL\Filters\Filters|\Gobl\DBAL\Filters\Interfaces\FilterInterface|string $condition
+	 * @param bool                                    $is_and
+	 * @param callable|FilterInterface|Filters|string $condition
 	 *
 	 * @return $this
 	 */

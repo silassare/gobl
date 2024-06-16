@@ -48,7 +48,7 @@ class ORMEntityRelationController implements RelationControllerInterface
 	 *
 	 * @throws GoblException
 	 */
-	public function get(ORMEntity $host_entity, ORMRequest $request): null|ORMEntity
+	public function get(ORMEntity $host_entity, ORMRequest $request): ?ORMEntity
 	{
 		$order_by = $request->getOrderBy();
 		$filters  = $request->getFilters();

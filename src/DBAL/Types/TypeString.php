@@ -187,7 +187,7 @@ class TypeString extends Type implements BaseTypeInterface
 		}
 
 		if (false === $this->getOption('multiline')) {
-			$value = \preg_replace('~\\s+~', ' ', $value);
+			$value = \preg_replace('~\s+~', ' ', $value);
 		}
 
 		if (true === $this->getOption('trim')) {

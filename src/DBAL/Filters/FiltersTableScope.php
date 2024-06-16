@@ -34,7 +34,7 @@ class FiltersTableScope implements FiltersScopeInterface
 	 * @param Table       $table
 	 * @param null|string $table_alias
 	 */
-	public function __construct(protected Table $table, string $table_alias = null)
+	public function __construct(protected Table $table, ?string $table_alias = null)
 	{
 		$this->table_alias = $table_alias ?? QBUtils::newAlias();
 	}

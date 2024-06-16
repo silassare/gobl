@@ -157,8 +157,8 @@ final class DbTest extends BaseTestCase
 		$tbl_prefix = $db->getConfig()
 			->getDbTablePrefix();
 
-		$custom_namespace  = 'App\\Db\\Custom';
-		$foo_bar_namespace = 'App\\Foo\\Bar';
+		$custom_namespace  = 'App\Db\Custom';
+		$foo_bar_namespace = 'App\Foo\Bar';
 
 		// without desired namespace
 		$db->loadSchema([

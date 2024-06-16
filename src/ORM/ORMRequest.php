@@ -167,11 +167,11 @@ class ORMRequest
 	/**
 	 * Returns form data.
 	 *
-	 * @param null|\Gobl\DBAL\Table $table
+	 * @param null|Table $table
 	 *
 	 * @return array
 	 */
-	public function getFormData(Table $table = null): array
+	public function getFormData(?Table $table = null): array
 	{
 		return self::scopedColumns($this->form_data, $table);
 	}
@@ -637,12 +637,12 @@ class ORMRequest
 	/**
 	 * Returns a filtered map using the table columns.
 	 *
-	 * @param array                 $map
-	 * @param null|\Gobl\DBAL\Table $table
+	 * @param array      $map
+	 * @param null|Table $table
 	 *
 	 * @return array
 	 */
-	private static function scopedColumns(array $map, Table $table = null): array
+	private static function scopedColumns(array $map, ?Table $table = null): array
 	{
 		if (null === $table) {
 			return $map;

@@ -188,7 +188,7 @@ abstract class Db implements RDBMSInterface
 	 *
 	 * @throws DBALException
 	 */
-	public function loadSchema(array $schema, string $desired_namespace = null): static
+	public function loadSchema(array $schema, ?string $desired_namespace = null): static
 	{
 		$tables_prefix           = $this->getConfig()
 			->getDbTablePrefix();
