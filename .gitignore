@@ -5,3 +5,6 @@
 /ignore
 /tests/tmp
 **/otpl_done/*
+
+# cs fixer
+.php-cs-fixer.cache
