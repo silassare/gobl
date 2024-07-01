@@ -98,7 +98,7 @@ final class QBSelectTest extends BaseTestCase
 			->getLink()
 			->apply($qb_a);
 
-		self::assertSame('SELECT * FROM gObL_tags _a_  INNER JOIN gObL_taggables _b_ ON (_a_.id = _b_.tag_id) INNER JOIN gObL_articles _c_ ON (_b_.taggable_id = _c_.id AND _b_.taggable_type = :_val_d) WHERE 1 = 1', $qb_a->getSqlQuery());
+		self::assertSame('SELECT * FROM gObL_tags AS _a_  INNER JOIN gObL_taggables AS _b_ ON (_a_.id = _b_.tag_id) INNER JOIN gObL_articles AS _c_ ON (_b_.taggable_id = _c_.id AND _b_.taggable_type = :_val_d) WHERE 1 = 1', $qb_a->getSqlQuery());
 		self::assertSame(['_val_d' => 'articles'], $qb_a->getBoundValues());
 
 		$qb_b = new QBSelect($db);
@@ -109,7 +109,7 @@ final class QBSelectTest extends BaseTestCase
 			->getLink()
 			->apply($qb_b);
 
-		self::assertSame('SELECT * FROM gObL_tags _e_  INNER JOIN gObL_taggables _f_ ON (_e_.id = _f_.tag_id) INNER JOIN gObL_articles _g_ ON (_f_.taggable_id = _g_.id AND _f_.taggable_type = :_val_h) WHERE ((_f_.created_at > :_val_i))', $qb_b->getSqlQuery());
+		self::assertSame('SELECT * FROM gObL_tags AS _e_  INNER JOIN gObL_taggables AS _f_ ON (_e_.id = _f_.tag_id) INNER JOIN gObL_articles AS _g_ ON (_f_.taggable_id = _g_.id AND _f_.taggable_type = :_val_h) WHERE ((_f_.created_at > :_val_i))', $qb_b->getSqlQuery());
 		self::assertSame([
 			'_val_h' => 'articles',
 			'_val_i' => '2020-01-01',
