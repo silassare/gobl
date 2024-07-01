@@ -221,7 +221,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 */
 	public function buildTotalRowCountQuery(QBSelect $qb): string
 	{
-		return 'SELECT COUNT(1) FROM (' . $this->buildQuery($qb) . ') as ' . QBUtils::newAlias();
+		return 'SELECT COUNT(1) FROM (' . $this->buildQuery($qb) . ') AS ' . QBUtils::newAlias();
 	}
 
 	/**
@@ -351,7 +351,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 */
 	protected function getDBCollateChangeString(DBCollateChanged $action): string
 	{
-		$db_name = $action->getDb()
+		$db_name   = $action->getDb()
 			->getConfig()
 			->getDbName();
 		$collation = $action->getCollate();
@@ -368,7 +368,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	{
 		$table_name = $action->getTable()
 			->getFullName();
-		$charset = $action->getCharset();
+		$charset    = $action->getCharset();
 
 		return 'ALTER TABLE `' . $table_name . '` CONVERT TO CHARACTER SET ' . $charset . ';';
 	}
@@ -382,7 +382,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	{
 		$table_name = $action->getTable()
 			->getFullName();
-		$collation = $action->getCollate();
+		$collation  = $action->getCollate();
 
 		return 'ALTER TABLE `' . $table_name . '` DEFAULT COLLATE ' . $collation . ';';
 	}
@@ -493,8 +493,8 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 */
 	protected function getStringColumnDefinition(Column $column): string
 	{
-		$column_name = $column->getFullName();
-		$type        = $column->getType()
+		$column_name      = $column->getFullName();
+		$type             = $column->getType()
 			->getBaseType();
 		$force_no_default = false;
 		$min              = $type->getOption('min', 0);
@@ -620,9 +620,9 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$column_name = $column->getFullName();
 		$type        = $column->getType()
 			->getBaseType();
-		$unsigned = $type->getOption('unsigned');
-		$min      = $type->getOption('min', -\INF);
-		$max      = $type->getOption('max', \INF);
+		$unsigned    = $type->getOption('unsigned');
+		$min         = $type->getOption('min', -\INF);
+		$max         = $type->getOption('max', \INF);
 
 		$sql = ["`{$column_name}`"];
 
@@ -665,7 +665,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$column_name = $column->getFullName();
 		$type        = $column->getType()
 			->getBaseType();
-		$unsigned = $type->getOption('unsigned');
+		$unsigned    = $type->getOption('unsigned');
 
 		$sql = ["`{$column_name}` bigint(20)"];
 
@@ -703,7 +703,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 		$mantissa = $column->getType()
 			->getOption('mantissa');
-		$sql = [];
+		$sql      = [];
 
 		if (null !== $mantissa) {
 			$sql[] = "`{$column_name}` float({$mantissa})";
@@ -869,7 +869,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$columns_list    = static::quoteCols($pk->getColumns());
 		$host_table_name = $pk->getHostTable()
 			->getFullName();
-		$sql = $alter ? 'ALTER TABLE `' . $host_table_name . '` ADD ' : '';
+		$sql             = $alter ? 'ALTER TABLE `' . $host_table_name . '` ADD ' : '';
 		$sql .= 'CONSTRAINT ' . $pk->getName() . ' PRIMARY KEY (' . $columns_list . ')' . ($alter ? ';' : '');
 
 		return $sql;
@@ -930,8 +930,8 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	{
 		$host_table_name = $uc->getHostTable()
 			->getFullName();
-		$columns_list = static::quoteCols($uc->getColumns());
-		$sql          = $alter ? 'ALTER TABLE `' . $host_table_name . '` ADD ' : '';
+		$columns_list    = static::quoteCols($uc->getColumns());
+		$sql             = $alter ? 'ALTER TABLE `' . $host_table_name . '` ADD ' : '';
 		$sql .= 'CONSTRAINT ' . $uc->getName() . ' UNIQUE (' . $columns_list . ')' . ($alter ? ';' : '');
 
 		return $sql;
@@ -978,7 +978,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 */
 	protected function getForeignKeySQL(ForeignKey $fk, bool $alter): string
 	{
-		$host_table_name = $fk->getHostTable()
+		$host_table_name   = $fk->getHostTable()
 			->getFullName();
 		$ref_table         = $fk->getReferenceTable();
 		$update_action     = $fk->getUpdateAction();
@@ -1040,7 +1040,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	protected function getColumnDeletedString(ColumnDeleted $action): string
 	{
-		$table_name = $action->getTable()
+		$table_name  = $action->getTable()
 			->getFullName();
 		$column_name = $action->getColumn()
 			->getFullName();
@@ -1059,7 +1059,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	{
 		$table_name = $action->getTable()
 			->getFullName();
-		$sql = $this->getColumnDefinitionString($action->getColumn());
+		$sql        = $this->getColumnDefinitionString($action->getColumn());
 
 		return 'ALTER TABLE `' . $table_name . '` ADD ' . $sql . ';';
 	}
@@ -1071,7 +1071,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 */
 	protected function getColumnRenamedString(ColumnRenamed $action): string
 	{
-		$table_name = $action->getTable()
+		$table_name      = $action->getTable()
 			->getFullName();
 		$old_column_name = $action->getOldColumn()
 			->getFullName();
@@ -1114,8 +1114,8 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 */
 	protected function getPrimaryKeyConstraintDeletedString(PrimaryKeyConstraintDeleted $action): string
 	{
-		$constraint = $action->getConstraint();
-		$table_name = $constraint->getHostTable()
+		$constraint      = $action->getConstraint();
+		$table_name      = $constraint->getHostTable()
 			->getFullName();
 		$constraint_name = $constraint->getName();
 
@@ -1139,8 +1139,8 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 */
 	protected function getForeignKeyConstraintDeletedString(ForeignKeyConstraintDeleted $action): string
 	{
-		$constraint = $action->getConstraint();
-		$table_name = $constraint->getHostTable()
+		$constraint      = $action->getConstraint();
+		$table_name      = $constraint->getHostTable()
 			->getFullName();
 		$constraint_name = $constraint->getName();
 
@@ -1164,8 +1164,8 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 */
 	protected function getUniqueKeyConstraintDeletedString(UniqueKeyConstraintDeleted $action): string
 	{
-		$constraint = $action->getConstraint();
-		$table_name = $constraint->getHostTable()
+		$constraint      = $action->getConstraint();
+		$table_name      = $constraint->getHostTable()
 			->getFullName();
 		$constraint_name = $constraint->getName();
 
@@ -1290,7 +1290,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 		foreach ($from as $table => $aliases) {
 			foreach ($aliases as $alias) {
-				$x[] = $table . ' ' . $alias . ' ' . $this->getJoinQueryFor($qb, $alias);
+				$x[] = $table . ' AS ' . $alias . ' ' . $this->getJoinQueryFor($qb, $alias);
 			}
 		}
 
@@ -1321,7 +1321,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 				$table_to_join_alias = $options['table_to_join_alias'];
 
 				$sql .= ' ' . $type->value
-					. ' JOIN ' . $table_to_join . ' ' . $table_to_join_alias
+					. ' JOIN ' . $table_to_join . ' AS ' . $table_to_join_alias
 					. ' ON ' . (!empty($condition) ? $condition : '1 = 1');
 			}
 
@@ -1477,7 +1477,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$max      = $qb->getOptionsLimitMax();
 		$order_by = $this->getOrderByQuery($qb);
 
-		$query = 'UPDATE ' . $table . (empty($alias) ? '' : ' ' . $alias) . ' SET ' . $set . ' WHERE ' . $where;
+		$query = 'UPDATE ' . $table . (empty($alias) ? '' : ' AS ' . $alias) . ' SET ' . $set . ' WHERE ' . $where;
 
 		if (!empty($order_by)) {
 			$query .= ' ' . $order_by;
@@ -1512,9 +1512,9 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 		$multi_table_delete = \count($x) > 1;
 
-		$delete_alias = $multi_table_delete ? ' ' . \implode(', ', $x) : '';
+		$delete_alias = \implode(', ', $x);
 
-		$query = 'DELETE' . $delete_alias . ' FROM ' . $from . ' WHERE ' . $where;
+		$query = 'DELETE ' . $delete_alias . ' FROM ' . $from . ' WHERE ' . $where;
 
 		if (!empty($order_by)) {
 			$query .= ' ' . $order_by;
