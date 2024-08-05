@@ -36,6 +36,8 @@ abstract class Constraint implements ArrayCapableInterface
 
 	public const FOREIGN_KEY = 3;
 
+	public const MAX_CONSTRAINT_NAME_LENGTH = 64;
+
 	/** @var int */
 	protected int $type;
 
@@ -66,9 +68,44 @@ abstract class Constraint implements ArrayCapableInterface
 			));
 		}
 
+		if (\strlen($name) > self::MAX_CONSTRAINT_NAME_LENGTH) {
+			throw new InvalidArgumentException(\sprintf(
+				'Constraint name "%s" in table "%s" should not exceed %d characters.',
+				$name,
+				$host_table->getName(),
+				self::MAX_CONSTRAINT_NAME_LENGTH
+			));
+		}
+
 		$this->name       = $name;
 		$this->host_table = $host_table;
 		$this->type       = $type;
+	}
+
+	/**
+	 * Gets constraint name.
+	 *
+	 * @return string
+	 */
+	public function getName(): string
+	{
+		return $this->name;
+	}
+
+	/**
+	 * Normalizes constraint name.
+	 *
+	 * @param string $name
+	 *
+	 * @return string
+	 */
+	public static function normalizeName(string $name): string
+	{
+		$name = \preg_replace('~[^a-zA-Z0-9_]+~', '_', $name);
+		$name = \preg_replace('~_+~', '_', $name);
+		$name = \trim($name, '_');
+
+		return \substr($name, 0, self::MAX_CONSTRAINT_NAME_LENGTH);
 	}
 
 	/**
@@ -125,15 +162,5 @@ abstract class Constraint implements ArrayCapableInterface
 	public function getType(): int
 	{
 		return $this->type;
-	}
-
-	/**
-	 * Gets constraint name.
-	 *
-	 * @return string
-	 */
-	public function getName(): string
-	{
-		return $this->name;
 	}
 }
