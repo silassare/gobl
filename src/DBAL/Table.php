@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Gobl\DBAL;
 
 use Gobl\DBAL\Collections\Collection;
+use Gobl\DBAL\Constraints\Constraint;
 use Gobl\DBAL\Constraints\ForeignKey;
 use Gobl\DBAL\Constraints\ForeignKeyAction;
 use Gobl\DBAL\Constraints\PrimaryKey;
@@ -817,7 +818,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 
 		$key = \md5(\implode('_', $c_names));
 
-		$constraint_name = \sprintf('uc_%s_%d', $this->getFullName(), $key);
+		$constraint_name = Constraint::normalizeName(\sprintf('uc_%s_%s', $this->getFullName(), $key));
 
 		if (!isset($this->uc_constraints[$constraint_name])) {
 			$uc = new UniqueKey($constraint_name, $this);
@@ -941,7 +942,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 		}
 
 		if (!isset($this->pk_constraint)) {
-			$constraint_name     = \sprintf('pk_%s', $this->getFullName());
+			$constraint_name     = Constraint::normalizeName(\sprintf('pk_%s', $this->getFullName()));
 			$this->pk_constraint = new PrimaryKey($constraint_name, $this);
 		}
 
@@ -986,15 +987,15 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 			);
 		}
 
-		$is_named_fk = true;
+		$is_user_named_fk = true;
 
 		if (empty($constraint_name)) {
-			$constraint_name = $this->defaultForeignKeyName($reference_table);
-			$is_named_fk     = false;
+			$constraint_name  = $this->defaultForeignKeyName($reference_table);
+			$is_user_named_fk = false;
 		}
 
 		if (isset($this->fk_constraints[$constraint_name])) {
-			if ($is_named_fk) {
+			if ($is_user_named_fk) {
 				throw new DBALException(
 					\sprintf(
 						'Foreign key "%s" is already defined between the tables "%s" and "%s".',
@@ -1018,7 +1019,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 
 			$suffix = \implode('_', $suffix);
 
-			$constraint_name = 'fk_' . \md5($constraint_name . '_' . $suffix);
+			$constraint_name = Constraint::normalizeName('fk_' . \md5($constraint_name . '_' . $suffix));
 
 			if (isset($this->fk_constraints[$constraint_name])) {
 				throw new DBALException(
@@ -1052,7 +1053,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	 */
 	public function defaultForeignKeyName(self $reference): string
 	{
-		return \sprintf('fk_%s_%s', $this->getName(), $reference->getName());
+		return Constraint::normalizeName(\sprintf('fk_%s_%s', $this->getName(), $reference->getName()));
 	}
 
 	/**
