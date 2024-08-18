@@ -13,14 +13,9 @@ declare(strict_types=1);
 
 namespace Gobl\Exceptions;
 
-use PHPUtils\Interfaces\RichExceptionInterface;
-use PHPUtils\Traits\RichExceptionTrait;
-use RuntimeException;
+use PHPUtils\Exceptions\RuntimeException;
 
 /**
  * Class GoblRuntimeException.
  */
-class GoblRuntimeException extends RuntimeException implements RichExceptionInterface
-{
-	use RichExceptionTrait;
-}
+class GoblRuntimeException extends RuntimeException {}
