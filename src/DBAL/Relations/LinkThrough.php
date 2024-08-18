@@ -63,9 +63,16 @@ final class LinkThrough extends Link
 					'type'    => LinkType::COLUMNS->value,
 					'columns' => \array_flip($columns_map),
 				];
+			} elseif ($this->host_table->hasDefaultForeignKeyConstraint($this->pivot_table)) {
+				$columns_map = $this->host_table->getDefaultForeignKeyConstraintFrom($this->pivot_table)
+					->getColumnsMapping();
+				$htp_options = [
+					'type'    => LinkType::COLUMNS->value,
+					'columns' => $columns_map,
+				];
 			} else {
 				throw new DBALException(\sprintf(
-					'Auto linking through table "%s" from table "%s" to table "%s" failed, the pivot table "%s" has no foreign columns from "%s".',
+					'Auto linking through table "%s" from table "%s" to table "%s" failed, the pivot table "%s" has no foreign columns from or to "%s".',
 					$this->pivot_table->getName(),
 					$this->host_table->getName(),
 					$this->target_table->getName(),
@@ -83,9 +90,16 @@ final class LinkThrough extends Link
 					'type'    => LinkType::COLUMNS->value,
 					'columns' => $columns_map,
 				];
+			} elseif ($this->target_table->hasDefaultForeignKeyConstraint($this->pivot_table)) {
+				$columns_map = $this->target_table->getDefaultForeignKeyConstraintFrom($this->pivot_table)
+					->getColumnsMapping();
+				$ptt_options = [
+					'type'    => LinkType::COLUMNS->value,
+					'columns' => \array_flip($columns_map),
+				];
 			} else {
 				throw new DBALException(\sprintf(
-					'Auto linking through table "%s" from table "%s" to table "%s" failed, the pivot table "%s" has no foreign columns from "%s".',
+					'Auto linking through table "%s" from table "%s" to table "%s" failed, the pivot table "%s" has no foreign columns from or to "%s".',
 					$this->pivot_table->getName(),
 					$this->host_table->getName(),
 					$this->target_table->getName(),
