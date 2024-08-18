@@ -11,14 +11,14 @@
 import {GoblEntity} from 'gobl-utils-ts';
 
 export default abstract class MyEntityBase extends GoblEntity {
-	public static readonly PREFIX: string    = '<%$.columns_prefix%>';
+	public static readonly PREFIX: string = '<%$.columns_prefix%>';
 	public static readonly COLUMNS: string[] = [
 //@	<%loop($.columns : $column){%>	'<%$column.fullName%>',
 //@		<%}%>
 	];
 //@<%loop($.columns : $column){%>	public static readonly <%$column.const%>: string = '<%$column.fullName%>';
 //@<%}%>
-//@<%@var $len = @length($.pk_columns);%><%if($len == 1){%>
+//@<%if(@length($.pk_columns) == 1){%>
 //@	public singlePKValue():string {
 //@		const id = this.<%$.pk_columns[0].name%>;
 //@		if (id === undefined || id === null) {
@@ -26,9 +26,9 @@ export default abstract class MyEntityBase extends GoblEntity {
 //@		}
 //@		return String(id);
 //@	}<%}%>
-//@<%if($len){%>
+//@<%if(@length($.pk_columns)){%>
 //@	public identifierColumns(): string[] {
-//@		return [ <%loop($.pk_columns : $pk){%><%$.class.entity%>Base.<%$pk.const%><%@if($len!==1, ',' , '')%> <%}%>];
+//@		return [ <%loop($.pk_columns : $pk){%><%$.class.entity%>Base.<%$pk.const%><%@if(@length($.pk_columns)!==1, ',' , '')%> <%}%>];
 //@	}<%} else {%>
 //@	public identifierColumns() {
 //@		return <%$.class.entity%>Base.COLUMNS;

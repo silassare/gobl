@@ -9,16 +9,18 @@
 import 'package:gobl_utils_dart/gobl_utils_dart.dart';
 
 abstract class MyEntityBase
-    extends GoblEntity //@<%@var $len = @length($.pk_columns);%><%if($len == 1){%>with GoblSinglePKEntity<%}%>
-{
-  MyEntityBase(
-      {Map<String, dynamic> initialData = const {},
-      String name,
-      String prefix,
-      List<String> columns})
-      : super(
+    extends GoblEntity //@<%if(@length($.pk_columns) == 1){%>with GoblSinglePKEntity<%}%>
+    {
+      MyEntityBase({
+        Map<String, dynamic> initialData = const {},
+        String name,
+        String prefix,
+        List<String> columns
+      })
+          : super(
             initialData: initialData,
             name: name,
             prefix: prefix,
-            columns: columns);
+            columns: columns
+            );
 }

@@ -30,7 +30,7 @@ class MyEntity extends MyEntityBase with MyEntityMixin<MyEntity> {
   MyEntity get self {
     return this;
   }
-//@<%@var $len = @length($.pk_columns);%><%if($len == 1){%>
+//@<%if(@length($.pk_columns) == 1){%>
   @override
   String singlePKValue() {
     return '$<%$.pk_columns[0].name%>';
@@ -40,8 +40,8 @@ class MyEntity extends MyEntityBase with MyEntityMixin<MyEntity> {
   @override
   List<String> identifierColumns() {
     return [
-//@<%if($len){%>
-//@    <%loop($.pk_columns : $pk){%>    <%$pk.const%><%@if($len!==1, ',' , '')%> <%}%>
+//@<%if(@length($.pk_columns)){%>
+//@    <%loop($.pk_columns : $pk){%>    <%$pk.const%><%@if(@length($.pk_columns)!==1, ',' , '')%> <%}%>
 //@<%} else {%>    ...COLUMNS <%}%>
     ];
   }
