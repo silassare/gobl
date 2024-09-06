@@ -18,6 +18,7 @@ use Gobl\DBAL\Operator;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Table;
+use Gobl\DBAL\Types\Utils\Map;
 use Gobl\Exceptions\GoblException;
 use Gobl\Gobl;
 use Gobl\ORM\Events\ORMTableFilesGenerated;
@@ -137,7 +138,7 @@ Time: {$date}";
 		foreach ($types as $type) {
 			$php_types[] = match ($type) {
 				ORMUniversalType::ARRAY                                                       => 'array',
-				ORMUniversalType::MAP                                                         => 'object',
+				ORMUniversalType::MAP                                                         => '\\' . Map::class,
 				ORMUniversalType::DECIMAL, ORMUniversalType::STRING, ORMUniversalType::BIGINT => 'string',
 				ORMUniversalType::BOOL                                                        => 'bool',
 				ORMUniversalType::FLOAT                                                       => 'float',
