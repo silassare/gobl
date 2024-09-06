@@ -72,10 +72,10 @@ final class ORMTypeHint
 	{
 		return match ($operator) {
 			Operator::EQ, Operator::NEQ, Operator::LT, Operator::LTE, Operator::GT, Operator::GTE => $type->getWriteTypeHint(),
-			Operator::LIKE, Operator::NOT_LIKE => self::string(),
-			Operator::IS_NULL, Operator::IS_NOT_NULL => self::null(),
-			Operator::IN, Operator::NOT_IN => self::array(),
-			Operator::IS_TRUE, Operator::IS_FALSE => self::bool(),
+			Operator::LIKE, Operator::NOT_LIKE                                                    => self::string(),
+			Operator::IS_NULL, Operator::IS_NOT_NULL                                              => self::null(),
+			Operator::IN, Operator::NOT_IN                                                        => self::array(),
+			Operator::IS_TRUE, Operator::IS_FALSE                                                 => self::bool(),
 		};
 	}
 
