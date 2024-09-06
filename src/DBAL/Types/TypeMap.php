@@ -16,9 +16,9 @@ namespace Gobl\DBAL\Types;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
+use Gobl\DBAL\Types\Utils\Map;
 use Gobl\ORM\ORMTypeHint;
 use JsonException;
-use stdClass;
 
 /**
  * Class TypeMap.
@@ -41,12 +41,30 @@ class TypeMap extends Type
 
 	/**
 	 * {@inheritDoc}
+	 */
+	public static function getInstance(array $options): static
+	{
+		return (new self())->configure($options);
+	}
+
+	/**
+	 * {@inheritDoc}
 	 *
 	 * @throws JsonException
 	 */
-	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?object
+	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?Map
 	{
-		return null === $value ? null : (object) \json_decode($value, true, 512, \JSON_THROW_ON_ERROR);
+		if (null !== $value) {
+			$v = \json_decode($value, false, 512, \JSON_THROW_ON_ERROR);
+
+			if (!\is_object($v) && !\is_array($v)) {
+				$v = [];
+			}
+
+			return new Map($v);
+		}
+
+		return null;
 	}
 
 	/**
@@ -72,17 +90,9 @@ class TypeMap extends Type
 	/**
 	 * {@inheritDoc}
 	 */
-	public function getEmptyValueOfType(): ?object
+	public function getEmptyValueOfType(): ?Map
 	{
-		return $this->isNullable() ? null : new stdClass();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public static function getInstance(array $options): static
-	{
-		return (new self())->configure($options);
+		return $this->isNullable() ? null : new Map();
 	}
 
 	/**
@@ -129,7 +139,7 @@ class TypeMap extends Type
 	/**
 	 * {@inheritDoc}
 	 */
-	public function validate(mixed $value): ?object
+	public function validate(mixed $value): ?Map
 	{
 		$debug = [
 			'value' => $value,
@@ -143,12 +153,8 @@ class TypeMap extends Type
 			}
 		}
 
-		if (!\is_object($value)) {
-			if (!\is_array($value)) {
-				throw new TypesInvalidValueException($this->msg('invalid_map_type'), $debug);
-			}
-
-			$value = (object) $value;
+		if (!\is_object($value) && !\is_array($value)) {
+			throw new TypesInvalidValueException($this->msg('invalid_map_type'), $debug);
 		}
 
 		try {
@@ -156,6 +162,10 @@ class TypeMap extends Type
 			\json_encode($value, \JSON_THROW_ON_ERROR);
 		} catch (JsonException $e) {
 			throw new TypesInvalidValueException($this->msg('unable_to_serialize_map_value'), $debug, $e);
+		}
+
+		if (!$value instanceof Map) {
+			$value = new Map($value);
 		}
 
 		return $value;
