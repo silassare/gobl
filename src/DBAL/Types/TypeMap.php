@@ -18,6 +18,7 @@ use Gobl\DBAL\Operator;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\ORM\ORMTypeHint;
 use JsonException;
+use stdClass;
 
 /**
  * Class TypeMap.
@@ -43,9 +44,9 @@ class TypeMap extends Type
 	 *
 	 * @throws JsonException
 	 */
-	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?array
+	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?object
 	{
-		return null === $value ? null : \json_decode($value, true, 512, \JSON_THROW_ON_ERROR);
+		return null === $value ? null : (object) \json_decode($value, true, 512, \JSON_THROW_ON_ERROR);
 	}
 
 	/**
@@ -71,9 +72,9 @@ class TypeMap extends Type
 	/**
 	 * {@inheritDoc}
 	 */
-	public function getEmptyValueOfType(): ?array
+	public function getEmptyValueOfType(): ?object
 	{
-		return $this->isNullable() ? null : [];
+		return $this->isNullable() ? null : new stdClass();
 	}
 
 	/**
@@ -122,13 +123,13 @@ class TypeMap extends Type
 			return null;
 		}
 
-		return empty($value) ? '{}' : \json_encode($value, \JSON_THROW_ON_ERROR);
+		return \json_encode($value, \JSON_THROW_ON_ERROR);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public function validate(mixed $value): ?array
+	public function validate(mixed $value): ?object
 	{
 		$debug = [
 			'value' => $value,
@@ -142,8 +143,12 @@ class TypeMap extends Type
 			}
 		}
 
-		if (!\is_array($value)) {
-			throw new TypesInvalidValueException($this->msg('invalid_map_type'), $debug);
+		if (!\is_object($value)) {
+			if (!\is_array($value)) {
+				throw new TypesInvalidValueException($this->msg('invalid_map_type'), $debug);
+			}
+
+			$value = (object) $value;
 		}
 
 		try {
