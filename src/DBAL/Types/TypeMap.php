@@ -18,6 +18,7 @@ use Gobl\DBAL\Operator;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\Utils\Map;
 use Gobl\ORM\ORMTypeHint;
+use Gobl\ORM\ORMUniversalType;
 use JsonException;
 
 /**
@@ -116,7 +117,7 @@ class TypeMap extends Type
 	 */
 	public function getWriteTypeHint(): ORMTypeHint
 	{
-		return ORMTypeHint::map();
+		return ORMTypeHint::map()->addUniversalTypes(ORMUniversalType::ARRAY);
 	}
 
 	/**
