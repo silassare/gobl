@@ -136,7 +136,8 @@ Time: {$date}";
 
 		foreach ($types as $type) {
 			$php_types[] = match ($type) {
-				ORMUniversalType::ARRAY, ORMUniversalType::MAP                                => 'array',
+				ORMUniversalType::ARRAY                                                       => 'array',
+				ORMUniversalType::MAP                                                         => 'object',
 				ORMUniversalType::DECIMAL, ORMUniversalType::STRING, ORMUniversalType::BIGINT => 'string',
 				ORMUniversalType::BOOL                                                        => 'bool',
 				ORMUniversalType::FLOAT                                                       => 'float',
@@ -377,7 +378,7 @@ Time: {$date}";
 			$class->getComment()
 				?->addLines(
 					Str::interpolate(
-						'@property {read_type_hint} ${column_name} Getter for column `{table_name}`.`{column_name}`.',
+						'@property {read_type_hint} ${column_name} Getter for column `{table_name}.{column_name}`.',
 						$col_inject
 					)
 				);
@@ -388,7 +389,7 @@ Time: {$date}";
 				->public()
 				->setComment(
 					Str::interpolate(
-						'Getter for column `{table_name}`.`{column_name}`.
+						'Getter for column `{table_name}.{column_name}`.
 
 @return {read_type_hint}',
 						$col_inject
@@ -402,7 +403,7 @@ Time: {$date}";
 				->public()
 				->setComment(
 					Str::interpolate(
-						'Setter for column `{table_name}`.`{column_name}`.
+						'Setter for column `{table_name}.{column_name}`.
 
 @param {write_type_hint} ${column_name}
 
@@ -672,7 +673,7 @@ return $this;',
 				];
 
 				$comment = Str::interpolate(
-					'Filters rows with `{rule_name}` condition on column `{table_name}`.`{column_name}`.',
+					'Filters rows with `{rule_name}` condition on column `{table_name}.{column_name}`.',
 					$col_inject
 				);
 
