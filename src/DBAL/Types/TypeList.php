@@ -40,6 +40,14 @@ class TypeList extends Type
 
 	/**
 	 * {@inheritDoc}
+	 */
+	public static function getInstance(array $options): static
+	{
+		return (new self())->configure($options);
+	}
+
+	/**
+	 * {@inheritDoc}
 	 *
 	 * @throws JsonException
 	 */
@@ -74,14 +82,6 @@ class TypeList extends Type
 	public function getEmptyValueOfType(): ?array
 	{
 		return $this->isNullable() ? null : [];
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public static function getInstance(array $options): static
-	{
-		return (new self())->configure($options);
 	}
 
 	/**
@@ -153,6 +153,18 @@ class TypeList extends Type
 			throw new TypesInvalidValueException($this->msg('unable_to_serialize_list_value'), $debug, $e);
 		}
 
-		return $value;
+		return $this->ensureList($value);
+	}
+
+	/**
+	 * Ensure the value is a list (indexed array).
+	 *
+	 * @param array $value
+	 *
+	 * @return array
+	 */
+	private function ensureList(array $value): array
+	{
+		return \array_values($value);
 	}
 }
