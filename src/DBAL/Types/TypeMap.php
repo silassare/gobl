@@ -154,15 +154,45 @@ class TypeMap extends Type
 			}
 		}
 
-		if (!\is_object($value) && !\is_array($value)) {
-			throw new TypesInvalidValueException($this->msg('invalid_map_type'), $debug);
-		}
-
 		try {
 			// this checks if we can serialize to JSON
 			\json_encode($value, \JSON_THROW_ON_ERROR);
 		} catch (JsonException $e) {
 			throw new TypesInvalidValueException($this->msg('unable_to_serialize_map_value'), $debug, $e);
+		}
+
+		return $this->ensureMap($value);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws TypesInvalidValueException
+	 */
+	public function getDefault(): ?Map
+	{
+		$default = parent::getDefault();
+
+		if (null === $default) {
+			return null;
+		}
+
+		return $this->ensureMap($default);
+	}
+
+	/**
+	 * Ensure the value is a Map.
+	 *
+	 * @param mixed $value
+	 *
+	 * @return Map
+	 *
+	 * @throws TypesInvalidValueException
+	 */
+	private function ensureMap(mixed $value): Map
+	{
+		if (!\is_object($value) && !\is_array($value)) {
+			throw new TypesInvalidValueException($this->msg('invalid_map_type'), $value);
 		}
 
 		if (!$value instanceof Map) {
