@@ -108,39 +108,38 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface
 			throw new DBALException('Invalid "type" for relation link.');
 		}
 
-		if (LinkType::COLUMNS === $type) {
-			return new LinkColumns($host_table, $target_table, $options);
-		}
+		switch ($type) {
+			case LinkType::COLUMNS:
+				return new LinkColumns($host_table, $target_table, $options);
 
-		if (LinkType::MORPH === $type) {
-			return new LinkMorph($host_table, $target_table, $options);
-		}
+			case LinkType::MORPH:
+				return new LinkMorph($host_table, $target_table, $options);
 
-		if (LinkType::THROUGH === $type) {
-			$pivot_table = $options['pivot_table'] ?? null;
+			case LinkType::THROUGH:
+				$pivot_table = $options['pivot_table'] ?? null;
 
-			if (!$pivot_table) {
-				throw new DBALException(
-					\sprintf('property "pivot_table" is required for relation link type "%s".', $type->value)
-				);
-			}
+				if (!$pivot_table) {
+					throw new DBALException(
+						\sprintf('property "pivot_table" is required for relation link type "%s".', $type->value)
+					);
+				}
 
-			if (\is_string($pivot_table)) {
-				$pivot_table = $rdbms->getTableOrFail($pivot_table);
-			}
+				if (\is_string($pivot_table)) {
+					$pivot_table = $rdbms->getTableOrFail($pivot_table);
+				}
 
-			if (!$pivot_table instanceof Table) {
-				throw new DBALException(
-					\sprintf(
-						'property "pivot_table" defined for relation link type "%s" should be of string|%s type not "%s".',
-						$type->value,
-						Table::class,
-						\get_debug_type($pivot_table)
-					)
-				);
-			}
+				if (!$pivot_table instanceof Table) {
+					throw new DBALException(
+						\sprintf(
+							'property "pivot_table" defined for relation link type "%s" should be of string|%s type not "%s".',
+							$type->value,
+							Table::class,
+							\get_debug_type($pivot_table)
+						)
+					);
+				}
 
-			return new LinkThrough($rdbms, $host_table, $target_table, $pivot_table, $options);
+				return new LinkThrough($rdbms, $host_table, $target_table, $pivot_table, $options);
 		}
 
 		throw new DBALException(\sprintf('Unsupported link type "%s".', $type->value));

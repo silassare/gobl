@@ -138,6 +138,7 @@ abstract class ORMController
 		if (\is_array($item)) {
 			$values = $item;
 		} else {
+			/** @var TEntity $item */
 			$instance = $item;
 
 			if ($instance->isSaved()) {

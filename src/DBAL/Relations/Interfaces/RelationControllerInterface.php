@@ -34,7 +34,7 @@ interface RelationControllerInterface
 	 *
 	 * @psalm-param ORMEntity $host_entity
 	 *
-	 * @return TRelative
+	 * @return null|TRelative
 	 */
 	public function get(ORMEntity $host_entity, ORMRequest $request): mixed;
 

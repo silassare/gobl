@@ -35,7 +35,7 @@ trait QBFromTrait
 	/**
 	 * Gets from options.
 	 *
-	 * @return array
+	 * @return array<string, string[]>
 	 */
 	public function getOptionsFrom(): array
 	{

@@ -99,28 +99,36 @@ final class RelationBuilder
 
 		$link = Relation::createLink($this->rdbms, $this->host_table, $this->target_table, $link_options);
 
-		if (RelationType::ONE_TO_ONE === $this->type) {
-			$r = new OneToOne($this->name, $link);
-		} elseif (RelationType::ONE_TO_MANY === $this->type) {
-			$r = new OneToMany($this->name, $link);
-		} elseif (RelationType::MANY_TO_ONE === $this->type) {
-			$r = new ManyToOne($this->name, $link);
-		} elseif (RelationType::MANY_TO_MANY === $this->type) {
-			if (!$link instanceof LinkThrough) {
-				throw new DBALRuntimeException(\sprintf(
-					'Many to many relation must be linked through a pivot table using the "%s" method.',
-					Str::callableName([$this, 'through'])
-				));
-			}
+		switch ($this->type) {
+			case RelationType::ONE_TO_ONE:
+				$this->relation = new OneToOne($this->name, $link);
 
-			$r = new ManyToMany($this->name, $link);
-		} else {
-			throw new DBALRuntimeException('Unknown relation type.');
+				break;
+
+			case RelationType::ONE_TO_MANY:
+				$this->relation = new OneToMany($this->name, $link);
+
+				break;
+
+			case RelationType::MANY_TO_ONE:
+				$this->relation = new ManyToOne($this->name, $link);
+
+				break;
+
+			case RelationType::MANY_TO_MANY:
+				if (!$link instanceof LinkThrough) {
+					throw new DBALRuntimeException(\sprintf(
+						'Many to many relation must be linked through a pivot table using the "%s" method.',
+						Str::callableName([$this, 'through'])
+					));
+				}
+
+				$this->relation = new ManyToMany($this->name, $link);
+
+				break;
 		}
 
-		$this->relation = $r;
-
-		return $r;
+		return $this->relation;
 	}
 
 	/**

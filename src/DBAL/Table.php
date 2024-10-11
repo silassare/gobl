@@ -812,7 +812,16 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 				)
 			);
 		}
-		$c_names = \array_values($columns);
+
+		$c_names = [];
+
+		foreach ($columns as $column) {
+			if ($column instanceof Column) {
+				$c_names[] = $column->getName();
+			} else {
+				$c_names[] = $column;
+			}
+		}
 
 		\sort($c_names);
 
