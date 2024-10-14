@@ -16,7 +16,7 @@
 		"ext-json": "*",
 		"ext-bcmath": "*",
 		"silassare/otpl": "^2.0.0",
-		"silassare/php-utils": "^1.0.0",
+		"silassare/php-utils": "^1.0.3",
 		"oliup/code-generator": "^1.0.0"
 	},
 	"require-dev": {

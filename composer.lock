@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ec576b5a57867fa4a20c54848ffa5ffc",
+    "content-hash": "8df1db7a6f2cce647de66bedfd265dd1",
     "packages": [
         {
             "name": "oliup/code-generator",
@@ -168,16 +168,16 @@
         },
         {
             "name": "silassare/php-utils",
-            "version": "1.0.2",
+            "version": "1.0.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/silassare/php-utils.git",
-                "reference": "34c360aaec8883af6196295379a97c465f827377"
+                "reference": "0270541d3f21a7ed2e9166cdbe8cdbb6b3e3a2ab"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/silassare/php-utils/zipball/34c360aaec8883af6196295379a97c465f827377",
-                "reference": "34c360aaec8883af6196295379a97c465f827377",
+                "url": "https://api.github.com/repos/silassare/php-utils/zipball/0270541d3f21a7ed2e9166cdbe8cdbb6b3e3a2ab",
+                "reference": "0270541d3f21a7ed2e9166cdbe8cdbb6b3e3a2ab",
                 "shasum": ""
             },
             "require": {
@@ -221,10 +221,10 @@
                 "utils"
             ],
             "support": {
-                "source": "https://github.com/silassare/php-utils/tree/1.0.2",
+                "source": "https://github.com/silassare/php-utils/tree/1.0.3",
                 "issues": "https://github.com/silassare/php-utils/issues"
             },
-            "time": "2024-10-07T13:40:59+00:00"
+            "time": "2024-10-14T12:00:18+00:00"
         }
     ],
     "packages-dev": [
@@ -1705,16 +1705,16 @@
         },
         {
             "name": "phpstan/phpdoc-parser",
-            "version": "1.32.0",
+            "version": "1.33.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpdoc-parser.git",
-                "reference": "6ca22b154efdd9e3c68c56f5d94670920a1c19a4"
+                "reference": "82a311fd3690fb2bf7b64d5c98f912b3dd746140"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpdoc-parser/zipball/6ca22b154efdd9e3c68c56f5d94670920a1c19a4",
-                "reference": "6ca22b154efdd9e3c68c56f5d94670920a1c19a4",
+                "url": "https://api.github.com/repos/phpstan/phpdoc-parser/zipball/82a311fd3690fb2bf7b64d5c98f912b3dd746140",
+                "reference": "82a311fd3690fb2bf7b64d5c98f912b3dd746140",
                 "shasum": ""
             },
             "require": {
@@ -1746,9 +1746,9 @@
             "description": "PHPDoc parser with support for nullable, intersection and generic types",
             "support": {
                 "issues": "https://github.com/phpstan/phpdoc-parser/issues",
-                "source": "https://github.com/phpstan/phpdoc-parser/tree/1.32.0"
+                "source": "https://github.com/phpstan/phpdoc-parser/tree/1.33.0"
             },
-            "time": "2024-09-26T07:23:32+00:00"
+            "time": "2024-10-13T11:25:22+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",
