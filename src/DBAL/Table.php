@@ -132,7 +132,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * The table columns.
 	 *
-	 * @var \Gobl\DBAL\Column[]
+	 * @var Column[]
 	 */
 	private array $columns = [];
 
@@ -144,7 +144,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Foreign keys constraints.
 	 *
-	 * @var \Gobl\DBAL\Constraints\ForeignKey[]
+	 * @var ForeignKey[]
 	 */
 	private array $fk_constraints = [];
 
@@ -158,28 +158,28 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Unique constraints.
 	 *
-	 * @var \Gobl\DBAL\Constraints\UniqueKey[]
+	 * @var UniqueKey[]
 	 */
 	private array $uc_constraints = [];
 
 	/**
 	 * Table relations list.
 	 *
-	 * @var \Gobl\DBAL\Relations\Relation[]
+	 * @var Relation[]
 	 */
 	private array $relations = [];
 
 	/**
 	 * Table virtual relations list.
 	 *
-	 * @var \Gobl\DBAL\Relations\VirtualRelation[]
+	 * @var VirtualRelation[]
 	 */
 	private array $virtual_relations = [];
 
 	/**
 	 * The collections list.
 	 *
-	 * @var \Gobl\DBAL\Collections\Collection[]
+	 * @var Collection[]
 	 */
 	private array $collections = [];
 
@@ -644,7 +644,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Gets privates columns.
 	 *
-	 * @return \Gobl\DBAL\Column[]
+	 * @return Column[]
 	 */
 	public function getPrivatesColumns(): array
 	{
@@ -794,7 +794,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Adds a unique key constraint on columns.
 	 *
-	 * @param array<\Gobl\DBAL\Column|string> $columns the columns
+	 * @param array<Column|string> $columns the columns
 	 *
 	 * @return UniqueKey
 	 *
@@ -931,7 +931,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Adds a primary key constraint on columns.
 	 *
-	 * @param array<\Gobl\DBAL\Column|string> $columns the columns
+	 * @param array<Column|string> $columns the columns
 	 *
 	 * @return PrimaryKey
 	 *
@@ -1084,7 +1084,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Gets relations.
 	 *
-	 * @return \Gobl\DBAL\Relations\Relation[]
+	 * @return Relation[]
 	 */
 	public function getRelations(): array
 	{
@@ -1110,7 +1110,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Gets virtual relations.
 	 *
-	 * @return \Gobl\DBAL\Relations\VirtualRelation[]
+	 * @return VirtualRelation[]
 	 */
 	public function getVirtualRelations(): array
 	{
@@ -1136,7 +1136,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Gets collections.
 	 *
-	 * @return \Gobl\DBAL\Collections\Collection[]
+	 * @return Collection[]
 	 */
 	public function getCollections(): array
 	{
@@ -1146,7 +1146,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Gets unique constraints.
 	 *
-	 * @return \Gobl\DBAL\Constraints\UniqueKey[]
+	 * @return UniqueKey[]
 	 */
 	public function getUniqueKeyConstraints(): array
 	{
@@ -1166,7 +1166,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Gets foreign key constraints.
 	 *
-	 * @return \Gobl\DBAL\Constraints\ForeignKey[]
+	 * @return ForeignKey[]
 	 */
 	public function getForeignKeyConstraints(): array
 	{
@@ -1285,7 +1285,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	 * @param bool $include_private if false private column will not be included.
 	 *                              Default is true.
 	 *
-	 * @return \Gobl\DBAL\Column[]
+	 * @return Column[]
 	 */
 	public function getColumns(bool $include_private = true): array
 	{

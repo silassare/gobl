@@ -52,6 +52,7 @@ enum DiffActionType: string
 	case TABLE_COLLATE_CHANGED = 'TABLE_COLLATE_CHANGED';
 
 	case TABLE_CHARSET_CHANGED = 'TABLE_CHARSET_CHANGED';
+
 	// DML ACTIONS
 	case ROW_INSERTED = 'ROW_INSERTED';
 
@@ -62,33 +63,33 @@ enum DiffActionType: string
 	public function getPriority(): int
 	{
 		return match ($this) {
-			self::FOREIGN_KEY_CONSTRAINT_DELETED     => 10,
-			self::PRIMARY_KEY_CONSTRAINT_DELETED     => 11,
-			self::UNIQUE_KEY_CONSTRAINT_DELETED      => 12,
+			self::FOREIGN_KEY_CONSTRAINT_DELETED => 10,
+			self::PRIMARY_KEY_CONSTRAINT_DELETED => 11,
+			self::UNIQUE_KEY_CONSTRAINT_DELETED  => 12,
 
-			self::TABLE_DELETED  => 20,
-			self::COLUMN_DELETED => 21,
+			self::TABLE_DELETED                  => 20,
+			self::COLUMN_DELETED                 => 21,
 
-			self::DB_CHARSET_CHANGED => 30,
-			self::DB_COLLATE_CHANGED => 31,
+			self::DB_CHARSET_CHANGED             => 30,
+			self::DB_COLLATE_CHANGED             => 31,
 
-			self::TABLE_CHARSET_CHANGED => 40,
-			self::TABLE_COLLATE_CHANGED => 41,
+			self::TABLE_CHARSET_CHANGED          => 40,
+			self::TABLE_COLLATE_CHANGED          => 41,
 
-			self::COLUMN_RENAMED      => 50,
-			self::COLUMN_TYPE_CHANGED => 51,
-			self::COLUMN_ADDED        => 52,
+			self::COLUMN_RENAMED                 => 50,
+			self::COLUMN_TYPE_CHANGED            => 51,
+			self::COLUMN_ADDED                   => 52,
 
-			self::TABLE_RENAMED => 60,
-			self::TABLE_ADDED   => 61,
+			self::TABLE_RENAMED                  => 60,
+			self::TABLE_ADDED                    => 61,
 
-			self::ROW_DELETED  => 70,
-			self::ROW_UPDATED  => 71,
-			self::ROW_INSERTED => 72,
+			self::ROW_DELETED                    => 70,
+			self::ROW_UPDATED                    => 71,
+			self::ROW_INSERTED                   => 72,
 
-			self::PRIMARY_KEY_CONSTRAINT_ADDED     => 80,
-			self::UNIQUE_KEY_CONSTRAINT_ADDED      => 81,
-			self::FOREIGN_KEY_CONSTRAINT_ADDED     => 82,
+			self::PRIMARY_KEY_CONSTRAINT_ADDED   => 80,
+			self::UNIQUE_KEY_CONSTRAINT_ADDED    => 81,
+			self::FOREIGN_KEY_CONSTRAINT_ADDED   => 82,
 		};
 	}
 }

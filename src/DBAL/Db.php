@@ -56,14 +56,14 @@ abstract class Db implements RDBMSInterface
 	/**
 	 * Database tables.
 	 *
-	 * @var array<string,\Gobl\DBAL\Table>
+	 * @var array<string,Table>
 	 */
 	private array $tables = [];
 
 	/**
 	 * Database namespaces.
 	 *
-	 * @var \Gobl\DBAL\Builders\NamespaceBuilder[]
+	 * @var NamespaceBuilder[]
 	 */
 	private array $namespaces = [];
 
