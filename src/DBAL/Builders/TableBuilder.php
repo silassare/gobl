@@ -278,9 +278,9 @@ final class TableBuilder
 	}
 
 	/**
-	 * Add a foreign column.
+	 * Adds a foreign key to the table.
 	 *
-	 * The column will be created with the same type as the foreign column.
+	 * If the column already exists, it will be updated with the reference type.
 	 * A foreign key constraint will be added to the table.
 	 *
 	 * @param string                     $column_name
@@ -301,15 +301,7 @@ final class TableBuilder
 		?callable $callable = null
 	): ForeignKey {
 		$ref_table = $this->rdbms->getTableOrFail($foreign_table);
-
-		$ref        = 'ref:' . $foreign_table . '.' . $foreign_column;
-		$ref_column = $this->rdbms->resolveColumn($ref, $this->table->getName());
-
-		$column = new Column($column_name, null, $ref_column);
-
-		$column->setReference($ref);
-
-		$this->table->addColumn($column);
+		$column    = $this->linkColumn($column_name, $foreign_table, $foreign_column);
 
 		$column->getType()->nullable($nullable);
 
@@ -321,7 +313,23 @@ final class TableBuilder
 	}
 
 	/**
-	 * Adds column with same type as another column.
+	 * Adds a collect foreign key factory.
+	 *
+	 * This solve the problem of foreign key that reference a table that is not yet created.
+	 *
+	 * @param callable($this):void $factory
+	 *
+	 * @return $this
+	 */
+	public function collectFk(callable $factory): self
+	{
+		$this->fk_factories[] = $factory;
+
+		return $this;
+	}
+
+	/**
+	 * Adds or updates a column to be of the same type as another column.
 	 *
 	 * @param string $column_name
 	 * @param string $source_table
@@ -333,16 +341,7 @@ final class TableBuilder
 	 */
 	public function sameAs(string $column_name, string $source_table, string $source_column): TypeInterface
 	{
-		$ref        = 'cp:' . $source_table . '.' . $source_column;
-		$ref_column = $this->rdbms->resolveColumn($ref, $this->table->getName());
-
-		$column = new Column($column_name, null, $ref_column);
-
-		$column->setReference($ref);
-
-		$this->table->addColumn($column);
-
-		return $column->getType();
+		return $this->linkColumn($column_name, $source_table, $source_column, true)->getType();
 	}
 
 	/**
@@ -537,7 +536,12 @@ final class TableBuilder
 	 */
 	public function hasMany(string $relation_name): RelationBuilder
 	{
-		return $this->collected_relations[] = new RelationBuilder(RelationType::ONE_TO_MANY, $relation_name, $this->table, $this->rdbms);
+		return $this->collected_relations[] = new RelationBuilder(
+			RelationType::ONE_TO_MANY,
+			$relation_name,
+			$this->table,
+			$this->rdbms
+		);
 	}
 
 	/**
@@ -549,7 +553,12 @@ final class TableBuilder
 	 */
 	public function hasOne(string $relation_name): RelationBuilder
 	{
-		return $this->collected_relations[] = new RelationBuilder(RelationType::ONE_TO_ONE, $relation_name, $this->table, $this->rdbms);
+		return $this->collected_relations[] = new RelationBuilder(
+			RelationType::ONE_TO_ONE,
+			$relation_name,
+			$this->table,
+			$this->rdbms
+		);
 	}
 
 	/**
@@ -561,7 +570,12 @@ final class TableBuilder
 	 */
 	public function belongsTo(string $relation_name): RelationBuilder
 	{
-		return $this->collected_relations[] = new RelationBuilder(RelationType::MANY_TO_ONE, $relation_name, $this->table, $this->rdbms);
+		return $this->collected_relations[] = new RelationBuilder(
+			RelationType::MANY_TO_ONE,
+			$relation_name,
+			$this->table,
+			$this->rdbms
+		);
 	}
 
 	/**
@@ -573,7 +587,12 @@ final class TableBuilder
 	 */
 	public function belongsToMany(string $relation_name): RelationBuilder
 	{
-		return $this->collected_relations[] = new RelationBuilder(RelationType::MANY_TO_MANY, $relation_name, $this->table, $this->rdbms);
+		return $this->collected_relations[] = new RelationBuilder(
+			RelationType::MANY_TO_MANY,
+			$relation_name,
+			$this->table,
+			$this->rdbms
+		);
 	}
 
 	/**
@@ -595,23 +614,7 @@ final class TableBuilder
 	}
 
 	/**
-	 * Add a collect foreign key factory.
-	 *
-	 * This solve the problem of foreign key that reference a table that is not yet created.
-	 *
-	 * @param callable($this):void $factory
-	 *
-	 * @return $this
-	 */
-	public function collectFk(callable $factory): self
-	{
-		$this->fk_factories[] = $factory;
-
-		return $this;
-	}
-
-	/**
-	 * Add a collect index factory.
+	 * Adds a collect index factory.
 	 *
 	 * This solve the problem of index that reference a table that is not yet created.
 	 *
@@ -627,7 +630,7 @@ final class TableBuilder
 	}
 
 	/**
-	 * Add a collect relation factory.
+	 * Adds a collect relation factory.
 	 *
 	 * This solve the problem of relation that reference a table that is not yet created.
 	 *
@@ -711,5 +714,43 @@ final class TableBuilder
 
 		// clear
 		$this->collected_relations = [];
+	}
+
+	/**
+	 * Creates or updates a column to reference another column.
+	 *
+	 * If the column already exists, it will be updated with the reference type.
+	 * Otherwise, a new column will be created with the reference type.
+	 *
+	 * @param string $column_name
+	 * @param string $source_table
+	 * @param string $source_column
+	 * @param bool   $is_copy
+	 *
+	 * @return Column
+	 *
+	 * @throws DBALException
+	 */
+	private function linkColumn(
+		string $column_name,
+		string $source_table,
+		string $source_column,
+		bool $is_copy = false
+	): Column {
+		$ref             = ($is_copy ? 'cp:' : 'ref:') . $source_table . '.' . $source_column;
+		$ref_column_type = $this->rdbms->resolveColumn($ref, $this->table->getName());
+
+		$column = $this->table->getColumn($column_name);
+
+		if ($column) {
+			$column->setTypeFromOptions($ref_column_type);
+		} else {
+			$column = new Column($column_name, null, $ref_column_type);
+			$this->table->addColumn($column);
+		}
+
+		$column->setReference($ref);
+
+		return $column;
 	}
 }
