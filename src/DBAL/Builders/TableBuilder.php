@@ -43,8 +43,6 @@ use Throwable;
  */
 final class TableBuilder
 {
-	private Table $table;
-
 	/** @var RelationBuilder[] */
 	private array $collected_relations = [];
 
@@ -62,13 +60,8 @@ final class TableBuilder
 	 */
 	public function __construct(
 		private readonly RDBMSInterface $rdbms,
-		string $namespace,
-		string $table_name
-	) {
-		$this->table = new Table($table_name, $rdbms->getConfig()
-			->getDbTablePrefix());
-		$this->table->setNamespace($namespace);
-	}
+		private Table $table
+	) {}
 
 	/**
 	 * Makes sure the table is ready to be used.

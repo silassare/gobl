@@ -15,6 +15,7 @@ namespace Gobl\DBAL\Builders;
 
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
+use Gobl\DBAL\Table;
 use Gobl\ORM\ORM;
 
 /**
@@ -49,12 +50,28 @@ final class NamespaceBuilder
 	public function table(string $name, ?callable $factory = null): TableBuilder
 	{
 		if (!isset($this->cache[$name])) {
-			$this->cache[$name] = new TableBuilder($this->rdbms, $this->namespace, $name);
+			$table = $this->rdbms->getTable($name);
 
-			// we add the table before running the factory
-			// because the factory may need to access the table
-			// or use it in column type reference.
-			$this->rdbms->addTable($this->cache[$name]->getTable());
+			if (!$table) {
+				$table = new Table($name, $this->rdbms->getConfig()
+					->getDbTablePrefix());
+				// we add the table before running the factory
+				// because the factory may need to access the table
+				// or use it in column type reference.
+				$this->rdbms->addTable($table);
+				$table->setNamespace($this->namespace);
+			} elseif ($table->getNamespace() !== $this->namespace) {
+				throw new DBALException(
+					\sprintf(
+						'Table "%s" already exists in namespace "%s" and cannot be used in namespace "%s".',
+						$name,
+						$table->getNamespace(),
+						$this->namespace
+					)
+				);
+			}
+
+			$this->cache[$name] = new TableBuilder($this->rdbms, $table);
 		}
 
 		$factory && $this->cache[$name]->factory($factory);
