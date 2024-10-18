@@ -20,7 +20,6 @@ use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Drivers\MySQL\MySQLQueryGenerator;
 use Gobl\DBAL\Drivers\SQLLite\SQLLite;
 use Gobl\DBAL\Drivers\SQLLite\SQLLiteQueryGenerator;
-use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\QBUtils;
 use Gobl\DBAL\Relations\LinkType;
@@ -108,8 +107,6 @@ abstract class BaseTestCase extends TestCase
 
 	/**
 	 * Returns a sample db instance with some tables.
-	 *
-	 * @throws DBALException
 	 */
 	public static function getSampleDB(): RDBMSInterface
 	{

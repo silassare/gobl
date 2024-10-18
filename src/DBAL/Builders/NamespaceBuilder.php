@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Builders;
 
 use Gobl\DBAL\Exceptions\DBALException;
+use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Table;
 use Gobl\ORM\ORM;
@@ -44,8 +45,6 @@ final class NamespaceBuilder
 	 *
 	 * @param string                           $name    The table name
 	 * @param null|callable(TableBuilder):void $factory The table factory
-	 *
-	 * @throws DBALException
 	 */
 	public function table(string $name, ?callable $factory = null): TableBuilder
 	{
@@ -61,7 +60,7 @@ final class NamespaceBuilder
 				$this->rdbms->addTable($table);
 				$table->setNamespace($this->namespace);
 			} elseif ($table->getNamespace() !== $this->namespace) {
-				throw new DBALException(
+				throw new DBALRuntimeException(
 					\sprintf(
 						'Table "%s" already exists in namespace "%s" and cannot be used in namespace "%s".',
 						$name,

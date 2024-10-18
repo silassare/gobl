@@ -60,7 +60,7 @@ final class TableBuilder
 	 */
 	public function __construct(
 		private readonly RDBMSInterface $rdbms,
-		private Table $table
+		private readonly Table $table
 	) {}
 
 	/**
@@ -69,8 +69,6 @@ final class TableBuilder
 	 * @param callable($this):void $factory
 	 *
 	 * @return $this
-	 *
-	 * @throws DBALException
 	 */
 	public function factory(callable $factory): self
 	{

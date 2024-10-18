@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Gobl\Tests\DBAL\Queries;
 
 use Gobl\DBAL\Builders\TableBuilder;
-use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\Tests\BaseTestCase;
 
@@ -27,9 +26,6 @@ use Gobl\Tests\BaseTestCase;
  */
 final class QBSelectTest extends BaseTestCase
 {
-	/**
-	 * @throws DBALException
-	 */
 	public function testFullyQualifiedNameArray(): void
 	{
 		$db = self::getEmptyDb();
@@ -82,9 +78,6 @@ final class QBSelectTest extends BaseTestCase
 		self::assertSame(['u.usr_name'], $qb->fullyQualifiedNameArray('users', ['name']));
 	}
 
-	/**
-	 * @throws DBALException
-	 */
 	public function testRelationQuery(): void
 	{
 		$db       = self::getSampleDB();

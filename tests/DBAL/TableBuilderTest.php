@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\DBAL;
 
-use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\Tests\BaseTestCase;
 
 /**
@@ -25,9 +24,6 @@ use Gobl\Tests\BaseTestCase;
  */
 final class TableBuilderTest extends BaseTestCase
 {
-	/**
-	 * @throws DBALException
-	 */
 	public function testTableBuilder(): void
 	{
 		$db = self::getSampleDB();
