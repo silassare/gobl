@@ -56,9 +56,9 @@ class TypeMap extends Type
 	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?Map
 	{
 		if (null !== $value) {
-			$v = \json_decode($value, false, 512, \JSON_THROW_ON_ERROR);
+			$v = \json_decode($value, true, 512, \JSON_THROW_ON_ERROR);
 
-			if (!\is_object($v) && !\is_array($v)) {
+			if (!\is_array($v)) {
 				$v = [];
 			}
 
@@ -134,7 +134,7 @@ class TypeMap extends Type
 			return null;
 		}
 
-		return \json_encode($value, \JSON_THROW_ON_ERROR);
+		return \json_encode($value->getData(), \JSON_THROW_ON_ERROR);
 	}
 
 	/**
@@ -191,14 +191,15 @@ class TypeMap extends Type
 	 */
 	private function ensureMap(mixed $value): Map
 	{
-		if (!\is_object($value) && !\is_array($value)) {
+		$is_map = $value instanceof Map;
+		if (!$is_map && !\is_array($value)) {
 			throw new TypesInvalidValueException($this->msg('invalid_map_type'), $value);
 		}
 
-		if (!$value instanceof Map) {
-			$value = new Map($value);
+		if ($is_map) {
+			return $value;
 		}
 
-		return $value;
+		return new Map($value);
 	}
 }

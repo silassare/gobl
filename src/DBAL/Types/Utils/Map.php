@@ -13,15 +13,20 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Types\Utils;
 
-use ArrayObject;
+use PHPUtils\Store\Store;
 
 /**
  * Class Map.
+ *
+ * @extends Store<array>
  */
-class Map extends ArrayObject
+class Map extends Store
 {
-	public function __construct(array|object $array = [])
+	/**
+	 * Map constructor.
+	 */
+	public function __construct(array &$data = [])
 	{
-		parent::__construct($array, ArrayObject::ARRAY_AS_PROPS);
+		parent::__construct($data);
 	}
 }
