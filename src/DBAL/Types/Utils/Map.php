@@ -27,6 +27,8 @@ class Map extends Store
 	 */
 	public function __construct(array &$data = [])
 	{
+		$this->json_empty_array_is_object = true;
+
 		parent::__construct($data);
 	}
 }
