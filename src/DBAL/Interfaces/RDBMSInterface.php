@@ -136,7 +136,7 @@ interface RDBMSInterface
 	 *
 	 * @param null|string $namespace
 	 *
-	 * @return array<string, \Gobl\DBAL\Table>
+	 * @return array<string, Table>
 	 */
 	public function getTables(?string $namespace = null): array;
 

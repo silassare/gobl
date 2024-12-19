@@ -15,6 +15,7 @@ namespace Gobl\DBAL\Types\Utils;
 
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Types\Exceptions\TypesException;
+use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
 use Gobl\DBAL\Types\Interfaces\TypeProviderInterface;
 use Gobl\DBAL\Types\TypeBigint;
@@ -102,7 +103,7 @@ class TypeUtils
 	/**
 	 * Returns base types class map.
 	 *
-	 * @return class-string<\Gobl\DBAL\Types\Interfaces\BaseTypeInterface>[]
+	 * @return class-string<BaseTypeInterface>[]
 	 */
 	public static function getBaseTypes(): array
 	{

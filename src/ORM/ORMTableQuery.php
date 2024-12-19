@@ -91,7 +91,7 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 * @param string $name
 	 * @param array  $arguments
 	 *
-	 * @return $this|\Gobl\ORM\ORMTableQuery
+	 * @return $this|ORMTableQuery
 	 */
 	public function __call(string $name, array $arguments)
 	{

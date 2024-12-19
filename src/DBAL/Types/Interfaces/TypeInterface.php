@@ -15,6 +15,7 @@ namespace Gobl\DBAL\Types\Interfaces;
 
 use Gobl\DBAL\Filters\Filter;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
+use Gobl\DBAL\Operator;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\ORM\ORMTypeHint;
@@ -203,7 +204,7 @@ interface TypeInterface extends ArrayCapableInterface
 	/**
 	 * Returns allowed filters operators.
 	 *
-	 * @return \Gobl\DBAL\Operator[]
+	 * @return Operator[]
 	 */
 	public function getAllowedFilterOperators(): array;
 

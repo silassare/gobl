@@ -157,7 +157,7 @@ DIFF_SQL;
 	/**
 	 * Gets diff.
 	 *
-	 * @return \Gobl\DBAL\Diff\DiffAction[]
+	 * @return DiffAction[]
 	 */
 	public function getDiff(): array
 	{
@@ -463,7 +463,7 @@ DIFF_SQL;
 	/**
 	 * @param RDBMSInterface $db
 	 *
-	 * @return array<string, \Gobl\DBAL\Table>
+	 * @return array<string, Table>
 	 */
 	private function getTableKeysMap(RDBMSInterface $db): array
 	{
@@ -477,7 +477,7 @@ DIFF_SQL;
 	}
 
 	/**
-	 * @return array<string, \Gobl\DBAL\Column>
+	 * @return array<string, Column>
 	 */
 	private function getColumnsKeysMap(Table $table): array
 	{

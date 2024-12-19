@@ -38,6 +38,7 @@ use Gobl\CRUD\Interfaces\CRUDEventListenerInterface;
 use Gobl\ORM\ORM;
 use PHPUtils\Events\Event;
 use PHPUtils\Events\EventManager;
+use PHPUtils\Events\Interfaces\EventInterface;
 
 /**
  * Class CRUDEventProducer.
@@ -324,8 +325,8 @@ class CRUDEventProducer
 	/**
 	 * Register a listener for an event.
 	 *
-	 * @param class-string<\PHPUtils\Events\Interfaces\EventInterface> $event
-	 * @param callable                                                 $listener
+	 * @param class-string<EventInterface> $event
+	 * @param callable                     $listener
 	 */
 	protected function addListener(string $event, callable $listener): void
 	{

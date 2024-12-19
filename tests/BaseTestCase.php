@@ -185,7 +185,7 @@ abstract class BaseTestCase extends TestCase
 	}
 
 	/**
-	 * @return \string[][]
+	 * @return string[][]
 	 */
 	public static function getTestRDBMSList(): array
 	{

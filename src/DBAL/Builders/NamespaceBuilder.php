@@ -25,7 +25,7 @@ use Gobl\ORM\ORM;
 final class NamespaceBuilder
 {
 	/**
-	 * @var \Gobl\DBAL\Builders\TableBuilder[]
+	 * @var TableBuilder[]
 	 */
 	private array $cache = [];
 

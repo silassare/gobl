@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Collections;
 
+use Gobl\ORM\ORMEntity;
 use Gobl\ORM\ORMRequest;
 use InvalidArgumentException;
 
@@ -64,7 +65,7 @@ abstract class Collection
 	 * @param ORMRequest $request
 	 * @param null|int   &$total_records
 	 *
-	 * @return \Gobl\ORM\ORMEntity[]
+	 * @return ORMEntity[]
 	 */
 	abstract public function getItems(ORMRequest $request, ?int &$total_records = null): array;
 

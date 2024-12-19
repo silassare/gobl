@@ -23,7 +23,7 @@ use OLIUP\CG\PHPType;
 final class ORMTypeHint
 {
 	/**
-	 * @var array<string,\Gobl\ORM\ORMUniversalType> the universal types
+	 * @var array<string,ORMUniversalType> the universal types
 	 */
 	private array $universal_types = [];
 
