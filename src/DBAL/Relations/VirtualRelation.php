@@ -9,46 +9,92 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\DBAL\Relations;
 
-use Gobl\ORM\ORMRequestBase;
+use Gobl\DBAL\Exceptions\DBALRuntimeException;
+use Gobl\DBAL\Relations\Interfaces\RelationInterface;
+use Gobl\DBAL\Table;
+use Gobl\Gobl;
+use Gobl\ORM\ORM;
 use InvalidArgumentException;
 
-abstract class VirtualRelation
+/**
+ * Class VirtualRelation.
+ *
+ * @template TEntity of \Gobl\ORM\ORMEntity
+ * @template TRelative of null|string|int|float|bool|array|\JsonSerializable
+ * @template TRelativeCreatePayload of array
+ * @template TRelativeIdentityPayload of array
+ *
+ * @implements RelationInterface<TEntity,TRelative,TRelativeCreatePayload,TRelativeIdentityPayload>
+ */
+abstract class VirtualRelation implements RelationInterface
 {
-	const NAME_REG = Relation::NAME_REG;
-
 	/** @var string */
-	protected $name;
+	protected string $name;
+
+	/** @var Table */
+	protected Table $host_table;
+
+	/** @var bool */
+	protected bool $paginated;
 
 	/**
 	 * VirtualRelation constructor.
 	 *
-	 * @param string $name
+	 * @param string $namespace  the host table namespace
+	 * @param string $table_name the host table name
+	 * @param string $name       the relation name
+	 * @param bool   $paginated  true means the relation returns paginated items
 	 */
-	public function __construct($name)
+	public function __construct(string $namespace, string $table_name, string $name, bool $paginated)
 	{
 		if (!\preg_match(self::NAME_REG, $name)) {
-			throw new InvalidArgumentException(\sprintf('Invalid virtual relation name "%s".', $name));
+			throw new InvalidArgumentException(
+				\sprintf(
+					'Virtual relation name "%s" should match: %s',
+					$name,
+					self::NAME_PATTERN
+				)
+			);
+		}
+		if (!Gobl::isAllowedRelationName($name)) {
+			throw new DBALRuntimeException(
+				\sprintf(
+					'Virtual relation name "%s" is not allowed.',
+					$this->name
+				)
+			);
 		}
 
-		$this->name = $name;
+		$this->name       = $name;
+		$this->host_table = ORM::table($namespace, $table_name);
+		$this->paginated  = $paginated;
 	}
 
 	/**
-	 * Gets the virtual relation name.
-	 *
-	 * @return string
+	 * {@inheritDoc}
 	 */
-	public function getName()
+	public function isPaginated(): bool
+	{
+		return $this->paginated;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getName(): string
 	{
 		return $this->name;
 	}
 
 	/**
-	 * @param mixed                    $target
-	 * @param \Gobl\ORM\ORMRequestBase $request
-	 * @param int                      &$total_records
+	 * {@inheritDoc}
 	 */
-	abstract public function run($target, ORMRequestBase $request, &$total_records = null);
+	public function getHostTable(): Table
+	{
+		return $this->host_table;
+	}
 }

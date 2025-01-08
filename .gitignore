@@ -1,4 +1,10 @@
 .idea
+.DS_Store
+.gobl
 /vendor
 /ignore
+/tests/tmp
 **/otpl_done/*
+
+# cs fixer
+.php-cs-fixer.cache

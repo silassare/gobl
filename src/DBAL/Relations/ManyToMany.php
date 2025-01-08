@@ -9,24 +9,23 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\DBAL\Relations;
 
-use Gobl\DBAL\Table;
-
-class ManyToMany extends Relation
+/**
+ * Class ManyToMany.
+ */
+final class ManyToMany extends Relation
 {
 	/**
 	 * ManyToMany constructor.
 	 *
-	 * @param                  $name
-	 * @param \Gobl\DBAL\Table $host_table
-	 * @param \Gobl\DBAL\Table $target_table
-	 * @param null|array       $columns
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @param string      $name
+	 * @param LinkThrough $link_through
 	 */
-	public function __construct($name, Table $host_table, Table $target_table, array $columns = null)
+	public function __construct(string $name, LinkThrough $link_through)
 	{
-		parent::__construct($name, $host_table, $target_table, $columns, Relation::MANY_TO_MANY);
+		parent::__construct(RelationType::MANY_TO_MANY, $name, $link_through);
 	}
 }

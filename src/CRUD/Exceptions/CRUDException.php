@@ -9,13 +9,37 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\CRUD\Exceptions;
 
-use Gobl\Exceptions\GoblBaseException;
+use Gobl\CRUD\CRUDAction;
+use Gobl\Exceptions\GoblException;
+use Throwable;
 
 /**
- * Class CRUDException
+ * Class CRUDException.
  */
-class CRUDException extends GoblBaseException
+class CRUDException extends GoblException
 {
+	/**
+	 * CRUDException constructor.
+	 *
+	 * @param CRUDAction|string $message
+	 * @param null|array        $data
+	 * @param null|Throwable    $previous
+	 * @param int               $code
+	 */
+	public function __construct(CRUDAction|string $message, ?array $data = null, ?Throwable $previous = null, int $code = 0)
+	{
+		$action  = \is_string($message) ? null : $message;
+		$message = $action ? $action->getErrorMessage() : $message;
+		$suspect = $action?->getPropagationStopper();
+
+		if ($suspect) {
+			$this->suspectCallable($suspect);
+		}
+
+		parent::__construct($message, $data, $previous, $code);
+	}
 }

@@ -9,138 +9,215 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\DBAL\Types;
 
+use Gobl\DBAL\Interfaces\RDBMSInterface;
+use Gobl\DBAL\Operator;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
-use Gobl\DBAL\Types\Interfaces\TypeInterface;
+use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
+use Gobl\ORM\ORMTypeHint;
 
 /**
- * Class TypeBool
+ * Class TypeBool.
  */
-class TypeBool extends TypeBase
+class TypeBool extends Type implements BaseTypeInterface
 {
-	private static $list          = [true, false, 1, 0];
+	public const NAME = 'bool';
 
-	private static $extended_list = [
-		true,
-		false,
-		1,
-		0,
-		'1',
-		'0',
-		'true',
-		'false',
-		'yes',
-		'no',
-		'on',
-		'off',
-		'y',
-		'n',
+	/**
+	 * @var array
+	 */
+	private static array $map_extended = [
+		'1'     => true,
+		'0'     => false,
+		'true'  => true,
+		'false' => false,
+		'yes'   => true,
+		'no'    => false,
+		'on'    => true,
+		'off'   => false,
+		'y'     => true,
+		'n'     => false,
 	];
-
-	private static $map = [
-		'1'     => 1,
-		'0'     => 0,
-		'true'  => 1,
-		'false' => 0,
-		'yes'   => 1,
-		'no'    => 0,
-		'on'    => 1,
-		'off'   => 0,
-		'y'     => 1,
-		'n'     => 0,
-	];
-
-	private $strict        = true;
 
 	/**
 	 * TypeBool Constructor.
 	 *
-	 * @param bool $strict whether to limit bool value to (true,false,1,0)
+	 * @param bool        $strict  whether to limit bool value to (true,false,1,0)
+	 * @param null|string $message the error message
 	 */
-	public function __construct($strict = true)
+	public function __construct(bool $strict = true, ?string $message = null)
 	{
-		$this->strict = (bool) $strict;
+		$this->strict($strict);
 
-		return $this;
+		!empty($message) && $this->msg('invalid_bool_type', $message);
+
+		parent::__construct($this);
 	}
 
 	/**
-	 * @inheritdoc
-	 */
-	public function setDefault($value)
-	{
-		$this->default = (int) ((bool) $value);
-
-		return $this;
-	}
-
-	/**
-	 * @inheritdoc
+	 * Sets this type as (non-)strict.
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
+	 * whether to limit bool value to (true,false,1,0)
+	 *
+	 * @param bool $strict
+	 *
+	 * @return $this
 	 */
-	public function validate($value, $column_name, $table_name)
+	public function strict(bool $strict = true): static
+	{
+		return $this->setOption('strict', $strict);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public static function getInstance(array $options): static
+	{
+		return (new self())->configure($options);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getName(): string
+	{
+		return self::NAME;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @return null|bool
+	 *
+	 * @throws TypesInvalidValueException
+	 */
+	public function validate(mixed $value): ?bool
 	{
 		$debug = [
 			'value' => $value,
 		];
 
-		if (null === $value && $this->isNullAble()) {
-			return $this->getDefault();
+		if (null === $value) {
+			$value = $this->getDefault();
+
+			if (null === $value && $this->isNullable()) {
+				return null;
+			}
 		}
 
-		$allowed = $this->strict ? self::$list : self::$extended_list;
-
-		if (!\in_array($value, $allowed)) {
-			throw new TypesInvalidValueException('invalid_bool_type', $debug);
+		if (true === $value || false === $value || 1 === $value || 0 === $value) {
+			return (bool) $value;
 		}
 
-		if (\is_string($value) && isset(self::$map[$value])) {
+		if (\is_string($value) && !$this->isStrict()) {
 			$value = \strtolower($value);
 
-			return self::$map[$value];
+			if (isset(self::$map_extended[$value])) {
+				return self::$map_extended[$value];
+			}
 		}
 
-		return (int) ((bool) $value);
+		throw new TypesInvalidValueException($this->msg('invalid_bool_type'), $debug);
 	}
 
 	/**
-	 * @inheritdoc
+	 * {@inheritDoc}
 	 */
-	public function getCleanOptions()
+	public function configure(array $options): static
 	{
-		return [
-			'type'    => 'bool',
-			'strict'  => $this->strict,
-			'null'    => $this->isNullAble(),
-			'default' => $this->getDefault(),
+		if (isset($options['strict'])) {
+			$this->strict((bool) $options['strict']);
+		}
+
+		return parent::configure($options);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?bool
+	{
+		return null === $value ? null : (bool) $value;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function default(mixed $default): static
+	{
+		return parent::default((int) ((bool) $default));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getAllowedFilterOperators(): array
+	{
+		$operators = [
+			Operator::EQ,
+			Operator::NEQ,
+			Operator::IS_FALSE,
+			Operator::IS_TRUE,
 		];
+
+		if ($this->isNullable()) {
+			$operators[] = Operator::IS_NULL;
+			$operators[] = Operator::IS_NOT_NULL;
+		}
+
+		return $operators;
 	}
 
 	/**
-	 * @inheritdoc
+	 * {@inheritDoc}
 	 */
-	final public function getTypeConstant()
+	public function getEmptyValueOfType(): ?bool
 	{
-		return TypeInterface::TYPE_BOOL;
+		return $this->isNullable() ? null : false;
 	}
 
 	/**
-	 * @inheritdoc
+	 * {@inheritDoc}
 	 */
-	public static function getInstance(array $options)
+	public function getReadTypeHint(): ORMTypeHint
 	{
-		$instance = new self(self::getOptionKey($options, 'strict', true));
+		return ORMTypeHint::bool();
+	}
 
-		if (self::getOptionKey($options, 'null', false)) {
-			$instance->nullAble();
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getWriteTypeHint(): ORMTypeHint
+	{
+		return ORMTypeHint::bool();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws TypesInvalidValueException
+	 */
+	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?int
+	{
+		$value = $this->validate($value);
+
+		if (null === $value) {
+			return null;
 		}
 
-		if (\array_key_exists('default', $options)) {
-			$instance->setDefault($options['default']);
-		}
+		return $value ? 1 : 0;
+	}
 
-		return $instance;
+	/**
+	 * Checks if this is strict.
+	 *
+	 * @return bool
+	 */
+	public function isStrict(): bool
+	{
+		return (bool) $this->getOption('strict', true);
 	}
 }

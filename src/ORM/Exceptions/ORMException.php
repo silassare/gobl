@@ -9,13 +9,13 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\ORM\Exceptions;
 
-use Gobl\Exceptions\GoblBaseException;
+use Gobl\Exceptions\GoblException;
 
 /**
- * Class ORMException
+ * Class ORMException.
  */
-class ORMException extends GoblBaseException
-{
-}
+class ORMException extends GoblException {}

@@ -9,90 +9,60 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\CRUD;
 
+use Gobl\CRUD\Enums\EntityEventType;
+use Gobl\CRUD\Events\AfterEntityCreation;
+use Gobl\CRUD\Events\AfterEntityDeletion;
+use Gobl\CRUD\Events\AfterEntityRead;
+use Gobl\CRUD\Events\AfterEntityUpdate;
+use Gobl\CRUD\Events\BeforeColumnUpdate;
+use Gobl\CRUD\Events\BeforeCreate;
+use Gobl\CRUD\Events\BeforeCreateFlush;
+use Gobl\CRUD\Events\BeforeDelete;
+use Gobl\CRUD\Events\BeforeDeleteAll;
+use Gobl\CRUD\Events\BeforeDeleteAllFlush;
+use Gobl\CRUD\Events\BeforeDeleteFlush;
+use Gobl\CRUD\Events\BeforeEntityDeletion;
+use Gobl\CRUD\Events\BeforeEntityUpdate;
+use Gobl\CRUD\Events\BeforePKColumnWrite;
+use Gobl\CRUD\Events\BeforePrivateColumnWrite;
+use Gobl\CRUD\Events\BeforeRead;
+use Gobl\CRUD\Events\BeforeReadAll;
+use Gobl\CRUD\Events\BeforeUpdate;
+use Gobl\CRUD\Events\BeforeUpdateAll;
+use Gobl\CRUD\Events\BeforeUpdateAllFlush;
+use Gobl\CRUD\Events\BeforeUpdateFlush;
+use Gobl\CRUD\Events\EntityEvent;
 use Gobl\CRUD\Exceptions\CRUDException;
-use Gobl\CRUD\Handler\CRUDHandlerDefault;
-use Gobl\CRUD\Handler\Interfaces\CRUDHandlerInterface;
+use Gobl\DBAL\Column;
 use Gobl\DBAL\Table;
-use InvalidArgumentException;
-use RuntimeException;
+use Gobl\ORM\ORMEntity;
+use Gobl\ORM\ORMTableQuery;
 
 /**
- * Class CRUD
+ * Class CRUD.
  */
 class CRUD
 {
-	const CREATE        = 'create';
-
-	const READ          = 'read';
-
-	const UPDATE        = 'update';
-
-	const DELETE        = 'delete';
-
-	const READ_ALL      = 'read_all';
-
-	const UPDATE_ALL    = 'update_all';
-
-	const DELETE_ALL    = 'delete_all';
-
-	const COLUMN_UPDATE = 'column_update';
-
-	/**
-	 * @var callable
-	 */
-	private static $handler_provider = null;
-
-	/**
-	 * @var \Gobl\DBAL\Table
-	 */
-	private $table;
-
-	/**
-	 * @var \Gobl\CRUD\Handler\Interfaces\CRUDHandlerInterface
-	 */
-	private $crud_handler;
-
-	/**
-	 * @var string
-	 */
-	private $message = 'OK';
-
-	/**
-	 * @var array
-	 */
-	private $debug = [];
+	private Table $table;
+	private string $event_channel;
+	private string $message = 'OK';
+	private array $debug;
 
 	/**
 	 * CRUD constructor.
 	 *
-	 * @param \Gobl\DBAL\Table                                        $table   the target table
-	 * @param null|\Gobl\CRUD\Handler\Interfaces\CRUDHandlerInterface $handler the default handler to use
+	 * @param Table $table the target table
 	 */
-	public function __construct(Table $table, CRUDHandlerInterface $handler = null)
+	public function __construct(Table $table)
 	{
-		$this->table = $table;
-		$name        = $table->getName();
-
-		if (null !== $handler) {
-			$this->crud_handler = $handler;
-		} elseif (isset(self::$handler_provider) && $handler = \call_user_func(self::$handler_provider, $name)) {
-			if ($handler instanceof CRUDHandlerInterface) {
-				$this->crud_handler = $handler;
-			} else {
-				throw new InvalidArgumentException(\sprintf(
-					'Table "%s" CRUD handler class should implements "%s"',
-					$name,
-					CRUDHandlerInterface::class
-				));
-			}
-		} else {
-			$this->crud_handler = new CRUDHandlerDefault();
-		}
+		$this->table         = $table;
+		$this->event_channel = $table->getFullName();
 
 		$this->debug = [
-			'_by'    => \get_class($this->crud_handler),
 			'_table' => $table->getName(),
 		];
 	}
@@ -102,7 +72,7 @@ class CRUD
 	 *
 	 * @return string
 	 */
-	public function getMessage()
+	public function getMessage(): string
 	{
 		return $this->message;
 	}
@@ -110,194 +80,292 @@ class CRUD
 	/**
 	 * Create assertion.
 	 *
-	 * @param array &$form
+	 * @param array $form
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @return BeforeCreateFlush
+	 *
+	 * @throws CRUDException
 	 */
-	public function assertCreate(array &$form)
+	public function assertCreate(array $form): BeforeCreateFlush
 	{
-		$action = new CRUDCreate($this->table, $form);
+		$action = new BeforeCreate($this->table, $form);
 
-		if (!$this->crud_handler->onBeforeCreate($action)) {
-			throw new CRUDException($action->getError(), $this->debug);
+		if (!$this->authorise($action, true)) {
+			throw new CRUDException($action, $this->debug);
 		}
 
-		$form          = $action->getForm();
-		$this->message = $action->getSuccess();
+		$this->message = $action->getSuccessMessage();
 
-		$this->checkFormColumnsForCreate($form);
+		$this->checkFormColumnsForCreate($action);
 
-		$this->crud_handler->autoFillCreateForm($form);
+		return (new BeforeCreateFlush($this->table, $form))->dispatch(null, $this->event_channel);
 	}
 
 	/**
 	 * Read assertion.
 	 *
-	 * @param array &$filters
+	 * @param ORMTableQuery $filters
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @return BeforeRead
+	 *
+	 * @throws CRUDException
 	 */
-	public function assertRead(array &$filters)
+	public function assertRead(ORMTableQuery $filters): BeforeRead
 	{
-		$action = new CRUDRead($this->table, $filters);
+		$action = new BeforeRead($this->table, $filters);
 
-		if (!$this->crud_handler->onBeforeRead($action)) {
-			throw new CRUDException($action->getError(), $this->debug);
+		if (!$this->authorise($action, true)) {
+			throw new CRUDException($action, $this->debug);
 		}
 
-		$filters       = $action->getFilters();
-		$this->message = $action->getSuccess();
+		$this->message = $action->getSuccessMessage();
+
+		return $action;
 	}
 
 	/**
 	 * Read all assertion.
 	 *
-	 * @param array &$filters
+	 * @param ORMTableQuery $filters
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @return BeforeReadAll
+	 *
+	 * @throws CRUDException
 	 */
-	public function assertReadAll(array &$filters)
+	public function assertReadAll(ORMTableQuery $filters): BeforeReadAll
 	{
-		$action = new CRUDReadAll($this->table, $filters);
+		$action = new BeforeReadAll($this->table, $filters);
 
-		if (!$this->crud_handler->onBeforeReadAll($action)) {
-			throw new CRUDException($action->getError(), $this->debug);
+		if (!$this->authorise($action, true)) {
+			throw new CRUDException($action, $this->debug);
 		}
 
-		$filters       = $action->getFilters();
-		$this->message = $action->getSuccess();
+		$this->message = $action->getSuccessMessage();
+
+		return $action;
 	}
 
 	/**
 	 * Update assertion.
 	 *
-	 * @param array &$filters
-	 * @param array &$form
+	 * @param ORMTableQuery $filters
+	 * @param array         $form
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @return BeforeUpdateFlush
+	 *
+	 * @throws CRUDException
 	 */
-	public function assertUpdate(array &$filters, array &$form)
+	public function assertUpdate(ORMTableQuery $filters, array $form): BeforeUpdateFlush
 	{
-		$action = new CRUDUpdate($this->table, $filters, $form);
+		$action = new BeforeUpdate($this->table, $filters, $form);
 
-		if (!$this->crud_handler->onBeforeUpdate($action)) {
-			throw new CRUDException($action->getError(), $this->debug);
+		if (!$this->authorise($action, true)) {
+			throw new CRUDException($action, $this->debug);
 		}
 
-		$filters       = $action->getFilters();
-		$form          = $action->getForm();
-		$this->message = $action->getSuccess();
+		$this->message = $action->getSuccessMessage();
 
-		$this->checkFormColumnsForUpdate($form);
+		$this->checkFormColumnsForUpdate($action);
 
-		$this->crud_handler->autoFillUpdateFormAndFilters($form, $filters, false);
+		return (new BeforeUpdateFlush($this->table, $filters, $form))->dispatch(null, $this->event_channel);
 	}
 
 	/**
 	 * Update all assertion.
 	 *
-	 * @param array &$filters
-	 * @param array &$form
+	 * @param ORMTableQuery $filters
+	 * @param array         $form
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @return BeforeUpdateAllFlush
+	 *
+	 * @throws CRUDException
 	 */
-	public function assertUpdateAll(array &$filters, array &$form)
+	public function assertUpdateAll(ORMTableQuery $filters, array $form): BeforeUpdateAllFlush
 	{
-		$action = new CRUDUpdateAll($this->table, $filters, $form);
+		$action = new BeforeUpdateAll($this->table, $filters, $form);
 
-		if (!$this->crud_handler->onBeforeUpdateAll($action)) {
-			throw new CRUDException($action->getError(), $this->debug);
+		if (!$this->authorise($action, true)) {
+			throw new CRUDException($action, $this->debug);
 		}
 
-		$filters       = $action->getFilters();
-		$form          = $action->getForm();
-		$this->message = $action->getSuccess();
+		$this->message = $action->getSuccessMessage();
 
-		$this->checkFormColumnsForUpdate($form);
+		$this->checkFormColumnsForUpdate($action);
 
-		$this->crud_handler->autoFillUpdateFormAndFilters($form, $filters, true);
+		return (new BeforeUpdateAllFlush($this->table, $filters, $form))->dispatch(null, $this->event_channel);
 	}
 
 	/**
 	 * Delete assertion.
 	 *
-	 * @param array &$filters
+	 * @param ORMTableQuery $filters
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @return BeforeDeleteFlush
+	 *
+	 * @throws CRUDException
 	 */
-	public function assertDelete(array &$filters)
+	public function assertDelete(ORMTableQuery $filters): BeforeDeleteFlush
 	{
-		$action = new CRUDDelete($this->table, $filters);
+		$action = new BeforeDelete($this->table, $filters);
 
-		if (!$this->crud_handler->onBeforeDelete($action)) {
-			throw new CRUDException($action->getError(), $this->debug);
+		if (!$this->authorise($action, true)) {
+			throw new CRUDException($action, $this->debug);
 		}
 
-		$filters       = $action->getFilters();
-		$this->message = $action->getSuccess();
+		$this->message = $action->getSuccessMessage();
+
+		return (new BeforeDeleteFlush($this->table, $filters))->dispatch(null, $this->event_channel);
 	}
 
 	/**
 	 * Delete all assertion.
 	 *
-	 * @param array &$filters
+	 * @param ORMTableQuery $filters
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @return BeforeDeleteAllFlush
+	 *
+	 * @throws CRUDException
 	 */
-	public function assertDeleteAll(array &$filters)
+	public function assertDeleteAll(ORMTableQuery $filters): BeforeDeleteAllFlush
 	{
-		$action = new CRUDDeleteAll($this->table, $filters);
+		$action = new BeforeDeleteAll($this->table, $filters);
 
-		if (!$this->crud_handler->onBeforeDeleteAll($action)) {
-			throw new CRUDException($action->getError(), $this->debug);
+		if (!$this->authorise($action, false)) {
+			throw new CRUDException($action, $this->debug);
 		}
 
-		$filters       = $action->getFilters();
-		$this->message = $action->getSuccess();
+		$this->message = $action->getSuccessMessage();
+
+		return (new BeforeDeleteAllFlush($this->table, $filters))->dispatch(null, $this->event_channel);
 	}
 
 	/**
-	 * Gets the CRUD handler.
+	 * Dispatches entity events.
 	 *
-	 * @return \Gobl\CRUD\Handler\Interfaces\CRUDHandlerInterface
+	 * @param ORMEntity       $entity
+	 * @param EntityEventType $event_type
+	 *
+	 * @return EntityEvent
 	 */
-	public function getHandler()
+	public function dispatchEntityEvent(ORMEntity $entity, EntityEventType $event_type): EntityEvent
 	{
-		return $this->crud_handler;
+		$event = match ($event_type) {
+			EntityEventType::AFTER_CREATE  => new AfterEntityCreation($entity),
+			EntityEventType::AFTER_READ    => new AfterEntityRead($entity),
+			EntityEventType::BEFORE_UPDATE => new BeforeEntityUpdate($entity),
+			EntityEventType::AFTER_UPDATE  => new AfterEntityUpdate($entity),
+			EntityEventType::BEFORE_DELETE => new BeforeEntityDeletion($entity),
+			EntityEventType::AFTER_DELETE  => new AfterEntityDeletion($entity),
+		};
+
+		return $event->dispatch(static function ($listener) use ($entity, $event): void {
+			$listener($entity, $event);
+		}, $this->event_channel);
+	}
+
+	/**
+	 * Dispatches the given action for authorisation.
+	 *
+	 * @param CRUDAction $action
+	 * @param bool       $default
+	 *
+	 * @return bool
+	 */
+	private function authorise(CRUDAction $action, bool $default): bool
+	{
+		$allowed = $default;
+
+		$action->dispatch(static function ($listener) use ($action, &$allowed): void {
+			$allowed = $listener($action);
+
+			if (!$allowed) {
+				$action->stopPropagation();
+			}
+		}, $this->event_channel);
+
+		return $allowed;
 	}
 
 	/**
 	 * Checks columns values for create.
 	 *
-	 * @param array $form
+	 * @param BeforeCreate $create_action
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws CRUDException
 	 */
-	private function checkFormColumnsForCreate(array $form)
+	private function checkFormColumnsForCreate(BeforeCreate $create_action): void
 	{
-		$debug = $this->debug;
+		$form = $create_action->getForm();
 
 		foreach ($form as $field => $value) {
 			if ($this->table->hasColumn($field)) {
-				$debug['column'] = $field;
-				/** @var \Gobl\DBAL\Column $column */
-				$column = $this->table->getColumn($field);
+				$column = $this->table->getColumnOrFail($field);
 
-				if ($column->isPrivate() && !$this->crud_handler->shouldWritePrivateColumn()) {
-					$debug['_why'] = 'column_is_private';
+				$this->checkForPrivateColumnWrite($column, $form, $field);
 
-					throw new CRUDException('ERROR', $debug);
+				if (null !== $value) {
+					$type = $column->getType();
+					if ($type->isAutoIncremented()) {
+						$debug            = $this->debug;
+						$debug['field']   = $field;
+						$debug['_why']    = 'column_is_auto_incremented';
+						$debug['_column'] = $column->getFullName();
+
+						throw new CRUDException('GOBL_COLUMN_WRITE_REFUSED', $debug);
+					}
+
+					$this->checkForPKColumnWrite($column, $form, $field);
 				}
+			}
+		}
+	}
 
-				if (
-					$value !== null
-					&& $this->table->isPartOfPrimaryKey($column)
-					&& !$this->crud_handler->shouldWritePkColumn()
-				) {
-					$debug['_why'] = 'column_is_part_of_pk';
+	/**
+	 * Checks if the given column is private and can be written.
+	 *
+	 * @param Column $column
+	 * @param array  $form
+	 * @param string $field
+	 *
+	 * @throws CRUDException
+	 */
+	private function checkForPrivateColumnWrite(Column $column, array $form, string $field): void
+	{
+		if ($column->isPrivate()) {
+			$action = new BeforePrivateColumnWrite($this->table, $column, $form);
 
-					throw new CRUDException('ERROR', $debug);
-				}
+			if (!$this->authorise($action, false)) {
+				$debug            = $this->debug;
+				$debug['field']   = $field;
+				$debug['_why']    = 'column_is_private';
+				$debug['_column'] = $column->getFullName();
+
+				throw new CRUDException($action, $debug);
+			}
+		}
+	}
+
+	/**
+	 * Checks if the given column is part of the primary key and can be written.
+	 *
+	 * @param Column $column
+	 * @param array  $form
+	 * @param string $field
+	 *
+	 * @throws CRUDException
+	 */
+	private function checkForPKColumnWrite(Column $column, array $form, string $field): void
+	{
+		if ($this->table->isPartOfPrimaryKey($column)) {
+			$action = new BeforePKColumnWrite($this->table, $column, $form);
+
+			if (!$this->authorise($action, false)) {
+				$debug            = $this->debug;
+				$debug['field']   = $field;
+				$debug['_why']    = 'column_is_part_of_pk';
+				$debug['_column'] = $column->getFullName();
+
+				throw new CRUDException($action, $debug);
 			}
 		}
 	}
@@ -305,69 +373,32 @@ class CRUD
 	/**
 	 * Checks columns values for update.
 	 *
-	 * @param array &$form
+	 * @param BeforeUpdate|BeforeUpdateAll $base_action
 	 *
-	 * @throws \Gobl\CRUD\Exceptions\CRUDException
+	 * @throws CRUDException
 	 */
-	private function checkFormColumnsForUpdate(array &$form)
+	private function checkFormColumnsForUpdate(BeforeUpdate|BeforeUpdateAll $base_action): void
 	{
-		$debug = $this->debug;
+		$form = $base_action->getForm();
 
 		foreach ($form as $field => $value) {
 			if ($this->table->hasColumn($field)) {
-				$debug['column'] = $field;
-				/** @var \Gobl\DBAL\Column $column */
-				$column          = $this->table->getColumn($field);
-				$action          = new CRUDColumnUpdate($this->table, $column, $form);
+				$column = $this->table->getColumnOrFail($field);
 
-				if ($column->isPrivate() && !$this->crud_handler->shouldWritePrivateColumn()) {
-					$debug['_why'] = 'column_is_private';
+				$this->checkForPrivateColumnWrite($column, $form, $field);
+				$this->checkForPKColumnWrite($column, $form, $field);
 
-					throw new CRUDException('ERROR', $debug);
+				$column_update_action = new BeforeColumnUpdate($this->table, $column, $base_action->getForm());
+
+				if (!$this->authorise($column_update_action, true)) {
+					$debug            = $this->debug;
+					$debug['field']   = $field;
+					$debug['_why']    = 'column_update_rejected';
+					$debug['_column'] = $column->getFullName();
+
+					throw new CRUDException($column_update_action, $debug);
 				}
-
-				if ($this->table->isPartOfPrimaryKey($column) && !$this->crud_handler->shouldWritePkColumn()) {
-					$debug['_why'] = 'column_is_part_of_pk';
-
-					throw new CRUDException('ERROR', $debug);
-				}
-
-				if (!$this->crud_handler->onBeforeColumnUpdate($action)) {
-					$debug['_why'] = 'column_update_rejected';
-
-					throw new CRUDException($action->getError(), $debug);
-				}
-
-				$form = $action->getForm();
 			}
 		}
-	}
-
-	/**
-	 * Sets the CRUD handler provider.
-	 *
-	 * @param callable $provider
-	 */
-	public static function setHandlerProvider(callable $provider)
-	{
-		if (!\is_callable($provider)) {
-			throw new InvalidArgumentException('CRUD handler provider should be a valid callable.');
-		}
-
-		if (isset(self::$handler_provider)) {
-			throw new RuntimeException('CRUD handler provider cannot be overwritten.');
-		}
-
-		self::$handler_provider = $provider;
-	}
-
-	/**
-	 * Gets the CRUD handler provider.
-	 *
-	 * @return null|callable
-	 */
-	public static function getHandlerProvider()
-	{
-		return self::$handler_provider;
 	}
 }

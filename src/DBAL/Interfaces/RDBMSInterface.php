@@ -9,44 +9,175 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\DBAL\Interfaces;
 
-use Gobl\DBAL\QueryBuilder;
+use Closure;
+use Gobl\DBAL\Builders\NamespaceBuilder;
+use Gobl\DBAL\DbConfig;
+use Gobl\DBAL\Table;
+use Gobl\Exceptions\GoblException;
+use PDO;
+use PDOStatement;
 
 /**
- * Interface RDBMSInterface
+ * Interface RDBMSInterface.
  */
 interface RDBMSInterface
 {
-	const MYSQL = 'mysql';
+	/**
+	 * Create instance.
+	 */
+	public static function new(DbConfig $config): static;
 
 	/**
-	 * The Relational DataBase Management System constructor.
-	 *
-	 * @param array $config
+	 * Locks this db instance to prevent further changes.
 	 */
-	public function __construct(array $config);
+	public function lock(): static;
+
+	/**
+	 * Gets PDO connection.
+	 *
+	 * @return PDO
+	 */
+	public function getConnection(): PDO;
+
+	/**
+	 * Gets db config.
+	 *
+	 * @return DbConfig
+	 */
+	public function getConfig(): DbConfig;
+
+	/**
+	 * Resolve reference column.
+	 *
+	 * @param string $reference          The reference column path
+	 * @param string $used_in_table_name The table in which the reference is being used
+	 */
+	public function resolveColumn(string $reference, string $used_in_table_name): array;
+
+	/**
+	 * Adds table.
+	 *
+	 * @param Table $table The table to add
+	 *
+	 * @return $this
+	 */
+	public function addTable(Table $table): static;
+
+	/**
+	 * Loads tables from a given schema definition.
+	 *
+	 * When a desired namespace is given, it will override any namespace defined in each table.
+	 *
+	 * @param array<string, array|Table> $schema            The schema definition
+	 * @param null|string                $desired_namespace The desired namespace
+	 *
+	 * @return $this
+	 */
+	public function loadSchema(array $schema, ?string $desired_namespace = null): static;
+
+	/**
+	 * Returns db namespace builder for a given namespace.
+	 *
+	 * @param string $namespace
+	 *
+	 * @return NamespaceBuilder
+	 */
+	public function namespace(string $namespace): NamespaceBuilder;
+
+	/**
+	 * Alias of {@see namespace()}.
+	 *
+	 * @param string $namespace
+	 *
+	 * @return NamespaceBuilder
+	 */
+	public function ns(string $namespace): NamespaceBuilder;
+
+	/**
+	 * Checks if a given table is defined.
+	 *
+	 * @param string $name the table name or full name
+	 *
+	 * @return bool
+	 */
+	public function hasTable(string $name): bool;
+
+	/**
+	 * Asserts if a given table name is defined.
+	 *
+	 * @param string $name the table name or full name
+	 */
+	public function assertHasTable(string $name): void;
+
+	/**
+	 * Gets table with a given name.
+	 *
+	 * @param string $name the table name or table full name
+	 *
+	 * @return null|Table
+	 */
+	public function getTable(string $name): ?Table;
+
+	/**
+	 * Gets table with a given name or fail.
+	 *
+	 * @param string $name the table name or table full name
+	 *
+	 * @return Table
+	 */
+	public function getTableOrFail(string $name): Table;
+
+	/**
+	 * Gets tables.
+	 *
+	 * @param null|string $namespace
+	 *
+	 * @return array<string, Table>
+	 */
+	public function getTables(?string $namespace = null): array;
+
+	/**
+	 * Returns the rdbms type.
+	 *
+	 * @return string
+	 */
+	public function getType(): string;
+
+	/**
+	 * Runs a given callable in a transaction and return the value returned by the callable.
+	 *
+	 * @param Closure $callable
+	 *
+	 * @return mixed
+	 *
+	 * @throws GoblException
+	 */
+	public function runInTransaction(Closure $callable): mixed;
 
 	/**
 	 * Begin a new transaction.
 	 *
 	 * @return bool
 	 */
-	public function beginTransaction();
+	public function beginTransaction(): bool;
 
 	/**
 	 * Commit current transaction.
 	 *
 	 * @return bool
 	 */
-	public function commit();
+	public function commit(): bool;
 
 	/**
 	 * Rollback current transaction.
 	 *
 	 * @return bool
 	 */
-	public function rollBack();
+	public function rollBack(): bool;
 
 	/**
 	 * Executes raw sql string.
@@ -58,9 +189,16 @@ interface RDBMSInterface
 	 * @param bool       $in_transaction         run the query in a transaction
 	 * @param bool       $auto_close_transaction auto commit or rollback
 	 *
-	 * @return \PDOStatement
+	 * @return PDOStatement
 	 */
-	public function execute($sql, array $params = null, array $params_types = null, $is_multi_queries = false, $in_transaction = false, $auto_close_transaction = false);
+	public function execute(
+		string $sql,
+		?array $params = null,
+		?array $params_types = null,
+		bool $is_multi_queries = false,
+		bool $in_transaction = false,
+		bool $auto_close_transaction = false
+	): PDOStatement;
 
 	/**
 	 * Executes sql string with multiples query.
@@ -69,9 +207,9 @@ interface RDBMSInterface
 	 *
 	 * @param string $sql the sql query string
 	 *
-	 * @return \PDOStatement
+	 * @return PDOStatement
 	 */
-	public function executeMulti($sql);
+	public function executeMulti(string $sql): PDOStatement;
 
 	/**
 	 * Executes select queries.
@@ -80,9 +218,9 @@ interface RDBMSInterface
 	 * @param null|array $params       Your sql select params
 	 * @param array      $params_types Your sql params types
 	 *
-	 * @return \PDOStatement
+	 * @return PDOStatement
 	 */
-	public function select($sql, array $params = null, array $params_types = []);
+	public function select(string $sql, ?array $params = null, array $params_types = []): PDOStatement;
 
 	/**
 	 * Executes delete queries.
@@ -93,7 +231,7 @@ interface RDBMSInterface
 	 *
 	 * @return int Affected row count
 	 */
-	public function delete($sql, array $params = null, array $params_types = []);
+	public function delete(string $sql, ?array $params = null, array $params_types = []): int;
 
 	/**
 	 * Executes insert queries.
@@ -102,9 +240,9 @@ interface RDBMSInterface
 	 * @param null|array $params       Your sql select params
 	 * @param array      $params_types Your sql params types
 	 *
-	 * @return string The last insert id
+	 * @return false|string The last insert id
 	 */
-	public function insert($sql, array $params = null, array $params_types = []);
+	public function insert(string $sql, ?array $params = null, array $params_types = []): false|string;
 
 	/**
 	 * Executes update queries.
@@ -115,26 +253,12 @@ interface RDBMSInterface
 	 *
 	 * @return int Affected row count
 	 */
-	public function update($sql, array $params = null, array $params_types = []);
-
-	/**
-	 * Builds database query.
-	 *
-	 * When namespace is not empty,
-	 * only tables with the given namespace will be generated.
-	 *
-	 * @param null|string $namespace the table namespace to generate
-	 *
-	 * @return string
-	 */
-	public function buildDatabase($namespace = null);
+	public function update(string $sql, ?array $params = null, array $params_types = []): int;
 
 	/**
 	 * Gets this rdbms query generator.
 	 *
-	 * @param \Gobl\DBAL\QueryBuilder $query
-	 *
-	 * @return \Gobl\DBAL\Generators\SQLGeneratorBase
+	 * @return QueryGeneratorInterface
 	 */
-	public function getQueryGenerator(QueryBuilder $query);
+	public function getGenerator(): QueryGeneratorInterface;
 }

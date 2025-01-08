@@ -9,47 +9,93 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\DBAL\Constraints;
 
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Table;
 
 /**
- * Class PrimaryKey
+ * Class PrimaryKey.
  */
-class PrimaryKey extends Constraint
+final class PrimaryKey extends Constraint
 {
+	private array $columns = [];
+
 	/**
 	 * PrimaryKey constructor.
 	 *
-	 * @param string           $name  the constraint name
-	 * @param \Gobl\DBAL\Table $table the table in which the constraint was defined
+	 * @param string $name       the constraint name
+	 * @param Table  $host_table the table in which the constraint was defined
 	 */
-	public function __construct($name, Table $table)
+	public function __construct(string $name, Table $host_table)
 	{
-		parent::__construct($name, $table, Constraint::PRIMARY_KEY);
+		parent::__construct($name, $host_table, Constraint::PRIMARY_KEY);
 	}
 
 	/**
-	 * Adds column to the constraint
+	 * Adds column to the constraint.
 	 *
 	 * @param string $name the column name
 	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
-	 *
 	 * @return $this
+	 *
+	 * @throws DBALException
 	 */
-	public function addColumn($name)
+	public function addColumn(string $name): self
 	{
-		$this->table->assertHasColumn($name);
-		$column = $this->table->getColumn($name);
+		$this->assertNotLocked();
 
-		if ($column->getTypeObject()->isNullAble()) {
-			throw new DBALException(\sprintf('All parts of a PRIMARY KEY must be NOT NULL; if you need NULL in a key, use UNIQUE instead; check column "%s" in table "%s".', $name, $this->table->getName()));
+		$column = $this->host_table->getColumnOrFail($name);
+
+		if ($column->getType()
+			->isNullable()) {
+			throw new DBALException(
+				\sprintf(
+					'All parts of a PRIMARY KEY must be NOT NULL; if you need NULL in a key,'
+					. ' use UNIQUE instead; check column "%s" in table "%s".',
+					$name,
+					$this->host_table->getName()
+				)
+			);
 		}
 
 		$this->columns[] = $column->getFullName();
 
 		return $this;
+	}
+
+	/**
+	 * Gets primary key columns.
+	 *
+	 * @return string[]
+	 */
+	public function getColumns(): array
+	{
+		return $this->columns;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function assertIsValid(): void {}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function toArray(): array
+	{
+		$columns = [];
+
+		foreach ($this->columns as $full_name) {
+			$columns[] = $this->host_table->getColumnOrFail($full_name)
+				->getName();
+		}
+
+		return [
+			'type'    => 'primary_key',
+			'columns' => $columns,
+		];
 	}
 }

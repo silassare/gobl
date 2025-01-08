@@ -9,42 +9,39 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\DBAL\Types;
 
+use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
-use Gobl\DBAL\Types\Interfaces\TypeInterface;
+use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
+use Gobl\ORM\ORMTypeHint;
+use Gobl\ORM\ORMUniversalType;
 
 /**
- * Class TypeFloat
+ * Class TypeFloat.
  */
-class TypeFloat extends TypeBase
+class TypeFloat extends Type implements BaseTypeInterface
 {
-	private $unsigned = false;
-
-	private $min;
-
-	private $max;
-
-	/**
-	 * The number of digits following the decimal point.
-	 *
-	 * @var int
-	 */
-	private $mantissa = 53;
+	public const NAME = 'float';
 
 	/**
 	 * TypeFloat constructor.
 	 *
-	 * @param null|int $min      the minimum number
-	 * @param null|int $max      the maximum number
-	 * @param bool     $unsigned as unsigned number
+	 * @param null|float  $min      the minimum float value
+	 * @param null|float  $max      the maximum float value
+	 * @param bool        $unsigned as unsigned float value
+	 * @param null|string $message  the error message
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
-	public function __construct($min = null, $max = null, $unsigned = false)
+	public function __construct(?float $min = null, ?float $max = null, bool $unsigned = false, ?string $message = null)
 	{
-		$this->unsigned = (bool) $unsigned;
+		if ($unsigned) {
+			$this->unsigned();
+		}
 
 		if (isset($min)) {
 			$this->min($min);
@@ -53,185 +50,243 @@ class TypeFloat extends TypeBase
 		if (isset($max)) {
 			$this->max($max);
 		}
+
+		!empty($message) && $this->msg('invalid_float_type', $message);
+
+		parent::__construct($this);
 	}
 
 	/**
-	 * Sets number max value.
+	 * Sets as unsigned.
 	 *
-	 * @param int $value the maximum
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @param bool        $unsigned
+	 * @param null|string $message
 	 *
 	 * @return $this
 	 */
-	public function max($value)
+	public function unsigned(bool $unsigned = true, ?string $message = null): static
 	{
-		if (!\is_numeric($value)) {
-			throw new TypesException(\sprintf('"%s" is not a valid number.', $value));
-		}
+		!empty($message) && $this->msg('invalid_unsigned_float_type', $message);
 
-		$value += 0;
-
-		if (!\is_float($value) && !\is_int($value)) {
-			throw new TypesException(\sprintf('"%s" is not a valid float.', $value));
-		}
-
-		if ($this->unsigned && 0 > $value) {
-			throw new TypesException(\sprintf('"%s" is not a valid unsigned float.', $value));
-		}
-
-		if (isset($this->min) && $value < $this->min) {
-			throw new TypesException(\sprintf('min=%s and max=%s is not a valid condition.', $this->min, $value));
-		}
-
-		$this->max = (float) $value;
-
-		return $this;
+		return $this->setOption('unsigned', $unsigned);
 	}
 
 	/**
-	 * Sets number min value.
+	 * Sets min value.
 	 *
-	 * @param int $value the minimum
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @param float       $min
+	 * @param null|string $message
 	 *
 	 * @return $this
+	 *
+	 * @throws TypesException
 	 */
-	public function min($value)
+	public function min(float $min, ?string $message = null): static
 	{
-		if (!\is_numeric($value)) {
-			throw new TypesException(\sprintf('"%s" is not a valid number.', $value));
+		if (0.0 > $min && $this->isUnsigned()) {
+			throw new TypesException(\sprintf('"%s" is not a valid unsigned float.', $min));
+		}
+		$max = $this->getOption('max');
+
+		if (null !== $max && $min > $max) {
+			throw new TypesException(\sprintf('min=%s and max=%s is not a valid condition.', $min, $max));
 		}
 
-		$value += 0;
+		!empty($message) && $this->msg('float_value_must_be_gt_or_equal_to_min', $message);
 
-		if (!\is_float($value) && !\is_int($value)) {
-			throw new TypesException(\sprintf('"%s" is not a valid float.', $value));
-		}
-
-		if ($this->unsigned && 0 > $value) {
-			throw new TypesException(\sprintf('"%s" is not a valid unsigned float.', $value));
-		}
-
-		if (isset($this->max) && $value > $this->max) {
-			throw new TypesException(\sprintf('min=%s and max=%s is not a valid condition.', $value, $this->max));
-		}
-
-		$this->min = (float) $value;
-
-		return $this;
+		return $this->setOption('min', $min);
 	}
 
 	/**
-	 * Sets the number of digits following the decimal point.
+	 * Checks if this is unsigned.
 	 *
-	 * @param int $value the mantissa
+	 * @return bool
+	 */
+	public function isUnsigned(): bool
+	{
+		return (bool) $this->getOption('unsigned', false);
+	}
+
+	/**
+	 * Sets max value.
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @param float       $max
+	 * @param null|string $message
 	 *
 	 * @return $this
+	 *
+	 * @throws TypesException
 	 */
-	public function mantissa($value)
+	public function max(float $max, ?string $message = null): static
 	{
-		if (!\is_int($value) || 0 > $value || 53 < $value) {
+		if (0.0 > $max && $this->isUnsigned()) {
+			throw new TypesException(\sprintf('"%s" is not a valid unsigned float.', $max));
+		}
+
+		$min = $this->getOption('min');
+
+		if (null !== $min && $max < $min) {
+			throw new TypesException(\sprintf('min=%s and max=%s is not a valid condition.', $min, $max));
+		}
+
+		!empty($message) && $this->msg('float_value_must_be_lt_or_equal_to_max', $message);
+
+		return $this->setOption('max', $max);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public static function getInstance(array $options): static
+	{
+		return (new self())->configure($options);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws TypesException
+	 */
+	public function configure(array $options): static
+	{
+		if (isset($options['min'])) {
+			$this->min((float) $options['min']);
+		}
+
+		if (isset($options['max'])) {
+			$this->max((float) $options['max']);
+		}
+
+		if (isset($options['unsigned'])) {
+			$this->unsigned((bool) $options['unsigned']);
+		}
+
+		if (isset($options['mantissa'])) {
+			$this->mantissa((int) $options['mantissa']);
+		}
+
+		return parent::configure($options);
+	}
+
+	/**
+	 * Sets the number of digits following the floating point.
+	 *
+	 * @param int $mantissa the mantissa
+	 *
+	 * @return $this
+	 *
+	 * @throws TypesException
+	 */
+	public function mantissa(int $mantissa): static
+	{
+		if (0 > $mantissa) {
 			throw new TypesException(
-				'The number of digits following the decimal point should be an integer between 0 and 53.'
+				'The number of digits following the floating point should be a positive integer.'
 			);
 		}
 
-		$this->mantissa = $value;
-
-		return $this;
+		return $this->setOption('mantissa', $mantissa);
 	}
 
 	/**
-	 * @inheritdoc
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
+	 * {@inheritDoc}
 	 */
-	public function validate($value, $column_name, $table_name)
+	public function getName(): string
+	{
+		return self::NAME;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?float
+	{
+		return null === $value ? null : (float) $value;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getEmptyValueOfType(): ?float
+	{
+		return $this->isNullable() ? null : 0.0;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getReadTypeHint(): ORMTypeHint
+	{
+		return ORMTypeHint::float();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getWriteTypeHint(): ORMTypeHint
+	{
+		return ORMTypeHint::float()
+			->addUniversalTypes(ORMUniversalType::INT);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws TypesInvalidValueException
+	 */
+	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?float
+	{
+		return $this->validate($value);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @return null|float
+	 *
+	 * @throws TypesInvalidValueException
+	 */
+	public function validate(mixed $value): ?float
 	{
 		$debug = [
 			'value' => $value,
 		];
 
-		if (null === $value && $this->isNullAble()) {
-			return $this->getDefault();
+		if (null === $value) {
+			$value = $this->getDefault();
+
+			if (null === $value && $this->isNullable()) {
+				return null;
+			}
 		}
 
 		if (!\is_numeric($value)) {
-			throw new TypesInvalidValueException('invalid_number_type', $debug);
+			throw new TypesInvalidValueException($this->msg('invalid_float_type'), $debug);
 		}
 
+		// coerce the value to a number
 		$value += 0;
 
+		/** @psalm-suppress TypeDoesNotContainType */
 		if (!\is_float($value) && !\is_int($value)) {
-			throw new TypesInvalidValueException('invalid_float_type', $debug);
+			throw new TypesInvalidValueException($this->msg('invalid_float_type'), $debug);
 		}
 
-		if ($this->unsigned && 0 > $value) {
-			throw new TypesInvalidValueException('invalid_unsigned_float_type', $debug);
+		if (0 > $value && $this->isUnsigned()) {
+			throw new TypesInvalidValueException($this->msg('invalid_unsigned_float_type'), $debug);
 		}
 
-		if (isset($this->min) && $value < $this->min) {
-			throw new TypesInvalidValueException('number_value_lt_min', $debug);
-		}
+		$min = $this->getOption('min');
 
-		if (isset($this->max) && $value > $this->max) {
-			throw new TypesInvalidValueException('number_value_gt_max', $debug);
+		if (null !== $min && $value < $min) {
+			throw new TypesInvalidValueException($this->msg('float_value_must_be_gt_or_equal_to_min'), $debug);
+		}
+		$max = $this->getOption('max');
+
+		if (null !== $max && $value > $max) {
+			throw new TypesInvalidValueException($this->msg('float_value_must_be_lt_or_equal_to_max'), $debug);
 		}
 
 		return (float) $value;
-	}
-
-	/**
-	 * @inheritdoc
-	 */
-	public function getCleanOptions()
-	{
-		return [
-			'type'     => 'float',
-			'min'      => $this->min,
-			'max'      => $this->max,
-			'unsigned' => $this->unsigned,
-			'mantissa' => $this->mantissa,
-			'null'     => $this->isNullAble(),
-			'default'  => $this->getDefault(),
-		];
-	}
-
-	/**
-	 * @inheritdoc
-	 */
-	final public function getTypeConstant()
-	{
-		return TypeInterface::TYPE_FLOAT;
-	}
-
-	/**
-	 * @inheritdoc
-	 */
-	public static function getInstance(array $options)
-	{
-		$instance = new self(
-			self::getOptionKey($options, 'min', null),
-			self::getOptionKey($options, 'max', null),
-			self::getOptionKey($options, 'unsigned', false)
-		);
-
-		if (isset($options['mantissa'])) {
-			$instance->mantissa($options['mantissa']);
-		}
-
-		if (self::getOptionKey($options, 'null', false)) {
-			$instance->nullAble();
-		}
-
-		if (\array_key_exists('default', $options)) {
-			$instance->setDefault($options['default']);
-		}
-
-		return $instance;
 	}
 }

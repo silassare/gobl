@@ -1,0 +1,13 @@
+#!/bin/sh
+
+cd './tests'
+
+if [ -d "./tmp" ] ; then
+    rm -r "./tmp"
+fi
+
+mkdir -p './tmp/output'
+
+cd ..
+
+./vendor/bin/phpunit --testdox --do-not-cache-result

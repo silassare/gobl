@@ -1,6 +1,6 @@
 {
 	"name": "silassare/gobl",
-	"version": "1.5.0",
+	"version": "2.0.0",
 	"description": "Gobl allows you to use a Database Abstraction Layer (DBAL) and Object-Relational Mapping (ORM) to query your database with PHP.",
 	"license": "MIT",
 	"keywords": [
@@ -8,34 +8,32 @@
 		"ORM",
 		"DBAL",
 		"CRUD",
-		"MySql"
+		"MySQL"
 	],
 	"require": {
-		"php": ">=5.6.0",
-		"silassare/otpl": "=1.1.9",
+		"php": ">=8.1",
 		"ext-pdo": "*",
 		"ext-json": "*",
-		"ext-bcmath": "*"
+		"ext-bcmath": "*",
+		"silassare/otpl": "^2.0.0",
+		"silassare/php-utils": "^1.0.3",
+		"oliup/code-generator": "^1.0.0"
 	},
 	"require-dev": {
-		"friendsofphp/php-cs-fixer": "^2.16",
-		"squizlabs/php_codesniffer": "^3.5",
-		"phpcompatibility/php-compatibility": "*"
-	},
-	"scripts": {
-		"post-install-cmd": "\"vendor/bin/phpcs\" --config-set installed_paths vendor/phpcompatibility/php-compatibility",
-		"post-update-cmd": "\"vendor/bin/phpcs\" --config-set installed_paths vendor/phpcompatibility/php-compatibility"
+		"oliup/oliup-cs-php": "dev-main",
+		"roave/security-advisories": "dev-latest",
+		"phpunit/phpunit": "^9.5.9",
+		"vimeo/psalm": "^5.26.1"
 	},
 	"homepage": "https://github.com/silassare/gobl#readme",
-	"archive": {
-		"exclude": [
-			"/test"
-		]
-	},
 	"autoload": {
 		"psr-4": {
-			"Gobl\\": "src"
-		}
+			"Gobl\\": "src",
+			"Gobl\\Tests\\": "tests"
+		},
+		"files": [
+			"src/bootstrap.php"
+		]
 	},
 	"authors": [
 		{
@@ -44,6 +42,11 @@
 			"homepage": "https://github.com/silassare"
 		}
 	],
+	"prefer-stable": true,
 	"minimum-stability": "dev",
-	"prefer-stable": true
+	"extra": {
+		"branch-alias": {
+			"dev-dev": "2.0.x-dev"
+		}
+	}
 }

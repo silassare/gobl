@@ -9,80 +9,336 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\DBAL\Types;
 
+use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
-use Gobl\DBAL\Types\Interfaces\TypeInterface;
+use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
+use Gobl\ORM\ORMTypeHint;
 
 /**
- * Class TypeString
+ * Class TypeString.
  */
-class TypeString extends TypeBase
+class TypeString extends Type implements BaseTypeInterface
 {
-	private $min;
-
-	private $max;
-
-	private $truncate = false;
-
-	private $pattern;
-
-	private $one_of = [];
+	public const NAME = 'string';
 
 	/**
 	 * TypeString constructor.
 	 *
-	 * @param int         $min     the minimum string length
-	 * @param int         $max     the maximum string length
+	 * @param null|int    $min     the minimum string length
+	 * @param null|int    $max     the maximum string length
 	 * @param null|string $pattern the string pattern
-	 * @param array       $one_of  the list of allowed string
+	 * @param string[]    $one_of  the list of allowed string
+	 * @param null|string $message the error message
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
-	public function __construct($min = 0, $max = \PHP_INT_MAX, $pattern = null, array $one_of = [])
-	{
-		$this->length($min, $max);
+	public function __construct(
+		?int $min = null,
+		?int $max = null,
+		?string $pattern = null,
+		array $one_of = [],
+		?string $message = null
+	) {
+		if (isset($min)) {
+			$this->min($min);
+		}
+
+		if (isset($max)) {
+			$this->max($max);
+		}
 
 		if (isset($pattern)) {
 			$this->pattern($pattern);
 		}
 
-		if (\count($one_of)) {
+		if (!empty($one_of)) {
 			$this->oneOf($one_of);
 		}
+
+		!empty($message) && $this->msg('invalid_string_type', $message);
+
+		parent::__construct($this);
 	}
 
 	/**
-	 * Sets string length range.
+	 * {@inheritDoc}
+	 */
+	public static function getInstance(array $options): static
+	{
+		return (new self())->configure($options);
+	}
+
+	/**
+	 * Sets string min length.
 	 *
-	 * @param int $min the minimum string length
-	 * @param int $max the maximum string length
+	 * @param int         $min
+	 * @param null|string $message
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @return $this
+	 *
+	 * @throws TypesException
+	 */
+	public function min(int $min, ?string $message = null): static
+	{
+		self::assertSafeIntRange($min, $this->getOption('max', \PHP_INT_MAX), 0);
+
+		!empty($message) && $this->msg('string_length_must_be_gt_or_equal_to_min', $message);
+
+		return $this->setOption('min', $min);
+	}
+
+	/**
+	 * Sets string max length.
+	 *
+	 * @param int         $max
+	 * @param null|string $message
+	 *
+	 * @return $this
+	 *
+	 * @throws TypesException
+	 */
+	public function max(int $max, ?string $message = null): static
+	{
+		self::assertSafeIntRange($this->getOption('min', 0), $max, 0);
+
+		!empty($message) && $this->msg('string_length_must_be_lt_or_equal_to_max', $message);
+
+		return $this->setOption('max', $max);
+	}
+
+	/**
+	 * Sets the string pattern (regular expression).
+	 *
+	 * @param string      $pattern
+	 * @param null|string $message
+	 *
+	 * @return $this
+	 *
+	 * @throws TypesException
+	 */
+	public function pattern(string $pattern, ?string $message = null): static
+	{
+		if (false === \preg_match($pattern, '')) {
+			throw new TypesException(\sprintf('invalid regular expression: %s', $pattern));
+		}
+
+		!empty($message) && $this->msg('string_pattern_check_fails', $message);
+
+		return $this->setOption('pattern', $pattern);
+	}
+
+	/**
+	 * Sets the allowed string list.
+	 *
+	 * @param string[]    $list
+	 * @param null|string $message
 	 *
 	 * @return $this
 	 */
-	public function length($min, $max)
+	public function oneOf(array $list, ?string $message = null): static
 	{
-		self::assertSafeIntRange($min, $max, 0);
+		!empty($message) && $this->msg('string_not_in_allowed_list', $message);
 
-		$this->min = $min;
-		$this->max = $max;
+		return $this->setOption('one_of', \array_unique($list));
+	}
 
-		return $this;
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getName(): string
+	{
+		return self::NAME;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @return null|string
+	 *
+	 * @throws TypesInvalidValueException
+	 */
+	public function validate(mixed $value): ?string
+	{
+		$debug = [
+			'value' => $value,
+		];
+
+		if (\is_numeric($value)) { // accept numeric value
+			$value = (string) $value;
+		}
+
+		if (null === $value || '' === $value) {
+			$def = $this->getDefault();
+
+			if (null !== $def) {
+				$value = $def;
+			} elseif ($this->isNullable()) {
+				return null;
+			}
+		}
+
+		if (!\is_string($value)) {
+			throw new TypesInvalidValueException($this->msg('invalid_string_type'), $debug);
+		}
+
+		if (false === $this->getOption('multiline')) {
+			$value = \preg_replace('~\s+~', ' ', $value);
+		}
+
+		if (true === $this->getOption('trim')) {
+			$value = \trim($value);
+		}
+
+		$min = $this->getOption('min');
+
+		if (null !== $min && \strlen($value) < $min) {
+			throw new TypesInvalidValueException($this->msg('string_length_must_be_gt_or_equal_to_min'), $debug);
+		}
+
+		$max = $this->getOption('max');
+
+		if (null !== $max && \strlen($value) > $max) {
+			if (!$this->canTruncate()) {
+				throw new TypesInvalidValueException($this->msg('string_length_must_be_lt_or_equal_to_max'), $debug);
+			}
+
+			$value = \substr($value, 0, $max);
+		}
+
+		$pattern = $this->getOption('pattern');
+
+		if (null !== $pattern && !\preg_match($pattern, $value)) {
+			throw new TypesInvalidValueException($this->msg('string_pattern_check_fails'), $debug);
+		}
+
+		$one_of = $this->getOption('one_of');
+
+		if (!empty($one_of) && !\in_array($value, $one_of, true)) {
+			throw new TypesInvalidValueException($this->msg('string_not_in_allowed_list'), $debug);
+		}
+
+		return $value;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws TypesException
+	 */
+	public function configure(array $options): static
+	{
+		if (isset($options['min'])) {
+			$this->min((int) $options['min']);
+		}
+
+		if (isset($options['max'])) {
+			$this->max((int) $options['max']);
+		}
+
+		if (isset($options['truncate'])) {
+			$this->truncate((bool) $options['truncate']);
+		}
+
+		if (isset($options['multiline'])) {
+			$this->multiline((bool) $options['multiline']);
+		}
+
+		if (isset($options['trim'])) {
+			$this->trim((bool) $options['trim']);
+		}
+
+		if (isset($options['pattern'])) {
+			$this->pattern((string) $options['pattern']);
+		}
+
+		if (isset($options['one_of']) && \is_array($options['one_of'])) {
+			$this->oneOf($options['one_of']);
+		}
+
+		return parent::configure($options);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?string
+	{
+		return null === $value ? null : (string) $value;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getEmptyValueOfType(): ?string
+	{
+		return $this->isNullable() ? null : '';
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getReadTypeHint(): ORMTypeHint
+	{
+		return ORMTypeHint::string();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getWriteTypeHint(): ORMTypeHint
+	{
+		return ORMTypeHint::string();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws TypesInvalidValueException
+	 */
+	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
+	{
+		return $this->validate($value);
 	}
 
 	/**
 	 * Enable truncating when string length greater than max.
 	 *
+	 * @param bool $truncate
+	 *
 	 * @return $this
 	 */
-	public function truncate()
+	public function truncate(bool $truncate = true): static
 	{
-		$this->truncate = true;
+		return $this->setOption('truncate', $truncate);
+	}
 
-		return $this;
+	/**
+	 * Multiline string.
+	 *
+	 * @param bool $multiline
+	 *
+	 * @return $this
+	 */
+	public function multiline(bool $multiline = true): static
+	{
+		return $this->setOption('multiline', $multiline);
+	}
+
+	/**
+	 * Trim string.
+	 *
+	 * @param bool $trim
+	 *
+	 * @return $this
+	 */
+	public function trim(bool $trim = true): static
+	{
+		return $this->setOption('trim', $trim);
 	}
 
 	/**
@@ -90,147 +346,20 @@ class TypeString extends TypeBase
 	 *
 	 * @return bool
 	 */
-	public function canTruncate()
+	public function canTruncate(): bool
 	{
-		return $this->truncate;
+		return (bool) $this->getOption('truncate', false);
 	}
 
 	/**
-	 * Sets the string pattern.
+	 * One line string.
 	 *
-	 * @param string $pattern the pattern (regular expression)
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @param bool $one_line
 	 *
 	 * @return $this
 	 */
-	public function pattern($pattern)
+	public function oneLine(bool $one_line = true): static
 	{
-		if (false === \preg_match($pattern, null)) {
-			throw new TypesException(\sprintf('invalid regular expression: %s', $pattern));
-		}
-
-		$this->pattern = $pattern;
-
-		return $this;
-	}
-
-	/**
-	 * Sets the allowed string list.
-	 *
-	 * @param array $list
-	 *
-	 * @return $this
-	 */
-	public function oneOf(array $list)
-	{
-		$this->one_of = \array_unique($list);
-
-		return $this;
-	}
-
-	/**
-	 * @inheritdoc
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
-	 */
-	public function validate($value, $column_name, $table_name)
-	{
-		$debug = [
-			'value' => $value,
-		];
-
-		if (\is_numeric($value)) { // accept numeric value
-			$value .= '';
-		}
-
-		if ((null === $value || $value === '') && $this->isNullAble()) {
-			return $this->getDefault();
-		}
-
-		if (!\is_string($value)) {
-			throw new TypesInvalidValueException('invalid_string_type', $debug);
-		}
-
-		if (isset($this->min) && \strlen($value) < $this->min) {
-			throw new TypesInvalidValueException('string_length_lt_min', $debug);
-		}
-
-		if (isset($this->max) && \strlen($value) > $this->max) {
-			if (!$this->canTruncate()) {
-				throw new TypesInvalidValueException('string_length_gt_max', $debug);
-			}
-
-			$value = \substr($value, 0, $this->max);
-		}
-
-		if (isset($this->pattern) && !\preg_match($this->pattern, $value)) {
-			throw new TypesInvalidValueException('string_pattern_check_fails', $debug);
-		}
-
-		if (\count($this->one_of) && !\in_array($value, $this->one_of)) {
-			throw new TypesInvalidValueException('string_not_in_allowed_list', $debug);
-		}
-
-		return $value;
-	}
-
-	/**
-	 * @inheritdoc
-	 */
-	public function getCleanOptions()
-	{
-		return [
-			'type'     => 'string',
-			'min'      => $this->min,
-			'max'      => $this->max,
-			'truncate' => $this->truncate,
-			'pattern'  => $this->pattern,
-			'one_of'   => $this->one_of,
-			'null'     => $this->isNullAble(),
-			'default'  => $this->getDefault(),
-		];
-	}
-
-	/**
-	 * @inheritdoc
-	 */
-	final public function getTypeConstant()
-	{
-		return TypeInterface::TYPE_STRING;
-	}
-
-	/**
-	 * @inheritdoc
-	 */
-	public static function getInstance(array $options)
-	{
-		$instance = new self();
-		$min      = self::getOptionKey($options, 'min', 0);
-		$max      = self::getOptionKey($options, 'max', \PHP_INT_MAX);
-
-		$instance->length($min, $max);
-
-		if (isset($options['truncate']) && $options['truncate']) {
-			$instance->truncate();
-		}
-
-		if (isset($options['pattern'])) {
-			$instance->pattern($options['pattern']);
-		}
-
-		if (isset($options['one_of']) && \is_array($options['one_of'])) {
-			$instance->oneOf($options['one_of']);
-		}
-
-		if (self::getOptionKey($options, 'null', false)) {
-			$instance->nullAble();
-		}
-
-		if (\array_key_exists('default', $options)) {
-			$instance->setDefault($options['default']);
-		}
-
-		return $instance;
+		return $this->multiline(!$one_line);
 	}
 }

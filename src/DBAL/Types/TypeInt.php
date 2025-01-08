@@ -9,41 +9,38 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\DBAL\Types;
 
+use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
-use Gobl\DBAL\Types\Interfaces\TypeInterface;
+use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
+use Gobl\ORM\ORMTypeHint;
 
 /**
- * Class TypeInt
+ * Class TypeInt.
  */
-class TypeInt extends TypeBase
+class TypeInt extends Type implements BaseTypeInterface
 {
-	const INT_SIGNED_MIN   = -2147483648;
-
-	const INT_SIGNED_MAX   = 2147483647;
-
-	const INT_UNSIGNED_MIN = 0;
-
-	const INT_UNSIGNED_MAX = 4294967295;
-
-	private $unsigned = false;
-
-	private $min;
-
-	private $max;
+	public const INT_SIGNED_MAX   = 2147483647;
+	public const INT_SIGNED_MIN   = -2147483648;
+	public const INT_UNSIGNED_MAX = 4294967295;
+	public const INT_UNSIGNED_MIN = 0;
+	public const NAME             = 'int';
 
 	/**
 	 * TypeInt constructor.
 	 *
-	 * @param null|int $min      the minimum number
-	 * @param null|int $max      the maximum number
-	 * @param bool     $unsigned as unsigned number
+	 * @param null|int    $min      the minimum int value
+	 * @param null|int    $max      the maximum int value
+	 * @param bool        $unsigned as unsigned int value
+	 * @param null|string $message  the error message
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @throws TypesException
 	 */
-	public function __construct($min = null, $max = null, $unsigned = false)
+	public function __construct(?int $min = null, ?int $max = null, bool $unsigned = false, ?string $message = null)
 	{
 		if ($unsigned) {
 			$this->unsigned();
@@ -56,106 +53,111 @@ class TypeInt extends TypeBase
 		if (isset($max)) {
 			$this->max($max);
 		}
+
+		!empty($message) && $this->msg('invalid_int_type', $message);
+
+		parent::__construct($this);
 	}
 
 	/**
 	 * Sets as unsigned.
 	 *
-	 * @return $this
-	 */
-	public function unsigned()
-	{
-		$this->unsigned = true;
-
-		return $this;
-	}
-
-	/**
-	 * Sets number max value.
-	 *
-	 * @param int $value the maximum
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @param bool        $unsigned
+	 * @param null|string $message
 	 *
 	 * @return $this
 	 */
-	public function max($value)
+	public function unsigned(bool $unsigned = true, ?string $message = null): static
 	{
-		if (!\is_numeric($value)) {
-			throw new TypesException(\sprintf('"%s" is not a valid number.', $value));
-		}
+		!empty($message) && $this->msg('invalid_unsigned_int_type', $message);
 
-		$value += 0;
-
-		if (!\is_int($value)) {
-			throw new TypesException(\sprintf('"%s" is not a valid int.', $value));
-		}
-
-		if ($this->unsigned && self::INT_UNSIGNED_MIN > $value) {
-			throw new TypesException(\sprintf('"%s" is not a valid unsigned int.', $value));
-		}
-
-		if ($this->unsigned && $value > self::INT_UNSIGNED_MAX) {
-			throw new TypesException('You should use "unsigned bigint" instead of "unsigned int".');
-		}
-
-		if (!$this->unsigned && $value > self::INT_SIGNED_MAX) {
-			throw new TypesException('You should use "signed bigint" instead of "signed int".');
-		}
-
-		if (isset($this->min) && $value < $this->min) {
-			throw new TypesException(\sprintf('min=%s and max=%s is not a valid condition.', $this->min, $value));
-		}
-
-		$this->max = $value;
-
-		return $this;
+		return $this->setOption('unsigned', $unsigned);
 	}
 
 	/**
-	 * Sets number min value.
+	 * Sets min value.
 	 *
-	 * @param int $value the minimum
-	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesException
+	 * @param int         $min
+	 * @param null|string $message
 	 *
 	 * @return $this
+	 *
+	 * @throws TypesException
 	 */
-	public function min($value)
+	public function min(int $min, ?string $message = null): static
 	{
-		if (!\is_numeric($value)) {
-			throw new TypesException(\sprintf('"%s" is not a valid number.', $value));
+		self::assertValidInt($min, $this->isUnsigned());
+
+		$max = $this->getOption('max');
+
+		if (null !== $max && $min > $max) {
+			throw new TypesException(\sprintf('min=%s and max=%s is not a valid condition.', $min, $max));
 		}
 
-		$value += 0;
+		!empty($message) && $this->msg('int_value_must_be_gt_or_equal_to_min', $message);
 
-		if (!\is_int($value)) {
-			throw new TypesException(\sprintf('"%s" is not a valid int.', $value));
-		}
-
-		if ($this->unsigned && self::INT_UNSIGNED_MIN > $value) {
-			throw new TypesException(\sprintf('"%s" is not a valid unsigned int.', $value));
-		}
-
-		if (!$this->unsigned && $value < self::INT_SIGNED_MIN) {
-			throw new TypesException('You should use "signed bigint" instead of "signed int".');
-		}
-
-		if (isset($this->max) && $value > $this->max) {
-			throw new TypesException(\sprintf('min=%s and max=%s is not a valid condition.', $value, $this->max));
-		}
-
-		$this->min = $value;
-
-		return $this;
+		return $this->setOption('min', $min);
 	}
 
 	/**
-	 * @inheritdoc
+	 * Checks if this is unsigned.
 	 *
-	 * @throws \Gobl\DBAL\Types\Exceptions\TypesInvalidValueException
+	 * @return bool
 	 */
-	public function validate($value, $column_name, $table_name)
+	public function isUnsigned(): bool
+	{
+		return (bool) $this->getOption('unsigned', false);
+	}
+
+	/**
+	 * Sets max value.
+	 *
+	 * @param int         $max
+	 * @param null|string $message
+	 *
+	 * @return $this
+	 *
+	 * @throws TypesException
+	 */
+	public function max(int $max, ?string $message = null): static
+	{
+		self::assertValidInt($max, $this->isUnsigned());
+
+		$min = $this->getOption('min');
+
+		if (null !== $min && $max < $min) {
+			throw new TypesException(\sprintf('min=%s and max=%s is not a valid condition.', $min, $max));
+		}
+
+		!empty($message) && $this->msg('int_value_must_be_lt_or_equal_to_max', $message);
+
+		return $this->setOption('max', $max);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public static function getInstance(array $options): static
+	{
+		return (new self())->configure($options);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getName(): string
+	{
+		return self::NAME;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @return null|int
+	 *
+	 * @throws TypesInvalidValueException
+	 */
+	public function validate(mixed $value): ?int
 	{
 		$debug = [
 			'value' => $value,
@@ -166,83 +168,168 @@ class TypeInt extends TypeBase
 				return null;
 			}
 
-			if ($this->isNullAble()) {
-				return $this->getDefault();
+			$value = $this->getDefault();
+
+			if (null === $value && $this->isNullable()) {
+				return null;
 			}
 		}
 
 		if (!\is_numeric($value)) {
-			throw new TypesInvalidValueException('invalid_number_type', $debug);
+			throw new TypesInvalidValueException($this->msg('invalid_int_type'), $debug);
 		}
 
 		$value += 0;
 
 		if (!\is_int($value)) {
-			throw new TypesInvalidValueException('invalid_integer_type', $debug);
+			throw new TypesInvalidValueException($this->msg('invalid_int_type'), $debug);
 		}
 
-		if ($this->unsigned && 0 > $value) {
-			throw new TypesInvalidValueException('invalid_unsigned_integer_type', $debug);
+		if (0 > $value && $this->isUnsigned()) {
+			throw new TypesInvalidValueException($this->msg('invalid_unsigned_int_type'), $debug);
 		}
 
-		if (isset($this->min) && $value < $this->min) {
-			throw new TypesInvalidValueException('number_value_lt_min', $debug);
+		$min = $this->getOption('min');
+
+		if (null !== $min && $value < $min) {
+			throw new TypesInvalidValueException($this->msg('int_value_must_be_gt_or_equal_to_min'), $debug);
 		}
 
-		if (isset($this->max) && $value > $this->max) {
-			throw new TypesInvalidValueException('number_value_gt_max', $debug);
+		$max = $this->getOption('max');
+
+		if (null !== $max && ($value > $max)) {
+			throw new TypesInvalidValueException($this->msg('int_value_must_be_lt_or_equal_to_max'), $debug);
+		}
+
+		if ($value < ($this->isUnsigned() ? self::INT_UNSIGNED_MIN : self::INT_SIGNED_MIN)) {
+			throw new TypesInvalidValueException(
+				$this->msg(
+					'int_value_must_be_gt_or_equal_to_allowed_int_min'
+				),
+				$debug
+			);
+		}
+
+		if ($value > ($this->isUnsigned() ? self::INT_UNSIGNED_MAX : self::INT_SIGNED_MAX)) {
+			throw new TypesInvalidValueException(
+				$this->msg(
+					'int_value_must_be_lt_or_equal_to_allowed_int_max'
+				),
+				$debug
+			);
 		}
 
 		return $value;
 	}
 
 	/**
-	 * @inheritdoc
+	 * {@inheritDoc}
+	 *
+	 * @throws TypesException
 	 */
-	public function getCleanOptions()
+	public function configure(array $options): static
 	{
-		return [
-			'type'           => 'int',
-			'min'            => $this->min,
-			'max'            => $this->max,
-			'unsigned'       => $this->unsigned,
-			'auto_increment' => $this->isAutoIncremented(),
-			'null'           => $this->isNullAble(),
-			'default'        => $this->getDefault(),
-		];
+		if (isset($options['min'])) {
+			$this->min((int) $options['min']);
+		}
+
+		if (isset($options['max'])) {
+			$this->max((int) $options['max']);
+		}
+
+		if (isset($options['unsigned'])) {
+			$this->unsigned((bool) $options['unsigned']);
+		}
+
+		return parent::configure($options);
 	}
 
 	/**
-	 * @inheritdoc
+	 * {@inheritDoc}
 	 */
-	final public function getTypeConstant()
+	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?int
 	{
-		return TypeInterface::TYPE_INT;
+		return null === $value ? null : (int) $value;
 	}
 
 	/**
-	 * @inheritdoc
+	 * {@inheritDoc}
 	 */
-	public static function getInstance(array $options)
+	public function getEmptyValueOfType(): ?int
 	{
-		$instance = new self(
-			self::getOptionKey($options, 'min', null),
-			self::getOptionKey($options, 'max', null),
-			self::getOptionKey($options, 'unsigned', false)
-		);
+		return $this->isNullable() ? null : 0;
+	}
 
-		if (self::getOptionKey($options, 'null', false)) {
-			$instance->nullAble();
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getReadTypeHint(): ORMTypeHint
+	{
+		return ORMTypeHint::int();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getWriteTypeHint(): ORMTypeHint
+	{
+		return ORMTypeHint::int();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws TypesInvalidValueException
+	 */
+	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?int
+	{
+		return $this->validate($value);
+	}
+
+	/**
+	 * @param int  $value
+	 * @param bool $unsigned
+	 *
+	 * @throws TypesException
+	 */
+	private static function assertValidInt(int $value, bool $unsigned): void
+	{
+		if ($unsigned) {
+			if ($value < self::INT_UNSIGNED_MIN) {
+				throw new TypesException(
+					\sprintf(
+						'"%s" is not a valid unsigned int. Allowed min=%s.',
+						$value,
+						self::INT_UNSIGNED_MIN
+					)
+				);
+			}
+
+			if ($value > self::INT_UNSIGNED_MAX) {
+				throw new TypesException(
+					\sprintf(
+						'"%s" is not a valid unsigned int. Allowed max=%s.',
+						$value,
+						self::INT_UNSIGNED_MAX
+					)
+				);
+			}
+		} elseif ($value < self::INT_SIGNED_MIN) {
+			throw new TypesException(
+				\sprintf(
+					'"%s" is not a valid signed int. Allowed min=%s.',
+					$value,
+					self::INT_SIGNED_MIN
+				)
+			);
+		} elseif ($value > self::INT_SIGNED_MAX) {
+			throw new TypesException(
+				\sprintf(
+					'"%s" is not a valid signed int. Allowed max=%s.',
+					$value,
+					self::INT_SIGNED_MAX
+				)
+			);
 		}
-
-		if (self::getOptionKey($options, 'auto_increment', false)) {
-			$instance->autoIncrement();
-		}
-
-		if (\array_key_exists('default', $options)) {
-			$instance->setDefault($options['default']);
-		}
-
-		return $instance;
 	}
 }

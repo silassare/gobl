@@ -9,24 +9,25 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\DBAL\Relations;
 
-use Gobl\DBAL\Table;
+use Gobl\DBAL\Relations\Interfaces\LinkInterface;
 
-class OneToMany extends Relation
+/**
+ * Class OneToMany.
+ */
+final class OneToMany extends Relation
 {
 	/**
 	 * OneToMany constructor.
 	 *
-	 * @param                  $name
-	 * @param \Gobl\DBAL\Table $host_table
-	 * @param \Gobl\DBAL\Table $target_table
-	 * @param null|array       $columns
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @param string        $name
+	 * @param LinkInterface $link
 	 */
-	public function __construct($name, Table $host_table, Table $target_table, array $columns = null)
+	public function __construct(string $name, LinkInterface $link)
 	{
-		parent::__construct($name, $host_table, $target_table, $columns, Relation::ONE_TO_MANY);
+		parent::__construct(RelationType::ONE_TO_MANY, $name, $link);
 	}
 }

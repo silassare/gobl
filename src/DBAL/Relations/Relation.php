@@ -9,169 +9,176 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Gobl\DBAL\Relations;
 
 use Gobl\DBAL\Exceptions\DBALException;
+use Gobl\DBAL\Exceptions\DBALRuntimeException;
+use Gobl\DBAL\Interfaces\RDBMSInterface;
+use Gobl\DBAL\Relations\Interfaces\LinkInterface;
+use Gobl\DBAL\Relations\Interfaces\RelationControllerInterface;
+use Gobl\DBAL\Relations\Interfaces\RelationInterface;
 use Gobl\DBAL\Table;
-use Gobl\DBAL\Utils;
+use Gobl\Gobl;
+use Gobl\ORM\ORMEntity;
+use Gobl\ORM\ORMEntityRelationController;
 use InvalidArgumentException;
+use PHPUtils\Interfaces\ArrayCapableInterface;
+use PHPUtils\Str;
+use PHPUtils\Traits\ArrayCapableTrait;
 
-abstract class Relation
+/**
+ * Class Relation.
+ *
+ * @implements RelationInterface<ORMEntity,ORMEntity,array,array>
+ */
+abstract class Relation implements RelationInterface, ArrayCapableInterface
 {
-	const NAME_PATTERN = '[a-zA-Z][a-zA-Z0-9_-]*[a-zA-Z0-9]|[a-zA-Z]';
-
-	const NAME_REG     = '~^(?:' . self::NAME_PATTERN . ')$~';
-
-	const ONE_TO_ONE   = 1;
-
-	const ONE_TO_MANY  = 2;
-
-	const MANY_TO_ONE  = 3;
-
-	const MANY_TO_MANY = 4;
-
-	/** @var int */
-	protected $type;
-
-	/** @var \Gobl\DBAL\Table */
-	protected $host_table;
-
-	/** @var \Gobl\DBAL\Table */
-	protected $target_table;
-
-	/** @var bool */
-	protected $target_is_slave;
-
-	/** @var array */
-	protected $relation_columns;
-
-	/** @var string */
-	protected $name;
+	use ArrayCapableTrait;
 
 	/**
 	 * Relation constructor.
 	 *
-	 * @param string           $name
-	 * @param \Gobl\DBAL\Table $host_table
-	 * @param \Gobl\DBAL\Table $target_table
-	 * @param null|array       $columns
-	 * @param int              $type
-	 *
-	 * @throws \Gobl\DBAL\Exceptions\DBALException
+	 * @param RelationType  $type
+	 * @param string        $name
+	 * @param LinkInterface $link
 	 */
-	public function __construct($name, Table $host_table, Table $target_table, $columns, $type)
-	{
+	public function __construct(
+		protected RelationType $type,
+		protected string $name,
+		protected LinkInterface $link,
+	) {
 		if (!\preg_match(self::NAME_REG, $name)) {
-			throw new InvalidArgumentException(\sprintf('Invalid relation name "%s".', $name));
+			throw new InvalidArgumentException(
+				\sprintf(
+					'Relation name "%s" should match: %s',
+					$name,
+					self::NAME_PATTERN
+				)
+			);
+		}
+		if (!Gobl::isAllowedRelationName($name)) {
+			throw new DBALRuntimeException(
+				\sprintf(
+					'Relation name "%s" is not allowed.',
+					$this->name
+				)
+			);
+		}
+	}
+
+	/**
+	 * Create a relation link from options.
+	 *
+	 * @param RDBMSInterface $rdbms
+	 * @param Table          $host_table
+	 * @param Table          $target_table
+	 * @param array          $options
+	 *
+	 * @return LinkInterface
+	 *
+	 * @throws DBALException
+	 */
+	public static function createLink(
+		RDBMSInterface $rdbms,
+		Table $host_table,
+		Table $target_table,
+		array $options
+	): LinkInterface {
+		$type    = $options['type'] ?? null;
+		$filters = $options['filters'] ?? null;
+
+		if (\is_string($type)) {
+			$type = LinkType::tryFrom($type);
 		}
 
-		// the relation is based on foreign keys
-		if (null === $columns) {
-			// the slave table contains foreign key from the master table
-			if ($target_table->hasDefaultForeignKeyConstraint($host_table)) {
-				$this->target_is_slave = true;
-				$columns               = $target_table->getDefaultForeignKeyConstraintFrom($host_table)
-													  ->getConstraintColumns();
-			} elseif ($host_table->hasDefaultForeignKeyConstraint($target_table)) {
-				$this->target_is_slave = false;
-				$columns               = $host_table->getDefaultForeignKeyConstraintFrom($target_table)
-													->getConstraintColumns();
-			} else {
-				throw new DBALException(\sprintf('Error in relation "%s", there is no columns to link the table "%s" to the table "%s".', $name, $host_table->getName(), $target_table->getName()));
-			}
-		} else {
-			$cols = [];
-
-			foreach ($columns as $from_column => $target_column) {
-				$host_table->assertHasColumn($from_column);
-				$target_table->assertHasColumn($target_column);
-				$from_column   = $host_table->getColumn($from_column)
-											->getFullName();
-				$target_column = $target_table->getColumn($target_column)
-											  ->getFullName();
-
-				$cols[$from_column] = $target_column;
-			}
-
-			$this->target_is_slave = true;
-			$columns               = $cols;
+		// It will be good if we can validate the filters here
+		// for now we can't do that because the target table classes files may not be yet generated
+		if ($filters && !\is_array($filters)) {
+			throw new DBALException(
+				\sprintf(
+					'property "filters" defined in relation link should be of array type not "%s".',
+					\get_debug_type($filters)
+				)
+			);
 		}
 
-		$this->name             = $name;
-		$this->type             = $type;
-		$this->host_table       = $host_table;
-		$this->target_table     = $target_table;
-		$this->relation_columns = $columns;
+		if (!$type instanceof LinkType) {
+			throw new DBALException('Invalid "type" for relation link.');
+		}
+
+		switch ($type) {
+			case LinkType::COLUMNS:
+				return new LinkColumns($host_table, $target_table, $options);
+
+			case LinkType::MORPH:
+				return new LinkMorph($host_table, $target_table, $options);
+
+			case LinkType::THROUGH:
+				$pivot_table = $options['pivot_table'] ?? null;
+
+				if (!$pivot_table) {
+					throw new DBALException(
+						\sprintf('property "pivot_table" is required for relation link type "%s".', $type->value)
+					);
+				}
+
+				if (\is_string($pivot_table)) {
+					$pivot_table = $rdbms->getTableOrFail($pivot_table);
+				}
+
+				if (!$pivot_table instanceof Table) {
+					throw new DBALException(
+						\sprintf(
+							'property "pivot_table" defined for relation link type "%s" should be of string|%s type not "%s".',
+							$type->value,
+							Table::class,
+							\get_debug_type($pivot_table)
+						)
+					);
+				}
+
+				return new LinkThrough($rdbms, $host_table, $target_table, $pivot_table, $options);
+		}
+
+		throw new DBALException(\sprintf('Unsupported link type "%s".', $type->value));
 	}
 
 	/**
-	 * Gets the relation host table.
+	 * Gets the relation link.
 	 *
-	 * @return \Gobl\DBAL\Table
+	 * @return LinkInterface
 	 */
-	public function getHostTable()
+	public function getLink(): LinkInterface
 	{
-		return $this->host_table;
+		return $this->link;
 	}
 
 	/**
-	 * Gets the relation target table.
-	 *
-	 * @return \Gobl\DBAL\Table
+	 * {@inheritDoc}
 	 */
-	public function getTargetTable()
+	public function isPaginated(): bool
 	{
-		return $this->target_table;
+		return $this->type->isMultiple();
 	}
 
 	/**
-	 * Gets the relation master table.
-	 *
-	 * @return \Gobl\DBAL\Table
+	 * {@inheritDoc}
 	 */
-	public function getMasterTable()
+	public function getHostTable(): Table
 	{
-		return $this->target_is_slave ? $this->host_table : $this->target_table;
-	}
-
-	/**
-	 * Gets the relation slave table.
-	 *
-	 * @return \Gobl\DBAL\Table
-	 */
-	public function getSlaveTable()
-	{
-		return $this->target_is_slave ? $this->target_table : $this->host_table;
-	}
-
-	/**
-	 * Gets relation columns.
-	 *
-	 * @return array
-	 */
-	public function getRelationColumns()
-	{
-		return $this->relation_columns;
+		return $this->link->getHostTable();
 	}
 
 	/**
 	 * Gets the relation type.
 	 *
-	 * @return int
+	 * @return RelationType
 	 */
-	public function getType()
+	public function getType(): RelationType
 	{
 		return $this->type;
-	}
-
-	/**
-	 * Gets the relation name.
-	 *
-	 * @return string
-	 */
-	public function getName()
-	{
-		return $this->name;
 	}
 
 	/**
@@ -179,8 +186,47 @@ abstract class Relation
 	 *
 	 * @return string
 	 */
-	public function getGetterName()
+	public function getGetterName(): string
 	{
-		return 'get' . Utils::toClassName($this->getName());
+		return Str::toGetterName($this->getName());
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getName(): string
+	{
+		return $this->name;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function toArray(): array
+	{
+		$options['type']   = $this->type->value;
+		$options['target'] = $this->getTargetTable()
+			->getName();
+		$options['link']   = $this->link->toArray();
+
+		return $options;
+	}
+
+	/**
+	 * Gets the relation target table.
+	 *
+	 * @return Table
+	 */
+	public function getTargetTable(): Table
+	{
+		return $this->link->getTargetTable();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getController(): RelationControllerInterface
+	{
+		return new ORMEntityRelationController($this);
 	}
 }
