@@ -23,9 +23,36 @@ use Gobl\ORM\ORMEntity;
  */
 final class LinkMorph extends Link
 {
+	/**
+	 * The morph parent key column.
+	 *
+	 * Usually the primary key of the parent table.
+	 *
+	 * @var string
+	 */
 	private string $morph_parent_key_column;
+
+	/**
+	 * The morph parent type.
+	 *
+	 * Usually the parent table name.
+	 *
+	 * @var string
+	 */
 	private string $morph_parent_type;
+
+	/**
+	 * The morph child key column.
+	 *
+	 * @var string
+	 */
 	private string $morph_child_key_column;
+
+	/**
+	 * The morph child type column.
+	 *
+	 * @var string
+	 */
 	private string $morph_child_type_column;
 
 	/**
@@ -249,10 +276,6 @@ final class LinkMorph extends Link
 				$target_qb->fullyQualifiedName($this->target_table, $this->morph_parent_key_column),
 				$key
 			);
-			$filters->eq(
-				$target_qb->fullyQualifiedName($this->target_table, $this->morph_parent_type),
-				$this->morph_parent_type
-			);
 
 			$target_qb->andWhere($filters);
 
@@ -268,7 +291,7 @@ final class LinkMorph extends Link
 			$target_qb->fullyQualifiedName($this->host_table, $this->morph_child_key_column)
 		);
 		$filters->eq(
-			$target_qb->fullyQualifiedName($this->target_table, $this->morph_parent_type),
+			$target_qb->fullyQualifiedName($this->host_table, $this->morph_child_type_column),
 			$this->morph_parent_type
 		);
 
