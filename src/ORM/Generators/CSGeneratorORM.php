@@ -69,7 +69,7 @@ WARNING: please don't edit.
 
 Proudly With: {$version}
 Time: {$date}";
-		$this->editable_header     = "Auto generated file,
+		$this->editable_header = "Auto generated file,
 
 INFO: you are free to edit it,
 but make sure to know what you are doing.
@@ -137,14 +137,14 @@ Time: {$date}";
 
 		foreach ($types as $type) {
 			$php_types[] = match ($type) {
-				ORMUniversalType::ARRAY                                                       => 'array',
-				ORMUniversalType::MAP                                                         => '\\' . Map::class,
+				ORMUniversalType::ARRAY => 'array',
+				ORMUniversalType::MAP   => '\\' . Map::class,
 				ORMUniversalType::DECIMAL, ORMUniversalType::STRING, ORMUniversalType::BIGINT => 'string',
-				ORMUniversalType::BOOL                                                        => 'bool',
-				ORMUniversalType::FLOAT                                                       => 'float',
-				ORMUniversalType::INT                                                         => 'int',
-				ORMUniversalType::NULL                                                        => 'null',
-				ORMUniversalType::MIXED                                                       => 'mixed',
+				ORMUniversalType::BOOL  => 'bool',
+				ORMUniversalType::FLOAT => 'float',
+				ORMUniversalType::INT   => 'int',
+				ORMUniversalType::NULL  => 'null',
+				ORMUniversalType::MIXED => 'mixed',
 			};
 		}
 
@@ -288,38 +288,38 @@ Time: {$date}";
 		);
 
 		$static_helpers = [
-			'crud'    => [
+			'crud' => [
 				'comment' => '{@inheritDoc}
 
 @return \{db_namespace}\{crud_class_name}',
-				'return'  => '\{db_namespace}\{crud_class_name}',
-				'body'    => 'return \{db_namespace}\{crud_class_name}::new();',
+				'return' => '\{db_namespace}\{crud_class_name}',
+				'body'   => 'return \{db_namespace}\{crud_class_name}::new();',
 			],
-			'ctrl'    => [
+			'ctrl' => [
 				'comment' => '{@inheritDoc}
 
 @return \{db_namespace}\{ctrl_class_name}',
-				'return'  => '\{db_namespace}\{ctrl_class_name}',
-				'body'    => 'return \{db_namespace}\{ctrl_class_name}::new();',
+				'return' => '\{db_namespace}\{ctrl_class_name}',
+				'body'   => 'return \{db_namespace}\{ctrl_class_name}::new();',
 			],
-			'qb'      => [
+			'qb' => [
 				'comment' => '{@inheritDoc}
 
 @return \{db_namespace}\{qb_class_name}',
-				'return'  => '\{db_namespace}\{qb_class_name}',
-				'body'    => 'return \{db_namespace}\{qb_class_name}::new();',
+				'return' => '\{db_namespace}\{qb_class_name}',
+				'body'   => 'return \{db_namespace}\{qb_class_name}::new();',
 			],
 			'results' => [
 				'comment' => '{@inheritDoc}
 
 @return \{db_namespace}\{results_class_name}',
-				'return'  => '\{db_namespace}\{results_class_name}',
-				'body'    => 'return \{db_namespace}\{results_class_name}::new($query);',
-				'args'    => [
+				'return' => '\{db_namespace}\{results_class_name}',
+				'body'   => 'return \{db_namespace}\{results_class_name}::new($query);',
+				'args'   => [
 					'query' => '\\' . QBSelect::class,
 				],
 			],
-			'table'   => [
+			'table' => [
 				'comment' => '{@inheritDoc}',
 				'return'  => '\\' . Table::class,
 				'body'    => 'return \\' . Str::callableName(
@@ -427,91 +427,8 @@ return $this;',
 		}
 
 		foreach ($table->getRelations() as $relation) {
-			$relation_type = $relation->getType();
-			$host          = $relation->getHostTable();
-			$target        = $relation->getTargetTable();
-			$m             = $class->newMethod('get' . Str::toClassName($relation->getName()))
-				->public();
-			$comment       = \sprintf(
-				'%s relation between `%s` and `%s`.',
-				Str::toClassName($relation_type->value),
-				$host->getName(),
-				$target->getName()
-			);
-			$rel_inject    = [
-				'target_entity_class_fqn' => ORMClassKind::ENTITY->getClassFQN($target),
-				'relation_name'           => $relation->getName(),
-			];
-
-			if ($relation_type->isMultiple()) {
-				$comment .= Str::interpolate(
-					'
-
-@param array    $filters  the row filters
-@param null|int $max      maximum row to retrieve
-@param int      $offset   first row offset
-@param array    $order_by order by rules
-@param null|int $total    total rows without limit
-
-@throws \\' . GoblException::class . '
-@return {target_entity_class_fqn}[]',
-					$rel_inject
-				);
-
-				$m->newArgument('filters')
-					->setType('array')
-					->setValue([]);
-				$m->newArgument('max')
-					->setType(new PHPType('null', 'int'))
-					->setValue(null);
-				$m->newArgument('offset')
-					->setType('int')
-					->setValue(0);
-				$m->newArgument('order_by')
-					->setType('array')
-					->setValue([]);
-				$m->newArgument('total')
-					->setType(new PHPType('null', 'int'))
-					->reference()
-					->setValue(-1);
-
-				$m->setReturnType('array');
-
-				$m->addChild(
-					Str::interpolate(
-						'return {target_entity_class_fqn}::ctrl()->getAllRelatives(
-	$this,
-	static::table()->getRelation(\'{relation_name}\'),
-	$filters,
-	$max,
-	$offset,
-	$order_by,
-	$total
-);',
-						$rel_inject
-					)
-				);
-			} else {
-				$comment .= Str::interpolate(
-					'
-
-@throws \\' . GoblException::class . '
-@return ?{target_entity_class_fqn}',
-					$rel_inject
-				);
-				$m->setReturnType(new PHPType('null', $rel_inject['target_entity_class_fqn']));
-				$m->addChild(
-					Str::interpolate(
-						'return {target_entity_class_fqn}::ctrl()->getRelative(
-	$this,
-	static::table()->getRelation(\'{relation_name}\')
-);',
-						$rel_inject
-					)
-				);
-			}
-
-			$m->setComment($comment);
+			$this->addRelationGetterMethod($class, $relation);
+			$this->addRelationSetterMethod($class, $relation);
 		}
 
 		return $file->setContent($namespace);
@@ -536,6 +453,172 @@ return $this;',
 		}
 
 		return 'get' . Str::toClassName($column_name);
+	}
+
+	private function addRelationGetterMethod(PHPClass $class, Relation $relation): void
+	{
+		$relation_type = $relation->getType();
+		$host          = $relation->getHostTable();
+		$target        = $relation->getTargetTable();
+		$m             = $class->newMethod('get' . Str::toClassName($relation->getName()))
+			->public();
+		$comment = \sprintf(
+			'%s relation between `%s` and `%s`.',
+			Str::toClassName($relation_type->value),
+			$host->getName(),
+			$target->getName()
+		);
+		$rel_inject = [
+			'target_entity_class_fqn' => ORMClassKind::ENTITY->getClassFQN($target),
+			'relation_name'           => $relation->getName(),
+		];
+
+		if ($relation_type->isMultiple()) {
+			$comment .= Str::interpolate(
+				'
+
+@param array    $filters  the row filters
+@param null|int $max      maximum row to retrieve
+@param int      $offset   first row offset
+@param array    $order_by order by rules
+@param null|int $total    total rows without limit
+
+@throws \\' . GoblException::class . '
+@return {target_entity_class_fqn}[]',
+				$rel_inject
+			);
+
+			$m->newArgument('filters')
+				->setType('array')
+				->setValue([]);
+			$m->newArgument('max')
+				->setType(new PHPType('null', 'int'))
+				->setValue(null);
+			$m->newArgument('offset')
+				->setType('int')
+				->setValue(0);
+			$m->newArgument('order_by')
+				->setType('array')
+				->setValue([]);
+			$m->newArgument('total')
+				->setType(new PHPType('null', 'int'))
+				->reference()
+				->setValue(-1);
+
+			$m->setReturnType('array');
+
+			$m->addChild(
+				Str::interpolate(
+					'return {target_entity_class_fqn}::ctrl()->getAllRelatives(
+	$this,
+	static::table()->getRelation(\'{relation_name}\'),
+	$filters,
+	$max,
+	$offset,
+	$order_by,
+	$total
+);',
+					$rel_inject
+				)
+			);
+		} else {
+			$comment .= Str::interpolate(
+				'
+
+@throws \\' . GoblException::class . '
+@return ?{target_entity_class_fqn}',
+				$rel_inject
+			);
+			$m->setReturnType(new PHPType('null', $rel_inject['target_entity_class_fqn']));
+			$m->addChild(
+				Str::interpolate(
+					'return {target_entity_class_fqn}::ctrl()->getRelative(
+	$this,
+	static::table()->getRelation(\'{relation_name}\')
+);',
+					$rel_inject
+				)
+			);
+		}
+
+		$m->setComment($comment);
+	}
+
+	private function addRelationSetterMethod(PHPClass $class, Relation $relation): void
+	{
+		$relation_type = $relation->getType();
+		$host          = $relation->getHostTable();
+		$target        = $relation->getTargetTable();
+		$is_multiple   = $relation_type->isMultiple();
+		$m             = $class->newMethod($is_multiple ? 'add' . Str::toClassName($relation->getName() . '_entry') : 'set' . Str::toClassName($relation->getName()))
+			->public();
+		$comment = \sprintf(
+			'Create %s relationship between `%s` and `%s`.',
+			Str::toClassName($relation_type->value),
+			$host->getName(),
+			$target->getName()
+		);
+		$rel_inject = [
+			'target_entity_class_fqn' => ORMClassKind::ENTITY->getClassFQN($target),
+			'relation_name'           => $relation->getName(),
+		];
+
+		if ($is_multiple) {
+			$comment .= Str::interpolate(
+				'
+
+@param {target_entity_class_fqn} $entry
+@param bool $auto_save should the modified entity be saved automatically?
+
+@return $this',
+				$rel_inject
+			);
+
+			$m->newArgument('entry')
+				->setType(new PHPType($rel_inject['target_entity_class_fqn']));
+			$m->newArgument('auto_save')
+				->setType(new PHPType('bool'))
+				->setValue(true);
+
+			$m->setReturnType('static');
+
+			$m->addChild(
+				Str::interpolate(
+					'static::table()->getRelation(\'{relation_name}\')->getController()->link($this, $entry, $auto_save);
+return $this;',
+					$rel_inject
+				)
+			);
+		} else {
+			$comment .= Str::interpolate(
+				'
+
+@param {target_entity_class_fqn} ${relation_name}
+@param bool $auto_save should the modified entity be saved automatically?
+
+@return $this',
+				$rel_inject
+			);
+
+			$m->newArgument($rel_inject['relation_name'])
+				->setType(new PHPType($rel_inject['target_entity_class_fqn']));
+			$m->newArgument('auto_save')
+				->setType(new PHPType('bool'))
+				->setValue(true);
+
+			$m->setReturnType('static');
+
+			$m->addChild(
+				Str::interpolate(
+					'static::table()->getRelation(\'{relation_name}\')->getController()->link(${relation_name}, $this, $auto_save);
+
+return $this;',
+					$rel_inject
+				)
+			);
+		}
+
+		$m->setComment($comment);
 	}
 
 	private function getBaseCRUD(Table $table): PHPFile
@@ -683,7 +766,7 @@ return $this;',
 				if ($has_no_arg) {
 					$class_comment_lines[] = '@method $this ' . $method . '() ' . $comment;
 				} else {
-					$arg_type              = $this->toTypeHintString(
+					$arg_type = $this->toTypeHintString(
 						ORMTypeHint::getOperatorRightOperandTypesHint($type, $operator)
 					);
 					$class_comment_lines[] = '@method $this ' . $method . '(' . $arg_type . ' $value) ' . $comment;
