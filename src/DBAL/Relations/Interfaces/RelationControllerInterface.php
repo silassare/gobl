@@ -76,4 +76,15 @@ interface RelationControllerInterface
 	 * @return TRelative
 	 */
 	public function delete(ORMEntity $host_entity, array $payload): mixed;
+
+	/**
+	 * Link a child entity to a parent entity using the relation.
+	 *
+	 * @param ORMEntity $parent_entity
+	 * @param ORMEntity $child_entity
+	 * @param bool      $auto_save
+	 *
+	 * @return static
+	 */
+	public function link(ORMEntity $parent_entity, ORMEntity $child_entity, bool $auto_save = true): static;
 }

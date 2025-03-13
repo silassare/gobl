@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\ORM;
 
+use Gobl\CRUD\Exceptions\CRUDException;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Relations\Interfaces\RelationControllerInterface;
 use Gobl\DBAL\Relations\Relation;
@@ -96,6 +97,31 @@ class ORMEntityRelationController implements RelationControllerInterface
 		}
 
 		return $this->controller->addItem($payload);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws GoblException
+	 * @throws ORMException
+	 * @throws CRUDException
+	 */
+	public function link(ORMEntity $parent_entity, ORMEntity $child_entity, bool $auto_save = true): static
+	{
+		$link = $this->relation->getLink();
+
+		$payload = [];
+		if (!$link->fillRelation($parent_entity, $payload)) {
+			throw new ORMException('Unable to link entities.');
+		}
+
+		$child_entity->hydrate($payload);
+
+		if ($auto_save) {
+			$child_entity->save();
+		}
+
+		return $this;
 	}
 
 	/**
