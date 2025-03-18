@@ -370,7 +370,7 @@ abstract class ORMController
 	 * @param null|int $max      maximum row to retrieve
 	 * @param int      $offset   first row offset
 	 * @param array    $order_by order by rules
-	 * @param null|int &$total   total rows without limit
+	 * @param null|int &$total   total number of items that match the filters
 	 *
 	 * @return TEntity[]
 	 *
@@ -405,7 +405,7 @@ abstract class ORMController
 	 * @param QBSelect $qb     the custom select query instance
 	 * @param null|int $max    maximum row to retrieve
 	 * @param int      $offset first row offset
-	 * @param null|int $total  total rows without limit
+	 * @param null|int $total  total number of items that match the filters
 	 *
 	 * @return TEntity[]
 	 *

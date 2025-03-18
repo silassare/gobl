@@ -62,7 +62,7 @@ class ORMEntityRelationController implements RelationControllerInterface
 	 *
 	 * @throws GoblException
 	 */
-	public function list(ORMEntity $host_entity, ORMRequest $request, ?int &$total_records = null): array
+	public function list(ORMEntity $host_entity, ORMRequest $request, ?int &$total = null): array
 	{
 		$max      = $request->getMax();
 		$offset   = $request->getOffset();
@@ -76,7 +76,7 @@ class ORMEntityRelationController implements RelationControllerInterface
 			$max,
 			$offset,
 			$order_by,
-			$total_records
+			$total
 		);
 	}
 
