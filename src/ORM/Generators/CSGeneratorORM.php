@@ -17,6 +17,7 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Relations\Relation;
+use Gobl\DBAL\Relations\VirtualRelation;
 use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\Utils\Map;
 use Gobl\Exceptions\GoblException;
@@ -26,6 +27,7 @@ use Gobl\ORM\ORM;
 use Gobl\ORM\ORMController;
 use Gobl\ORM\ORMEntity;
 use Gobl\ORM\ORMEntityCRUD;
+use Gobl\ORM\ORMRequest;
 use Gobl\ORM\ORMResults;
 use Gobl\ORM\ORMTableQuery;
 use Gobl\ORM\ORMTypeHint;
@@ -368,12 +370,13 @@ Time: {$date}";
 		foreach ($table->getColumns() as $column) {
 			$column_name  = $column->getName();
 			$column_const = self::toColumnNameConst($column);
+			$type         = $column->getType();
 			$col_inject   = $inject + [
 				'table_name'        => $table->getName(),
 				'column_name'       => $column_name,
 				'column_name_const' => $column_const,
-				'read_type_hint'    => $this->getColumnReadTypeHintString($column),
-				'write_type_hint'   => $this->getColumnWriteTypeHintString($column),
+				'read_type_hint'    => $this->getReadTypeHintString($type),
+				'write_type_hint'   => $this->getWriteTypeHintString($type),
 			];
 
 			$class->getComment()
@@ -431,6 +434,10 @@ return $this;',
 			$this->addRelationSetterMethod($class, $relation);
 		}
 
+		foreach ($table->getVirtualRelations() as $v_relation) {
+			$this->addVirtualRelationGetterMethod($class, $v_relation);
+		}
+
 		return $file->setContent($namespace);
 	}
 
@@ -463,7 +470,7 @@ return $this;',
 		$m             = $class->newMethod('get' . Str::toClassName($relation->getName()))
 			->public();
 		$comment = \sprintf(
-			'%s relation between `%s` and `%s`.',
+			'`%s` relation between `%s` and `%s`.',
 			Str::toClassName($relation_type->value),
 			$host->getName(),
 			$target->getName()
@@ -481,7 +488,7 @@ return $this;',
 @param null|int $max      maximum row to retrieve
 @param int      $offset   first row offset
 @param array    $order_by order by rules
-@param null|int $total    total rows without limit
+@param null|int $total    total number of items that match the filters
 
 @throws \\' . GoblException::class . '
 @return {target_entity_class_fqn}[]',
@@ -553,7 +560,7 @@ return $this;',
 		$m             = $class->newMethod($is_multiple ? 'add' . Str::toClassName($relation->getName() . '_entry') : 'set' . Str::toClassName($relation->getName()))
 			->public();
 		$comment = \sprintf(
-			'Create %s relationship between `%s` and `%s`.',
+			'Create `%s` relationship between `%s` and `%s`.',
 			Str::toClassName($relation_type->value),
 			$host->getName(),
 			$target->getName()
@@ -613,6 +620,80 @@ return $this;',
 					'static::table()->getRelation(\'{relation_name}\')->getController()->link(${relation_name}, $this, $auto_save);
 
 return $this;',
+					$rel_inject
+				)
+			);
+		}
+
+		$m->setComment($comment);
+	}
+
+	private function addVirtualRelationGetterMethod(PHPClass $class, VirtualRelation $relation): void
+	{
+		$host           = $relation->getHostTable();
+		$relative_type  = $relation->getRelativeType();
+		$relation_name  = $relation->getName();
+		$read_type_hint = $this->getReadTypeHintString($relative_type);
+		$m              = $class->newMethod('get' . Str::toClassName($relation_name))
+			->public();
+		$comment = \sprintf(
+			'`%s` relation for `%s`.',
+			$relation_name,
+			$host->getName(),
+		);
+		$paginated  = $relation->isPaginated();
+		$rel_inject = [
+			'read_type_hint'    => $read_type_hint,
+			'relation_name'     => $relation->getName(),
+			'request_class_fqn' => '\\' . ORMRequest::class,
+		];
+
+		$m->newArgument('request')
+			->setType(new PHPType('null', ORMRequest::class))
+			->setValue(null);
+
+		$m->setReturnType($paginated ? 'array' : $read_type_hint);
+
+		if ($paginated) {
+			$comment .= Str::interpolate(
+				'
+
+@param null|{request_class_fqn} $request the request object
+
+@return array<{read_type_hint}>',
+				$rel_inject
+			);
+
+			$m->newArgument('total')
+				->setType(new PHPType('null', 'int'))
+				->reference()
+				->setValue(-1);
+
+			$m->addChild(
+				Str::interpolate(
+					'
+$request =  $request ?? new {request_class_fqn}();
+
+return static::table()->getVirtualRelation(\'{relation_name}\')->getController()->list($this, $request, $total);',
+					$rel_inject
+				)
+			);
+		} else {
+			$comment .= Str::interpolate(
+				'
+
+@param null|{request_class_fqn} $request the request object
+
+@return {read_type_hint}',
+				$rel_inject
+			);
+			$m->setReturnType($read_type_hint);
+			$m->addChild(
+				Str::interpolate(
+					'
+$request =  $request ?? new {request_class_fqn}();
+
+return static::table()->getVirtualRelation(\'{relation_name}\')->getController()->get($this, $request);',
 					$rel_inject
 				)
 			);

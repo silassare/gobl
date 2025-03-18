@@ -17,6 +17,7 @@ use Gobl\DBAL\Column;
 use Gobl\DBAL\Constraints\PrimaryKey;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Table;
+use Gobl\DBAL\Types\Interfaces\TypeInterface;
 use Gobl\Gobl;
 use Gobl\ORM\ORMTypeHint;
 use Gobl\ORM\Utils\ORMClassKind;
@@ -98,7 +99,7 @@ abstract class CSGenerator
 				'query'      => ORMClassKind::QUERY->getClassName($table),
 				'controller' => ORMClassKind::CONTROLLER->getClassName($table),
 			],
-			'table'      => [
+			'table' => [
 				'name'     => $table->getName(),
 				'singular' => $table->getSingularName(),
 			],
@@ -128,7 +129,7 @@ abstract class CSGenerator
 				'rightOperandTypeHint' => $this->toTypeHintString(
 					ORMTypeHint::getOperatorRightOperandTypesHint($type, $operator)
 				),
-				'noArg'                => 1 === $operator->getOperandsCount(),
+				'noArg' => 1 === $operator->getOperandsCount(),
 			];
 
 			$filtersRules[] = $rule;
@@ -146,9 +147,9 @@ abstract class CSGenerator
 			'methodSuffix'      => Str::toClassName($column_name),
 			'const'             => self::toColumnNameConst($column),
 			'argName'           => $column_name,
-			'writeTypeHint'     => $this->getColumnWriteTypeHintString($column),
-			'readTypeHint'      => $this->getColumnReadTypeHintString($column),
-			'readTypeHintSaved' => $this->getColumnReadTypeHintString($column, true),
+			'writeTypeHint'     => $this->getWriteTypeHintString($type),
+			'readTypeHint'      => $this->getReadTypeHintString($type),
+			'readTypeHintSaved' => $this->getReadTypeHintString($type, true),
 		];
 	}
 
@@ -174,13 +175,12 @@ abstract class CSGenerator
 	}
 
 	/**
-	 * @param Column $column
+	 * @param TypeInterface $type
 	 *
 	 * @return string
 	 */
-	public function getColumnWriteTypeHintString(Column $column): string
+	public function getWriteTypeHintString(TypeInterface $type): string
 	{
-		$type      = $column->getType();
 		$type_hint = $type->getWriteTypeHint();
 
 		if ($type->isAutoIncremented() || $type->isNullable()) {
@@ -191,14 +191,13 @@ abstract class CSGenerator
 	}
 
 	/**
-	 * @param Column $column
-	 * @param bool   $saved
+	 * @param TypeInterface $type
+	 * @param bool          $saved
 	 *
 	 * @return string
 	 */
-	public function getColumnReadTypeHintString(Column $column, bool $saved = false): string
+	public function getReadTypeHintString(TypeInterface $type, bool $saved = false): string
 	{
-		$type        = $column->getType();
 		$type_hint   = $type->getReadTypeHint();
 		$is_nullable = $type->isNullable();
 
