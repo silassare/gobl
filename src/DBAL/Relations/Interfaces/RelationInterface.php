@@ -14,12 +14,14 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Relations\Interfaces;
 
 use Gobl\DBAL\Table;
+use Gobl\ORM\ORMEntity;
+use JsonSerializable;
 
 /**
  * Class RelationInterface.
  *
- * @template TEntity of \Gobl\ORM\ORMEntity
- * @template TRelative of null|string|int|float|bool|array|\JsonSerializable
+ * @template TEntity of ORMEntity
+ * @template TRelative of null|string|int|float|bool|array|JsonSerializable
  * @template TRelativeCreatePayload of array
  * @template TRelativeIdentityPayload of array
  */

@@ -15,6 +15,7 @@ namespace Gobl\DBAL\Relations\Interfaces;
 
 use Gobl\ORM\ORMEntity;
 use Gobl\ORM\ORMRequest;
+use JsonSerializable;
 
 /**
  * Class RelationControllerInterface.
@@ -23,7 +24,7 @@ use Gobl\ORM\ORMRequest;
  * The TRelativeIdentityPayload should contains base information to identify the relative
  *
  * @template TEntity of ORMEntity
- * @template TRelative of null|string|int|float|bool|array|\JsonSerializable
+ * @template TRelative of null|string|int|float|bool|array|JsonSerializable
  * @template TRelativeCreatePayload of array
  * @template TRelativeIdentityPayload of array
  */
@@ -32,7 +33,8 @@ interface RelationControllerInterface
 	/**
 	 * Gets a relative of a given item.
 	 *
-	 * @psalm-param ORMEntity $host_entity
+	 * @param ORMEntity  $host_entity the host entity
+	 * @param ORMRequest $request     the request
 	 *
 	 * @return null|TRelative
 	 */
@@ -41,17 +43,19 @@ interface RelationControllerInterface
 	/**
 	 * Gets a list of relatives of a given item.
 	 *
-	 * @psalm-param ORMEntity $host_entity
+	 * @param ORMEntity  $host_entity the host entity
+	 * @param ORMRequest $request     the request
+	 * @param null|int   &$total      total number of items that match the filters
 	 *
 	 * @return TRelative[]
 	 */
-	public function list(ORMEntity $host_entity, ORMRequest $request, ?int &$total_records = null): array;
+	public function list(ORMEntity $host_entity, ORMRequest $request, ?int &$total = null): array;
 
 	/**
 	 * Create a relative for a given item.
 	 *
-	 * @psalm-param ORMEntity $host_entity
-	 * @psalm-param TRelativeCreatePayload $payload
+	 * @psalm-param ORMEntity $host_entity the host entity
+	 * @psalm-param TRelativeCreatePayload $payload the relative payload
 	 *
 	 * @return TRelative
 	 */
@@ -60,8 +64,8 @@ interface RelationControllerInterface
 	/**
 	 * Update a relative of a given item.
 	 *
-	 * @psalm-param ORMEntity $host_entity
-	 * @psalm-param TRelativeIdentityPayload $payload
+	 * @psalm-param ORMEntity $host_entity the host entity
+	 * @psalm-param TRelativeIdentityPayload $payload the relative identity payload
 	 *
 	 * @return TRelative
 	 */
@@ -70,8 +74,8 @@ interface RelationControllerInterface
 	/**
 	 * Delete a relative of a given item.
 	 *
-	 * @psalm-param ORMEntity $host_entity
-	 * @psalm-param TRelativeIdentityPayload $payload
+	 * @psalm-param ORMEntity $host_entity the host entity
+	 * @psalm-param TRelativeIdentityPayload $payload the relative identity payload
 	 *
 	 * @return TRelative
 	 */
@@ -80,9 +84,9 @@ interface RelationControllerInterface
 	/**
 	 * Link a child entity to a parent entity using the relation.
 	 *
-	 * @param ORMEntity $parent_entity
-	 * @param ORMEntity $child_entity
-	 * @param bool      $auto_save
+	 * @param ORMEntity $parent_entity the parent entity
+	 * @param ORMEntity $child_entity  the child entity
+	 * @param bool      $auto_save     should the modified entity be saved automatically?
 	 *
 	 * @return static
 	 */
