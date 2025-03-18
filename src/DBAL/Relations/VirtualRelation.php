@@ -14,23 +14,25 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Relations;
 
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
-use Gobl\DBAL\Relations\Interfaces\RelationInterface;
+use Gobl\DBAL\Relations\Interfaces\VirtualRelationInterface;
 use Gobl\DBAL\Table;
 use Gobl\Gobl;
 use Gobl\ORM\ORM;
+use Gobl\ORM\ORMEntity;
 use InvalidArgumentException;
+use JsonSerializable;
 
 /**
  * Class VirtualRelation.
  *
- * @template TEntity of \Gobl\ORM\ORMEntity
- * @template TRelative of null|string|int|float|bool|array|\JsonSerializable
+ * @template TEntity of ORMEntity
+ * @template TRelative of null|string|int|float|bool|array|JsonSerializable
  * @template TRelativeCreatePayload of array
  * @template TRelativeIdentityPayload of array
  *
- * @implements RelationInterface<TEntity,TRelative,TRelativeCreatePayload,TRelativeIdentityPayload>
+ * @implements VirtualRelationInterface<TEntity,TRelative,TRelativeCreatePayload,TRelativeIdentityPayload>
  */
-abstract class VirtualRelation implements RelationInterface
+abstract class VirtualRelation implements VirtualRelationInterface
 {
 	/** @var string */
 	protected string $name;
