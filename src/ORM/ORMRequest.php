@@ -23,17 +23,19 @@ use Gobl\ORM\Exceptions\ORMQueryException;
  */
 class ORMRequest
 {
-	public const COLLECTION_PARAM = 'collection';
-	public const DELIMITER        = '|';
-	public const FILTERS_PARAM    = 'filters';
-	public const FORM_DATA_PARAM  = 'form_data';
-	public const MAX_PARAM        = 'max';
-	public const DELETE_PARAM     = '_delete';
-	public const ORDER_BY_PARAM   = 'order_by';
+	public const COLLECTION_PARAM            = 'collection';
+	public const FILTERS_PARAM               = 'filters';
+	public const FORM_DATA_PARAM             = 'form_data';
+	public const MAX_PARAM                   = 'max';
+	public const DELETE_PARAM                = '_delete';
+	public const ORDER_BY_PARAM              = 'order_by';
+	public const ORDER_BY_DELIMITER          = '|';
+	public const ORDER_BY_DELIMITER_ASC_DESC = ':';
 
-	public const PAGE_PARAM      = 'page';
-	public const RELATIONS_PARAM = 'relations';
-	public const SCOPES_PARAM    = 'scopes';
+	public const PAGE_PARAM          = 'page';
+	public const RELATIONS_PARAM     = 'relations';
+	public const RELATIONS_DELIMITER = '|';
+	public const SCOPES_PARAM        = 'scopes';
 
 	/**
 	 * @var array
@@ -544,7 +546,7 @@ class ORMRequest
 				return [];
 			}
 
-			$relations = \array_unique(\explode(self::DELIMITER, $request[self::RELATIONS_PARAM]));
+			$relations = \array_unique(\explode(self::RELATIONS_DELIMITER, $request[self::RELATIONS_PARAM]));
 
 			foreach ($relations as $relation) {
 				if (!self::isValidRelationName($relation)) {
@@ -607,22 +609,18 @@ class ORMRequest
 			return [];
 		}
 
-		$rules    = \array_unique(\explode(self::DELIMITER, $rules));
+		$rules    = \array_unique(\explode(self::ORDER_BY_DELIMITER, $rules));
 		$order_by = [];
 
 		foreach ($rules as $rule) {
 			if (!empty($rule)) {
-				$parts = \explode('_', $rule);
+				$parts = \explode(self::ORDER_BY_DELIMITER_ASC_DESC, $rule);
 				$len   = \count($parts);
 
-				if ($len > 1 && 'desc' === $parts[$len - 1]) {
-					\array_pop($parts);
-					$rule            = \implode('_', $parts);
-					$order_by[$rule] = false;
-				} elseif ($len > 1 && 'asc' === $parts[$len - 1]) {
-					\array_pop($parts);
-					$rule            = \implode('_', $parts);
-					$order_by[$rule] = true;
+				if (2 === $len) {
+					$rule            = $parts[0];
+					$last            = $parts[1];
+					$order_by[$rule] = !('desc' === $last);
 				} else {
 					$order_by[$rule] = true;
 				}
@@ -673,7 +671,7 @@ class ORMRequest
 	 */
 	private static function encodeRelations(array $relations): string
 	{
-		return \implode(self::DELIMITER, \array_unique($relations));
+		return \implode(self::RELATIONS_DELIMITER, \array_unique($relations));
 	}
 
 	/**
@@ -691,10 +689,10 @@ class ORMRequest
 			if (\is_int($key)) {
 				$list[] = $val;
 			} else {
-				$list[] = $val ? $key : $key . '_desc';
+				$list[] = $val ? $key : $key . self::ORDER_BY_DELIMITER_ASC_DESC . 'desc';
 			}
 		}
 
-		return \implode(self::DELIMITER, $list);
+		return \implode(self::ORDER_BY_DELIMITER, $list);
 	}
 }
