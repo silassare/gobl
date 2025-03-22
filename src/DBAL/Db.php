@@ -31,6 +31,7 @@ use Gobl\DBAL\Relations\OneToOne;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Relations\RelationType;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
+use Gobl\DBAL\Types\Utils\Map;
 use Gobl\DBAL\Types\Utils\TypeUtils;
 use InvalidArgumentException;
 use PDO;
@@ -190,7 +191,7 @@ abstract class Db implements RDBMSInterface
 	 */
 	public function loadSchema(array $schema, ?string $desired_namespace = null): static
 	{
-		$tables_prefix           = $this->getConfig()
+		$tables_prefix = $this->getConfig()
 			->getDbTablePrefix();
 		$tables_with_constraints = [];
 		$tables_with_relations   = [];
@@ -271,6 +272,10 @@ abstract class Db implements RDBMSInterface
 					$tbl->setPrivate((bool) $table_options['private']);
 				}
 
+				if (isset($table_options['meta']) && (\is_array($table_options['meta']) || $table_options['meta'] instanceof Map)) {
+					$tbl->setMeta($table_options['meta']);
+				}
+
 				foreach ($columns as $column_name => $column_opt) {
 					if ($column_opt instanceof Column) {
 						$col = $column_opt;
@@ -317,8 +322,8 @@ abstract class Db implements RDBMSInterface
 
 						if (\is_string($type)) {
 							if (static::isColumnReference($type)) {
-								$col_reference            = $type;
-								$ref_options              = $this->resolveColumnInternal(
+								$col_reference = $type;
+								$ref_options   = $this->resolveColumnInternal(
 									$col_reference,
 									$table_name,
 									$schema
@@ -353,6 +358,9 @@ abstract class Db implements RDBMSInterface
 
 							if (isset($col_options['prefix']) && $col_options['prefix'] !== $table_col_prefix) {
 								$col->setPrefix((string) $col_options['prefix']);
+							}
+							if (isset($col_options['meta']) && (\is_array($col_options['meta']) || $col_options['meta'] instanceof Map)) {
+								$col->setMeta($col_options['meta']);
 							}
 
 							if (isset($col_options['reference'])) {

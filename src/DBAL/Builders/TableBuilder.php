@@ -36,6 +36,7 @@ use Gobl\DBAL\Types\TypeInt;
 use Gobl\DBAL\Types\TypeList;
 use Gobl\DBAL\Types\TypeMap;
 use Gobl\DBAL\Types\TypeString;
+use Gobl\DBAL\Types\Utils\Map;
 use Throwable;
 
 /**
@@ -686,6 +687,21 @@ final class TableBuilder
 
 		// clear
 		$this->relations_factories = [];
+
+		return $this;
+	}
+
+	/**
+	 * Sets the table metadata.
+	 *
+	 * @param array|Map|string $key   the meta key or the meta data/map
+	 * @param null|mixed       $value the meta value
+	 *
+	 * @return $this
+	 */
+	public function meta(array|Map|string $key, mixed $value = null): self
+	{
+		$this->table->setMeta($key, $value);
 
 		return $this;
 	}

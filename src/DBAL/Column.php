@@ -15,6 +15,7 @@ namespace Gobl\DBAL;
 
 use Gobl\DBAL\Diff\Interfaces\DiffCapableInterface;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
+use Gobl\DBAL\Traits\MetadataTrait;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
 use Gobl\DBAL\Types\TypeString;
 use Gobl\DBAL\Types\Utils\TypeUtils;
@@ -30,6 +31,7 @@ use Throwable;
 final class Column implements ArrayCapableInterface, DiffCapableInterface
 {
 	use ArrayCapableTrait;
+	use MetadataTrait;
 
 	public const NAME_PATTERN = '[a-z](?:[a-z0-9_]*[a-z0-9])?';
 
@@ -463,6 +465,9 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 			'type'     => $this->type->getName(),
 		];
 
+		if (!empty($this->meta)) {
+			$options['meta'] = $this->meta->toArray();
+		}
 		if (!empty($this->prefix)) {
 			$options['prefix'] = $this->prefix;
 		}

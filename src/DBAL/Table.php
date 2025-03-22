@@ -25,6 +25,7 @@ use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Relations\VirtualRelation;
+use Gobl\DBAL\Traits\MetadataTrait;
 use InvalidArgumentException;
 use OLIUP\CG\PHPNamespace;
 use PHPUtils\Interfaces\ArrayCapableInterface;
@@ -37,6 +38,7 @@ use Throwable;
 final class Table implements ArrayCapableInterface, DiffCapableInterface
 {
 	use ArrayCapableTrait;
+	use MetadataTrait;
 
 	public const ALIAS_PATTERN  = '[a-zA-Z_][a-zA-Z0-9_]*';
 	public const ALIAS_REG      = '~^' . self::ALIAS_PATTERN . '$~';
@@ -1497,6 +1499,10 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 			'singular_name' => $this->singular_name,
 			'plural_name'   => $this->plural_name,
 		];
+
+		if (!empty($this->meta)) {
+			$options['meta'] = $this->meta->toArray();
+		}
 
 		if (self::TABLE_DEFAULT_NAMESPACE !== $this->namespace) {
 			$options['namespace'] = $this->namespace;
