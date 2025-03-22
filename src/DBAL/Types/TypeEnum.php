@@ -79,6 +79,14 @@ class TypeEnum extends Type
 
 	/**
 	 * {@inheritDoc}
+	 */
+	public static function getInstance(array $options): static
+	{
+		return (new self())->configure($options);
+	}
+
+	/**
+	 * {@inheritDoc}
 	 *
 	 * @throws TypesException
 	 */
@@ -111,14 +119,6 @@ class TypeEnum extends Type
 	public function getEmptyValueOfType(): ?BackedEnum
 	{
 		return null;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public static function getInstance(array $options): static
-	{
-		return (new self())->configure($options);
 	}
 
 	/**
@@ -188,7 +188,7 @@ class TypeEnum extends Type
 		$enum_cls = $this->getEnumClass();
 		if (\is_string($value) || \is_int($value)) {
 			try {
-				$value = $enum_cls::from($value);
+				$value = $this->toEnumValue($value);
 			} catch (Throwable $t) {
 				throw new TypesInvalidValueException($this->msg('invalid_enum_value_type'), $debug, $t);
 			}
@@ -199,6 +199,23 @@ class TypeEnum extends Type
 		}
 
 		return $value;
+	}
+
+	/**
+	 * Returns the enum value instance from string.
+	 *
+	 * @param int|string $value
+	 *
+	 * @return BackedEnum
+	 *
+	 * @throws TypesException
+	 */
+	protected function toEnumValue(int|string $value): BackedEnum
+	{
+		/** @var class-string<BackedEnum> $cls */
+		$cls = $this->getEnumClass();
+
+		return $cls::from($value);
 	}
 
 	/**
@@ -217,22 +234,5 @@ class TypeEnum extends Type
 		}
 
 		return $cls;
-	}
-
-	/**
-	 * Returns the enum value instance from string.
-	 *
-	 * @param int|string $value
-	 *
-	 * @return BackedEnum
-	 *
-	 * @throws TypesException
-	 */
-	protected function toEnumValue(int|string $value): BackedEnum
-	{
-		/** @var class-string<BackedEnum> $cls */
-		$cls = $this->getEnumClass();
-
-		return $cls::from($value);
 	}
 }
