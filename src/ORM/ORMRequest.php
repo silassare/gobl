@@ -621,8 +621,10 @@ class ORMRequest
 					$rule            = $parts[0];
 					$last            = $parts[1];
 					$order_by[$rule] = !('desc' === $last);
-				} else {
+				} elseif (1 === $len) {
 					$order_by[$rule] = true;
+				} else {
+					throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_ORDER_BY', $request);
 				}
 			} else {
 				throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_ORDER_BY', $request);
