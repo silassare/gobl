@@ -43,6 +43,14 @@ class TypeDate extends Type
 
 	/**
 	 * {@inheritDoc}
+	 */
+	public static function getInstance(array $options): static
+	{
+		return (new self())->configure($options);
+	}
+
+	/**
+	 * {@inheritDoc}
 	 *
 	 * @throws TypesException
 	 */
@@ -69,128 +77,6 @@ class TypeDate extends Type
 		}
 
 		return parent::configure($options);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?string
-	{
-		if (null === $value) {
-			return null;
-		}
-
-		$format = $this->getOption('format', self::FORMAT_TIMESTAMP);
-
-		if (self::FORMAT_TIMESTAMP === $format) {
-			return (string) $value;
-		}
-
-		if ($this->isMicroseconds()) {
-			return DateTime::createFromFormat('U.u', $value)
-				->format($format);
-		}
-
-		if ($formatted = \date($this->getOption('format', $format), $value)) {
-			return $formatted;
-		}
-
-		return (string) $value;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function default(mixed $default): static
-	{
-		$this->base_type->default($default);
-
-		return parent::default($default);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getDefault(): ?string
-	{
-		$default = parent::getDefault();
-
-		if (null === $default && $this->isAuto()) {
-			$default = $this->now();
-		}
-
-		return $default;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public static function getInstance(array $options): static
-	{
-		return (new self())->configure($options);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getName(): string
-	{
-		return self::NAME;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @throws TypesInvalidValueException
-	 */
-	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
-	{
-		return $this->validate($value);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function shouldEnforceDefaultValue(RDBMSInterface $rdbms): bool
-	{
-		return false;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function validate(mixed $value): ?string
-	{
-		$debug = [
-			'value' => $value,
-		];
-
-		// if empty value and not (0 or 0.0)
-		if (empty($value) && !\is_numeric($value)) {
-			if ($this->isAuto()) {
-				return $this->now();
-			}
-
-			$value = $this->getDefault();
-
-			if (null === $value && $this->isNullable()) {
-				return null;
-			}
-		}
-
-		$value = self::toTimestamp($value);
-
-		if (null === $value) {
-			throw new TypesInvalidValueException('invalid_date_type', $debug);
-		}
-
-		try {
-			$value = $this->base_type->validate($value);
-		} catch (TypesInvalidValueException $e) {
-			throw new TypesInvalidValueException('invalid_date', $debug, $e);
-		}
-
-		return $value;
 	}
 
 	/**
@@ -284,6 +170,96 @@ class TypeDate extends Type
 	}
 
 	/**
+	 * {@inheritDoc}
+	 */
+	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?string
+	{
+		if (null === $value) {
+			return null;
+		}
+
+		$format = $this->getOption('format', self::FORMAT_TIMESTAMP);
+
+		if (self::FORMAT_TIMESTAMP === $format) {
+			return (string) $value;
+		}
+
+		$value        = (string) $value;
+		$value_format = \preg_match('~^\d+\.\d+$~', $value) ? 'U.u' : 'U';
+
+		if ($date = DateTime::createFromFormat($value_format, $value)) {
+			return $date->format($format);
+		}
+
+		return $value;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function default(mixed $default): static
+	{
+		$this->base_type->default($default);
+
+		return parent::default($default);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getName(): string
+	{
+		return self::NAME;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws TypesInvalidValueException
+	 */
+	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
+	{
+		return $this->validate($value);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function validate(mixed $value): ?string
+	{
+		$debug = [
+			'value' => $value,
+		];
+
+		// if empty value and not (0 or 0.0)
+		if (empty($value) && !\is_numeric($value)) {
+			if ($this->isAuto()) {
+				return $this->now();
+			}
+
+			$value = $this->getDefault();
+
+			if (null === $value && $this->isNullable()) {
+				return null;
+			}
+		}
+
+		$value = self::toTimestamp($value);
+
+		if (null === $value) {
+			throw new TypesInvalidValueException('invalid_date_type', $debug);
+		}
+
+		try {
+			$value = $this->base_type->validate($value);
+		} catch (TypesInvalidValueException $e) {
+			throw new TypesInvalidValueException('invalid_date', $debug, $e);
+		}
+
+		return $value;
+	}
+
+	/**
 	 * Checks if the auto value is enabled.
 	 */
 	public function isAuto(): bool
@@ -299,6 +275,28 @@ class TypeDate extends Type
 	public function isMicroseconds(): bool
 	{
 		return 'microseconds' === $this->getOption('precision');
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getDefault(): ?string
+	{
+		$default = parent::getDefault();
+
+		if (null === $default && $this->isAuto()) {
+			$default = $this->now();
+		}
+
+		return $default;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function shouldEnforceDefaultValue(RDBMSInterface $rdbms): bool
+	{
+		return false;
 	}
 
 	/**
