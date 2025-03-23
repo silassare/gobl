@@ -68,6 +68,8 @@ final class RelationBuilder
 	 * @param array<string, string> $host_to_target_columns_map
 	 * @param array                 $filters
 	 *
+	 * @return Relation
+	 *
 	 * @throws DBALException
 	 */
 	public function usingColumns(array $host_to_target_columns_map = [], array $filters = []): Relation
