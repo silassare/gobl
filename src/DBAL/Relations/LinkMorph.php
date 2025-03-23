@@ -155,12 +155,15 @@ final class LinkMorph extends Link
 			$this->morph_parent_key_column = $column->getName();
 		}
 
-		if ($this->host_is_parent && !$host_table->isSoftDeletable()) {
+		$parent = $this->host_is_parent ? $host_table : $target_table;
+		$child  = $this->host_is_parent ? $target_table : $host_table;
+		if (!$parent->isSoftDeletable()) {
 			throw new DBALException(\sprintf(
-				'To prevent data inconsistency, the host table "%s" in a morph relation with "%s" should be soft deletable. Hard deletion may result in orphaned entries in "%s".',
-				$host_table->getName(),
-				$target_table->getName(),
-				$target_table->getName(),
+				'To prevent data inconsistency, the table "%s" in a morph relation with "%s" should be soft deletable. Hard deletion in "%s" may result in orphaned entries in "%s".',
+				$parent->getName(),
+				$child->getName(),
+				$parent->getName(),
+				$child->getName(),
 			));
 		}
 	}
