@@ -24,8 +24,10 @@ use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
  */
 class TypeDate extends Type
 {
+	public const NAME = 'date';
+
 	public const FORMAT_TIMESTAMP = 'timestamp';
-	public const NAME             = 'date';
+	public const FORMAT_DEFAULT   = \DATE_ATOM;
 
 	/**
 	 * TypeDate constructor.
@@ -178,7 +180,7 @@ class TypeDate extends Type
 			return null;
 		}
 
-		$format = $this->getOption('format', self::FORMAT_TIMESTAMP);
+		$format = $this->getOption('format', self::FORMAT_DEFAULT);
 
 		if (self::FORMAT_TIMESTAMP === $format) {
 			return (string) $value;
