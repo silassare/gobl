@@ -357,12 +357,17 @@ final class TableBuilder
 	 *
 	 * @throws DBALException
 	 */
-	public function timestamps(): self
+	public function timestamps(?string $format = null): self
 	{
-		$this->timestamp('created_at')
+		$c = $this->timestamp('created_at')
 			->auto();
-		$this->timestamp('updated_at')
+		$u = $this->timestamp('updated_at')
 			->auto();
+
+		if ($format) {
+			$c->format($format);
+			$u->format($format);
+		}
 
 		return $this;
 	}
@@ -370,17 +375,22 @@ final class TableBuilder
 	/**
 	 * Creates a new column of type date formatted as timestamp.
 	 *
-	 * @param string $column_name
+	 * @param string      $column_name
+	 * @param null|string $format
 	 *
 	 * @return TypeDate
 	 *
 	 * @throws DBALException
 	 */
-	public function timestamp(string $column_name): TypeDate
+	public function timestamp(string $column_name, ?string $format = null): TypeDate
 	{
 		$this->column($column_name, $type = new TypeDate());
 
-		return $type->format('timestamp');
+		if ($format) {
+			$type->format($format);
+		}
+
+		return $type;
 	}
 
 	/**
