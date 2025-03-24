@@ -147,6 +147,7 @@ abstract class BaseTestCase extends TestCase
 			$t->id();
 			$t->string('title');
 			$t->foreign('user_id', 'users', 'id');
+			$t->softDeletable();
 
 			$t->belongsTo('user')
 				->from('users');
@@ -190,7 +191,7 @@ abstract class BaseTestCase extends TestCase
 	public static function getTestRDBMSList(): array
 	{
 		return [
-			MySQL::NAME   => [
+			MySQL::NAME => [
 				'rdbms'     => MySQL::class,
 				'generator' => MySQLQueryGenerator::class,
 			],
