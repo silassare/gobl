@@ -46,6 +46,13 @@ interface RelationInterface
 	public function getHostTable(): Table;
 
 	/**
+	 * Is the relation private?
+	 *
+	 * @return bool
+	 */
+	public function isPrivate(): bool;
+
+	/**
 	 * Checks if the relation returns paginated items.
 	 *
 	 * ie: all relation items can't be retrieved at once.

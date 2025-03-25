@@ -202,14 +202,9 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function toArray(): array
+	public function isPrivate(): bool
 	{
-		$options['type']   = $this->type->value;
-		$options['target'] = $this->getTargetTable()
-			->getName();
-		$options['link']   = $this->link->toArray();
-
-		return $options;
+		return $this->getTargetTable()->isPrivate();
 	}
 
 	/**
@@ -220,6 +215,19 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface
 	public function getTargetTable(): Table
 	{
 		return $this->link->getTargetTable();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function toArray(): array
+	{
+		$options['type']   = $this->type->value;
+		$options['target'] = $this->getTargetTable()
+			->getName();
+		$options['link'] = $this->link->toArray();
+
+		return $options;
 	}
 
 	/**
