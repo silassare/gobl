@@ -40,14 +40,21 @@ final class DiffTest extends BaseTestCase
 		$db_b->ns('Test')
 			->schema(self::getTablesDiffDefinitions());
 
-		$diff = new Diff($db_a, $db_b);
+		$diff          = new Diff($db_a, $db_b);
+		$output        = (string) $diff->generateMigrationFile(1);
+		$actual_file   = GOBL_TEST_OUTPUT . '/diff.out.php';
+		$expected_file = GOBL_TEST_ASSETS . '/diff.out.php';
 
-		\file_put_contents(GOBL_TEST_OUTPUT . '/diff.out.php', (string) $diff->generateMigrationFile(1));
+		\file_put_contents($actual_file, $output);
+
+		if (!\file_exists($expected_file)) {
+			\file_put_contents($expected_file, $output);
+		}
 
 		/** @var MigrationInterface $expected */
 		/** @var MigrationInterface $actual */
-		$expected = require GOBL_TEST_ASSETS . '/diff.out.php';
-		$actual   = require GOBL_TEST_OUTPUT . '/diff.out.php';
+		$expected = require $expected_file;
+		$actual   = require $actual_file;
 
 		self::assertInstanceOf(MigrationInterface::class, $actual);
 
