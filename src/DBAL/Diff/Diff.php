@@ -108,11 +108,11 @@ class Diff
 			->setContent('// TODO: implement your custom logic here');
 
 		$m_before_run->comment('@inheritDoc');
-		$m_before_run->newArgument('mode')->setType(MigrationMode::class);
+		$m_before_run->newArgument('mode')->setType('\\' . MigrationMode::class);
 		$m_before_run->newArgument('query')->setType('string');
 
 		$m_after_run->comment('@inheritDoc');
-		$m_after_run->newArgument('mode')->setType(MigrationMode::class);
+		$m_after_run->newArgument('mode')->setType('\\' . MigrationMode::class);
 
 		$time = \time();
 

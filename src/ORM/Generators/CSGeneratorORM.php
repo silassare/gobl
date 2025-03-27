@@ -649,7 +649,7 @@ return $this;',
 		];
 
 		$m->newArgument('request')
-			->setType(new PHPType('null', ORMRequest::class))
+			->setType(new PHPType('null', '\\' . ORMRequest::class))
 			->setValue(null);
 
 		$m->setReturnType($paginated ? 'array' : $read_type_hint);
@@ -908,7 +908,7 @@ return static::table()->getVirtualRelation(\'{relation_name}\')->getController()
 			);
 
 		$construct->newArgument('query')
-			->setType(new PHPClass(QBSelect::class));
+			->setType('\\' . (QBSelect::class));
 		$construct->comment(Str::interpolate('{class_name} constructor.', $inject));
 
 		$create_instance = $class->newMethod('new')
@@ -919,7 +919,7 @@ return static::table()->getVirtualRelation(\'{relation_name}\')->getController()
 			)
 			->setReturnType('static');
 		$create_instance->newArgument('query')
-			->setType(new PHPClass(QBSelect::class));
+			->setType('\\' . (QBSelect::class));
 		$create_instance->comment(
 			Str::interpolate(
 				'{@inheritDoc}
