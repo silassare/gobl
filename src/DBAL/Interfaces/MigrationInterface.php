@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Interfaces;
 
+use Gobl\DBAL\MigrationMode;
+
 /**
  * Interface MigrationInterface.
  */
@@ -66,4 +68,21 @@ interface MigrationInterface
 	 * @return string
 	 */
 	public function down(): string;
+
+	/**
+	 * Called before a migration runs.
+	 *
+	 * @param MigrationMode $mode
+	 * @param string        $query the query to be run
+	 *
+	 * @return bool|string if the query should be run or not, or a new query to be run
+	 */
+	public function beforeRun(MigrationMode $mode, string $query): bool|string;
+
+	/**
+	 * Called after a migration runs.
+	 *
+	 * @param MigrationMode $mode
+	 */
+	public function afterRun(MigrationMode $mode): void;
 }

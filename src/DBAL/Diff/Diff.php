@@ -35,9 +35,11 @@ use Gobl\DBAL\Diff\Actions\UniqueKeyConstraintAdded;
 use Gobl\DBAL\Diff\Actions\UniqueKeyConstraintDeleted;
 use Gobl\DBAL\Interfaces\MigrationInterface;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
+use Gobl\DBAL\MigrationMode;
 use Gobl\DBAL\Table;
 use OLIUP\CG\PHPClass;
 use OLIUP\CG\PHPFile;
+use OLIUP\CG\PHPType;
 
 /**
  * Class Diff.
@@ -86,13 +88,31 @@ class Diff
 		$m_get_version = $class->newMethod('getVersion')
 			->public()
 			->setReturnType('int');
-		$m_get_label   = $class->newMethod('getLabel')
+		$m_get_label = $class->newMethod('getLabel')
 			->public()
 			->setReturnType('string');
 
 		$m_get_timestamp = $class->newMethod('getTimestamp')
 			->public()
 			->setReturnType('int');
+
+		$m_before_run = $class->newMethod('beforeRun')
+			->public()
+			->setReturnType(new PHPType('bool', 'string'))
+			->setContent('// TODO: implement your custom logic here' . \PHP_EOL
+				. 'return true;');
+
+		$m_after_run = $class->newMethod('afterRun')
+			->public()
+			->setReturnType('void')
+			->setContent('// TODO: implement your custom logic here');
+
+		$m_before_run->comment('@inheritDoc');
+		$m_before_run->newArgument('mode')->setType(MigrationMode::class);
+		$m_before_run->newArgument('query')->setType('string');
+
+		$m_after_run->comment('@inheritDoc');
+		$m_after_run->newArgument('mode')->setType(MigrationMode::class);
 
 		$time = \time();
 
