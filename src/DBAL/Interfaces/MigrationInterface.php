@@ -70,7 +70,7 @@ interface MigrationInterface
 	public function down(): string;
 
 	/**
-	 * Called before a migration runs.
+	 * Called before a migration query is run.
 	 *
 	 * @param MigrationMode $mode
 	 * @param string        $query the query to be run
@@ -80,7 +80,7 @@ interface MigrationInterface
 	public function beforeRun(MigrationMode $mode, string $query): bool|string;
 
 	/**
-	 * Called after a migration runs.
+	 * Called after a migration query is run.
 	 *
 	 * @param MigrationMode $mode
 	 */
