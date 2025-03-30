@@ -62,6 +62,13 @@ abstract class Db implements RDBMSInterface
 	private array $tables = [];
 
 	/**
+	 * Database tables.
+	 *
+	 * @var array<string,string>
+	 */
+	private array $morph_types = [];
+
+	/**
 	 * Database namespaces.
 	 *
 	 * @var NamespaceBuilder[]
@@ -69,7 +76,9 @@ abstract class Db implements RDBMSInterface
 	private array $namespaces = [];
 
 	/**
-	 * @var array
+	 * Map table full name to table name.
+	 *
+	 * @var array<string, string>
 	 */
 	private array $tbl_full_name_map = [];
 
@@ -129,6 +138,8 @@ abstract class Db implements RDBMSInterface
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * @throws DBALException
 	 */
 	public function getConnection(): PDO
 	{
@@ -245,6 +256,10 @@ abstract class Db implements RDBMSInterface
 
 				if (isset($table_options['diff_key'])) {
 					$tbl->setDiffKey($table_options['diff_key']);
+				}
+
+				if (isset($table_options['morph_type'])) {
+					$tbl->setMorphType($table_options['morph_type']);
 				}
 
 				if (isset($table_options['charset'])) {
@@ -779,7 +794,23 @@ abstract class Db implements RDBMSInterface
 			);
 		}
 
+		$morph_type = $table->getMorphType();
+		// prevents morph type conflict
+		if (isset($this->morph_types[$morph_type])) {
+			throw new DBALException(
+				\sprintf('The morph type "%s" is already used by another table.', $morph_type)
+			);
+		}
+
+		// prevents morph type conflict with another table "name" or "full name"
+		if ($this->hasTable($morph_type)) {
+			throw new DBALException(
+				\sprintf('The morph type "%s" value conflict with an existing table name or full name.', $morph_type)
+			);
+		}
+
 		$this->tbl_full_name_map[$full_name] = $name;
+		$this->morph_types[$morph_type]      = $name;
 		$this->tables[$name]                 = $table->lockName();
 
 		return $this;
