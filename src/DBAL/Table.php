@@ -53,6 +53,11 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	public const COLUMN_SOFT_DELETED_AT  = 'deleted_at';
 
 	/**
+	 * @var array<string, array{morph_type_column:Column, morph_id_column :Column}>
+	 */
+	public array $morphs = [];
+
+	/**
 	 * The table diff key.
 	 *
 	 * @var null|string
@@ -65,6 +70,13 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	 * @var string
 	 */
 	private string $name;
+
+	/**
+	 * The value used to identify the table in morph relations.
+	 *
+	 * @var null|string
+	 */
+	private ?string $morph_type =  null;
 
 	/**
 	 * The table singular name.
@@ -252,6 +264,128 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 		$this->name = $name;
 
 		return $this;
+	}
+
+	/**
+	 * Sets table morph type name.
+	 *
+	 * @param string $name
+	 *
+	 * @return $this
+	 */
+	public function setMorphType(string $name): self
+	{
+		$this->assertNotLocked();
+		$this->assertNameNotLocked();
+
+		if (!\preg_match(self::NAME_REG, $name)) {
+			throw new InvalidArgumentException(\sprintf('Morph type name "%s" should match: %s', $name, self::NAME_PATTERN));
+		}
+
+		$this->morph_type = $name;
+
+		return $this;
+	}
+
+	/**
+	 * Gets table morph type name.
+	 */
+	public function getMorphType(): string
+	{
+		return $this->morph_type ?? $this->getName();
+	}
+
+	/**
+	 * Adds a morph relation's columns to this table.
+	 *
+	 * @internal
+	 *
+	 * @param string $name              the morph name
+	 * @param Column $morph_type_column the morph type column
+	 * @param Column $morph_id_column   the morph id column
+	 *
+	 * @return $this
+	 */
+	public function addMorph(string $name, Column $morph_type_column, Column $morph_id_column): self
+	{
+		$this->assertNotLocked();
+
+		if ($this->getMorphOptions($morph_id_column->getName())) {
+			throw new InvalidArgumentException(
+				\sprintf(
+					'Column "%s" is already defined in a morph relation in table "%s".',
+					$morph_id_column->getName(),
+					$this->getFullName()
+				)
+			);
+		}
+
+		if ($this->getMorphOptions($morph_type_column->getName())) {
+			throw new InvalidArgumentException(
+				\sprintf(
+					'Column "%s" is already defined in a morph relation in table "%s".',
+					$morph_type_column->getName(),
+					$this->getFullName()
+				)
+			);
+		}
+
+		if (isset($this->morphs[$name])) {
+			throw new InvalidArgumentException(
+				\sprintf(
+					'Morph "%s" is already defined in table "%s".',
+					$name,
+					$this->getFullName()
+				)
+			);
+		}
+
+		$this->morphs[$name] = [
+			'morph_type_column' => $morph_type_column,
+			'morph_id_column'   => $morph_id_column,
+		];
+
+		return $this;
+	}
+
+	/**
+	 * Checks if a given column is in a morph relation.
+	 *
+	 * @param string $column
+	 *
+	 * @return bool
+	 */
+	public function isMorphColumn(string $column): bool
+	{
+		return null !== $this->getMorphOptions($column);
+	}
+
+	/**
+	 * Returns a morph options from this table in which a given column is defined.
+	 *
+	 * @param string $column the column name
+	 *
+	 * @return null|array{
+	 *     morph_name: string,
+	 *     morph_type_column: Column,
+	 *     morph_id_column: Column,
+	 * }
+	 */
+	public function getMorphOptions(string $column): ?array
+	{
+		$column = $this->getColumnOrFail($column);
+
+		foreach ($this->morphs as $name => $morph) {
+			if ($morph['morph_id_column'] === $column || $morph['morph_type_column'] === $column) {
+				return [
+					'morph_name'        => $name,
+					'morph_type_column' => $morph['morph_type_column'],
+					'morph_id_column'   => $morph['morph_id_column'],
+				];
+			}
+		}
+
+		return null;
 	}
 
 	/**
@@ -1502,6 +1636,9 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 
 		if (!empty($this->meta)) {
 			$options['meta'] = $this->meta->toArray();
+		}
+		if (!empty($this->morph_type)) {
+			$options['morph_type'] = $this->morph_type;
 		}
 
 		if (self::TABLE_DEFAULT_NAMESPACE !== $this->namespace) {
