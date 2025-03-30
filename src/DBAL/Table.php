@@ -276,7 +276,6 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	public function setMorphType(string $value): self
 	{
 		$this->assertNotLocked();
-		$this->assertNameNotLocked();
 
 		if (!\preg_match(self::NAME_REG, $value)) {
 			throw new InvalidArgumentException(\sprintf('Morph type value "%s" should match: %s', $value, self::NAME_PATTERN));

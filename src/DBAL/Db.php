@@ -167,6 +167,29 @@ abstract class Db implements RDBMSInterface
 
 			foreach ($this->tables as $table) {
 				$table->lock();
+
+				$morph_type = $table->getMorphType();
+				// prevents morph type conflict
+				if (isset($this->morph_types[$morph_type])) {
+					throw new DBALException(
+						\sprintf('The morph type "%s" is already used by another table.', $morph_type)
+					);
+				}
+
+				$other_table = $this->getTable($morph_type);
+				// prevents morph type conflict with another table "name" or "full name"
+				if ($other_table && $other_table !== $table) {
+					throw new DBALException(
+						\sprintf(
+							'The morph type "%s" of table "%s" conflict with the existing table "%s" name or full name.',
+							$morph_type,
+							$table->getName(),
+							$other_table->getName()
+						)
+					);
+				}
+
+				$this->morph_types[$morph_type]      = $table->getName();
 			}
 		}
 
@@ -794,23 +817,7 @@ abstract class Db implements RDBMSInterface
 			);
 		}
 
-		$morph_type = $table->getMorphType();
-		// prevents morph type conflict
-		if (isset($this->morph_types[$morph_type])) {
-			throw new DBALException(
-				\sprintf('The morph type "%s" is already used by another table.', $morph_type)
-			);
-		}
-
-		// prevents morph type conflict with another table "name" or "full name"
-		if ($this->hasTable($morph_type)) {
-			throw new DBALException(
-				\sprintf('The morph type "%s" conflict with an existing table name or full name.', $morph_type)
-			);
-		}
-
 		$this->tbl_full_name_map[$full_name] = $name;
-		$this->morph_types[$morph_type]      = $name;
 		$this->tables[$name]                 = $table->lockName();
 
 		return $this;
