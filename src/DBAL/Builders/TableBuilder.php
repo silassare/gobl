@@ -510,6 +510,12 @@ final class TableBuilder
 			$type_col_type->nullable();
 		}
 
+		$this->table->addMorph(
+			$prefix,
+			$this->table->getColumnOrFail($type_column_name),
+			$this->table->getColumnOrFail($id_column_name)
+		);
+
 		return $this;
 	}
 
