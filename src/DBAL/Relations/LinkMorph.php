@@ -121,7 +121,7 @@ final class LinkMorph extends Link
 			));
 		}
 
-		$this->morph_parent_type = $this->options['parent_type'] ?? $polymorphic_parent->getName();
+		$this->morph_parent_type = $this->options['parent_type'] ?? $polymorphic_parent->getMorphType();
 
 		if (empty($this->options['parent_key_column'])) {
 			$pk = $polymorphic_parent->getPrimaryKeyConstraint();
