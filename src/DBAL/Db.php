@@ -805,7 +805,7 @@ abstract class Db implements RDBMSInterface
 		// prevents morph type conflict with another table "name" or "full name"
 		if ($this->hasTable($morph_type)) {
 			throw new DBALException(
-				\sprintf('The morph type "%s" value conflict with an existing table name or full name.', $morph_type)
+				\sprintf('The morph type "%s" conflict with an existing table name or full name.', $morph_type)
 			);
 		}
 

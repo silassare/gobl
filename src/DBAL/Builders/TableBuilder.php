@@ -110,6 +110,20 @@ final class TableBuilder
 	}
 
 	/**
+	 * Sets the value used to identify the table in relations using morph link.
+	 *
+	 * @param string $type
+	 *
+	 * @return $this
+	 */
+	public function morphType(string $type): self
+	{
+		$this->table->setMorphType($type);
+
+		return $this;
+	}
+
+	/**
 	 * Sets the table singular name.
 	 *
 	 * @param string $singular_name

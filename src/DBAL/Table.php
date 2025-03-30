@@ -72,7 +72,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	private string $name;
 
 	/**
-	 * The value used to identify the table in morph relations.
+	 * The value used to identify the table in relations using morph link.
 	 *
 	 * @var null|string
 	 */
@@ -267,28 +267,28 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	}
 
 	/**
-	 * Sets table morph type name.
+	 * Sets the value used to identify the table in relations using morph link.
 	 *
-	 * @param string $name
+	 * @param string $value
 	 *
 	 * @return $this
 	 */
-	public function setMorphType(string $name): self
+	public function setMorphType(string $value): self
 	{
 		$this->assertNotLocked();
 		$this->assertNameNotLocked();
 
-		if (!\preg_match(self::NAME_REG, $name)) {
-			throw new InvalidArgumentException(\sprintf('Morph type name "%s" should match: %s', $name, self::NAME_PATTERN));
+		if (!\preg_match(self::NAME_REG, $value)) {
+			throw new InvalidArgumentException(\sprintf('Morph type value "%s" should match: %s', $value, self::NAME_PATTERN));
 		}
 
-		$this->morph_type = $name;
+		$this->morph_type = $value;
 
 		return $this;
 	}
 
 	/**
-	 * Gets table morph type name.
+	 * Gets the value used to identify the table in relations using morph link.
 	 */
 	public function getMorphType(): string
 	{
