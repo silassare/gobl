@@ -62,7 +62,7 @@ abstract class Db implements RDBMSInterface
 	private array $tables = [];
 
 	/**
-	 * Database tables.
+	 * Map table morph type to table name.
 	 *
 	 * @var array<string,string>
 	 */
@@ -189,7 +189,7 @@ abstract class Db implements RDBMSInterface
 					);
 				}
 
-				$this->morph_types[$morph_type]      = $table->getName();
+				$this->morph_types[$morph_type] = $table->getName();
 			}
 		}
 
@@ -739,6 +739,18 @@ abstract class Db implements RDBMSInterface
 			}
 
 			return $this->tables[$name];
+		}
+
+		return null;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getTableByMorphType(string $morph_type): ?Table
+	{
+		if (isset($this->morph_types[$morph_type])) {
+			return $this->tables[$this->morph_types[$morph_type]];
 		}
 
 		return null;

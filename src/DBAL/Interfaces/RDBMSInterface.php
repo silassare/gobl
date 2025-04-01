@@ -132,6 +132,15 @@ interface RDBMSInterface
 	public function getTableOrFail(string $name): Table;
 
 	/**
+	 * Gets table with a given morph type.
+	 *
+	 * @param string $morph_type the table morph type
+	 *
+	 * @return null|Table
+	 */
+	public function getTableByMorphType(string $morph_type): ?Table;
+
+	/**
 	 * Gets tables.
 	 *
 	 * @param null|string $namespace
