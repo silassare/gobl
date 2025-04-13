@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Filters;
 
+use BackedEnum;
 use Gobl\DBAL\Column;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface;
@@ -331,7 +332,7 @@ final class Filters
 	public function add(
 		Operator $operator,
 		string $left,
-		null|array|bool|float|int|QBExpression|QBInterface|string $right = null
+		null|array|BackedEnum|bool|float|int|QBExpression|QBInterface|string $right = null
 	): self {
 		if (Operator::IS_TRUE === $operator) {
 			$operator = Operator::EQ;
@@ -574,6 +575,8 @@ final class Filters
 	{
 		if ($operand instanceof QBExpression) {
 			$operand = (string) $operand;
+		} elseif ($operand instanceof BackedEnum) {
+			$operand = $operand->value;
 		} elseif (\is_string($operand) && \strlen($operand) > 2 && ':' !== $operand[0] && '(' !== $operand[0]) {
 			$parts = \explode('.', $operand);
 

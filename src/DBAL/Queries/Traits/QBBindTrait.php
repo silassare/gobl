@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Queries\Traits;
 
+use BackedEnum;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Queries\Interfaces\QBInterface;
 use Gobl\DBAL\Queries\QBUtils;
@@ -144,6 +145,10 @@ trait QBBindTrait
 	 */
 	protected function bind(int|string $param, mixed $value, ?int $type = null, bool $overwrite_positional = false): void
 	{
+		if ($value instanceof BackedEnum) {
+			$value = $value->value;
+		}
+
 		if (null === $type) {
 			$type = QBUtils::paramType($value);
 		}

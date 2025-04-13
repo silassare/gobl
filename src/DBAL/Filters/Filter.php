@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Filters;
 
+use BackedEnum;
 use Gobl\DBAL\Filters\Interfaces\FilterInterface;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Queries\Interfaces\QBInterface;
@@ -39,7 +40,7 @@ final class Filter implements FilterInterface
 	public function __construct(
 		protected Operator $operator,
 		protected string $left,
-		protected null|array|bool|float|int|QBExpression|QBInterface|string $right,
+		protected null|array|BackedEnum|bool|float|int|QBExpression|QBInterface|string $right,
 		protected string $left_str,
 		protected ?string $right_str,
 	) {}
@@ -65,9 +66,9 @@ final class Filter implements FilterInterface
 	/**
 	 * Get filter right operand.
 	 *
-	 * @return null|array|bool|float|int|QBExpression|QBInterface|string
+	 * @return null|array|BackedEnum|bool|float|int|QBExpression|QBInterface|string
 	 */
-	public function getRightOperand(): null|array|bool|float|int|QBExpression|QBInterface|string
+	public function getRightOperand(): null|array|BackedEnum|bool|float|int|QBExpression|QBInterface|string
 	{
 		return $this->right;
 	}
