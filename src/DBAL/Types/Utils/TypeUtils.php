@@ -139,12 +139,12 @@ class TypeUtils
 
 		if ($type->shouldEnforceQueryExpressionValueType($rdbms)) {
 			if (\is_array($expression)) {
-				$expressions = $expression;
-				foreach ($expressions as $key => $entry) {
-					$expressions[$key] = $type->enforceQueryExpressionValueType($entry, $rdbms);
+				$arr = $expression;
+				foreach ($arr as $key => $entry) {
+					$arr[$key] = $type->enforceQueryExpressionValueType($entry, $rdbms);
 				}
 
-				return $expressions;
+				return $arr;
 			}
 
 			return $type->enforceQueryExpressionValueType($expression, $rdbms);
