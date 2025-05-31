@@ -13,11 +13,14 @@ declare(strict_types=1);
 
 namespace Gobl\ORM\Generators;
 
+use BackedEnum;
 use Gobl\DBAL\Column;
 use Gobl\DBAL\Constraints\PrimaryKey;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Table;
+use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
+use Gobl\DBAL\Types\TypeEnum;
 use Gobl\Gobl;
 use Gobl\ORM\ORMTypeHint;
 use Gobl\ORM\Utils\ORMClassKind;
@@ -33,6 +36,16 @@ abstract class CSGenerator
 	protected bool $ignore_private_table;
 
 	protected bool $ignore_private_column;
+
+	/**
+	 * @var array<string, 1>
+	 */
+	protected array $enums_checked = [];
+
+	/**
+	 * @var array<string, array<string,int|string>>
+	 */
+	protected array $enums_infos = [];
 
 	/**
 	 * CSGenerator constructor.
@@ -57,6 +70,8 @@ abstract class CSGenerator
 	 * @param Table $table
 	 *
 	 * @return array
+	 *
+	 * @throws TypesException
 	 */
 	public function describeTable(Table $table): array
 	{
@@ -73,6 +88,8 @@ abstract class CSGenerator
 	 * @param Table $table the table object
 	 *
 	 * @return array
+	 *
+	 * @throws TypesException
 	 */
 	public function getTableInject(Table $table): array
 	{
@@ -112,6 +129,8 @@ abstract class CSGenerator
 	 * @param Column $column
 	 *
 	 * @return array
+	 *
+	 * @throws TypesException
 	 */
 	public function describeColumn(Column $column): array
 	{
@@ -119,6 +138,10 @@ abstract class CSGenerator
 		$type        = $column->getType();
 
 		$filtersRules = [];
+
+		if ($type instanceof TypeEnum) {
+			$this->declareEnum($type->getEnumClass(), $column->getTable()->getName());
+		}
 
 		foreach ($type->getAllowedFilterOperators() as $operator) {
 			$method = Str::toMethodName('where_' . $operator->getFilterSuffix($column));
@@ -286,6 +309,33 @@ abstract class CSGenerator
 	 * @return $this
 	 */
 	abstract public function generate(array $tables, string $path, string $header = ''): static;
+
+	/**
+	 * @param class-string<BackedEnum> $enum_class
+	 * @param string                   $table_name
+	 */
+	protected function declareEnum(string $enum_class, string $table_name): void
+	{
+		if (!isset($this->enums_checked[$enum_class])) {
+			$this->enums_checked[$enum_class] = 1;
+
+			$parts = \explode($enum_class, '\\');
+			$name  = \end($parts);
+
+			if (isset($this->enums_infos[$name])) {
+				$name = Str::toClassName($table_name . '_' . $name);
+			}
+
+			$cases = [];
+
+			foreach ($enum_class::cases() as $case) {
+				$v                  = $case->value;
+				$cases[$case->name] = \is_int($v) ? $v : '\'' . $v . '\'';
+			}
+
+			$this->enums_infos[$name] = $cases;
+		}
+	}
 
 	/**
 	 * Returns file header doc.

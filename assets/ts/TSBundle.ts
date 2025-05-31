@@ -14,8 +14,20 @@
 //@<%loop($.entities : $name : $content){%>import <%$name%> from './db/<%$name%>';
 //@<%}%>
 
+// START: ENTITIES REGISTRATION
 //@<%loop($.entities : $name : $content){%>register('<%$name%>', <%$name%>);
 //@<%}%>
+// END: ENTITIES REGISTRATION
+
+// START: ENUMS EXPORT
+//@<%loop($.enums : $name : $cases){
+//@export enum <%$name%> {
+//@<%loop($cases : $case : $value){%>
+//@    <%$case%> = <%$value%>,
+//@<%}%>
+//@}
+//@<%}%>
+// END: ENUMS EXPORT
 
 //@export {
 //@<%loop($.entities : $name : $content){%><%$name%>,

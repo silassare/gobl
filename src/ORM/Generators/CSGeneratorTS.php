@@ -95,6 +95,7 @@ class CSGeneratorTS extends CSGenerator
 		$bundle_inject['gobl_header']  = $header;
 		$bundle_inject['gobl_time']    = $time;
 		$bundle_inject['gobl_version'] = GOBL_VERSION;
+		$bundle_inject['enums']        = $this->enums_infos;
 
 		$this->writeFile($path_gobl . $ds . 'index.ts', $ts_bundle_tpl->runGet($bundle_inject));
 
