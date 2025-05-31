@@ -91,4 +91,13 @@ interface QueryGeneratorInterface
 	 * @return bool
 	 */
 	public function hasSameColumnTypeDefinition(Column $a, Column $b): bool;
+
+	/**
+	 * Wraps a database definition query.
+	 *
+	 * @param string $query
+	 *
+	 * @return string
+	 */
+	public function wrapDatabaseDefinitionQuery(string $query): string;
 }

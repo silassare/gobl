@@ -50,6 +50,14 @@ class SQLLiteQueryGenerator extends SQLQueryGeneratorBase
 	/**
 	 * {@inheritDoc}
 	 */
+	public function wrapDatabaseDefinitionQuery(string $query): string
+	{
+		return $query;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	protected function dbQueryTemplate(): string
 	{
 		return 'sqllite_db';

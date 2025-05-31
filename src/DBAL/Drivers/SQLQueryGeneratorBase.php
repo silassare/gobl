@@ -318,14 +318,12 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$create_sql = \implode(\PHP_EOL . \PHP_EOL, $create_table_parts);
 		$alter_sql  = \implode(\PHP_EOL . \PHP_EOL, $alter_table_parts);
 
-		$charset = $this->config->getDbCharset();
+		$sql_query = $create_sql . \PHP_EOL . $alter_sql;
 
 		return Gobl::runTemplate($this->dbQueryTemplate(), [
-			'gobl_time'    => Gobl::getGeneratedAtDate(),
-			'gobl_version' => GOBL_VERSION,
-			'charset'      => $charset,
-			'create_sql'   => $create_sql,
-			'alter_sql'    => $alter_sql,
+			'gobl_time'            => Gobl::getGeneratedAtDate(),
+			'gobl_version'         => GOBL_VERSION,
+			'database_sql_query'   => $this->wrapDatabaseDefinitionQuery($sql_query),
 		]);
 	}
 
