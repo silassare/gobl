@@ -27,7 +27,8 @@ use Throwable;
  */
 class TypeEnum extends Type
 {
-	public const NAME = 'enum';
+	public const NAME              = 'enum';
+	public const OPTION_ENUM_CLASS = 'enum_class';
 
 	/**
 	 * TypeEnum constructor.
@@ -74,7 +75,7 @@ class TypeEnum extends Type
 
 		!empty($message) && $this->msg('invalid_enum_value_type', $message);
 
-		return $this->setOption('enum_class', $enum_class);
+		return $this->setOption(self::OPTION_ENUM_CLASS, $enum_class);
 	}
 
 	/**
@@ -92,8 +93,8 @@ class TypeEnum extends Type
 	 */
 	public function configure(array $options): static
 	{
-		if (isset($options['enum_class'])) {
-			$this->enumClass($options['enum_class']);
+		if (isset($options[self::OPTION_ENUM_CLASS])) {
+			$this->enumClass($options[self::OPTION_ENUM_CLASS]);
 		}
 
 		return parent::configure($options);
@@ -202,6 +203,25 @@ class TypeEnum extends Type
 	}
 
 	/**
+	 * Returns the enum class.
+	 *
+	 * @return class-string<BackedEnum>
+	 *
+	 * @throws TypesException
+	 */
+	public function getEnumClass(): string
+	{
+		$cls = $this->getOption(self::OPTION_ENUM_CLASS);
+
+		if (!$cls) {
+			throw new TypesException('enum class not set');
+		}
+
+		/** @var class-string<BackedEnum> $cls */
+		return $cls;
+	}
+
+	/**
 	 * Returns the enum value instance from string.
 	 *
 	 * @param int|string $value
@@ -212,27 +232,8 @@ class TypeEnum extends Type
 	 */
 	protected function toEnumValue(int|string $value): BackedEnum
 	{
-		/** @var class-string<BackedEnum> $cls */
 		$cls = $this->getEnumClass();
 
 		return $cls::from($value);
-	}
-
-	/**
-	 * Returns the enum class.
-	 *
-	 * @return string
-	 *
-	 * @throws TypesException
-	 */
-	protected function getEnumClass(): string
-	{
-		$cls = $this->getOption('enum_class');
-
-		if (!$cls) {
-			throw new TypesException('enum class not set');
-		}
-
-		return $cls;
 	}
 }
