@@ -56,6 +56,17 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 	public function up(): string
 	{
 		return <<<DIFF_SQL
+		/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+		/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+		/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+		/*!40101 SET NAMES utf8mb4 */;
+		/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+		/*!40103 SET TIME_ZONE='+00:00' */;
+		/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+		/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+		/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+		/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
 		-- constraints column "account_client_id" type changed in host table "gObL_accounts".
 		ALTER TABLE `gObL_accounts` DROP FOREIGN KEY fk_accounts_clients;
 		-- constraints column mapping changed.
@@ -138,6 +149,15 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		ALTER TABLE `gObL_accounts` ADD CONSTRAINT fk_accounts_clients FOREIGN KEY (`account_client_id`) REFERENCES gObL_clients (`client_id`) ON UPDATE NO ACTION ON DELETE NO ACTION;
 		-- constraints column mapping changed.
 		ALTER TABLE `gObL_accounts` ADD CONSTRAINT fk_accounts_currencies FOREIGN KEY (`account_currency_code`) REFERENCES gObL_currencies (`currency_code`) ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+		/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+		/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+		/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+		/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+		/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+		/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+		/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+		/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 		DIFF_SQL;
 
 	}
@@ -147,8 +167,19 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 	 */
 	public function down(): string
 	{
-		
+
 		return <<<DIFF_SQL
+		/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+		/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+		/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+		/*!40101 SET NAMES utf8mb4 */;
+		/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+		/*!40103 SET TIME_ZONE='+00:00' */;
+		/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+		/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+		/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+		/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
 		-- constraints column "account_client_id" type changed in host table "gObL_accounts".
 		ALTER TABLE `gObL_accounts` DROP FOREIGN KEY fk_accounts_clients;
 		-- constraints column mapping changed.
@@ -240,6 +271,15 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		ALTER TABLE `gObL_accounts` ADD CONSTRAINT fk_accounts_currencies FOREIGN KEY (`account_currency_code`) REFERENCES gObL_currencies (`ccy_code`) ON UPDATE NO ACTION ON DELETE NO ACTION;
 		-- table "gObL_transactions" was added.
 		ALTER TABLE `gObL_transactions` ADD CONSTRAINT fk_transactions_accounts FOREIGN KEY (`transaction_account_id`) REFERENCES gObL_accounts (`account_id`) ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+		/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+		/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+		/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+		/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+		/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+		/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+		/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+		/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 		DIFF_SQL;
 
 	}
@@ -263,7 +303,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 	public function getSchema(): array
 	{
 		return array (
-		  'clients' => 
+		  'clients' =>
 		  array (
 		    'diff_key' => 'f0db55288a085e6a9e8dd11c4cdbb2a8',
 		    'singular_name' => 'client',
@@ -271,9 +311,9 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		    'namespace' => 'Test',
 		    'prefix' => 'gObL',
 		    'column_prefix' => 'client',
-		    'columns' => 
+		    'columns' =>
 		    array (
-		      'id' => 
+		      'id' =>
 		      array (
 		        'diff_key' => '8a3fa5c5ecf4de66ba45318910dfd4c2',
 		        'type' => 'int',
@@ -281,7 +321,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		        'unsigned' => true,
 		        'auto_increment' => true,
 		      ),
-		      'given_name' => 
+		      'given_name' =>
 		      array (
 		        'diff_key' => 'd9d22201a2faa0d079d1c8d558077c77',
 		        'type' => 'string',
@@ -289,7 +329,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		        'min' => 1,
 		        'max' => 60,
 		      ),
-		      'name' => 
+		      'name' =>
 		      array (
 		        'diff_key' => 'b6102666e48fc306f005670d237476b3',
 		        'type' => 'string',
@@ -297,30 +337,30 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		        'min' => 1,
 		        'max' => 60,
 		      ),
-		      'gender' => 
+		      'gender' =>
 		      array (
 		        'diff_key' => 'eea28337b476ba89c52b71dac3396993',
 		        'type' => 'string',
 		        'prefix' => 'client',
 		        'min' => 1,
 		        'max' => 60,
-		        'one_of' => 
+		        'one_of' =>
 		        array (
 		          0 => 'male',
 		          1 => 'female',
 		          2 => 'unknown',
 		        ),
 		      ),
-		      'data' => 
+		      'data' =>
 		      array (
 		        'diff_key' => '332ce863978d8ff5bf34e91c7b31198e',
 		        'type' => 'map',
 		        'prefix' => 'client',
-		        'default' => 
+		        'default' =>
 		        array (
 		        ),
 		      ),
-		      'created_at' => 
+		      'created_at' =>
 		      array (
 		        'diff_key' => '64e95ee82db45e34a6c94bb5677be795',
 		        'type' => 'date',
@@ -328,7 +368,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		        'auto' => true,
 		        'format' => 'timestamp',
 		      ),
-		      'updated_at' => 
+		      'updated_at' =>
 		      array (
 		        'diff_key' => '650df0130fbdfd254bd531306d54fc48',
 		        'type' => 'date',
@@ -336,7 +376,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		        'format' => 'timestamp',
 		        'nullable' => true,
 		      ),
-		      'valid' => 
+		      'valid' =>
 		      array (
 		        'diff_key' => '7ccd35ad12c78d6fbdac3f3771f4a1ae',
 		        'type' => 'bool',
@@ -345,31 +385,31 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		        'default' => 1,
 		      ),
 		    ),
-		    'constraints' => 
+		    'constraints' =>
 		    array (
-		      0 => 
+		      0 =>
 		      array (
 		        'type' => 'primary_key',
-		        'columns' => 
+		        'columns' =>
 		        array (
 		          0 => 'id',
 		        ),
 		      ),
 		    ),
-		    'relations' => 
+		    'relations' =>
 		    array (
-		      'accounts' => 
+		      'accounts' =>
 		      array (
 		        'type' => 'one-to-many',
 		        'target' => 'accounts',
-		        'link' => 
+		        'link' =>
 		        array (
 		          'type' => 'columns',
 		        ),
 		      ),
 		    ),
 		  ),
-		  'accounts' => 
+		  'accounts' =>
 		  array (
 		    'diff_key' => '8d62653147ceb29030e9fad78aa2bea3',
 		    'singular_name' => 'account',
@@ -377,9 +417,9 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		    'namespace' => 'Test',
 		    'prefix' => 'gObL',
 		    'column_prefix' => 'account',
-		    'columns' => 
+		    'columns' =>
 		    array (
-		      'id' => 
+		      'id' =>
 		      array (
 		        'diff_key' => '928b82919baa6be1e95acfc6a1e45c27',
 		        'type' => 'int',
@@ -387,14 +427,14 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		        'unsigned' => true,
 		        'auto_increment' => true,
 		      ),
-		      'client_id' => 
+		      'client_id' =>
 		      array (
 		        'diff_key' => '471cc190c00e52b5a8cd348afc543960',
 		        'type' => 'ref:clients.id',
 		        'prefix' => 'account',
 		        'unsigned' => true,
 		      ),
-		      'label' => 
+		      'label' =>
 		      array (
 		        'diff_key' => 'bbac6bef1a874e62afda12a1aa778f3d',
 		        'type' => 'string',
@@ -402,7 +442,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		        'min' => 1,
 		        'max' => 60,
 		      ),
-		      'balance' => 
+		      'balance' =>
 		      array (
 		        'diff_key' => '871170dfc8df1d93e44ea59a15838fd6',
 		        'type' => 'decimal',
@@ -410,7 +450,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		        'unsigned' => true,
 		        'default' => 0,
 		      ),
-		      'currency_code' => 
+		      'currency_code' =>
 		      array (
 		        'diff_key' => 'abef8b546f6ba90bcc3142ad5322a69a',
 		        'type' => 'ref:currencies.code',
@@ -418,16 +458,16 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		        'min' => 1,
 		        'max' => 30,
 		      ),
-		      'data' => 
+		      'data' =>
 		      array (
 		        'diff_key' => '445538a0da046d517d00ceb84dab1128',
 		        'type' => 'map',
 		        'prefix' => 'account',
-		        'default' => 
+		        'default' =>
 		        array (
 		        ),
 		      ),
-		      'created_at' => 
+		      'created_at' =>
 		      array (
 		        'diff_key' => '441033768f6dea44814e7f58680f9de5',
 		        'type' => 'date',
@@ -435,7 +475,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		        'auto' => true,
 		        'format' => 'timestamp',
 		      ),
-		      'updated_at' => 
+		      'updated_at' =>
 		      array (
 		        'diff_key' => 'f0d8e7c4d25631225680fc05cf08ff83',
 		        'type' => 'date',
@@ -443,7 +483,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		        'format' => 'timestamp',
 		        'nullable' => true,
 		      ),
-		      'valid' => 
+		      'valid' =>
 		      array (
 		        'diff_key' => '6789f0fe54e0db688b2345c256bf516c',
 		        'type' => 'bool',
@@ -452,41 +492,41 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		        'default' => 1,
 		      ),
 		    ),
-		    'constraints' => 
+		    'constraints' =>
 		    array (
-		      0 => 
+		      0 =>
 		      array (
 		        'type' => 'primary_key',
-		        'columns' => 
+		        'columns' =>
 		        array (
 		          0 => 'id',
 		        ),
 		      ),
-		      1 => 
+		      1 =>
 		      array (
 		        'type' => 'unique_key',
-		        'columns' => 
+		        'columns' =>
 		        array (
 		          0 => 'client_id',
 		          1 => 'currency_code',
 		        ),
 		      ),
-		      2 => 
+		      2 =>
 		      array (
 		        'type' => 'foreign_key',
 		        'reference' => 'clients',
-		        'columns' => 
+		        'columns' =>
 		        array (
 		          'client_id' => 'id',
 		        ),
 		        'update' => 'none',
 		        'delete' => 'none',
 		      ),
-		      3 => 
+		      3 =>
 		      array (
 		        'type' => 'foreign_key',
 		        'reference' => 'currencies',
-		        'columns' => 
+		        'columns' =>
 		        array (
 		          'currency_code' => 'code',
 		        ),
@@ -494,29 +534,29 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		        'delete' => 'none',
 		      ),
 		    ),
-		    'relations' => 
+		    'relations' =>
 		    array (
-		      'client' => 
+		      'client' =>
 		      array (
 		        'type' => 'many-to-one',
 		        'target' => 'clients',
-		        'link' => 
+		        'link' =>
 		        array (
 		          'type' => 'columns',
 		        ),
 		      ),
 		    ),
 		  ),
-		  'currencies' => 
+		  'currencies' =>
 		  array (
 		    'diff_key' => '01a0afa5ef2680f4b131e777823fd2e5',
 		    'singular_name' => 'currency',
 		    'plural_name' => 'currencies',
-		    'meta' => 
+		    'meta' =>
 		    array (
-		      'api' => 
+		      'api' =>
 		      array (
-		        'doc' => 
+		        'doc' =>
 		        array (
 		          'singular_name' => 'Currency',
 		          'plural_name' => 'Currencies',
@@ -528,9 +568,9 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		    'namespace' => 'Test',
 		    'prefix' => 'gObL',
 		    'column_prefix' => 'currency',
-		    'columns' => 
+		    'columns' =>
 		    array (
-		      'code' => 
+		      'code' =>
 		      array (
 		        'diff_key' => '631ee781dbf7808983f848e41bed0caf',
 		        'type' => 'string',
@@ -538,7 +578,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		        'min' => 1,
 		        'max' => 30,
 		      ),
-		      'name' => 
+		      'name' =>
 		      array (
 		        'diff_key' => 'b7bba2cd374dd74750d88807d93d3d39',
 		        'type' => 'string',
@@ -546,7 +586,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		        'min' => 1,
 		        'max' => 60,
 		      ),
-		      'symbol' => 
+		      'symbol' =>
 		      array (
 		        'diff_key' => '90a33b66db88118579e365cc04f78c49',
 		        'type' => 'string',
@@ -554,16 +594,16 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		        'min' => 1,
 		        'max' => 6,
 		      ),
-		      'data' => 
+		      'data' =>
 		      array (
 		        'diff_key' => '4a8dd829c11043ddc916703713ca15c7',
 		        'type' => 'map',
 		        'prefix' => 'currency',
-		        'default' => 
+		        'default' =>
 		        array (
 		        ),
 		      ),
-		      'created_at' => 
+		      'created_at' =>
 		      array (
 		        'diff_key' => '78506f1b3050aaef226f4d80bfc05827',
 		        'type' => 'date',
@@ -571,7 +611,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		        'auto' => true,
 		        'format' => 'timestamp',
 		      ),
-		      'updated_at' => 
+		      'updated_at' =>
 		      array (
 		        'diff_key' => '50d227dd537920df0d6b6c152fd0761c',
 		        'type' => 'date',
@@ -579,7 +619,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		        'format' => 'timestamp',
 		        'nullable' => true,
 		      ),
-		      'valid' => 
+		      'valid' =>
 		      array (
 		        'diff_key' => 'f109d5a3e587224baf23dbc7a17beff4',
 		        'type' => 'bool',
@@ -588,19 +628,19 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		        'default' => 1,
 		      ),
 		    ),
-		    'constraints' => 
+		    'constraints' =>
 		    array (
-		      0 => 
+		      0 =>
 		      array (
 		        'type' => 'unique_key',
-		        'columns' => 
+		        'columns' =>
 		        array (
 		          0 => 'code',
 		        ),
 		      ),
 		    ),
 		  ),
-		  'orders' => 
+		  'orders' =>
 		  array (
 		    'diff_key' => '15c13f44bc885822ef54fc5e5c5c472f',
 		    'singular_name' => 'order',
@@ -608,9 +648,9 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		    'namespace' => 'Test',
 		    'prefix' => 'gObL',
 		    'column_prefix' => 'order',
-		    'columns' => 
+		    'columns' =>
 		    array (
-		      'id' => 
+		      'id' =>
 		      array (
 		        'diff_key' => 'ccc833d6add056b7824285d9ccc07f3a',
 		        'type' => 'int',
@@ -618,16 +658,16 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		        'unsigned' => true,
 		        'auto_increment' => true,
 		      ),
-		      'data' => 
+		      'data' =>
 		      array (
 		        'diff_key' => 'c2caeedc10f06f5ccdcecb75b45adcfe',
 		        'type' => 'map',
 		        'prefix' => 'order',
-		        'default' => 
+		        'default' =>
 		        array (
 		        ),
 		      ),
-		      'created_at' => 
+		      'created_at' =>
 		      array (
 		        'diff_key' => '0fc04af592fdbb725925fc986cc69cc7',
 		        'type' => 'date',
@@ -635,7 +675,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		        'auto' => true,
 		        'format' => 'timestamp',
 		      ),
-		      'updated_at' => 
+		      'updated_at' =>
 		      array (
 		        'diff_key' => '908620f8677e420330537455e5b8852d',
 		        'type' => 'date',
@@ -643,7 +683,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		        'format' => 'timestamp',
 		        'nullable' => true,
 		      ),
-		      'valid' => 
+		      'valid' =>
 		      array (
 		        'diff_key' => '52342c9d133ad7efa2a16ba81b5666cd',
 		        'type' => 'bool',
@@ -652,12 +692,12 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		        'default' => 1,
 		      ),
 		    ),
-		    'constraints' => 
+		    'constraints' =>
 		    array (
-		      0 => 
+		      0 =>
 		      array (
 		        'type' => 'primary_key',
-		        'columns' => 
+		        'columns' =>
 		        array (
 		          0 => 'id',
 		        ),

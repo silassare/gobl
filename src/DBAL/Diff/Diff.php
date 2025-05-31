@@ -74,16 +74,13 @@ class Diff
 	{
 		$up       = $this->getDiff();
 		$down     = (new self($this->db_to, $this->db_from))->getDiff();
-		$gen_from = $this->db_from->getGenerator();
-		$gen_to   = $this->db_to->getGenerator();
+		$up_sql   = $this->diffSql($this->db_to, $up);
+		$down_sql = $this->diffSql($this->db_from, $down);
 
 		$file  = new PHPFile();
 		$class = new PHPClass();
 
 		$class->implements(MigrationInterface::class);
-
-		$up_sql   = \implode(\PHP_EOL, \array_map(static fn (DiffAction $item) => $gen_to->buildDiffActionQuery($item), $up));
-		$down_sql = \implode(\PHP_EOL, \array_map(static fn (DiffAction $item) => $gen_from->buildDiffActionQuery($item), $down));
 
 		$m_get_version = $class->newMethod('getVersion')
 			->public()
@@ -478,6 +475,27 @@ DIFF_SQL;
 				$diff[] = $this->getConstraintAddedClassInstance($to_constraint);
 			}
 		}
+	}
+
+	/**
+	 * @param RDBMSInterface $db
+	 * @param DiffAction[]   $diff_actions
+	 *
+	 * @return string
+	 */
+	private function diffSql(RDBMSInterface $db, array $diff_actions): string
+	{
+		$gen   = $db->getGenerator();
+		$sql   = \implode(\PHP_EOL, \array_map(
+			static fn (DiffAction $item) => $gen->buildDiffActionQuery($item),
+			$diff_actions
+		));
+
+		if (!empty(\trim($sql))) {
+			$sql = $gen->wrapDatabaseDefinitionQuery($sql);
+		}
+
+		return $sql;
 	}
 
 	/**
