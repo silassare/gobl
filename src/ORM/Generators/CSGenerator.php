@@ -24,6 +24,7 @@ use Gobl\DBAL\Types\TypeEnum;
 use Gobl\Gobl;
 use Gobl\ORM\ORMTypeHint;
 use Gobl\ORM\Utils\ORMClassKind;
+use OLIUP\CG\PHPEnum;
 use PHPUtils\Str;
 
 /**
@@ -319,8 +320,7 @@ abstract class CSGenerator
 		if (!isset($this->enums_checked[$enum_class])) {
 			$this->enums_checked[$enum_class] = 1;
 
-			$parts = \explode($enum_class, '\\');
-			$name  = \end($parts);
+			$name = (new PHPEnum($enum_class))->getName();
 
 			if (isset($this->enums_infos[$name])) {
 				$name = Str::toClassName($table_name . '_' . $name);
