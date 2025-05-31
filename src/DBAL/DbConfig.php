@@ -109,8 +109,8 @@ final class DbConfig implements ArrayCapableInterface
 	{
 		$config = $this->toArray();
 
-		$config['db_host'] = $config['db_name'] =
-		$config['db_user'] = $config['db_pass'] = '***';
+		$config['db_host'] = $config['db_name']
+									            = $config['db_user'] = $config['db_pass'] = '***';
 
 		return $config;
 	}
