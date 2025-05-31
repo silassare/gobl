@@ -4,6 +4,4 @@
 -- Time: <%$.gobl_time%>
 --
 
-<%$.create_sql%>
-
-<%$.alter_sql%>
+<%$.database_sql_query%>
