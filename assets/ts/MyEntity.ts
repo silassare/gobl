@@ -17,9 +17,9 @@ export default class MyEntity extends MyEntityBase {
 		super(data, "MyEntity", MyEntity.PREFIX, MyEntity.COLUMNS);
 	}
 
-	public static fromCache(cacheKey: string): MyEntity | undefined {
-		const cache = getEntityCache("MyEntity");
-		return cache && (cache[cacheKey] as MyEntity);
+	public static fromCache(key: string): MyEntity | undefined {
+		const cache = getEntityCache<MyEntity>("MyEntity");
+		return cache && cache.get(key);
 	}
 
 	//====================================================
