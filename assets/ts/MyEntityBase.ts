@@ -36,8 +36,5 @@ export default abstract class MyEntityBase extends GoblEntity {
 //@<%loop($.columns : $column){%>
 //@	get <%$column.name%>(): <%$column.readTypeHintSaved%> { return this._data[<%$.class.entity%>Base.<%$column.const%>]; }
 //@	set <%$column.name%>(nVal: <%$column.writeTypeHint%>) { this._set(<%$.class.entity%>Base.<%$column.const%>, nVal); }
-////@	public get<%$column.methodSuffix%>() { return this.<%$column.name%>; }
-////@	public set<%$column.methodSuffix%>(nVal: <%$column.writeTypeHint%>): this { this.<%$column.name%> = nVal; return this; }
 //@<%}%>
-
 }
