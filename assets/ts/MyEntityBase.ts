@@ -11,12 +11,11 @@
 import {GoblEntity} from 'gobl-utils-ts';
 
 export default abstract class MyEntityBase extends GoblEntity {
-	public static readonly PREFIX: string = '<%$.columns_prefix%>';
-	public static readonly COLUMNS: string[] = [
-//@	<%loop($.columns : $column){%>	'<%$column.fullName%>',
-//@		<%}%>
-	];
-//@<%loop($.columns : $column){%>	public static readonly <%$column.const%>: string = '<%$column.fullName%>';
+	public static readonly PREFIX = '<%$.columns_prefix%>';
+	public static readonly COLUMNS = [
+//@	<%loop($.columns : $column){%>		'<%$column.fullName%>',
+//@<%}%>	] as const;
+//@<%loop($.columns : $column){%>	public static readonly <%$column.const%> = '<%$column.fullName%>';
 //@<%}%>
 //@<%if(@length($.pk_columns) == 1){%>
 //@	public singlePKValue():string {

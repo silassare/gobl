@@ -14,7 +14,7 @@ import MyEntityBase from "./base/MyEntityBase";
 
 export default class MyEntity extends MyEntityBase {
 	constructor(data?: GoblEntityData) {
-		super(data, "MyEntity", MyEntity.PREFIX, MyEntity.COLUMNS);
+		super(data, "MyEntity", MyEntity.PREFIX, [...MyEntity.COLUMNS]);
 	}
 
 	public static fromCache(key: string): MyEntity | undefined {
