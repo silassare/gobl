@@ -53,7 +53,11 @@ class TypeList extends Type
 	 */
 	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?array
 	{
-		return null === $value ? null : \json_decode($value, true, 512, \JSON_THROW_ON_ERROR);
+		if (null === $value || '' === $value) {
+			return null;
+		}
+
+		return \json_decode($value, true, 512, \JSON_THROW_ON_ERROR);
 	}
 
 	/**

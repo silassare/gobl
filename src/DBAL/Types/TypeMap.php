@@ -55,17 +55,17 @@ class TypeMap extends Type
 	 */
 	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?Map
 	{
-		if (null !== $value) {
-			$v = \json_decode($value, true, 512, \JSON_THROW_ON_ERROR);
-
-			if (!\is_array($v)) {
-				$v = [];
-			}
-
-			return new Map($v);
+		if (null === $value || '' === $value) {
+			return null;
 		}
 
-		return null;
+		$v = \json_decode($value, true, 512, \JSON_THROW_ON_ERROR);
+
+		if (!\is_array($v)) {
+			$v = [];
+		}
+
+		return new Map($v);
 	}
 
 	/**
