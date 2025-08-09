@@ -39,7 +39,7 @@ abstract class CSGenerator
 	protected bool $ignore_sensitive_columns = false;
 
 	/**
-	 * @var array<string, 1>
+	 * @var array<string, string>
 	 */
 	protected array $enums_checked = [];
 
@@ -360,8 +360,6 @@ abstract class CSGenerator
 	protected function declareEnum(string $enum_class, string $table_name): void
 	{
 		if (!isset($this->enums_checked[$enum_class])) {
-			$this->enums_checked[$enum_class] = 1;
-
 			$name = (new PHPEnum($enum_class))->getName();
 
 			if (isset($this->enums_infos[$name])) {
@@ -375,7 +373,8 @@ abstract class CSGenerator
 				$cases[$case->name] = \is_int($v) ? $v : '\'' . $v . '\'';
 			}
 
-			$this->enums_infos[$name] = $cases;
+			$this->enums_infos[$name]         = $cases;
+			$this->enums_checked[$enum_class] = $name;
 		}
 	}
 

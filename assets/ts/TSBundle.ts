@@ -19,15 +19,7 @@
 //@<%}%>
 // END: ENTITIES REGISTRATION
 
-// START: ENUMS EXPORT
-//@<%loop($.enums : $name : $cases){%>
-//@export enum <%$name%> {
-//@<%loop($cases : $case : $value){%>
-//@    <%$case%> = <%$value%>,
-//@<%}%>
-//@}
-//@<%}%>
-// END: ENUMS EXPORT
+//@export * from './enums.ts';
 
 //@export {
 //@<%loop($.entities : $name : $content){%><%$name%>,

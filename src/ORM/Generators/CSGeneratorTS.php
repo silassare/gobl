@@ -41,6 +41,7 @@ class CSGeneratorTS extends CSGenerator
 
 			Gobl::addTemplates([
 				'ts.bundle'            => ['path' => GOBL_ASSETS_DIR . '/ts/TSBundle.ts'],
+				'ts.enums'             => ['path' => GOBL_ASSETS_DIR . '/ts/TSEnums.ts'],
 				'ts.entity.base.class' => ['path' => GOBL_ASSETS_DIR . '/ts/MyEntityBase.ts'],
 				'ts.entity.class'      => ['path' => GOBL_ASSETS_DIR . '/ts/MyEntity.ts'],
 			]);
@@ -64,6 +65,7 @@ class CSGeneratorTS extends CSGenerator
 		$ts_entity_class_tpl      = Gobl::getTemplateCompiler('ts.entity.class');
 		$ts_entity_base_class_tpl = Gobl::getTemplateCompiler('ts.entity.base.class');
 		$ts_bundle_tpl            = Gobl::getTemplateCompiler('ts.bundle');
+		$ts_enums_tpl             = Gobl::getTemplateCompiler('ts.enums');
 		$bundle_inject            = [];
 		$time                     = Gobl::getGeneratedAtDate();
 
@@ -97,6 +99,7 @@ class CSGeneratorTS extends CSGenerator
 		$bundle_inject['gobl_version'] = GOBL_VERSION;
 		$bundle_inject['enums']        = $this->enums_infos;
 
+		$this->writeFile($path_gobl . $ds . 'enums.ts', $ts_enums_tpl->runGet($bundle_inject));
 		$this->writeFile($path_gobl . $ds . 'index.ts', $ts_bundle_tpl->runGet($bundle_inject));
 
 		return $this;
