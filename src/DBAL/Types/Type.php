@@ -390,8 +390,4 @@ abstract class Type implements TypeInterface
 
 		return \call_user_func_array([$this->base_type, $method], $args);
 	}
-
-	/**
-	 * {@inheritDoc}
-	 */
 }

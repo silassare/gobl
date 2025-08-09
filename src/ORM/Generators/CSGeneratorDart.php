@@ -76,7 +76,7 @@ class CSGeneratorDart extends CSGenerator
 		$time                        = Gobl::getGeneratedAtDate();
 
 		foreach ($tables as $table) {
-			if (!($this->ignore_private_table && $table->isPrivate())) {
+			if (!($this->ignore_private_tables && $table->isPrivate())) {
 				$inject                 = $this->describeTable($table);
 				$inject['gobl_header']  = $header;
 				$inject['gobl_time']    = $time;

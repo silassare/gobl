@@ -34,9 +34,9 @@ abstract class CSGenerator
 {
 	protected RDBMSInterface $db;
 
-	protected bool $ignore_private_table;
-
-	protected bool $ignore_private_column;
+	protected bool $ignore_private_tables    = true;
+	protected bool $ignore_private_columns   = true;
+	protected bool $ignore_sensitive_columns = false;
 
 	/**
 	 * @var array<string, 1>
@@ -52,17 +52,53 @@ abstract class CSGenerator
 	 * CSGenerator constructor.
 	 *
 	 * @param RDBMSInterface $db
-	 * @param bool           $ignore_private_table
-	 * @param bool           $ignore_private_column
 	 */
 	public function __construct(
 		RDBMSInterface $db,
-		bool $ignore_private_table = true,
-		bool $ignore_private_column = true
 	) {
-		$this->db                    = $db;
-		$this->ignore_private_table  = $ignore_private_table;
-		$this->ignore_private_column = $ignore_private_column;
+		$this->db = $db;
+	}
+
+	/**
+	 * Ignores private table.
+	 *
+	 * @param bool $ignore
+	 *
+	 * @return static
+	 */
+	public function ignorePrivateTables(bool $ignore = true): static
+	{
+		$this->ignore_private_tables = $ignore;
+
+		return $this;
+	}
+
+	/**
+	 * Ignores sensitive column.
+	 *
+	 * @param bool $ignore
+	 *
+	 * @return static
+	 */
+	public function ignoreSensitiveColumns(bool $ignore = true): static
+	{
+		$this->ignore_sensitive_columns = $ignore;
+
+		return $this;
+	}
+
+	/**
+	 * Ignores private column.
+	 *
+	 * @param bool $ignore
+	 *
+	 * @return static
+	 */
+	public function ignorePrivateColumns(bool $ignore = true): static
+	{
+		$this->ignore_private_columns = $ignore;
+
+		return $this;
 	}
 
 	/**
@@ -161,6 +197,7 @@ abstract class CSGenerator
 
 		return [
 			'private'           => $column->isPrivate(),
+			'sensitive'         => $column->isSensitive(),
 			'name'              => $column_name,
 			'fullName'          => $column->getFullName(),
 			'prefix'            => $column->getPrefix(),
@@ -249,9 +286,14 @@ abstract class CSGenerator
 		$list    = [];
 
 		foreach ($columns as $column) {
-			if (!($this->ignore_private_column && $column->isPrivate())) {
-				$list[$column->getFullName()] = $this->describeColumn($column);
+			if ($this->ignore_private_columns && $column->isPrivate()) {
+				continue;
 			}
+			if ($this->ignore_sensitive_columns && $column->isSensitive()) {
+				continue;
+			}
+
+			$list[$column->getFullName()] = $this->describeColumn($column);
 		}
 
 		return $list;

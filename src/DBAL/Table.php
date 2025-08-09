@@ -699,19 +699,26 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Gets columns full names list.
 	 *
-	 * @param bool $include_private if false private column will not be included.
-	 *                              Default is true.
+	 * @param bool $include_private   if false private column will not be included.
+	 *                                Default is true.
+	 * @param bool $include_sensitive if false sensitive column will not be included.
+	 *                                Default is true.
 	 *
 	 * @return array
 	 */
-	public function getColumnsFullNameList(bool $include_private = true): array
+	public function getColumnsFullNameList(bool $include_private = true, bool $include_sensitive = true): array
 	{
 		$names = [];
 
 		foreach ($this->columns as $column) {
-			if ($include_private || !$column->isPrivate()) {
-				$names[] = $column->getFullName();
+			if (!$include_sensitive && $column->isSensitive()) {
+				continue;
 			}
+			if (!$include_private && $column->isPrivate()) {
+				continue;
+			}
+
+			$names[] = $column->getFullName();
 		}
 
 		return $names;
@@ -758,40 +765,79 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Gets columns name list.
 	 *
-	 * @param bool $include_private if false private column will not be included.
-	 *                              Default is true.
+	 * @param bool $include_private   if false private column will not be included.
+	 *                                Default is true.
+	 * @param bool $include_sensitive if false sensitive column will not be included.
+	 *                                Default is true.
 	 *
 	 * @return array
 	 */
-	public function getColumnsNameList(bool $include_private = true): array
+	public function getColumnsNameList(bool $include_private = true, bool $include_sensitive = true): array
 	{
 		$names = [];
 
 		foreach ($this->columns as $column) {
-			if ($include_private || !$column->isPrivate()) {
-				$names[] = $column->getName();
+			if (!$include_private && $column->isPrivate()) {
+				continue;
 			}
+			if (!$include_sensitive && $column->isSensitive()) {
+				continue;
+			}
+			$names[] = $column->getName();
 		}
 
 		return $names;
 	}
 
 	/**
-	 * Gets privates columns.
+	 * Gets columns.
+	 *
+	 * @param bool $include_private   if false private column will not be included.
+	 *                                Default is true.
+	 * @param bool $include_sensitive if false sensitive column will not be included.
+	 *                                Default is true.
 	 *
 	 * @return Column[]
 	 */
-	public function getPrivatesColumns(): array
+	public function getColumns(bool $include_private = true, bool $include_sensitive = true): array
 	{
-		$list = [];
+		if (false === $include_private || false === $include_sensitive) {
+			$results = [];
 
-		foreach ($this->columns as $name => $column) {
-			if ($column->isPrivate()) {
-				$list[$name] = $column;
+			foreach ($this->columns as $name => $column) {
+				if (!$include_private && $column->isPrivate()) {
+					continue;
+				}
+				if (!$include_sensitive && $column->isSensitive()) {
+					continue;
+				}
+				$results[$name] = $column;
 			}
+
+			return $results;
 		}
 
-		return $list;
+		return $this->columns;
+	}
+
+	/**
+	 * Gets private columns.
+	 *
+	 * @return Column[]
+	 */
+	public function getPrivateColumns(): array
+	{
+		return \array_filter($this->columns, static fn ($column) => $column->isPrivate());
+	}
+
+	/**
+	 * Gets sensitive columns.
+	 *
+	 * @return Column[]
+	 */
+	public function getSensitiveColumns(): array
+	{
+		return \array_filter($this->columns, static fn ($column) => $column->isSensitive());
 	}
 
 	/**
@@ -1412,31 +1458,6 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 		}
 
 		return false;
-	}
-
-	/**
-	 * Gets columns.
-	 *
-	 * @param bool $include_private if false private column will not be included.
-	 *                              Default is true.
-	 *
-	 * @return Column[]
-	 */
-	public function getColumns(bool $include_private = true): array
-	{
-		if (false === $include_private) {
-			$columns = [];
-
-			foreach ($this->columns as $name => $column) {
-				if (!$column->isPrivate()) {
-					$columns[$name] = $column;
-				}
-			}
-
-			return $columns;
-		}
-
-		return $this->columns;
 	}
 
 	/**

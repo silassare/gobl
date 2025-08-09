@@ -366,9 +366,9 @@ abstract class Db implements RDBMSInterface
 									$table_name,
 									$schema
 								);
-								$col_options              = TypeUtils::mergeOptions($ref_options, $col_options);
-								$col_options['type']      = $ref_options['type'];
-								$col_options['reference'] = $col_reference;
+								$col_options                      = TypeUtils::mergeOptions($ref_options, $col_options);
+								$col_options['type']              = $ref_options['type'];
+								$col_options['_column_reference'] = $col_reference;
 							}
 						} elseif ($type instanceof TypeInterface) {
 							$col_options         = TypeUtils::mergeOptions($type->toArray(), $col_options);
@@ -394,15 +394,20 @@ abstract class Db implements RDBMSInterface
 								$col->setPrivate((bool) $col_options['private']);
 							}
 
+							if (isset($col_options['sensitive'])) {
+								$col->setSensitive((bool) $col_options['sensitive'], $col_options['sensitive_redacted_value'] ?? null);
+							}
+
 							if (isset($col_options['prefix']) && $col_options['prefix'] !== $table_col_prefix) {
 								$col->setPrefix((string) $col_options['prefix']);
 							}
+
 							if (isset($col_options['meta']) && (\is_array($col_options['meta']) || $col_options['meta'] instanceof Map)) {
 								$col->setMeta($col_options['meta']);
 							}
 
-							if (isset($col_options['reference'])) {
-								$col->setReference($col_options['reference']);
+							if (isset($col_options['_column_reference'])) {
+								$col->setReference($col_options['_column_reference']);
 							}
 						} catch (Throwable $t) {
 							throw new DBALException(

@@ -26,7 +26,8 @@ class FiltersTableScope implements FiltersScopeInterface
 	/** @var string */
 	protected string $table_alias;
 
-	protected bool $allow_private_column_in_filters = false;
+	protected bool $allow_private_column_in_filters   = false;
+	protected bool $allow_sensitive_column_in_filters = false;
 
 	/**
 	 * FiltersTableScope constructor.
@@ -49,12 +50,20 @@ class FiltersTableScope implements FiltersScopeInterface
 		// left operand should be a column
 		$column = $this->table->getColumnOrFail($filter->getLeftOperand());
 
+		if (!$this->allow_sensitive_column_in_filters && $column->isSensitive()) {
+			throw new DBALRuntimeException('Field not allowed in filters.', [
+				'field' => $filter->getLeftOperand(),
+				'_why'  => 'Column is sensitive.',
+			]);
+		}
 		if (!$this->allow_private_column_in_filters && $column->isPrivate()) {
-			throw new DBALRuntimeException('Private column not allowed in filters.');
+			throw new DBALRuntimeException('Field not allowed in filters.', [
+				'field' => $filter->getLeftOperand(),
+				'_why'  => 'Column is private.',
+			]);
 		}
 
-		$column->getType()
-			->assertFilterAllowed($filter);
+		$column->getType()->assertFilterAllowed($filter);
 	}
 
 	/**
@@ -87,6 +96,20 @@ class FiltersTableScope implements FiltersScopeInterface
 	public function allowPrivateColumnInFilters(bool $allow = true): static
 	{
 		$this->allow_private_column_in_filters = $allow;
+
+		return $this;
+	}
+
+	/**
+	 * Enable or disable filtering on sensitive columns.
+	 *
+	 * @param bool $allow
+	 *
+	 * @return $this
+	 */
+	public function allowSensitiveColumnInFilters(bool $allow = true): static
+	{
+		$this->allow_sensitive_column_in_filters = $allow;
 
 		return $this;
 	}

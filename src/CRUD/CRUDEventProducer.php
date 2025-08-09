@@ -30,6 +30,7 @@ use Gobl\CRUD\Events\BeforePKColumnWrite;
 use Gobl\CRUD\Events\BeforePrivateColumnWrite;
 use Gobl\CRUD\Events\BeforeRead;
 use Gobl\CRUD\Events\BeforeReadAll;
+use Gobl\CRUD\Events\BeforeSensitiveColumnWrite;
 use Gobl\CRUD\Events\BeforeUpdate;
 use Gobl\CRUD\Events\BeforeUpdateAll;
 use Gobl\CRUD\Events\BeforeUpdateAllFlush;
@@ -251,6 +252,16 @@ class CRUDEventProducer
 	public function onBeforePrivateColumnWrite(callable $listener): void
 	{
 		$this->addListener(BeforePrivateColumnWrite::class, $listener);
+	}
+
+	/**
+	 * Called to allow write of a column that is sensitive.
+	 *
+	 * @param callable(BeforeSensitiveColumnWrite):bool $listener
+	 */
+	public function onBeforeSensitiveColumnWrite(callable $listener): void
+	{
+		$this->addListener(BeforeSensitiveColumnWrite::class, $listener);
 	}
 
 	/**

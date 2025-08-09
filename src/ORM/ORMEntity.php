@@ -315,10 +315,14 @@ abstract class ORMEntity implements ArrayCapableInterface
 		$row = $this->toRow();
 
 		if ($hide_sensitive_data) {
-			$privates_columns = $this->_oeb_table->getPrivatesColumns();
+			$columns = $this->_oeb_table->getColumns();
 
-			foreach ($privates_columns as $column) {
-				unset($row[$column->getFullName()]);
+			foreach ($columns as $column) {
+				if ($column->isPrivate()) {
+					unset($row[$column->getFullName()]);
+				} elseif ($column->isSensitive()) {
+					$row[$column->getFullName()] = $column->getSensitiveRedactedValue();
+				}
 			}
 		}
 

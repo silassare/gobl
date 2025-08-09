@@ -130,25 +130,35 @@ final class ColumnTest extends BaseTestCase
 		self::assertSame($table, $column->getTable());
 	}
 
-	public function testSetPrivate(): void
+	public function testPrivate(): void
 	{
 		$column = new Column('name');
 
+		self::assertFalse($column->isPrivate());
+
 		$column->setPrivate();
 		self::assertTrue($column->isPrivate());
+
 		$column->setPrivate(false);
 		self::assertFalse($column->isPrivate());
 	}
 
-	public function testIsPrivate(): void
+	public function testSensitive(): void
 	{
 		$column = new Column('name');
 
-		self::assertFalse($column->isPrivate());
+		self::assertFalse($column->isSensitive());
 
-		$column->setPrivate();
+		$column->setSensitive();
+		self::assertTrue($column->isSensitive());
 
-		self::assertTrue($column->isPrivate());
+		self::assertSame($column->getSensitiveRedactedValue(), null);
+
+		$column->setSensitive(true, '****');
+		self::assertSame($column->getSensitiveRedactedValue(), '****');
+
+		$column->setSensitive(false);
+		self::assertFalse($column->isSensitive());
 	}
 
 	public function testSetGetType(): void

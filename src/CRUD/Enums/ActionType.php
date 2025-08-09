@@ -18,16 +18,17 @@ namespace Gobl\CRUD\Enums;
  */
 enum ActionType: string
 {
-	case CREATE               = 'CREATE';
-	case UPDATE               = 'UPDATE';
-	case UPDATE_ALL           = 'UPDATE_ALL';
-	case DELETE               = 'DELETE';
-	case DELETE_ALL           = 'DELETE_ALL';
-	case READ                 = 'READ';
-	case READ_ALL             = 'READ_ALL';
-	case PK_COLUMN_WRITE      = 'PK_COLUMN_WRITE';
-	case PRIVATE_COLUMN_WRITE = 'PRIVATE_COLUMN_WRITE';
-	case COLUMN_UPDATE        = 'COLUMN_UPDATE';
+	case CREATE                 = 'CREATE';
+	case UPDATE                 = 'UPDATE';
+	case UPDATE_ALL             = 'UPDATE_ALL';
+	case DELETE                 = 'DELETE';
+	case DELETE_ALL             = 'DELETE_ALL';
+	case READ                   = 'READ';
+	case READ_ALL               = 'READ_ALL';
+	case PK_COLUMN_WRITE        = 'PK_COLUMN_WRITE';
+	case PRIVATE_COLUMN_WRITE   = 'PRIVATE_COLUMN_WRITE';
+	case SENSITIVE_COLUMN_WRITE = 'SENSITIVE_COLUMN_WRITE';
+	case COLUMN_UPDATE          = 'COLUMN_UPDATE';
 
 	/**
 	 * Gets default success message.
@@ -41,7 +42,7 @@ enum ActionType: string
 			self::UPDATE, self::UPDATE_ALL => 'UPDATED',
 			self::DELETE, self::DELETE_ALL => 'DELETED',
 			self::READ, self::READ_ALL => 'READ',
-			self::PK_COLUMN_WRITE, self::PRIVATE_COLUMN_WRITE, self::COLUMN_UPDATE => 'OK',
+			self::PK_COLUMN_WRITE, self::PRIVATE_COLUMN_WRITE, self::SENSITIVE_COLUMN_WRITE, self::COLUMN_UPDATE => 'OK',
 		};
 	}
 

@@ -70,6 +70,20 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	private bool $private = false;
 
 	/**
+	 * Column sensitive state.
+	 *
+	 * @var bool
+	 */
+	private bool $sensitive = false;
+
+	/**
+	 * Redacted value.
+	 *
+	 * @var mixed
+	 */
+	private mixed $sensitive_redacted_value = null;
+
+	/**
 	 * The column type instance.
 	 *
 	 * @var TypeInterface
@@ -392,6 +406,44 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	}
 
 	/**
+	 * Checks if the column is sensitive.
+	 *
+	 * @return bool
+	 */
+	public function isSensitive(): bool
+	{
+		return $this->sensitive;
+	}
+
+	/**
+	 * Sets this column as sensitive.
+	 *
+	 * @param bool  $sensitive      If true, the column is sensitive
+	 * @param mixed $redacted_value The value to use when the column is redacted
+	 *
+	 * @return $this
+	 */
+	public function setSensitive(bool $sensitive = true, mixed $redacted_value = null): self
+	{
+		$this->assertNotLocked();
+
+		$this->sensitive                = $sensitive;
+		$this->sensitive_redacted_value = $redacted_value;
+
+		return $this;
+	}
+
+	/**
+	 * Gets sensitive redacted value.
+	 *
+	 * @return mixed
+	 */
+	public function getSensitiveRedactedValue(): mixed
+	{
+		return $this->sensitive_redacted_value;
+	}
+
+	/**
 	 * Gets type object.
 	 *
 	 * @return TypeInterface
@@ -474,6 +526,11 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 
 		if ($this->private) {
 			$options['private'] = $this->private;
+		}
+
+		if ($this->sensitive) {
+			$options['sensitive']                = $this->sensitive;
+			$options['sensitive_redacted_value'] = $this->sensitive_redacted_value;
 		}
 
 		$options = \array_merge($options, $this->type->toArray());

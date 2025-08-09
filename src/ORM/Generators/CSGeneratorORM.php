@@ -53,15 +53,11 @@ class CSGeneratorORM extends CSGenerator
 	 * CSGeneratorORM constructor.
 	 *
 	 * @param RDBMSInterface $db
-	 * @param bool           $ignore_private_table
-	 * @param bool           $ignore_private_column
 	 */
 	public function __construct(
-		RDBMSInterface $db,
-		bool $ignore_private_table = true,
-		bool $ignore_private_column = true
+		RDBMSInterface $db
 	) {
-		parent::__construct($db, $ignore_private_table, $ignore_private_column);
+		parent::__construct($db);
 
 		$version                   = GOBL_VERSION;
 		$date                      = Gobl::getGeneratedAtDate();

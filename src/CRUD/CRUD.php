@@ -31,6 +31,7 @@ use Gobl\CRUD\Events\BeforePKColumnWrite;
 use Gobl\CRUD\Events\BeforePrivateColumnWrite;
 use Gobl\CRUD\Events\BeforeRead;
 use Gobl\CRUD\Events\BeforeReadAll;
+use Gobl\CRUD\Events\BeforeSensitiveColumnWrite;
 use Gobl\CRUD\Events\BeforeUpdate;
 use Gobl\CRUD\Events\BeforeUpdateAll;
 use Gobl\CRUD\Events\BeforeUpdateAllFlush;
@@ -301,7 +302,7 @@ class CRUD
 			if ($this->table->hasColumn($field)) {
 				$column = $this->table->getColumnOrFail($field);
 
-				$this->checkForPrivateColumnWrite($column, $form, $field);
+				$this->checkForColumnWrite($column, $form, $field);
 
 				if (null !== $value) {
 					$type = $column->getType();
@@ -321,7 +322,7 @@ class CRUD
 	}
 
 	/**
-	 * Checks if the given column is private and can be written.
+	 * Checks if the given column can be written.
 	 *
 	 * @param Column $column
 	 * @param array  $form
@@ -329,7 +330,7 @@ class CRUD
 	 *
 	 * @throws CRUDException
 	 */
-	private function checkForPrivateColumnWrite(Column $column, array $form, string $field): void
+	private function checkForColumnWrite(Column $column, array $form, string $field): void
 	{
 		if ($column->isPrivate()) {
 			$action = new BeforePrivateColumnWrite($this->table, $column, $form);
@@ -338,6 +339,19 @@ class CRUD
 				$debug            = $this->debug;
 				$debug['field']   = $field;
 				$debug['_why']    = 'column_is_private';
+				$debug['_column'] = $column->getFullName();
+
+				throw new CRUDException($action, $debug);
+			}
+		}
+
+		if ($column->isSensitive()) {
+			$action = new BeforeSensitiveColumnWrite($this->table, $column, $form);
+
+			if (!$this->authorise($action, false)) {
+				$debug            = $this->debug;
+				$debug['field']   = $field;
+				$debug['_why']    = 'column_is_sensitive';
 				$debug['_column'] = $column->getFullName();
 
 				throw new CRUDException($action, $debug);
@@ -385,7 +399,7 @@ class CRUD
 			if ($this->table->hasColumn($field)) {
 				$column = $this->table->getColumnOrFail($field);
 
-				$this->checkForPrivateColumnWrite($column, $form, $field);
+				$this->checkForColumnWrite($column, $form, $field);
 				$this->checkForPKColumnWrite($column, $form, $field);
 
 				$column_update_action = new BeforeColumnUpdate($this->table, $column, $base_action->getForm());

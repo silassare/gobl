@@ -30,6 +30,7 @@ use Gobl\CRUD\Events\BeforePKColumnWrite;
 use Gobl\CRUD\Events\BeforePrivateColumnWrite;
 use Gobl\CRUD\Events\BeforeRead;
 use Gobl\CRUD\Events\BeforeReadAll;
+use Gobl\CRUD\Events\BeforeSensitiveColumnWrite;
 use Gobl\CRUD\Events\BeforeUpdate;
 use Gobl\CRUD\Events\BeforeUpdateAll;
 use Gobl\CRUD\Events\BeforeUpdateAllFlush;
@@ -182,6 +183,15 @@ interface CRUDEventListenerInterface
 	 * @return bool true to allow or false to reject
 	 */
 	public function onBeforePrivateColumnWrite(BeforePrivateColumnWrite $action): bool;
+
+	/**
+	 * Called to allow write of a column that is sensitive.
+	 *
+	 * @param BeforeSensitiveColumnWrite $action
+	 *
+	 * @return bool true to allow or false to reject
+	 */
+	public function onBeforeSensitiveColumnWrite(BeforeSensitiveColumnWrite $action): bool;
 
 	/**
 	 * Called when we read an entity.
