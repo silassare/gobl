@@ -302,7 +302,7 @@ class CRUD
 			if ($this->table->hasColumn($field)) {
 				$column = $this->table->getColumnOrFail($field);
 
-				$this->checkForColumnWrite($column, $form, $field);
+				$this->checkForColumnWrite($column, $form, $field, false);
 
 				if (null !== $value) {
 					$type = $column->getType();
@@ -315,7 +315,7 @@ class CRUD
 						throw new CRUDException('GOBL_COLUMN_WRITE_REFUSED', $debug);
 					}
 
-					$this->checkForPKColumnWrite($column, $form, $field);
+					$this->checkForPKColumnWrite($column, $form, $field, false);
 				}
 			}
 		}
@@ -324,16 +324,12 @@ class CRUD
 	/**
 	 * Checks if the given column can be written.
 	 *
-	 * @param Column $column
-	 * @param array  $form
-	 * @param string $field
-	 *
 	 * @throws CRUDException
 	 */
-	private function checkForColumnWrite(Column $column, array $form, string $field): void
+	private function checkForColumnWrite(Column $column, array $form, string $field, bool $updating): void
 	{
 		if ($column->isPrivate()) {
-			$action = new BeforePrivateColumnWrite($this->table, $column, $form);
+			$action = new BeforePrivateColumnWrite($this->table, $column, $form, $updating);
 
 			if (!$this->authorise($action, false)) {
 				$debug            = $this->debug;
@@ -346,7 +342,7 @@ class CRUD
 		}
 
 		if ($column->isSensitive()) {
-			$action = new BeforeSensitiveColumnWrite($this->table, $column, $form);
+			$action = new BeforeSensitiveColumnWrite($this->table, $column, $form, $updating);
 
 			if (!$this->authorise($action, false)) {
 				$debug            = $this->debug;
@@ -362,16 +358,12 @@ class CRUD
 	/**
 	 * Checks if the given column is part of the primary key and can be written.
 	 *
-	 * @param Column $column
-	 * @param array  $form
-	 * @param string $field
-	 *
 	 * @throws CRUDException
 	 */
-	private function checkForPKColumnWrite(Column $column, array $form, string $field): void
+	private function checkForPKColumnWrite(Column $column, array $form, string $field, bool $updating): void
 	{
 		if ($this->table->isPartOfPrimaryKey($column)) {
-			$action = new BeforePKColumnWrite($this->table, $column, $form);
+			$action = new BeforePKColumnWrite($this->table, $column, $form, $updating);
 
 			if (!$this->authorise($action, false)) {
 				$debug            = $this->debug;
@@ -399,8 +391,8 @@ class CRUD
 			if ($this->table->hasColumn($field)) {
 				$column = $this->table->getColumnOrFail($field);
 
-				$this->checkForColumnWrite($column, $form, $field);
-				$this->checkForPKColumnWrite($column, $form, $field);
+				$this->checkForColumnWrite($column, $form, $field, true);
+				$this->checkForPKColumnWrite($column, $form, $field, true);
 
 				$column_update_action = new BeforeColumnUpdate($this->table, $column, $base_action->getForm());
 

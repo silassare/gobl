@@ -25,12 +25,8 @@ class BeforePrivateColumnWrite extends CRUDAction
 {
 	/**
 	 * BeforePrivateColumnWrite constructor.
-	 *
-	 * @param Table  $table
-	 * @param Column $column
-	 * @param array  $form
 	 */
-	public function __construct(Table $table, protected Column $column, array $form)
+	public function __construct(Table $table, protected Column $column, array $form, protected readonly bool $updating)
 	{
 		parent::__construct(ActionType::PRIVATE_COLUMN_WRITE, $table, $form);
 	}
@@ -43,5 +39,13 @@ class BeforePrivateColumnWrite extends CRUDAction
 	public function getColumn(): Column
 	{
 		return $this->column;
+	}
+
+	/**
+	 * Returns true if this action results from an update action.
+	 */
+	public function isUpdating(): bool
+	{
+		return $this->updating;
 	}
 }
