@@ -290,7 +290,11 @@ class TypeDate extends Type
 			$default = $this->now();
 		}
 
-		return $default;
+		if ($default !== null) {
+			return (string) $default;
+		}
+
+		return null;
 	}
 
 	/**
