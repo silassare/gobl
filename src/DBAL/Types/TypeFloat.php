@@ -57,21 +57,6 @@ class TypeFloat extends Type implements BaseTypeInterface
 	}
 
 	/**
-	 * Sets as unsigned.
-	 *
-	 * @param bool        $unsigned
-	 * @param null|string $message
-	 *
-	 * @return $this
-	 */
-	public function unsigned(bool $unsigned = true, ?string $message = null): static
-	{
-		!empty($message) && $this->msg('invalid_unsigned_float_type', $message);
-
-		return $this->setOption('unsigned', $unsigned);
-	}
-
-	/**
 	 * Sets min value.
 	 *
 	 * @param float       $min
@@ -86,6 +71,7 @@ class TypeFloat extends Type implements BaseTypeInterface
 		if (0.0 > $min && $this->isUnsigned()) {
 			throw new TypesException(\sprintf('"%s" is not a valid unsigned float.', $min));
 		}
+
 		$max = $this->getOption('max');
 
 		if (null !== $max && $min > $max) {
@@ -95,16 +81,6 @@ class TypeFloat extends Type implements BaseTypeInterface
 		!empty($message) && $this->msg('float_value_must_be_gt_or_equal_to_min', $message);
 
 		return $this->setOption('min', $min);
-	}
-
-	/**
-	 * Checks if this is unsigned.
-	 *
-	 * @return bool
-	 */
-	public function isUnsigned(): bool
-	{
-		return (bool) $this->getOption('unsigned', false);
 	}
 
 	/**
@@ -132,6 +108,31 @@ class TypeFloat extends Type implements BaseTypeInterface
 		!empty($message) && $this->msg('float_value_must_be_lt_or_equal_to_max', $message);
 
 		return $this->setOption('max', $max);
+	}
+
+	/**
+	 * Sets as unsigned.
+	 *
+	 * @param bool        $unsigned
+	 * @param null|string $message
+	 *
+	 * @return $this
+	 */
+	public function unsigned(bool $unsigned = true, ?string $message = null): static
+	{
+		!empty($message) && $this->msg('invalid_unsigned_float_type', $message);
+
+		return $this->setOption('unsigned', $unsigned);
+	}
+
+	/**
+	 * Checks if this is unsigned.
+	 *
+	 * @return bool
+	 */
+	public function isUnsigned(): bool
+	{
+		return (bool) $this->getOption('unsigned', false);
 	}
 
 	/**

@@ -49,32 +49,17 @@ class TypeBigint extends Type implements BaseTypeInterface
 			$this->unsigned();
 		}
 
-		if (isset($min)) {
+		if (null !== $min) {
 			$this->min($min);
 		}
 
-		if (isset($max)) {
+		if (null !== $max) {
 			$this->max($max);
 		}
 
 		!empty($message) && $this->msg('invalid_bigint_type', $message);
 
 		parent::__construct($this);
-	}
-
-	/**
-	 * Sets as unsigned.
-	 *
-	 * @param bool        $unsigned
-	 * @param null|string $message
-	 *
-	 * @return $this
-	 */
-	public function unsigned(bool $unsigned = true, ?string $message = null): static
-	{
-		!empty($message) && $this->msg('invalid_unsigned_bigint_type', $message);
-
-		return $this->setOption('unsigned', $unsigned);
 	}
 
 	/**
@@ -103,16 +88,6 @@ class TypeBigint extends Type implements BaseTypeInterface
 	}
 
 	/**
-	 * Checks if this is unsigned.
-	 *
-	 * @return bool
-	 */
-	public function isUnsigned(): bool
-	{
-		return (bool) $this->getOption('unsigned', false);
-	}
-
-	/**
 	 * Sets max value.
 	 *
 	 * @param int|string  $max
@@ -126,13 +101,40 @@ class TypeBigint extends Type implements BaseTypeInterface
 	{
 		self::assertValidBigint($max, $this->isUnsigned());
 
-		if (isset($this->min) && !self::isLt($this->min, $max, true)) {
-			throw new TypesException(\sprintf('min=%s and max=%s is not a valid condition.', $this->min, $max));
+		$min = $this->getOption('min');
+
+		if (null !== $min && !self::isLt($min, $max, true)) {
+			throw new TypesException(\sprintf('min=%s and max=%s is not a valid condition.', $min, $max));
 		}
 
 		!empty($message) && $this->msg('bigint_value_must_be_lt_or_equal_to_max', $message);
 
 		return $this->setOption('max', $max);
+	}
+
+	/**
+	 * Sets as unsigned.
+	 *
+	 * @param bool        $unsigned
+	 * @param null|string $message
+	 *
+	 * @return $this
+	 */
+	public function unsigned(bool $unsigned = true, ?string $message = null): static
+	{
+		!empty($message) && $this->msg('invalid_unsigned_bigint_type', $message);
+
+		return $this->setOption('unsigned', $unsigned);
+	}
+
+	/**
+	 * Checks if this is unsigned.
+	 *
+	 * @return bool
+	 */
+	public function isUnsigned(): bool
+	{
+		return (bool) $this->getOption('unsigned', false);
 	}
 
 	/**
