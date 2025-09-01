@@ -66,6 +66,7 @@ enum DiffActionType: string
 			self::FOREIGN_KEY_CONSTRAINT_DELETED => 10,
 			self::PRIMARY_KEY_CONSTRAINT_DELETED => 11,
 			self::UNIQUE_KEY_CONSTRAINT_DELETED  => 12,
+			self::TABLE_RENAMED                  => 13,
 
 			self::TABLE_DELETED                  => 20,
 			self::COLUMN_DELETED                 => 21,
@@ -80,8 +81,7 @@ enum DiffActionType: string
 			self::COLUMN_TYPE_CHANGED            => 51,
 			self::COLUMN_ADDED                   => 52,
 
-			self::TABLE_RENAMED                  => 60,
-			self::TABLE_ADDED                    => 61,
+			self::TABLE_ADDED                    => 60,
 
 			self::ROW_DELETED                    => 70,
 			self::ROW_UPDATED                    => 71,
