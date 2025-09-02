@@ -347,7 +347,6 @@ class Gobl
 			'MyController'           => '<%$.class.controller%>',
 			'my_table'               => '<%$.table.name%>',
 			'my_entity'              => '<%$.table.singular%>',
-			'my_id'                  => '<%$.pk_columns[0].fullName%>',
 			'\'my_pk_column_const\'' => '<%$.class.entity%>::<%$.pk_columns[0].const%>',
 		] + $replaces;
 
