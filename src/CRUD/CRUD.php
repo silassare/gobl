@@ -91,7 +91,7 @@ class CRUD
 	{
 		$action = new BeforeCreate($this->table, $form);
 
-		if (!$this->authorise($action, true)) {
+		if (!$this->authorize($action, true)) {
 			throw new CRUDException($action, $this->debug);
 		}
 
@@ -115,7 +115,7 @@ class CRUD
 	{
 		$action = new BeforeRead($this->table, $filters);
 
-		if (!$this->authorise($action, true)) {
+		if (!$this->authorize($action, true)) {
 			throw new CRUDException($action, $this->debug);
 		}
 
@@ -137,7 +137,7 @@ class CRUD
 	{
 		$action = new BeforeReadAll($this->table, $filters);
 
-		if (!$this->authorise($action, true)) {
+		if (!$this->authorize($action, true)) {
 			throw new CRUDException($action, $this->debug);
 		}
 
@@ -160,7 +160,7 @@ class CRUD
 	{
 		$action = new BeforeUpdate($this->table, $filters, $form);
 
-		if (!$this->authorise($action, true)) {
+		if (!$this->authorize($action, true)) {
 			throw new CRUDException($action, $this->debug);
 		}
 
@@ -185,7 +185,7 @@ class CRUD
 	{
 		$action = new BeforeUpdateAll($this->table, $filters, $form);
 
-		if (!$this->authorise($action, true)) {
+		if (!$this->authorize($action, true)) {
 			throw new CRUDException($action, $this->debug);
 		}
 
@@ -209,7 +209,7 @@ class CRUD
 	{
 		$action = new BeforeDelete($this->table, $filters);
 
-		if (!$this->authorise($action, true)) {
+		if (!$this->authorize($action, true)) {
 			throw new CRUDException($action, $this->debug);
 		}
 
@@ -231,7 +231,7 @@ class CRUD
 	{
 		$action = new BeforeDeleteAll($this->table, $filters);
 
-		if (!$this->authorise($action, false)) {
+		if (!$this->authorize($action, false)) {
 			throw new CRUDException($action, $this->debug);
 		}
 
@@ -265,14 +265,14 @@ class CRUD
 	}
 
 	/**
-	 * Dispatches the given action for authorisation.
+	 * Dispatches the given action for authorization.
 	 *
 	 * @param CRUDAction $action
 	 * @param bool       $default
 	 *
 	 * @return bool
 	 */
-	private function authorise(CRUDAction $action, bool $default): bool
+	private function authorize(CRUDAction $action, bool $default): bool
 	{
 		$allowed = $default;
 
@@ -331,7 +331,7 @@ class CRUD
 		if ($column->isPrivate()) {
 			$action = new BeforePrivateColumnWrite($this->table, $column, $form, $updating);
 
-			if (!$this->authorise($action, false)) {
+			if (!$this->authorize($action, false)) {
 				$debug            = $this->debug;
 				$debug['field']   = $field;
 				$debug['_why']    = 'column_is_private';
@@ -344,7 +344,7 @@ class CRUD
 		if ($column->isSensitive()) {
 			$action = new BeforeSensitiveColumnWrite($this->table, $column, $form, $updating);
 
-			if (!$this->authorise($action, false)) {
+			if (!$this->authorize($action, false)) {
 				$debug            = $this->debug;
 				$debug['field']   = $field;
 				$debug['_why']    = 'column_is_sensitive';
@@ -365,7 +365,7 @@ class CRUD
 		if ($this->table->isPartOfPrimaryKey($column)) {
 			$action = new BeforePKColumnWrite($this->table, $column, $form, $updating);
 
-			if (!$this->authorise($action, false)) {
+			if (!$this->authorize($action, false)) {
 				$debug            = $this->debug;
 				$debug['field']   = $field;
 				$debug['_why']    = 'column_is_part_of_pk';
@@ -396,7 +396,7 @@ class CRUD
 
 				$column_update_action = new BeforeColumnUpdate($this->table, $column, $base_action->getForm());
 
-				if (!$this->authorise($column_update_action, true)) {
+				if (!$this->authorize($column_update_action, true)) {
 					$debug            = $this->debug;
 					$debug['field']   = $field;
 					$debug['_why']    = 'column_update_rejected';
