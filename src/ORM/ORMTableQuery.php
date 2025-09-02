@@ -63,8 +63,8 @@ abstract class ORMTableQuery extends FiltersTableScope
 
 		parent::__construct($this->db->getTableOrFail($table_name));
 
-		$this->qb      = new QBSelect($this->db);
-		$this->filters = $this->qb->filters($this);
+		$this->qb      = $qb = new QBSelect($this->db);
+		$this->filters = $qb->filters($this);
 	}
 
 	/**
@@ -253,8 +253,8 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 */
 	public function reset(): static
 	{
-		$this->qb      = new QBSelect($this->db);
-		$this->filters = $this->qb->filters($this);
+		$this->qb      = $qb = new QBSelect($this->db);
+		$this->filters = $qb->filters($this);
 
 		return $this;
 	}
