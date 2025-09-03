@@ -1265,10 +1265,16 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Gets relations.
 	 *
+	 * @param bool $include_private if false private relations will not be included. Default is true.
+	 *
 	 * @return Relation[]
 	 */
-	public function getRelations(): array
+	public function getRelations(bool $include_private = true): array
 	{
+		if (false === $include_private) {
+			return \array_filter($this->relations, static fn ($relation) => !$relation->isPrivate());
+		}
+
 		return $this->relations;
 	}
 
@@ -1291,10 +1297,16 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Gets virtual relations.
 	 *
+	 * @param bool $include_private if false private virtual relations will not be included. Default is true.
+	 *
 	 * @return VirtualRelation[]
 	 */
-	public function getVirtualRelations(): array
+	public function getVirtualRelations(bool $include_private = true): array
 	{
+		if (false === $include_private) {
+			return \array_filter($this->virtual_relations, static fn ($relation) => !$relation->isPrivate());
+		}
+
 		return $this->virtual_relations;
 	}
 
