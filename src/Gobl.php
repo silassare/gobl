@@ -271,11 +271,11 @@ class Gobl
 			'is_new'   => 1,
 			'hydrate'  => 1,
 			// static helpers to get some instances
-			'table'    => 1,
-			'crud'     => 1,
-			'qb'       => 1,
-			'ctrl'     => 1,
-			'results'  => 1,
+			'table'   => 1,
+			'crud'    => 1,
+			'qb'      => 1,
+			'ctrl'    => 1,
+			'results' => 1,
 		];
 	}
 
@@ -325,6 +325,16 @@ class Gobl
 	public static function getGeneratedAtDate(): string
 	{
 		return \date(\DATE_ATOM);
+	}
+
+	/**
+	 * Gets the queries logger instance.
+	 *
+	 * @return QueriesLogger
+	 */
+	public static function ql(): QueriesLogger
+	{
+		return QueriesLogger::get();
 	}
 
 	/**

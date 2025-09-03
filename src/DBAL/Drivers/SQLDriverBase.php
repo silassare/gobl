@@ -20,6 +20,7 @@ use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Queries\QBUtils;
+use Gobl\Gobl;
 use PDOException;
 use PDOStatement;
 
@@ -68,6 +69,8 @@ abstract class SQLDriverBase extends Db
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * @throws DBALException
 	 */
 	public function beginTransaction(): bool
 	{
@@ -86,6 +89,8 @@ abstract class SQLDriverBase extends Db
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * @throws DBALException
 	 */
 	public function commit(): bool
 	{
@@ -106,6 +111,8 @@ abstract class SQLDriverBase extends Db
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * @throws DBALException
 	 */
 	public function rollBack(): bool
 	{
@@ -141,6 +148,8 @@ abstract class SQLDriverBase extends Db
 			throw new DBALException('Your query is empty.');
 		}
 
+		$ql = Gobl::ql()->start($sql, $params, $params_types);
+
 		if ($in_transaction) {
 			$this->beginTransaction();
 		}
@@ -160,6 +169,8 @@ abstract class SQLDriverBase extends Db
 
 			$stmt->execute();
 
+			$ql('executed');
+
 			if ($is_multi_queries) {
 				/* https://bugs.php.net/bug.php?id=61613 */
 				while (1) {
@@ -173,11 +184,15 @@ abstract class SQLDriverBase extends Db
 				$this->commit();
 			}
 
+			$ql('end');
+
 			return $stmt;
 		} catch (PDOException $e) {
 			if ($in_transaction && $auto_close_transaction) {
 				$this->rollBack();
 			}
+
+			$ql('end');
 
 			throw $e;
 		}
@@ -191,6 +206,7 @@ abstract class SQLDriverBase extends Db
 	public function executeMulti($sql): PDOStatement
 	{
 		// Mysql seems to auto commit if there is a DDL query (CREATE OR DROP Table)
+		// so we avoid running in a transaction
 		$in_transaction = MySQL::NAME !== $this->getType();
 
 		return $this->execute($sql, null, null, true, $in_transaction, $in_transaction);
