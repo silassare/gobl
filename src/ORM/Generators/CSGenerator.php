@@ -25,6 +25,7 @@ use Gobl\Gobl;
 use Gobl\ORM\ORMTypeHint;
 use Gobl\ORM\Utils\ORMClassKind;
 use OLIUP\CG\PHPEnum;
+use PHPUtils\Exceptions\RuntimeException;
 use PHPUtils\Str;
 
 /**
@@ -107,8 +108,6 @@ abstract class CSGenerator
 	 * @param Table $table
 	 *
 	 * @return array
-	 *
-	 * @throws TypesException
 	 */
 	public function describeTable(Table $table): array
 	{
@@ -125,8 +124,6 @@ abstract class CSGenerator
 	 * @param Table $table the table object
 	 *
 	 * @return array
-	 *
-	 * @throws TypesException
 	 */
 	public function getTableInject(Table $table): array
 	{
@@ -166,8 +163,6 @@ abstract class CSGenerator
 	 * @param Column $column
 	 *
 	 * @return array
-	 *
-	 * @throws TypesException
 	 */
 	public function describeColumn(Column $column): array
 	{
@@ -177,7 +172,12 @@ abstract class CSGenerator
 		$filtersRules = [];
 
 		if ($type instanceof TypeEnum) {
-			$this->declareEnum($type->getEnumClass(), $column->getTable()->getName());
+			try {
+				$enum_class = $type->getEnumClass();
+				$this->declareEnum($enum_class, $column->getTable()->getName());
+			} catch (TypesException $t) {
+				throw new RuntimeException('Enum class not found for column "' . $column->getFullName() . '".', null, $t);
+			}
 		}
 
 		foreach ($type->getAllowedFilterOperators() as $operator) {
