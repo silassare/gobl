@@ -46,6 +46,14 @@ class ORMEntityRelationController implements RelationControllerInterface
 
 	/**
 	 * {@inheritDoc}
+	 */
+	public function isEntityController(): bool
+	{
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
 	 *
 	 * @throws GoblException
 	 */

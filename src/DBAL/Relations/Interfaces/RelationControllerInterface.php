@@ -31,6 +31,13 @@ use JsonSerializable;
 interface RelationControllerInterface
 {
 	/**
+	 * Indicates whether the relative returned by this controller are subclass of {@link ORMEntity}.
+	 *
+	 * @return bool true if the relative is an instance of ORMEntity, false otherwise
+	 */
+	public function isEntityController(): bool;
+
+	/**
 	 * Gets a relative of a given item.
 	 *
 	 * @param ORMEntity  $host_entity the host entity
