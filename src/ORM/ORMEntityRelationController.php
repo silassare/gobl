@@ -47,9 +47,9 @@ class ORMEntityRelationController implements RelationControllerInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function isEntityController(): bool
+	public function getRelativesStoreTable(): Table
 	{
-		return true;
+		return $this->table;
 	}
 
 	/**

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Relations\Interfaces;
 
+use Gobl\DBAL\Table;
 use Gobl\ORM\ORMEntity;
 use Gobl\ORM\ORMRequest;
 use JsonSerializable;
@@ -31,11 +32,14 @@ use JsonSerializable;
 interface RelationControllerInterface
 {
 	/**
-	 * Indicates whether the relative returned by this controller are subclass of {@link ORMEntity}.
+	 * Return the table that stores the relatives.
 	 *
-	 * @return bool true if the relative is an instance of ORMEntity, false otherwise
+	 * With this we are sure that relatives returned by the relation controller are subclass of {@see ORMEntity} stored in the target table.
+	 *
+	 * @return ?Table the target table or null if the relation is not linked to any table
+	 *                (virtual relation without a target table, that returns data not related to any table, etc.)
 	 */
-	public function isEntityController(): bool;
+	public function getRelativesStoreTable(): ?Table;
 
 	/**
 	 * Gets a relative of a given item.
