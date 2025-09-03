@@ -21,11 +21,11 @@ use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
 use Gobl\DBAL\Types\TypeEnum;
+use Gobl\Exceptions\GoblRuntimeException;
 use Gobl\Gobl;
 use Gobl\ORM\ORMTypeHint;
 use Gobl\ORM\Utils\ORMClassKind;
 use OLIUP\CG\PHPEnum;
-use PHPUtils\Exceptions\RuntimeException;
 use PHPUtils\Str;
 
 /**
@@ -176,7 +176,7 @@ abstract class CSGenerator
 				$enum_class = $type->getEnumClass();
 				$this->declareEnum($enum_class, $column->getTable()->getName());
 			} catch (TypesException $t) {
-				throw new RuntimeException('Enum class not found for column "' . $column->getFullName() . '".', null, $t);
+				throw new GoblRuntimeException('Enum class not found for column "' . $column->getFullName() . '".', null, $t);
 			}
 		}
 
