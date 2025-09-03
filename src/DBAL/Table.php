@@ -26,6 +26,7 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Relations\VirtualRelation;
 use Gobl\DBAL\Traits\MetadataTrait;
+use Gobl\Exceptions\GoblRuntimeException;
 use InvalidArgumentException;
 use OLIUP\CG\PHPNamespace;
 use PHPUtils\Interfaces\ArrayCapableInterface;
@@ -1746,6 +1747,39 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 		$this->diff_key = $diff_key;
 
 		return $this;
+	}
+
+	/**
+	 * Returns the single primary key column or throws exception
+	 * if the table does not have exactly one primary key column.
+	 *
+	 * @return Column the single primary key column
+	 */
+	public function getSinglePKColumnOrFail(): Column
+	{
+		$pk                   = $this->getPrimaryKeyConstraint();
+		$pk_columns_list      = $pk->getColumns();
+		$pk_col_count         = \count($pk_columns_list);
+
+		if (1 !== $pk_col_count) {
+			throw new GoblRuntimeException(
+				\sprintf(
+					'Table "%s" has "%s" columns in primary key while expecting 1.',
+					$this->getName(),
+					$pk_col_count
+				)
+			);
+		}
+
+		return $this->getColumnOrFail($pk_columns_list[0]);
+	}
+
+	/**
+	 * Checks if this table has exactly one column in its primary key.
+	 */
+	public function hasSinglePKColumn(): bool
+	{
+		return 1 === \count($this->getPrimaryKeyConstraint()->getColumns());
 	}
 
 	/**
