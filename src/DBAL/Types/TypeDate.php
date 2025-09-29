@@ -345,7 +345,11 @@ class TypeDate extends Type
 	 */
 	private static function toTimestamp(mixed $value): ?string
 	{
-		if (\is_string($value) && !\preg_match('~^\d+(?:\.\d+)?$~', $value)) {
+		if (\is_numeric($value)) {
+			return (string) $value;
+		}
+
+		if (\is_string($value)) {
 			$converted = \strtotime($value);
 
 			if (false !== $converted) {
@@ -353,10 +357,6 @@ class TypeDate extends Type
 			}
 
 			return null;
-		}
-
-		if (\is_numeric($value)) {
-			return (string) $value;
 		}
 
 		return null;
