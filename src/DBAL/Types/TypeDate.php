@@ -98,14 +98,14 @@ class TypeDate extends Type
 	/**
 	 * Sets min date.
 	 *
-	 * @param string|int  $min
+	 * @param int|string  $min
 	 * @param null|string $message
 	 *
 	 * @return $this
 	 *
 	 * @throws TypesException
 	 */
-	public function min(string|int $min, ?string $message = null): static
+	public function min(int|string $min, ?string $message = null): static
 	{
 		$min_parsed = self::toTimestamp($min);
 
@@ -124,14 +124,14 @@ class TypeDate extends Type
 	/**
 	 * Sets max date.
 	 *
-	 * @param string|int  $max
+	 * @param int|string  $max
 	 * @param null|string $message
 	 *
 	 * @return $this
 	 *
 	 * @throws TypesException
 	 */
-	public function max(string|int $max, ?string $message = null): static
+	public function max(int|string $max, ?string $message = null): static
 	{
 		$max_parsed = self::toTimestamp($max);
 
