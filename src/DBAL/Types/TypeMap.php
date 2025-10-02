@@ -105,6 +105,31 @@ class TypeMap extends Type
 	}
 
 	/**
+	 * Sets whether the map is big (can hold large data).
+	 */
+	public function big(bool $big = true): static
+	{
+		/** @var TypeString $bt */
+		$bt = $this->base_type;
+
+		$bt->medium($big);
+
+		return $this->setOption('big', $big);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function configure(array $options): static
+	{
+		if (isset($options['big'])) {
+			$this->big((bool) $options['big']);
+		}
+
+		return parent::configure($options);
+	}
+
+	/**
 	 * {@inheritDoc}
 	 */
 	public function getReadTypeHint(): ORMTypeHint
