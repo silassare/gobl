@@ -499,15 +499,19 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$max              = $type->getOption('max', \INF);
 		$medium           = $type->getOption('medium', false);
 		$long         	   = $type->getOption('long', false);
+		// for MySQL
 		// char(c) c in range(0,255);
 		// varchar(c) c in range(0,65535);
-		$c   = $max;
+		// text c in range(0,65535); // 64 KB
+		// mediumtext c in range(0,16777215); // 16 MB
+		// longtext c in range(0,4294967295); // 4 GB
+
 		$sql = ["`{$column_name}`"];
 
-		if ($c <= 255 && $min === $max) {
-			$sql[] = "char({$c})";
-		} elseif ($c <= 65535) {
-			$sql[] = "varchar({$c})";
+		if ($max <= 255 && $min === $max) {
+			$sql[] = "char({$max})";
+		} elseif ($max <= 65535) {
+			$sql[] = "varchar({$max})";
 		} else {
 			$force_no_default = true;
 
