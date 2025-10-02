@@ -497,6 +497,8 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$force_no_default = false;
 		$min              = $type->getOption('min', 0);
 		$max              = $type->getOption('max', \INF);
+		$medium           = $type->getOption('medium', false);
+		$long         	   = $type->getOption('long', false);
 		// char(c) c in range(0,255);
 		// varchar(c) c in range(0,65535);
 		$c   = $max;
@@ -507,8 +509,15 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		} elseif ($c <= 65535) {
 			$sql[] = "varchar({$c})";
 		} else {
-			$sql[]            = 'text';
 			$force_no_default = true;
+
+			if ($medium) {
+				$sql[] = 'mediumtext';
+			} elseif ($long) {
+				$sql[] = 'longtext';
+			} else {
+				$sql[] = 'text';
+			}
 		}
 
 		$this->defaultAndNullChunks($column, $sql, $force_no_default);

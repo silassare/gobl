@@ -240,6 +240,14 @@ class TypeString extends Type implements BaseTypeInterface
 			$this->max((int) $options['max']);
 		}
 
+		if (isset($options['medium'])) {
+			$this->medium((bool) $options['medium']);
+		}
+
+		if (isset($options['long'])) {
+			$this->long((bool) $options['long']);
+		}
+
 		if (isset($options['truncate'])) {
 			$this->truncate((bool) $options['truncate']);
 		}
@@ -327,6 +335,34 @@ class TypeString extends Type implements BaseTypeInterface
 	public function multiline(bool $multiline = true): static
 	{
 		return $this->setOption('multiline', $multiline);
+	}
+
+	/**
+	 * Medium string.
+	 *
+	 * This option can be used to indicate that the string is of medium length.
+	 *
+	 * @param bool $medium
+	 *
+	 * @return $this
+	 */
+	public function medium(bool $medium = true): static
+	{
+		return $this->setOption('medium', $medium);
+	}
+
+	/**
+	 * Long string.
+	 *
+	 * This option can be used to indicate that the string is of long length.
+	 *
+	 * @param bool $long
+	 *
+	 * @return $this
+	 */
+	public function long(bool $long = true): static
+	{
+		return $this->setOption('long', $long);
 	}
 
 	/**
