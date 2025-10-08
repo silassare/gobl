@@ -17,6 +17,7 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Table;
 use Gobl\Gobl;
+use Gobl\ORM\Exceptions\ORMQueryException;
 use Gobl\ORM\Exceptions\ORMRuntimeException;
 use Gobl\ORM\Utils\ORMClassKind;
 use PHPUtils\FS\FSUtils;
@@ -173,7 +174,14 @@ class ORM
 		$tq = $class::new();
 
 		if (!empty($filters)) {
-			$tq->where($filters);
+			try {
+				$tq->where($filters);
+			} catch (Throwable $t) {
+				throw new ORMQueryException('Failed to apply filters to query.', [
+					'filters' => $filters,
+					'_table'  => $table->getName(),
+				], $t);
+			}
 		}
 
 		return $tq;
