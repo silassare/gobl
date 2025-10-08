@@ -218,7 +218,9 @@ class TypeMap extends Type
 	{
 		$is_map = $value instanceof Map;
 		if (!$is_map && !\is_array($value)) {
-			throw new TypesInvalidValueException($this->msg('invalid_map_type'), $value);
+			throw new TypesInvalidValueException($this->msg('invalid_map_type'), [
+				'value' => $value,
+			]);
 		}
 
 		if ($is_map) {
