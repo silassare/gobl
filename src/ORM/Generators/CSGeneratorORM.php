@@ -780,8 +780,6 @@ return static::table()->getVirtualRelation(\'{relation_name}\')->getController()
 
 		$namespace->use($sub_class, $sub_class_alias);
 
-		$namespace->use(Operator::class);
-
 		$class_comment_lines   = [];
 		$class_comment_lines[] = Str::interpolate('Class {class_name}.', $inject);
 		$class_comment_lines[] = '';
@@ -952,10 +950,7 @@ return static::table()->getVirtualRelation(\'{relation_name}\')->getController()
 		$sub_class       = Str::interpolate('{db_namespace}\{class_name}', $inject);
 		$sub_class_alias = Str::interpolate('{class_name}Real', $inject);
 
-		$namespace->use($sub_class, $sub_class_alias)
-			->use(QBSelect::class)
-			->use(ORMEntity::class)
-			->use(Relation::class);
+		$namespace->use($sub_class, $sub_class_alias);
 
 		$class->extends(new PHPClass(ORMController::class))
 			->abstract()
