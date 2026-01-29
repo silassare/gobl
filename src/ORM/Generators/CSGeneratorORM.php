@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Gobl\ORM\Generators;
 
 use Gobl\DBAL\Interfaces\RDBMSInterface;
-use Gobl\DBAL\Operator;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Relations\VirtualRelation;
