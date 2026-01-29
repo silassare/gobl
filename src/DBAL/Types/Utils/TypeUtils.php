@@ -24,6 +24,7 @@ use Gobl\DBAL\Types\TypeDecimal;
 use Gobl\DBAL\Types\TypeFloat;
 use Gobl\DBAL\Types\TypeInt;
 use Gobl\DBAL\Types\TypeString;
+use InvalidArgumentException;
 
 /**
  * Class TypeUtils.
@@ -44,7 +45,49 @@ class TypeUtils
 	}
 
 	/**
-	 * Gets type instance.
+	 * Builds type instance from options or fails.
+	 *
+	 * @param array $options
+	 *
+	 * @return TypeInterface
+	 *
+	 * @throws InvalidArgumentException
+	 * @throws TypesException
+	 */
+	public static function buildTypeOrFail(array $options): TypeInterface
+	{
+		if (!isset($options['type'])) {
+			throw new InvalidArgumentException("Type 'type' option is required to build a type instance");
+		}
+
+		$type_name = $options['type'];
+
+		if ($type_name instanceof TypeInterface) {
+			$source    = $type_name;
+			$options   = \array_merge($source->toArray(), $options);
+			$type_name = $source->getName();
+		}
+
+		if (\is_string($type_name)) {
+			$ti = self::getTypeInstance($type_name, $options);
+
+			if ($ti) {
+				return $ti;
+			}
+
+			throw new InvalidArgumentException(
+				\sprintf(
+					'Unknown type "%s" provided in type options.',
+					$type_name
+				)
+			);
+		}
+
+		throw new InvalidArgumentException(\sprintf('Invalid type definition, expected string or "%s", got "%s".', TypeInterface::class, \gettype($type_name)));
+	}
+
+	/**
+	 * Tries to get type instance by name with options.
 	 *
 	 * @param string $name
 	 * @param array  $options

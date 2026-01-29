@@ -17,6 +17,7 @@ use Gobl\DBAL\Diff\Interfaces\DiffCapableInterface;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Traits\MetadataTrait;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
+use Gobl\DBAL\Types\Type;
 use Gobl\DBAL\Types\TypeString;
 use Gobl\DBAL\Types\Utils\TypeUtils;
 use Gobl\Gobl;
@@ -163,42 +164,17 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	{
 		$this->assertNotLocked();
 
-		if (!isset($options['type'])) {
-			throw new InvalidArgumentException(\sprintf('You should define a type for column "%s".', $this->name));
-		}
-
-		$type = $options['type'];
-
-		if ($type instanceof TypeInterface) {
-			$this->type = $type;
-		} elseif (\is_string($type)) {
-			try {
-				$ti = TypeUtils::getTypeInstance($type, $options);
-
-				if ($ti) {
-					$this->type = $ti;
-				} else {
-					throw new InvalidArgumentException(
-						\sprintf(
-							'Unsupported type "%s" defined for column "%s".',
-							$type,
-							$this->name
-						)
-					);
-				}
-			} catch (Throwable $t) {
-				throw new DBALRuntimeException(
-					\sprintf(
-						'Unable to instantiate column type "%s" defined for "%s".',
-						$type,
-						$this->name
-					),
-					null,
-					$t
-				);
-			}
-		} else {
-			throw new InvalidArgumentException(\sprintf('Invalid type defined for column "%s".', $this->name));
+		try {
+			$this->type = TypeUtils::buildTypeOrFail($options);
+		} catch (Throwable $t) {
+			throw new DBALRuntimeException(
+				\sprintf(
+					'Unable to instantiate type for column "%s".',
+					$this->name
+				),
+				null,
+				$t
+			);
 		}
 
 		return $this;
