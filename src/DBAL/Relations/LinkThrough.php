@@ -110,8 +110,8 @@ final class LinkThrough extends Link
 			}
 		}
 
-		$this->host_to_pivot_link   = $this->link($this->host_table, $this->pivot_table, $htp_options);
-		$this->pivot_to_target_link = $this->link($this->pivot_table, $this->target_table, $ptt_options);
+		$this->host_to_pivot_link   = $this->subLink($this->host_table, $this->pivot_table, $htp_options);
+		$this->pivot_to_target_link = $this->subLink($this->pivot_table, $this->target_table, $ptt_options);
 	}
 
 	/**
@@ -173,21 +173,5 @@ final class LinkThrough extends Link
 			'type'        => $this->type->value,
 			'pivot_table' => $this->pivot_table->getName(),
 		] + $this->options;
-	}
-
-	/**
-	 * Creates a link between two tables.
-	 *
-	 * @throws DBALException
-	 */
-	private function link(Table $host_table, Table $target_table, array $options): LinkInterface
-	{
-		$link = Relation::createLink($this->rdbms, $host_table, $target_table, $options);
-
-		if ($link instanceof self) {
-			throw new DBALException('The link type "through" cannot be nested. Keep it simple.');
-		}
-
-		return $link;
 	}
 }

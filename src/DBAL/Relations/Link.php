@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Relations;
 
+use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Filters\Filters;
 use Gobl\DBAL\Filters\FiltersTableScope;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
@@ -89,6 +90,22 @@ abstract class Link implements LinkInterface
 		}
 
 		return false;
+	}
+
+	/**
+	 * Creates a sub-link between two tables.
+	 *
+	 * @throws DBALException
+	 */
+	protected function subLink(Table $host_table, Table $target_table, array $options, bool $allow_nesting = false): LinkInterface
+	{
+		$link = Relation::createLink($this->rdbms, $host_table, $target_table, $options);
+
+		if (!$allow_nesting && !$link instanceof self) {
+			throw new DBALException(\sprintf('The link type "%s" cannot be nested. Keep it simple.', $this->type->value));
+		}
+
+		return $link;
 	}
 
 	/**
