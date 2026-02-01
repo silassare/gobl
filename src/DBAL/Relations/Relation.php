@@ -140,6 +140,9 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface
 				}
 
 				return new LinkThrough($rdbms, $host_table, $target_table, $pivot_table, $options);
+
+			case LinkType::JOIN:
+				return new LinkJoin($rdbms, $host_table, $target_table, $options);
 		}
 
 		throw new DBALException(\sprintf('Unsupported link type "%s".', $type->value));

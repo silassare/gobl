@@ -23,4 +23,6 @@ enum LinkType: string
 	case MORPH = 'morph';
 
 	case THROUGH = 'through';
+
+	case JOIN = 'join';
 }

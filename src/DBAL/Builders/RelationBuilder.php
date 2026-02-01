@@ -82,6 +82,22 @@ final class RelationBuilder
 	}
 
 	/**
+	 * Specify a relation link of type "join".
+	 *
+	 * @param array $link_options
+	 *
+	 * @return Relation
+	 *
+	 * @throws DBALException
+	 */
+	public function usingJoin(array $link_options = []): Relation
+	{
+		$link_options['type'] = LinkType::JOIN->value;
+
+		return $this->using($link_options);
+	}
+
+	/**
 	 * Creates a relation.
 	 *
 	 * @param array $link_options
