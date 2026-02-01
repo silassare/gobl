@@ -57,7 +57,7 @@ class TypeUtils
 	public static function buildTypeOrFail(array $options): TypeInterface
 	{
 		if (!isset($options['type'])) {
-			throw new InvalidArgumentException("Type 'type' option is required to build a type instance");
+			throw new InvalidArgumentException('Type "type" option is required to build a type instance');
 		}
 
 		$type_name = $options['type'];

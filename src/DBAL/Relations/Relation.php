@@ -98,14 +98,14 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface
 		if ($filters && !\is_array($filters)) {
 			throw new DBALException(
 				\sprintf(
-					'property "filters" defined in relation link should be of array type not "%s".',
+					'Property "filters" defined in relation link should be of array type not "%s".',
 					\get_debug_type($filters)
 				)
 			);
 		}
 
 		if (!$type instanceof LinkType) {
-			throw new DBALException('Invalid "type" for relation link.');
+			throw new DBALException('Invalid "type" property for relation link.');
 		}
 
 		switch ($type) {
@@ -120,7 +120,7 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface
 
 				if (!$pivot_table) {
 					throw new DBALException(
-						\sprintf('property "pivot_table" is required for relation link type "%s".', $type->value)
+						\sprintf('Property "pivot_table" is required for relation link type "%s".', $type->value)
 					);
 				}
 

@@ -339,7 +339,7 @@ abstract class Db implements RDBMSInterface
 						} else {
 							throw new DBALException(
 								\sprintf(
-									'Invalid column "%s" options in table "%s".',
+									'Invalid column "%s" option in table "%s".',
 									$column_name,
 									$table_name
 								)
@@ -631,7 +631,7 @@ abstract class Db implements RDBMSInterface
 								if (!\is_array($columns)) {
 									throw new DBALException(
 										\sprintf(
-											'property "columns" defined for relation "%s" in table "%s" should be of array type not "%s".',
+											'Property "columns" defined for relation "%s" in table "%s" should be of array type not "%s".',
 											$relation_name,
 											$table_name,
 											\get_debug_type($columns)
