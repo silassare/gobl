@@ -37,8 +37,8 @@ final class LinkColumns extends Link
 	 * @param Table $host_table
 	 * @param Table $target_table
 	 * @param array{
-	 *         columns?: array<string,string>,
-	 *         filters?: array
+	 *         columns?: null|array<string,string>,
+	 *         filters?: null|array
 	 *      } $options
 	 *
 	 * @throws DBALException

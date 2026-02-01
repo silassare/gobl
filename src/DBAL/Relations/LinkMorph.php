@@ -68,12 +68,12 @@ final class LinkMorph extends Link
 	 * @param Table $host_table
 	 * @param Table $target_table
 	 * @param array{
-	 *        filters?: array,
-	 *        prefix?: string,
-	 *        parent_type?: string,
-	 *        parent_key_column?: string,
-	 *        child_key_column?: string,
-	 *        child_type_column?: string,
+	 *        filters?: null|array,
+	 *        prefix?: null|string,
+	 *        parent_type?: null|string,
+	 *        parent_key_column?: null|string,
+	 *        child_key_column?: null|string,
+	 *        child_type_column?: null|string,
 	 *     } $options
 	 *
 	 * @throws DBALException
@@ -85,7 +85,7 @@ final class LinkMorph extends Link
 	) {
 		parent::__construct(LinkType::MORPH, $host_table, $target_table, $options);
 
-		if (isset($this->options['prefix'])) {
+		if (!empty($this->options['prefix'])) {
 			$this->morph_child_key_column  = $this->options['prefix'] . '_id';
 			$this->morph_child_type_column = $this->options['prefix'] . '_type';
 		} elseif (empty($this->options['child_key_column']) || empty($this->options['child_type_column'])) {

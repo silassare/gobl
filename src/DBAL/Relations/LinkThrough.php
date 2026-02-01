@@ -36,9 +36,10 @@ final class LinkThrough extends Link
 	 * @param Table          $target_table
 	 * @param Table          $pivot_table
 	 * @param array{
-	 *          filters?: array,
-	 *          host_to_pivot?: array,
-	 *          pivot_to_target?: array
+	 *          filters?: null|array,
+	 * 			pivot_table?: null|string,
+	 *          host_to_pivot?: null|array,
+	 *          pivot_to_target?: null|array
 	 *       } $options
 	 *
 	 * @throws DBALException
