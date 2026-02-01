@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Relations;
 
 use Gobl\DBAL\Exceptions\DBALException;
+use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Table;
 use Gobl\ORM\ORMEntity;
@@ -65,8 +66,9 @@ final class LinkMorph extends Link
 	/**
 	 * LinkMorph constructor.
 	 *
-	 * @param Table $host_table
-	 * @param Table $target_table
+	 * @param RDBMSInterface $rdbms
+	 * @param Table          $host_table
+	 * @param Table          $target_table
 	 * @param array{
 	 *        filters?: null|array,
 	 *        prefix?: null|string,
@@ -79,11 +81,12 @@ final class LinkMorph extends Link
 	 * @throws DBALException
 	 */
 	public function __construct(
+		RDBMSInterface $rdbms,
 		Table $host_table,
 		Table $target_table,
 		array $options = []
 	) {
-		parent::__construct(LinkType::MORPH, $host_table, $target_table, $options);
+		parent::__construct(LinkType::MORPH, $rdbms, $host_table, $target_table, $options);
 
 		if (!empty($this->options['prefix'])) {
 			$this->morph_child_key_column  = $this->options['prefix'] . '_id';

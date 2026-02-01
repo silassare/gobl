@@ -45,13 +45,13 @@ final class LinkThrough extends Link
 	 * @throws DBALException
 	 */
 	public function __construct(
-		private readonly RDBMSInterface $rdbms,
+		RDBMSInterface $rdbms,
 		Table $host_table,
 		Table $target_table,
 		private readonly Table $pivot_table,
 		array $options = [],
 	) {
-		parent::__construct(LinkType::THROUGH, $host_table, $target_table, $options);
+		parent::__construct(LinkType::THROUGH, $rdbms, $host_table, $target_table, $options);
 
 		$htp_options = $this->options['host_to_pivot'] ?? null;
 		$ptt_options = $this->options['pivot_to_target'] ?? null;

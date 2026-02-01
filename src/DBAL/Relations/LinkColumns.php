@@ -15,6 +15,7 @@ namespace Gobl\DBAL\Relations;
 
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Filters\Filters;
+use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Table;
@@ -34,8 +35,9 @@ final class LinkColumns extends Link
 	 * If no columns are given, it will try to auto detect using the foreign key.
 	 * If no foreign key is found, an exception will be thrown.
 	 *
-	 * @param Table $host_table
-	 * @param Table $target_table
+	 * @param RDBMSInterface $rdbms
+	 * @param Table          $host_table
+	 * @param Table          $target_table
 	 * @param array{
 	 *         columns?: null|array<string,string>,
 	 *         filters?: null|array
@@ -44,11 +46,12 @@ final class LinkColumns extends Link
 	 * @throws DBALException
 	 */
 	public function __construct(
+		RDBMSInterface $rdbms,
 		Table $host_table,
 		Table $target_table,
 		array $options = []
 	) {
-		parent::__construct(LinkType::COLUMNS, $host_table, $target_table, $options);
+		parent::__construct(LinkType::COLUMNS, $rdbms, $host_table, $target_table, $options);
 
 		$this->columns_mapping = $this->options['columns'] ?? [];
 

@@ -110,10 +110,10 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface
 
 		switch ($type) {
 			case LinkType::COLUMNS:
-				return new LinkColumns($host_table, $target_table, $options);
+				return new LinkColumns($rdbms, $host_table, $target_table, $options);
 
 			case LinkType::MORPH:
-				return new LinkMorph($host_table, $target_table, $options);
+				return new LinkMorph($rdbms, $host_table, $target_table, $options);
 
 			case LinkType::THROUGH:
 				$pivot_table = $options['pivot_table'] ?? null;

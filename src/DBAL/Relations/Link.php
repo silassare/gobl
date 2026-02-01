@@ -15,6 +15,7 @@ namespace Gobl\DBAL\Relations;
 
 use Gobl\DBAL\Filters\Filters;
 use Gobl\DBAL\Filters\FiltersTableScope;
+use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Relations\Interfaces\LinkInterface;
 use Gobl\DBAL\Table;
@@ -31,13 +32,15 @@ abstract class Link implements LinkInterface
 	/**
 	 * Link constructor.
 	 *
-	 * @param LinkType $type
-	 * @param Table    $host_table
-	 * @param Table    $target_table
-	 * @param array    $options
+	 * @param LinkType       $type
+	 * @param RDBMSInterface $rdbms
+	 * @param Table          $host_table
+	 * @param Table          $target_table
+	 * @param array          $options
 	 */
 	public function __construct(
 		protected readonly LinkType $type,
+		protected readonly RDBMSInterface $rdbms,
 		protected readonly Table $host_table,
 		protected readonly Table $target_table,
 		protected readonly array $options,
