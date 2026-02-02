@@ -17,6 +17,7 @@ use Gobl\DBAL\Builders\NamespaceBuilder;
 use Gobl\DBAL\Constraints\Constraint;
 use Gobl\DBAL\Constraints\ForeignKeyAction;
 use Gobl\DBAL\Drivers\MySQL\MySQL;
+use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
 use Gobl\DBAL\Drivers\SQLLite\SQLLite;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
@@ -50,8 +51,9 @@ abstract class Db implements RDBMSInterface
 	 * @var array
 	 */
 	private static array $rdbms_map = [
-		MySQL::NAME   => MySQL::class,
-		SQLLite::NAME => SQLLite::class,
+		MySQL::NAME      => MySQL::class,
+		PostgreSQL::NAME => PostgreSQL::class,
+		SQLLite::NAME    => SQLLite::class,
 	];
 
 	/**
