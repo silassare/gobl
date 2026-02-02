@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Gobl\Tests\DBAL;
 
 use Gobl\DBAL\DbConfig;
+use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\Tests\BaseTestCase;
 
 /**
@@ -26,20 +27,16 @@ use Gobl\Tests\BaseTestCase;
 final class DbConfigTest extends BaseTestCase
 {
 	private DbConfig $config;
-	private array $declared = [
-		'db_table_prefix' => 'gObL',
-		'db_host'         => 'localhost',
-		'db_name'         => 'gobl_test_db',
-		'db_user'         => 'gobl_user',
-		'db_pass'         => 'gobl_user_pass',
-		'db_charset'      => 'utf8mb4',
-		'db_collate'      => 'utf8mb4_unicode_ci',
-	];
+	private array $declared;
 
 	protected function setUp(): void
 	{
 		parent::setUp();
-		$this->config = new DbConfig($this->declared);
+
+		$all = include __DIR__ . '/../db.configs.php';
+
+		$this->declared = $all[MySQL::NAME];
+		$this->config   = new DbConfig($this->declared);
 	}
 
 	public function testGetDbUser(): void
@@ -60,6 +57,11 @@ final class DbConfigTest extends BaseTestCase
 	public function testGetDbHost(): void
 	{
 		self::assertSame($this->declared['db_host'], $this->config->getDbHost());
+	}
+
+	public function testGetDbPort(): void
+	{
+		self::assertSame($this->declared['db_port'], $this->config->getDbPort());
 	}
 
 	public function testGetDbName(): void

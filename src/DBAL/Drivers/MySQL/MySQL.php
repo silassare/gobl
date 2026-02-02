@@ -54,10 +54,13 @@ class MySQL extends SQLDriverBase
 	protected function connect(): PDO
 	{
 		$host     = $this->config->getDbHost();
+		$port     = $this->config->getDbPort();
 		$dbname   = $this->config->getDbName();
 		$user     = $this->config->getDbUser();
 		$password = $this->config->getDbPass();
 		$charset  = $this->config->getDbCharset();
+
+		$port = empty($port) ? 3306 : $port;
 
 		$pdo_options = [
 			PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
@@ -65,7 +68,7 @@ class MySQL extends SQLDriverBase
 		];
 
 		// DSN => DATA SOURCE NAME
-		$pdo_dsn = 'mysql:host=' . $host . ';dbname=' . $dbname . ';charset=' . $charset;
+		$pdo_dsn = "mysql:host={$host};port={$port};dbname={$dbname};charset={$charset}";
 
 		return new PDO($pdo_dsn, $user, $password, $pdo_options);
 	}

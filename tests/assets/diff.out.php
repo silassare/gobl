@@ -289,6 +289,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		return array (
 		  'db_table_prefix' => 'gObL',
 		  'db_host' => '***',
+		  'db_port' => '***',
 		  'db_name' => '***',
 		  'db_user' => '***',
 		  'db_pass' => '***',

@@ -36,6 +36,7 @@ final class DbConfig implements ArrayCapableInterface
 		$this->config = \array_merge([
 			'db_table_prefix'    => '',
 			'db_host'            => '',
+			'db_port'            => '',
 			'db_name'            => '',
 			'db_user'            => '',
 			'db_pass'            => '',
@@ -50,6 +51,14 @@ final class DbConfig implements ArrayCapableInterface
 	public function getDbHost(): string
 	{
 		return $this->config['db_host'];
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getDbPort(): int|string
+	{
+		return $this->config['db_port'];
 	}
 
 	/**
@@ -109,7 +118,7 @@ final class DbConfig implements ArrayCapableInterface
 	{
 		$config = $this->toArray();
 
-		$config['db_host'] = $config['db_name'] = $config['db_user'] = $config['db_pass'] = '***';
+		$config['db_host'] = $config['db_port'] = $config['db_name'] = $config['db_user'] = $config['db_pass'] = '***';
 
 		return $config;
 	}
