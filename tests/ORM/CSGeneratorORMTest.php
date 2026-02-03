@@ -33,7 +33,7 @@ final class CSGeneratorORMTest extends BaseTestCase
 		$out_dir = GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'Db';
 
 		if (!\is_dir($out_dir)) {
-			@\mkdir($out_dir, 0777, true);
+			@\mkdir($out_dir, 0o777, true);
 		}
 
 		$generator = new CSGeneratorORM($db);

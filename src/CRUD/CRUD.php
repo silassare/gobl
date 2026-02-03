@@ -299,24 +299,26 @@ class CRUD
 		$form = $create_action->getForm();
 
 		foreach ($form as $field => $value) {
-			if ($this->table->hasColumn($field)) {
-				$column = $this->table->getColumnOrFail($field);
+			if (!$this->table->hasColumn($field)) {
+				continue;
+			}
 
-				$this->checkForColumnWrite($column, $form, $field, false);
+			$column = $this->table->getColumnOrFail($field);
 
-				if (null !== $value) {
-					$type = $column->getType();
-					if ($type->isAutoIncremented()) {
-						$debug            = $this->debug;
-						$debug['field']   = $field;
-						$debug['_why']    = 'column_is_auto_incremented';
-						$debug['_column'] = $column->getFullName();
+			$this->checkForColumnWrite($column, $form, $field, false);
 
-						throw new CRUDException('GOBL_COLUMN_WRITE_REFUSED', $debug);
-					}
+			if (null !== $value) {
+				$type = $column->getType();
+				if ($type->isAutoIncremented()) {
+					$debug            = $this->debug;
+					$debug['field']   = $field;
+					$debug['_why']    = 'column_is_auto_incremented';
+					$debug['_column'] = $column->getFullName();
 
-					$this->checkForPKColumnWrite($column, $form, $field, false);
+					throw new CRUDException('GOBL_COLUMN_WRITE_REFUSED', $debug);
 				}
+
+				$this->checkForPKColumnWrite($column, $form, $field, false);
 			}
 		}
 	}
@@ -388,22 +390,24 @@ class CRUD
 		$form = $base_action->getForm();
 
 		foreach ($form as $field => $value) {
-			if ($this->table->hasColumn($field)) {
-				$column = $this->table->getColumnOrFail($field);
+			if (!$this->table->hasColumn($field)) {
+				continue;
+			}
 
-				$this->checkForColumnWrite($column, $form, $field, true);
-				$this->checkForPKColumnWrite($column, $form, $field, true);
+			$column = $this->table->getColumnOrFail($field);
 
-				$column_update_action = new BeforeColumnUpdate($this->table, $column, $base_action->getForm());
+			$this->checkForColumnWrite($column, $form, $field, true);
+			$this->checkForPKColumnWrite($column, $form, $field, true);
 
-				if (!$this->authorize($column_update_action, true)) {
-					$debug            = $this->debug;
-					$debug['field']   = $field;
-					$debug['_why']    = 'column_update_rejected';
-					$debug['_column'] = $column->getFullName();
+			$column_update_action = new BeforeColumnUpdate($this->table, $column, $base_action->getForm());
 
-					throw new CRUDException($column_update_action, $debug);
-				}
+			if (!$this->authorize($column_update_action, true)) {
+				$debug            = $this->debug;
+				$debug['field']   = $field;
+				$debug['_why']    = 'column_update_rejected';
+				$debug['_column'] = $column->getFullName();
+
+				throw new CRUDException($column_update_action, $debug);
 			}
 		}
 	}

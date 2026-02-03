@@ -363,9 +363,11 @@ abstract class ORMEntity implements ArrayCapableInterface
 			$to_update = [];
 
 			foreach ($this->_oeb_row as $column_name => $value) {
-				if ($this->_oeb_row_saved[$column_name] !== $value) {
-					$to_update[$column_name] = $value;
+				if ($this->_oeb_row_saved[$column_name] === $value) {
+					continue;
 				}
+
+				$to_update[$column_name] = $value;
 			}
 
 			if (!empty($to_update)) {

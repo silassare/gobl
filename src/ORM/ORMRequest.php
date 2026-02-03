@@ -549,9 +549,11 @@ class ORMRequest
 			$relations = \array_unique(\explode(self::RELATIONS_DELIMITER, $request[self::RELATIONS_PARAM]));
 
 			foreach ($relations as $relation) {
-				if (!self::isValidRelationName($relation)) {
-					throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_RELATIONS', $request);
+				if (self::isValidRelationName($relation)) {
+					continue;
 				}
+
+				throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_RELATIONS', $request);
 			}
 
 			return $relations;
@@ -561,9 +563,11 @@ class ORMRequest
 			$relations = \array_unique($request[self::RELATIONS_PARAM]);
 
 			foreach ($relations as $relation) {
-				if (!self::isValidRelationName($relation)) {
-					throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_RELATIONS', $request);
+				if (self::isValidRelationName($relation)) {
+					continue;
 				}
+
+				throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_RELATIONS', $request);
 			}
 
 			return $relations;
@@ -651,13 +655,15 @@ class ORMRequest
 		$values = [];
 
 		foreach ($map as $field => $value) {
-			if ($table->hasColumn($field)) {
-				$column    = $table->getColumnOrFail($field);
-				$full_name = $column->getFullName();
-				// only full name will be used
-				if ($full_name === $field) {
-					$values[$field] = $value;
-				}
+			if (!$table->hasColumn($field)) {
+				continue;
+			}
+
+			$column    = $table->getColumnOrFail($field);
+			$full_name = $column->getFullName();
+			// only full name will be used
+			if ($full_name === $field) {
+				$values[$field] = $value;
 			}
 		}
 

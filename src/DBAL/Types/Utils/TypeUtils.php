@@ -121,11 +121,13 @@ class TypeUtils
 			$found_bt   = $found->getBaseType();
 
 			foreach ($base_types as $bt) {
-				if ($found_bt instanceof $bt || \is_subclass_of($found_bt, $bt)) {
-					$type_ok = true;
-
-					break;
+				if (!($found_bt instanceof $bt || \is_subclass_of($found_bt, $bt))) {
+					continue;
 				}
+
+				$type_ok = true;
+
+				break;
 			}
 
 			if (!$type_ok) {

@@ -152,7 +152,7 @@ final class ColumnTest extends BaseTestCase
 		$column->setSensitive();
 		self::assertTrue($column->isSensitive());
 
-		self::assertSame($column->getSensitiveRedactedValue(), null);
+		self::assertNull($column->getSensitiveRedactedValue());
 
 		$column->setSensitive(true, '****');
 		self::assertSame($column->getSensitiveRedactedValue(), '****');

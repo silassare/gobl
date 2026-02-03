@@ -376,13 +376,15 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 		$column = $this->getColumnOrFail($column);
 
 		foreach ($this->morphs as $name => $morph) {
-			if ($morph['morph_id_column'] === $column || $morph['morph_type_column'] === $column) {
-				return [
-					'morph_name'        => $name,
-					'morph_type_column' => $morph['morph_type_column'],
-					'morph_id_column'   => $morph['morph_id_column'],
-				];
+			if (!($morph['morph_id_column'] === $column || $morph['morph_type_column'] === $column)) {
+				continue;
 			}
+
+			return [
+				'morph_name'        => $name,
+				'morph_type_column' => $morph['morph_type_column'],
+				'morph_id_column'   => $morph['morph_id_column'],
+			];
 		}
 
 		return null;
@@ -1384,20 +1386,24 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 			foreach ($this->fk_constraints as /* $fk_name => */ $fk) {
 				if (
 					$fk->getReferenceTable()
-						->getName() === $reference->getName()
+						->getName() !== $reference->getName()
 				) {
-					$fk_columns = \array_flip($fk->getColumnsMapping());
+					continue;
+				}
 
-					$y = 0;
+				$fk_columns = \array_flip($fk->getColumnsMapping());
 
-					foreach ($columns as $column) {
-						if (isset($fk_columns[$column])) {
-							++$y;
-						}
+				$y = 0;
+
+				foreach ($columns as $column) {
+					if (!(isset($fk_columns[$column]))) {
+						continue;
 					}
 
-					return $x === $y;
+					++$y;
 				}
+
+				return $x === $y;
 			}
 		}
 

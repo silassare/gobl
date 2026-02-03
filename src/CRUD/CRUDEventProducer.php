@@ -72,14 +72,16 @@ class CRUDEventProducer
 	public function listen(CRUDEventListenerInterface $listener): static
 	{
 		// for each method starting by "on" in the passed listener object
-		// call the corresponding method in this object if it exists
+		// call the corresponding method in this object if it exists/visible
 		// passing the listener method as argument
 		$methods = \get_class_methods($listener);
 
 		foreach ($methods as $method) {
-			if (\str_starts_with($method, 'on') && \method_exists($this, $method)) {
-				$this->{$method}([$listener, $method]);
+			if (!(\str_starts_with($method, 'on') && \method_exists($this, $method))) {
+				continue;
 			}
+
+			$this->{$method}([$listener, $method]);
 		}
 
 		return $this;

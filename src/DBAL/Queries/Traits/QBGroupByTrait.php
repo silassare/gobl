@@ -36,9 +36,11 @@ trait QBGroupByTrait
 	public function groupBy(array $group_by): static
 	{
 		foreach ($group_by as $group) {
-			if (!empty($group)) {
-				$this->options_group_by[] = $group;
+			if (empty($group)) {
+				continue;
 			}
+
+			$this->options_group_by[] = $group;
 		}
 
 		return $this;

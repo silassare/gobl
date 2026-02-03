@@ -535,17 +535,19 @@ abstract class ORMController
 		$missing         = [];
 
 		foreach ($required_fields as $field) {
-			if (!isset($form[$field])) {
-				$column  = $this->table->getColumnOrFail($field);
-				$default = $column->getType()
-					->getDefault();
+			if (isset($form[$field])) {
+				continue;
+			}
 
-				if (null === $default) {
-					$completed = false;
-					$missing[] = $field;
-				} else {
-					$form[$field] = $default;
-				}
+			$column  = $this->table->getColumnOrFail($field);
+			$default = $column->getType()
+				->getDefault();
+
+			if (null === $default) {
+				$completed = false;
+				$missing[] = $field;
+			} else {
+				$form[$field] = $default;
 			}
 		}
 
@@ -564,9 +566,11 @@ abstract class ORMController
 		$fields = [];
 
 		foreach ($this->form_fields as $field => $required) {
-			if (true === $required) {
-				$fields[] = $field;
+			if (true !== $required) {
+				continue;
 			}
+
+			$fields[] = $field;
 		}
 
 		return $fields;
@@ -599,9 +603,11 @@ abstract class ORMController
 	{
 		$scope_values = [];
 		foreach ($values as $column => $value) {
-			if ($this->table->hasColumn($column)) {
-				$scope_values[$column] = $value;
+			if (!$this->table->hasColumn($column)) {
+				continue;
 			}
+
+			$scope_values[$column] = $value;
 		}
 
 		if (empty($scope_values)) {

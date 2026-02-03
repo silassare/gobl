@@ -286,7 +286,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 
 	public function getConfigs(): array
 	{
-		return array (
+		return  [
 		  'db_table_prefix' => 'gObL',
 		  'db_host' => '***',
 		  'db_port' => '***',
@@ -295,7 +295,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		  'db_pass' => '***',
 		  'db_charset' => 'utf8mb4',
 		  'db_collate' => 'utf8mb4_unicode_ci',
-		);
+		];
 	}
 
 	/**
@@ -303,9 +303,9 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 	 */
 	public function getSchema(): array
 	{
-		return array (
+		return  [
 		  'clients' =>
-		  array (
+		   [
 		    'diff_key' => 'f0db55288a085e6a9e8dd11c4cdbb2a8',
 		    'singular_name' => 'client',
 		    'plural_name' => 'clients',
@@ -313,105 +313,105 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		    'prefix' => 'gObL',
 		    'column_prefix' => 'client',
 		    'columns' =>
-		    array (
+		     [
 		      'id' =>
-		      array (
+		       [
 		        'diff_key' => '8a3fa5c5ecf4de66ba45318910dfd4c2',
 		        'type' => 'int',
 		        'prefix' => 'client',
 		        'unsigned' => true,
 		        'auto_increment' => true,
-		      ),
+		      ],
 		      'given_name' =>
-		      array (
+		       [
 		        'diff_key' => 'd9d22201a2faa0d079d1c8d558077c77',
 		        'type' => 'string',
 		        'prefix' => 'client',
 		        'min' => 1,
 		        'max' => 60,
-		      ),
+		      ],
 		      'name' =>
-		      array (
+		       [
 		        'diff_key' => 'b6102666e48fc306f005670d237476b3',
 		        'type' => 'string',
 		        'prefix' => 'client',
 		        'min' => 1,
 		        'max' => 60,
-		      ),
+		      ],
 		      'gender' =>
-		      array (
+		       [
 		        'diff_key' => 'eea28337b476ba89c52b71dac3396993',
 		        'type' => 'string',
 		        'prefix' => 'client',
 		        'min' => 1,
 		        'max' => 60,
 		        'one_of' =>
-		        array (
+		         [
 		          0 => 'male',
 		          1 => 'female',
 		          2 => 'unknown',
-		        ),
-		      ),
+		        ],
+		      ],
 		      'data' =>
-		      array (
+		       [
 		        'diff_key' => '332ce863978d8ff5bf34e91c7b31198e',
 		        'type' => 'map',
 		        'prefix' => 'client',
 		        'default' =>
-		        array (
-		        ),
-		      ),
+		         [
+		        ],
+		      ],
 		      'created_at' =>
-		      array (
+		       [
 		        'diff_key' => '64e95ee82db45e34a6c94bb5677be795',
 		        'type' => 'date',
 		        'prefix' => 'client',
 		        'auto' => true,
 		        'format' => 'timestamp',
-		      ),
+		      ],
 		      'updated_at' =>
-		      array (
+		       [
 		        'diff_key' => '650df0130fbdfd254bd531306d54fc48',
 		        'type' => 'date',
 		        'prefix' => 'client',
 		        'format' => 'timestamp',
 		        'nullable' => true,
-		      ),
+		      ],
 		      'valid' =>
-		      array (
+		       [
 		        'diff_key' => '7ccd35ad12c78d6fbdac3f3771f4a1ae',
 		        'type' => 'bool',
 		        'prefix' => 'client',
 		        'strict' => true,
 		        'default' => 1,
-		      ),
-		    ),
+		      ],
+		    ],
 		    'constraints' =>
-		    array (
+		     [
 		      0 =>
-		      array (
+		       [
 		        'type' => 'primary_key',
 		        'columns' =>
-		        array (
+		         [
 		          0 => 'id',
-		        ),
-		      ),
-		    ),
+		        ],
+		      ],
+		    ],
 		    'relations' =>
-		    array (
+		     [
 		      'accounts' =>
-		      array (
+		       [
 		        'type' => 'one-to-many',
 		        'target' => 'accounts',
 		        'link' =>
-		        array (
+		         [
 		          'type' => 'columns',
-		        ),
-		      ),
-		    ),
-		  ),
+		        ],
+		      ],
+		    ],
+		  ],
 		  'accounts' =>
-		  array (
+		   [
 		    'diff_key' => '8d62653147ceb29030e9fad78aa2bea3',
 		    'singular_name' => 'account',
 		    'plural_name' => 'accounts',
@@ -419,230 +419,230 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		    'prefix' => 'gObL',
 		    'column_prefix' => 'account',
 		    'columns' =>
-		    array (
+		     [
 		      'id' =>
-		      array (
+		       [
 		        'diff_key' => '928b82919baa6be1e95acfc6a1e45c27',
 		        'type' => 'int',
 		        'prefix' => 'account',
 		        'unsigned' => true,
 		        'auto_increment' => true,
-		      ),
+		      ],
 		      'client_id' =>
-		      array (
+		       [
 		        'diff_key' => '471cc190c00e52b5a8cd348afc543960',
 		        'type' => 'ref:clients.id',
 		        'prefix' => 'account',
 		        'unsigned' => true,
-		      ),
+		      ],
 		      'label' =>
-		      array (
+		       [
 		        'diff_key' => 'bbac6bef1a874e62afda12a1aa778f3d',
 		        'type' => 'string',
 		        'prefix' => 'account',
 		        'min' => 1,
 		        'max' => 60,
-		      ),
+		      ],
 		      'balance' =>
-		      array (
+		       [
 		        'diff_key' => '871170dfc8df1d93e44ea59a15838fd6',
 		        'type' => 'decimal',
 		        'prefix' => 'account',
 		        'unsigned' => true,
 		        'default' => 0,
-		      ),
+		      ],
 		      'currency_code' =>
-		      array (
+		       [
 		        'diff_key' => 'abef8b546f6ba90bcc3142ad5322a69a',
 		        'type' => 'ref:currencies.code',
 		        'prefix' => 'account',
 		        'min' => 1,
 		        'max' => 30,
-		      ),
+		      ],
 		      'data' =>
-		      array (
+		       [
 		        'diff_key' => '445538a0da046d517d00ceb84dab1128',
 		        'type' => 'map',
 		        'prefix' => 'account',
 		        'default' =>
-		        array (
-		        ),
-		      ),
+		         [
+		        ],
+		      ],
 		      'created_at' =>
-		      array (
+		       [
 		        'diff_key' => '441033768f6dea44814e7f58680f9de5',
 		        'type' => 'date',
 		        'prefix' => 'account',
 		        'auto' => true,
 		        'format' => 'timestamp',
-		      ),
+		      ],
 		      'updated_at' =>
-		      array (
+		       [
 		        'diff_key' => 'f0d8e7c4d25631225680fc05cf08ff83',
 		        'type' => 'date',
 		        'prefix' => 'account',
 		        'format' => 'timestamp',
 		        'nullable' => true,
-		      ),
+		      ],
 		      'valid' =>
-		      array (
+		       [
 		        'diff_key' => '6789f0fe54e0db688b2345c256bf516c',
 		        'type' => 'bool',
 		        'prefix' => 'account',
 		        'strict' => true,
 		        'default' => 1,
-		      ),
-		    ),
+		      ],
+		    ],
 		    'constraints' =>
-		    array (
+		     [
 		      0 =>
-		      array (
+		       [
 		        'type' => 'primary_key',
 		        'columns' =>
-		        array (
+		         [
 		          0 => 'id',
-		        ),
-		      ),
+		        ],
+		      ],
 		      1 =>
-		      array (
+		       [
 		        'type' => 'unique_key',
 		        'columns' =>
-		        array (
+		         [
 		          0 => 'client_id',
 		          1 => 'currency_code',
-		        ),
-		      ),
+		        ],
+		      ],
 		      2 =>
-		      array (
+		       [
 		        'type' => 'foreign_key',
 		        'reference' => 'clients',
 		        'columns' =>
-		        array (
+		         [
 		          'client_id' => 'id',
-		        ),
+		        ],
 		        'update' => 'none',
 		        'delete' => 'none',
-		      ),
+		      ],
 		      3 =>
-		      array (
+		       [
 		        'type' => 'foreign_key',
 		        'reference' => 'currencies',
 		        'columns' =>
-		        array (
+		         [
 		          'currency_code' => 'code',
-		        ),
+		        ],
 		        'update' => 'none',
 		        'delete' => 'none',
-		      ),
-		    ),
+		      ],
+		    ],
 		    'relations' =>
-		    array (
+		     [
 		      'client' =>
-		      array (
+		       [
 		        'type' => 'many-to-one',
 		        'target' => 'clients',
 		        'link' =>
-		        array (
+		         [
 		          'type' => 'columns',
-		        ),
-		      ),
-		    ),
-		  ),
+		        ],
+		      ],
+		    ],
+		  ],
 		  'currencies' =>
-		  array (
+		   [
 		    'diff_key' => '01a0afa5ef2680f4b131e777823fd2e5',
 		    'singular_name' => 'currency',
 		    'plural_name' => 'currencies',
 		    'meta' =>
-		    array (
+		     [
 		      'api' =>
-		      array (
+		       [
 		        'doc' =>
-		        array (
+		         [
 		          'singular_name' => 'Currency',
 		          'plural_name' => 'Currencies',
 		          'use_an' => false,
 		          'description' => 'Currency is a system of money in general use in a particular country.',
-		        ),
-		      ),
-		    ),
+		        ],
+		      ],
+		    ],
 		    'namespace' => 'Test',
 		    'prefix' => 'gObL',
 		    'column_prefix' => 'currency',
 		    'columns' =>
-		    array (
+		     [
 		      'code' =>
-		      array (
+		       [
 		        'diff_key' => '631ee781dbf7808983f848e41bed0caf',
 		        'type' => 'string',
 		        'prefix' => 'currency',
 		        'min' => 1,
 		        'max' => 30,
-		      ),
+		      ],
 		      'name' =>
-		      array (
+		       [
 		        'diff_key' => 'b7bba2cd374dd74750d88807d93d3d39',
 		        'type' => 'string',
 		        'prefix' => 'currency',
 		        'min' => 1,
 		        'max' => 60,
-		      ),
+		      ],
 		      'symbol' =>
-		      array (
+		       [
 		        'diff_key' => '90a33b66db88118579e365cc04f78c49',
 		        'type' => 'string',
 		        'prefix' => 'currency',
 		        'min' => 1,
 		        'max' => 6,
-		      ),
+		      ],
 		      'data' =>
-		      array (
+		       [
 		        'diff_key' => '4a8dd829c11043ddc916703713ca15c7',
 		        'type' => 'map',
 		        'prefix' => 'currency',
 		        'default' =>
-		        array (
-		        ),
-		      ),
+		         [
+		        ],
+		      ],
 		      'created_at' =>
-		      array (
+		       [
 		        'diff_key' => '78506f1b3050aaef226f4d80bfc05827',
 		        'type' => 'date',
 		        'prefix' => 'currency',
 		        'auto' => true,
 		        'format' => 'timestamp',
-		      ),
+		      ],
 		      'updated_at' =>
-		      array (
+		       [
 		        'diff_key' => '50d227dd537920df0d6b6c152fd0761c',
 		        'type' => 'date',
 		        'prefix' => 'currency',
 		        'format' => 'timestamp',
 		        'nullable' => true,
-		      ),
+		      ],
 		      'valid' =>
-		      array (
+		       [
 		        'diff_key' => 'f109d5a3e587224baf23dbc7a17beff4',
 		        'type' => 'bool',
 		        'prefix' => 'currency',
 		        'strict' => true,
 		        'default' => 1,
-		      ),
-		    ),
+		      ],
+		    ],
 		    'constraints' =>
-		    array (
+		     [
 		      0 =>
-		      array (
+		       [
 		        'type' => 'unique_key',
 		        'columns' =>
-		        array (
+		         [
 		          0 => 'code',
-		        ),
-		      ),
-		    ),
-		  ),
+		        ],
+		      ],
+		    ],
+		  ],
 		  'orders' =>
-		  array (
+		   [
 		    'diff_key' => '15c13f44bc885822ef54fc5e5c5c472f',
 		    'singular_name' => 'order',
 		    'plural_name' => 'orders',
@@ -650,61 +650,61 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		    'prefix' => 'gObL',
 		    'column_prefix' => 'order',
 		    'columns' =>
-		    array (
+		     [
 		      'id' =>
-		      array (
+		       [
 		        'diff_key' => 'ccc833d6add056b7824285d9ccc07f3a',
 		        'type' => 'int',
 		        'prefix' => 'order',
 		        'unsigned' => true,
 		        'auto_increment' => true,
-		      ),
+		      ],
 		      'data' =>
-		      array (
+		       [
 		        'diff_key' => 'c2caeedc10f06f5ccdcecb75b45adcfe',
 		        'type' => 'map',
 		        'prefix' => 'order',
 		        'default' =>
-		        array (
-		        ),
-		      ),
+		         [
+		        ],
+		      ],
 		      'created_at' =>
-		      array (
+		       [
 		        'diff_key' => '0fc04af592fdbb725925fc986cc69cc7',
 		        'type' => 'date',
 		        'prefix' => 'order',
 		        'auto' => true,
 		        'format' => 'timestamp',
-		      ),
+		      ],
 		      'updated_at' =>
-		      array (
+		       [
 		        'diff_key' => '908620f8677e420330537455e5b8852d',
 		        'type' => 'date',
 		        'prefix' => 'order',
 		        'format' => 'timestamp',
 		        'nullable' => true,
-		      ),
+		      ],
 		      'valid' =>
-		      array (
+		       [
 		        'diff_key' => '52342c9d133ad7efa2a16ba81b5666cd',
 		        'type' => 'bool',
 		        'prefix' => 'order',
 		        'strict' => true,
 		        'default' => 1,
-		      ),
-		    ),
+		      ],
+		    ],
 		    'constraints' =>
-		    array (
+		     [
 		      0 =>
-		      array (
+		       [
 		        'type' => 'primary_key',
 		        'columns' =>
-		        array (
+		         [
 		          0 => 'id',
-		        ),
-		      ),
-		    ),
-		  ),
-		);
+		        ],
+		      ],
+		    ],
+		  ],
+		];
 	}
 };

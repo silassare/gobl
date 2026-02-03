@@ -442,9 +442,11 @@ DIFF_SQL;
 		}
 
 		foreach ($to as $key => $to_constraint) {
-			if (!isset($from[$key])) {
-				$diff[] = $this->getConstraintAddedClassInstance($to_constraint);
+			if (isset($from[$key])) {
+				continue;
 			}
+
+			$diff[] = $this->getConstraintAddedClassInstance($to_constraint);
 		}
 	}
 
@@ -471,9 +473,11 @@ DIFF_SQL;
 		}
 
 		foreach ($to_table->getUniqueKeyConstraints() as $key => $to_constraint) {
-			if (!isset($from[$key])) {
-				$diff[] = $this->getConstraintAddedClassInstance($to_constraint);
+			if (isset($from[$key])) {
+				continue;
 			}
+
+			$diff[] = $this->getConstraintAddedClassInstance($to_constraint);
 		}
 	}
 

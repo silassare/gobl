@@ -172,7 +172,7 @@ trait QBFromTrait
 			}
 		}
 
-		$alias = $alias ?? QBUtils::newAlias();
+		$alias ??= QBUtils::newAlias();
 
 		$this->alias($table, $alias, !$duplicate);
 

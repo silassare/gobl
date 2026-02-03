@@ -55,7 +55,7 @@ if (!\function_exists('gobl_test_log')) {
 			\fclose($fp);
 
 			if ('w' === $mode) {
-				\chmod($log_file, 0660);
+				\chmod($log_file, 0o660);
 			}
 		}
 	}

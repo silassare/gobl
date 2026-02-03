@@ -94,28 +94,28 @@ trait QBJoinsTrait
 	 * Creates a join query.
 	 *
 	 * @param JoinType     $type
-	 * @param string|Table $firstTable
+	 * @param string|Table $table
 	 * @param null|string  $alias
 	 *
 	 * @return JoinBuilder
 	 */
 	public function join(
 		JoinType $type,
-		string|Table $firstTable,
+		string|Table $table,
 		?string $alias = null,
 	): JoinBuilder {
-		if ($firstTable instanceof Table) {
-			$resolved_table_name = $firstTable->getFullName();
+		if ($table instanceof Table) {
+			$resolved_table_name = $table->getFullName();
 		} else {
-			/** @var string $firstTable */
-			$resolved_table_name = $this->getAliasTable($firstTable);
+			/** @var string $table */
+			$resolved_table_name = $this->getAliasTable($table);
 
 			// argument is an alias
 			if ($resolved_table_name) {
-				$alias = $alias ?? $firstTable;
+				$alias ??= $table;
 			} else {
-				$resolved_table_name = $this->resolveTable($firstTable)
-					?->getFullName() ?? $firstTable;
+				$resolved_table_name = $this->resolveTable($table)
+					?->getFullName() ?? $table;
 			}
 		}
 

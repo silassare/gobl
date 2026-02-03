@@ -78,13 +78,17 @@ class ORMTableFilesGenerated extends Event
 		$file = $this->files[$kind->value];
 
 		foreach ($file->getChildren() as $child) {
-			if ($child instanceof PHPNamespace) {
-				$ns = $child;
-				foreach ($ns->getChildren() as $ns_member) {
-					if ($ns_member instanceof PHPClass) {
-						return $ns_member;
-					}
+			if (!$child instanceof PHPNamespace) {
+				continue;
+			}
+
+			$ns = $child;
+			foreach ($ns->getChildren() as $ns_member) {
+				if (!$ns_member instanceof PHPClass) {
+					continue;
 				}
+
+				return $ns_member;
 			}
 		}
 

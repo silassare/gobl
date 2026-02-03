@@ -174,9 +174,11 @@ abstract class SQLDriverBase extends Db
 			if ($is_multi_queries) {
 				/* https://bugs.php.net/bug.php?id=61613 */
 				while (1) {
-					if (!$stmt->nextRowset()) {
-						break;
+					if ($stmt->nextRowset()) {
+						continue;
 					}
+
+					break;
 				}
 			}
 

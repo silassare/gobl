@@ -76,31 +76,33 @@ class CSGeneratorDart extends CSGenerator
 		$time                        = Gobl::getGeneratedAtDate();
 
 		foreach ($tables as $table) {
-			if (!($this->ignore_private_tables && $table->isPrivate())) {
-				$inject                 = $this->describeTable($table);
-				$inject['gobl_header']  = $header;
-				$inject['gobl_time']    = $time;
-				$inject['gobl_version'] = GOBL_VERSION;
-				$entity_class           = $inject['table']['singular'];
-				$entity_base_class      = $entity_class . '_base';
-				$entity_mixin_class     = $entity_class . '_mixin';
-				$inject['columns_list'] = \implode('|', \array_keys($inject['columns']));
-
-				$column = \next($inject['columns']);
-
-				if ($column) {
-					$inject['columns_prefix'] = $column['prefix'];
-				}
-				\reset($inject['columns']);
-
-				$entity_content                           = $dart_entity_class_tpl->runGet($inject);
-				$entity_base_content                      = $dart_entity_base_class_tpl->runGet($inject);
-				$entity_mixin_content                     = $dart_entity_mixin_class_tpl->runGet($inject);
-				$bundle_inject['entities'][$entity_class] = $inject['class']['entity'];
-				$this->writeFile($path_db_entities . $ds . $entity_class . '.dart', $entity_content);
-				$this->writeFile($path_db_base . $ds . $entity_base_class . '.dart', $entity_base_content);
-				$this->writeFile($path_db_mixins . $ds . $entity_mixin_class . '.dart', $entity_mixin_content, false);
+			if ($this->ignore_private_tables && $table->isPrivate()) {
+				continue;
 			}
+
+			$inject                 = $this->describeTable($table);
+			$inject['gobl_header']  = $header;
+			$inject['gobl_time']    = $time;
+			$inject['gobl_version'] = GOBL_VERSION;
+			$entity_class           = $inject['table']['singular'];
+			$entity_base_class      = $entity_class . '_base';
+			$entity_mixin_class     = $entity_class . '_mixin';
+			$inject['columns_list'] = \implode('|', \array_keys($inject['columns']));
+
+			$column = \next($inject['columns']);
+
+			if ($column) {
+				$inject['columns_prefix'] = $column['prefix'];
+			}
+			\reset($inject['columns']);
+
+			$entity_content                           = $dart_entity_class_tpl->runGet($inject);
+			$entity_base_content                      = $dart_entity_base_class_tpl->runGet($inject);
+			$entity_mixin_content                     = $dart_entity_mixin_class_tpl->runGet($inject);
+			$bundle_inject['entities'][$entity_class] = $inject['class']['entity'];
+			$this->writeFile($path_db_entities . $ds . $entity_class . '.dart', $entity_content);
+			$this->writeFile($path_db_base . $ds . $entity_base_class . '.dart', $entity_base_content);
+			$this->writeFile($path_db_mixins . $ds . $entity_mixin_class . '.dart', $entity_mixin_content, false);
 		}
 
 		$bundle_inject['gobl_header']  = $header;
