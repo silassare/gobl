@@ -230,11 +230,7 @@ DIFF_SQL;
 		}
 
 		if (!empty($diff)) {
-			\usort($diff, static function (DiffAction $a, DiffAction $b) {
-				return $a->getType()
-					->getPriority() - $b->getType()
-					->getPriority();
-			});
+			\usort($diff, static fn (DiffAction $a, DiffAction $b) => $a->getType()->getPriority() - $b->getType()->getPriority());
 		}
 
 		return $diff;
@@ -489,11 +485,8 @@ DIFF_SQL;
 	 */
 	private function diffSql(RDBMSInterface $db, array $diff_actions): string
 	{
-		$gen   = $db->getGenerator();
-		$sql   = \implode(\PHP_EOL, \array_map(
-			static fn (DiffAction $item) => $gen->buildDiffActionQuery($item),
-			$diff_actions
-		));
+		$gen = $db->getGenerator();
+		$sql = \implode(\PHP_EOL, \array_map($gen->buildDiffActionQuery(...), $diff_actions));
 
 		if (!empty(\trim($sql))) {
 			$sql = $gen->wrapDatabaseDefinitionQuery($sql);
