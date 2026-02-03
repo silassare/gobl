@@ -37,7 +37,6 @@ final class LinkJoin extends Link
 	 * @param RDBMSInterface $rdbms
 	 * @param Table          $host_table
 	 * @param Table          $target_table
-	 * @param Table          $pivot_table
 	 * @param array{
 	 * 			steps: array{join: string, link: array},
 	 *          filters?: null|array,

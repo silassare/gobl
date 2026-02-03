@@ -175,7 +175,7 @@ trait QBBindTrait
 			$dirty = true;
 		}
 
-		if (true === $dirty) {
+		if ($dirty) {
 			throw new DBALException('You should not use both named and positional parameters in the same query.');
 		}
 	}

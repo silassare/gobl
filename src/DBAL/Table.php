@@ -804,7 +804,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	 */
 	public function getColumns(bool $include_private = true, bool $include_sensitive = true): array
 	{
-		if (false === $include_private || false === $include_sensitive) {
+		if (!$include_private || !$include_sensitive) {
 			$results = [];
 
 			foreach ($this->columns as $name => $column) {
@@ -1274,7 +1274,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	 */
 	public function getRelations(bool $include_private = true): array
 	{
-		if (false === $include_private) {
+		if (!$include_private) {
 			return \array_filter($this->relations, static fn ($relation) => !$relation->isPrivate());
 		}
 
@@ -1306,7 +1306,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	 */
 	public function getVirtualRelations(bool $include_private = true): array
 	{
-		if (false === $include_private) {
+		if (!$include_private) {
 			return \array_filter($this->virtual_relations, static fn ($relation) => !$relation->isPrivate());
 		}
 

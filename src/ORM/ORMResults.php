@@ -154,6 +154,7 @@ abstract class ORMResults implements Countable, Iterator
 		$entity = $stmt->fetch();
 
 		if ($entity instanceof $this->entity_class) {
+			/** @var TEntity $entity */
 			$entity->isSaved(true); // the entity is fetched from the database
 
 			return $entity;
@@ -294,7 +295,7 @@ abstract class ORMResults implements Countable, Iterator
 	public function count(): int
 	{
 		if (null === $this->limited_count_cache) {
-			if (false === $this->trust_row_count) {
+			if (!$this->trust_row_count) {
 				$this->limited_count_cache = $this->query->runTotalRowsCount(true);
 			} else {
 				$this->limited_count_cache = $this->getStatement()

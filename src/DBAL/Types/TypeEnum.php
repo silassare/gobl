@@ -103,7 +103,7 @@ class TypeEnum extends Type
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws TypesException
+	 * @throws Throwable
 	 */
 	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?BackedEnum
 	{
@@ -185,7 +185,6 @@ class TypeEnum extends Type
 			}
 		}
 
-		/** @var class-string<BackedEnum> $enum_cls */
 		$enum_cls = $this->getEnumClass();
 		if (\is_string($value) || \is_int($value)) {
 			try {
@@ -195,11 +194,12 @@ class TypeEnum extends Type
 			}
 		}
 
-		if (!$value instanceof $enum_cls) {
-			throw new TypesInvalidValueException($this->msg('invalid_enum_value_type'), $debug);
+		if ($value instanceof $enum_cls) {
+			/** @var BackedEnum $value */
+			return $value;
 		}
 
-		return $value;
+		throw new TypesInvalidValueException($this->msg('invalid_enum_value_type'), $debug);
 	}
 
 	/**
@@ -211,13 +211,13 @@ class TypeEnum extends Type
 	 */
 	public function getEnumClass(): string
 	{
+		/** @var null|class-string<BackedEnum> $cls */
 		$cls = $this->getOption(self::OPTION_ENUM_CLASS);
 
 		if (!$cls) {
 			throw new TypesException('enum class not set');
 		}
 
-		/** @var class-string<BackedEnum> $cls */
 		return $cls;
 	}
 
@@ -228,7 +228,7 @@ class TypeEnum extends Type
 	 *
 	 * @return BackedEnum
 	 *
-	 * @throws TypesException
+	 * @throws Throwable
 	 */
 	protected function toEnumValue(int|string $value): BackedEnum
 	{

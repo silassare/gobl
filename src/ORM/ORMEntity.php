@@ -398,7 +398,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 */
 	public function isSaved(bool $set_as_saved = false): bool
 	{
-		if (true === $set_as_saved) {
+		if ($set_as_saved) {
 			$this->_oeb_row_saved = \array_replace($this->_oeb_row_saved, $this->_oeb_row);
 			$this->_oeb_is_new    = false;
 			$this->_oeb_is_saved  = true;
