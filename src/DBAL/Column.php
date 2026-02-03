@@ -325,26 +325,37 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 
 		if (empty($reference)) {
 			$this->reference = null;
-		} elseif (\is_string($reference)) {
+
+			return $this;
+		}
+
+		if (\is_string($reference)) {
 			if (!Db::isColumnReference($reference)) {
 				throw new InvalidArgumentException(
 					\sprintf('Invalid column reference "%s" for column "%s".', $reference, $this->getName())
 				);
 			}
+
 			$this->reference = $reference;
-		} elseif ($table = $reference->getTable()) {
-			$this->reference = ($copy ? 'cp' : 'ref') . ':' . $table->getName() . '.' . $reference->getName();
-		} else {
-			throw new InvalidArgumentException(
-				\sprintf(
-					'Column "%s" not added to a known table could not be added as reference for column "%s".',
-					$reference->getName(),
-					$this->getName()
-				)
-			);
+
+			return $this;
 		}
 
-		return $this;
+		$table = $reference->getTable();
+
+		if ($table) {
+			$this->reference = ($copy ? 'cp' : 'ref') . ':' . $table->getName() . '.' . $reference->getName();
+
+			return $this;
+		}
+
+		throw new InvalidArgumentException(
+			\sprintf(
+				'Column "%s" not added to a known table could not be added as reference for column "%s".',
+				$reference->getName(),
+				$this->getName()
+			)
+		);
 	}
 
 	/**

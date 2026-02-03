@@ -960,18 +960,13 @@ abstract class Db implements RDBMSInterface
 			$ref_col   = $info['column'];
 
 			if ($tbl = $this->getTable($ref_table)) {
-				if ($col = $tbl->getColumn($ref_col)) {
-					$_col_opt = $col->getType()
-						->toArray();
-				}
+				$_col_opt = $tbl->getColumn($ref_col)?->getType()
+					->toArray();
 			} elseif (isset($schema[$ref_table])) {
 				if ($schema[$ref_table] instanceof Table) {
-					$tbl = $schema[$ref_table];
-
-					if ($col = $tbl->getColumn($ref_col)) {
-						$_col_opt = $col->getType()
-							->toArray();
-					}
+					$tbl      = $schema[$ref_table];
+					$_col_opt = $tbl->getColumn($ref_col)?->getType()
+						->toArray();
 				} elseif (\is_array($schema[$ref_table]) && isset($schema[$ref_table]['columns'][$ref_col])) {
 					$ref_col_opt          = $schema[$ref_table]['columns'][$ref_col];
 					$ref_type_to_override = null;
