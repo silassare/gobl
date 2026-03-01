@@ -287,10 +287,10 @@ final class ForeignKey extends Constraint
 		// table_a.col_2 => table_b.col_x
 		$columns = \array_unique($this->getReferenceColumns());
 
-		if (!$this->reference_table->isPrimaryKey($columns)) {
+		if (!$this->reference_table->isPrimaryKey($columns) && !$this->reference_table->isUniqueKey($columns)) {
 			throw new DBALException(
 				\sprintf(
-					'Foreign key "(%s)" in table "%s" should be primary key in the reference table "%s".',
+					'Foreign key "(%s)" in table "%s" should be primary key or unique key in the reference table "%s".',
 					\implode(', ', $columns),
 					$this->host_table->getName(),
 					$this->reference_table->getName(),
@@ -301,7 +301,8 @@ final class ForeignKey extends Constraint
 		foreach ($this->columns_map as $full_name => $target_full_name) {
 			$col = $this->host_table->getColumnOrFail($full_name);
 
-			if (ForeignKeyAction::SET_NULL === $this->delete_action
+			if (
+				ForeignKeyAction::SET_NULL === $this->delete_action
 				&& !$col->getType()
 					->isNullable()
 			) {
@@ -314,7 +315,8 @@ final class ForeignKey extends Constraint
 					)
 				);
 			}
-			if (ForeignKeyAction::SET_NULL === $this->update_action
+			if (
+				ForeignKeyAction::SET_NULL === $this->update_action
 				&& !$col->getType()
 					->isNullable()
 			) {
