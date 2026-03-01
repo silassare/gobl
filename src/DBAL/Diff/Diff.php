@@ -64,6 +64,22 @@ class Diff
 	}
 
 	/**
+	 * Get destination db.
+	 */
+	public function getDbTo(): RDBMSInterface
+	{
+		return $this->db_to;
+	}
+
+	/**
+	 * Get source db.
+	 */
+	public function getDbFrom(): RDBMSInterface
+	{
+		return $this->db_from;
+	}
+
+	/**
 	 * Create diff file using two db.
 	 *
 	 * @param int         $version the migration version
@@ -177,6 +193,87 @@ DIFF_SQL;
 	}
 
 	/**
+	 * Make an in-memory {@see MigrationInterface} instance from the current diff.
+	 *
+	 * Unlike {@see generateMigrationFile()}, this method does not produce source code;
+	 * it returns a live PHP object that can be directly passed to a {@see MigrationRunner}.
+	 *
+	 * @param int         $version the migration version
+	 * @param null|string $label   the migration label
+	 *
+	 * @return MigrationInterface
+	 */
+	public function makeMigrationInstance(int $version, ?string $label = 'Auto generated.'): MigrationInterface
+	{
+		$up       = $this->getDiff();
+		$down     = (new self($this->db_to, $this->db_from))->getDiff();
+		$up_sql   = $this->diffSql($this->db_to, $up);
+		$down_sql = $this->diffSql($this->db_from, $down);
+
+		$time    = \time();
+		$configs = $this->db_to->getConfig()->toSafeArray();
+		$tables  = [];
+
+		foreach ($this->db_to->getTables() as $table) {
+			$tables[$table->getName()] = $table->toArray();
+		}
+
+		return new class($version, $label ?? '', $time, $up_sql, $down_sql, $configs, $tables) implements MigrationInterface {
+			public function __construct(
+				private readonly int $version,
+				private readonly string $label,
+				private readonly int $timestamp,
+				private readonly string $up_sql,
+				private readonly string $down_sql,
+				private readonly array $configs,
+				private readonly array $schema,
+			) {}
+
+			public function getVersion(): int
+			{
+				return $this->version;
+			}
+
+			public function getLabel(): string
+			{
+				return $this->label;
+			}
+
+			public function getTimestamp(): int
+			{
+				return $this->timestamp;
+			}
+
+			public function getSchema(): array
+			{
+				return $this->schema;
+			}
+
+			public function getConfigs(): array
+			{
+				return $this->configs;
+			}
+
+			public function up(): string
+			{
+				return $this->up_sql;
+			}
+
+			public function down(): string
+			{
+				return $this->down_sql;
+			}
+
+			public function beforeRun(MigrationMode $mode, string $query): bool|string
+			{
+				return true;
+			}
+
+			public function afterRun(MigrationMode $mode): void {}
+		};
+	}
+
+	/**
 	 * Gets diff.
 	 *
 	 * @return DiffAction[]
@@ -235,7 +332,7 @@ DIFF_SQL;
 		}
 
 		if (!empty($diff)) {
-			\usort($diff, static fn (DiffAction $a, DiffAction $b) => $a->getType()->getPriority() - $b->getType()->getPriority());
+			\usort($diff, static fn(DiffAction $a, DiffAction $b) => $a->getType()->getPriority() - $b->getType()->getPriority());
 		}
 
 		return $diff;
@@ -393,8 +490,8 @@ DIFF_SQL;
 					->getFullName())) {
 					$touched = \sprintf('constraint host table changed from "%s" to "%s".', $a, $b);
 				} elseif (($a = $from_constraint->getReferenceTable()
-					->getFullName()) !== ($b = $to_constraint->getReferenceTable()
-					->getFullName())
+						->getFullName()) !== ($b = $to_constraint->getReferenceTable()
+						->getFullName())
 				) {
 					$touched = \sprintf('constraint reference table changed from "%s" to "%s".', $a, $b);
 				} elseif ($from_constraint->getColumnsMapping() !== $to_constraint->getColumnsMapping()) {

@@ -174,8 +174,17 @@ abstract class SQLDriverBase extends Db
 			if ($is_multi_queries) {
 				/* https://bugs.php.net/bug.php?id=61613 */
 				while (1) {
-					if ($stmt->nextRowset()) {
-						continue;
+					try {
+						if ($stmt->nextRowset()) {
+							continue;
+						}
+					} catch (PDOException $e) {
+						// Some drivers (e.g. SQLite) do not support nextRowset().
+						if ('IM001' === $e->getCode()) {
+							break;
+						}
+
+						throw $e;
 					}
 
 					break;
