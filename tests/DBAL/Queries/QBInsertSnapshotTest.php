@@ -28,59 +28,59 @@ use Gobl\Tests\BaseTestCase;
  */
 final class QBInsertSnapshotTest extends BaseTestCase
 {
-    /** INSERT single row with all columns. */
-    public function testInsertSingleRow(): void
-    {
-        $db = self::getDb(MySQL::NAME);
-        $qb = new QBInsert($db);
-        $qb->into('clients')->values([
-            'first_name' => 'John',
-            'last_name'  => 'Doe',
-            'given_name' => 'Johnny',
-            'gender'     => 'male',
-            'valid'      => true,
-        ]);
+	/** INSERT single row with all columns. */
+	public function testInsertSingleRow(): void
+	{
+		$db = self::getDb(MySQL::NAME);
+		$qb = new QBInsert($db);
+		$qb->into('clients')->values([
+			'first_name' => 'John',
+			'last_name'  => 'Doe',
+			'given_name' => 'Johnny',
+			'gender'     => 'male',
+			'valid'      => true,
+		]);
 
-        $this->assertMatchesSnapshot('mysql/qb_insert_single', $qb->getSqlQuery(), $qb->getBoundValues());
-    }
+		$this->assertMatchesSnapshot('mysql/qb_insert_single', $qb->getSqlQuery(), $qb->getBoundValues());
+	}
 
-    /** INSERT multiple rows in one statement. */
-    public function testInsertMultipleRows(): void
-    {
-        $db = self::getDb(MySQL::NAME);
-        $qb = new QBInsert($db);
-        $qb->into('clients')->values([
-            [
-                'first_name' => 'Alice',
-                'last_name'  => 'Smith',
-                'gender'     => 'female',
-            ],
-            [
-                'first_name' => 'Bob',
-                'last_name'  => 'Jones',
-                'gender'     => 'male',
-            ],
-            [
-                'first_name' => 'Carol',
-                'last_name'  => 'White',
-                'gender'     => 'female',
-            ],
-        ]);
+	/** INSERT multiple rows in one statement. */
+	public function testInsertMultipleRows(): void
+	{
+		$db = self::getDb(MySQL::NAME);
+		$qb = new QBInsert($db);
+		$qb->into('clients')->values([
+			[
+				'first_name' => 'Alice',
+				'last_name'  => 'Smith',
+				'gender'     => 'female',
+			],
+			[
+				'first_name' => 'Bob',
+				'last_name'  => 'Jones',
+				'gender'     => 'male',
+			],
+			[
+				'first_name' => 'Carol',
+				'last_name'  => 'White',
+				'gender'     => 'female',
+			],
+		]);
 
-        $this->assertMatchesSnapshot('mysql/qb_insert_multiple', $qb->getSqlQuery(), $qb->getBoundValues());
-    }
+		$this->assertMatchesSnapshot('mysql/qb_insert_multiple', $qb->getSqlQuery(), $qb->getBoundValues());
+	}
 
-    /** INSERT with only a subset of columns (omitting optional fields). */
-    public function testInsertPartialColumns(): void
-    {
-        $db = self::getDb(MySQL::NAME);
-        $qb = new QBInsert($db);
-        $qb->into('currencies')->values([
-            'code'   => 'USD',
-            'name'   => 'US Dollar',
-            'symbol' => '$',
-        ]);
+	/** INSERT with only a subset of columns (omitting optional fields). */
+	public function testInsertPartialColumns(): void
+	{
+		$db = self::getDb(MySQL::NAME);
+		$qb = new QBInsert($db);
+		$qb->into('currencies')->values([
+			'code'   => 'USD',
+			'name'   => 'US Dollar',
+			'symbol' => '$',
+		]);
 
-        $this->assertMatchesSnapshot('mysql/qb_insert_partial', $qb->getSqlQuery(), $qb->getBoundValues());
-    }
+		$this->assertMatchesSnapshot('mysql/qb_insert_partial', $qb->getSqlQuery(), $qb->getBoundValues());
+	}
 }

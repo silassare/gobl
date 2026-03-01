@@ -192,6 +192,18 @@ final class QBSelectSnapshotTest extends BaseTestCase
 		$this->assertMatchesSnapshot('mysql/qb_select_order_by_asc', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 
+	/** ORDER BY single column DESC. */
+	public function testSelectOrderByDesc(): void
+	{
+		$db = self::getDb(MySQL::NAME);
+		$qb = new QBSelect($db);
+		$qb->from('clients', 'c')
+			->select('c')
+			->orderBy(['client_last_name' => 'DESC']);
+
+		$this->assertMatchesSnapshot('mysql/qb_select_order_by_desc', $qb->getSqlQuery(), $qb->getBoundValues());
+	}
+
 	/** ORDER BY multiple columns with mixed directions. */
 	public function testSelectOrderByMulti(): void
 	{

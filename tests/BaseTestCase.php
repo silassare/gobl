@@ -203,6 +203,79 @@ abstract class BaseTestCase extends TestCase
 	}
 
 	/**
+	 * Normalizes dynamic content (generated timestamps, version strings) in SQL/file output
+	 * so that snapshots remain stable across runs.
+	 *
+	 * Replaces ISO-8601 timestamps (e.g. inside `-- Time: …` comments) with a fixed placeholder.
+	 *
+	 * @param string $content Raw output to normalize
+	 *
+	 * @return string
+	 */
+	public static function normalizeGeneratedContent(string $content): string
+	{
+		// Replace ISO-8601 datetime stamps produced by date(DATE_ATOM)
+		$normalized = \preg_replace(
+			'/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}/',
+			'[GENERATED_AT]',
+			$content
+		);
+
+		// remove gobl version comments like `gobl v2.0.0`
+		return \preg_replace(
+			'/gobl v\d+\.\d+\.\d+/',
+			'gobl [GOBL_VERSION]',
+			$normalized
+		);
+	}
+
+	/**
+	 * Asserts that the given raw (non-query-builder) content matches a stored snapshot.
+	 * Dynamic timestamps in the content are normalized before comparison.
+	 *
+	 * @param string $snapshotName Slash-separated key, e.g. "mysql/db_schema_full"
+	 * @param string $content      The raw content to snapshot
+	 */
+	protected function assertMatchesContentSnapshot(string $snapshotName, string $content): void
+	{
+		$normalized = self::normalizeGeneratedContent($content);
+
+		$expected_dir  = GOBL_TEST_ASSETS . \DIRECTORY_SEPARATOR . 'snapshots' . \DIRECTORY_SEPARATOR
+			. \str_replace('/', \DIRECTORY_SEPARATOR, \dirname($snapshotName));
+		$expected_file = GOBL_TEST_ASSETS . \DIRECTORY_SEPARATOR . 'snapshots' . \DIRECTORY_SEPARATOR
+			. \str_replace('/', \DIRECTORY_SEPARATOR, $snapshotName) . '.txt';
+
+		$actual_dir  = GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'snapshots' . \DIRECTORY_SEPARATOR
+			. \str_replace('/', \DIRECTORY_SEPARATOR, \dirname($snapshotName));
+		$actual_file = GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'snapshots' . \DIRECTORY_SEPARATOR
+			. \str_replace('/', \DIRECTORY_SEPARATOR, $snapshotName) . '.txt';
+
+		if (!\is_dir($actual_dir)) {
+			\mkdir($actual_dir, 0755, true);
+		}
+
+		\file_put_contents($actual_file, $normalized);
+
+		if (!\file_exists($expected_file)) {
+			if (!\is_dir($expected_dir)) {
+				\mkdir($expected_dir, 0755, true);
+			}
+
+			\file_put_contents($expected_file, $normalized);
+		}
+
+		// rtrim so that editors adding a trailing newline don't break the comparison
+		$expected_content = \rtrim((string) \file_get_contents($expected_file), \PHP_EOL);
+
+		self::assertSame(
+			$expected_content,
+			// rtrim this too because its may come from a file template
+			\rtrim($normalized, \PHP_EOL),
+			\sprintf('Snapshot mismatch for "%s". To regenerate, delete: %s', $snapshotName, $expected_file)
+		);
+	}
+
+	/**
 	 * Asserts that the given SQL and bound values match a stored snapshot fixture.
 	 *
 	 * On the first run (when the fixture file does not exist) the snapshot is
@@ -247,9 +320,13 @@ abstract class BaseTestCase extends TestCase
 			\file_put_contents($expected_file, $content);
 		}
 
+		// rtrim so that editors adding a trailing newline don't break the comparison
+		$expected_content = \rtrim((string) \file_get_contents($expected_file), \PHP_EOL);
+
 		self::assertSame(
-			\file_get_contents($expected_file),
-			$content,
+			$expected_content,
+			// rtrim this too because its may come from a file template
+			\rtrim($content, \PHP_EOL),
 			\sprintf('Snapshot mismatch for "%s". To regenerate, delete: %s', $snapshotName, $expected_file)
 		);
 	}
