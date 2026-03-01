@@ -1,0 +1,112 @@
+
+// Auto generated file
+//
+// WARNING: please don't edit.
+//
+// Proudly With: gobl [GOBL_VERSION]
+// Time: [GENERATED_AT]
+import '../base/client_base.dart';
+import '../mixins/client_mixin.dart';
+
+class Client extends ClientBase with ClientMixin<Client> {
+  static const ENTITY_NAME = 'Client';
+  static const PREFIX = 'client';
+  static const COLUMNS = [
+ 'client_id',
+ 'client_first_name',
+ 'client_last_name',
+ 'client_given_name',
+ 'client_gender',
+ 'client_data',
+ 'client_created_at',
+ 'client_updated_at',
+ 'client_valid',
+
+  ];
+ static const COL_ID = 'client_id';
+ static const COL_FIRST_NAME = 'client_first_name';
+ static const COL_LAST_NAME = 'client_last_name';
+ static const COL_GIVEN_NAME = 'client_given_name';
+ static const COL_GENDER = 'client_gender';
+ static const COL_DATA = 'client_data';
+ static const COL_CREATED_AT = 'client_created_at';
+ static const COL_UPDATED_AT = 'client_updated_at';
+ static const COL_VALID = 'client_valid';
+
+
+  Client([Map<String, dynamic> initialData = const {}])
+      : super(
+      initialData: initialData,
+      name: ENTITY_NAME,
+      prefix: PREFIX,
+      columns: COLUMNS);
+
+  @override
+  Client get self {
+    return this;
+  }
+
+  @override
+  String singlePKValue() {
+    return '$id';
+  }
+
+
+  @override
+  List<String> identifierColumns() {
+    return [
+    COL_ID 
+    ];
+  }
+
+  @override
+  Client fromJson(Map<String, dynamic> json) {
+    return Client(json);
+  }
+
+  String|null get id { return doGet(COL_ID, String|null); }
+  set id(String|num|null nVal) { doSet(COL_ID, nVal, String|null); }
+  String|null getID() { return id; }
+  Client setID(String|num|null nVal) { id = nVal; return this; }
+
+  String get first_name { return doGet(COL_FIRST_NAME, String); }
+  set first_name(String nVal) { doSet(COL_FIRST_NAME, nVal, String); }
+  String getFirstName() { return first_name; }
+  Client setFirstName(String nVal) { first_name = nVal; return this; }
+
+  String get last_name { return doGet(COL_LAST_NAME, String); }
+  set last_name(String nVal) { doSet(COL_LAST_NAME, nVal, String); }
+  String getLastName() { return last_name; }
+  Client setLastName(String nVal) { last_name = nVal; return this; }
+
+  String get given_name { return doGet(COL_GIVEN_NAME, String); }
+  set given_name(String nVal) { doSet(COL_GIVEN_NAME, nVal, String); }
+  String getGivenName() { return given_name; }
+  Client setGivenName(String nVal) { given_name = nVal; return this; }
+
+  String get gender { return doGet(COL_GENDER, String); }
+  set gender(String nVal) { doSet(COL_GENDER, nVal, String); }
+  String getGender() { return gender; }
+  Client setGender(String nVal) { gender = nVal; return this; }
+
+  Map get data { return doGet(COL_DATA, Map); }
+  set data(Map|List nVal) { doSet(COL_DATA, nVal, Map); }
+  Map getData() { return data; }
+  Client setData(Map|List nVal) { data = nVal; return this; }
+
+  String get created_at { return doGet(COL_CREATED_AT, String); }
+  set created_at(String|num nVal) { doSet(COL_CREATED_AT, nVal, String); }
+  String getCreatedAT() { return created_at; }
+  Client setCreatedAT(String|num nVal) { created_at = nVal; return this; }
+
+  String get updated_at { return doGet(COL_UPDATED_AT, String); }
+  set updated_at(String|num nVal) { doSet(COL_UPDATED_AT, nVal, String); }
+  String getUpdatedAT() { return updated_at; }
+  Client setUpdatedAT(String|num nVal) { updated_at = nVal; return this; }
+
+  bool get valid { return doGet(COL_VALID, bool); }
+  set valid(bool nVal) { doSet(COL_VALID, nVal, bool); }
+  bool getValid() { return valid; }
+  Client setValid(bool nVal) { valid = nVal; return this; }
+
+}

@@ -1,0 +1,98 @@
+
+// Auto generated file
+//
+// WARNING: please don't edit.
+//
+// Proudly With: gobl [GOBL_VERSION]
+// Time: [GENERATED_AT]
+import '../base/currency_base.dart';
+import '../mixins/currency_mixin.dart';
+
+class Currency extends CurrencyBase with CurrencyMixin<Currency> {
+  static const ENTITY_NAME = 'Currency';
+  static const PREFIX = 'ccy';
+  static const COLUMNS = [
+ 'ccy_code',
+ 'ccy_name',
+ 'ccy_symbol',
+ 'ccy_data',
+ 'ccy_created_at',
+ 'ccy_updated_at',
+ 'ccy_valid',
+
+  ];
+ static const COL_CODE = 'ccy_code';
+ static const COL_NAME = 'ccy_name';
+ static const COL_SYMBOL = 'ccy_symbol';
+ static const COL_DATA = 'ccy_data';
+ static const COL_CREATED_AT = 'ccy_created_at';
+ static const COL_UPDATED_AT = 'ccy_updated_at';
+ static const COL_VALID = 'ccy_valid';
+
+
+  Currency([Map<String, dynamic> initialData = const {}])
+      : super(
+      initialData: initialData,
+      name: ENTITY_NAME,
+      prefix: PREFIX,
+      columns: COLUMNS);
+
+  @override
+  Currency get self {
+    return this;
+  }
+
+  @override
+  String singlePKValue() {
+    return '$code';
+  }
+
+
+  @override
+  List<String> identifierColumns() {
+    return [
+    COL_CODE 
+    ];
+  }
+
+  @override
+  Currency fromJson(Map<String, dynamic> json) {
+    return Currency(json);
+  }
+
+  String get code { return doGet(COL_CODE, String); }
+  set code(String nVal) { doSet(COL_CODE, nVal, String); }
+  String getCode() { return code; }
+  Currency setCode(String nVal) { code = nVal; return this; }
+
+  String get name { return doGet(COL_NAME, String); }
+  set name(String nVal) { doSet(COL_NAME, nVal, String); }
+  String getName() { return name; }
+  Currency setName(String nVal) { name = nVal; return this; }
+
+  String get symbol { return doGet(COL_SYMBOL, String); }
+  set symbol(String nVal) { doSet(COL_SYMBOL, nVal, String); }
+  String getSymbol() { return symbol; }
+  Currency setSymbol(String nVal) { symbol = nVal; return this; }
+
+  Map get data { return doGet(COL_DATA, Map); }
+  set data(Map|List nVal) { doSet(COL_DATA, nVal, Map); }
+  Map getData() { return data; }
+  Currency setData(Map|List nVal) { data = nVal; return this; }
+
+  String get created_at { return doGet(COL_CREATED_AT, String); }
+  set created_at(String|num nVal) { doSet(COL_CREATED_AT, nVal, String); }
+  String getCreatedAT() { return created_at; }
+  Currency setCreatedAT(String|num nVal) { created_at = nVal; return this; }
+
+  String get updated_at { return doGet(COL_UPDATED_AT, String); }
+  set updated_at(String|num nVal) { doSet(COL_UPDATED_AT, nVal, String); }
+  String getUpdatedAT() { return updated_at; }
+  Currency setUpdatedAT(String|num nVal) { updated_at = nVal; return this; }
+
+  bool get valid { return doGet(COL_VALID, bool); }
+  set valid(bool nVal) { doSet(COL_VALID, nVal, bool); }
+  bool getValid() { return valid; }
+  Currency setValid(bool nVal) { valid = nVal; return this; }
+
+}

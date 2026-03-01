@@ -41,6 +41,16 @@ abstract class BaseTestCase extends TestCase
 	/** @var RDBMSInterface[] */
 	private static array $rdbms = [];
 
+	/**
+	 * Loads variables from .env.test into $_ENV if the file exists.
+	 * Called once before the test suite via setUpBeforeClass().
+	 */
+	public static function setUpBeforeClass(): void
+	{
+		parent::setUpBeforeClass();
+		self::loadDotEnvTest();
+	}
+
 	protected function tearDown(): void
 	{
 		parent::tearDown();
@@ -330,5 +340,87 @@ abstract class BaseTestCase extends TestCase
 			\rtrim($content, \PHP_EOL),
 			\sprintf('Snapshot mismatch for "%s". To regenerate, delete: %s', $snapshotName, $expected_file)
 		);
+	}
+
+	protected static function rmDirRecursive(string $dir): void
+	{
+		if (!\is_dir($dir)) {
+			return;
+		}
+
+		foreach (\scandir($dir) as $item) {
+			if ('.' === $item || '..' === $item) {
+				continue;
+			}
+
+			$path = $dir . \DIRECTORY_SEPARATOR . $item;
+
+			if (\is_dir($path)) {
+				self::rmDirRecursive($path);
+			} else {
+				\unlink($path);
+			}
+		}
+
+		\rmdir($dir);
+	}
+
+	/** Recursively lists all file absolute paths under $dir, sorted. */
+	protected static function scanFiles(string $dir): array
+	{
+		$result = [];
+
+		foreach (\scandir($dir) as $item) {
+			if ('.' === $item || '..' === $item) {
+				continue;
+			}
+
+			$path = $dir . \DIRECTORY_SEPARATOR . $item;
+
+			if (\is_dir($path)) {
+				foreach (self::scanFiles($path) as $sub) {
+					$result[] = $sub;
+				}
+			} else {
+				$result[] = $path;
+			}
+		}
+
+		\sort($result);
+
+		return $result;
+	}
+
+	protected static function loadDotEnvTest(): void
+	{
+		$envFile = \dirname(__DIR__, 2) . \DIRECTORY_SEPARATOR . '.env.test';
+
+		if (!\file_exists($envFile)) {
+			return;
+		}
+
+		$lines = \file($envFile, \FILE_IGNORE_NEW_LINES | \FILE_SKIP_EMPTY_LINES);
+
+		foreach ($lines as $line) {
+			$line = \trim($line);
+
+			// Skip comments
+			if ('' === $line || \str_starts_with($line, '#')) {
+				continue;
+			}
+
+			if (\str_contains($line, '=')) {
+				[$key, $value]   = \explode('=', $line, 2);
+				$key             = \trim($key);
+				$value           = \trim($value, " \t\"'");
+				$_ENV[$key]      = $value;
+				$_SERVER[$key]   = $value;
+			}
+		}
+	}
+
+	protected static function env(string $key, string $default = ''): string
+	{
+		return (string) ($_ENV[$key] ?? \getenv($key) ?: $default);
 	}
 }

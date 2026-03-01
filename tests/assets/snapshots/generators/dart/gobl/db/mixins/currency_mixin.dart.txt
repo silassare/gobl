@@ -1,0 +1,19 @@
+
+// Auto generated file
+//
+// INFO: you are free to edit it,
+// but make sure to know what you are doing.
+//
+// Proudly With: gobl [GOBL_VERSION]
+// Time: [GENERATED_AT]
+
+import '../base/currency_base.dart';
+import '../entities/currency.dart';
+
+mixin CurrencyMixin<T extends Currency> on CurrencyBase {
+  T get self;
+
+  //====================================================
+  //=	Your custom implementation goes here
+  //====================================================
+}

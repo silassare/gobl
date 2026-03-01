@@ -1,0 +1,365 @@
+<?php
+declare(strict_types=1);
+
+namespace Gobl\Tests\Db\Base;
+
+use Gobl\Tests\Db\Client as ClientReal;
+
+/**
+ * Class Client.
+ * @property string|null $id Getter for column `clients.id`.
+ * @property string $first_name Getter for column `clients.first_name`.
+ * @property string $last_name Getter for column `clients.last_name`.
+ * @property string $given_name Getter for column `clients.given_name`.
+ * @property string $gender Getter for column `clients.gender`.
+ * @property \Gobl\DBAL\Types\Utils\Map $data Getter for column `clients.data`.
+ * @property string $created_at Getter for column `clients.created_at`.
+ * @property string $updated_at Getter for column `clients.updated_at`.
+ * @property bool $valid Getter for column `clients.valid`.
+ */
+abstract class Client extends \Gobl\ORM\ORMEntity
+{
+	public const TABLE_NAME = 'clients';
+	public const TABLE_NAMESPACE = 'Gobl\\Tests\\Db';
+	public const COL_ID = 'client_id';
+	public const COL_FIRST_NAME = 'client_first_name';
+	public const COL_LAST_NAME = 'client_last_name';
+	public const COL_GIVEN_NAME = 'client_given_name';
+	public const COL_GENDER = 'client_gender';
+	public const COL_DATA = 'client_data';
+	public const COL_CREATED_AT = 'client_created_at';
+	public const COL_UPDATED_AT = 'client_updated_at';
+	public const COL_VALID = 'client_valid';
+	/**
+	 * Client constructor.
+	 * 
+	 * @param bool $is_new true for new entity false for entity fetched
+	 *                      from the database, default is true
+	 * @param bool $strict Enable/disable strict mode
+	 */
+	public function __construct(bool $is_new = true, bool $strict = true)
+	{
+		parent::__construct(
+			self::TABLE_NAMESPACE,
+			self::TABLE_NAME,
+			$is_new,
+			$strict
+		);
+
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return static
+	 */
+	public static function new(bool $is_new = true, bool $strict = true): static
+	{
+		return new ClientReal($is_new, $strict);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return \Gobl\Tests\Db\ClientsCrud
+	 */
+	public static function crud(): \Gobl\Tests\Db\ClientsCrud
+	{
+		return \Gobl\Tests\Db\ClientsCrud::new();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return \Gobl\Tests\Db\ClientsController
+	 */
+	public static function ctrl(): \Gobl\Tests\Db\ClientsController
+	{
+		return \Gobl\Tests\Db\ClientsController::new();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return \Gobl\Tests\Db\ClientsQuery
+	 */
+	public static function qb(): \Gobl\Tests\Db\ClientsQuery
+	{
+		return \Gobl\Tests\Db\ClientsQuery::new();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return \Gobl\Tests\Db\ClientsResults
+	 */
+	public static function results(\Gobl\DBAL\Queries\QBSelect $query): \Gobl\Tests\Db\ClientsResults
+	{
+		return \Gobl\Tests\Db\ClientsResults::new($query);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public static function table(): \Gobl\DBAL\Table
+	{
+		return \Gobl\ORM\ORM::table(static::TABLE_NAMESPACE, static::TABLE_NAME);
+	}
+
+	/**
+	 * Getter for column `clients.id`.
+	 * 
+	 * @return string|null
+	 */
+	public function getID(): string|null
+	{
+		return $this->id;
+	}
+
+	/**
+	 * Setter for column `clients.id`.
+	 * 
+	 * @param string|int|null $id
+	 * 
+	 * @return static
+	 */
+	public function setID(string|int|null $id): static
+	{
+		$this->id = $id;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `clients.first_name`.
+	 * 
+	 * @return string
+	 */
+	public function getFirstName(): string
+	{
+		return $this->first_name;
+	}
+
+	/**
+	 * Setter for column `clients.first_name`.
+	 * 
+	 * @param string $first_name
+	 * 
+	 * @return static
+	 */
+	public function setFirstName(string $first_name): static
+	{
+		$this->first_name = $first_name;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `clients.last_name`.
+	 * 
+	 * @return string
+	 */
+	public function getLastName(): string
+	{
+		return $this->last_name;
+	}
+
+	/**
+	 * Setter for column `clients.last_name`.
+	 * 
+	 * @param string $last_name
+	 * 
+	 * @return static
+	 */
+	public function setLastName(string $last_name): static
+	{
+		$this->last_name = $last_name;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `clients.given_name`.
+	 * 
+	 * @return string
+	 */
+	public function getGivenName(): string
+	{
+		return $this->given_name;
+	}
+
+	/**
+	 * Setter for column `clients.given_name`.
+	 * 
+	 * @param string $given_name
+	 * 
+	 * @return static
+	 */
+	public function setGivenName(string $given_name): static
+	{
+		$this->given_name = $given_name;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `clients.gender`.
+	 * 
+	 * @return string
+	 */
+	public function getGender(): string
+	{
+		return $this->gender;
+	}
+
+	/**
+	 * Setter for column `clients.gender`.
+	 * 
+	 * @param string $gender
+	 * 
+	 * @return static
+	 */
+	public function setGender(string $gender): static
+	{
+		$this->gender = $gender;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `clients.data`.
+	 * 
+	 * @return \Gobl\DBAL\Types\Utils\Map
+	 */
+	public function getData(): \Gobl\DBAL\Types\Utils\Map
+	{
+		return $this->data;
+	}
+
+	/**
+	 * Setter for column `clients.data`.
+	 * 
+	 * @param \Gobl\DBAL\Types\Utils\Map|array $data
+	 * 
+	 * @return static
+	 */
+	public function setData(\Gobl\DBAL\Types\Utils\Map|array $data): static
+	{
+		$this->data = $data;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `clients.created_at`.
+	 * 
+	 * @return string
+	 */
+	public function getCreatedAT(): string
+	{
+		return $this->created_at;
+	}
+
+	/**
+	 * Setter for column `clients.created_at`.
+	 * 
+	 * @param string|int $created_at
+	 * 
+	 * @return static
+	 */
+	public function setCreatedAT(string|int $created_at): static
+	{
+		$this->created_at = $created_at;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `clients.updated_at`.
+	 * 
+	 * @return string
+	 */
+	public function getUpdatedAT(): string
+	{
+		return $this->updated_at;
+	}
+
+	/**
+	 * Setter for column `clients.updated_at`.
+	 * 
+	 * @param string|int $updated_at
+	 * 
+	 * @return static
+	 */
+	public function setUpdatedAT(string|int $updated_at): static
+	{
+		$this->updated_at = $updated_at;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `clients.valid`.
+	 * 
+	 * @return bool
+	 */
+	public function getValid(): bool
+	{
+		return $this->valid;
+	}
+
+	/**
+	 * Setter for column `clients.valid`.
+	 * 
+	 * @param bool $valid
+	 * 
+	 * @return static
+	 */
+	public function setValid(bool $valid): static
+	{
+		$this->valid = $valid;
+
+		return $this;
+	}
+
+	/**
+	 * `OneToMany` relation between `clients` and `accounts`.
+	 * 
+	 * @param array    $filters  the row filters
+	 * @param null|int $max      maximum row to retrieve
+	 * @param int      $offset   first row offset
+	 * @param array    $order_by order by rules
+	 * @param null|int $total    total number of items that match the filters
+	 * 
+	 * @throws \Gobl\Exceptions\GoblException
+	 * @return \Gobl\Tests\Db\Account[]
+	 */
+	public function getAccounts(array $filters = array (
+	), ?int $max = NULL, int $offset = 0, array $order_by = array (
+	), ?int &$total = -1): array
+	{
+		return \Gobl\Tests\Db\Account::ctrl()->getAllRelatives(
+			$this,
+			static::table()->getRelation('accounts'),
+			$filters,
+			$max,
+			$offset,
+			$order_by,
+			$total
+		);
+	}
+
+	/**
+	 * Create `OneToMany` relationship between `clients` and `accounts`.
+	 * 
+	 * @param \Gobl\Tests\Db\Account $entry
+	 * @param bool $auto_save should the modified entity be saved automatically?
+	 * 
+	 * @return $this
+	 */
+	public function addAccountsEntry(\Gobl\Tests\Db\Account $entry, bool $auto_save = true): static
+	{
+		static::table()->getRelation('accounts')->getController()->link($this, $entry, $auto_save);
+		return $this;
+	}
+}

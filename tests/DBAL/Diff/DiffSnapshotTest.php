@@ -55,7 +55,7 @@ final class DiffSnapshotTest extends BaseTestCase
 		$this->assertDiffSnapshot('identical_dbs', $db, $db);
 	}
 
-	/** A brand-new table in $to → up() creates it, down() drops it. */
+	/** A brand-new table in $to => up() creates it, down() drops it. */
 	public function testTableAdded(): void
 	{
 		$from = $this->buildDb(static function (NamespaceBuilder $ns) {
@@ -74,7 +74,7 @@ final class DiffSnapshotTest extends BaseTestCase
 		$this->assertDiffSnapshot('table_added', $from, $to);
 	}
 
-	/** A table present in $from but absent in $to → up() drops it, down() recreates it. */
+	/** A table present in $from but absent in $to => up() drops it, down() recreates it. */
 	public function testTableDeleted(): void
 	{
 		$from = $this->buildDb(static function (NamespaceBuilder $ns) {
@@ -92,7 +92,7 @@ final class DiffSnapshotTest extends BaseTestCase
 		$this->assertDiffSnapshot('table_deleted', $from, $to);
 	}
 
-	/** A new column appears in $to → up() ALTERs to add it, down() drops it. */
+	/** A new column appears in $to => up() ALTERs to add it, down() drops it. */
 	public function testColumnAdded(): void
 	{
 		$from = $this->buildDb(static function (NamespaceBuilder $ns) {
@@ -115,7 +115,7 @@ final class DiffSnapshotTest extends BaseTestCase
 		$this->assertDiffSnapshot('column_added', $from, $to);
 	}
 
-	/** A column present in $from is absent in $to → up() drops it, down() re-adds it. */
+	/** A column present in $from is absent in $to => up() drops it, down() re-adds it. */
 	public function testColumnDeleted(): void
 	{
 		$from = $this->buildDb(static function (NamespaceBuilder $ns) {
@@ -139,7 +139,7 @@ final class DiffSnapshotTest extends BaseTestCase
 		$this->assertDiffSnapshot('column_deleted', $from, $to);
 	}
 
-	/** A column's type changes (int → bigint) → up() ALTERs type, down() reverts. */
+	/** A column's type changes (int => bigint) => up() ALTERs type, down() reverts. */
 	public function testColumnTypeChanged(): void
 	{
 		$from = $this->buildDb(static function (NamespaceBuilder $ns) {
@@ -155,7 +155,7 @@ final class DiffSnapshotTest extends BaseTestCase
 			$ns->table('items', static function (TableBuilder $t) {
 				$t->columnPrefix('item');
 				$t->id();
-				$t->bigint('counter')->unsigned();   // int → bigint
+				$t->bigint('counter')->unsigned();   // int => bigint
 				$t->string('code')->min(1)->max(32);
 			});
 		});

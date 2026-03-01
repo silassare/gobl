@@ -1,0 +1,37 @@
+<?php
+declare(strict_types=1);
+
+namespace Gobl\Tests\Db\Base;
+
+use Gobl\Tests\Db\AccountsCrud as AccountsCrudReal;
+
+/**
+ * Class AccountsCrud.
+ * 
+ * @extends \Gobl\ORM\ORMEntityCRUD<\Gobl\Tests\Db\Account>
+ * 
+ */
+class AccountsCrud extends \Gobl\ORM\ORMEntityCRUD
+{
+	/**
+	 * AccountsCrud constructor.
+	 */
+	public function __construct()
+	{
+		parent::__construct(
+			\Gobl\Tests\Db\Account::TABLE_NAMESPACE,
+			\Gobl\Tests\Db\Account::TABLE_NAME
+		);
+
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return static
+	 */
+	public static function new(): static
+	{
+		return new AccountsCrudReal();
+	}
+}

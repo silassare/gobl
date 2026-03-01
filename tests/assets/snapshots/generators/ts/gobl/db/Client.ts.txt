@@ -1,0 +1,28 @@
+
+/**
+ * Auto generated file,
+ *
+ * INFO: you are free to edit it,
+ * but make sure to know what you are doing.
+ *
+ * Proudly With: gobl [GOBL_VERSION]
+ * Time: [GENERATED_AT]
+ */
+
+import { getEntityCache, type GoblEntityData } from "gobl-utils-ts";
+import ClientBase from "./base/ClientBase";
+
+export default class Client extends ClientBase {
+	constructor(data?: GoblEntityData) {
+		super(data, "Client", Client.PREFIX, [...Client.COLUMNS]);
+	}
+
+	public static fromCache(key: string): Client | undefined {
+		const cache = getEntityCache<Client>("Client");
+		return cache && cache.get(key);
+	}
+
+	//====================================================
+	//=	Your custom implementation goes here
+	//====================================================
+}

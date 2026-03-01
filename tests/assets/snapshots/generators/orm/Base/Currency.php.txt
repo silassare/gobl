@@ -1,0 +1,272 @@
+<?php
+declare(strict_types=1);
+
+namespace Gobl\Tests\Db\Base;
+
+use Gobl\Tests\Db\Currency as CurrencyReal;
+
+/**
+ * Class Currency.
+ * @property string $code Getter for column `currencies.code`.
+ * @property string $name Getter for column `currencies.name`.
+ * @property string $symbol Getter for column `currencies.symbol`.
+ * @property \Gobl\DBAL\Types\Utils\Map $data Getter for column `currencies.data`.
+ * @property string $created_at Getter for column `currencies.created_at`.
+ * @property string $updated_at Getter for column `currencies.updated_at`.
+ * @property bool $valid Getter for column `currencies.valid`.
+ */
+abstract class Currency extends \Gobl\ORM\ORMEntity
+{
+	public const TABLE_NAME = 'currencies';
+	public const TABLE_NAMESPACE = 'Gobl\\Tests\\Db';
+	public const COL_CODE = 'ccy_code';
+	public const COL_NAME = 'ccy_name';
+	public const COL_SYMBOL = 'ccy_symbol';
+	public const COL_DATA = 'ccy_data';
+	public const COL_CREATED_AT = 'ccy_created_at';
+	public const COL_UPDATED_AT = 'ccy_updated_at';
+	public const COL_VALID = 'ccy_valid';
+	/**
+	 * Currency constructor.
+	 * 
+	 * @param bool $is_new true for new entity false for entity fetched
+	 *                      from the database, default is true
+	 * @param bool $strict Enable/disable strict mode
+	 */
+	public function __construct(bool $is_new = true, bool $strict = true)
+	{
+		parent::__construct(
+			self::TABLE_NAMESPACE,
+			self::TABLE_NAME,
+			$is_new,
+			$strict
+		);
+
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return static
+	 */
+	public static function new(bool $is_new = true, bool $strict = true): static
+	{
+		return new CurrencyReal($is_new, $strict);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return \Gobl\Tests\Db\CurrenciesCrud
+	 */
+	public static function crud(): \Gobl\Tests\Db\CurrenciesCrud
+	{
+		return \Gobl\Tests\Db\CurrenciesCrud::new();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return \Gobl\Tests\Db\CurrenciesController
+	 */
+	public static function ctrl(): \Gobl\Tests\Db\CurrenciesController
+	{
+		return \Gobl\Tests\Db\CurrenciesController::new();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return \Gobl\Tests\Db\CurrenciesQuery
+	 */
+	public static function qb(): \Gobl\Tests\Db\CurrenciesQuery
+	{
+		return \Gobl\Tests\Db\CurrenciesQuery::new();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return \Gobl\Tests\Db\CurrenciesResults
+	 */
+	public static function results(\Gobl\DBAL\Queries\QBSelect $query): \Gobl\Tests\Db\CurrenciesResults
+	{
+		return \Gobl\Tests\Db\CurrenciesResults::new($query);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public static function table(): \Gobl\DBAL\Table
+	{
+		return \Gobl\ORM\ORM::table(static::TABLE_NAMESPACE, static::TABLE_NAME);
+	}
+
+	/**
+	 * Getter for column `currencies.code`.
+	 * 
+	 * @return string
+	 */
+	public function getCode(): string
+	{
+		return $this->code;
+	}
+
+	/**
+	 * Setter for column `currencies.code`.
+	 * 
+	 * @param string $code
+	 * 
+	 * @return static
+	 */
+	public function setCode(string $code): static
+	{
+		$this->code = $code;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `currencies.name`.
+	 * 
+	 * @return string
+	 */
+	public function getName(): string
+	{
+		return $this->name;
+	}
+
+	/**
+	 * Setter for column `currencies.name`.
+	 * 
+	 * @param string $name
+	 * 
+	 * @return static
+	 */
+	public function setName(string $name): static
+	{
+		$this->name = $name;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `currencies.symbol`.
+	 * 
+	 * @return string
+	 */
+	public function getSymbol(): string
+	{
+		return $this->symbol;
+	}
+
+	/**
+	 * Setter for column `currencies.symbol`.
+	 * 
+	 * @param string $symbol
+	 * 
+	 * @return static
+	 */
+	public function setSymbol(string $symbol): static
+	{
+		$this->symbol = $symbol;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `currencies.data`.
+	 * 
+	 * @return \Gobl\DBAL\Types\Utils\Map
+	 */
+	public function getData(): \Gobl\DBAL\Types\Utils\Map
+	{
+		return $this->data;
+	}
+
+	/**
+	 * Setter for column `currencies.data`.
+	 * 
+	 * @param \Gobl\DBAL\Types\Utils\Map|array $data
+	 * 
+	 * @return static
+	 */
+	public function setData(\Gobl\DBAL\Types\Utils\Map|array $data): static
+	{
+		$this->data = $data;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `currencies.created_at`.
+	 * 
+	 * @return string
+	 */
+	public function getCreatedAT(): string
+	{
+		return $this->created_at;
+	}
+
+	/**
+	 * Setter for column `currencies.created_at`.
+	 * 
+	 * @param string|int $created_at
+	 * 
+	 * @return static
+	 */
+	public function setCreatedAT(string|int $created_at): static
+	{
+		$this->created_at = $created_at;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `currencies.updated_at`.
+	 * 
+	 * @return string
+	 */
+	public function getUpdatedAT(): string
+	{
+		return $this->updated_at;
+	}
+
+	/**
+	 * Setter for column `currencies.updated_at`.
+	 * 
+	 * @param string|int $updated_at
+	 * 
+	 * @return static
+	 */
+	public function setUpdatedAT(string|int $updated_at): static
+	{
+		$this->updated_at = $updated_at;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `currencies.valid`.
+	 * 
+	 * @return bool
+	 */
+	public function getValid(): bool
+	{
+		return $this->valid;
+	}
+
+	/**
+	 * Setter for column `currencies.valid`.
+	 * 
+	 * @param bool $valid
+	 * 
+	 * @return static
+	 */
+	public function setValid(bool $valid): static
+	{
+		$this->valid = $valid;
+
+		return $this;
+	}
+}

@@ -1,0 +1,63 @@
+
+/**
+ * Auto generated file
+ *
+ * WARNING: please don't edit.
+ *
+ * Proudly With: gobl [GOBL_VERSION]
+ * Time: [GENERATED_AT]
+ */
+
+import {GoblEntity} from 'gobl-utils-ts';
+
+export default abstract class CurrencyBase extends GoblEntity {
+	public static readonly PREFIX = 'ccy';
+	public static readonly COLUMNS = [
+		'ccy_code',
+		'ccy_name',
+		'ccy_symbol',
+		'ccy_data',
+		'ccy_created_at',
+		'ccy_updated_at',
+		'ccy_valid',
+	] as const;
+	public static readonly COL_CODE = 'ccy_code';
+	public static readonly COL_NAME = 'ccy_name';
+	public static readonly COL_SYMBOL = 'ccy_symbol';
+	public static readonly COL_DATA = 'ccy_data';
+	public static readonly COL_CREATED_AT = 'ccy_created_at';
+	public static readonly COL_UPDATED_AT = 'ccy_updated_at';
+	public static readonly COL_VALID = 'ccy_valid';
+
+	public singlePKValue():string {
+		const id = this.code;
+		if (id === undefined || id === null) {
+			throw new Error('Cannot get single PK value for unsaved Currency.');
+		}
+		return String(id);
+	}
+	public identifierColumns(): string[] {
+		return [ CurrencyBase.COL_CODE ];
+	}
+	get code(): string { return this._data[CurrencyBase.COL_CODE]; }
+	set code(nVal: string) { this._set(CurrencyBase.COL_CODE, nVal); }
+
+	get name(): string { return this._data[CurrencyBase.COL_NAME]; }
+	set name(nVal: string) { this._set(CurrencyBase.COL_NAME, nVal); }
+
+	get symbol(): string { return this._data[CurrencyBase.COL_SYMBOL]; }
+	set symbol(nVal: string) { this._set(CurrencyBase.COL_SYMBOL, nVal); }
+
+	get data(): Record<string, unknown> { return this._data[CurrencyBase.COL_DATA]; }
+	set data(nVal: Record<string, unknown>|unknown[]) { this._set(CurrencyBase.COL_DATA, nVal); }
+
+	get created_at(): string { return this._data[CurrencyBase.COL_CREATED_AT]; }
+	set created_at(nVal: string|number) { this._set(CurrencyBase.COL_CREATED_AT, nVal); }
+
+	get updated_at(): string { return this._data[CurrencyBase.COL_UPDATED_AT]; }
+	set updated_at(nVal: string|number) { this._set(CurrencyBase.COL_UPDATED_AT, nVal); }
+
+	get valid(): boolean { return this._data[CurrencyBase.COL_VALID]; }
+	set valid(nVal: boolean) { this._set(CurrencyBase.COL_VALID, nVal); }
+
+}

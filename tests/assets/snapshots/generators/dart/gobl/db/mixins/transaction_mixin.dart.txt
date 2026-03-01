@@ -1,0 +1,19 @@
+
+// Auto generated file
+//
+// INFO: you are free to edit it,
+// but make sure to know what you are doing.
+//
+// Proudly With: gobl [GOBL_VERSION]
+// Time: [GENERATED_AT]
+
+import '../base/transaction_base.dart';
+import '../entities/transaction.dart';
+
+mixin TransactionMixin<T extends Transaction> on TransactionBase {
+  T get self;
+
+  //====================================================
+  //=	Your custom implementation goes here
+  //====================================================
+}

@@ -1,0 +1,73 @@
+
+/**
+ * Auto generated file
+ *
+ * WARNING: please don't edit.
+ *
+ * Proudly With: gobl [GOBL_VERSION]
+ * Time: [GENERATED_AT]
+ */
+
+import {GoblEntity} from 'gobl-utils-ts';
+
+export default abstract class ClientBase extends GoblEntity {
+	public static readonly PREFIX = 'client';
+	public static readonly COLUMNS = [
+		'client_id',
+		'client_first_name',
+		'client_last_name',
+		'client_given_name',
+		'client_gender',
+		'client_data',
+		'client_created_at',
+		'client_updated_at',
+		'client_valid',
+	] as const;
+	public static readonly COL_ID = 'client_id';
+	public static readonly COL_FIRST_NAME = 'client_first_name';
+	public static readonly COL_LAST_NAME = 'client_last_name';
+	public static readonly COL_GIVEN_NAME = 'client_given_name';
+	public static readonly COL_GENDER = 'client_gender';
+	public static readonly COL_DATA = 'client_data';
+	public static readonly COL_CREATED_AT = 'client_created_at';
+	public static readonly COL_UPDATED_AT = 'client_updated_at';
+	public static readonly COL_VALID = 'client_valid';
+
+	public singlePKValue():string {
+		const id = this.id;
+		if (id === undefined || id === null) {
+			throw new Error('Cannot get single PK value for unsaved Client.');
+		}
+		return String(id);
+	}
+	public identifierColumns(): string[] {
+		return [ ClientBase.COL_ID ];
+	}
+	get id(): string { return this._data[ClientBase.COL_ID]; }
+	set id(nVal: string|number|null) { this._set(ClientBase.COL_ID, nVal); }
+
+	get first_name(): string { return this._data[ClientBase.COL_FIRST_NAME]; }
+	set first_name(nVal: string) { this._set(ClientBase.COL_FIRST_NAME, nVal); }
+
+	get last_name(): string { return this._data[ClientBase.COL_LAST_NAME]; }
+	set last_name(nVal: string) { this._set(ClientBase.COL_LAST_NAME, nVal); }
+
+	get given_name(): string { return this._data[ClientBase.COL_GIVEN_NAME]; }
+	set given_name(nVal: string) { this._set(ClientBase.COL_GIVEN_NAME, nVal); }
+
+	get gender(): string { return this._data[ClientBase.COL_GENDER]; }
+	set gender(nVal: string) { this._set(ClientBase.COL_GENDER, nVal); }
+
+	get data(): Record<string, unknown> { return this._data[ClientBase.COL_DATA]; }
+	set data(nVal: Record<string, unknown>|unknown[]) { this._set(ClientBase.COL_DATA, nVal); }
+
+	get created_at(): string { return this._data[ClientBase.COL_CREATED_AT]; }
+	set created_at(nVal: string|number) { this._set(ClientBase.COL_CREATED_AT, nVal); }
+
+	get updated_at(): string { return this._data[ClientBase.COL_UPDATED_AT]; }
+	set updated_at(nVal: string|number) { this._set(ClientBase.COL_UPDATED_AT, nVal); }
+
+	get valid(): boolean { return this._data[ClientBase.COL_VALID]; }
+	set valid(nVal: boolean) { this._set(ClientBase.COL_VALID, nVal); }
+
+}

@@ -1,0 +1,37 @@
+<?php
+declare(strict_types=1);
+
+namespace Gobl\Tests\Db\Base;
+
+use Gobl\Tests\Db\ClientsResults as ClientsResultsReal;
+
+/**
+ * Class ClientsResults.
+ * 
+ * @extends \Gobl\ORM\ORMResults<\Gobl\Tests\Db\Client>
+ */
+abstract class ClientsResults extends \Gobl\ORM\ORMResults
+{
+	/**
+	 * ClientsResults constructor.
+	 */
+	public function __construct(\Gobl\DBAL\Queries\QBSelect $query)
+	{
+		parent::__construct(
+			\Gobl\Tests\Db\Client::TABLE_NAMESPACE,
+			\Gobl\Tests\Db\Client::TABLE_NAME,
+			$query
+		);
+
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return static
+	 */
+	public static function new(\Gobl\DBAL\Queries\QBSelect $query): static
+	{
+		return new ClientsResultsReal($query);
+	}
+}

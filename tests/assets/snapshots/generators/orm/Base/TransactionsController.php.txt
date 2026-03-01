@@ -1,0 +1,37 @@
+<?php
+declare(strict_types=1);
+
+namespace Gobl\Tests\Db\Base;
+
+use Gobl\Tests\Db\TransactionsController as TransactionsControllerReal;
+
+/**
+ * Class TransactionsController.
+ * 
+ * @extends \Gobl\ORM\ORMController<\Gobl\Tests\Db\Transaction, \Gobl\Tests\Db\TransactionsQuery, \Gobl\Tests\Db\TransactionsResults>
+ * 
+ */
+abstract class TransactionsController extends \Gobl\ORM\ORMController
+{
+	/**
+	 * TransactionsController constructor.
+	 */
+	public function __construct()
+	{
+		parent::__construct(
+			\Gobl\Tests\Db\Transaction::TABLE_NAMESPACE,
+			\Gobl\Tests\Db\Transaction::TABLE_NAME
+		);
+
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return static
+	 */
+	public static function new(): static
+	{
+		return new TransactionsControllerReal();
+	}
+}

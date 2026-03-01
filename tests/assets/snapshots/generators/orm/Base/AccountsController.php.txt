@@ -1,0 +1,37 @@
+<?php
+declare(strict_types=1);
+
+namespace Gobl\Tests\Db\Base;
+
+use Gobl\Tests\Db\AccountsController as AccountsControllerReal;
+
+/**
+ * Class AccountsController.
+ * 
+ * @extends \Gobl\ORM\ORMController<\Gobl\Tests\Db\Account, \Gobl\Tests\Db\AccountsQuery, \Gobl\Tests\Db\AccountsResults>
+ * 
+ */
+abstract class AccountsController extends \Gobl\ORM\ORMController
+{
+	/**
+	 * AccountsController constructor.
+	 */
+	public function __construct()
+	{
+		parent::__construct(
+			\Gobl\Tests\Db\Account::TABLE_NAMESPACE,
+			\Gobl\Tests\Db\Account::TABLE_NAME
+		);
+
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return static
+	 */
+	public static function new(): static
+	{
+		return new AccountsControllerReal();
+	}
+}

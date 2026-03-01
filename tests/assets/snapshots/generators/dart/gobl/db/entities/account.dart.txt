@@ -1,0 +1,112 @@
+
+// Auto generated file
+//
+// WARNING: please don't edit.
+//
+// Proudly With: gobl [GOBL_VERSION]
+// Time: [GENERATED_AT]
+import '../base/account_base.dart';
+import '../mixins/account_mixin.dart';
+
+class Account extends AccountBase with AccountMixin<Account> {
+  static const ENTITY_NAME = 'Account';
+  static const PREFIX = 'account';
+  static const COLUMNS = [
+ 'account_id',
+ 'account_client_id',
+ 'account_label',
+ 'account_balance',
+ 'account_currency_code',
+ 'account_data',
+ 'account_created_at',
+ 'account_updated_at',
+ 'account_valid',
+
+  ];
+ static const COL_ID = 'account_id';
+ static const COL_CLIENT_ID = 'account_client_id';
+ static const COL_LABEL = 'account_label';
+ static const COL_BALANCE = 'account_balance';
+ static const COL_CURRENCY_CODE = 'account_currency_code';
+ static const COL_DATA = 'account_data';
+ static const COL_CREATED_AT = 'account_created_at';
+ static const COL_UPDATED_AT = 'account_updated_at';
+ static const COL_VALID = 'account_valid';
+
+
+  Account([Map<String, dynamic> initialData = const {}])
+      : super(
+      initialData: initialData,
+      name: ENTITY_NAME,
+      prefix: PREFIX,
+      columns: COLUMNS);
+
+  @override
+  Account get self {
+    return this;
+  }
+
+  @override
+  String singlePKValue() {
+    return '$id';
+  }
+
+
+  @override
+  List<String> identifierColumns() {
+    return [
+    COL_ID 
+    ];
+  }
+
+  @override
+  Account fromJson(Map<String, dynamic> json) {
+    return Account(json);
+  }
+
+  String|null get id { return doGet(COL_ID, String|null); }
+  set id(String|num|null nVal) { doSet(COL_ID, nVal, String|null); }
+  String|null getID() { return id; }
+  Account setID(String|num|null nVal) { id = nVal; return this; }
+
+  String get client_id { return doGet(COL_CLIENT_ID, String); }
+  set client_id(String|num nVal) { doSet(COL_CLIENT_ID, nVal, String); }
+  String getClientID() { return client_id; }
+  Account setClientID(String|num nVal) { client_id = nVal; return this; }
+
+  String get label { return doGet(COL_LABEL, String); }
+  set label(String nVal) { doSet(COL_LABEL, nVal, String); }
+  String getLabel() { return label; }
+  Account setLabel(String nVal) { label = nVal; return this; }
+
+  String get balance { return doGet(COL_BALANCE, String); }
+  set balance(String|num|num nVal) { doSet(COL_BALANCE, nVal, String); }
+  String getBalance() { return balance; }
+  Account setBalance(String|num|num nVal) { balance = nVal; return this; }
+
+  String get currency_code { return doGet(COL_CURRENCY_CODE, String); }
+  set currency_code(String nVal) { doSet(COL_CURRENCY_CODE, nVal, String); }
+  String getCurrencyCode() { return currency_code; }
+  Account setCurrencyCode(String nVal) { currency_code = nVal; return this; }
+
+  Map get data { return doGet(COL_DATA, Map); }
+  set data(Map|List nVal) { doSet(COL_DATA, nVal, Map); }
+  Map getData() { return data; }
+  Account setData(Map|List nVal) { data = nVal; return this; }
+
+  String get created_at { return doGet(COL_CREATED_AT, String); }
+  set created_at(String|num nVal) { doSet(COL_CREATED_AT, nVal, String); }
+  String getCreatedAT() { return created_at; }
+  Account setCreatedAT(String|num nVal) { created_at = nVal; return this; }
+
+  String get updated_at { return doGet(COL_UPDATED_AT, String); }
+  set updated_at(String|num nVal) { doSet(COL_UPDATED_AT, nVal, String); }
+  String getUpdatedAT() { return updated_at; }
+  Account setUpdatedAT(String|num nVal) { updated_at = nVal; return this; }
+
+  bool get valid { return doGet(COL_VALID, bool); }
+  set valid(bool nVal) { doSet(COL_VALID, nVal, bool); }
+  bool getValid() { return valid; }
+  Account setValid(bool nVal) { valid = nVal; return this; }
+
+}

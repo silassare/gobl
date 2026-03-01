@@ -1,0 +1,37 @@
+<?php
+declare(strict_types=1);
+
+namespace Gobl\Tests\Db\Base;
+
+use Gobl\Tests\Db\CurrenciesCrud as CurrenciesCrudReal;
+
+/**
+ * Class CurrenciesCrud.
+ * 
+ * @extends \Gobl\ORM\ORMEntityCRUD<\Gobl\Tests\Db\Currency>
+ * 
+ */
+class CurrenciesCrud extends \Gobl\ORM\ORMEntityCRUD
+{
+	/**
+	 * CurrenciesCrud constructor.
+	 */
+	public function __construct()
+	{
+		parent::__construct(
+			\Gobl\Tests\Db\Currency::TABLE_NAMESPACE,
+			\Gobl\Tests\Db\Currency::TABLE_NAME
+		);
+
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return static
+	 */
+	public static function new(): static
+	{
+		return new CurrenciesCrudReal();
+	}
+}

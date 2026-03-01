@@ -1,0 +1,457 @@
+<?php
+declare(strict_types=1);
+
+namespace Gobl\Tests\Db\Base;
+
+use Gobl\Tests\Db\Transaction as TransactionReal;
+
+/**
+ * Class Transaction.
+ * @property string|null $id Getter for column `transactions.id`.
+ * @property string $account_id Getter for column `transactions.account_id`.
+ * @property string $reference Getter for column `transactions.reference`.
+ * @property string $source Getter for column `transactions.source`.
+ * @property string $type Getter for column `transactions.type`.
+ * @property string $state Getter for column `transactions.state`.
+ * @property string $amount Getter for column `transactions.amount`.
+ * @property string $currency_code Getter for column `transactions.currency_code`.
+ * @property string $date Getter for column `transactions.date`.
+ * @property \Gobl\DBAL\Types\Utils\Map $data Getter for column `transactions.data`.
+ * @property string $created_at Getter for column `transactions.created_at`.
+ * @property string $updated_at Getter for column `transactions.updated_at`.
+ * @property bool $valid Getter for column `transactions.valid`.
+ */
+abstract class Transaction extends \Gobl\ORM\ORMEntity
+{
+	public const TABLE_NAME = 'transactions';
+	public const TABLE_NAMESPACE = 'Gobl\\Tests\\Db';
+	public const COL_ID = 'transaction_id';
+	public const COL_ACCOUNT_ID = 'transaction_account_id';
+	public const COL_REFERENCE = 'transaction_reference';
+	public const COL_SOURCE = 'transaction_source';
+	public const COL_TYPE = 'transaction_type';
+	public const COL_STATE = 'transaction_state';
+	public const COL_AMOUNT = 'transaction_amount';
+	public const COL_CURRENCY_CODE = 'transaction_currency_code';
+	public const COL_DATE = 'transaction_date';
+	public const COL_DATA = 'transaction_data';
+	public const COL_CREATED_AT = 'transaction_created_at';
+	public const COL_UPDATED_AT = 'transaction_updated_at';
+	public const COL_VALID = 'transaction_valid';
+	/**
+	 * Transaction constructor.
+	 * 
+	 * @param bool $is_new true for new entity false for entity fetched
+	 *                      from the database, default is true
+	 * @param bool $strict Enable/disable strict mode
+	 */
+	public function __construct(bool $is_new = true, bool $strict = true)
+	{
+		parent::__construct(
+			self::TABLE_NAMESPACE,
+			self::TABLE_NAME,
+			$is_new,
+			$strict
+		);
+
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return static
+	 */
+	public static function new(bool $is_new = true, bool $strict = true): static
+	{
+		return new TransactionReal($is_new, $strict);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return \Gobl\Tests\Db\TransactionsCrud
+	 */
+	public static function crud(): \Gobl\Tests\Db\TransactionsCrud
+	{
+		return \Gobl\Tests\Db\TransactionsCrud::new();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return \Gobl\Tests\Db\TransactionsController
+	 */
+	public static function ctrl(): \Gobl\Tests\Db\TransactionsController
+	{
+		return \Gobl\Tests\Db\TransactionsController::new();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return \Gobl\Tests\Db\TransactionsQuery
+	 */
+	public static function qb(): \Gobl\Tests\Db\TransactionsQuery
+	{
+		return \Gobl\Tests\Db\TransactionsQuery::new();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return \Gobl\Tests\Db\TransactionsResults
+	 */
+	public static function results(\Gobl\DBAL\Queries\QBSelect $query): \Gobl\Tests\Db\TransactionsResults
+	{
+		return \Gobl\Tests\Db\TransactionsResults::new($query);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public static function table(): \Gobl\DBAL\Table
+	{
+		return \Gobl\ORM\ORM::table(static::TABLE_NAMESPACE, static::TABLE_NAME);
+	}
+
+	/**
+	 * Getter for column `transactions.id`.
+	 * 
+	 * @return string|null
+	 */
+	public function getID(): string|null
+	{
+		return $this->id;
+	}
+
+	/**
+	 * Setter for column `transactions.id`.
+	 * 
+	 * @param string|int|null $id
+	 * 
+	 * @return static
+	 */
+	public function setID(string|int|null $id): static
+	{
+		$this->id = $id;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `transactions.account_id`.
+	 * 
+	 * @return string
+	 */
+	public function getAccountID(): string
+	{
+		return $this->account_id;
+	}
+
+	/**
+	 * Setter for column `transactions.account_id`.
+	 * 
+	 * @param string|int $account_id
+	 * 
+	 * @return static
+	 */
+	public function setAccountID(string|int $account_id): static
+	{
+		$this->account_id = $account_id;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `transactions.reference`.
+	 * 
+	 * @return string
+	 */
+	public function getReference(): string
+	{
+		return $this->reference;
+	}
+
+	/**
+	 * Setter for column `transactions.reference`.
+	 * 
+	 * @param string $reference
+	 * 
+	 * @return static
+	 */
+	public function setReference(string $reference): static
+	{
+		$this->reference = $reference;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `transactions.source`.
+	 * 
+	 * @return string
+	 */
+	public function getSource(): string
+	{
+		return $this->source;
+	}
+
+	/**
+	 * Setter for column `transactions.source`.
+	 * 
+	 * @param string $source
+	 * 
+	 * @return static
+	 */
+	public function setSource(string $source): static
+	{
+		$this->source = $source;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `transactions.type`.
+	 * 
+	 * @return string
+	 */
+	public function getType(): string
+	{
+		return $this->type;
+	}
+
+	/**
+	 * Setter for column `transactions.type`.
+	 * 
+	 * @param string $type
+	 * 
+	 * @return static
+	 */
+	public function setType(string $type): static
+	{
+		$this->type = $type;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `transactions.state`.
+	 * 
+	 * @return string
+	 */
+	public function getState(): string
+	{
+		return $this->state;
+	}
+
+	/**
+	 * Setter for column `transactions.state`.
+	 * 
+	 * @param string $state
+	 * 
+	 * @return static
+	 */
+	public function setState(string $state): static
+	{
+		$this->state = $state;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `transactions.amount`.
+	 * 
+	 * @return string
+	 */
+	public function getAmount(): string
+	{
+		return $this->amount;
+	}
+
+	/**
+	 * Setter for column `transactions.amount`.
+	 * 
+	 * @param string|float|int $amount
+	 * 
+	 * @return static
+	 */
+	public function setAmount(string|float|int $amount): static
+	{
+		$this->amount = $amount;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `transactions.currency_code`.
+	 * 
+	 * @return string
+	 */
+	public function getCurrencyCode(): string
+	{
+		return $this->currency_code;
+	}
+
+	/**
+	 * Setter for column `transactions.currency_code`.
+	 * 
+	 * @param string $currency_code
+	 * 
+	 * @return static
+	 */
+	public function setCurrencyCode(string $currency_code): static
+	{
+		$this->currency_code = $currency_code;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `transactions.date`.
+	 * 
+	 * @return string
+	 */
+	public function getDate(): string
+	{
+		return $this->date;
+	}
+
+	/**
+	 * Setter for column `transactions.date`.
+	 * 
+	 * @param string|int $date
+	 * 
+	 * @return static
+	 */
+	public function setDate(string|int $date): static
+	{
+		$this->date = $date;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `transactions.data`.
+	 * 
+	 * @return \Gobl\DBAL\Types\Utils\Map
+	 */
+	public function getData(): \Gobl\DBAL\Types\Utils\Map
+	{
+		return $this->data;
+	}
+
+	/**
+	 * Setter for column `transactions.data`.
+	 * 
+	 * @param \Gobl\DBAL\Types\Utils\Map|array $data
+	 * 
+	 * @return static
+	 */
+	public function setData(\Gobl\DBAL\Types\Utils\Map|array $data): static
+	{
+		$this->data = $data;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `transactions.created_at`.
+	 * 
+	 * @return string
+	 */
+	public function getCreatedAT(): string
+	{
+		return $this->created_at;
+	}
+
+	/**
+	 * Setter for column `transactions.created_at`.
+	 * 
+	 * @param string|int $created_at
+	 * 
+	 * @return static
+	 */
+	public function setCreatedAT(string|int $created_at): static
+	{
+		$this->created_at = $created_at;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `transactions.updated_at`.
+	 * 
+	 * @return string
+	 */
+	public function getUpdatedAT(): string
+	{
+		return $this->updated_at;
+	}
+
+	/**
+	 * Setter for column `transactions.updated_at`.
+	 * 
+	 * @param string|int $updated_at
+	 * 
+	 * @return static
+	 */
+	public function setUpdatedAT(string|int $updated_at): static
+	{
+		$this->updated_at = $updated_at;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `transactions.valid`.
+	 * 
+	 * @return bool
+	 */
+	public function getValid(): bool
+	{
+		return $this->valid;
+	}
+
+	/**
+	 * Setter for column `transactions.valid`.
+	 * 
+	 * @param bool $valid
+	 * 
+	 * @return static
+	 */
+	public function setValid(bool $valid): static
+	{
+		$this->valid = $valid;
+
+		return $this;
+	}
+
+	/**
+	 * `ManyToOne` relation between `transactions` and `accounts`.
+	 * 
+	 * @throws \Gobl\Exceptions\GoblException
+	 * @return ?\Gobl\Tests\Db\Account
+	 */
+	public function getAccount(): ?\Gobl\Tests\Db\Account
+	{
+		return \Gobl\Tests\Db\Account::ctrl()->getRelative(
+			$this,
+			static::table()->getRelation('account')
+		);
+	}
+
+	/**
+	 * Create `ManyToOne` relationship between `transactions` and `accounts`.
+	 * 
+	 * @param \Gobl\Tests\Db\Account $account
+	 * @param bool $auto_save should the modified entity be saved automatically?
+	 * 
+	 * @return $this
+	 */
+	public function setAccount(\Gobl\Tests\Db\Account $account, bool $auto_save = true): static
+	{
+		static::table()->getRelation('account')->getController()->link($account, $this, $auto_save);
+
+		return $this;
+	}
+}

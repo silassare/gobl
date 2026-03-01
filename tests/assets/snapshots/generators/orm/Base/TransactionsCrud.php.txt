@@ -1,0 +1,37 @@
+<?php
+declare(strict_types=1);
+
+namespace Gobl\Tests\Db\Base;
+
+use Gobl\Tests\Db\TransactionsCrud as TransactionsCrudReal;
+
+/**
+ * Class TransactionsCrud.
+ * 
+ * @extends \Gobl\ORM\ORMEntityCRUD<\Gobl\Tests\Db\Transaction>
+ * 
+ */
+class TransactionsCrud extends \Gobl\ORM\ORMEntityCRUD
+{
+	/**
+	 * TransactionsCrud constructor.
+	 */
+	public function __construct()
+	{
+		parent::__construct(
+			\Gobl\Tests\Db\Transaction::TABLE_NAMESPACE,
+			\Gobl\Tests\Db\Transaction::TABLE_NAME
+		);
+
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return static
+	 */
+	public static function new(): static
+	{
+		return new TransactionsCrudReal();
+	}
+}

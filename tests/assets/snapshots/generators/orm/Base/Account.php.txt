@@ -1,0 +1,394 @@
+<?php
+declare(strict_types=1);
+
+namespace Gobl\Tests\Db\Base;
+
+use Gobl\Tests\Db\Account as AccountReal;
+
+/**
+ * Class Account.
+ * @property string|null $id Getter for column `accounts.id`.
+ * @property string $client_id Getter for column `accounts.client_id`.
+ * @property string $label Getter for column `accounts.label`.
+ * @property string $balance Getter for column `accounts.balance`.
+ * @property string $currency_code Getter for column `accounts.currency_code`.
+ * @property \Gobl\DBAL\Types\Utils\Map $data Getter for column `accounts.data`.
+ * @property string $created_at Getter for column `accounts.created_at`.
+ * @property string $updated_at Getter for column `accounts.updated_at`.
+ * @property bool $valid Getter for column `accounts.valid`.
+ */
+abstract class Account extends \Gobl\ORM\ORMEntity
+{
+	public const TABLE_NAME = 'accounts';
+	public const TABLE_NAMESPACE = 'Gobl\\Tests\\Db';
+	public const COL_ID = 'account_id';
+	public const COL_CLIENT_ID = 'account_client_id';
+	public const COL_LABEL = 'account_label';
+	public const COL_BALANCE = 'account_balance';
+	public const COL_CURRENCY_CODE = 'account_currency_code';
+	public const COL_DATA = 'account_data';
+	public const COL_CREATED_AT = 'account_created_at';
+	public const COL_UPDATED_AT = 'account_updated_at';
+	public const COL_VALID = 'account_valid';
+	/**
+	 * Account constructor.
+	 * 
+	 * @param bool $is_new true for new entity false for entity fetched
+	 *                      from the database, default is true
+	 * @param bool $strict Enable/disable strict mode
+	 */
+	public function __construct(bool $is_new = true, bool $strict = true)
+	{
+		parent::__construct(
+			self::TABLE_NAMESPACE,
+			self::TABLE_NAME,
+			$is_new,
+			$strict
+		);
+
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return static
+	 */
+	public static function new(bool $is_new = true, bool $strict = true): static
+	{
+		return new AccountReal($is_new, $strict);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return \Gobl\Tests\Db\AccountsCrud
+	 */
+	public static function crud(): \Gobl\Tests\Db\AccountsCrud
+	{
+		return \Gobl\Tests\Db\AccountsCrud::new();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return \Gobl\Tests\Db\AccountsController
+	 */
+	public static function ctrl(): \Gobl\Tests\Db\AccountsController
+	{
+		return \Gobl\Tests\Db\AccountsController::new();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return \Gobl\Tests\Db\AccountsQuery
+	 */
+	public static function qb(): \Gobl\Tests\Db\AccountsQuery
+	{
+		return \Gobl\Tests\Db\AccountsQuery::new();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return \Gobl\Tests\Db\AccountsResults
+	 */
+	public static function results(\Gobl\DBAL\Queries\QBSelect $query): \Gobl\Tests\Db\AccountsResults
+	{
+		return \Gobl\Tests\Db\AccountsResults::new($query);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public static function table(): \Gobl\DBAL\Table
+	{
+		return \Gobl\ORM\ORM::table(static::TABLE_NAMESPACE, static::TABLE_NAME);
+	}
+
+	/**
+	 * Getter for column `accounts.id`.
+	 * 
+	 * @return string|null
+	 */
+	public function getID(): string|null
+	{
+		return $this->id;
+	}
+
+	/**
+	 * Setter for column `accounts.id`.
+	 * 
+	 * @param string|int|null $id
+	 * 
+	 * @return static
+	 */
+	public function setID(string|int|null $id): static
+	{
+		$this->id = $id;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `accounts.client_id`.
+	 * 
+	 * @return string
+	 */
+	public function getClientID(): string
+	{
+		return $this->client_id;
+	}
+
+	/**
+	 * Setter for column `accounts.client_id`.
+	 * 
+	 * @param string|int $client_id
+	 * 
+	 * @return static
+	 */
+	public function setClientID(string|int $client_id): static
+	{
+		$this->client_id = $client_id;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `accounts.label`.
+	 * 
+	 * @return string
+	 */
+	public function getLabel(): string
+	{
+		return $this->label;
+	}
+
+	/**
+	 * Setter for column `accounts.label`.
+	 * 
+	 * @param string $label
+	 * 
+	 * @return static
+	 */
+	public function setLabel(string $label): static
+	{
+		$this->label = $label;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `accounts.balance`.
+	 * 
+	 * @return string
+	 */
+	public function getBalance(): string
+	{
+		return $this->balance;
+	}
+
+	/**
+	 * Setter for column `accounts.balance`.
+	 * 
+	 * @param string|float|int $balance
+	 * 
+	 * @return static
+	 */
+	public function setBalance(string|float|int $balance): static
+	{
+		$this->balance = $balance;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `accounts.currency_code`.
+	 * 
+	 * @return string
+	 */
+	public function getCurrencyCode(): string
+	{
+		return $this->currency_code;
+	}
+
+	/**
+	 * Setter for column `accounts.currency_code`.
+	 * 
+	 * @param string $currency_code
+	 * 
+	 * @return static
+	 */
+	public function setCurrencyCode(string $currency_code): static
+	{
+		$this->currency_code = $currency_code;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `accounts.data`.
+	 * 
+	 * @return \Gobl\DBAL\Types\Utils\Map
+	 */
+	public function getData(): \Gobl\DBAL\Types\Utils\Map
+	{
+		return $this->data;
+	}
+
+	/**
+	 * Setter for column `accounts.data`.
+	 * 
+	 * @param \Gobl\DBAL\Types\Utils\Map|array $data
+	 * 
+	 * @return static
+	 */
+	public function setData(\Gobl\DBAL\Types\Utils\Map|array $data): static
+	{
+		$this->data = $data;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `accounts.created_at`.
+	 * 
+	 * @return string
+	 */
+	public function getCreatedAT(): string
+	{
+		return $this->created_at;
+	}
+
+	/**
+	 * Setter for column `accounts.created_at`.
+	 * 
+	 * @param string|int $created_at
+	 * 
+	 * @return static
+	 */
+	public function setCreatedAT(string|int $created_at): static
+	{
+		$this->created_at = $created_at;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `accounts.updated_at`.
+	 * 
+	 * @return string
+	 */
+	public function getUpdatedAT(): string
+	{
+		return $this->updated_at;
+	}
+
+	/**
+	 * Setter for column `accounts.updated_at`.
+	 * 
+	 * @param string|int $updated_at
+	 * 
+	 * @return static
+	 */
+	public function setUpdatedAT(string|int $updated_at): static
+	{
+		$this->updated_at = $updated_at;
+
+		return $this;
+	}
+
+	/**
+	 * Getter for column `accounts.valid`.
+	 * 
+	 * @return bool
+	 */
+	public function getValid(): bool
+	{
+		return $this->valid;
+	}
+
+	/**
+	 * Setter for column `accounts.valid`.
+	 * 
+	 * @param bool $valid
+	 * 
+	 * @return static
+	 */
+	public function setValid(bool $valid): static
+	{
+		$this->valid = $valid;
+
+		return $this;
+	}
+
+	/**
+	 * `OneToMany` relation between `accounts` and `transactions`.
+	 * 
+	 * @param array    $filters  the row filters
+	 * @param null|int $max      maximum row to retrieve
+	 * @param int      $offset   first row offset
+	 * @param array    $order_by order by rules
+	 * @param null|int $total    total number of items that match the filters
+	 * 
+	 * @throws \Gobl\Exceptions\GoblException
+	 * @return \Gobl\Tests\Db\Transaction[]
+	 */
+	public function getTransactions(array $filters = array (
+	), ?int $max = NULL, int $offset = 0, array $order_by = array (
+	), ?int &$total = -1): array
+	{
+		return \Gobl\Tests\Db\Transaction::ctrl()->getAllRelatives(
+			$this,
+			static::table()->getRelation('transactions'),
+			$filters,
+			$max,
+			$offset,
+			$order_by,
+			$total
+		);
+	}
+
+	/**
+	 * Create `OneToMany` relationship between `accounts` and `transactions`.
+	 * 
+	 * @param \Gobl\Tests\Db\Transaction $entry
+	 * @param bool $auto_save should the modified entity be saved automatically?
+	 * 
+	 * @return $this
+	 */
+	public function addTransactionsEntry(\Gobl\Tests\Db\Transaction $entry, bool $auto_save = true): static
+	{
+		static::table()->getRelation('transactions')->getController()->link($this, $entry, $auto_save);
+		return $this;
+	}
+
+	/**
+	 * `ManyToOne` relation between `accounts` and `clients`.
+	 * 
+	 * @throws \Gobl\Exceptions\GoblException
+	 * @return ?\Gobl\Tests\Db\Client
+	 */
+	public function getClient(): ?\Gobl\Tests\Db\Client
+	{
+		return \Gobl\Tests\Db\Client::ctrl()->getRelative(
+			$this,
+			static::table()->getRelation('client')
+		);
+	}
+
+	/**
+	 * Create `ManyToOne` relationship between `accounts` and `clients`.
+	 * 
+	 * @param \Gobl\Tests\Db\Client $client
+	 * @param bool $auto_save should the modified entity be saved automatically?
+	 * 
+	 * @return $this
+	 */
+	public function setClient(\Gobl\Tests\Db\Client $client, bool $auto_save = true): static
+	{
+		static::table()->getRelation('client')->getController()->link($client, $this, $auto_save);
+
+		return $this;
+	}
+}

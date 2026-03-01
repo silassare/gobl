@@ -1,0 +1,28 @@
+
+/**
+ * Auto generated file,
+ *
+ * INFO: you are free to edit it,
+ * but make sure to know what you are doing.
+ *
+ * Proudly With: gobl [GOBL_VERSION]
+ * Time: [GENERATED_AT]
+ */
+
+import { getEntityCache, type GoblEntityData } from "gobl-utils-ts";
+import CurrencyBase from "./base/CurrencyBase";
+
+export default class Currency extends CurrencyBase {
+	constructor(data?: GoblEntityData) {
+		super(data, "Currency", Currency.PREFIX, [...Currency.COLUMNS]);
+	}
+
+	public static fromCache(key: string): Currency | undefined {
+		const cache = getEntityCache<Currency>("Currency");
+		return cache && cache.get(key);
+	}
+
+	//====================================================
+	//=	Your custom implementation goes here
+	//====================================================
+}

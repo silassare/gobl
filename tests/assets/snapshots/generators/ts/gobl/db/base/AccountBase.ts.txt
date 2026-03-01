@@ -1,0 +1,73 @@
+
+/**
+ * Auto generated file
+ *
+ * WARNING: please don't edit.
+ *
+ * Proudly With: gobl [GOBL_VERSION]
+ * Time: [GENERATED_AT]
+ */
+
+import {GoblEntity} from 'gobl-utils-ts';
+
+export default abstract class AccountBase extends GoblEntity {
+	public static readonly PREFIX = 'account';
+	public static readonly COLUMNS = [
+		'account_id',
+		'account_client_id',
+		'account_label',
+		'account_balance',
+		'account_currency_code',
+		'account_data',
+		'account_created_at',
+		'account_updated_at',
+		'account_valid',
+	] as const;
+	public static readonly COL_ID = 'account_id';
+	public static readonly COL_CLIENT_ID = 'account_client_id';
+	public static readonly COL_LABEL = 'account_label';
+	public static readonly COL_BALANCE = 'account_balance';
+	public static readonly COL_CURRENCY_CODE = 'account_currency_code';
+	public static readonly COL_DATA = 'account_data';
+	public static readonly COL_CREATED_AT = 'account_created_at';
+	public static readonly COL_UPDATED_AT = 'account_updated_at';
+	public static readonly COL_VALID = 'account_valid';
+
+	public singlePKValue():string {
+		const id = this.id;
+		if (id === undefined || id === null) {
+			throw new Error('Cannot get single PK value for unsaved Account.');
+		}
+		return String(id);
+	}
+	public identifierColumns(): string[] {
+		return [ AccountBase.COL_ID ];
+	}
+	get id(): string { return this._data[AccountBase.COL_ID]; }
+	set id(nVal: string|number|null) { this._set(AccountBase.COL_ID, nVal); }
+
+	get client_id(): string { return this._data[AccountBase.COL_CLIENT_ID]; }
+	set client_id(nVal: string|number) { this._set(AccountBase.COL_CLIENT_ID, nVal); }
+
+	get label(): string { return this._data[AccountBase.COL_LABEL]; }
+	set label(nVal: string) { this._set(AccountBase.COL_LABEL, nVal); }
+
+	get balance(): string { return this._data[AccountBase.COL_BALANCE]; }
+	set balance(nVal: string|number|number) { this._set(AccountBase.COL_BALANCE, nVal); }
+
+	get currency_code(): string { return this._data[AccountBase.COL_CURRENCY_CODE]; }
+	set currency_code(nVal: string) { this._set(AccountBase.COL_CURRENCY_CODE, nVal); }
+
+	get data(): Record<string, unknown> { return this._data[AccountBase.COL_DATA]; }
+	set data(nVal: Record<string, unknown>|unknown[]) { this._set(AccountBase.COL_DATA, nVal); }
+
+	get created_at(): string { return this._data[AccountBase.COL_CREATED_AT]; }
+	set created_at(nVal: string|number) { this._set(AccountBase.COL_CREATED_AT, nVal); }
+
+	get updated_at(): string { return this._data[AccountBase.COL_UPDATED_AT]; }
+	set updated_at(nVal: string|number) { this._set(AccountBase.COL_UPDATED_AT, nVal); }
+
+	get valid(): boolean { return this._data[AccountBase.COL_VALID]; }
+	set valid(nVal: boolean) { this._set(AccountBase.COL_VALID, nVal); }
+
+}

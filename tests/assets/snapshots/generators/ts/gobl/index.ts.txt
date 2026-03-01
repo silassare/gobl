@@ -1,0 +1,36 @@
+
+/**
+ * Auto generated file
+ *
+ * WARNING: please don't edit.
+ *
+ * Proudly With: gobl [GOBL_VERSION]
+ * Time: [GENERATED_AT]
+ */
+
+
+import { register } from 'gobl-utils-ts';
+
+import Client from './db/Client';
+import Account from './db/Account';
+import Transaction from './db/Transaction';
+import Currency from './db/Currency';
+
+
+// START: ENTITIES REGISTRATION
+register('Client', Client);
+register('Account', Account);
+register('Transaction', Transaction);
+register('Currency', Currency);
+
+// END: ENTITIES REGISTRATION
+
+export * from './enums.ts';
+
+export {
+Client,
+Account,
+Transaction,
+Currency,
+
+};
