@@ -154,7 +154,7 @@ interface TypeInterface extends ArrayCapableInterface
 	 *
 	 * @return null|float|int|string
 	 */
-	public function phpToDb(mixed $value, RDBMSInterface $rdbms): null|float|int|string;
+	public function phpToDb(mixed $value, RDBMSInterface $rdbms): float|int|string|null;
 
 	/**
 	 * Should we enforce default value at the database level.

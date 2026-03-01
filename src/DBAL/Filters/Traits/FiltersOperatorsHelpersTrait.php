@@ -31,7 +31,7 @@ trait FiltersOperatorsHelpersTrait
 	 *
 	 * @return $this
 	 */
-	public function eq(string $left, null|bool|float|int|QBExpression|QBSelect|string $right): static
+	public function eq(string $left, bool|float|int|QBExpression|QBSelect|string|null $right): static
 	{
 		if (null === $right) {
 			return $this->add(Operator::IS_NULL, $left);
@@ -48,7 +48,7 @@ trait FiltersOperatorsHelpersTrait
 	 *
 	 * @return $this
 	 */
-	public function neq(string $left, null|bool|float|int|QBExpression|QBSelect|string $right): static
+	public function neq(string $left, bool|float|int|QBExpression|QBSelect|string|null $right): static
 	{
 		if (null === $right) {
 			return $this->add(Operator::IS_NOT_NULL, $left);

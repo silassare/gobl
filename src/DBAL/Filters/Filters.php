@@ -332,7 +332,7 @@ final class Filters
 	public function add(
 		Operator $operator,
 		string $left,
-		null|array|BackedEnum|bool|float|int|QBExpression|QBInterface|string $right = null
+		array|BackedEnum|bool|float|int|QBExpression|QBInterface|string|null $right = null
 	): self {
 		if (Operator::IS_TRUE === $operator) {
 			$operator = Operator::EQ;
@@ -492,7 +492,7 @@ final class Filters
 				$sub_filters_group = $instance->subGroup();
 
 				foreach ($group as $filter) {
-					if (\is_array($filter)) {// [[rule, value, cond], ...]
+					if (\is_array($filter)) { // [[rule, value, cond], ...]
 						$operator_name = $filter[0] ?? null;
 						if (!\is_string($operator_name)) {
 							throw new DBALRuntimeException('GOBL_INVALID_FILTERS', [

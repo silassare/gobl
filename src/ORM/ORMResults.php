@@ -29,7 +29,7 @@ use PDOStatement;
  *
  * @template TEntity of ORMEntity
  *
- * @implements  \Iterator<int,TEntity>
+ * @implements  Iterator<int,TEntity>
  */
 abstract class ORMResults implements Countable, Iterator
 {

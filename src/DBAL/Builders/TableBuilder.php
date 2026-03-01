@@ -177,7 +177,7 @@ final class TableBuilder
 	 *
 	 * @throws DBALException
 	 */
-	public function column(string $column_name, null|array|TypeInterface $type = null): Column
+	public function column(string $column_name, array|TypeInterface|null $type = null): Column
 	{
 		$column = new Column($column_name, null, $type);
 
@@ -500,8 +500,8 @@ final class TableBuilder
 	 */
 	public function morph(
 		string $prefix,
-		null|array|TypeInterface $id_column_type = null,
-		null|array|TypeInterface $type_column_type = null,
+		array|TypeInterface|null $id_column_type = null,
+		array|TypeInterface|null $type_column_type = null,
 		bool $nullable = false
 	): self {
 		$id_column_name   = "{$prefix}_id";

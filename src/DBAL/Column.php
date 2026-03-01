@@ -105,7 +105,7 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	 * @param null|string              $prefix the column prefix
 	 * @param null|array|TypeInterface $type   the column type or type options
 	 */
-	public function __construct(string $name, ?string $prefix = null, null|array|TypeInterface $type = null)
+	public function __construct(string $name, ?string $prefix = null, array|TypeInterface|null $type = null)
 	{
 		$this->setName($name);
 
@@ -319,7 +319,7 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	 *
 	 * @return Column
 	 */
-	public function setReference(null|self|string $reference, bool $copy = false): self
+	public function setReference(self|string|null $reference, bool $copy = false): self
 	{
 		$this->assertNotLocked();
 

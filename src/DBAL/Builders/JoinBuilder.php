@@ -24,9 +24,9 @@ use Gobl\DBAL\Table;
  */
 final class JoinBuilder
 {
-	private ?string $table_to_join                   = null;
-	private ?string $table_to_join_alias             = null;
-	private null|Filters|string $condition           = null;
+	private ?string $table_to_join         = null;
+	private ?string $table_to_join_alias   = null;
+	private Filters|string|null $condition = null;
 
 	/**
 	 * JoinBuilder constructor.

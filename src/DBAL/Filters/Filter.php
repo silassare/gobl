@@ -40,7 +40,7 @@ final class Filter implements FilterInterface
 	public function __construct(
 		protected Operator $operator,
 		protected string $left,
-		protected null|array|BackedEnum|bool|float|int|QBExpression|QBInterface|string $right,
+		protected array|BackedEnum|bool|float|int|QBExpression|QBInterface|string|null $right,
 		protected string $left_str,
 		protected ?string $right_str,
 	) {}
@@ -68,7 +68,7 @@ final class Filter implements FilterInterface
 	 *
 	 * @return null|array|BackedEnum|bool|float|int|QBExpression|QBInterface|string
 	 */
-	public function getRightOperand(): null|array|BackedEnum|bool|float|int|QBExpression|QBInterface|string
+	public function getRightOperand(): array|BackedEnum|bool|float|int|QBExpression|QBInterface|string|null
 	{
 		return $this->right;
 	}

@@ -117,7 +117,7 @@ class QBSelect implements QBInterface
 	 *
 	 * @return $this
 	 */
-	public function select(null|string|Table $table_name_or_alias = null, array $columns = [], bool $auto_prefix = true): static
+	public function select(string|Table|null $table_name_or_alias = null, array $columns = [], bool $auto_prefix = true): static
 	{
 		if (!empty($table_name_or_alias)) {
 			$table_name = $this->resolveTable($table_name_or_alias)

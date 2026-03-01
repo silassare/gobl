@@ -250,7 +250,7 @@ abstract class Type implements TypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function phpToDb(mixed $value, RDBMSInterface $rdbms): null|float|int|string
+	public function phpToDb(mixed $value, RDBMSInterface $rdbms): float|int|string|null
 	{
 		return $this->safelyCallOnBaseType(__FUNCTION__, [$value, $rdbms]);
 	}

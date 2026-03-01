@@ -158,7 +158,7 @@ class TypeEnum extends Type
 	 * @throws TypesInvalidValueException
 	 * @throws TypesException
 	 */
-	public function phpToDb(mixed $value, RDBMSInterface $rdbms): null|int|string
+	public function phpToDb(mixed $value, RDBMSInterface $rdbms): int|string|null
 	{
 		return $this->validate($value)?->value;
 	}

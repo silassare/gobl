@@ -53,7 +53,7 @@ interface QBInterface
 	public function getSqlQuery(): string;
 
 	/**
-	 * Alias for {@see \PDO::quote()}.
+	 * Alias for {@see PDO::quote()}.
 	 *
 	 * @param int   $type
 	 * @param mixed $value
