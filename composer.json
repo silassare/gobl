@@ -27,12 +27,16 @@
 	"homepage": "https://github.com/silassare/gobl#readme",
 	"autoload": {
 		"psr-4": {
-			"Gobl\\": "src",
-			"Gobl\\Tests\\": "tests"
+			"Gobl\\": "src/"
 		},
 		"files": [
 			"src/bootstrap.php"
 		]
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"Gobl\\Tests\\": "tests/"
+		}
 	},
 	"authors": [
 		{
