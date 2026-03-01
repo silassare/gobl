@@ -1,0 +1,4 @@
+SQL:
+SELECT c.client_id, c.client_first_name, t.transaction_id, t.transaction_reference, t.transaction_amount FROM gObL_clients AS c WHERE 1 = 1
+BOUND:
+[]

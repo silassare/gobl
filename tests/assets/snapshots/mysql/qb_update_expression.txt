@@ -1,0 +1,6 @@
+SQL:
+UPDATE gObL_accounts SET account_balance = account_balance + 100.00 WHERE ((account_id = :_val_a))
+BOUND:
+{
+    "_val_a": 7
+}

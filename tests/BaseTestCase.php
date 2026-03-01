@@ -201,4 +201,56 @@ abstract class BaseTestCase extends TestCase
 			],
 		];
 	}
+
+	/**
+	 * Asserts that the given SQL and bound values match a stored snapshot fixture.
+	 *
+	 * On the first run (when the fixture file does not exist) the snapshot is
+	 * written automatically so subsequent runs can compare against it.
+	 *
+	 * Snapshot files live under:
+	 *   tests/assets/snapshots/{snapshotName}.txt
+	 *
+	 * To regenerate a snapshot, simply delete its fixture file and re-run the
+	 * tests once.
+	 *
+	 * @param string $snapshotName Slash-separated key, e.g. "mysql/qb_select_all"
+	 * @param string $sql          The SQL string produced by the query builder
+	 * @param array  $boundValues  The bound parameter values
+	 */
+	protected function assertMatchesSnapshot(string $snapshotName, string $sql, array $boundValues = []): void
+	{
+		$content = 'SQL:' . \PHP_EOL . $sql . \PHP_EOL
+			. 'BOUND:' . \PHP_EOL . \json_encode($boundValues, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
+
+		$expected_dir  = GOBL_TEST_ASSETS . \DIRECTORY_SEPARATOR . 'snapshots' . \DIRECTORY_SEPARATOR
+			. \str_replace('/', \DIRECTORY_SEPARATOR, \dirname($snapshotName));
+		$expected_file = GOBL_TEST_ASSETS . \DIRECTORY_SEPARATOR . 'snapshots' . \DIRECTORY_SEPARATOR
+			. \str_replace('/', \DIRECTORY_SEPARATOR, $snapshotName) . '.txt';
+
+		$actual_dir  = GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'snapshots' . \DIRECTORY_SEPARATOR
+			. \str_replace('/', \DIRECTORY_SEPARATOR, \dirname($snapshotName));
+		$actual_file = GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'snapshots' . \DIRECTORY_SEPARATOR
+			. \str_replace('/', \DIRECTORY_SEPARATOR, $snapshotName) . '.txt';
+
+		if (!\is_dir($actual_dir)) {
+			\mkdir($actual_dir, 0755, true);
+		}
+
+		\file_put_contents($actual_file, $content);
+
+		if (!\file_exists($expected_file)) {
+			if (!\is_dir($expected_dir)) {
+				\mkdir($expected_dir, 0755, true);
+			}
+
+			\file_put_contents($expected_file, $content);
+		}
+
+		self::assertSame(
+			\file_get_contents($expected_file),
+			$content,
+			\sprintf('Snapshot mismatch for "%s". To regenerate, delete: %s', $snapshotName, $expected_file)
+		);
+	}
 }

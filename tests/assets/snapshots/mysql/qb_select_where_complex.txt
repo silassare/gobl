@@ -1,0 +1,8 @@
+SQL:
+SELECT c.* FROM gObL_clients AS c WHERE ((client_gender = :_val_a AND ((client_first_name LIKE :_val_b) OR (client_valid = :_val_c))))
+BOUND:
+{
+    "_val_a": "male",
+    "_val_b": "Jo%",
+    "_val_c": true
+}

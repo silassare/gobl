@@ -1,0 +1,4 @@
+SQL:
+DELETE _a_ FROM gObL_clients AS _a_ WHERE 1 = 1
+BOUND:
+[]

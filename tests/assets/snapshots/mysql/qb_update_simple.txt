@@ -1,0 +1,8 @@
+SQL:
+UPDATE gObL_clients SET client_first_name = :_val_a, client_last_name = :_val_b WHERE ((client_id = :_val_c))
+BOUND:
+{
+    "_val_a": "Jane",
+    "_val_b": "Doe",
+    "_val_c": 1
+}

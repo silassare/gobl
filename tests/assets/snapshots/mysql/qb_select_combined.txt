@@ -1,0 +1,7 @@
+SQL:
+SELECT c.* FROM gObL_clients AS c WHERE ((client_valid = :_val_a AND client_id > :_val_b)) ORDER BY client_last_name ASC, client_id ASC LIMIT 25 OFFSET 50
+BOUND:
+{
+    "_val_a": true,
+    "_val_b": 0
+}
