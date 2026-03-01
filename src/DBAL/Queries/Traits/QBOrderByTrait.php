@@ -68,7 +68,7 @@ trait QBOrderByTrait
 				if (\is_string($value)) {
 					$dir = \strtoupper($value);
 					if ('ASC' !== $dir && 'DESC' !== $dir) {
-						throw new InvalidArgumentException(sprintf(
+						throw new InvalidArgumentException(\sprintf(
 							'Invalid ORDER BY direction "%s" for column "%s". Allowed values are "ASC" or "DESC".',
 							$value,
 							$key

@@ -232,10 +232,22 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$type = $qb->getType();
 
 		return match ($type) {
-			QBType::SELECT => $this->getSelectQuery(/** @var QBSelect $qb */ $qb),
-			QBType::INSERT => $this->getInsertQuery(/** @var QBInsert $qb */ $qb),
-			QBType::UPDATE => $this->getUpdateQuery(/** @var QBUpdate $qb */ $qb),
-			QBType::DELETE => $this->getDeleteQuery(/** @var QBDelete $qb */ $qb)
+			QBType::SELECT => $this->getSelectQuery(
+				/** @var QBSelect $qb */
+				$qb
+			),
+			QBType::INSERT => $this->getInsertQuery(
+				/** @var QBInsert $qb */
+				$qb
+			),
+			QBType::UPDATE => $this->getUpdateQuery(
+				/** @var QBUpdate $qb */
+				$qb
+			),
+			QBType::DELETE => $this->getDeleteQuery(
+				/** @var QBDelete $qb */
+				$qb
+			)
 		};
 	}
 
