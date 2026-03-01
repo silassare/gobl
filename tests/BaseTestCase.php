@@ -206,7 +206,8 @@ abstract class BaseTestCase extends TestCase
 	 * Normalizes dynamic content (generated timestamps, version strings) in SQL/file output
 	 * so that snapshots remain stable across runs.
 	 *
-	 * Replaces ISO-8601 timestamps (e.g. inside `-- Time: …` comments) with a fixed placeholder.
+	 * - Replaces ISO-8601 timestamps (e.g. inside `-- Time: ...` comments) with a fixed placeholder.
+	 * - Replaces Gobl version comments (e.g. `gobl v2.0.0`) with a fixed placeholder.
 	 *
 	 * @param string $content Raw output to normalize
 	 *
