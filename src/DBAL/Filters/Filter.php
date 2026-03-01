@@ -108,7 +108,10 @@ final class Filter implements FilterInterface
 	 */
 	public function toArray(): array
 	{
-		return [
+		return $this->operator->isUnary() ? [
+			$this->left,
+			$this->operator,
+		] : [
 			$this->left,
 			$this->operator,
 			$this->right,
