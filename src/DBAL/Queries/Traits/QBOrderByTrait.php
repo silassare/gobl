@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Queries\Traits;
 
+use InvalidArgumentException;
+
 /**
  * Trait QBOrderByTrait.
  */
@@ -22,7 +24,9 @@ trait QBOrderByTrait
 	protected array $options_order_by = [];
 
 	/**
-	 * @return string[]
+	 * Get the current ORDER BY clauses.
+	 *
+	 * @return array<int, string> List of ORDER BY clauses, e.g. ["name ASC", "created_at DESC"]
 	 */
 	public function getOptionsOrderBy(): array
 	{
@@ -30,6 +34,27 @@ trait QBOrderByTrait
 	}
 
 	/**
+	 * Add ORDER BY clauses.
+	 *
+	 * Accepts either an array of column names (defaulting to ASC), or an associative array of column => direction pairs.
+	 *
+	 * Example:
+	 * ```php
+	 * // Simple columns (default to ASC)
+	 * $qb->orderBy(['name', 'created_at']);
+	 *
+	 * // Columns with directions
+	 * $qb->orderBy([
+	 *    'name' => 'ASC',
+	 *   'created_at' => 'DESC',
+	 * ]);
+	 *
+	 * // Mixed example
+	 * $qb->orderBy([
+	 *   'name', // defaults to ASC
+	 *  'created_at' => 'DESC',
+	 * ]);
+	 *
 	 * @param array $order_by
 	 *
 	 * @return $this
@@ -40,7 +65,21 @@ trait QBOrderByTrait
 			if (\is_int($key)) {
 				$order = $value;
 			} else {
-				$order = $key . ($value ? ' ASC' : ' DESC');
+				if (\is_string($value)) {
+					$dir = \strtoupper($value);
+					if ('ASC' !== $dir && 'DESC' !== $dir) {
+						throw new InvalidArgumentException(sprintf(
+							'Invalid ORDER BY direction "%s" for column "%s". Allowed values are "ASC" or "DESC".',
+							$value,
+							$key
+						));
+					}
+				} else {
+					// If value is not a string, treat truthy as ASC and falsy as DESC
+					$dir = $value ? 'ASC' : 'DESC';
+				}
+
+				$order = $key . ' ' . $dir;
 			}
 
 			$this->options_order_by[] = $order;
