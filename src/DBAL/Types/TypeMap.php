@@ -159,7 +159,7 @@ class TypeMap extends Type
 			return null;
 		}
 
-		return \json_encode($value->getData(), \JSON_THROW_ON_ERROR);
+		return \json_encode($value, \JSON_THROW_ON_ERROR);
 	}
 
 	/**
