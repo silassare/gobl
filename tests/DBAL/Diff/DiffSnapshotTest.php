@@ -48,7 +48,6 @@ final class DiffSnapshotTest extends BaseTestCase
 			$ns->table('users', static function (TableBuilder $t) {
 				$t->id();
 				$t->string('name');
-				$t->primary('id');
 			});
 		});
 
@@ -67,7 +66,6 @@ final class DiffSnapshotTest extends BaseTestCase
 				$t->id();
 				$t->string('name')->min(1)->max(120);
 				$t->decimal('price')->unsigned();
-				$t->primary('id');
 			});
 		});
 
@@ -81,7 +79,6 @@ final class DiffSnapshotTest extends BaseTestCase
 			$ns->table('temporary', static function (TableBuilder $t) {
 				$t->id();
 				$t->string('label');
-				$t->primary('id');
 			});
 		});
 
@@ -99,7 +96,6 @@ final class DiffSnapshotTest extends BaseTestCase
 			$ns->table('posts', static function (TableBuilder $t) {
 				$t->id();
 				$t->string('title');
-				$t->primary('id');
 			});
 		});
 
@@ -108,7 +104,7 @@ final class DiffSnapshotTest extends BaseTestCase
 				$t->id();
 				$t->string('title');
 				$t->string('body')->nullable();   // new column
-				$t->primary('id');
+
 			});
 		});
 
@@ -123,7 +119,7 @@ final class DiffSnapshotTest extends BaseTestCase
 				$t->id();
 				$t->string('title');
 				$t->string('subtitle')->nullable();
-				$t->primary('id');
+
 			});
 		});
 
@@ -132,7 +128,7 @@ final class DiffSnapshotTest extends BaseTestCase
 				$t->id();
 				$t->string('title');
 				// subtitle removed
-				$t->primary('id');
+
 			});
 		});
 
@@ -170,7 +166,7 @@ final class DiffSnapshotTest extends BaseTestCase
 			$ns->table('items', static function (TableBuilder $t) {
 				$t->id();
 				$t->string('status')->min(1)->max(20);
-				$t->primary('id');
+
 			});
 		});
 
@@ -178,7 +174,7 @@ final class DiffSnapshotTest extends BaseTestCase
 			$ns->table('items', static function (TableBuilder $t) {
 				$t->id();
 				$t->string('status')->min(1)->max(20)->default('active');
-				$t->primary('id');
+
 			});
 		});
 
@@ -192,7 +188,7 @@ final class DiffSnapshotTest extends BaseTestCase
 			$ns->table('profiles', static function (TableBuilder $t) {
 				$t->id();
 				$t->string('bio')->max(500);
-				$t->primary('id');
+
 			});
 		});
 
@@ -200,7 +196,7 @@ final class DiffSnapshotTest extends BaseTestCase
 			$ns->table('profiles', static function (TableBuilder $t) {
 				$t->id();
 				$t->string('bio')->max(500)->nullable();
-				$t->primary('id');
+
 			});
 		});
 

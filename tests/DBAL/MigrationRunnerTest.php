@@ -93,7 +93,7 @@ final class MigrationRunnerTest extends BaseTestCase
 		self::assertSame([1, 2], $applied);
 
 		// Version 3 should still be pending
-		$pending = \array_filter($runner->status(), static fn (array $s) => !$s['applied']);
+		$pending = \array_filter($runner->status(), static fn(array $s) => !$s['applied']);
 		self::assertCount(1, $pending);
 		self::assertSame(3, \array_values($pending)[0]['version']);
 	}
@@ -116,7 +116,7 @@ final class MigrationRunnerTest extends BaseTestCase
 		self::assertSame([2], $rolled);
 
 		// Only version 1 should remain applied
-		$applied = \array_filter($runner->status(), static fn (array $s) => $s['applied']);
+		$applied = \array_filter($runner->status(), static fn(array $s) => $s['applied']);
 		self::assertCount(1, $applied);
 		self::assertSame(1, \array_values($applied)[0]['version']);
 	}
@@ -330,7 +330,6 @@ final class MigrationRunnerTest extends BaseTestCase
 			$ns->table('products', static function (TableBuilder $t) {
 				$t->id();
 				$t->string('name')->min(1)->max(120);
-				$t->primary('id');
 			});
 		});
 
@@ -353,7 +352,6 @@ final class MigrationRunnerTest extends BaseTestCase
 			$ns->table('products', static function (TableBuilder $t) {
 				$t->id();
 				$t->string('name')->min(1)->max(120);
-				$t->primary('id');
 			});
 		});
 
