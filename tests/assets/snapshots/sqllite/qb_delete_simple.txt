@@ -1,0 +1,6 @@
+SQL:
+DELETE _a_ FROM gObL_clients AS _a_ WHERE ((client_id = :_val_b))
+BOUND:
+{
+    "_val_b": 1
+}

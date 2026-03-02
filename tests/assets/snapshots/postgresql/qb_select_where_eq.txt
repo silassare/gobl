@@ -1,0 +1,6 @@
+SQL:
+SELECT c.* FROM gObL_clients AS c WHERE ((client_id = :_val_a))
+BOUND:
+{
+    "_val_a": 42
+}

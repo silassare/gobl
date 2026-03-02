@@ -1,0 +1,7 @@
+UP:
+-- column type changed
+ALTER TABLE "gObL_items" ALTER COLUMN "item_counter" bigint NOT NULL;
+
+DOWN:
+-- column type changed
+ALTER TABLE "gObL_items" ALTER COLUMN "item_counter" integer NOT NULL;

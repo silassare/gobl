@@ -1,0 +1,27 @@
+--
+-- Auto generated file, please don't edit.
+-- With: gobl [GOBL_VERSION]
+-- Time: [GENERATED_AT]
+--
+
+--
+-- Table structure for table "gObL_t"
+--
+DROP TABLE IF EXISTS "gObL_t";
+CREATE TABLE "gObL_t" (
+"t_id" bigserial,
+"t_data" text NOT NULL,
+"t_optional_extras" text NULL,
+"t_data_big" text NOT NULL,
+"t_tags" text NOT NULL,
+"t_optional_items" text NULL,
+
+--
+-- Primary key constraints definition for table "gObL_t"
+--
+CONSTRAINT pk_gObL_t PRIMARY KEY ("t_id")
+);
+
+
+
+

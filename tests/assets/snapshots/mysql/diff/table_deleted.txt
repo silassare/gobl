@@ -46,7 +46,7 @@ CREATE TABLE `gObL_temporary` (
 --
 -- Primary key constraints definition for table `gObL_temporary`
 --
-CONSTRAINT pk_gObL_temporary PRIMARY KEY (`id` , `id`)
+CONSTRAINT pk_gObL_temporary PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

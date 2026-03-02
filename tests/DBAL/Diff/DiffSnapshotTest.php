@@ -16,7 +16,6 @@ namespace Gobl\Tests\DBAL\Diff;
 use Gobl\DBAL\Builders\NamespaceBuilder;
 use Gobl\DBAL\Builders\TableBuilder;
 use Gobl\DBAL\Diff\Diff;
-use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Interfaces\MigrationInterface;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\Tests\BaseTestCase;
@@ -24,12 +23,13 @@ use Gobl\Tests\BaseTestCase;
 /**
  * Class DiffSnapshotTest.
  *
- * Snapshot tests for MySQL migration SQL (up + down) produced by the Diff engine.
- * Each test defines a "before" and "after" schema state, computes the diff, generates
- * the migration, and snapshots the resulting up() / down() SQL strings.
+ * Cross-driver migration SQL (up + down) snapshot tests produced by the Diff engine.
+ * Each test runs for every supported RDBMS so that dialect-specific ALTER / DROP / ADD
+ * SQL is captured and guarded by the snapshot.
  *
- * To regenerate a snapshot, delete the corresponding .txt file in
- * tests/assets/snapshots/mysql/diff/ and re-run the suite once.
+ * Snapshots are stored under tests/assets/snapshots/{driver}/diff/{scenario}.txt
+ *
+ * To regenerate a snapshot, delete the corresponding .txt file and re-run the suite once.
  *
  * @covers \Gobl\DBAL\Diff\Diff
  *
@@ -41,27 +41,35 @@ final class DiffSnapshotTest extends BaseTestCase
 	// Tests
 	// -------------------------------------------------------------------------
 
-	/** Identical DBs produce an empty diff and no migration SQL. */
-	public function testIdenticalDbs(): void
+	/**
+	 * Identical DBs produce an empty diff and no migration SQL.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testIdenticalDbs(string $driver): void
 	{
-		$db = $this->buildDb(static function (NamespaceBuilder $ns) {
+		$db = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
 			$ns->table('users', static function (TableBuilder $t) {
 				$t->id();
 				$t->string('name');
 			});
 		});
 
-		$this->assertDiffSnapshot('identical_dbs', $db, $db);
+		$this->assertDiffSnapshot($driver, 'identical_dbs', $db, $db);
 	}
 
-	/** A brand-new table in $to => up() creates it, down() drops it. */
-	public function testTableAdded(): void
+	/**
+	 * A brand-new table in $to => up() creates it, down() drops it.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testTableAdded(string $driver): void
 	{
-		$from = $this->buildDb(static function (NamespaceBuilder $ns) {
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
 			// no tables
 		});
 
-		$to = $this->buildDb(static function (NamespaceBuilder $ns) {
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
 			$ns->table('products', static function (TableBuilder $t) {
 				$t->id();
 				$t->string('name')->min(1)->max(120);
@@ -69,76 +77,89 @@ final class DiffSnapshotTest extends BaseTestCase
 			});
 		});
 
-		$this->assertDiffSnapshot('table_added', $from, $to);
+		$this->assertDiffSnapshot($driver, 'table_added', $from, $to);
 	}
 
-	/** A table present in $from but absent in $to => up() drops it, down() recreates it. */
-	public function testTableDeleted(): void
+	/**
+	 * A table present in $from but absent in $to => up() drops it, down() recreates it.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testTableDeleted(string $driver): void
 	{
-		$from = $this->buildDb(static function (NamespaceBuilder $ns) {
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
 			$ns->table('temporary', static function (TableBuilder $t) {
 				$t->id();
 				$t->string('label');
 			});
 		});
 
-		$to = $this->buildDb(static function (NamespaceBuilder $ns) {
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
 			// table removed
 		});
 
-		$this->assertDiffSnapshot('table_deleted', $from, $to);
+		$this->assertDiffSnapshot($driver, 'table_deleted', $from, $to);
 	}
 
-	/** A new column appears in $to => up() ALTERs to add it, down() drops it. */
-	public function testColumnAdded(): void
+	/**
+	 * A new column appears in $to => up() ALTERs to add it, down() drops it.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testColumnAdded(string $driver): void
 	{
-		$from = $this->buildDb(static function (NamespaceBuilder $ns) {
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
 			$ns->table('posts', static function (TableBuilder $t) {
 				$t->id();
 				$t->string('title');
 			});
 		});
 
-		$to = $this->buildDb(static function (NamespaceBuilder $ns) {
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
 			$ns->table('posts', static function (TableBuilder $t) {
 				$t->id();
 				$t->string('title');
 				$t->string('body')->nullable();   // new column
-
 			});
 		});
 
-		$this->assertDiffSnapshot('column_added', $from, $to);
+		$this->assertDiffSnapshot($driver, 'column_added', $from, $to);
 	}
 
-	/** A column present in $from is absent in $to => up() drops it, down() re-adds it. */
-	public function testColumnDeleted(): void
+	/**
+	 * A column present in $from is absent in $to => up() drops it, down() re-adds it.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testColumnDeleted(string $driver): void
 	{
-		$from = $this->buildDb(static function (NamespaceBuilder $ns) {
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
 			$ns->table('posts', static function (TableBuilder $t) {
 				$t->id();
 				$t->string('title');
 				$t->string('subtitle')->nullable();
-
 			});
 		});
 
-		$to = $this->buildDb(static function (NamespaceBuilder $ns) {
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
 			$ns->table('posts', static function (TableBuilder $t) {
 				$t->id();
 				$t->string('title');
 				// subtitle removed
-
 			});
 		});
 
-		$this->assertDiffSnapshot('column_deleted', $from, $to);
+		$this->assertDiffSnapshot($driver, 'column_deleted', $from, $to);
 	}
 
-	/** A column's type changes (int => bigint) => up() ALTERs type, down() reverts. */
-	public function testColumnTypeChanged(): void
+	/**
+	 * A column's type changes (int => bigint) => up() ALTERs type, down() reverts.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testColumnTypeChanged(string $driver): void
 	{
-		$from = $this->buildDb(static function (NamespaceBuilder $ns) {
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
 			$ns->table('items', static function (TableBuilder $t) {
 				$t->columnPrefix('item');
 				$t->id();
@@ -147,7 +168,7 @@ final class DiffSnapshotTest extends BaseTestCase
 			});
 		});
 
-		$to = $this->buildDb(static function (NamespaceBuilder $ns) {
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
 			$ns->table('items', static function (TableBuilder $t) {
 				$t->columnPrefix('item');
 				$t->id();
@@ -156,57 +177,65 @@ final class DiffSnapshotTest extends BaseTestCase
 			});
 		});
 
-		$this->assertDiffSnapshot('column_type_changed', $from, $to);
+		$this->assertDiffSnapshot($driver, 'column_type_changed', $from, $to);
 	}
 
-	/** A column gains a default value it did not have before. */
-	public function testColumnDefaultAdded(): void
+	/**
+	 * A column gains a default value it did not have before.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testColumnDefaultAdded(string $driver): void
 	{
-		$from = $this->buildDb(static function (NamespaceBuilder $ns) {
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
 			$ns->table('items', static function (TableBuilder $t) {
 				$t->id();
 				$t->string('status')->min(1)->max(20);
-
 			});
 		});
 
-		$to = $this->buildDb(static function (NamespaceBuilder $ns) {
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
 			$ns->table('items', static function (TableBuilder $t) {
 				$t->id();
 				$t->string('status')->min(1)->max(20)->default('active');
-
 			});
 		});
 
-		$this->assertDiffSnapshot('column_default_added', $from, $to);
+		$this->assertDiffSnapshot($driver, 'column_default_added', $from, $to);
 	}
 
-	/** A non-nullable column becomes nullable. */
-	public function testColumnNullableChanged(): void
+	/**
+	 * A non-nullable column becomes nullable.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testColumnNullableChanged(string $driver): void
 	{
-		$from = $this->buildDb(static function (NamespaceBuilder $ns) {
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
 			$ns->table('profiles', static function (TableBuilder $t) {
 				$t->id();
 				$t->string('bio')->max(500);
-
 			});
 		});
 
-		$to = $this->buildDb(static function (NamespaceBuilder $ns) {
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
 			$ns->table('profiles', static function (TableBuilder $t) {
 				$t->id();
 				$t->string('bio')->max(500)->nullable();
-
 			});
 		});
 
-		$this->assertDiffSnapshot('column_nullable_changed', $from, $to);
+		$this->assertDiffSnapshot($driver, 'column_nullable_changed', $from, $to);
 	}
 
-	/** A FK-less schema gains a foreign key constraint. */
-	public function testForeignKeyAdded(): void
+	/**
+	 * A FK-less schema gains a foreign key constraint.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testForeignKeyAdded(string $driver): void
 	{
-		$from = $this->buildDb(static function (NamespaceBuilder $ns) {
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
 			$ns->table('categories', static function (TableBuilder $t) {
 				$t->columnPrefix('category');
 				$t->id();
@@ -221,7 +250,7 @@ final class DiffSnapshotTest extends BaseTestCase
 			});
 		});
 
-		$to = $this->buildDb(static function (NamespaceBuilder $ns) {
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
 			$ns->table('categories', static function (TableBuilder $t) {
 				$t->columnPrefix('category');
 				$t->id();
@@ -236,13 +265,17 @@ final class DiffSnapshotTest extends BaseTestCase
 			});
 		});
 
-		$this->assertDiffSnapshot('foreign_key_added', $from, $to);
+		$this->assertDiffSnapshot($driver, 'foreign_key_added', $from, $to);
 	}
 
-	/** An existing FK constraint is dropped. */
-	public function testForeignKeyDeleted(): void
+	/**
+	 * An existing FK constraint is dropped.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testForeignKeyDeleted(string $driver): void
 	{
-		$from = $this->buildDb(static function (NamespaceBuilder $ns) {
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
 			$ns->table('categories', static function (TableBuilder $t) {
 				$t->columnPrefix('category');
 				$t->id();
@@ -257,7 +290,7 @@ final class DiffSnapshotTest extends BaseTestCase
 			});
 		});
 
-		$to = $this->buildDb(static function (NamespaceBuilder $ns) {
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
 			$ns->table('categories', static function (TableBuilder $t) {
 				$t->columnPrefix('category');
 				$t->id();
@@ -272,13 +305,17 @@ final class DiffSnapshotTest extends BaseTestCase
 			});
 		});
 
-		$this->assertDiffSnapshot('foreign_key_deleted', $from, $to);
+		$this->assertDiffSnapshot($driver, 'foreign_key_deleted', $from, $to);
 	}
 
-	/** A unique key constraint is added to an existing column. */
-	public function testUniqueKeyAdded(): void
+	/**
+	 * A unique key constraint is added to an existing column.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testUniqueKeyAdded(string $driver): void
 	{
-		$from = $this->buildDb(static function (NamespaceBuilder $ns) {
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
 			$ns->table('users', static function (TableBuilder $t) {
 				$t->columnPrefix('user');
 				$t->id();
@@ -286,7 +323,7 @@ final class DiffSnapshotTest extends BaseTestCase
 			});
 		});
 
-		$to = $this->buildDb(static function (NamespaceBuilder $ns) {
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
 			$ns->table('users', static function (TableBuilder $t) {
 				$t->columnPrefix('user');
 				$t->id();
@@ -295,40 +332,43 @@ final class DiffSnapshotTest extends BaseTestCase
 			});
 		});
 
-		$this->assertDiffSnapshot('unique_key_added', $from, $to);
+		$this->assertDiffSnapshot($driver, 'unique_key_added', $from, $to);
 	}
 
 	/**
 	 * Full real-world diff: the production test schema (tables.php) migrated to
-	 * the modified schema (tables.diff.php). This is the heaviest integration
-	 * scenario, any regression in diff/SQL generation will be caught here.
+	 * the modified schema (tables.diff.php). Heaviest integration scenario.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
-	public function testFullTablesDiff(): void
+	public function testFullTablesDiff(string $driver): void
 	{
-		$from = self::getDb(MySQL::NAME);
+		$from = self::getDb($driver);
 
-		$to = self::getEmptyDb(MySQL::NAME);
+		$to = self::getEmptyDb($driver);
 		$to->ns('Test')
 			->schema(self::getTablesDiffDefinitions());
 
 		$to->lock();
 
-		$this->assertDiffSnapshot('full_tables_diff', $from, $to);
+		$this->assertDiffSnapshot($driver, 'full_tables_diff', $from, $to);
 	}
+
 	// -------------------------------------------------------------------------
 	// Helpers
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Builds and locks a MySQL DB with a single namespace configured by $setup.
+	 * Builds and locks a DB of the given $driver with a single namespace configured by $setup.
 	 *
+	 * @param string                          $driver
 	 * @param callable(NamespaceBuilder):void $setup
 	 *
 	 * @return RDBMSInterface
 	 */
-	private function buildDb(callable $setup): RDBMSInterface
+	private function buildDb(string $driver, callable $setup): RDBMSInterface
 	{
-		$db = self::getEmptyDb(MySQL::NAME);
+		$db = self::getEmptyDb($driver);
 		$ns = $db->ns('test');
 		$setup($ns);
 
@@ -336,31 +376,36 @@ final class DiffSnapshotTest extends BaseTestCase
 	}
 
 	/**
-	 * Generates migration SQL (up + down) from a Diff and snapshots
-	 * UP:\n{sql}\n\nDOWN:\n{sql} under mysql/diff/{name}.
+	 * Generates migration SQL (up + down) from a Diff between $from and $to,
+	 * and snapshots "UP:\n{sql}\n\nDOWN:\n{sql}" under {driver}/diff/{name}.
 	 *
 	 * The migration PHP file is written to tests/tmp/output/ using a name derived
-	 * from $snapshotName to avoid opcode-cache collisions between tests.
+	 * from $driver and $snapshotName to avoid opcode-cache collisions between tests.
 	 *
+	 * @param string         $driver
 	 * @param string         $snapshotName
 	 * @param RDBMSInterface $from
 	 * @param RDBMSInterface $to
 	 */
-	private function assertDiffSnapshot(string $snapshotName, RDBMSInterface $from, RDBMSInterface $to): void
-	{
+	private function assertDiffSnapshot(
+		string $driver,
+		string $snapshotName,
+		RDBMSInterface $from,
+		RDBMSInterface $to
+	): void {
 		$diff = new Diff($from, $to);
 
 		if (!$diff->hasChanges()) {
 			$this->assertMatchesContentSnapshot(
-				'mysql/diff/' . $snapshotName,
+				$driver . '/diff/' . $snapshotName,
 				'UP:' . \PHP_EOL . '(no changes)' . \PHP_EOL . \PHP_EOL . 'DOWN:' . \PHP_EOL . '(no changes)'
 			);
 
 			return;
 		}
 
-		// Write to a unique filename so PHP's require cache never returns stale data
-		$safe_name = \preg_replace('/[^a-zA-Z0-9_]/', '_', $snapshotName);
+		// Use driver-prefixed filename to avoid opcode-cache collisions between tests and drivers
+		$safe_name = \preg_replace('/[^a-zA-Z0-9_]/', '_', $driver . '_' . $snapshotName);
 		$temp_file = GOBL_TEST_OUTPUT . '/migration_' . $safe_name . '.php';
 		\file_put_contents($temp_file, (string) $diff->generateMigrationFile(1));
 
@@ -370,6 +415,6 @@ final class DiffSnapshotTest extends BaseTestCase
 		$content = 'UP:' . \PHP_EOL . $migration->up()
 			. \PHP_EOL . \PHP_EOL . 'DOWN:' . \PHP_EOL . $migration->down();
 
-		$this->assertMatchesContentSnapshot('mysql/diff/' . $snapshotName, $content);
+		$this->assertMatchesContentSnapshot($driver . '/diff/' . $snapshotName, $content);
 	}
 }

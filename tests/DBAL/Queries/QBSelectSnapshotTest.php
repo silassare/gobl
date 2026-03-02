@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\DBAL\Queries;
 
-use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Queries\QBExpression;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\Tests\BaseTestCase;
@@ -21,9 +20,12 @@ use Gobl\Tests\BaseTestCase;
 /**
  * Class QBSelectSnapshotTest.
  *
- * Snapshot tests for MySQL QBSelect SQL generation.
+ * Cross-driver snapshot tests for QBSelect SQL generation.
+ * Each test runs for MySQL, PostgreSQL, and SQLite via the allDrivers data provider.
  * On the first run each fixture file is auto-generated; delete a fixture and
  * re-run to regenerate it.
+ *
+ * Snapshots are stored under tests/assets/snapshots/{driver}/qb_select_{scenario}.txt
  *
  * @covers \Gobl\DBAL\Queries\QBSelect
  *
@@ -35,58 +37,78 @@ final class QBSelectSnapshotTest extends BaseTestCase
 	// Basic SELECT forms
 	// -------------------------------------------------------------------------
 
-	/** SELECT * FROM table (no alias). */
-	public function testSelectAll(): void
+	/**
+	 * SELECT * FROM table (no alias).
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testSelectAll(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getDb($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients');
 
-		$this->assertMatchesSnapshot('mysql/qb_select_all', $qb->getSqlQuery(), $qb->getBoundValues());
+		$this->assertMatchesSnapshot($driver . '/qb_select_all', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 
-	/** SELECT specific columns using table alias. */
-	public function testSelectSpecificColumns(): void
+	/**
+	 * SELECT specific columns using table alias.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testSelectSpecificColumns(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getDb($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c', ['id', 'first_name', 'last_name']);
 
-		$this->assertMatchesSnapshot('mysql/qb_select_columns', $qb->getSqlQuery(), $qb->getBoundValues());
+		$this->assertMatchesSnapshot($driver . '/qb_select_columns', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 
-	/** SELECT columns with custom aliases (AS). */
-	public function testSelectAliasedColumns(): void
+	/**
+	 * SELECT columns with custom aliases (AS).
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testSelectAliasedColumns(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getDb($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c', ['id' => 'uid', 'first_name' => 'fname']);
 
-		$this->assertMatchesSnapshot('mysql/qb_select_aliased_columns', $qb->getSqlQuery(), $qb->getBoundValues());
+		$this->assertMatchesSnapshot($driver . '/qb_select_aliased_columns', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 
 	// -------------------------------------------------------------------------
 	// WHERE clause variations
 	// -------------------------------------------------------------------------
 
-	/** WHERE single equality condition. */
-	public function testSelectWhereEq(): void
+	/**
+	 * WHERE single equality condition.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testSelectWhereEq(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getDb($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c')
 			->where($qb->filters()->eq('client_id', 42));
 
-		$this->assertMatchesSnapshot('mysql/qb_select_where_eq', $qb->getSqlQuery(), $qb->getBoundValues());
+		$this->assertMatchesSnapshot($driver . '/qb_select_where_eq', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 
-	/** WHERE with AND/OR combination and nested group. */
-	public function testSelectWhereComplex(): void
+	/**
+	 * WHERE with AND/OR combination and nested group.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testSelectWhereComplex(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getDb($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')->select('c');
 
@@ -100,25 +122,33 @@ final class QBSelectSnapshotTest extends BaseTestCase
 
 		$qb->where($f);
 
-		$this->assertMatchesSnapshot('mysql/qb_select_where_complex', $qb->getSqlQuery(), $qb->getBoundValues());
+		$this->assertMatchesSnapshot($driver . '/qb_select_where_complex', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 
-	/** WHERE ... IN (...) list. */
-	public function testSelectWhereIn(): void
+	/**
+	 * WHERE ... IN (...) list.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testSelectWhereIn(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getDb($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c')
 			->where($qb->filters()->in('client_gender', ['male', 'female']));
 
-		$this->assertMatchesSnapshot('mysql/qb_select_where_in', $qb->getSqlQuery(), $qb->getBoundValues());
+		$this->assertMatchesSnapshot($driver . '/qb_select_where_in', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 
-	/** WHERE IS NULL / IS NOT NULL. */
-	public function testSelectWhereNull(): void
+	/**
+	 * WHERE IS NULL / IS NOT NULL.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testSelectWhereNull(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getDb($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c')
@@ -128,13 +158,17 @@ final class QBSelectSnapshotTest extends BaseTestCase
 					->and($qb->filters()->isNotNull('client_first_name'))
 			);
 
-		$this->assertMatchesSnapshot('mysql/qb_select_where_null', $qb->getSqlQuery(), $qb->getBoundValues());
+		$this->assertMatchesSnapshot($driver . '/qb_select_where_null', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 
-	/** WHERE with comparison operators: gt, gte, lt, lte, neq. */
-	public function testSelectWhereComparisons(): void
+	/**
+	 * WHERE with comparison operators: gt, gte, lt, lte, neq.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testSelectWhereComparisons(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getDb($driver);
 		$qb = new QBSelect($db);
 		$qb->from('accounts', 'a')
 			->select('a')
@@ -145,85 +179,109 @@ final class QBSelectSnapshotTest extends BaseTestCase
 					->and($qb->filters()->neq('account_valid', false))
 			);
 
-		$this->assertMatchesSnapshot('mysql/qb_select_where_comparisons', $qb->getSqlQuery(), $qb->getBoundValues());
+		$this->assertMatchesSnapshot($driver . '/qb_select_where_comparisons', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 
 	// -------------------------------------------------------------------------
 	// LIMIT / OFFSET
 	// -------------------------------------------------------------------------
 
-	/** LIMIT without offset. */
-	public function testSelectLimit(): void
+	/**
+	 * LIMIT without offset.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testSelectLimit(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getDb($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c')
 			->limit(10);
 
-		$this->assertMatchesSnapshot('mysql/qb_select_limit', $qb->getSqlQuery(), $qb->getBoundValues());
+		$this->assertMatchesSnapshot($driver . '/qb_select_limit', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 
-	/** LIMIT with OFFSET. */
-	public function testSelectLimitOffset(): void
+	/**
+	 * LIMIT with OFFSET.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testSelectLimitOffset(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getDb($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c')
 			->limit(10, 20);
 
-		$this->assertMatchesSnapshot('mysql/qb_select_limit_offset', $qb->getSqlQuery(), $qb->getBoundValues());
+		$this->assertMatchesSnapshot($driver . '/qb_select_limit_offset', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 
 	// -------------------------------------------------------------------------
 	// ORDER BY
 	// -------------------------------------------------------------------------
 
-	/** ORDER BY single column ASC. */
-	public function testSelectOrderByAsc(): void
+	/**
+	 * ORDER BY single column ASC.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testSelectOrderByAsc(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getDb($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c')
 			->orderBy(['client_last_name' => 'ASC']);
 
-		$this->assertMatchesSnapshot('mysql/qb_select_order_by_asc', $qb->getSqlQuery(), $qb->getBoundValues());
+		$this->assertMatchesSnapshot($driver . '/qb_select_order_by_asc', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 
-	/** ORDER BY single column DESC. */
-	public function testSelectOrderByDesc(): void
+	/**
+	 * ORDER BY single column DESC.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testSelectOrderByDesc(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getDb($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c')
 			->orderBy(['client_last_name' => 'DESC']);
 
-		$this->assertMatchesSnapshot('mysql/qb_select_order_by_desc', $qb->getSqlQuery(), $qb->getBoundValues());
+		$this->assertMatchesSnapshot($driver . '/qb_select_order_by_desc', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 
-	/** ORDER BY multiple columns with mixed directions. */
-	public function testSelectOrderByMulti(): void
+	/**
+	 * ORDER BY multiple columns with mixed directions.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testSelectOrderByMulti(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getDb($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c')
 			->orderBy(['client_last_name' => 'ASC', 'client_first_name' => 'DESC']);
 
-		$this->assertMatchesSnapshot('mysql/qb_select_order_by_multi', $qb->getSqlQuery(), $qb->getBoundValues());
+		$this->assertMatchesSnapshot($driver . '/qb_select_order_by_multi', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 
 	// -------------------------------------------------------------------------
 	// GROUP BY / HAVING
 	// -------------------------------------------------------------------------
 
-	/** GROUP BY with raw HAVING string. */
-	public function testSelectGroupByHaving(): void
+	/**
+	 * GROUP BY with raw HAVING string.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testSelectGroupByHaving(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getDb($driver);
 		$qb = new QBSelect($db);
 		$qb->from('transactions', 't')
 			->select(null, [
@@ -234,17 +292,21 @@ final class QBSelectSnapshotTest extends BaseTestCase
 			->groupBy(['transaction_account_id'])
 			->having('COUNT(*) > 1');
 
-		$this->assertMatchesSnapshot('mysql/qb_select_group_by_having', $qb->getSqlQuery(), $qb->getBoundValues());
+		$this->assertMatchesSnapshot($driver . '/qb_select_group_by_having', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 
 	// -------------------------------------------------------------------------
 	// JOINs
 	// -------------------------------------------------------------------------
 
-	/** INNER JOIN two tables on a foreign key. */
-	public function testSelectInnerJoin(): void
+	/**
+	 * INNER JOIN two tables on a foreign key.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testSelectInnerJoin(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getDb($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c', ['id', 'first_name', 'last_name']);
@@ -254,13 +316,17 @@ final class QBSelectSnapshotTest extends BaseTestCase
 
 		$qb->select('a', ['id', 'label', 'balance']);
 
-		$this->assertMatchesSnapshot('mysql/qb_select_inner_join', $qb->getSqlQuery(), $qb->getBoundValues());
+		$this->assertMatchesSnapshot($driver . '/qb_select_inner_join', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 
-	/** LEFT JOIN — clients with their linked accounts, including clients with no accounts. */
-	public function testSelectLeftJoin(): void
+	/**
+	 * LEFT JOIN clients with their linked accounts, including clients with no accounts.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testSelectLeftJoin(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getDb($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c', ['id', 'first_name']);
@@ -270,13 +336,17 @@ final class QBSelectSnapshotTest extends BaseTestCase
 
 		$qb->select('a', ['id', 'balance']);
 
-		$this->assertMatchesSnapshot('mysql/qb_select_left_join', $qb->getSqlQuery(), $qb->getBoundValues());
+		$this->assertMatchesSnapshot($driver . '/qb_select_left_join', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 
-	/** RIGHT JOIN. */
-	public function testSelectRightJoin(): void
+	/**
+	 * RIGHT JOIN.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testSelectRightJoin(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getDb($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c', ['id', 'first_name']);
@@ -286,13 +356,17 @@ final class QBSelectSnapshotTest extends BaseTestCase
 
 		$qb->select('a', ['id', 'balance']);
 
-		$this->assertMatchesSnapshot('mysql/qb_select_right_join', $qb->getSqlQuery(), $qb->getBoundValues());
+		$this->assertMatchesSnapshot($driver . '/qb_select_right_join', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 
-	/** Chained INNER JOINs across three tables. */
-	public function testSelectMultiJoin(): void
+	/**
+	 * Chained INNER JOINs across three tables.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testSelectMultiJoin(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getDb($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c', ['id', 'first_name']);
@@ -305,17 +379,21 @@ final class QBSelectSnapshotTest extends BaseTestCase
 
 		$qb->select('t', ['id', 'reference', 'amount']);
 
-		$this->assertMatchesSnapshot('mysql/qb_select_multi_join', $qb->getSqlQuery(), $qb->getBoundValues());
+		$this->assertMatchesSnapshot($driver . '/qb_select_multi_join', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 
 	// -------------------------------------------------------------------------
 	// Subquery as FROM
 	// -------------------------------------------------------------------------
 
-	/** SELECT from an inline sub-query. */
-	public function testSelectSubquery(): void
+	/**
+	 * SELECT from an inline sub-query.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testSelectSubquery(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getDb($driver);
 
 		$sub = new QBSelect($db);
 		$sub->from('clients', 'c')
@@ -328,17 +406,21 @@ final class QBSelectSnapshotTest extends BaseTestCase
 			->orderBy(['sub.client_last_name' => 'ASC'])
 			->limit(5);
 
-		$this->assertMatchesSnapshot('mysql/qb_select_subquery', $qb->getSqlQuery(), $qb->getBoundValues());
+		$this->assertMatchesSnapshot($driver . '/qb_select_subquery', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 
 	// -------------------------------------------------------------------------
 	// Combined: WHERE + ORDER BY + LIMIT
 	// -------------------------------------------------------------------------
 
-	/** WHERE + ORDER BY + LIMIT + OFFSET combined. */
-	public function testSelectCombined(): void
+	/**
+	 * WHERE + ORDER BY + LIMIT + OFFSET combined.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testSelectCombined(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getDb($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c')
@@ -350,6 +432,6 @@ final class QBSelectSnapshotTest extends BaseTestCase
 			->orderBy(['client_last_name' => 'ASC', 'client_id' => 'DESC'])
 			->limit(25, 50);
 
-		$this->assertMatchesSnapshot('mysql/qb_select_combined', $qb->getSqlQuery(), $qb->getBoundValues());
+		$this->assertMatchesSnapshot($driver . '/qb_select_combined', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 }

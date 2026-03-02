@@ -62,7 +62,7 @@ ALTER TABLE `gObL_authors` ADD CONSTRAINT uc_gObL_authors_0c83f57c786a0b4a39efab
 --
 -- Foreign keys constraints definition for table `gObL_posts`
 --
-ALTER TABLE `gObL_posts` ADD CONSTRAINT fk_posts_authors FOREIGN KEY (`post_author_id`) REFERENCES gObL_authors (`author_id`) ON UPDATE NO ACTION ON DELETE NO ACTION;
+ALTER TABLE `gObL_posts` ADD CONSTRAINT fk_posts_authors FOREIGN KEY (`post_author_id`) REFERENCES `gObL_authors` (`author_id`) ON UPDATE NO ACTION ON DELETE NO ACTION;
 
 
 --

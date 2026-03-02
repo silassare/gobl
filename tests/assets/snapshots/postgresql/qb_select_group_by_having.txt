@@ -1,0 +1,4 @@
+SQL:
+SELECT transaction_account_id, COUNT(*) as total, SUM(transaction_amount) as sum FROM gObL_transactions AS t WHERE 1 = 1 GROUP BY transaction_account_id HAVING COUNT(*) > 1
+BOUND:
+[]

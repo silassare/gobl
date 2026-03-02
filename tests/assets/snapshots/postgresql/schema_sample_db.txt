@@ -1,0 +1,117 @@
+--
+-- Auto generated file, please don't edit.
+-- With: gobl [GOBL_VERSION]
+-- Time: [GENERATED_AT]
+--
+
+--
+-- Table structure for table "gObL_users"
+--
+DROP TABLE IF EXISTS "gObL_users";
+CREATE TABLE "gObL_users" (
+"id" bigserial,
+"name" text NOT NULL,
+"deleted" boolean NOT NULL DEFAULT '0',
+"deleted_at" bigint NULL DEFAULT NULL,
+
+--
+-- Primary key constraints definition for table "gObL_users"
+--
+CONSTRAINT pk_gObL_users PRIMARY KEY ("id")
+);
+
+
+
+
+--
+-- Table structure for table "gObL_roles"
+--
+DROP TABLE IF EXISTS "gObL_roles";
+CREATE TABLE "gObL_roles" (
+"id" bigserial,
+"title" text NOT NULL,
+"user_id" bigint NOT NULL,
+
+--
+-- Primary key constraints definition for table "gObL_roles"
+--
+CONSTRAINT pk_gObL_roles PRIMARY KEY ("id")
+);
+
+
+
+
+--
+-- Table structure for table "gObL_tags"
+--
+DROP TABLE IF EXISTS "gObL_tags";
+CREATE TABLE "gObL_tags" (
+"id" bigserial,
+"label" text NOT NULL,
+
+--
+-- Primary key constraints definition for table "gObL_tags"
+--
+CONSTRAINT pk_gObL_tags PRIMARY KEY ("id")
+);
+
+
+
+
+--
+-- Table structure for table "gObL_taggables"
+--
+DROP TABLE IF EXISTS "gObL_taggables";
+CREATE TABLE "gObL_taggables" (
+"id" bigserial,
+"tag_id" bigint NOT NULL,
+"created_at" bigint NOT NULL,
+"updated_at" bigint NOT NULL,
+"taggable_id" bigint NOT NULL,
+"taggable_type" varchar(64) NOT NULL,
+
+--
+-- Primary key constraints definition for table "gObL_taggables"
+--
+CONSTRAINT pk_gObL_taggables PRIMARY KEY ("id")
+);
+
+
+
+
+--
+-- Table structure for table "gObL_articles"
+--
+DROP TABLE IF EXISTS "gObL_articles";
+CREATE TABLE "gObL_articles" (
+"id" bigserial,
+"title" text NOT NULL,
+"user_id" bigint NOT NULL,
+"deleted" boolean NOT NULL DEFAULT '0',
+"deleted_at" bigint NULL DEFAULT NULL,
+
+--
+-- Primary key constraints definition for table "gObL_articles"
+--
+CONSTRAINT pk_gObL_articles PRIMARY KEY ("id")
+);
+
+
+
+
+--
+-- Foreign keys constraints definition for table "gObL_roles"
+--
+ALTER TABLE "gObL_roles" ADD CONSTRAINT fk_roles_users FOREIGN KEY ("user_id") REFERENCES "gObL_users" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+
+--
+-- Foreign keys constraints definition for table "gObL_taggables"
+--
+ALTER TABLE "gObL_taggables" ADD CONSTRAINT fk_taggables_tags FOREIGN KEY ("tag_id") REFERENCES "gObL_tags" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+
+--
+-- Foreign keys constraints definition for table "gObL_articles"
+--
+ALTER TABLE "gObL_articles" ADD CONSTRAINT fk_articles_users FOREIGN KEY ("user_id") REFERENCES "gObL_users" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION;

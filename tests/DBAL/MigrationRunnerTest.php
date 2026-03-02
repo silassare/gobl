@@ -272,7 +272,7 @@ final class MigrationRunnerTest extends BaseTestCase
 				return [];
 			}
 
-			/** Original query intentionally broken — beforeRun replaces it. */
+			/** Original query intentionally broken, beforeRun replaces it. */
 			public function up(): string
 			{
 				return 'THIS IS INVALID SQL;';
@@ -355,7 +355,7 @@ final class MigrationRunnerTest extends BaseTestCase
 			});
 		});
 
-		// db_to has more tables — migrate its schema onto a fresh SQLite db
+		// db_to has more tables, migrate its schema onto a fresh SQLite db
 		$runner = new MigrationRunner($this->newDb());
 		$diff   = new Diff($db_from, $db_to);
 		$runner->add($diff->makeMigrationInstance(1, 'Schema migration'));

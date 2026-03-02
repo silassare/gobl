@@ -1,0 +1,4 @@
+SQL:
+SELECT c.* FROM gObL_clients AS c WHERE ((client_given_name IS NULL AND client_first_name IS NOT NULL))
+BOUND:
+[]

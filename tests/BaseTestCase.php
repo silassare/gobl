@@ -18,6 +18,8 @@ use Gobl\DBAL\Db;
 use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Drivers\MySQL\MySQLQueryGenerator;
+use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
+use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQLQueryGenerator;
 use Gobl\DBAL\Drivers\SQLLite\SQLLite;
 use Gobl\DBAL\Drivers\SQLLite\SQLLiteQueryGenerator;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
@@ -118,9 +120,9 @@ abstract class BaseTestCase extends TestCase
 	/**
 	 * Returns a sample db instance with some tables.
 	 */
-	public static function getSampleDB(): RDBMSInterface
+	public static function getSampleDB(string $type = self::DEFAULT_RDBMS): RDBMSInterface
 	{
-		$db = self::getEmptyDb();
+		$db = self::getEmptyDb($type);
 		$ns = $db->ns('test');
 
 		$users = $ns->table('users', static function (TableBuilder $t) {
@@ -196,6 +198,22 @@ abstract class BaseTestCase extends TestCase
 	}
 
 	/**
+	 * Returns all registered RDBMS drivers as a PHPUnit data-provider array.
+	 *
+	 * Usage: @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 *
+	 * @return array<string, array{0: string}>
+	 */
+	public static function allDrivers(): array
+	{
+		return [
+			MySQL::NAME      => [MySQL::NAME],
+			PostgreSQL::NAME => [PostgreSQL::NAME],
+			SQLLite::NAME    => [SQLLite::NAME],
+		];
+	}
+
+	/**
 	 * @return string[][]
 	 */
 	public static function getTestRDBMSList(): array
@@ -204,6 +222,10 @@ abstract class BaseTestCase extends TestCase
 			MySQL::NAME => [
 				'rdbms'     => MySQL::class,
 				'generator' => MySQLQueryGenerator::class,
+			],
+			PostgreSQL::NAME => [
+				'rdbms'     => PostgreSQL::class,
+				'generator' => PostgreSQLQueryGenerator::class,
 			],
 			SQLLite::NAME => [
 				'rdbms'     => SQLLite::class,

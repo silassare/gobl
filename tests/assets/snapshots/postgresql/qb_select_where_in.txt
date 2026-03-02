@@ -1,0 +1,7 @@
+SQL:
+SELECT c.* FROM gObL_clients AS c WHERE ((client_gender IN (:_val_a_0, :_val_a_1)))
+BOUND:
+{
+    "_val_a_0": "male",
+    "_val_a_1": "female"
+}

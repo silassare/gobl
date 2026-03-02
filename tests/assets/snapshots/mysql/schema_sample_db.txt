@@ -113,19 +113,19 @@ CONSTRAINT pk_gObL_articles PRIMARY KEY (`id`)
 --
 -- Foreign keys constraints definition for table `gObL_roles`
 --
-ALTER TABLE `gObL_roles` ADD CONSTRAINT fk_roles_users FOREIGN KEY (`user_id`) REFERENCES gObL_users (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION;
+ALTER TABLE `gObL_roles` ADD CONSTRAINT fk_roles_users FOREIGN KEY (`user_id`) REFERENCES `gObL_users` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION;
 
 
 --
 -- Foreign keys constraints definition for table `gObL_taggables`
 --
-ALTER TABLE `gObL_taggables` ADD CONSTRAINT fk_taggables_tags FOREIGN KEY (`tag_id`) REFERENCES gObL_tags (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION;
+ALTER TABLE `gObL_taggables` ADD CONSTRAINT fk_taggables_tags FOREIGN KEY (`tag_id`) REFERENCES `gObL_tags` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION;
 
 
 --
 -- Foreign keys constraints definition for table `gObL_articles`
 --
-ALTER TABLE `gObL_articles` ADD CONSTRAINT fk_articles_users FOREIGN KEY (`user_id`) REFERENCES gObL_users (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION;
+ALTER TABLE `gObL_articles` ADD CONSTRAINT fk_articles_users FOREIGN KEY (`user_id`) REFERENCES `gObL_users` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION;
 
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

@@ -1,0 +1,4 @@
+SQL:
+SELECT c.* FROM gObL_clients AS c WHERE 1 = 1 LIMIT 10 OFFSET 0
+BOUND:
+[]

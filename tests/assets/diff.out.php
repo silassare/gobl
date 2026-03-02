@@ -146,9 +146,9 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		ALTER TABLE `gObL_accounts` ADD CONSTRAINT uc_gObL_accounts_f9913917ef012372103dd1a027b2cd6a UNIQUE (`account_client_id` , `account_currency_code`);
 		ALTER TABLE `gObL_currencies` ADD CONSTRAINT uc_gObL_currencies_c13367945d5d4c91047b3b50234aa7ab UNIQUE (`currency_code`);
 		-- constraints column "account_client_id" type changed in host table "gObL_accounts".
-		ALTER TABLE `gObL_accounts` ADD CONSTRAINT fk_accounts_clients FOREIGN KEY (`account_client_id`) REFERENCES gObL_clients (`client_id`) ON UPDATE NO ACTION ON DELETE NO ACTION;
+		ALTER TABLE `gObL_accounts` ADD CONSTRAINT fk_accounts_clients FOREIGN KEY (`account_client_id`) REFERENCES `gObL_clients` (`client_id`) ON UPDATE NO ACTION ON DELETE NO ACTION;
 		-- constraints column mapping changed.
-		ALTER TABLE `gObL_accounts` ADD CONSTRAINT fk_accounts_currencies FOREIGN KEY (`account_currency_code`) REFERENCES gObL_currencies (`currency_code`) ON UPDATE NO ACTION ON DELETE NO ACTION;
+		ALTER TABLE `gObL_accounts` ADD CONSTRAINT fk_accounts_currencies FOREIGN KEY (`account_currency_code`) REFERENCES `gObL_currencies` (`currency_code`) ON UPDATE NO ACTION ON DELETE NO ACTION;
 
 		/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 		/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -266,11 +266,11 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		-- table "gObL_transactions" was added.
 		ALTER TABLE `gObL_transactions` ADD CONSTRAINT uc_gObL_transactions_b8af13ea9c8fe890c9979a1fa8dbde22 UNIQUE (`transaction_reference`);
 		-- constraints column "account_client_id" type changed in host table "gObL_accounts".
-		ALTER TABLE `gObL_accounts` ADD CONSTRAINT fk_accounts_clients FOREIGN KEY (`account_client_id`) REFERENCES gObL_clients (`client_id`) ON UPDATE NO ACTION ON DELETE NO ACTION;
+		ALTER TABLE `gObL_accounts` ADD CONSTRAINT fk_accounts_clients FOREIGN KEY (`account_client_id`) REFERENCES `gObL_clients` (`client_id`) ON UPDATE NO ACTION ON DELETE NO ACTION;
 		-- constraints column mapping changed.
-		ALTER TABLE `gObL_accounts` ADD CONSTRAINT fk_accounts_currencies FOREIGN KEY (`account_currency_code`) REFERENCES gObL_currencies (`ccy_code`) ON UPDATE NO ACTION ON DELETE NO ACTION;
+		ALTER TABLE `gObL_accounts` ADD CONSTRAINT fk_accounts_currencies FOREIGN KEY (`account_currency_code`) REFERENCES `gObL_currencies` (`ccy_code`) ON UPDATE NO ACTION ON DELETE NO ACTION;
 		-- table "gObL_transactions" was added.
-		ALTER TABLE `gObL_transactions` ADD CONSTRAINT fk_transactions_accounts FOREIGN KEY (`transaction_account_id`) REFERENCES gObL_accounts (`account_id`) ON UPDATE NO ACTION ON DELETE NO ACTION;
+		ALTER TABLE `gObL_transactions` ADD CONSTRAINT fk_transactions_accounts FOREIGN KEY (`transaction_account_id`) REFERENCES `gObL_accounts` (`account_id`) ON UPDATE NO ACTION ON DELETE NO ACTION;
 
 		/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 		/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

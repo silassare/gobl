@@ -1,0 +1,10 @@
+SQL:
+INSERT INTO gObL_clients (client_first_name, client_last_name, client_given_name, client_gender, client_valid) VALUES (:_val_a, :_val_b, :_val_c, :_val_d, :_val_e)
+BOUND:
+{
+    "_val_a": "John",
+    "_val_b": "Doe",
+    "_val_c": "Johnny",
+    "_val_d": "male",
+    "_val_e": true
+}

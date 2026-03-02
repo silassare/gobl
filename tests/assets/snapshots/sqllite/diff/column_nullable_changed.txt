@@ -1,0 +1,7 @@
+UP:
+-- column type changed
+ALTER TABLE "gObL_profiles" ALTER COLUMN "bio" varchar(500) NULL DEFAULT NULL;
+
+DOWN:
+-- column type changed
+ALTER TABLE "gObL_profiles" ALTER COLUMN "bio" varchar(500) NOT NULL;

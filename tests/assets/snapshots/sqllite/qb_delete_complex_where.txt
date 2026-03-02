@@ -1,0 +1,7 @@
+SQL:
+DELETE _a_ FROM gObL_clients AS _a_ WHERE ((client_valid = :_val_b AND client_id < :_val_c))
+BOUND:
+{
+    "_val_b": false,
+    "_val_c": 100
+}

@@ -23,7 +23,7 @@ CREATE TABLE `gObL_products` (
 --
 -- Primary key constraints definition for table `gObL_products`
 --
-CONSTRAINT pk_gObL_products PRIMARY KEY (`id` , `id`)
+CONSTRAINT pk_gObL_products PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

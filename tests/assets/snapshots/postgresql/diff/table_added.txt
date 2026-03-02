@@ -1,0 +1,23 @@
+UP:
+-- table added
+--
+-- Table structure for table "gObL_products"
+--
+DROP TABLE IF EXISTS "gObL_products";
+CREATE TABLE "gObL_products" (
+"id" bigserial,
+"name" varchar(120) NOT NULL,
+"price" numeric NOT NULL,
+
+--
+-- Primary key constraints definition for table "gObL_products"
+--
+CONSTRAINT pk_gObL_products PRIMARY KEY ("id")
+);
+
+
+
+
+DOWN:
+-- table deleted
+DROP TABLE "gObL_products";

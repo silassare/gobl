@@ -13,14 +13,16 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\DBAL\Queries;
 
-use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Queries\QBInsert;
 use Gobl\Tests\BaseTestCase;
 
 /**
  * Class QBInsertSnapshotTest.
  *
- * Snapshot tests for MySQL QBInsert SQL generation.
+ * Cross-driver snapshot tests for QBInsert SQL generation.
+ * Each test runs for MySQL, PostgreSQL, and SQLite via the allDrivers data provider.
+ *
+ * Snapshots are stored under tests/assets/snapshots/{driver}/qb_insert_{scenario}.txt
  *
  * @covers \Gobl\DBAL\Queries\QBInsert
  *
@@ -28,10 +30,14 @@ use Gobl\Tests\BaseTestCase;
  */
 final class QBInsertSnapshotTest extends BaseTestCase
 {
-	/** INSERT single row with all columns. */
-	public function testInsertSingleRow(): void
+	/**
+	 * INSERT single row with all columns.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testInsertSingleRow(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getDb($driver);
 		$qb = new QBInsert($db);
 		$qb->into('clients')->values([
 			'first_name' => 'John',
@@ -41,13 +47,17 @@ final class QBInsertSnapshotTest extends BaseTestCase
 			'valid'      => true,
 		]);
 
-		$this->assertMatchesSnapshot('mysql/qb_insert_single', $qb->getSqlQuery(), $qb->getBoundValues());
+		$this->assertMatchesSnapshot($driver . '/qb_insert_single', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 
-	/** INSERT multiple rows in one statement. */
-	public function testInsertMultipleRows(): void
+	/**
+	 * INSERT multiple rows in one statement.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testInsertMultipleRows(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getDb($driver);
 		$qb = new QBInsert($db);
 		$qb->into('clients')->values([
 			[
@@ -67,13 +77,17 @@ final class QBInsertSnapshotTest extends BaseTestCase
 			],
 		]);
 
-		$this->assertMatchesSnapshot('mysql/qb_insert_multiple', $qb->getSqlQuery(), $qb->getBoundValues());
+		$this->assertMatchesSnapshot($driver . '/qb_insert_multiple', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 
-	/** INSERT with only a subset of columns (omitting optional fields). */
-	public function testInsertPartialColumns(): void
+	/**
+	 * INSERT with only a subset of columns (omitting optional fields).
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testInsertPartialColumns(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getDb($driver);
 		$qb = new QBInsert($db);
 		$qb->into('currencies')->values([
 			'code'   => 'USD',
@@ -81,6 +95,6 @@ final class QBInsertSnapshotTest extends BaseTestCase
 			'symbol' => '$',
 		]);
 
-		$this->assertMatchesSnapshot('mysql/qb_insert_partial', $qb->getSqlQuery(), $qb->getBoundValues());
+		$this->assertMatchesSnapshot($driver . '/qb_insert_partial', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 }

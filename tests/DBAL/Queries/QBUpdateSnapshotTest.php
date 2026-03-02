@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\DBAL\Queries;
 
-use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Queries\QBExpression;
 use Gobl\DBAL\Queries\QBUpdate;
 use Gobl\Tests\BaseTestCase;
@@ -21,7 +20,10 @@ use Gobl\Tests\BaseTestCase;
 /**
  * Class QBUpdateSnapshotTest.
  *
- * Snapshot tests for MySQL QBUpdate SQL generation.
+ * Cross-driver snapshot tests for QBUpdate SQL generation.
+ * Each test runs for MySQL, PostgreSQL, and SQLite via the allDrivers data provider.
+ *
+ * Snapshots are stored under tests/assets/snapshots/{driver}/qb_update_{scenario}.txt
  *
  * @covers \Gobl\DBAL\Queries\QBUpdate
  *
@@ -29,10 +31,14 @@ use Gobl\Tests\BaseTestCase;
  */
 final class QBUpdateSnapshotTest extends BaseTestCase
 {
-	/** UPDATE with simple equality WHERE. */
-	public function testUpdateSimple(): void
+	/**
+	 * UPDATE with simple equality WHERE.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testUpdateSimple(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getDb($driver);
 		$qb = new QBUpdate($db);
 		$qb->update('clients')
 			->set([
@@ -41,13 +47,17 @@ final class QBUpdateSnapshotTest extends BaseTestCase
 			])
 			->where($qb->filters()->eq('client_id', 1));
 
-		$this->assertMatchesSnapshot('mysql/qb_update_simple', $qb->getSqlQuery(), $qb->getBoundValues());
+		$this->assertMatchesSnapshot($driver . '/qb_update_simple', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 
-	/** UPDATE with a complex WHERE (AND + OR). */
-	public function testUpdateComplexWhere(): void
+	/**
+	 * UPDATE with a complex WHERE (AND + OR).
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testUpdateComplexWhere(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getDb($driver);
 		$qb = new QBUpdate($db);
 		$qb->update('clients', 'c')
 			->set(['valid' => false])
@@ -61,13 +71,17 @@ final class QBUpdateSnapshotTest extends BaseTestCase
 					)
 			);
 
-		$this->assertMatchesSnapshot('mysql/qb_update_complex_where', $qb->getSqlQuery(), $qb->getBoundValues());
+		$this->assertMatchesSnapshot($driver . '/qb_update_complex_where', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 
-	/** UPDATE a single boolean/flag column on all rows matching a range. */
-	public function testUpdateWithComparison(): void
+	/**
+	 * UPDATE a single boolean/flag column on all rows matching a range.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testUpdateWithComparison(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getDb($driver);
 		$qb = new QBUpdate($db);
 		$qb->update('accounts')
 			->set(['valid' => false])
@@ -76,13 +90,17 @@ final class QBUpdateSnapshotTest extends BaseTestCase
 					->lt('account_balance', 0)
 			);
 
-		$this->assertMatchesSnapshot('mysql/qb_update_comparison', $qb->getSqlQuery(), $qb->getBoundValues());
+		$this->assertMatchesSnapshot($driver . '/qb_update_comparison', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 
-	/** UPDATE using a raw SQL expression as a value (e.g. increment a column). */
-	public function testUpdateWithExpression(): void
+	/**
+	 * UPDATE using a raw SQL expression as a value (e.g. increment a column).
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testUpdateWithExpression(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getDb($driver);
 		$qb = new QBUpdate($db);
 		$qb->update('accounts')
 			->set([
@@ -90,17 +108,21 @@ final class QBUpdateSnapshotTest extends BaseTestCase
 			])
 			->where($qb->filters()->eq('account_id', 7));
 
-		$this->assertMatchesSnapshot('mysql/qb_update_expression', $qb->getSqlQuery(), $qb->getBoundValues());
+		$this->assertMatchesSnapshot($driver . '/qb_update_expression', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 
-	/** UPDATE multiple columns, no WHERE (affects all rows). */
-	public function testUpdateAllRows(): void
+	/**
+	 * UPDATE multiple columns, no WHERE (affects all rows).
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testUpdateAllRows(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getDb($driver);
 		$qb = new QBUpdate($db);
 		$qb->update('clients')
 			->set(['valid' => true, 'given_name' => 'N/A']);
 
-		$this->assertMatchesSnapshot('mysql/qb_update_all_rows', $qb->getSqlQuery(), $qb->getBoundValues());
+		$this->assertMatchesSnapshot($driver . '/qb_update_all_rows', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 }

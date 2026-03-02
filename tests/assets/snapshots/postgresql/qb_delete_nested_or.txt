@@ -1,0 +1,7 @@
+SQL:
+DELETE _a_ FROM gObL_transactions AS _a_ WHERE (((transaction_type = :_val_b) OR (transaction_state = :_val_c)))
+BOUND:
+{
+    "_val_b": "out",
+    "_val_c": "in_error"
+}

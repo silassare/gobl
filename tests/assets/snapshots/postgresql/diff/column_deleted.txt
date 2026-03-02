@@ -1,0 +1,7 @@
+UP:
+-- column deleted
+ALTER TABLE "gObL_posts" DROP "subtitle";
+
+DOWN:
+-- column added
+ALTER TABLE "gObL_posts" ADD "subtitle" text NULL;
