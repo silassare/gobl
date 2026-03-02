@@ -48,7 +48,8 @@
 	},
 	"autoload-dev": {
 		"psr-4": {
-			"Gobl\\Tests\\": "tests/"
+			"Gobl\\Tests\\": "tests/",
+			"Gobl\\Tests\\Db\\": "tests/tmp/output/ORM_Db/"
 		}
 	},
 	"authors": [
