@@ -179,17 +179,21 @@ class MigrationRunner
 	 */
 	private function ensureMigrationsTable(): void
 	{
-		$table = self::MIGRATIONS_TABLE;
-		$sql   = <<<SQL
-			CREATE TABLE IF NOT EXISTS {$table} (
-				version    INTEGER NOT NULL,
-				label      TEXT    NOT NULL DEFAULT '',
-				applied_at INTEGER NOT NULL,
-				PRIMARY KEY (version)
-			)
-			SQL;
+		$gen   = $this->db->getGenerator();
+		$t     = $gen->quoteIdentifier(self::MIGRATIONS_TABLE);
+		$c_ver = $gen->quoteIdentifier('version');
+		$c_lbl = $gen->quoteIdentifier('label');
+		$c_at  = $gen->quoteIdentifier('applied_at');
 
-		$this->db->execute(\trim(\preg_replace('/\s+/', ' ', $sql)));
+		// VARCHAR(255) carries a DEFAULT on all supported RDBMS
+		// (MySQL forbids DEFAULT on TEXT columns).
+		$this->db->execute(
+			"CREATE TABLE IF NOT EXISTS {$t} ("
+				. "{$c_ver} INTEGER NOT NULL, "
+				. "{$c_lbl} VARCHAR(255) NOT NULL DEFAULT '', "
+				. "{$c_at} INTEGER NOT NULL, "
+				. "PRIMARY KEY ({$c_ver}))"
+		);
 	}
 
 	/**
@@ -199,8 +203,10 @@ class MigrationRunner
 	 */
 	private function getAppliedVersions(): array
 	{
-		$table = self::MIGRATIONS_TABLE;
-		$stmt  = $this->db->select("SELECT version FROM {$table} ORDER BY version ASC");
+		$gen  = $this->db->getGenerator();
+		$t    = $gen->quoteIdentifier(self::MIGRATIONS_TABLE);
+		$c_ver = $gen->quoteIdentifier('version');
+		$stmt = $this->db->select("SELECT {$c_ver} FROM {$t} ORDER BY {$c_ver} ASC");
 
 		return \array_map(static fn(array $row) => (int) $row['version'], $stmt->fetchAll());
 	}
@@ -212,8 +218,11 @@ class MigrationRunner
 	 */
 	private function getAppliedMap(): array
 	{
-		$table = self::MIGRATIONS_TABLE;
-		$stmt  = $this->db->select("SELECT version, applied_at FROM {$table}");
+		$gen   = $this->db->getGenerator();
+		$t     = $gen->quoteIdentifier(self::MIGRATIONS_TABLE);
+		$c_ver = $gen->quoteIdentifier('version');
+		$c_at  = $gen->quoteIdentifier('applied_at');
+		$stmt  = $this->db->select("SELECT {$c_ver}, {$c_at} FROM {$t}");
 		$map   = [];
 
 		foreach ($stmt->fetchAll() as $row) {
@@ -270,10 +279,14 @@ class MigrationRunner
 	 */
 	private function markApplied(MigrationInterface $m): void
 	{
-		$table = self::MIGRATIONS_TABLE;
+		$gen   = $this->db->getGenerator();
+		$t     = $gen->quoteIdentifier(self::MIGRATIONS_TABLE);
+		$c_ver = $gen->quoteIdentifier('version');
+		$c_lbl = $gen->quoteIdentifier('label');
+		$c_at  = $gen->quoteIdentifier('applied_at');
 
 		$this->db->execute(
-			"INSERT INTO {$table} (version, label, applied_at) VALUES (?, ?, ?)",
+			"INSERT INTO {$t} ({$c_ver}, {$c_lbl}, {$c_at}) VALUES (?, ?, ?)",
 			[$m->getVersion(), $m->getLabel(), \time()]
 		);
 	}
@@ -283,10 +296,12 @@ class MigrationRunner
 	 */
 	private function markRolledBack(MigrationInterface $m): void
 	{
-		$table = self::MIGRATIONS_TABLE;
+		$gen   = $this->db->getGenerator();
+		$t     = $gen->quoteIdentifier(self::MIGRATIONS_TABLE);
+		$c_ver = $gen->quoteIdentifier('version');
 
 		$this->db->execute(
-			"DELETE FROM {$table} WHERE version = ?",
+			"DELETE FROM {$t} WHERE {$c_ver} = ?",
 			[$m->getVersion()]
 		);
 	}
