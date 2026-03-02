@@ -15,6 +15,7 @@ namespace Gobl\Tests\DBAL\Diff;
 
 use Gobl\DBAL\Builders\NamespaceBuilder;
 use Gobl\DBAL\Builders\TableBuilder;
+use Gobl\DBAL\Indexes\IndexType;
 use Gobl\DBAL\Diff\Diff;
 use Gobl\DBAL\Interfaces\MigrationInterface;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
@@ -333,6 +334,98 @@ final class DiffSnapshotTest extends BaseTestCase
 		});
 
 		$this->assertDiffSnapshot($driver, 'unique_key_added', $from, $to);
+	}
+
+	/**
+	 * A plain index (no index type) is added to an existing column.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testIndexAdded(string $driver): void
+	{
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
+			$ns->table('users', static function (TableBuilder $t) {
+				$t->columnPrefix('user');
+				$t->id();
+				$t->string('email')->min(5)->max(200);
+			});
+		});
+
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
+			$ns->table('users', static function (TableBuilder $t) {
+				$t->columnPrefix('user');
+				$t->id();
+				$t->string('email')->min(5)->max(200);
+				$t->index(['email']);   // plain index added
+			});
+		});
+
+		$this->assertDiffSnapshot($driver, 'index_added', $from, $to);
+	}
+
+	/**
+	 * A plain index is removed from an existing column.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testIndexDeleted(string $driver): void
+	{
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
+			$ns->table('users', static function (TableBuilder $t) {
+				$t->columnPrefix('user');
+				$t->id();
+				$t->string('email')->min(5)->max(200);
+				$t->index(['email']);   // plain index present
+			});
+		});
+
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
+			$ns->table('users', static function (TableBuilder $t) {
+				$t->columnPrefix('user');
+				$t->id();
+				$t->string('email')->min(5)->max(200);
+				// index removed
+			});
+		});
+
+		$this->assertDiffSnapshot($driver, 'index_deleted', $from, $to);
+	}
+
+	/**
+	 * Index with explicit type: shared BTREE, MySQL FULLTEXT, PostgreSQL GIN.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testIndexWithType(string $driver): void
+	{
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
+			$ns->table('articles', static function (TableBuilder $t) {
+				$t->columnPrefix('article');
+				$t->id();
+				$t->string('title')->min(1)->max(255);
+				$t->string('tags')->min(0)->max(500)->nullable();
+			});
+		});
+
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) use ($driver) {
+			$ns->table('articles', static function (TableBuilder $t) use ($driver) {
+				$t->columnPrefix('article');
+				$t->id();
+				$t->string('title')->min(1)->max(255);
+				$t->string('tags')->min(0)->max(500)->nullable();
+				// shared BTREE on title
+				$t->index(['title'], IndexType::BTREE);
+
+				// driver-specific typed index on tags
+				if ('mysql' === $driver) {
+					$t->index(['tags'], IndexType::MYSQL_FULLTEXT);
+				} elseif ('pgsql' === $driver) {
+					$t->index(['tags'], IndexType::PGSQL_GIN);
+				}
+			});
+		});
+
+		$this->assertDiffSnapshot($driver, 'index_with_type', $from, $to);
 	}
 
 	/**
