@@ -269,7 +269,23 @@ abstract class ORMTableQuery extends FiltersTableScope
 	public function insert(array $values): QBInsert
 	{
 		$row = $this->table->doPhpToDbConversion($this->completeRow($values), $this->db);
-		$qb  = new QBInsert($this->db);
+
+		// Remove null auto-increment columns: the RDBMS generates the value via
+		// AUTO_INCREMENT (MySQL), SERIAL sequence (PostgreSQL), or ROWID (SQLite).
+		// Passing an explicit NULL would violate NOT NULL on PostgreSQL SERIAL columns.
+		foreach ($this->table->getColumns() as $column) {
+			$full_name = $column->getFullName();
+
+			if (
+				$column->getType()->isAutoIncremented()
+				&& \array_key_exists($full_name, $row)
+				&& null === $row[$full_name]
+			) {
+				unset($row[$full_name]);
+			}
+		}
+
+		$qb = new QBInsert($this->db);
 		$qb->into($this->table->getFullName())
 			->values($row);
 

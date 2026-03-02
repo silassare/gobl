@@ -28,7 +28,7 @@ final class QBInsertTest extends BaseTestCase
 {
 	public function testInsert(): void
 	{
-		$db = self::getDb();
+		$db = self::getNewDbInstanceWithSchema();
 
 		$qb = new QBInsert($db);
 
@@ -47,7 +47,7 @@ final class QBInsertTest extends BaseTestCase
 
 	public function testInsertMultiple(): void
 	{
-		$db = self::getDb();
+		$db = self::getNewDbInstanceWithSchema();
 
 		$qb = new QBInsert($db);
 
@@ -56,7 +56,8 @@ final class QBInsertTest extends BaseTestCase
 				'first_name' => 'John',
 				'last_name'  => 'Doe',
 				'gender'     => 'Male',
-			], [
+			],
+			[
 				'first_name' => 'Alicia',
 				'last_name'  => 'Doe',
 				'gender'     => 'Female',

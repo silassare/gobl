@@ -57,8 +57,7 @@ CREATE TABLE "gObL_orders" (
 "order_data" text NOT NULL,
 "order_created_at" integer NOT NULL,
 "order_updated_at" integer NULL DEFAULT NULL,
-"order_valid" integer NOT NULL DEFAULT '1',
-
+"order_valid" integer NOT NULL DEFAULT '1'
 );
 
 
@@ -133,8 +132,7 @@ CREATE TABLE "gObL_transactions" (
 "transaction_data" text NOT NULL,
 "transaction_created_at" integer NOT NULL,
 "transaction_updated_at" integer NOT NULL,
-"transaction_valid" integer NOT NULL DEFAULT '1',
-
+"transaction_valid" integer NOT NULL DEFAULT '1'
 );
 
 

@@ -7,7 +7,7 @@
 --
 -- Table structure for table "gObL_clients"
 --
-DROP TABLE IF EXISTS "gObL_clients";
+DROP TABLE IF EXISTS "gObL_clients" CASCADE;
 CREATE TABLE "gObL_clients" (
 "client_id" bigserial,
 "client_first_name" varchar(60) NOT NULL,
@@ -31,7 +31,7 @@ CONSTRAINT pk_gObL_clients PRIMARY KEY ("client_id")
 --
 -- Table structure for table "gObL_accounts"
 --
-DROP TABLE IF EXISTS "gObL_accounts";
+DROP TABLE IF EXISTS "gObL_accounts" CASCADE;
 CREATE TABLE "gObL_accounts" (
 "account_id" bigserial,
 "account_client_id" bigint NOT NULL,
@@ -55,7 +55,7 @@ CONSTRAINT pk_gObL_accounts PRIMARY KEY ("account_id")
 --
 -- Table structure for table "gObL_transactions"
 --
-DROP TABLE IF EXISTS "gObL_transactions";
+DROP TABLE IF EXISTS "gObL_transactions" CASCADE;
 CREATE TABLE "gObL_transactions" (
 "transaction_id" bigserial,
 "transaction_account_id" bigint NOT NULL,
@@ -83,7 +83,7 @@ CONSTRAINT pk_gObL_transactions PRIMARY KEY ("transaction_id")
 --
 -- Table structure for table "gObL_currencies"
 --
-DROP TABLE IF EXISTS "gObL_currencies";
+DROP TABLE IF EXISTS "gObL_currencies" CASCADE;
 CREATE TABLE "gObL_currencies" (
 "ccy_code" varchar(30) NOT NULL,
 "ccy_name" varchar(60) NOT NULL,

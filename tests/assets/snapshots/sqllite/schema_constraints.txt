@@ -12,7 +12,7 @@ CREATE TABLE "gObL_authors" (
 "author_id" integer PRIMARY KEY AUTOINCREMENT,
 "author_email" varchar(255) NOT NULL,
 "author_name" varchar(100) NOT NULL,
-
+CONSTRAINT uc_gObL_authors_0c83f57c786a0b4a39efab23731c7ebc UNIQUE ("author_email")
 );
 
 
@@ -28,25 +28,9 @@ CREATE TABLE "gObL_posts" (
 "post_title" varchar(200) NOT NULL,
 "post_slug" varchar(200) NOT NULL,
 "post_published" integer NOT NULL DEFAULT '0',
-
+CONSTRAINT fk_posts_authors FOREIGN KEY ("post_author_id") REFERENCES "gObL_authors" ("author_id") ON UPDATE NO ACTION ON DELETE NO ACTION,
+CONSTRAINT uc_gObL_posts_2dbcba41b9ac4c5d22886ba672463cb4 UNIQUE ("post_slug")
 );
 
 
 
-
---
--- Unique constraints definition for table "gObL_authors"
---
-ALTER TABLE "gObL_authors" ADD CONSTRAINT uc_gObL_authors_0c83f57c786a0b4a39efab23731c7ebc UNIQUE ("author_email");
-
-
---
--- Foreign keys constraints definition for table "gObL_posts"
---
-ALTER TABLE "gObL_posts" ADD CONSTRAINT fk_posts_authors FOREIGN KEY ("post_author_id") REFERENCES "gObL_authors" ("author_id") ON UPDATE NO ACTION ON DELETE NO ACTION;
-
-
---
--- Unique constraints definition for table "gObL_posts"
---
-ALTER TABLE "gObL_posts" ADD CONSTRAINT uc_gObL_posts_2dbcba41b9ac4c5d22886ba672463cb4 UNIQUE ("post_slug");

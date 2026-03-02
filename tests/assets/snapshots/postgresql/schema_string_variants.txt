@@ -7,7 +7,7 @@
 --
 -- Table structure for table "gObL_t"
 --
-DROP TABLE IF EXISTS "gObL_t";
+DROP TABLE IF EXISTS "gObL_t" CASCADE;
 CREATE TABLE "gObL_t" (
 "t_id" bigserial,
 "t_name" varchar(60) NOT NULL,

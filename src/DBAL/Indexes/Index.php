@@ -24,8 +24,6 @@ use PHPUtils\Traits\ArrayCapableTrait;
  */
 final class Index implements ArrayCapableInterface
 {
-
-
 	use ArrayCapableTrait;
 
 	public const NAME_PATTERN = '[a-zA-Z](?:[a-zA-Z0-9_]*[a-zA-Z0-9])?';
@@ -40,9 +38,6 @@ final class Index implements ArrayCapableInterface
 
 	public const MAX_INDEX_NAME_LENGTH = 64;
 
-	/** @var array<int,string> */
-	private array $columns = [];
-
 	/** @var null|IndexType */
 	protected ?IndexType $type = null;
 
@@ -55,18 +50,20 @@ final class Index implements ArrayCapableInterface
 	/** @var bool */
 	protected bool $locked = false;
 
+	/** @var array<int,string> */
+	private array $columns = [];
+
 	/**
 	 * Index constructor.
 	 *
 	 * @param string         $name       the index name
 	 * @param Table          $host_table the table in which the index was defined
-	 * @param null|IndexType $type the RDBMS-specific index type, or null for the default B-Tree index
+	 * @param null|IndexType $type       the RDBMS-specific index type, or null for the default B-Tree index
 	 */
 	public function __construct(string $name, Table $host_table, ?IndexType $type = null)
 	{
-
 		if (!\preg_match(self::NAME_REG, $name)) {
-			throw new \InvalidArgumentException(\sprintf(
+			throw new InvalidArgumentException(\sprintf(
 				'Index name "%s" in table "%s" should match: %s',
 				$name,
 				$host_table->getName(),
@@ -75,7 +72,7 @@ final class Index implements ArrayCapableInterface
 		}
 
 		if (\strlen($name) > self::MAX_INDEX_NAME_LENGTH) {
-			throw new \InvalidArgumentException(\sprintf(
+			throw new InvalidArgumentException(\sprintf(
 				'Index name "%s" in table "%s" should not exceed %d characters.',
 				$name,
 				$host_table->getName(),
@@ -124,7 +121,6 @@ final class Index implements ArrayCapableInterface
 		return $this;
 	}
 
-
 	/**
 	 * Asserts if this index is not locked.
 	 *
@@ -139,8 +135,6 @@ final class Index implements ArrayCapableInterface
 			));
 		}
 	}
-
-
 
 	/**
 	 * Adds a column to the index.

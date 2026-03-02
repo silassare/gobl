@@ -38,7 +38,7 @@ final class QBUpdateSnapshotTest extends BaseTestCase
 	 */
 	public function testUpdateSimple(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBUpdate($db);
 		$qb->update('clients')
 			->set([
@@ -57,7 +57,7 @@ final class QBUpdateSnapshotTest extends BaseTestCase
 	 */
 	public function testUpdateComplexWhere(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBUpdate($db);
 		$qb->update('clients', 'c')
 			->set(['valid' => false])
@@ -81,7 +81,7 @@ final class QBUpdateSnapshotTest extends BaseTestCase
 	 */
 	public function testUpdateWithComparison(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBUpdate($db);
 		$qb->update('accounts')
 			->set(['valid' => false])
@@ -100,7 +100,7 @@ final class QBUpdateSnapshotTest extends BaseTestCase
 	 */
 	public function testUpdateWithExpression(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBUpdate($db);
 		$qb->update('accounts')
 			->set([
@@ -118,11 +118,55 @@ final class QBUpdateSnapshotTest extends BaseTestCase
 	 */
 	public function testUpdateAllRows(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBUpdate($db);
 		$qb->update('clients')
 			->set(['valid' => true, 'given_name' => 'N/A']);
 
 		$this->assertMatchesSnapshot($driver . '/qb_update_all_rows', $qb->getSqlQuery(), $qb->getBoundValues());
+	}
+
+	/**
+	 * UPDATE with a LIMIT clause.
+	 *
+	 * - MySQL     : appends `LIMIT n` directly.
+	 * - SQLite    : rewrites WHERE as `rowid IN (SELECT rowid ... LIMIT n)`.
+	 * - PostgreSQL: rewrites WHERE as `ctid IN (SELECT ctid ... LIMIT n)`.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testUpdateWithLimit(string $driver): void
+	{
+		$db = self::getNewDbInstanceWithSchema($driver);
+		$qb = new QBUpdate($db);
+		$qb->update('clients')
+			->set(['valid' => false])
+			->where($qb->filters()->eq('client_gender', 'unknown'))
+			->limit(25);
+
+		$this->assertMatchesSnapshot($driver . '/qb_update_with_limit', $qb->getSqlQuery(), $qb->getBoundValues());
+	}
+
+	/**
+	 * UPDATE with LIMIT and ORDER BY.
+	 *
+	 * All three drivers support ORDER BY + LIMIT together:
+	 * - MySQL     : appends `ORDER BY ... LIMIT n` directly.
+	 * - SQLite    : both go into the rowid subquery `SELECT rowid ... ORDER BY ... LIMIT n`.
+	 * - PostgreSQL: both go into the ctid subquery `SELECT ctid ... ORDER BY ... LIMIT n`.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testUpdateWithLimitAndOrderBy(string $driver): void
+	{
+		$db = self::getNewDbInstanceWithSchema($driver);
+		$qb = new QBUpdate($db);
+		$qb->update('clients')
+			->set(['valid' => false])
+			->where($qb->filters()->eq('client_gender', 'unknown'))
+			->orderBy(['client_id ASC'])
+			->limit(5);
+
+		$this->assertMatchesSnapshot($driver . '/qb_update_with_limit_order_by', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 }

@@ -7,7 +7,7 @@ DOWN:
 --
 -- Table structure for table "gObL_temporary"
 --
-DROP TABLE IF EXISTS "gObL_temporary";
+DROP TABLE IF EXISTS "gObL_temporary" CASCADE;
 CREATE TABLE "gObL_temporary" (
 "id" bigserial,
 "label" text NOT NULL,

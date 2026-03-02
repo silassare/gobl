@@ -539,7 +539,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 			$value          = $this->{$column_name_fn};
 
 			if (null === $value && !$column->getType()
-				->isNullable()) {// unique constraint may be nullable
+				->isNullable()) { // unique constraint may be nullable
 				$missing[] = $column_name_fn;
 
 				continue;

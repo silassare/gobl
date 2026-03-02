@@ -37,12 +37,10 @@ use PHPUtils\Traits\ArrayCapableTrait;
  *
  * Token types:
  *  - Identifier  : column name, optionally table-qualified (`table.column`)
- *  - Operator    : any {@see Operator} value (`eq`, `neq`, `lt`, `lte`, `gt`, `gte`,
- *                  `like`, `not_like`, `is_null`, `is_not_null`, `in`, `not_in`,
- *                  `is_true`, `is_false`)
- *  - Conditional : `and` / `or`
+ *  - Operator    : any {@see Operator} value (e.g. `eq`, `gt`, `is_true`)
+ *  - Conditional : `and` | `or`
  *  - Binding     : `:name` resolved from the `$inject` map
- *  - Grouping    : `(` / `)`
+ *  - Grouping    : `(` | `)`
  *  - Number      : integer or float literal, e.g. `42`, `3.14` (non-strict mode only)
  *  - String      : double- or single-quoted literal, e.g. `"foo bar"` (non-strict mode only)
  */

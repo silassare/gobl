@@ -16,7 +16,6 @@ namespace Gobl\DBAL\Drivers;
 use Gobl\DBAL\Column;
 use Gobl\DBAL\Constraints\ForeignKey;
 use Gobl\DBAL\Constraints\ForeignKeyAction;
-use Gobl\DBAL\Indexes\Index;
 use Gobl\DBAL\Constraints\PrimaryKey;
 use Gobl\DBAL\Constraints\UniqueKey;
 use Gobl\DBAL\DbConfig;
@@ -48,6 +47,7 @@ use Gobl\DBAL\Filters\FilterGroup;
 use Gobl\DBAL\Filters\FilterRaw;
 use Gobl\DBAL\Filters\Filters;
 use Gobl\DBAL\Filters\Interfaces\FilterInterface;
+use Gobl\DBAL\Indexes\Index;
 use Gobl\DBAL\Interfaces\QueryGeneratorInterface;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
@@ -367,6 +367,39 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	}
 
 	/**
+	 * Returns the SQL expression that extracts a scalar value from a JSON column
+	 * at the given path (e.g. ["foo", "bar"] -> $.foo.bar).
+	 *
+	 * The result is always a TEXT/VARCHAR expression so that it can be compared
+	 * with string operands in WHERE clauses.
+	 *
+	 * @param string   $col_sql_expression The already-qualified SQL column reference
+	 *                                     (e.g. `u`.`user_data` for MySQL)
+	 * @param string[] $json_path          Ordered path segments, e.g. ['foo', 'bar']
+	 *
+	 * @return string The dialect-specific SQL JSON-path extraction expression
+	 */
+	public function getJsonPathExpression(string $col_sql_expression, array $json_path): string
+	{
+		// Default: MySQL / SQLite compatible JSON_UNQUOTE(JSON_EXTRACT(col, '$.a.b'))
+		$dot_path = '$.' . \implode('.', \array_map('strval', $json_path));
+
+		return 'JSON_UNQUOTE(JSON_EXTRACT(' . $col_sql_expression . ', ' . static::singleQuote($dot_path) . '))';
+	}
+
+	/**
+	 * Quote a database identifier (table name, column name, etc.).
+	 *
+	 * @param string $name
+	 *
+	 * @return string
+	 */
+	public function quoteIdentifier(string $name): string
+	{
+		return '`' . $name . '`';
+	}
+
+	/**
 	 * @param DBCharsetChanged $action
 	 *
 	 * @return string
@@ -459,7 +492,15 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		}
 
 		if ($table->hasPrimaryKeyConstraint()) {
-			$sql[] = $this->getTablePrimaryKeysDefinitionString($table, false);
+			$pk_def = $this->getTablePrimaryKeysDefinitionString($table, false);
+
+			// When PK is defined inline in the CREATE TABLE statement,
+			// e.g. SQLite single-column auto-increment PKs
+			// so we only return the PK definition string if it is not empty (not already included in the column definitions).
+
+			if (!empty($pk_def)) {
+				$sql[] = $pk_def;
+			}
 		}
 
 		$table_name = $table->getFullName();
@@ -538,7 +579,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$min              = $type->getOption('min', 0);
 		$max              = $type->getOption('max', \INF);
 		$medium           = $type->getOption('medium', false);
-		$long         	  = $type->getOption('long', false);
+		$long         	   = $type->getOption('long', false);
 		// for MySQL
 		// char(c) c in range(0,255);
 		// varchar(c) c in range(0,65535);
@@ -574,7 +615,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 *
 	 * The base implementation falls back to TEXT when native JSON is disabled or the
 	 * RDBMS does not support a dedicated JSON type.  Driver subclasses that support
-	 * native JSON (MySQL ≥ 5.7, PostgreSQL) should override this method.
+	 * native JSON (MySQL >= 5.7, PostgreSQL) should override this method.
 	 *
 	 * @param Column $column
 	 *
@@ -588,34 +629,13 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$j_type = $column->getType();
 
 		$nullable = $j_type->getBaseType()->isNullable();
-		$big = $j_type->getOption('big', false);
+		$big      = $j_type->getOption('big', false);
 
 		$n_col = clone $column; // to allow edit
 
 		$n_col->setType((new TypeString())->medium($big)->nullable($nullable));
 
 		return $this->getStringColumnDefinition($n_col);
-	}
-
-	/**
-	 * Returns the SQL expression that extracts a scalar value from a JSON column
-	 * at the given path (e.g. ["foo", "bar"] → $.foo.bar).
-	 *
-	 * The result is always a TEXT/VARCHAR expression so that it can be compared
-	 * with string operands in WHERE clauses.
-	 *
-	 * @param string   $col_sql_expression The already-qualified SQL column reference
-	 *                                     (e.g. `u`.`user_data` for MySQL)
-	 * @param string[] $json_path          Ordered path segments, e.g. ['foo', 'bar']
-	 *
-	 * @return string The dialect-specific SQL JSON-path extraction expression
-	 */
-	public function getJsonPathExpression(string $col_sql_expression, array $json_path): string
-	{
-		// Default: MySQL / SQLite compatible JSON_UNQUOTE(JSON_EXTRACT(col, '$.a.b'))
-		$dot_path = '$.' . \implode('.', \array_map('strval', $json_path));
-
-		return 'JSON_UNQUOTE(JSON_EXTRACT(' . $col_sql_expression . ', ' . static::singleQuote($dot_path) . '))';
 	}
 
 	/**
@@ -688,18 +708,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	protected static function singleQuote(string $value): string
 	{
 		return "'" . \str_replace("'", "''", $value) . "'";
-	}
-
-	/**
-	 * Quote a database identifier (table name, column name, etc.).
-	 *
-	 * @param string $name
-	 *
-	 * @return string
-	 */
-	public function quoteIdentifier(string $name): string
-	{
-		return '`' . $name . '`';
 	}
 
 	/**
@@ -996,7 +1004,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 */
 	protected function quoteCols(array $list): string
 	{
-		return \implode(' , ', \array_map(fn(string $col) => $this->quoteIdentifier($col), $list));
+		return \implode(' , ', \array_map(fn (string $col) => $this->quoteIdentifier($col), $list));
 	}
 
 	/**
@@ -1065,7 +1073,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		}
 
 		$table_name  = $table->getFullName();
-		$index_sql  = [];
+		$index_sql   = [];
 
 		foreach ($index_list as $index) {
 			$index_sql[] = $this->getIndexSQL($index);
@@ -1110,7 +1118,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 */
 	protected function getIndexDeletedString(IndexDeleted $action): string
 	{
-		return 'DROP INDEX ' .   $this->quoteIdentifier($action->getIndex()->getName()) . ';';
+		return 'DROP INDEX ' . $this->quoteIdentifier($action->getIndex()->getName()) . ';';
 	}
 
 	/**
@@ -1429,9 +1437,15 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 */
 	protected function operatorFilterToExpression(Filter $filter): string
 	{
-		$left   = $filter->getLeftOperandString();
-		$right  = $filter->getRightOperandString();
-		$op     = $filter->getOperator();
+		$left  = $filter->getLeftOperandString();
+		$right = $filter->getRightOperandString();
+		$op    = $filter->getOperator();
+
+		// Function-call style: MySQL JSON_CONTAINS(col, value)
+		if (Operator::JSON_CONTAINS === $op) {
+			return 'JSON_CONTAINS(' . $left . ', ' . ($right ?? 'NULL') . ')';
+		}
+
 		$sql_op = match ($op) {
 			Operator::EQ          => '=',
 			Operator::NEQ         => '<>',
@@ -1465,8 +1479,10 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$x    = [];
 
 		foreach ($from as $table => $aliases) {
+			$quoted_table = $this->getDMLTableName($table);
+
 			foreach ($aliases as $alias) {
-				$x[] = $table . ' AS ' . $alias . ' ' . $this->getJoinQueryFor($qb, $alias);
+				$x[] = $quoted_table . ' AS ' . $alias . ' ' . $this->getJoinQueryFor($qb, $alias);
 			}
 		}
 
@@ -1483,33 +1499,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 */
 	protected function getJoinQueryFor(QBDelete|QBSelect $qb, string $table_alias): string
 	{
-		$sql   = '';
-		$joins = $qb->getOptionsJoins();
-
-		if (isset($joins[$table_alias])) {
-			$table_joins = $joins[$table_alias];
-
-			foreach ($table_joins as $join) {
-				$type                = $join->getType();
-				$options             = $join->getOptions();
-				$condition           = (string) $options['condition'];
-				$table_to_join       = $options['table_to_join'];
-				$table_to_join_alias = $options['table_to_join_alias'];
-
-				$sql .= ' ' . $type->value
-					. ' JOIN ' . $table_to_join . ' AS ' . $table_to_join_alias
-					. ' ON ' . (!empty($condition) ? $condition : '1 = 1');
-			}
-
-			foreach ($table_joins as $join) {
-				$options             = $join->getOptions();
-				$table_to_join_alias = $options['table_to_join_alias'];
-
-				$sql .= $this->getJoinQueryFor($qb, $table_to_join_alias);
-			}
-		}
-
-		return $sql;
+		return $this->buildJoinSql($qb, $table_alias, [$table_alias => true]);
 	}
 
 	/**
@@ -1591,6 +1581,58 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	}
 
 	/**
+	 * Returns the INSERT keyword (e.g. `INSERT`, `INSERT IGNORE`).
+	 *
+	 * Drivers may override this to emit dialect-specific insert modes.
+	 *
+	 * @param QBInsert $qb
+	 *
+	 * @return string
+	 */
+	protected function getInsertKeyword(QBInsert $qb): string
+	{
+		return 'INSERT';
+	}
+
+	/**
+	 * Returns the ON CONFLICT clause appended after VALUES in INSERT queries.
+	 *
+	 * Base returns `''`. Drivers override for upsert / ignore-on-conflict support.
+	 *
+	 * @param QBInsert $qb
+	 *
+	 * @return string
+	 */
+	protected function getOnConflictClause(QBInsert $qb): string
+	{
+		return '';
+	}
+
+	/**
+	 * Returns the RETURNING clause appended after INSERT / UPDATE / DELETE queries.
+	 *
+	 * The default implementation throws when RETURNING was requested, because MySQL
+	 * does not support this clause. Drivers that do support RETURNING (PostgreSQL,
+	 * SQLite >= 3.35.0) should override this method to emit the proper SQL fragment.
+	 *
+	 * @param QBDelete|QBInsert|QBUpdate $qb
+	 *
+	 * @return string
+	 *
+	 * @throws DBALRuntimeException when RETURNING is requested but not supported by the driver
+	 */
+	protected function getReturningClause(QBDelete|QBInsert|QBUpdate $qb): string
+	{
+		$opts = $qb->getOptionsReturning();
+
+		if ($opts['enabled']) {
+			throw new DBALRuntimeException('RETURNING clause is not supported by this database driver.');
+		}
+
+		return '';
+	}
+
+	/**
 	 * Returns sql INSERT query.
 	 *
 	 * @param QBInsert $qb
@@ -1623,7 +1665,10 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$columns = \implode(', ', $cols);
 		$values  = \implode(', ', $parts);
 
-		return 'INSERT INTO ' . $table . ' (' . $columns . ') VALUES ' . $values;
+		$keyword  = $this->getInsertKeyword($qb);
+		$conflict = $this->getOnConflictClause($qb);
+
+		return $keyword . ' INTO ' . $this->getDMLTableName($table) . ' (' . $columns . ') VALUES ' . $values . $conflict . $this->getReturningClause($qb);
 	}
 
 	/**
@@ -1647,21 +1692,16 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 			$x[] = $column . ' = ' . $key_bind_name;
 		}
 
-		$set      = \implode(', ', $x);
-		$where    = $this->getWhereQuery($qb);
-		$alias    = $qb->getOptionsUpdateTableAlias() ?? '';
-		$max      = $qb->getOptionsLimitMax();
-		$order_by = $this->getOrderByQuery($qb);
+		$set   = \implode(', ', $x);
+		$where = $this->getWhereQuery($qb);
+		$alias = $qb->getOptionsUpdateTableAlias() ?? '';
 
-		$query = 'UPDATE ' . $table . (empty($alias) ? '' : ' AS ' . $alias) . ' SET ' . $set . ' WHERE ' . $where;
+		$max    = $qb->getOptionsLimitMax();
 
-		if (!empty($order_by)) {
-			$query .= ' ' . $order_by;
-		}
-
-		if (\is_int($max)) {
-			$query .= ' LIMIT ' . $max;
-		}
+		$query  = 'UPDATE ' . $this->getDMLTableName($table) . (empty($alias) ? '' : ' AS ' . $alias) . ' SET ' . $set . ' WHERE ' . $where;
+		$query .= $this->getOrderByQuery($qb);
+		$query .= \is_int($max) ? ' LIMIT ' . $max : '';
+		$query .= $this->getReturningClause($qb);
 
 		return $query;
 	}
@@ -1675,10 +1715,8 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 */
 	protected function getDeleteQuery(QBDelete $qb): string
 	{
-		$where    = $this->getWhereQuery($qb);
-		$from     = $this->getFromQuery($qb);
-		$max      = $qb->getOptionsLimitMax();
-		$order_by = $this->getOrderByQuery($qb);
+		$where = $this->getWhereQuery($qb);
+		$from  = $this->getFromQuery($qb);
 
 		$x = [];
 
@@ -1687,23 +1725,41 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		}
 
 		$multi_table_delete = \count($x) > 1;
+		$delete_alias       = \implode(', ', $x);
 
-		$delete_alias = \implode(', ', $x);
+		$max   = $qb->getOptionsLimitMax();
 
-		$query = 'DELETE ' . $delete_alias . ' FROM ' . $from . ' WHERE ' . $where;
-
-		if (!empty($order_by)) {
-			$query .= ' ' . $order_by;
-		}
+		$query  = 'DELETE ' . $delete_alias . ' FROM ' . $from . ' WHERE ' . $where;
+		$query .= $this->getOrderByQuery($qb);
 
 		if (\is_int($max)) {
 			if ($multi_table_delete) {
 				throw new DBALRuntimeException('LIMIT is not supported for multi-table deletes.');
 			}
+
 			$query .= ' LIMIT ' . $max;
 		}
 
+		$query .= $this->getReturningClause($qb);
+
 		return $query;
+	}
+
+	/**
+	 * Returns the table name as it should appear in DML queries (SELECT/INSERT/UPDATE/DELETE).
+	 *
+	 * The base implementation returns the name unchanged (MySQL, SQLite are case-insensitive
+	 * or fold identifiers the same way regardless of quoting).
+	 * Drivers that use case-sensitive identifiers (e.g. PostgreSQL) should override this
+	 * method to double-quote the name via {@see quoteIdentifier}.
+	 *
+	 * @param string $table_name the unquoted table name as returned by {@see Table::getFullName()}
+	 *
+	 * @return string
+	 */
+	protected function getDMLTableName(string $table_name): string
+	{
+		return $table_name;
 	}
 
 	/**
@@ -1712,4 +1768,53 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 * @return string
 	 */
 	abstract protected function dbQueryTemplate(): string;
+
+	/**
+	 * Recursively builds the JOIN SQL fragment for a given alias, tracking visited
+	 * aliases to prevent infinite recursion on cyclic join graphs (DoS guard).
+	 *
+	 * @param QBDelete|QBSelect   $qb          the query builder
+	 * @param string              $table_alias alias whose joins are being expanded
+	 * @param array<string, bool> $visited     aliases already processed in this chain
+	 *
+	 * @return string
+	 */
+	private function buildJoinSql(QBDelete|QBSelect $qb, string $table_alias, array $visited): string
+	{
+		$sql   = '';
+		$joins = $qb->getOptionsJoins();
+
+		if (isset($joins[$table_alias])) {
+			$table_joins       = $joins[$table_alias];
+			$visited_with_self = $visited + [$table_alias => true];
+
+			foreach ($table_joins as $join) {
+				$type                = $join->getType();
+				$options             = $join->getOptions();
+				$condition           = (string) $options['condition'];
+				$table_to_join       = $options['table_to_join'];
+				$table_to_join_alias = $options['table_to_join_alias'];
+
+				// Skip JOIN emission for aliases already in the chain (cycle guard).
+				if (isset($visited_with_self[$table_to_join_alias])) {
+					continue;
+				}
+
+				$sql .= ' ' . $type->value
+					. ' JOIN ' . $this->getDMLTableName($table_to_join) . ' AS ' . $table_to_join_alias
+					. ' ON ' . (!empty($condition) ? $condition : '1 = 1');
+			}
+
+			foreach ($table_joins as $join) {
+				$options             = $join->getOptions();
+				$table_to_join_alias = $options['table_to_join_alias'];
+
+				if (!isset($visited_with_self[$table_to_join_alias])) {
+					$sql .= $this->buildJoinSql($qb, $table_to_join_alias, $visited_with_self);
+				}
+			}
+		}
+
+		return $sql;
+	}
 }

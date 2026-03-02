@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\DBAL\Queries;
 
+use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Queries\QBExpression;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\Tests\BaseTestCase;
@@ -44,7 +45,7 @@ final class QBSelectSnapshotTest extends BaseTestCase
 	 */
 	public function testSelectAll(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients');
 
@@ -58,7 +59,7 @@ final class QBSelectSnapshotTest extends BaseTestCase
 	 */
 	public function testSelectSpecificColumns(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c', ['id', 'first_name', 'last_name']);
@@ -73,7 +74,7 @@ final class QBSelectSnapshotTest extends BaseTestCase
 	 */
 	public function testSelectAliasedColumns(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c', ['id' => 'uid', 'first_name' => 'fname']);
@@ -92,7 +93,7 @@ final class QBSelectSnapshotTest extends BaseTestCase
 	 */
 	public function testSelectWhereEq(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c')
@@ -108,7 +109,7 @@ final class QBSelectSnapshotTest extends BaseTestCase
 	 */
 	public function testSelectWhereComplex(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')->select('c');
 
@@ -132,7 +133,7 @@ final class QBSelectSnapshotTest extends BaseTestCase
 	 */
 	public function testSelectWhereIn(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c')
@@ -148,7 +149,7 @@ final class QBSelectSnapshotTest extends BaseTestCase
 	 */
 	public function testSelectWhereNull(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c')
@@ -168,7 +169,7 @@ final class QBSelectSnapshotTest extends BaseTestCase
 	 */
 	public function testSelectWhereComparisons(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBSelect($db);
 		$qb->from('accounts', 'a')
 			->select('a')
@@ -193,7 +194,7 @@ final class QBSelectSnapshotTest extends BaseTestCase
 	 */
 	public function testSelectLimit(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c')
@@ -209,7 +210,7 @@ final class QBSelectSnapshotTest extends BaseTestCase
 	 */
 	public function testSelectLimitOffset(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c')
@@ -229,7 +230,7 @@ final class QBSelectSnapshotTest extends BaseTestCase
 	 */
 	public function testSelectOrderByAsc(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c')
@@ -245,7 +246,7 @@ final class QBSelectSnapshotTest extends BaseTestCase
 	 */
 	public function testSelectOrderByDesc(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c')
@@ -261,7 +262,7 @@ final class QBSelectSnapshotTest extends BaseTestCase
 	 */
 	public function testSelectOrderByMulti(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c')
@@ -281,7 +282,7 @@ final class QBSelectSnapshotTest extends BaseTestCase
 	 */
 	public function testSelectGroupByHaving(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBSelect($db);
 		$qb->from('transactions', 't')
 			->select(null, [
@@ -306,12 +307,13 @@ final class QBSelectSnapshotTest extends BaseTestCase
 	 */
 	public function testSelectInnerJoin(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c', ['id', 'first_name', 'last_name']);
 
-		$qb->innerJoin('accounts', 'a')
+		$qb->innerJoin('c')
+			->to('accounts', 'a')
 			->on($qb->filters()->eq('a.account_client_id', new QBExpression('c.client_id')));
 
 		$qb->select('a', ['id', 'label', 'balance']);
@@ -326,12 +328,13 @@ final class QBSelectSnapshotTest extends BaseTestCase
 	 */
 	public function testSelectLeftJoin(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c', ['id', 'first_name']);
 
-		$qb->leftJoin('accounts', 'a')
+		$qb->leftJoin('c')
+			->to('accounts', 'a')
 			->on($qb->filters()->eq('a.account_client_id', new QBExpression('c.client_id')));
 
 		$qb->select('a', ['id', 'balance']);
@@ -340,18 +343,25 @@ final class QBSelectSnapshotTest extends BaseTestCase
 	}
 
 	/**
-	 * RIGHT JOIN.
+	 * RIGHT JOIN — all three drivers.
+	 *
+	 * MySQL and PostgreSQL emit native RIGHT JOIN syntax.
+	 * SQLite emulates it transparently as LEFT JOIN with swapped tables:
+	 *   FROM host AS h RIGHT JOIN target AS t ON cond
+	 * becomes:
+	 *   FROM target AS t LEFT JOIN host AS h ON cond
 	 *
 	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
 	public function testSelectRightJoin(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c', ['id', 'first_name']);
 
-		$qb->rightJoin('accounts', 'a')
+		$qb->rightJoin('c')
+			->to('accounts', 'a')
 			->on($qb->filters()->eq('a.account_client_id', new QBExpression('c.client_id')));
 
 		$qb->select('a', ['id', 'balance']);
@@ -360,21 +370,69 @@ final class QBSelectSnapshotTest extends BaseTestCase
 	}
 
 	/**
-	 * Chained INNER JOINs across three tables.
+	 * RIGHT JOIN at sub-join level: throws on SQLite < 3.39.0 (emulation does not cover it),
+	 * succeeds on SQLite >= 3.39.0 (native RIGHT JOIN support).
+	 */
+	public function testSelectRightJoinSubLevelSQLiteThrows(): void
+	{
+		$db = self::getNewDbInstanceWithSchema('sqllite');
+		$qb = new QBSelect($db);
+		$qb->from('clients', 'c')
+			->select('c', ['id', 'first_name']);
+
+		// INNER JOIN anchored at 'c' — sub-join of 'a' is the right join
+		$qb->innerJoin('c')
+			->to('accounts', 'a')
+			->on($qb->filters()->eq('a.account_client_id', new QBExpression('c.client_id')));
+
+		// RIGHT JOIN anchored at 'a' — sub-level right join
+		$qb->rightJoin('a')
+			->to('transactions', 't')
+			->on($qb->filters()->eq('t.transaction_account_id', new QBExpression('a.account_id')));
+
+		$qb->select('a', ['id', 'balance']);
+
+		$sqliteVersion = \SQLite3::version()['versionString'];
+
+		if (\version_compare($sqliteVersion, '3.39.0', '<')) {
+			// Older SQLite: emulation layer does not cover sub-level RIGHT JOINs.
+			$this->expectException(DBALRuntimeException::class);
+		}
+
+		// On SQLite >= 3.39.0 this must not throw — native RIGHT JOIN handles it.
+		$sql = $qb->getSqlQuery();
+
+		if (\version_compare($sqliteVersion, '3.39.0', '>=')) {
+			$this->assertStringContainsString('RIGHT JOIN', $sql);
+		}
+	}
+
+	/**
+	 * Chained INNER JOINs across three tables: clients -> accounts -> transactions.
+	 *
+	 * Each join is anchored to the PREVIOUS table's alias (the left / host side).
+	 * The generator recurses through joined aliases, so the chain can be arbitrarily deep:
+	 *   FROM clients AS c
+	 *     INNER JOIN accounts AS a ON ...   <= anchored at 'c'
+	 *       INNER JOIN transactions AS t ON ...  <= anchored at 'a'
 	 *
 	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
 	public function testSelectMultiJoin(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c', ['id', 'first_name']);
 
-		$qb->innerJoin('accounts', 'a')
+		// First join: c (host) -> accounts as a
+		$qb->innerJoin('c')
+			->to('accounts', 'a')
 			->on($qb->filters()->eq('a.account_client_id', new QBExpression('c.client_id')));
 
-		$qb->innerJoin('transactions', 't')
+		// Second join: a (host, already joined) -> transactions as t
+		$qb->innerJoin('a')
+			->to('transactions', 't')
 			->on($qb->filters()->eq('t.transaction_account_id', new QBExpression('a.account_id')));
 
 		$qb->select('t', ['id', 'reference', 'amount']);
@@ -393,7 +451,7 @@ final class QBSelectSnapshotTest extends BaseTestCase
 	 */
 	public function testSelectSubquery(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 
 		$sub = new QBSelect($db);
 		$sub->from('clients', 'c')
@@ -420,7 +478,7 @@ final class QBSelectSnapshotTest extends BaseTestCase
 	 */
 	public function testSelectCombined(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c')

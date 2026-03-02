@@ -50,7 +50,7 @@ final class CSGeneratorClientSnapshotTest extends BaseTestCase
 	public function testTSFilesSnapshot(): void
 	{
 		$outDir    = GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'generators' . \DIRECTORY_SEPARATOR . 'ts';
-		$generator = new CSGeneratorTS(self::getDb());
+		$generator = new CSGeneratorTS(self::getNewDbInstanceWithSchema());
 
 		$this->assertGeneratorSnapshot($generator, $outDir, 'generators/ts');
 	}
@@ -66,7 +66,7 @@ final class CSGeneratorClientSnapshotTest extends BaseTestCase
 	public function testDartFilesSnapshot(): void
 	{
 		$outDir    = GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'generators' . \DIRECTORY_SEPARATOR . 'dart';
-		$generator = new CSGeneratorDart(self::getDb());
+		$generator = new CSGeneratorDart(self::getNewDbInstanceWithSchema());
 
 		$this->assertGeneratorSnapshot($generator, $outDir, 'generators/dart');
 	}
@@ -84,7 +84,7 @@ final class CSGeneratorClientSnapshotTest extends BaseTestCase
 		string $outDir,
 		string $prefix
 	): void {
-		$db = self::getDb();
+		$db = self::getNewDbInstanceWithSchema();
 
 		self::rmDirRecursive($outDir);
 		\mkdir($outDir, 0755, true);

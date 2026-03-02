@@ -28,7 +28,7 @@ final class QBSelectTest extends BaseTestCase
 {
 	public function testFullyQualifiedNameArray(): void
 	{
-		$db = self::getEmptyDb();
+		$db = self::getNewDbInstance();
 		$ns = $db->ns('test');
 		$ns->table('users', static function (TableBuilder $t) {
 			$t->columnPrefix('usr');

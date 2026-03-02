@@ -77,6 +77,11 @@ class TypeList extends Type
 			$operators[] = Operator::IS_NOT_NULL;
 		}
 
+		// JSON containment is only available with a native JSON column.
+		if ($this->getOption('native_json', false)) {
+			$operators[] = Operator::JSON_CONTAINS;
+		}
+
 		return $operators;
 	}
 
@@ -97,7 +102,7 @@ class TypeList extends Type
 	}
 
 	/**
-	 * Enable native JSON column type in supporting RDBMS (MySQL ≥ 5.7, PostgreSQL).
+	 * Enable native JSON column type in supporting RDBMS (MySQL >= 5.7, PostgreSQL).
 	 *
 	 * @param bool $native_json
 	 *

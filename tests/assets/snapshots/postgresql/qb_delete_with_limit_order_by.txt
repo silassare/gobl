@@ -1,0 +1,6 @@
+SQL:
+DELETE FROM "gObL_clients" WHERE ctid IN (SELECT ctid FROM "gObL_clients" WHERE ((client_valid = :_val_b)) ORDER BY client_id DESC LIMIT 10)
+BOUND:
+{
+    "_val_b": false
+}

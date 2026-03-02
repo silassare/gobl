@@ -28,7 +28,7 @@ final class QBUpdateTest extends BaseTestCase
 {
 	public function testUpdate(): void
 	{
-		$db = self::getDb();
+		$db = self::getNewDbInstanceWithSchema();
 
 		$qb = new QBUpdate($db);
 

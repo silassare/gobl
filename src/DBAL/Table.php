@@ -17,13 +17,13 @@ use Gobl\DBAL\Collections\Collection;
 use Gobl\DBAL\Constraints\Constraint;
 use Gobl\DBAL\Constraints\ForeignKey;
 use Gobl\DBAL\Constraints\ForeignKeyAction;
-use Gobl\DBAL\Indexes\Index;
-use Gobl\DBAL\Indexes\IndexType;
 use Gobl\DBAL\Constraints\PrimaryKey;
 use Gobl\DBAL\Constraints\UniqueKey;
 use Gobl\DBAL\Diff\Interfaces\DiffCapableInterface;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
+use Gobl\DBAL\Indexes\Index;
+use Gobl\DBAL\Indexes\IndexType;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Relations\VirtualRelation;
@@ -843,7 +843,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	 */
 	public function getPrivateColumns(): array
 	{
-		return \array_filter($this->columns, static fn($column) => $column->isPrivate());
+		return \array_filter($this->columns, static fn ($column) => $column->isPrivate());
 	}
 
 	/**
@@ -853,7 +853,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	 */
 	public function getSensitiveColumns(): array
 	{
-		return \array_filter($this->columns, static fn($column) => $column->isSensitive());
+		return \array_filter($this->columns, static fn ($column) => $column->isSensitive());
 	}
 
 	/**
@@ -1343,7 +1343,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	public function getRelations(bool $include_private = true): array
 	{
 		if (!$include_private) {
-			return \array_filter($this->relations, static fn($relation) => !$relation->isPrivate());
+			return \array_filter($this->relations, static fn ($relation) => !$relation->isPrivate());
 		}
 
 		return $this->relations;
@@ -1375,7 +1375,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	public function getVirtualRelations(bool $include_private = true): array
 	{
 		if (!$include_private) {
-			return \array_filter($this->virtual_relations, static fn($relation) => !$relation->isPrivate());
+			return \array_filter($this->virtual_relations, static fn ($relation) => !$relation->isPrivate());
 		}
 
 		return $this->virtual_relations;
@@ -1464,7 +1464,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 			foreach ($this->fk_constraints as /* $fk_name => */ $fk) {
 				if (
 					$fk->getReferenceTable()
-					->getName() !== $reference->getName()
+						->getName() !== $reference->getName()
 				) {
 					continue;
 				}

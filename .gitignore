@@ -11,3 +11,12 @@
 
 # phpunit
 .phpunit.result.cache
+
+# Environment variables (not committed to Git, but used in tests)
+.env.test
+
+gobl.test.log.txt
+
+
+# Generated ORM test classes (PSR-4 mapped, rebuilt on each test run)
+/tests/Db/

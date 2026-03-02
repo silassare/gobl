@@ -19,6 +19,7 @@ use Gobl\Tests\Db\TransactionsQuery as TransactionsQueryReal;
  * @method $this whereIdIsNotLike(string $value) Filters rows with `not_like` condition on column `transactions.id`.
  * @method $this whereIdIsIn(array $value) Filters rows with `in` condition on column `transactions.id`.
  * @method $this whereIdIsNotIn(array $value) Filters rows with `not_in` condition on column `transactions.id`.
+ * @method $this whereIdJsonContains(string $value) Filters rows with `json_contains` condition on column `transactions.id`.
  * @method $this whereAccountIdIs(string|int $value) Filters rows with `eq` condition on column `transactions.account_id`.
  * @method $this whereAccountIdIsNot(string|int $value) Filters rows with `neq` condition on column `transactions.account_id`.
  * @method $this whereAccountIdIsLt(string|int $value) Filters rows with `lt` condition on column `transactions.account_id`.
@@ -29,6 +30,7 @@ use Gobl\Tests\Db\TransactionsQuery as TransactionsQueryReal;
  * @method $this whereAccountIdIsNotLike(string $value) Filters rows with `not_like` condition on column `transactions.account_id`.
  * @method $this whereAccountIdIsIn(array $value) Filters rows with `in` condition on column `transactions.account_id`.
  * @method $this whereAccountIdIsNotIn(array $value) Filters rows with `not_in` condition on column `transactions.account_id`.
+ * @method $this whereAccountIdJsonContains(string $value) Filters rows with `json_contains` condition on column `transactions.account_id`.
  * @method $this whereReferenceIs(string $value) Filters rows with `eq` condition on column `transactions.reference`.
  * @method $this whereReferenceIsNot(string $value) Filters rows with `neq` condition on column `transactions.reference`.
  * @method $this whereReferenceIsLt(string $value) Filters rows with `lt` condition on column `transactions.reference`.
@@ -39,6 +41,7 @@ use Gobl\Tests\Db\TransactionsQuery as TransactionsQueryReal;
  * @method $this whereReferenceIsNotLike(string $value) Filters rows with `not_like` condition on column `transactions.reference`.
  * @method $this whereReferenceIsIn(array $value) Filters rows with `in` condition on column `transactions.reference`.
  * @method $this whereReferenceIsNotIn(array $value) Filters rows with `not_in` condition on column `transactions.reference`.
+ * @method $this whereReferenceJsonContains(string $value) Filters rows with `json_contains` condition on column `transactions.reference`.
  * @method $this whereSourceIs(string $value) Filters rows with `eq` condition on column `transactions.source`.
  * @method $this whereSourceIsNot(string $value) Filters rows with `neq` condition on column `transactions.source`.
  * @method $this whereSourceIsLt(string $value) Filters rows with `lt` condition on column `transactions.source`.
@@ -49,6 +52,7 @@ use Gobl\Tests\Db\TransactionsQuery as TransactionsQueryReal;
  * @method $this whereSourceIsNotLike(string $value) Filters rows with `not_like` condition on column `transactions.source`.
  * @method $this whereSourceIsIn(array $value) Filters rows with `in` condition on column `transactions.source`.
  * @method $this whereSourceIsNotIn(array $value) Filters rows with `not_in` condition on column `transactions.source`.
+ * @method $this whereSourceJsonContains(string $value) Filters rows with `json_contains` condition on column `transactions.source`.
  * @method $this whereTypeIs(string $value) Filters rows with `eq` condition on column `transactions.type`.
  * @method $this whereTypeIsNot(string $value) Filters rows with `neq` condition on column `transactions.type`.
  * @method $this whereTypeIsLt(string $value) Filters rows with `lt` condition on column `transactions.type`.
@@ -59,6 +63,7 @@ use Gobl\Tests\Db\TransactionsQuery as TransactionsQueryReal;
  * @method $this whereTypeIsNotLike(string $value) Filters rows with `not_like` condition on column `transactions.type`.
  * @method $this whereTypeIsIn(array $value) Filters rows with `in` condition on column `transactions.type`.
  * @method $this whereTypeIsNotIn(array $value) Filters rows with `not_in` condition on column `transactions.type`.
+ * @method $this whereTypeJsonContains(string $value) Filters rows with `json_contains` condition on column `transactions.type`.
  * @method $this whereStateIs(string $value) Filters rows with `eq` condition on column `transactions.state`.
  * @method $this whereStateIsNot(string $value) Filters rows with `neq` condition on column `transactions.state`.
  * @method $this whereStateIsLt(string $value) Filters rows with `lt` condition on column `transactions.state`.
@@ -69,6 +74,7 @@ use Gobl\Tests\Db\TransactionsQuery as TransactionsQueryReal;
  * @method $this whereStateIsNotLike(string $value) Filters rows with `not_like` condition on column `transactions.state`.
  * @method $this whereStateIsIn(array $value) Filters rows with `in` condition on column `transactions.state`.
  * @method $this whereStateIsNotIn(array $value) Filters rows with `not_in` condition on column `transactions.state`.
+ * @method $this whereStateJsonContains(string $value) Filters rows with `json_contains` condition on column `transactions.state`.
  * @method $this whereAmountIs(string|float|int $value) Filters rows with `eq` condition on column `transactions.amount`.
  * @method $this whereAmountIsNot(string|float|int $value) Filters rows with `neq` condition on column `transactions.amount`.
  * @method $this whereAmountIsLt(string|float|int $value) Filters rows with `lt` condition on column `transactions.amount`.
@@ -79,6 +85,7 @@ use Gobl\Tests\Db\TransactionsQuery as TransactionsQueryReal;
  * @method $this whereAmountIsNotLike(string $value) Filters rows with `not_like` condition on column `transactions.amount`.
  * @method $this whereAmountIsIn(array $value) Filters rows with `in` condition on column `transactions.amount`.
  * @method $this whereAmountIsNotIn(array $value) Filters rows with `not_in` condition on column `transactions.amount`.
+ * @method $this whereAmountJsonContains(string $value) Filters rows with `json_contains` condition on column `transactions.amount`.
  * @method $this whereCurrencyCodeIs(string $value) Filters rows with `eq` condition on column `transactions.currency_code`.
  * @method $this whereCurrencyCodeIsNot(string $value) Filters rows with `neq` condition on column `transactions.currency_code`.
  * @method $this whereCurrencyCodeIsLt(string $value) Filters rows with `lt` condition on column `transactions.currency_code`.
@@ -89,6 +96,7 @@ use Gobl\Tests\Db\TransactionsQuery as TransactionsQueryReal;
  * @method $this whereCurrencyCodeIsNotLike(string $value) Filters rows with `not_like` condition on column `transactions.currency_code`.
  * @method $this whereCurrencyCodeIsIn(array $value) Filters rows with `in` condition on column `transactions.currency_code`.
  * @method $this whereCurrencyCodeIsNotIn(array $value) Filters rows with `not_in` condition on column `transactions.currency_code`.
+ * @method $this whereCurrencyCodeJsonContains(string $value) Filters rows with `json_contains` condition on column `transactions.currency_code`.
  * @method $this whereDateIs(string|int $value) Filters rows with `eq` condition on column `transactions.date`.
  * @method $this whereDateIsNot(string|int $value) Filters rows with `neq` condition on column `transactions.date`.
  * @method $this whereDateIsLt(string|int $value) Filters rows with `lt` condition on column `transactions.date`.
@@ -99,6 +107,7 @@ use Gobl\Tests\Db\TransactionsQuery as TransactionsQueryReal;
  * @method $this whereDateIsNotLike(string $value) Filters rows with `not_like` condition on column `transactions.date`.
  * @method $this whereDateIsIn(array $value) Filters rows with `in` condition on column `transactions.date`.
  * @method $this whereDateIsNotIn(array $value) Filters rows with `not_in` condition on column `transactions.date`.
+ * @method $this whereDateJsonContains(string $value) Filters rows with `json_contains` condition on column `transactions.date`.
  * @method $this whereDataIs(\Gobl\DBAL\Types\Utils\Map|array $value) Filters rows with `eq` condition on column `transactions.data`.
  * @method $this whereDataIsNot(\Gobl\DBAL\Types\Utils\Map|array $value) Filters rows with `neq` condition on column `transactions.data`.
  * @method $this whereDataIsLike(string $value) Filters rows with `like` condition on column `transactions.data`.
@@ -113,6 +122,7 @@ use Gobl\Tests\Db\TransactionsQuery as TransactionsQueryReal;
  * @method $this whereCreatedAtIsNotLike(string $value) Filters rows with `not_like` condition on column `transactions.created_at`.
  * @method $this whereCreatedAtIsIn(array $value) Filters rows with `in` condition on column `transactions.created_at`.
  * @method $this whereCreatedAtIsNotIn(array $value) Filters rows with `not_in` condition on column `transactions.created_at`.
+ * @method $this whereCreatedAtJsonContains(string $value) Filters rows with `json_contains` condition on column `transactions.created_at`.
  * @method $this whereUpdatedAtIs(string|int $value) Filters rows with `eq` condition on column `transactions.updated_at`.
  * @method $this whereUpdatedAtIsNot(string|int $value) Filters rows with `neq` condition on column `transactions.updated_at`.
  * @method $this whereUpdatedAtIsLt(string|int $value) Filters rows with `lt` condition on column `transactions.updated_at`.
@@ -123,6 +133,7 @@ use Gobl\Tests\Db\TransactionsQuery as TransactionsQueryReal;
  * @method $this whereUpdatedAtIsNotLike(string $value) Filters rows with `not_like` condition on column `transactions.updated_at`.
  * @method $this whereUpdatedAtIsIn(array $value) Filters rows with `in` condition on column `transactions.updated_at`.
  * @method $this whereUpdatedAtIsNotIn(array $value) Filters rows with `not_in` condition on column `transactions.updated_at`.
+ * @method $this whereUpdatedAtJsonContains(string $value) Filters rows with `json_contains` condition on column `transactions.updated_at`.
  * @method $this whereValidIs(bool $value) Filters rows with `eq` condition on column `transactions.valid`.
  * @method $this whereValidIsNot(bool $value) Filters rows with `neq` condition on column `transactions.valid`.
  * @method $this whereValidIsFalse() Filters rows with `is_false` condition on column `transactions.valid`.

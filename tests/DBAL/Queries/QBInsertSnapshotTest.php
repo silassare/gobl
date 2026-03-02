@@ -37,7 +37,7 @@ final class QBInsertSnapshotTest extends BaseTestCase
 	 */
 	public function testInsertSingleRow(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBInsert($db);
 		$qb->into('clients')->values([
 			'first_name' => 'John',
@@ -57,7 +57,7 @@ final class QBInsertSnapshotTest extends BaseTestCase
 	 */
 	public function testInsertMultipleRows(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBInsert($db);
 		$qb->into('clients')->values([
 			[
@@ -87,7 +87,7 @@ final class QBInsertSnapshotTest extends BaseTestCase
 	 */
 	public function testInsertPartialColumns(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBInsert($db);
 		$qb->into('currencies')->values([
 			'code'   => 'USD',
@@ -96,5 +96,53 @@ final class QBInsertSnapshotTest extends BaseTestCase
 		]);
 
 		$this->assertMatchesSnapshot($driver . '/qb_insert_partial', $qb->getSqlQuery(), $qb->getBoundValues());
+	}
+
+	/**
+	 * INSERT with ignore-on-conflict (skip duplicate rows silently).
+	 *
+	 * - MySQL     : emits `INSERT IGNORE INTO ...`
+	 * - SQLite    : emits `INSERT OR IGNORE INTO ...`
+	 * - PostgreSQL: appends `ON CONFLICT DO NOTHING`
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testInsertIgnoreOnConflict(string $driver): void
+	{
+		$db = self::getNewDbInstanceWithSchema($driver);
+		$qb = new QBInsert($db);
+		$qb->into('currencies')
+			->values([
+				'code'   => 'EUR',
+				'name'   => 'Euro',
+				'symbol' => '\u20ac',
+			])
+			->ignoreOnConflict();
+
+		$this->assertMatchesSnapshot($driver . '/qb_insert_ignore', $qb->getSqlQuery(), $qb->getBoundValues());
+	}
+
+	/**
+	 * INSERT with upsert: update columns when a conflict occurs.
+	 *
+	 * - MySQL     : appends `ON DUPLICATE KEY UPDATE col = VALUES(col) ...`
+	 * - SQLite    : appends `ON CONFLICT (cols) DO UPDATE SET col = EXCLUDED.col ...`
+	 * - PostgreSQL: appends `ON CONFLICT (cols) DO UPDATE SET col = EXCLUDED.col ...`
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testInsertUpsert(string $driver): void
+	{
+		$db = self::getNewDbInstanceWithSchema($driver);
+		$qb = new QBInsert($db);
+		$qb->into('currencies')
+			->values([
+				'code'   => 'USD',
+				'name'   => 'US Dollar',
+				'symbol' => '$',
+			])
+			->doUpdateOnConflict(['ccy_code'], ['ccy_name', 'ccy_symbol']);
+
+		$this->assertMatchesSnapshot($driver . '/qb_insert_upsert', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 }

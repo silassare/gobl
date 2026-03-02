@@ -15,8 +15,8 @@ namespace Gobl\Tests\DBAL\Diff;
 
 use Gobl\DBAL\Builders\NamespaceBuilder;
 use Gobl\DBAL\Builders\TableBuilder;
-use Gobl\DBAL\Indexes\IndexType;
 use Gobl\DBAL\Diff\Diff;
+use Gobl\DBAL\Indexes\IndexType;
 use Gobl\DBAL\Interfaces\MigrationInterface;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\Tests\BaseTestCase;
@@ -436,9 +436,9 @@ final class DiffSnapshotTest extends BaseTestCase
 	 */
 	public function testFullTablesDiff(string $driver): void
 	{
-		$from = self::getDb($driver);
+		$from = self::getNewDbInstanceWithSchema($driver);
 
-		$to = self::getEmptyDb($driver);
+		$to = self::getNewDbInstance($driver);
 		$to->ns('Test')
 			->schema(self::getTablesDiffDefinitions());
 
@@ -461,7 +461,7 @@ final class DiffSnapshotTest extends BaseTestCase
 	 */
 	private function buildDb(string $driver, callable $setup): RDBMSInterface
 	{
-		$db = self::getEmptyDb($driver);
+		$db = self::getNewDbInstance($driver);
 		$ns = $db->ns('test');
 		$setup($ns);
 

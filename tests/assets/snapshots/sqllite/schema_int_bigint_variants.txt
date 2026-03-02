@@ -14,10 +14,8 @@ CREATE TABLE "gObL_t" (
 "t_signed_int" integer NOT NULL DEFAULT '42',
 "t_nullable_int" integer NULL DEFAULT NULL,
 "t_plain_bigint" integer NOT NULL,
-"t_unsigned_bigint" integer NOT NULL,
-
+"t_unsigned_bigint" integer NOT NULL
 );
-
 
 
 

@@ -15,13 +15,16 @@ namespace Gobl\Tests\DBAL;
 
 use Gobl\DBAL\Builders\NamespaceBuilder;
 use Gobl\DBAL\Builders\TableBuilder;
-use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Diff\Diff;
+use Gobl\DBAL\Drivers\MySQL\MySQL;
+use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
 use Gobl\DBAL\Drivers\SQLLite\SQLLite;
 use Gobl\DBAL\Interfaces\MigrationInterface;
+use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\MigrationMode;
 use Gobl\DBAL\MigrationRunner;
 use Gobl\Tests\BaseTestCase;
+use Throwable;
 
 /**
  * Class MigrationRunnerTest.
@@ -35,13 +38,68 @@ use Gobl\Tests\BaseTestCase;
  */
 final class MigrationRunnerTest extends BaseTestCase
 {
+	/**
+	 * Drop all tables that tests in this class may have created, so that each
+	 * test starts with a clean state in live databases (MySQL, PostgreSQL, SQLite file).
+	 */
+	protected function tearDown(): void
+	{
+		$tables = [MigrationRunner::MIGRATIONS_TABLE, 't1', 't2', 't3', 'must_not_exist', 'intercepted_target', 'products'];
+
+		if (\extension_loaded('pdo_mysql')) {
+			try {
+				$db = $this->getNewDbInstance(MySQL::NAME);
+
+				foreach ($tables as $table) {
+					try {
+						$db->execute("DROP TABLE IF EXISTS `{$table}`");
+					} catch (Throwable) {
+					}
+				}
+			} catch (Throwable) {
+			}
+		}
+
+		if (\extension_loaded('pdo_pgsql')) {
+			try {
+				$db = $this->getNewDbInstance(PostgreSQL::NAME);
+
+				foreach ($tables as $table) {
+					try {
+						$db->execute("DROP TABLE IF EXISTS \"{$table}\"");
+					} catch (Throwable) {
+					}
+				}
+			} catch (Throwable) {
+			}
+		}
+
+		if (\extension_loaded('pdo_sqlite')) {
+			try {
+				$db = $this->getNewDbInstance(SQLLite::NAME);
+
+				foreach ($tables as $table) {
+					try {
+						$db->execute("DROP TABLE IF EXISTS \"{$table}\"");
+					} catch (Throwable) {
+					}
+				}
+			} catch (Throwable) {
+			}
+		}
+
+		parent::tearDown();
+	}
 	// ------------------------------------------------------------------
 	// bookkeeping table
 	// ------------------------------------------------------------------
 
-	public function testMigrationsTableIsCreatedAutomatically(): void
+	/**
+	 * @dataProvider Gobl\Tests\DBAL\MigrationRunnerTest::availableDrivers
+	 */
+	public function testMigrationsTableIsCreatedAutomatically(string $driver): void
 	{
-		$db     = $this->newDb();
+		$db     = $this->getNewDbInstance($driver);
 		$runner = new MigrationRunner($db);
 		$runner->add($this->makeMigration(1, 'SELECT 1;', 'SELECT 1;'));
 
@@ -57,9 +115,12 @@ final class MigrationRunnerTest extends BaseTestCase
 	// migrate()
 	// ------------------------------------------------------------------
 
-	public function testMigrateReturnsPendingVersions(): void
+	/**
+	 * @dataProvider Gobl\Tests\DBAL\MigrationRunnerTest::availableDrivers
+	 */
+	public function testMigrateReturnsPendingVersions(string $driver): void
 	{
-		$runner  = new MigrationRunner($this->newDb());
+		$runner  = new MigrationRunner($this->getNewDbInstance($driver));
 		$applied = $runner->add(
 			$this->makeMigration(1, 'CREATE TABLE t1 (id INTEGER PRIMARY KEY);', 'DROP TABLE t1;'),
 			$this->makeMigration(2, 'CREATE TABLE t2 (id INTEGER PRIMARY KEY);', 'DROP TABLE t2;'),
@@ -68,9 +129,12 @@ final class MigrationRunnerTest extends BaseTestCase
 		self::assertSame([1, 2], $applied);
 	}
 
-	public function testMigrateIsIdempotent(): void
+	/**
+	 * @dataProvider Gobl\Tests\DBAL\MigrationRunnerTest::availableDrivers
+	 */
+	public function testMigrateIsIdempotent(string $driver): void
 	{
-		$runner = new MigrationRunner($this->newDb());
+		$runner = new MigrationRunner($this->getNewDbInstance($driver));
 		$runner->add($this->makeMigration(1, 'CREATE TABLE t1 (id INTEGER PRIMARY KEY);', 'DROP TABLE t1;'));
 
 		$runner->migrate();
@@ -79,9 +143,12 @@ final class MigrationRunnerTest extends BaseTestCase
 		self::assertSame([], $second, 'Second migrate() should apply nothing');
 	}
 
-	public function testMigrateWithTargetVersionOnlyAppliesUpToThat(): void
+	/**
+	 * @dataProvider Gobl\Tests\DBAL\MigrationRunnerTest::availableDrivers
+	 */
+	public function testMigrateWithTargetVersionOnlyAppliesUpToThat(string $driver): void
 	{
-		$runner = new MigrationRunner($this->newDb());
+		$runner = new MigrationRunner($this->getNewDbInstance($driver));
 		$runner->add(
 			$this->makeMigration(1, 'CREATE TABLE t1 (id INTEGER PRIMARY KEY);', 'DROP TABLE t1;'),
 			$this->makeMigration(2, 'CREATE TABLE t2 (id INTEGER PRIMARY KEY);', 'DROP TABLE t2;'),
@@ -102,9 +169,12 @@ final class MigrationRunnerTest extends BaseTestCase
 	// rollback()
 	// ------------------------------------------------------------------
 
-	public function testRollbackRemovesLastApplied(): void
+	/**
+	 * @dataProvider Gobl\Tests\DBAL\MigrationRunnerTest::availableDrivers
+	 */
+	public function testRollbackRemovesLastApplied(string $driver): void
 	{
-		$runner = new MigrationRunner($this->newDb());
+		$runner = new MigrationRunner($this->getNewDbInstance($driver));
 		$runner->add(
 			$this->makeMigration(1, 'CREATE TABLE t1 (id INTEGER PRIMARY KEY);', 'DROP TABLE t1;'),
 			$this->makeMigration(2, 'CREATE TABLE t2 (id INTEGER PRIMARY KEY);', 'DROP TABLE t2;'),
@@ -121,9 +191,12 @@ final class MigrationRunnerTest extends BaseTestCase
 		self::assertSame(1, \array_values($applied)[0]['version']);
 	}
 
-	public function testRollbackMultipleSteps(): void
+	/**
+	 * @dataProvider Gobl\Tests\DBAL\MigrationRunnerTest::availableDrivers
+	 */
+	public function testRollbackMultipleSteps(string $driver): void
 	{
-		$runner = new MigrationRunner($this->newDb());
+		$runner = new MigrationRunner($this->getNewDbInstance($driver));
 		$runner->add(
 			$this->makeMigration(1, 'CREATE TABLE t1 (id INTEGER PRIMARY KEY);', 'DROP TABLE t1;'),
 			$this->makeMigration(2, 'CREATE TABLE t2 (id INTEGER PRIMARY KEY);', 'DROP TABLE t2;'),
@@ -136,9 +209,12 @@ final class MigrationRunnerTest extends BaseTestCase
 		self::assertSame([3, 2], $rolled);
 	}
 
-	public function testRollbackNothingWhenNoneApplied(): void
+	/**
+	 * @dataProvider Gobl\Tests\DBAL\MigrationRunnerTest::availableDrivers
+	 */
+	public function testRollbackNothingWhenNoneApplied(string $driver): void
 	{
-		$runner = new MigrationRunner($this->newDb());
+		$runner = new MigrationRunner($this->getNewDbInstance($driver));
 		$runner->add($this->makeMigration(1, 'CREATE TABLE t1 (id INTEGER PRIMARY KEY);', 'DROP TABLE t1;'));
 
 		$rolled = $runner->rollback();
@@ -150,9 +226,12 @@ final class MigrationRunnerTest extends BaseTestCase
 	// status()
 	// ------------------------------------------------------------------
 
-	public function testStatusReturnsPendingAndApplied(): void
+	/**
+	 * @dataProvider Gobl\Tests\DBAL\MigrationRunnerTest::availableDrivers
+	 */
+	public function testStatusReturnsPendingAndApplied(string $driver): void
 	{
-		$runner = new MigrationRunner($this->newDb());
+		$runner = new MigrationRunner($this->getNewDbInstance($driver));
 		$runner->add(
 			$this->makeMigration(1, 'CREATE TABLE t1 (id INTEGER PRIMARY KEY);', 'DROP TABLE t1;', 'Create t1'),
 			$this->makeMigration(2, 'CREATE TABLE t2 (id INTEGER PRIMARY KEY);', 'DROP TABLE t2;', 'Create t2'),
@@ -170,9 +249,12 @@ final class MigrationRunnerTest extends BaseTestCase
 		self::assertNull($status[1]['applied_at']);
 	}
 
-	public function testStatusLabelsArePersisted(): void
+	/**
+	 * @dataProvider Gobl\Tests\DBAL\MigrationRunnerTest::availableDrivers
+	 */
+	public function testStatusLabelsArePersisted(string $driver): void
 	{
-		$runner = new MigrationRunner($this->newDb());
+		$runner = new MigrationRunner($this->getNewDbInstance($driver));
 		$runner->add($this->makeMigration(1, 'SELECT 1;', 'SELECT 1;', 'My Label'));
 
 		$runner->migrate();
@@ -184,9 +266,12 @@ final class MigrationRunnerTest extends BaseTestCase
 	// beforeRun() hooks
 	// ------------------------------------------------------------------
 
-	public function testBeforeRunFalseSkipsMigration(): void
+	/**
+	 * @dataProvider Gobl\Tests\DBAL\MigrationRunnerTest::availableDrivers
+	 */
+	public function testBeforeRunFalseSkipsMigration(string $driver): void
 	{
-		$db     = $this->newDb();
+		$db     = $this->getNewDbInstance($driver);
 		$runner = new MigrationRunner($db);
 
 		$skippable = new class implements MigrationInterface {
@@ -237,13 +322,15 @@ final class MigrationRunnerTest extends BaseTestCase
 		$runner->add($skippable)->migrate();
 
 		// Table should NOT have been created because beforeRun returned false
-		$stmt = $db->select("SELECT name FROM sqlite_master WHERE type='table' AND name='must_not_exist';");
-		self::assertEmpty($stmt->fetchAll());
+		self::assertFalse($this->tableExists($db, 'must_not_exist'), 'Table must_not_exist should NOT have been created');
 	}
 
-	public function testBeforeRunStringReplacesQuery(): void
+	/**
+	 * @dataProvider Gobl\Tests\DBAL\MigrationRunnerTest::availableDrivers
+	 */
+	public function testBeforeRunStringReplacesQuery(string $driver): void
 	{
-		$db     = $this->newDb();
+		$db     = $this->getNewDbInstance($driver);
 		$runner = new MigrationRunner($db);
 
 		$intercepted = new class implements MigrationInterface {
@@ -298,17 +385,19 @@ final class MigrationRunnerTest extends BaseTestCase
 
 		$runner->add($intercepted)->migrate();
 
-		$stmt = $db->select("SELECT name FROM sqlite_master WHERE type='table' AND name='intercepted_target';");
-		self::assertCount(1, $stmt->fetchAll());
+		self::assertTrue($this->tableExists($db, 'intercepted_target'), 'Table intercepted_target should have been created');
 	}
 
 	// ------------------------------------------------------------------
 	// add() / getMigrations()
 	// ------------------------------------------------------------------
 
-	public function testAddSortsByVersion(): void
+	/**
+	 * @dataProvider Gobl\Tests\DBAL\MigrationRunnerTest::availableDrivers
+	 */
+	public function testAddSortsByVersion(string $driver): void
 	{
-		$runner = new MigrationRunner($this->newDb());
+		$runner = new MigrationRunner($this->getNewDbInstance($driver));
 		$runner->add(
 			$this->makeMigration(3, '', ''),
 			$this->makeMigration(1, '', ''),
@@ -322,11 +411,14 @@ final class MigrationRunnerTest extends BaseTestCase
 	// Diff::buildMigration()
 	// ------------------------------------------------------------------
 
-	public function testDiffBuildMigrationReturnsMigrationInterface(): void
+	/**
+	 * @dataProvider Gobl\Tests\DBAL\MigrationRunnerTest::availableDrivers
+	 */
+	public function testDiffBuildMigrationReturnsMigrationInterface(string $driver): void
 	{
-		$db_from = $this->buildSQLiteDb(static function (NamespaceBuilder $ns) {});
+		$db_from = $this->runWithTestDb($driver, static function (NamespaceBuilder $ns) {});
 
-		$db_to = $this->buildSQLiteDb(static function (NamespaceBuilder $ns) {
+		$db_to = $this->runWithTestDb($driver, static function (NamespaceBuilder $ns) {
 			$ns->table('products', static function (TableBuilder $t) {
 				$t->id();
 				$t->string('name')->min(1)->max(120);
@@ -344,11 +436,14 @@ final class MigrationRunnerTest extends BaseTestCase
 		self::assertNotEmpty($migration->up(), 'UP SQL should not be empty for a schema diff');
 	}
 
-	public function testDiffMakeMigrationInstanceIsRunnable(): void
+	/**
+	 * @dataProvider Gobl\Tests\DBAL\MigrationRunnerTest::availableDrivers
+	 */
+	public function testDiffMakeMigrationInstanceIsRunnable(string $driver): void
 	{
-		$db_from = $this->buildSQLiteDb(static function (NamespaceBuilder $ns) {});
+		$db_from = $this->runWithTestDb($driver, static function (NamespaceBuilder $ns) {});
 
-		$db_to = $this->buildSQLiteDb(static function (NamespaceBuilder $ns) {
+		$db_to = $this->runWithTestDb($driver, static function (NamespaceBuilder $ns) {
 			$ns->table('products', static function (TableBuilder $t) {
 				$t->id();
 				$t->string('name')->min(1)->max(120);
@@ -356,7 +451,7 @@ final class MigrationRunnerTest extends BaseTestCase
 		});
 
 		// db_to has more tables, migrate its schema onto a fresh SQLite db
-		$runner = new MigrationRunner($this->newDb());
+		$runner = new MigrationRunner($this->getNewDbInstance($driver));
 		$diff   = new Diff($db_from, $db_to);
 		$runner->add($diff->makeMigrationInstance(1, 'Schema migration'));
 
@@ -365,25 +460,61 @@ final class MigrationRunnerTest extends BaseTestCase
 		self::assertSame([1], $applied);
 	}
 	// ------------------------------------------------------------------
-	// Fixtures
+	// Helpers / infrastructure
 	// ------------------------------------------------------------------
 
-	/** Returns a fresh in-memory SQLite RDBMS instance. */
-	private function newDb(): SQLLite
+	/**
+	 * Data provider that returns only drivers whose PDO extension is loaded.
+	 * This prevents test errors when e.g. pdo_pgsql is not installed.
+	 *
+	 * @return array<string, array{0: string, 1: class-string}>
+	 */
+	public static function availableDrivers(): array
 	{
-		return SQLLite::new(new DbConfig(['db_host' => ':memory:']));
+		return \array_filter(parent::allDrivers(), static function (array $row): bool {
+			return match ($row[0]) {
+				PostgreSQL::NAME => \extension_loaded('pdo_pgsql'),
+				MySQL::NAME      => \extension_loaded('pdo_mysql'),
+				default          => true,
+			};
+		});
 	}
 
 	/**
-	 * Builds a locked SQLite DB with tables configured by $setup.
+	 * Returns true if the given table exists in the live database.
+	 * Uses a driver-agnostic query (information_schema for MySQL/PostgreSQL,
+	 * sqlite_master for SQLite).
+	 */
+	private function tableExists(RDBMSInterface $db, string $table): bool
+	{
+		try {
+			if ($db instanceof SQLLite) {
+				$stmt = $db->select("SELECT name FROM sqlite_master WHERE type='table' AND name='{$table}';");
+			} else {
+				$stmt = $db->select("SELECT table_name FROM information_schema.tables WHERE table_name='{$table}';");
+			}
+
+			return \count($stmt->fetchAll()) > 0;
+		} catch (Throwable) {
+			return false;
+		}
+	}
+
+	// ------------------------------------------------------------------
+	// Fixtures
+	// ------------------------------------------------------------------
+
+	/**
+	 * Builds a locked DB with tables configured by $setup.
 	 *
 	 * @param callable(NamespaceBuilder):void $setup
 	 *
-	 * @return SQLLite
+	 * @return RDBMSInterface
 	 */
-	private function buildSQLiteDb(callable $setup): SQLLite
+	private function runWithTestDb(string $type, callable $setup): RDBMSInterface
 	{
-		$db = $this->newDb();
+		$db = $this->getNewDbInstance($type);
+
 		$setup($db->ns('test'));
 
 		return $db->lock();

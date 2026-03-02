@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Gobl\Tests\DBAL\Drivers;
 
 use Gobl\DBAL\Db;
-use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\Tests\BaseTestCase;
@@ -57,21 +56,14 @@ final class MySQLDbTest extends BaseTestCase
 	 */
 	private function getMySQLDb(): RDBMSInterface
 	{
-		$user = self::env('GOBL_TEST_MYSQL_USER');
+		$config = self::getDbConfig(MySQL::NAME);
 
-		if ('' === $user) {
+		if ('' === $config->getDbUser()) {
 			self::markTestSkipped('MySQL tests skipped: set GOBL_TEST_MYSQL_USER (and other GOBL_TEST_MYSQL_* vars) to run.');
 		}
 
-		$config = new DbConfig([
-			'db_name'     => self::env('GOBL_TEST_MYSQL_DB', 'gobl_test'),
-			'db_host'     => self::env('GOBL_TEST_MYSQL_HOST', '127.0.0.1'),
-			'db_port'     => (int) self::env('GOBL_TEST_MYSQL_PORT', '3306'),
-			'db_user'     => $user,
-			'db_password' => self::env('GOBL_TEST_MYSQL_PASSWORD', ''),
-		]);
-
 		$db = Db::newInstanceOf(MySQL::NAME, $config);
+
 		$db->ns(self::TEST_DB_NAMESPACE)
 			->schema(self::getTablesDefinitions());
 

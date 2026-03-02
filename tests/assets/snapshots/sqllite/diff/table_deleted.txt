@@ -10,8 +10,7 @@ DOWN:
 DROP TABLE IF EXISTS "gObL_temporary";
 CREATE TABLE "gObL_temporary" (
 "id" integer PRIMARY KEY AUTOINCREMENT,
-"label" text NOT NULL,
-
+"label" text NOT NULL
 );
 
 

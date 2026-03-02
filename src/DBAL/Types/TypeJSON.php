@@ -75,7 +75,7 @@ class TypeJSON extends Type implements BaseTypeInterface
 	}
 
 	/**
-	 * Enable native JSON column type in supporting RDBMS (MySQL ≥ 5.7, PostgreSQL).
+	 * Enable native JSON column type in supporting RDBMS (MySQL >= 5.7, PostgreSQL).
 	 *
 	 * When disabled (the default) the column is stored as TEXT, which is compatible
 	 * with every RDBMS and maintains backward-compatibility with existing schemas.
@@ -90,7 +90,7 @@ class TypeJSON extends Type implements BaseTypeInterface
 	}
 
 	/**
-	 * Big JSON — hints to the schema generator that the column may hold larger data.
+	 * Big JSON hints to the schema generator that the column may hold larger data.
 	 *
 	 * When native_json is disabled this maps to MEDIUMTEXT in MySQL.
 	 *
@@ -101,20 +101,6 @@ class TypeJSON extends Type implements BaseTypeInterface
 	public function big(bool $big = true): static
 	{
 		return $this->setOption('big', $big);
-	}
-
-	/**
-	 * Long JSON — hints to the schema generator that the column may hold very large data.
-	 *
-	 * When native_json is disabled this maps to LONGTEXT in MySQL.
-	 *
-	 * @param bool $long
-	 *
-	 * @return $this
-	 */
-	public function long(bool $long = true): static
-	{
-		return $this->setOption('long', $long);
 	}
 
 	/**

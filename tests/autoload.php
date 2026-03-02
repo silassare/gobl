@@ -18,6 +18,7 @@ require_once \dirname(__DIR__) . '/vendor/autoload.php';
 \define('GOBL_TEST_ASSETS', GOBL_TEST_ROOT . \DIRECTORY_SEPARATOR . 'assets');
 \define('GOBL_TEST_PROJECT_DIR', GOBL_TEST_ROOT . \DIRECTORY_SEPARATOR . 'tmp');
 \define('GOBL_TEST_OUTPUT', GOBL_TEST_PROJECT_DIR . \DIRECTORY_SEPARATOR . 'output');
+\define('GOBL_TEST_ORM_OUTPUT', GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'ORM_Db');
 
 if (!\function_exists('gobl_test_log')) {
 	function gobl_test_log(mixed $value): void
@@ -44,9 +45,9 @@ if (!\function_exists('gobl_test_log')) {
 		}
 		$log = \str_replace(['\n', '\t', '\/'], ["\n", "\t", '/'], $log);
 		$log = "================================================================================\n"
-			   . $date . "\n"
-			   . "========================\n"
-			   . $log . "\n\n";
+			. $date . "\n"
+			. "========================\n"
+			. $log . "\n\n";
 
 		$mode = (\file_exists($log_file) && \filesize($log_file) <= 254000) ? 'a' : 'w';
 
@@ -64,9 +65,9 @@ if (!\function_exists('gobl_test_log')) {
 	{
 		gobl_test_log(
 			"\n\tFile    : {$file}"
-			. "\n\tLine    : {$line}"
-			. "\n\tCode    : {$code}"
-			. "\n\tMessage : {$message}"
+				. "\n\tLine    : {$line}"
+				. "\n\tCode    : {$code}"
+				. "\n\tMessage : {$message}"
 		);
 
 		return null;

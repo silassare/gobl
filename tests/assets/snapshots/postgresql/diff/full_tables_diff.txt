@@ -59,7 +59,7 @@ ALTER TABLE "gObL_clients" ADD "client_name" varchar(60) NOT NULL;
 --
 -- Table structure for table "gObL_orders"
 --
-DROP TABLE IF EXISTS "gObL_orders";
+DROP TABLE IF EXISTS "gObL_orders" CASCADE;
 CREATE TABLE "gObL_orders" (
 "order_id" serial,
 "order_data" text NOT NULL,
@@ -141,7 +141,7 @@ ALTER TABLE "gObL_clients" ADD "client_last_name" varchar(60) NOT NULL;
 --
 -- Table structure for table "gObL_transactions"
 --
-DROP TABLE IF EXISTS "gObL_transactions";
+DROP TABLE IF EXISTS "gObL_transactions" CASCADE;
 CREATE TABLE "gObL_transactions" (
 "transaction_id" bigserial,
 "transaction_account_id" bigint NOT NULL,

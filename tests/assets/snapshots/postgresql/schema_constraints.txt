@@ -7,7 +7,7 @@
 --
 -- Table structure for table "gObL_authors"
 --
-DROP TABLE IF EXISTS "gObL_authors";
+DROP TABLE IF EXISTS "gObL_authors" CASCADE;
 CREATE TABLE "gObL_authors" (
 "author_id" bigserial,
 "author_email" varchar(255) NOT NULL,
@@ -25,7 +25,7 @@ CONSTRAINT pk_gObL_authors PRIMARY KEY ("author_id")
 --
 -- Table structure for table "gObL_posts"
 --
-DROP TABLE IF EXISTS "gObL_posts";
+DROP TABLE IF EXISTS "gObL_posts" CASCADE;
 CREATE TABLE "gObL_posts" (
 "post_id" bigserial,
 "post_author_id" bigint NOT NULL,

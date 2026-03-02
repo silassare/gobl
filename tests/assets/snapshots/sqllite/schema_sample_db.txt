@@ -12,8 +12,7 @@ CREATE TABLE "gObL_users" (
 "id" integer PRIMARY KEY AUTOINCREMENT,
 "name" text NOT NULL,
 "deleted" integer NOT NULL DEFAULT '0',
-"deleted_at" integer NULL DEFAULT NULL,
-
+"deleted_at" integer NULL DEFAULT NULL
 );
 
 
@@ -27,7 +26,7 @@ CREATE TABLE "gObL_roles" (
 "id" integer PRIMARY KEY AUTOINCREMENT,
 "title" text NOT NULL,
 "user_id" integer NOT NULL,
-
+CONSTRAINT fk_roles_users FOREIGN KEY ("user_id") REFERENCES "gObL_users" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
 );
 
 
@@ -39,8 +38,7 @@ CREATE TABLE "gObL_roles" (
 DROP TABLE IF EXISTS "gObL_tags";
 CREATE TABLE "gObL_tags" (
 "id" integer PRIMARY KEY AUTOINCREMENT,
-"label" text NOT NULL,
-
+"label" text NOT NULL
 );
 
 
@@ -57,7 +55,7 @@ CREATE TABLE "gObL_taggables" (
 "updated_at" integer NOT NULL,
 "taggable_id" integer NOT NULL,
 "taggable_type" varchar(64) NOT NULL,
-
+CONSTRAINT fk_taggables_tags FOREIGN KEY ("tag_id") REFERENCES "gObL_tags" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
 );
 
 
@@ -73,25 +71,8 @@ CREATE TABLE "gObL_articles" (
 "user_id" integer NOT NULL,
 "deleted" integer NOT NULL DEFAULT '0',
 "deleted_at" integer NULL DEFAULT NULL,
-
+CONSTRAINT fk_articles_users FOREIGN KEY ("user_id") REFERENCES "gObL_users" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
 );
 
 
 
-
---
--- Foreign keys constraints definition for table "gObL_roles"
---
-ALTER TABLE "gObL_roles" ADD CONSTRAINT fk_roles_users FOREIGN KEY ("user_id") REFERENCES "gObL_users" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION;
-
-
---
--- Foreign keys constraints definition for table "gObL_taggables"
---
-ALTER TABLE "gObL_taggables" ADD CONSTRAINT fk_taggables_tags FOREIGN KEY ("tag_id") REFERENCES "gObL_tags" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION;
-
-
---
--- Foreign keys constraints definition for table "gObL_articles"
---
-ALTER TABLE "gObL_articles" ADD CONSTRAINT fk_articles_users FOREIGN KEY ("user_id") REFERENCES "gObL_users" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION;

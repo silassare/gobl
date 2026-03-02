@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Filters\Traits;
 
 use Gobl\DBAL\Exceptions\DBALException;
+use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Queries\QBExpression;
 use Gobl\DBAL\Queries\QBSelect;
@@ -227,5 +228,27 @@ trait FiltersOperatorsHelpersTrait
 	public function isFalse(string $left): static
 	{
 		return $this->add(Operator::IS_FALSE, $left);
+	}
+
+	/**
+	 * Adds a JSON containment condition.
+	 *
+	 * Checks whether the JSON column (or JSON path expression) contains the given JSON fragment.
+	 *
+	 * - MySQL:      emits `JSON_CONTAINS(col, value)`
+	 * - PostgreSQL: emits `col @> value::jsonb`
+	 * - SQLite:     throws {@see DBALRuntimeException} (unsupported)
+	 *
+	 * The column must have `native_json` enabled. The right operand must be a valid
+	 * JSON-encoded string, e.g. `'"admin"'`, `'["a","b"]'`, or `'{"role":"admin"}'`.
+	 *
+	 * @param string $left  Column or JSON-path expression (e.g. `t.data`, `t.data.tags`)
+	 * @param string $right JSON-encoded value to check containment of
+	 *
+	 * @return $this
+	 */
+	public function jsonContains(string $left, string $right): static
+	{
+		return $this->add(Operator::JSON_CONTAINS, $left, $right);
 	}
 }

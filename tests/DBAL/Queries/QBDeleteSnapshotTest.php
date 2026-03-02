@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\DBAL\Queries;
 
-use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Queries\QBDelete;
 use Gobl\Tests\BaseTestCase;
 
@@ -22,7 +21,6 @@ use Gobl\Tests\BaseTestCase;
  *
  * Cross-driver snapshot tests for QBDelete SQL generation.
  * Each test runs for MySQL, PostgreSQL, and SQLite via the allDrivers data provider.
- * Note: testDeleteWithLimit is MySQL-only (PostgreSQL does not support LIMIT in DELETE).
  *
  * Snapshots are stored under tests/assets/snapshots/{driver}/qb_delete_{scenario}.txt
  *
@@ -39,7 +37,7 @@ final class QBDeleteSnapshotTest extends BaseTestCase
 	 */
 	public function testDeleteSimple(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBDelete($db);
 		$qb->from('clients')
 			->where($qb->filters()->eq('client_id', 1));
@@ -54,7 +52,7 @@ final class QBDeleteSnapshotTest extends BaseTestCase
 	 */
 	public function testDeleteWhereIn(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBDelete($db);
 		$qb->from('clients')
 			->where($qb->filters()->in('client_id', [1, 2, 3]));
@@ -69,7 +67,7 @@ final class QBDeleteSnapshotTest extends BaseTestCase
 	 */
 	public function testDeleteComplexWhere(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBDelete($db);
 		$qb->from('clients')
 			->where(
@@ -88,7 +86,7 @@ final class QBDeleteSnapshotTest extends BaseTestCase
 	 */
 	public function testDeleteNestedOr(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBDelete($db);
 		$qb->from('transactions')
 			->where(
@@ -107,22 +105,52 @@ final class QBDeleteSnapshotTest extends BaseTestCase
 	 */
 	public function testDeleteAll(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBDelete($db);
 		$qb->from('clients');
 
 		$this->assertMatchesSnapshot($driver . '/qb_delete_all', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 
-	/** DELETE with LIMIT (MySQL-specific PostgreSQL does not support LIMIT in DELETE). */
-	public function testDeleteWithLimit(): void
+	/**
+	 * DELETE with LIMIT.
+	 *
+	 * - MySQL     : appends `LIMIT n` directly.
+	 * - SQLite    : rewrites WHERE as `rowid IN (SELECT rowid ... LIMIT n)`.
+	 * - PostgreSQL: rewrites WHERE as `ctid IN (SELECT ctid ... LIMIT n)`.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testDeleteWithLimit(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$qb = new QBDelete($db);
 		$qb->from('clients')
 			->where($qb->filters()->eq('client_valid', false))
 			->limit(50);
 
-		$this->assertMatchesSnapshot('mysql/qb_delete_with_limit', $qb->getSqlQuery(), $qb->getBoundValues());
+		$this->assertMatchesSnapshot($driver . '/qb_delete_with_limit', $qb->getSqlQuery(), $qb->getBoundValues());
+	}
+
+	/**
+	 * DELETE with LIMIT and ORDER BY.
+	 *
+	 * All three drivers support ORDER BY + LIMIT together:
+	 * - MySQL     : appends `ORDER BY ... LIMIT n` directly.
+	 * - SQLite    : both go into the rowid subquery `SELECT rowid ... ORDER BY ... LIMIT n`.
+	 * - PostgreSQL: both go into the ctid subquery `SELECT ctid ... ORDER BY ... LIMIT n`.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testDeleteWithLimitAndOrderBy(string $driver): void
+	{
+		$db = self::getNewDbInstanceWithSchema($driver);
+		$qb = new QBDelete($db);
+		$qb->from('clients')
+			->where($qb->filters()->eq('client_valid', false))
+			->orderBy(['client_id DESC'])
+			->limit(10);
+
+		$this->assertMatchesSnapshot($driver . '/qb_delete_with_limit_order_by', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 }

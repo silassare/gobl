@@ -42,7 +42,7 @@ final class CSGeneratorORMSnapshotTest extends BaseTestCase
 	 */
 	public function testORMBaseFilesSnapshot(): void
 	{
-		$db     = self::getDb();
+		$db     = self::getNewDbInstanceWithSchema();
 		$outDir = GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'generators' . \DIRECTORY_SEPARATOR . 'orm';
 
 		// Always wipe so we get a clean generation

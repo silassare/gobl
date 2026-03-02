@@ -29,7 +29,7 @@ final class DiffTest extends BaseTestCase
 {
 	public function testDiff(): void
 	{
-		$db_a = self::getDb();
+		$db_a = self::getNewDbInstanceWithSchema();
 
 		$diff = new Diff($db_a, $db_a);
 

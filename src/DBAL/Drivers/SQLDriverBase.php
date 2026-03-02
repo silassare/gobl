@@ -18,6 +18,7 @@ use Exception;
 use Gobl\DBAL\Db;
 use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Drivers\MySQL\MySQL;
+use Gobl\DBAL\Drivers\SQLLite\SQLLite;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Queries\QBUtils;
 use Gobl\Gobl;
@@ -216,9 +217,28 @@ abstract class SQLDriverBase extends Db
 	 */
 	public function executeMulti($sql): PDOStatement
 	{
+		$db_type = $this->getType();
+
+		if (SQLLite::NAME === $db_type || 'postgresql' === $db_type) {
+			// SQLite's PDO prepare() only compiles the first SQL statement when given a
+			// multi-statement string; PDO::exec() forwards to sqlite3_exec() which
+			// properly handles all semicolon-separated statements in one call.
+			//
+			// PostgreSQL's PDO prepare() rejects multi-statement strings with
+			// "cannot insert multiple commands into a prepared statement".
+			// PDO::exec() uses libpq's PQexec(), which handles multiple commands.
+
+			$connection = $this->getConnection();
+			$connection->exec($sql);
+
+			// DDL operations do not produce result sets;
+			// return a trivial prepared statement to satisfy the return type.
+			return $connection->prepare('SELECT 1');
+		}
+
 		// Mysql seems to auto commit if there is a DDL query (CREATE OR DROP Table)
 		// so we avoid running in a transaction
-		$in_transaction = MySQL::NAME !== $this->getType();
+		$in_transaction = MySQL::NAME !== $db_type;
 
 		return $this->execute($sql, null, null, true, $in_transaction, $in_transaction);
 	}

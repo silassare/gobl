@@ -1,0 +1,7 @@
+SQL:
+UPDATE gObL_clients SET client_valid = :_val_a WHERE ((client_gender = :_val_b)) ORDER BY client_id ASC LIMIT 5
+BOUND:
+{
+    "_val_a": false,
+    "_val_b": "unknown"
+}

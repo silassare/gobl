@@ -16,8 +16,6 @@ namespace Gobl\DBAL\Drivers\MySQL;
 use Gobl\DBAL\Column;
 use Gobl\DBAL\Constraints\ForeignKey;
 use Gobl\DBAL\Constraints\ForeignKeyAction;
-use Gobl\DBAL\Indexes\Index;
-use Gobl\DBAL\Indexes\IndexType;
 use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Diff\Actions\ColumnTypeChanged;
 use Gobl\DBAL\Diff\Actions\ForeignKeyConstraintDeleted;
@@ -26,8 +24,11 @@ use Gobl\DBAL\Diff\Actions\PrimaryKeyConstraintDeleted;
 use Gobl\DBAL\Diff\Actions\UniqueKeyConstraintDeleted;
 use Gobl\DBAL\Drivers\SQLQueryGeneratorBase;
 use Gobl\DBAL\Exceptions\DBALException;
+use Gobl\DBAL\Indexes\Index;
+use Gobl\DBAL\Indexes\IndexType;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\QBDelete;
+use Gobl\DBAL\Queries\QBInsert;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Queries\QBUpdate;
 use Gobl\DBAL\Types\TypeJSON;
@@ -227,12 +228,12 @@ SQL;
 	/**
 	 * {@inheritDoc}
 	 *
-	 * MySQL supports a native JSON column type (MySQL ≥ 5.7.8).
+	 * MySQL supports a native JSON column type (MySQL >= 5.7.8).
 	 * When native_json is enabled the column is stored as JSON; otherwise falls back to TEXT.
 	 *
 	 * DEFAULT support for JSON columns:
 	 *   - MySQL < 8.0.13: DEFAULT not allowed on NOT NULL JSON columns (only DEFAULT NULL).
-	 *   - MySQL ≥ 8.0.13: DEFAULT expressions are permitted.
+	 *   - MySQL >= 8.0.13: DEFAULT expressions are permitted.
 	 *
 	 * Server version resolution order:
 	 *   1. `db_server_version` in DbConfig (manual override, useful for offline DDL generation)
@@ -255,11 +256,54 @@ SQL;
 		// MySQL >= 8.0.13 lifted this restriction.
 		$server_version = $this->config->getDbServerVersion($this->db);
 
-		$force_no_default = null === $server_version || \version_compare((string) $server_version, '8.0.13', '<');
+		$force_no_default = null === $server_version || \version_compare($server_version, '8.0.13', '<');
 
 		$this->defaultAndNullChunks($column, $sql, $force_no_default);
 
 		return \implode(' ', $sql);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * MySQL uses `INSERT IGNORE INTO` for conflict-ignore mode.
+	 */
+	protected function getInsertKeyword(QBInsert $qb): string
+	{
+		if ('ignore' === ($qb->getOptionsOnConflict()['action'] ?? null)) {
+			return 'INSERT IGNORE';
+		}
+
+		return 'INSERT';
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * MySQL: appends `ON DUPLICATE KEY UPDATE col = VALUES(col) [, ...]`
+	 * Conflict columns are ignored; MySQL resolves conflicts via its unique/PK indexes automatically.
+	 */
+	protected function getOnConflictClause(QBInsert $qb): string
+	{
+		$conflict = $qb->getOptionsOnConflict();
+		$action   = $conflict['action'] ?? null;
+
+		if (null === $action || 'ignore' === $action) {
+			return '';
+		}
+
+		// action = 'update'
+		$update_columns = $conflict['update_columns'] ?? [];
+		$inserted_cols  = $qb->getOptionsColumnsNames();
+		$cols_to_update = empty($update_columns) ? $inserted_cols : $update_columns;
+
+		$parts = [];
+
+		foreach ($cols_to_update as $col) {
+			$parts[] = $col . ' = VALUES(' . $col . ')';
+		}
+
+		return ' ON DUPLICATE KEY UPDATE ' . \implode(', ', $parts);
 	}
 
 	/**

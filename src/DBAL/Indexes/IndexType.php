@@ -18,7 +18,6 @@ namespace Gobl\DBAL\Indexes;
  */
 enum IndexType: string
 {
-
 	/** Standard B-Tree index (default) : supported by MySQL, PostgreSQL, SQLite and most drivers. */
 	case BTREE = 'BTREE';
 

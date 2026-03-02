@@ -203,12 +203,12 @@ class MigrationRunner
 	 */
 	private function getAppliedVersions(): array
 	{
-		$gen  = $this->db->getGenerator();
-		$t    = $gen->quoteIdentifier(self::MIGRATIONS_TABLE);
+		$gen   = $this->db->getGenerator();
+		$t     = $gen->quoteIdentifier(self::MIGRATIONS_TABLE);
 		$c_ver = $gen->quoteIdentifier('version');
-		$stmt = $this->db->select("SELECT {$c_ver} FROM {$t} ORDER BY {$c_ver} ASC");
+		$stmt  = $this->db->select("SELECT {$c_ver} FROM {$t} ORDER BY {$c_ver} ASC");
 
-		return \array_map(static fn(array $row) => (int) $row['version'], $stmt->fetchAll());
+		return \array_map(static fn (array $row) => (int) $row['version'], $stmt->fetchAll());
 	}
 
 	/**

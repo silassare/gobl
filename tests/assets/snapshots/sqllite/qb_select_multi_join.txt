@@ -1,4 +1,4 @@
 SQL:
-SELECT c.client_id, c.client_first_name, t.transaction_id, t.transaction_reference, t.transaction_amount FROM gObL_clients AS c WHERE 1 = 1
+SELECT c.client_id, c.client_first_name, t.transaction_id, t.transaction_reference, t.transaction_amount FROM gObL_clients AS c  INNER JOIN gObL_accounts AS a ON (a.account_client_id = c.client_id) INNER JOIN gObL_transactions AS t ON (t.transaction_account_id = a.account_id) WHERE 1 = 1
 BOUND:
 []

@@ -15,10 +15,8 @@ CREATE TABLE "gObL_t" (
 "t_published_at" integer NOT NULL,
 "t_expires_at" integer NULL DEFAULT NULL,
 "t_precise_time" numeric(20, 6) NOT NULL,
-"t_precise_nullable" numeric(20, 6) NULL DEFAULT NULL,
-
+"t_precise_nullable" numeric(20, 6) NULL DEFAULT NULL
 );
-
 
 
 

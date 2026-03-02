@@ -7,7 +7,7 @@
 --
 -- Table structure for table "gObL_users"
 --
-DROP TABLE IF EXISTS "gObL_users";
+DROP TABLE IF EXISTS "gObL_users" CASCADE;
 CREATE TABLE "gObL_users" (
 "id" bigserial,
 "name" text NOT NULL,
@@ -26,7 +26,7 @@ CONSTRAINT pk_gObL_users PRIMARY KEY ("id")
 --
 -- Table structure for table "gObL_roles"
 --
-DROP TABLE IF EXISTS "gObL_roles";
+DROP TABLE IF EXISTS "gObL_roles" CASCADE;
 CREATE TABLE "gObL_roles" (
 "id" bigserial,
 "title" text NOT NULL,
@@ -44,7 +44,7 @@ CONSTRAINT pk_gObL_roles PRIMARY KEY ("id")
 --
 -- Table structure for table "gObL_tags"
 --
-DROP TABLE IF EXISTS "gObL_tags";
+DROP TABLE IF EXISTS "gObL_tags" CASCADE;
 CREATE TABLE "gObL_tags" (
 "id" bigserial,
 "label" text NOT NULL,
@@ -61,7 +61,7 @@ CONSTRAINT pk_gObL_tags PRIMARY KEY ("id")
 --
 -- Table structure for table "gObL_taggables"
 --
-DROP TABLE IF EXISTS "gObL_taggables";
+DROP TABLE IF EXISTS "gObL_taggables" CASCADE;
 CREATE TABLE "gObL_taggables" (
 "id" bigserial,
 "tag_id" bigint NOT NULL,
@@ -82,7 +82,7 @@ CONSTRAINT pk_gObL_taggables PRIMARY KEY ("id")
 --
 -- Table structure for table "gObL_articles"
 --
-DROP TABLE IF EXISTS "gObL_articles";
+DROP TABLE IF EXISTS "gObL_articles" CASCADE;
 CREATE TABLE "gObL_articles" (
 "id" bigserial,
 "title" text NOT NULL,

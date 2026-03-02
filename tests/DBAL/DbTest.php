@@ -15,10 +15,9 @@ namespace Gobl\Tests\DBAL;
 
 use Gobl\DBAL\Column;
 use Gobl\DBAL\Db;
-use Gobl\DBAL\Drivers\MySQL\MySQL;
-use Gobl\DBAL\Drivers\SQLLite\SQLLite;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
+use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Table;
 use Gobl\Tests\BaseTestCase;
 
@@ -31,11 +30,15 @@ use Gobl\Tests\BaseTestCase;
  */
 final class DbTest extends BaseTestCase
 {
-	public function testInstantiate(): void
+	/**
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 *
+	 * @param string                       $driver the driver type to test
+	 * @param class-string<RDBMSInterface> $class  the expected class name for the driver instance
+	 */
+	public function testInstantiate(string $driver, string $class): void
 	{
-		self::assertInstanceOf(MySQL::class, Db::newInstanceOf(MySQL::NAME, self::getDbConfig(MySQL::NAME)));
-
-		self::assertInstanceOf(SQLLite::class, Db::newInstanceOf(SQLLite::NAME, self::getDbConfig(SQLLite::NAME)));
+		self::assertInstanceOf($class, self::getNewDbInstance($driver));
 	}
 
 	public function testParseColumnReference(): void
@@ -66,7 +69,7 @@ final class DbTest extends BaseTestCase
 
 	public function testHasTable(): void
 	{
-		$db       = self::getDb();
+		$db       = self::getNewDbInstanceWithSchema();
 		$tables   = self::getTablesDefinitions();
 		$found    = [];
 		$expected = [];
@@ -92,7 +95,7 @@ final class DbTest extends BaseTestCase
 
 	public function testAssertHasTable(): void
 	{
-		$db   = self::getEmptyDb();
+		$db   = self::getNewDbInstance();
 		$name = \uniqid('table_', false);
 
 		$this->expectException(DBALRuntimeException::class);
@@ -102,7 +105,7 @@ final class DbTest extends BaseTestCase
 
 	public function testGetTable(): void
 	{
-		$db   = self::getDb();
+		$db   = self::getNewDbInstanceWithSchema();
 		$name = \uniqid('table_', false);
 
 		self::assertNull($db->getTable($name));
@@ -118,14 +121,14 @@ final class DbTest extends BaseTestCase
 	{
 		$types = \array_keys(self::getTestRDBMSList());
 		foreach ($types as $type) {
-			$db = self::getEmptyDb($type);
+			$db = self::getNewDbInstance($type);
 			self::assertSame($type, $db->getType());
 		}
 	}
 
 	public function testAddTable(): void
 	{
-		$db         = self::getEmptyDb();
+		$db         = self::getNewDbInstance();
 		$tbl_prefix = $db->getConfig()
 			->getDbTablePrefix();
 
@@ -153,7 +156,7 @@ final class DbTest extends BaseTestCase
 	 */
 	public function testAddTables(): void
 	{
-		$db         = self::getEmptyDb();
+		$db         = self::getNewDbInstance();
 		$tbl_prefix = $db->getConfig()
 			->getDbTablePrefix();
 
@@ -219,7 +222,7 @@ final class DbTest extends BaseTestCase
 
 	public function testGetTables(): void
 	{
-		$db = self::getEmptyDb();
+		$db = self::getNewDbInstance();
 		$db->addTable((new Table('users', 'pr'))->addColumn(new Column('id')));
 		$db->addTable((new Table('members'))->addColumn(new Column('id')));
 

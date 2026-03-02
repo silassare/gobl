@@ -13,11 +13,11 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\DBAL\Types;
 
-use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\TypeMap;
 use Gobl\DBAL\Types\Utils\Map;
 use Gobl\Tests\BaseTestCase;
+use stdClass;
 
 /**
  * Class TypeMapTest.
@@ -87,7 +87,7 @@ final class TypeMapTest extends BaseTestCase
 		// plain objects that are not Map instances are rejected
 		$t = new TypeMap();
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate(new \stdClass());
+		$t->validate(new stdClass());
 	}
 
 	// -------------------------------------------------------------------------
@@ -147,34 +147,46 @@ final class TypeMapTest extends BaseTestCase
 	// phpToDb / dbToPhp
 	// -------------------------------------------------------------------------
 
-	public function testPhpToDbSerializesToJson(): void
+	/**
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testPhpToDbSerializesToJson(string $driver): void
 	{
-		$db     = self::getDb(MySQL::NAME);
+		$db     = self::getNewDbInstanceWithSchema($driver);
 		$t      = new TypeMap();
 		$result = $t->phpToDb(['foo' => 'bar', 'n' => 42], $db);
 		self::assertJson($result);
 		self::assertSame(['foo' => 'bar', 'n' => 42], \json_decode($result, true));
 	}
 
-	public function testPhpToDbEmptyArraySerializesAsEmptyJsonObject(): void
+	/**
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testPhpToDbEmptyArraySerializesAsEmptyJsonObject(string $driver): void
 	{
 		// phpToDb empty array => {}
-		$db     = self::getDb(MySQL::NAME);
+		$db     = self::getNewDbInstanceWithSchema($driver);
 		$t      = new TypeMap();
 		$result = $t->phpToDb([], $db);
 		self::assertSame('{}', $result);
 	}
 
-	public function testPhpToDbNullableReturnsNull(): void
+	/**
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testPhpToDbNullableReturnsNull(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$t  = (new TypeMap())->nullable();
 		self::assertNull($t->phpToDb(null, $db));
 	}
 
-	public function testDbToPhpDeserializesFromJson(): void
+	/**
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testDbToPhpDeserializesFromJson(string $driver): void
 	{
-		$db     = self::getDb(MySQL::NAME);
+		$db     = self::getNewDbInstanceWithSchema($driver);
 		$t      = new TypeMap();
 		$result = $t->dbToPhp('{"city":"Paris","pop":2161000}', $db);
 		self::assertInstanceOf(Map::class, $result);
@@ -182,23 +194,32 @@ final class TypeMapTest extends BaseTestCase
 		self::assertSame(2161000, $result->get('pop'));
 	}
 
-	public function testDbToPhpNullReturnsNull(): void
+	/**
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testDbToPhpNullReturnsNull(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$t  = new TypeMap();
 		self::assertNull($t->dbToPhp(null, $db));
 	}
 
-	public function testDbToPhpEmptyStringReturnsNull(): void
+	/**
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testDbToPhpEmptyStringReturnsNull(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$t  = new TypeMap();
 		self::assertNull($t->dbToPhp('', $db));
 	}
 
-	public function testDbToPhpInvalidJsonFallsBackToEmptyMap(): void
+	/**
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testDbToPhpInvalidJsonFallsBackToEmptyMap(string $driver): void
 	{
-		$db     = self::getDb(MySQL::NAME);
+		$db     = self::getNewDbInstanceWithSchema($driver);
 		$t      = new TypeMap();
 		// for scalars, wraps to empty Map
 		$result = $t->dbToPhp('"just_a_string"', $db);
@@ -206,9 +227,12 @@ final class TypeMapTest extends BaseTestCase
 		self::assertSame([], $result->getData());
 	}
 
-	public function testPhpToDbRoundtrip(): void
+	/**
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testPhpToDbRoundtrip(string $driver): void
 	{
-		$db      = self::getDb(MySQL::NAME);
+		$db      = self::getNewDbInstanceWithSchema($driver);
 		$t       = new TypeMap();
 		$input   = ['alpha' => 1, 'beta' => ['nested' => true]];
 		$encoded = $t->phpToDb($input, $db);

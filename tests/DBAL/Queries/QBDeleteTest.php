@@ -28,7 +28,7 @@ final class QBDeleteTest extends BaseTestCase
 {
 	public function testDelete(): void
 	{
-		$db = self::getDb();
+		$db = self::getNewDbInstanceWithSchema();
 
 		$qb = new QBDelete($db);
 

@@ -95,6 +95,47 @@ class ORM
 	}
 
 	/**
+	 * Replaces the db instance for an already-declared namespace.
+	 *
+	 * Use this to point a namespace at a different RDBMS instance (e.g. in tests
+	 * when switching between MySQL, PostgreSQL, and SQLite) without tearing down
+	 * and re-declaring the whole namespace.
+	 *
+	 * @param string         $namespace the database namespace
+	 * @param RDBMSInterface $db        the new db instance to use
+	 */
+	public static function setDatabase(string $namespace, RDBMSInterface $db): void
+	{
+		if (!isset(self::$namespaces[$namespace])) {
+			throw new ORMRuntimeException(\sprintf('Namespace "%s" was not declared in the ORM.', $namespace));
+		}
+
+		self::$namespaces[$namespace]['db'] = $db;
+	}
+
+	/**
+	 * Removes a single declared namespace.
+	 *
+	 * Mainly useful in tests to allow re-declaring a namespace with different settings.
+	 *
+	 * @param string $namespace the database namespace to remove
+	 */
+	public static function undeclareNamespace(string $namespace): void
+	{
+		unset(self::$namespaces[$namespace]);
+	}
+
+	/**
+	 * Removes all declared namespaces.
+	 *
+	 * Useful in test teardown to reset global ORM state between test runs.
+	 */
+	public static function resetNamespaces(): void
+	{
+		self::$namespaces = [];
+	}
+
+	/**
 	 * Returns the output directory for the given namespace.
 	 *
 	 * @param string $namespace the database namespace

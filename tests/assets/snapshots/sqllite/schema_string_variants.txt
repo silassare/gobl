@@ -16,10 +16,8 @@ CREATE TABLE "gObL_t" (
 "t_optional_note" varchar(200) NULL DEFAULT NULL,
 "t_with_default" varchar(50) NOT NULL DEFAULT 'N/A',
 "t_body" text NOT NULL,
-"t_nullable_body" text NULL,
-
+"t_nullable_body" text NULL
 );
-
 
 
 

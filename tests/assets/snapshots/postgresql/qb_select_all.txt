@@ -1,4 +1,4 @@
 SQL:
-SELECT * FROM gObL_clients AS _a_ WHERE 1 = 1
+SELECT * FROM "gObL_clients" AS _a_ WHERE 1 = 1
 BOUND:
 []

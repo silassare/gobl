@@ -19,6 +19,7 @@ use Gobl\Tests\Db\AccountsQuery as AccountsQueryReal;
  * @method $this whereIdIsNotLike(string $value) Filters rows with `not_like` condition on column `accounts.id`.
  * @method $this whereIdIsIn(array $value) Filters rows with `in` condition on column `accounts.id`.
  * @method $this whereIdIsNotIn(array $value) Filters rows with `not_in` condition on column `accounts.id`.
+ * @method $this whereIdJsonContains(string $value) Filters rows with `json_contains` condition on column `accounts.id`.
  * @method $this whereClientIdIs(string|int $value) Filters rows with `eq` condition on column `accounts.client_id`.
  * @method $this whereClientIdIsNot(string|int $value) Filters rows with `neq` condition on column `accounts.client_id`.
  * @method $this whereClientIdIsLt(string|int $value) Filters rows with `lt` condition on column `accounts.client_id`.
@@ -29,6 +30,7 @@ use Gobl\Tests\Db\AccountsQuery as AccountsQueryReal;
  * @method $this whereClientIdIsNotLike(string $value) Filters rows with `not_like` condition on column `accounts.client_id`.
  * @method $this whereClientIdIsIn(array $value) Filters rows with `in` condition on column `accounts.client_id`.
  * @method $this whereClientIdIsNotIn(array $value) Filters rows with `not_in` condition on column `accounts.client_id`.
+ * @method $this whereClientIdJsonContains(string $value) Filters rows with `json_contains` condition on column `accounts.client_id`.
  * @method $this whereLabelIs(string $value) Filters rows with `eq` condition on column `accounts.label`.
  * @method $this whereLabelIsNot(string $value) Filters rows with `neq` condition on column `accounts.label`.
  * @method $this whereLabelIsLt(string $value) Filters rows with `lt` condition on column `accounts.label`.
@@ -39,6 +41,7 @@ use Gobl\Tests\Db\AccountsQuery as AccountsQueryReal;
  * @method $this whereLabelIsNotLike(string $value) Filters rows with `not_like` condition on column `accounts.label`.
  * @method $this whereLabelIsIn(array $value) Filters rows with `in` condition on column `accounts.label`.
  * @method $this whereLabelIsNotIn(array $value) Filters rows with `not_in` condition on column `accounts.label`.
+ * @method $this whereLabelJsonContains(string $value) Filters rows with `json_contains` condition on column `accounts.label`.
  * @method $this whereBalanceIs(string|float|int $value) Filters rows with `eq` condition on column `accounts.balance`.
  * @method $this whereBalanceIsNot(string|float|int $value) Filters rows with `neq` condition on column `accounts.balance`.
  * @method $this whereBalanceIsLt(string|float|int $value) Filters rows with `lt` condition on column `accounts.balance`.
@@ -49,6 +52,7 @@ use Gobl\Tests\Db\AccountsQuery as AccountsQueryReal;
  * @method $this whereBalanceIsNotLike(string $value) Filters rows with `not_like` condition on column `accounts.balance`.
  * @method $this whereBalanceIsIn(array $value) Filters rows with `in` condition on column `accounts.balance`.
  * @method $this whereBalanceIsNotIn(array $value) Filters rows with `not_in` condition on column `accounts.balance`.
+ * @method $this whereBalanceJsonContains(string $value) Filters rows with `json_contains` condition on column `accounts.balance`.
  * @method $this whereCurrencyCodeIs(string $value) Filters rows with `eq` condition on column `accounts.currency_code`.
  * @method $this whereCurrencyCodeIsNot(string $value) Filters rows with `neq` condition on column `accounts.currency_code`.
  * @method $this whereCurrencyCodeIsLt(string $value) Filters rows with `lt` condition on column `accounts.currency_code`.
@@ -59,6 +63,7 @@ use Gobl\Tests\Db\AccountsQuery as AccountsQueryReal;
  * @method $this whereCurrencyCodeIsNotLike(string $value) Filters rows with `not_like` condition on column `accounts.currency_code`.
  * @method $this whereCurrencyCodeIsIn(array $value) Filters rows with `in` condition on column `accounts.currency_code`.
  * @method $this whereCurrencyCodeIsNotIn(array $value) Filters rows with `not_in` condition on column `accounts.currency_code`.
+ * @method $this whereCurrencyCodeJsonContains(string $value) Filters rows with `json_contains` condition on column `accounts.currency_code`.
  * @method $this whereDataIs(\Gobl\DBAL\Types\Utils\Map|array $value) Filters rows with `eq` condition on column `accounts.data`.
  * @method $this whereDataIsNot(\Gobl\DBAL\Types\Utils\Map|array $value) Filters rows with `neq` condition on column `accounts.data`.
  * @method $this whereDataIsLike(string $value) Filters rows with `like` condition on column `accounts.data`.
@@ -73,6 +78,7 @@ use Gobl\Tests\Db\AccountsQuery as AccountsQueryReal;
  * @method $this whereCreatedAtIsNotLike(string $value) Filters rows with `not_like` condition on column `accounts.created_at`.
  * @method $this whereCreatedAtIsIn(array $value) Filters rows with `in` condition on column `accounts.created_at`.
  * @method $this whereCreatedAtIsNotIn(array $value) Filters rows with `not_in` condition on column `accounts.created_at`.
+ * @method $this whereCreatedAtJsonContains(string $value) Filters rows with `json_contains` condition on column `accounts.created_at`.
  * @method $this whereUpdatedAtIs(string|int $value) Filters rows with `eq` condition on column `accounts.updated_at`.
  * @method $this whereUpdatedAtIsNot(string|int $value) Filters rows with `neq` condition on column `accounts.updated_at`.
  * @method $this whereUpdatedAtIsLt(string|int $value) Filters rows with `lt` condition on column `accounts.updated_at`.
@@ -83,6 +89,7 @@ use Gobl\Tests\Db\AccountsQuery as AccountsQueryReal;
  * @method $this whereUpdatedAtIsNotLike(string $value) Filters rows with `not_like` condition on column `accounts.updated_at`.
  * @method $this whereUpdatedAtIsIn(array $value) Filters rows with `in` condition on column `accounts.updated_at`.
  * @method $this whereUpdatedAtIsNotIn(array $value) Filters rows with `not_in` condition on column `accounts.updated_at`.
+ * @method $this whereUpdatedAtJsonContains(string $value) Filters rows with `json_contains` condition on column `accounts.updated_at`.
  * @method $this whereValidIs(bool $value) Filters rows with `eq` condition on column `accounts.valid`.
  * @method $this whereValidIsNot(bool $value) Filters rows with `neq` condition on column `accounts.valid`.
  * @method $this whereValidIsFalse() Filters rows with `is_false` condition on column `accounts.valid`.

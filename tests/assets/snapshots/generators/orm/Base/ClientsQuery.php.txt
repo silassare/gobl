@@ -19,6 +19,7 @@ use Gobl\Tests\Db\ClientsQuery as ClientsQueryReal;
  * @method $this whereIdIsNotLike(string $value) Filters rows with `not_like` condition on column `clients.id`.
  * @method $this whereIdIsIn(array $value) Filters rows with `in` condition on column `clients.id`.
  * @method $this whereIdIsNotIn(array $value) Filters rows with `not_in` condition on column `clients.id`.
+ * @method $this whereIdJsonContains(string $value) Filters rows with `json_contains` condition on column `clients.id`.
  * @method $this whereFirstNameIs(string $value) Filters rows with `eq` condition on column `clients.first_name`.
  * @method $this whereFirstNameIsNot(string $value) Filters rows with `neq` condition on column `clients.first_name`.
  * @method $this whereFirstNameIsLt(string $value) Filters rows with `lt` condition on column `clients.first_name`.
@@ -29,6 +30,7 @@ use Gobl\Tests\Db\ClientsQuery as ClientsQueryReal;
  * @method $this whereFirstNameIsNotLike(string $value) Filters rows with `not_like` condition on column `clients.first_name`.
  * @method $this whereFirstNameIsIn(array $value) Filters rows with `in` condition on column `clients.first_name`.
  * @method $this whereFirstNameIsNotIn(array $value) Filters rows with `not_in` condition on column `clients.first_name`.
+ * @method $this whereFirstNameJsonContains(string $value) Filters rows with `json_contains` condition on column `clients.first_name`.
  * @method $this whereLastNameIs(string $value) Filters rows with `eq` condition on column `clients.last_name`.
  * @method $this whereLastNameIsNot(string $value) Filters rows with `neq` condition on column `clients.last_name`.
  * @method $this whereLastNameIsLt(string $value) Filters rows with `lt` condition on column `clients.last_name`.
@@ -39,6 +41,7 @@ use Gobl\Tests\Db\ClientsQuery as ClientsQueryReal;
  * @method $this whereLastNameIsNotLike(string $value) Filters rows with `not_like` condition on column `clients.last_name`.
  * @method $this whereLastNameIsIn(array $value) Filters rows with `in` condition on column `clients.last_name`.
  * @method $this whereLastNameIsNotIn(array $value) Filters rows with `not_in` condition on column `clients.last_name`.
+ * @method $this whereLastNameJsonContains(string $value) Filters rows with `json_contains` condition on column `clients.last_name`.
  * @method $this whereGivenNameIs(string $value) Filters rows with `eq` condition on column `clients.given_name`.
  * @method $this whereGivenNameIsNot(string $value) Filters rows with `neq` condition on column `clients.given_name`.
  * @method $this whereGivenNameIsLt(string $value) Filters rows with `lt` condition on column `clients.given_name`.
@@ -49,6 +52,7 @@ use Gobl\Tests\Db\ClientsQuery as ClientsQueryReal;
  * @method $this whereGivenNameIsNotLike(string $value) Filters rows with `not_like` condition on column `clients.given_name`.
  * @method $this whereGivenNameIsIn(array $value) Filters rows with `in` condition on column `clients.given_name`.
  * @method $this whereGivenNameIsNotIn(array $value) Filters rows with `not_in` condition on column `clients.given_name`.
+ * @method $this whereGivenNameJsonContains(string $value) Filters rows with `json_contains` condition on column `clients.given_name`.
  * @method $this whereGenderIs(string $value) Filters rows with `eq` condition on column `clients.gender`.
  * @method $this whereGenderIsNot(string $value) Filters rows with `neq` condition on column `clients.gender`.
  * @method $this whereGenderIsLt(string $value) Filters rows with `lt` condition on column `clients.gender`.
@@ -59,6 +63,7 @@ use Gobl\Tests\Db\ClientsQuery as ClientsQueryReal;
  * @method $this whereGenderIsNotLike(string $value) Filters rows with `not_like` condition on column `clients.gender`.
  * @method $this whereGenderIsIn(array $value) Filters rows with `in` condition on column `clients.gender`.
  * @method $this whereGenderIsNotIn(array $value) Filters rows with `not_in` condition on column `clients.gender`.
+ * @method $this whereGenderJsonContains(string $value) Filters rows with `json_contains` condition on column `clients.gender`.
  * @method $this whereDataIs(\Gobl\DBAL\Types\Utils\Map|array $value) Filters rows with `eq` condition on column `clients.data`.
  * @method $this whereDataIsNot(\Gobl\DBAL\Types\Utils\Map|array $value) Filters rows with `neq` condition on column `clients.data`.
  * @method $this whereDataIsLike(string $value) Filters rows with `like` condition on column `clients.data`.
@@ -73,6 +78,7 @@ use Gobl\Tests\Db\ClientsQuery as ClientsQueryReal;
  * @method $this whereCreatedAtIsNotLike(string $value) Filters rows with `not_like` condition on column `clients.created_at`.
  * @method $this whereCreatedAtIsIn(array $value) Filters rows with `in` condition on column `clients.created_at`.
  * @method $this whereCreatedAtIsNotIn(array $value) Filters rows with `not_in` condition on column `clients.created_at`.
+ * @method $this whereCreatedAtJsonContains(string $value) Filters rows with `json_contains` condition on column `clients.created_at`.
  * @method $this whereUpdatedAtIs(string|int $value) Filters rows with `eq` condition on column `clients.updated_at`.
  * @method $this whereUpdatedAtIsNot(string|int $value) Filters rows with `neq` condition on column `clients.updated_at`.
  * @method $this whereUpdatedAtIsLt(string|int $value) Filters rows with `lt` condition on column `clients.updated_at`.
@@ -83,6 +89,7 @@ use Gobl\Tests\Db\ClientsQuery as ClientsQueryReal;
  * @method $this whereUpdatedAtIsNotLike(string $value) Filters rows with `not_like` condition on column `clients.updated_at`.
  * @method $this whereUpdatedAtIsIn(array $value) Filters rows with `in` condition on column `clients.updated_at`.
  * @method $this whereUpdatedAtIsNotIn(array $value) Filters rows with `not_in` condition on column `clients.updated_at`.
+ * @method $this whereUpdatedAtJsonContains(string $value) Filters rows with `json_contains` condition on column `clients.updated_at`.
  * @method $this whereValidIs(bool $value) Filters rows with `eq` condition on column `clients.valid`.
  * @method $this whereValidIsNot(bool $value) Filters rows with `neq` condition on column `clients.valid`.
  * @method $this whereValidIsFalse() Filters rows with `is_false` condition on column `clients.valid`.

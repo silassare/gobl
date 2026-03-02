@@ -92,6 +92,6 @@ final class CRUDEventTest extends BaseTestCase
 	/** Returns a real Table from the test schema. */
 	private function getClientsTable(): Table
 	{
-		return self::getDb()->getTableOrFail('clients');
+		return self::getNewDbInstanceWithSchema()->getTableOrFail('clients');
 	}
 }

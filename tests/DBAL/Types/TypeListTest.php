@@ -13,10 +13,10 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\DBAL\Types;
 
-use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\TypeList;
 use Gobl\Tests\BaseTestCase;
+use stdClass;
 
 /**
  * Class TypeListTest.
@@ -86,7 +86,7 @@ final class TypeListTest extends BaseTestCase
 	{
 		$t = new TypeList();
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate(new \stdClass());
+		$t->validate(new stdClass());
 	}
 
 	// -------------------------------------------------------------------------
@@ -129,51 +129,72 @@ final class TypeListTest extends BaseTestCase
 	// phpToDb / dbToPhp
 	// -------------------------------------------------------------------------
 
-	public function testPhpToDbSerializesToJson(): void
+	/**
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testPhpToDbSerializesToJson(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$t  = new TypeList();
 		self::assertSame('[1,"two",true]', $t->phpToDb([1, 'two', true], $db));
 	}
 
-	public function testPhpToDbEmptyArraySerializesAsEmptyJsonArray(): void
+	/**
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testPhpToDbEmptyArraySerializesAsEmptyJsonArray(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$t  = new TypeList();
 		self::assertSame('[]', $t->phpToDb([], $db));
 	}
 
-	public function testPhpToDbNullableReturnsNull(): void
+	/**
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testPhpToDbNullableReturnsNull(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$t  = (new TypeList())->nullable();
 		self::assertNull($t->phpToDb(null, $db));
 	}
 
-	public function testDbToPhpDeserializesFromJson(): void
+	/**
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testDbToPhpDeserializesFromJson(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$t  = new TypeList();
 		self::assertSame([1, 'two', true], $t->dbToPhp('[1,"two",true]', $db));
 	}
 
-	public function testDbToPhpNullReturnsNull(): void
+	/**
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testDbToPhpNullReturnsNull(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$t  = new TypeList();
 		self::assertNull($t->dbToPhp(null, $db));
 	}
 
-	public function testDbToPhpEmptyStringReturnsNull(): void
+	/**
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testDbToPhpEmptyStringReturnsNull(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$t  = new TypeList();
 		self::assertNull($t->dbToPhp('', $db));
 	}
 
-	public function testPhpToDbRoundtrip(): void
+	/**
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testPhpToDbRoundtrip(string $driver): void
 	{
-		$db      = self::getDb(MySQL::NAME);
+		$db      = self::getNewDbInstanceWithSchema($driver);
 		$t       = new TypeList();
 		$input   = ['alpha', 'beta', 'gamma'];
 		$encoded = $t->phpToDb($input, $db);

@@ -1,5 +1,5 @@
 SQL:
-SELECT a.* FROM gObL_accounts AS a WHERE ((account_balance > :_val_a AND account_balance <= :_val_b AND account_valid <> :_val_c))
+SELECT a.* FROM "gObL_accounts" AS a WHERE ((account_balance > :_val_a AND account_balance <= :_val_b AND account_valid <> :_val_c))
 BOUND:
 {
     "_val_a": 0,

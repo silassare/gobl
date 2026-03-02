@@ -21,6 +21,28 @@ use Gobl\DBAL\Table;
 
 /**
  * Class JoinBuilder.
+ *
+ * Fluent builder for a single JOIN clause, returned by `QBSelect::innerJoin()`,
+ * `leftJoin()`, or `rightJoin()`.
+ *
+ * ## Lifecycle
+ *
+ * 1. Obtained from a query builder: `$jb = $qb->innerJoin('host_alias');`
+ * 2. Target declared:               `$jb->to('target_table', 'target_alias');`
+ * 3. Condition set:                 `$jb->on($filters);`
+ *
+ * The builder is stored in `QBJoinsTrait::$options_joins[host_alias][]`.
+ * `getOptions()` is called by the SQL generator and **throws** if `to()` was
+ * never called (incomplete join).
+ *
+ * ## Constructor parameters: host context
+ *
+ * - `$table`       - full name of the **host** (left-hand) table
+ * - `$table_alias` - alias of the **host** table (key used in `$options_joins`)
+ *
+ * These are fixed at construction and cannot be changed.  The host alias is
+ * what the SQL generator uses as a lookup key to attach this JOIN to the
+ * correct `table AS alias` fragment in the FROM clause.
  */
 final class JoinBuilder
 {
@@ -31,10 +53,10 @@ final class JoinBuilder
 	/**
 	 * JoinBuilder constructor.
 	 *
-	 * @param JoinType    $type
-	 * @param QBInterface $qb
-	 * @param string      $table
-	 * @param string      $table_alias
+	 * @param JoinType    $type        JOIN type
+	 * @param QBInterface $qb          owning query builder (used to resolve table names / aliases)
+	 * @param string      $table       full name of the host (left-hand) table
+	 * @param string      $table_alias alias of the host table; used as the key in $options_joins
 	 */
 	public function __construct(
 		private readonly JoinType $type,

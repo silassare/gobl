@@ -3,7 +3,7 @@ UP:
 --
 -- Table structure for table "gObL_products"
 --
-DROP TABLE IF EXISTS "gObL_products";
+DROP TABLE IF EXISTS "gObL_products" CASCADE;
 CREATE TABLE "gObL_products" (
 "id" bigserial,
 "name" varchar(120) NOT NULL,

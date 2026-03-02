@@ -53,7 +53,7 @@ abstract class Type implements TypeInterface
 	 */
 	public function __clone()
 	{
-		$this->locked = false; // we clone because we want to edit
+		$this->locked    = false; // we clone because we want to edit
 		$this->base_type = TypeUtils::buildTypeOrFail($this->base_type->toArray());
 	}
 
@@ -234,7 +234,6 @@ abstract class Type implements TypeInterface
 	public function lock(): static
 	{
 		$this->locked = true;
-		$this->base_type->locked = true;
 
 		return $this;
 	}

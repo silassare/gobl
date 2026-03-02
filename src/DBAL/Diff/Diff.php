@@ -16,7 +16,6 @@ namespace Gobl\DBAL\Diff;
 use Gobl\DBAL\Column;
 use Gobl\DBAL\Constraints\Constraint;
 use Gobl\DBAL\Constraints\ForeignKey;
-use Gobl\DBAL\Indexes\Index;
 use Gobl\DBAL\Constraints\PrimaryKey;
 use Gobl\DBAL\Constraints\UniqueKey;
 use Gobl\DBAL\Diff\Actions\ColumnAdded;
@@ -343,7 +342,7 @@ DIFF_SQL;
 		}
 
 		if (!empty($diff)) {
-			\usort($diff, static fn(DiffAction $a, DiffAction $b) => $a->getType()->getPriority() - $b->getType()->getPriority());
+			\usort($diff, static fn (DiffAction $a, DiffAction $b) => $a->getType()->getPriority() - $b->getType()->getPriority());
 		}
 
 		return $diff;
@@ -502,8 +501,8 @@ DIFF_SQL;
 					->getFullName())) {
 					$touched = \sprintf('constraint host table changed from "%s" to "%s".', $a, $b);
 				} elseif (($a = $from_constraint->getReferenceTable()
-						->getFullName()) !== ($b = $to_constraint->getReferenceTable()
-						->getFullName())
+					->getFullName()) !== ($b = $to_constraint->getReferenceTable()
+					->getFullName())
 				) {
 					$touched = \sprintf('constraint reference table changed from "%s" to "%s".', $a, $b);
 				} elseif ($from_constraint->getColumnsMapping() !== $to_constraint->getColumnsMapping()) {
@@ -601,9 +600,9 @@ DIFF_SQL;
 			if (!$to_index) {
 				$diff[] = new IndexDeleted($from_index);
 			} else {
-				$a_columns  = $from_index->getColumns();
-				$b_columns  = $to_index->getColumns();
-				$c_columns  = \array_merge(\array_diff($a_columns, $b_columns), \array_diff($b_columns, $a_columns));
+				$a_columns    = $from_index->getColumns();
+				$b_columns    = $to_index->getColumns();
+				$c_columns    = \array_merge(\array_diff($a_columns, $b_columns), \array_diff($b_columns, $a_columns));
 				$type_changed = $from_index->getType() !== $to_index->getType();
 				if (!empty($c_columns) || $type_changed) {
 					$reason = $type_changed

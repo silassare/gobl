@@ -16,6 +16,7 @@ namespace Gobl\DBAL\Drivers\PostgreSQL;
 use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Drivers\SQLDriverBase;
 use PDO;
+use PDOException;
 
 /**
  * Class PostgreSQL.
@@ -50,7 +51,28 @@ class PostgreSQL extends SQLDriverBase
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * PostgreSQL's PDO::lastInsertId() calls lastval() which throws SQLSTATE[55000]
+	 * when no sequence has been used in the current session (e.g. tables whose
+	 * primary key is not a SERIAL / auto-increment column). In that case we return
+	 * false gracefully instead of propagating the exception.
 	 */
+	public function insert($sql, ?array $params = null, array $params_types = []): false|string
+	{
+		$stmt = $this->execute($sql, $params, $params_types);
+
+		try {
+			$last_id = $this->getConnection()->lastInsertId();
+		} catch (PDOException) {
+			// lastval() is not yet defined – no SERIAL sequence was used in this session.
+			$last_id = false;
+		}
+
+		$stmt->closeCursor();
+
+		return $last_id;
+	}
+
 	protected function connect(): PDO
 	{
 		$host     = $this->config->getDbHost();

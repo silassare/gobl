@@ -1,0 +1,8 @@
+SQL:
+INSERT INTO gObL_currencies (ccy_code, ccy_name, ccy_symbol) VALUES (:_val_a, :_val_b, :_val_c) ON DUPLICATE KEY UPDATE ccy_name = VALUES(ccy_name), ccy_symbol = VALUES(ccy_symbol)
+BOUND:
+{
+    "_val_a": "USD",
+    "_val_b": "US Dollar",
+    "_val_c": "$"
+}

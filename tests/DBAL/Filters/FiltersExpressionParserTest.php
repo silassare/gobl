@@ -325,7 +325,7 @@ final class FiltersExpressionParserTest extends BaseTestCase
 	 */
 	private function makeQB(): QBSelect
 	{
-		$db = self::getEmptyDb();
+		$db = self::getNewDbInstance();
 		$ns = $db->ns('test');
 		$ns->table('users', static function (TableBuilder $t) {
 			$t->columnPrefix('usr');

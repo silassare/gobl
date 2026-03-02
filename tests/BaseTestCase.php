@@ -61,15 +61,28 @@ abstract class BaseTestCase extends TestCase
 	}
 
 	/**
+	 * Returns an empty db instance.
+	 *
+	 * @param string $driver
+	 *
+	 * @return RDBMSInterface
+	 */
+	protected static function getNewDbInstance(string $driver = self::DEFAULT_RDBMS): RDBMSInterface
+	{
+		return Db::newInstanceOf($driver, self::getDbConfig($driver));
+	}
+
+	/**
 	 * @param string $type
 	 *
 	 * @return RDBMSInterface
 	 */
-	public static function getDb(string $type = self::DEFAULT_RDBMS): RDBMSInterface
+	protected static function getNewDbInstanceWithSchema(string $type = self::DEFAULT_RDBMS): RDBMSInterface
 	{
 		if (!isset(self::$rdbms[$type])) {
 			try {
-				$db = self::$rdbms[$type] = self::getEmptyDb($type);
+				$db = self::$rdbms[$type] = self::getNewDbInstance($type);
+
 				$db->ns(self::TEST_DB_NAMESPACE)
 					->schema(self::getTablesDefinitions());
 			} catch (Throwable $t) {
@@ -83,36 +96,58 @@ abstract class BaseTestCase extends TestCase
 	}
 
 	/**
-	 * Returns an empty db instance.
+	 * Returns a DbConfig instance for the given driver type, populated with connection
+	 * parameters from environment variables (or .env.test).
 	 *
-	 * @param string $type
-	 *
-	 * @return RDBMSInterface
-	 */
-	public static function getEmptyDb(string $type = self::DEFAULT_RDBMS): RDBMSInterface
-	{
-		$config = self::getDbConfig($type);
-
-		return Db::newInstanceOf($type, $config);
-	}
-
-	/**
-	 * @param string $type
+	 * @param string $type Driver type (MySQL, PostgreSQL, SQLLite)
 	 *
 	 * @return DbConfig
 	 */
-	public static function getDbConfig(string $type): DbConfig
+	protected static function getDbConfig(string $type): DbConfig
 	{
-		$configs = require GOBL_TEST_ROOT . \DIRECTORY_SEPARATOR . 'db.configs.php';
+		$config = match ($type) {
+			MySQL::NAME   => [
+				'db_table_prefix' => 'gObL',
+				'db_name'         => self::env('GOBL_TEST_MYSQL_DB', 'gobl_test'),
+				'db_host'         => self::env('GOBL_TEST_MYSQL_HOST', '127.0.0.1'),
+				'db_port'         => (int) self::env('GOBL_TEST_MYSQL_PORT', '3306'),
+				'db_user'         => self::env('GOBL_TEST_MYSQL_USER', 'unknown'),
+				'db_pass'         => self::env('GOBL_TEST_MYSQL_PASSWORD', ''),
+				'db_charset'      => 'utf8mb4',
+				'db_collate'      => 'utf8mb4_unicode_ci',
+			],
+			PostgreSQL::NAME => [
+				'db_table_prefix' => 'gObL',
 
-		if (!isset($configs[$type])) {
-			throw new InvalidArgumentException(\sprintf('"%s" db config not set.', $type));
-		}
+				'db_name'     => self::env('GOBL_TEST_POSTGRESQL_DB', 'gobl_test'),
+				'db_host'     => self::env('GOBL_TEST_POSTGRESQL_HOST', '127.0.0.1'),
+				'db_port'     => (int) self::env('GOBL_TEST_POSTGRESQL_PORT', '5432'),
+				'db_user'     => self::env('GOBL_TEST_POSTGRESQL_USER', 'unknown'),
+				'db_pass'     => self::env('GOBL_TEST_POSTGRESQL_PASSWORD', ''),
 
-		return new DbConfig($configs[$type]);
+				'db_charset'      => 'utf8',
+				'db_collate'      => 'utf8',
+			],
+			SQLLite::NAME => [
+				'db_table_prefix' => 'gObL',
+				// SQLLite::connect() uses db_host as the file path passed to `sqlite:<path>`.
+				// Use ":memory:" for an in-process in-memory DB (default),
+				// or an absolute/relative file path to persist the database to disk.
+				'db_host'         => self::env('GOBL_TEST_SQLITE_FILE', ':memory:'),
+				'db_port'         => '',
+				'db_name'         => '',
+				'db_user'         => '',
+				'db_pass'         => '',
+				'db_charset'      => 'utf8',
+				'db_collate'      => 'utf8',
+			],
+			default => throw new InvalidArgumentException("Unsupported driver type: {$type}"),
+		};
+
+		return new DbConfig($config);
 	}
 
-	public static function getTablesDefinitions(): array
+	protected static function getTablesDefinitions(): array
 	{
 		return require GOBL_TEST_ROOT . \DIRECTORY_SEPARATOR . 'tables.php';
 	}
@@ -120,9 +155,9 @@ abstract class BaseTestCase extends TestCase
 	/**
 	 * Returns a sample db instance with some tables.
 	 */
-	public static function getSampleDB(string $type = self::DEFAULT_RDBMS): RDBMSInterface
+	protected static function getSampleDB(string $type = self::DEFAULT_RDBMS): RDBMSInterface
 	{
-		$db = self::getEmptyDb($type);
+		$db = self::getNewDbInstance($type);
 		$ns = $db->ns('test');
 
 		$users = $ns->table('users', static function (TableBuilder $t) {
@@ -140,12 +175,12 @@ abstract class BaseTestCase extends TestCase
 				->from('users');
 		});
 
-		$tags = $ns->table('tags', static function (TableBuilder $t) {
+		$ns->table('tags', static function (TableBuilder $t) {
 			$t->id();
 			$t->string('label');
 		});
 
-		$taggables = $ns->table('taggables', static function (TableBuilder $t) {
+		$ns->table('taggables', static function (TableBuilder $t) {
 			$t->id();
 			$t->foreign('tag_id', 'tags', 'id');
 			$t->timestamps();
@@ -155,7 +190,7 @@ abstract class BaseTestCase extends TestCase
 				->from('tags');
 		});
 
-		$articles = $ns->table('articles', static function (TableBuilder $t) {
+		$ns->table('articles', static function (TableBuilder $t) {
 			$t->id();
 			$t->string('title');
 			$t->foreign('user_id', 'users', 'id');
@@ -192,7 +227,7 @@ abstract class BaseTestCase extends TestCase
 		return $db->lock();
 	}
 
-	public static function getTablesDiffDefinitions(): array
+	protected static function getTablesDiffDefinitions(): array
 	{
 		return require GOBL_TEST_ROOT . \DIRECTORY_SEPARATOR . 'tables.diff.php';
 	}
@@ -204,19 +239,39 @@ abstract class BaseTestCase extends TestCase
 	 *
 	 * @return array<string, array{0: string}>
 	 */
-	public static function allDrivers(): array
+	protected static function allDrivers(): array
 	{
 		return [
-			MySQL::NAME      => [MySQL::NAME],
-			PostgreSQL::NAME => [PostgreSQL::NAME],
-			SQLLite::NAME    => [SQLLite::NAME],
+			MySQL::NAME      => [MySQL::NAME, MySQL::class],
+			PostgreSQL::NAME => [PostgreSQL::NAME, PostgreSQL::class],
+			SQLLite::NAME    => [SQLLite::NAME, SQLLite::class],
+		];
+	}
+
+	/**
+	 * Returns MySQL and PostgreSQL drivers only, excluding SQLite.
+	 *
+	 * Use this provider for features that SQLite does not support
+	 * (e.g. RIGHT JOIN, RETURNING clause, certain JSON operators).
+	 *
+	 * Usage: @dataProvider Gobl\Tests\BaseTestCase::mysqlAndPostgresDrivers
+	 *
+	 * @return array<string, array{0: string}>
+	 */
+	protected static function mysqlAndPostgresDrivers(): array
+	{
+		$all = self::allDrivers();
+
+		return [
+			MySQL::NAME      => $all[MySQL::NAME],
+			PostgreSQL::NAME => $all[PostgreSQL::NAME],
 		];
 	}
 
 	/**
 	 * @return string[][]
 	 */
-	public static function getTestRDBMSList(): array
+	protected static function getTestRDBMSList(): array
 	{
 		return [
 			MySQL::NAME => [
@@ -245,7 +300,7 @@ abstract class BaseTestCase extends TestCase
 	 *
 	 * @return string
 	 */
-	public static function normalizeGeneratedContent(string $content): string
+	protected static function normalizeGeneratedContent(string $content): string
 	{
 		// Replace ISO-8601 datetime stamps produced by date(DATE_ATOM)
 		$normalized = \preg_replace(
@@ -415,7 +470,7 @@ abstract class BaseTestCase extends TestCase
 
 	protected static function loadDotEnvTest(): void
 	{
-		$envFile = \dirname(__DIR__, 2) . \DIRECTORY_SEPARATOR . '.env.test';
+		$envFile = \dirname(__DIR__) . \DIRECTORY_SEPARATOR . '.env.test';
 
 		if (!\file_exists($envFile)) {
 			return;

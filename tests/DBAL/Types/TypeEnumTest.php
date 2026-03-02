@@ -13,11 +13,11 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\DBAL\Types;
 
-use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\TypeEnum;
 use Gobl\Tests\BaseTestCase;
+use stdClass;
 
 /** Fixture backed enum used only in these tests. */
 enum TestStatus: string
@@ -65,7 +65,7 @@ final class TypeEnumTest extends BaseTestCase
 	{
 		$this->expectException(TypesException::class);
 		// stdClass is not a BackedEnum subclass
-		(new TypeEnum())->enumClass(\stdClass::class);
+		(new TypeEnum())->enumClass(stdClass::class);
 	}
 
 	// -------------------------------------------------------------------------
@@ -150,45 +150,63 @@ final class TypeEnumTest extends BaseTestCase
 	// phpToDb / dbToPhp
 	// -------------------------------------------------------------------------
 
-	public function testPhpToDbReturnsEnumValue(): void
+	/**
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testPhpToDbReturnsEnumValue(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$t  = new TypeEnum(TestStatus::class);
 		self::assertSame('active', $t->phpToDb(TestStatus::Active, $db));
 	}
 
-	public function testPhpToDbAcceptsRawString(): void
+	/**
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testPhpToDbAcceptsRawString(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$t  = new TypeEnum(TestStatus::class);
 		self::assertSame('pending', $t->phpToDb('pending', $db));
 	}
 
-	public function testPhpToDbNullableReturnsNull(): void
+	/**
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testPhpToDbNullableReturnsNull(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$t  = (new TypeEnum(TestStatus::class))->nullable();
 		self::assertNull($t->phpToDb(null, $db));
 	}
 
-	public function testDbToPhpReturnsEnumInstance(): void
+	/**
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testDbToPhpReturnsEnumInstance(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$t  = new TypeEnum(TestStatus::class);
 		self::assertSame(TestStatus::Active, $t->dbToPhp('active', $db));
 	}
 
-	public function testDbToPhpNullReturnsNull(): void
+	/**
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testDbToPhpNullReturnsNull(string $driver): void
 	{
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$t  = new TypeEnum(TestStatus::class);
 		self::assertNull($t->dbToPhp(null, $db));
 	}
 
-	public function testDbToPhpIntBackedReturnsEnumInstance(): void
+	/**
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testDbToPhpIntBackedReturnsEnumInstance(string $driver): void
 	{
 		// DB stores int-backed enum values as integers; pass int directly
-		$db = self::getDb(MySQL::NAME);
+		$db = self::getNewDbInstanceWithSchema($driver);
 		$t  = new TypeEnum(TestPriority::class);
 		self::assertSame(TestPriority::High, $t->dbToPhp(3, $db));
 	}

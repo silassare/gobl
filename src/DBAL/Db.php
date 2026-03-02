@@ -16,12 +16,13 @@ namespace Gobl\DBAL;
 use Gobl\DBAL\Builders\NamespaceBuilder;
 use Gobl\DBAL\Constraints\Constraint;
 use Gobl\DBAL\Constraints\ForeignKeyAction;
-use Gobl\DBAL\Indexes\IndexType;
 use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
 use Gobl\DBAL\Drivers\SQLLite\SQLLite;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
+use Gobl\DBAL\Indexes\Index;
+use Gobl\DBAL\Indexes\IndexType;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Relations\Interfaces\LinkInterface;
 use Gobl\DBAL\Relations\LinkThrough;
@@ -600,7 +601,7 @@ abstract class Db implements RDBMSInterface
 			$table_options = $schema[$table_name];
 
 			foreach ($table_options['indexes'] as $index_def) {
-				if ($index_def instanceof \Gobl\DBAL\Indexes\Index) {
+				if ($index_def instanceof Index) {
 					$index_def = $index_def->toArray();
 				}
 

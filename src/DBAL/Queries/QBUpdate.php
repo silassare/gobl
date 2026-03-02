@@ -21,6 +21,7 @@ use Gobl\DBAL\Queries\Traits\QBOrderByTrait;
 use Gobl\DBAL\Queries\Traits\QBSetColumnsValuesTrait;
 use Gobl\DBAL\Queries\Traits\QBWhereTrait;
 use LogicException;
+use PDOStatement;
 use PHPUtils\Str;
 
 /**
@@ -43,6 +44,13 @@ final class QBUpdate implements QBInterface
 	 */
 	protected array $options_columns              = [];
 	protected ?string $options_update_table_alias = '';
+
+	/**
+	 * RETURNING options.
+	 *
+	 * @var array{enabled: bool, columns: string[]}
+	 */
+	protected array $options_returning = ['enabled' => false, 'columns' => ['*']];
 
 	/**
 	 * QBUpdate constructor.
@@ -122,6 +130,51 @@ final class QBUpdate implements QBInterface
 	public function getOptionsColumns(): array
 	{
 		return $this->options_columns;
+	}
+
+	/**
+	 * Marks this UPDATE to return columns from the updated rows (requires PostgreSQL or SQLite >= 3.35.0).
+	 *
+	 * MySQL does not support RETURNING; calling this method on a MySQL connection will throw at query-generation time.
+	 *
+	 * @param string|string[] $columns Column names, or `'*'` for all columns. Defaults to `['*']`.
+	 *
+	 * @return $this
+	 */
+	public function returning(array|string $columns = ['*']): static
+	{
+		$this->options_returning = [
+			'enabled' => true,
+			'columns' => (array) $columns,
+		];
+
+		return $this;
+	}
+
+	/**
+	 * Gets the RETURNING options.
+	 *
+	 * @return array{enabled: bool, columns: string[]}
+	 */
+	public function getOptionsReturning(): array
+	{
+		return $this->options_returning;
+	}
+
+	/**
+	 * Executes the query and returns a {@see PDOStatement} for iterating the updated rows.
+	 *
+	 * Call this instead of {@see execute()} when you want to read back the affected rows via RETURNING.
+	 *
+	 * @return PDOStatement
+	 */
+	public function executeReturning(): PDOStatement
+	{
+		$sql    = $this->getSqlQuery();
+		$values = $this->getBoundValues();
+		$types  = $this->getBoundValuesTypes();
+
+		return $this->db->execute($sql, $values, $types);
 	}
 
 	/**

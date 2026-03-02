@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Diff\Actions;
 
-use Gobl\DBAL\Indexes\Index;
 use Gobl\DBAL\Diff\DiffAction;
 use Gobl\DBAL\Diff\DiffActionType;
+use Gobl\DBAL\Indexes\Index;
 
 /**
  * Class IndexDeleted.

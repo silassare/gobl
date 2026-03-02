@@ -47,6 +47,15 @@ enum Operator: string
 	case IS_FALSE = 'is_false';
 
 	/**
+	 * JSON containment check.
+	 *
+	 * - MySQL:      `JSON_CONTAINS(col, value)`
+	 * - PostgreSQL: `col @> value::jsonb`
+	 * - SQLite:     not supported (throws)
+	 */
+	case JSON_CONTAINS = 'json_contains';
+
+	/**
 	 * Gets operand filter suffix used in ORM.
 	 *
 	 * @param Column $column
@@ -76,20 +85,21 @@ enum Operator: string
 		}
 
 		return $name . '_' . match ($this) {
-			self::EQ          => 'is',
-			self::NEQ         => 'is_not',
-			self::LT          => 'is_lt',
-			self::LTE         => 'is_lte',
-			self::GT          => 'is_gt',
-			self::GTE         => 'is_gte',
-			self::LIKE        => 'is_like',
-			self::NOT_LIKE    => 'is_not_like',
-			self::IS_NULL     => 'is_null',
-			self::IS_NOT_NULL => 'is_not_null',
-			self::IN          => 'is_in',
-			self::NOT_IN      => 'is_not_in',
-			self::IS_TRUE     => 'is_true',
-			self::IS_FALSE    => 'is_false',
+			self::EQ            => 'is',
+			self::NEQ           => 'is_not',
+			self::LT            => 'is_lt',
+			self::LTE           => 'is_lte',
+			self::GT            => 'is_gt',
+			self::GTE           => 'is_gte',
+			self::LIKE          => 'is_like',
+			self::NOT_LIKE      => 'is_not_like',
+			self::IS_NULL       => 'is_null',
+			self::IS_NOT_NULL   => 'is_not_null',
+			self::IN            => 'is_in',
+			self::NOT_IN        => 'is_not_in',
+			self::IS_TRUE       => 'is_true',
+			self::IS_FALSE      => 'is_false',
+			self::JSON_CONTAINS => 'json_contains',
 		};
 	}
 

@@ -20,6 +20,7 @@ use Gobl\DBAL\Queries\Traits\QBSetColumnsValuesTrait;
 use Gobl\DBAL\Table;
 use InvalidArgumentException;
 use LogicException;
+use PDOStatement;
 use PHPUtils\Str;
 
 /**
@@ -43,6 +44,20 @@ final class QBInsert implements QBInterface
 	protected array $options_values_params = [];
 
 	protected bool $auto_prefix = true;
+
+	/**
+	 * ON CONFLICT / INSERT IGNORE options.
+	 *
+	 * @var array{action?: 'ignore'|'update', conflict_columns?: string[], update_columns?: string[]}
+	 */
+	protected array $options_on_conflict = [];
+
+	/**
+	 * RETURNING options.
+	 *
+	 * @var array{enabled: bool, columns: string[]}
+	 */
+	protected array $options_returning = ['enabled' => false, 'columns' => ['*']];
 
 	/**
 	 * QBInsert constructor.
@@ -156,6 +171,101 @@ final class QBInsert implements QBInterface
 	public function getOptionsTable(): ?string
 	{
 		return $this->options_table;
+	}
+
+	/**
+	 * Marks this INSERT to silently skip the row when a unique/primary-key conflict occurs.
+	 *
+	 * - MySQL:      emits `INSERT IGNORE INTO ...`
+	 * - PostgreSQL: appends `ON CONFLICT DO NOTHING`
+	 * - SQLite:     emits `INSERT OR IGNORE INTO ...`
+	 *
+	 * @return $this
+	 */
+	public function ignoreOnConflict(): static
+	{
+		$this->options_on_conflict = ['action' => 'ignore'];
+
+		return $this;
+	}
+
+	/**
+	 * Marks this INSERT to update columns when a unique/primary-key conflict occurs (upsert).
+	 *
+	 * @param string[] $conflict_columns Columns defining the conflict target.
+	 *                                   Required for PostgreSQL/SQLite; ignored by MySQL (uses unique/PK indexes).
+	 * @param string[] $update_columns   Columns to update on conflict. Empty = update all inserted columns.
+	 *
+	 * - MySQL:      appends `ON DUPLICATE KEY UPDATE col = VALUES(col) ...`
+	 * - PostgreSQL: appends `ON CONFLICT (cols) DO UPDATE SET col = EXCLUDED.col ...`
+	 * - SQLite:     appends `ON CONFLICT (cols) DO UPDATE SET col = EXCLUDED.col ...` (requires SQLite >= 3.24.0)
+	 *
+	 * @return $this
+	 */
+	public function doUpdateOnConflict(array $conflict_columns = [], array $update_columns = []): static
+	{
+		$this->options_on_conflict = [
+			'action'           => 'update',
+			'conflict_columns' => $conflict_columns,
+			'update_columns'   => $update_columns,
+		];
+
+		return $this;
+	}
+
+	/**
+	 * Gets the on-conflict options.
+	 *
+	 * @return array{action?: 'ignore'|'update', conflict_columns?: string[], update_columns?: string[]}
+	 */
+	public function getOptionsOnConflict(): array
+	{
+		return $this->options_on_conflict;
+	}
+
+	/**
+	 * Marks this INSERT to return columns from the inserted rows (requires PostgreSQL or SQLite >= 3.35.0).
+	 *
+	 * MySQL does not support RETURNING; calling this method on a MySQL connection will throw at query-generation time.
+	 *
+	 * @param string|string[] $columns Column names, or `'*'` for all columns. Defaults to `['*']`.
+	 *
+	 * @return $this
+	 */
+	public function returning(array|string $columns = ['*']): static
+	{
+		$this->options_returning = [
+			'enabled' => true,
+			'columns' => (array) $columns,
+		];
+
+		return $this;
+	}
+
+	/**
+	 * Gets the RETURNING options.
+	 *
+	 * @return array{enabled: bool, columns: string[]}
+	 */
+	public function getOptionsReturning(): array
+	{
+		return $this->options_returning;
+	}
+
+	/**
+	 * Executes the query and returns a {@see PDOStatement} for iterating the inserted rows.
+	 *
+	 * Call this instead of {@see execute()} when you want to read back the affected rows via RETURNING.
+	 *
+	 * @return PDOStatement
+	 */
+	public function executeReturning(): PDOStatement
+	{
+		$sql    = $this->getSqlQuery();
+		$values = $this->getBoundValues();
+		$types  = $this->getBoundValuesTypes();
+
+		return $this->db->execute($sql, $values, $types);
 	}
 
 	/**

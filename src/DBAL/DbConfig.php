@@ -14,8 +14,10 @@ declare(strict_types=1);
 namespace Gobl\DBAL;
 
 use Gobl\DBAL\Interfaces\RDBMSInterface;
+use PDO;
 use PHPUtils\Interfaces\ArrayCapableInterface;
 use PHPUtils\Traits\ArrayCapableTrait;
+use Throwable;
 
 /**
  * Class DbConfig.
@@ -43,7 +45,7 @@ final class DbConfig implements ArrayCapableInterface
 			'db_pass'            => '',
 			'db_charset'         => 'utf8mb4',
 			'db_collate'         => 'utf8mb4_unicode_ci',
-			'db_server_version'  => null,
+			'db_server_version'  => '',
 		], $config);
 	}
 
@@ -114,12 +116,12 @@ final class DbConfig implements ArrayCapableInterface
 	{
 		$v = $this->config['db_server_version'];
 
-		$version = null !== $v ? (string) $v : null;
+		$version = empty($v) ? null : (string) $v;
 
 		if (null === $version && null !== $db) {
 			try {
-				$version = $db->getConnection()->getAttribute(\PDO::ATTR_SERVER_VERSION);
-			} catch (\Throwable) {
+				$version = (string) $db->getConnection()->getAttribute(PDO::ATTR_SERVER_VERSION);
+			} catch (Throwable) {
 			}
 		}
 

@@ -19,10 +19,8 @@ CREATE TABLE "gObL_t" (
 "t_amount" numeric NOT NULL,
 "t_unsigned_amount" numeric NOT NULL,
 "t_amount_default" numeric NOT NULL DEFAULT '0.00',
-"t_nullable_amount" numeric NULL DEFAULT NULL,
-
+"t_nullable_amount" numeric NULL DEFAULT NULL
 );
-
 
 
 

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Gobl\ORM;
 
 use Gobl\DBAL\Collections\Collection;
+use Gobl\DBAL\Column;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Table;
 use Gobl\ORM\Exceptions\ORMQueryException;
@@ -37,9 +38,6 @@ class ORMRequest
 	public const RELATIONS_DELIMITER = '|';
 	public const SCOPES_PARAM        = 'scopes';
 
-	/**
-	 * @var array
-	 */
 	private array $key_words = [
 		self::FORM_DATA_PARAM,
 		self::RELATIONS_PARAM,
@@ -55,12 +53,25 @@ class ORMRequest
 
 	private ?string $collection;
 
-	private array $relations = [];
-
 	private array $filters = [];
 
+	/**
+	 * Filters to limit request filters.
+	 *
+	 * Applied before user filters and combined with them using "AND" condition.
+	 */
 	private array $ensure_only_filters = [];
 
+	/**
+	 * @var array<int,string>
+	 */
+	private array $relations = [];
+
+	/**
+	 * @var array<string, 'ASC'|'DESC'> Map of column name to sort direction
+	 *
+	 * e.g. `['name' => 'ASC', 'created_at' => 'DESC']`
+	 */
 	private array $order_by = [];
 
 	private int $page = 1;
@@ -219,7 +230,7 @@ class ORMRequest
 	/**
 	 * Returns the request order by rules.
 	 *
-	 * @return array
+	 * @return array<string, 'ASC'|'DESC'>
 	 */
 	public function getOrderBy(): array
 	{
@@ -593,7 +604,7 @@ class ORMRequest
 	 *
 	 * @param array $request
 	 *
-	 * @return array
+	 * @return array<string, 'ASC'|'DESC'>
 	 *
 	 * @throws ORMQueryException
 	 */
@@ -617,22 +628,33 @@ class ORMRequest
 		$order_by = [];
 
 		foreach ($rules as $rule) {
-			if (!empty($rule)) {
-				$parts = \explode(self::ORDER_BY_DELIMITER_ASC_DESC, $rule);
-				$len   = \count($parts);
+			if (empty($rule)) {
+				throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_ORDER_BY', $request);
+			}
 
-				if (2 === $len) {
-					$rule            = $parts[0];
-					$last            = $parts[1];
-					$order_by[$rule] = !('desc' === $last);
-				} elseif (1 === $len) {
-					$order_by[$rule] = true;
-				} else {
-					throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_ORDER_BY', $request);
-				}
+			$parts = \explode(self::ORDER_BY_DELIMITER_ASC_DESC, $rule);
+			$len   = \count($parts);
+
+			if (2 === $len) {
+				$name = $parts[0];
+				$ord  = \strtoupper($parts[1]);
+			} elseif (1 === $len) {
+				$name = $rule;
+				$ord  = 'ASC';
 			} else {
 				throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_ORDER_BY', $request);
 			}
+
+			// reject anything that is not column name
+			if (!\preg_match(Column::NAME_REG, $name)) {
+				throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_ORDER_BY', $request);
+			}
+
+			if ('ASC' !== $ord && 'DESC' !== $ord) {
+				throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_ORDER_BY', $request);
+			}
+
+			$order_by[$name] = $ord;
 		}
 
 		return $order_by;
@@ -673,7 +695,7 @@ class ORMRequest
 	/**
 	 * Encode request relations.
 	 *
-	 * @param array $relations
+	 * @param array<int, string> $relations
 	 *
 	 * @return string
 	 */
@@ -685,7 +707,7 @@ class ORMRequest
 	/**
 	 * Encode request order by.
 	 *
-	 * @param array $order_by
+	 * @param array<string, 'ASC'|'DESC'> $order_by
 	 *
 	 * @return string
 	 */
@@ -693,12 +715,8 @@ class ORMRequest
 	{
 		$list = [];
 
-		foreach ($order_by as $key => $val) {
-			if (\is_int($key)) {
-				$list[] = $val;
-			} else {
-				$list[] = $val ? $key : $key . self::ORDER_BY_DELIMITER_ASC_DESC . 'desc';
-			}
+		foreach ($order_by as $name => $ord) {
+			$list[] = $ord === 'ASC' ? $name : $name . self::ORDER_BY_DELIMITER_ASC_DESC . 'desc';
 		}
 
 		return \implode(self::ORDER_BY_DELIMITER, $list);

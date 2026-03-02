@@ -31,10 +31,10 @@ use Gobl\Tests\BaseTestCase;
  *
  * To regenerate a snapshot, delete the corresponding .txt file and re-run the suite once.
  *
- * @covers \Gobl\DBAL\Drivers\SQLQueryGeneratorBase
  * @covers \Gobl\DBAL\Drivers\MySQL\MySQLQueryGenerator
  * @covers \Gobl\DBAL\Drivers\PostgreSQL\PostgreSQLQueryGenerator
  * @covers \Gobl\DBAL\Drivers\SQLLite\SQLLiteQueryGenerator
+ * @covers \Gobl\DBAL\Drivers\SQLQueryGeneratorBase
  *
  * @internal
  */
@@ -198,7 +198,7 @@ final class SchemaSnapshotTest extends BaseTestCase
 	 */
 	public function testConstraints(string $driver): void
 	{
-		$db = self::getEmptyDb($driver);
+		$db = self::getNewDbInstance($driver);
 		$ns = $db->ns('test');
 
 		$ns->table('authors', static function (TableBuilder $t) {
@@ -235,7 +235,7 @@ final class SchemaSnapshotTest extends BaseTestCase
 	 */
 	public function testFullTestSchema(string $driver): void
 	{
-		$db = self::getDb($driver);
+		$db = self::getNewDbInstanceWithSchema($driver);
 
 		$this->assertDbSchema($driver . '/schema_full_test', $db);
 	}
@@ -266,7 +266,7 @@ final class SchemaSnapshotTest extends BaseTestCase
 	 */
 	private function singleTableDb(string $driver, callable $builder): RDBMSInterface
 	{
-		$db = self::getEmptyDb($driver);
+		$db = self::getNewDbInstance($driver);
 		$db->ns('test')->table('t', $builder);
 
 		return $db->lock();

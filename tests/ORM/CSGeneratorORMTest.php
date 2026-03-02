@@ -27,10 +27,9 @@ final class CSGeneratorORMTest extends BaseTestCase
 {
 	public function testClassFiles(): void
 	{
-		$db = self::getDb();
+		$db = self::getNewDbInstanceWithSchema();
 
-		// $expect_dir = GOBL_TEST_ASSETS . \DIRECTORY_SEPARATOR . 'Db';
-		$out_dir = GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'Db';
+		$out_dir = GOBL_TEST_ORM_OUTPUT;
 
 		if (!\is_dir($out_dir)) {
 			@\mkdir($out_dir, 0o777, true);
