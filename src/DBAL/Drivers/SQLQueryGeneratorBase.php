@@ -16,6 +16,7 @@ namespace Gobl\DBAL\Drivers;
 use Gobl\DBAL\Column;
 use Gobl\DBAL\Constraints\ForeignKey;
 use Gobl\DBAL\Constraints\ForeignKeyAction;
+use Gobl\DBAL\Indexes\Index;
 use Gobl\DBAL\Constraints\PrimaryKey;
 use Gobl\DBAL\Constraints\UniqueKey;
 use Gobl\DBAL\DbConfig;
@@ -27,6 +28,8 @@ use Gobl\DBAL\Diff\Actions\DBCharsetChanged;
 use Gobl\DBAL\Diff\Actions\DBCollateChanged;
 use Gobl\DBAL\Diff\Actions\ForeignKeyConstraintAdded;
 use Gobl\DBAL\Diff\Actions\ForeignKeyConstraintDeleted;
+use Gobl\DBAL\Diff\Actions\IndexAdded;
+use Gobl\DBAL\Diff\Actions\IndexDeleted;
 use Gobl\DBAL\Diff\Actions\PrimaryKeyConstraintAdded;
 use Gobl\DBAL\Diff\Actions\PrimaryKeyConstraintDeleted;
 use Gobl\DBAL\Diff\Actions\TableAdded;
@@ -203,6 +206,18 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 				break;
 
+			case DiffActionType::INDEX_ADDED:
+				/** @var IndexAdded $action */
+				$query = $this->getIndexAddedString($action);
+
+				break;
+
+			case DiffActionType::INDEX_DELETED:
+				/** @var IndexDeleted $action */
+				$query = $this->getIndexDeletedString($action);
+
+				break;
+
 			default:
 				throw new DBALException('Build diff action query not implemented for: ' . \get_debug_type($action));
 		}
@@ -312,11 +327,13 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$tables             = $this->db->getTables($namespace);
 		$create_table_parts = [];
 		$alter_table_parts  = [];
+		$create_index_parts = [];
 
 		foreach ($tables as $table) {
 			$create_table_parts[] = $this->getTableDefinitionString($table, false);
 			$foreign_keys         = $this->getTableForeignKeysDefinitionString($table, true);
 			$unique_keys          = $this->getTableUniqueKeyConstraintsDefinitionString($table, true);
+			$indexes              = $this->getTableIndexesDefinitionString($table);
 
 			if (!empty($foreign_keys)) {
 				$alter_table_parts[] = $foreign_keys;
@@ -325,12 +342,21 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 			if (!empty($unique_keys)) {
 				$alter_table_parts[] = $unique_keys;
 			}
+
+			if (!empty($indexes)) {
+				$create_index_parts[] = $indexes;
+			}
 		}
 
 		$create_sql = \implode(\PHP_EOL . \PHP_EOL, $create_table_parts);
 		$alter_sql  = \implode(\PHP_EOL . \PHP_EOL, $alter_table_parts);
+		$index_sql  = \implode(\PHP_EOL . \PHP_EOL, $create_index_parts);
 
 		$sql_query = $create_sql . \PHP_EOL . $alter_sql;
+
+		if (!empty($index_sql)) {
+			$sql_query .= \PHP_EOL . $index_sql;
+		}
 
 		return Gobl::runTemplate($this->dbQueryTemplate(), [
 			'gobl_time'    => Gobl::getGeneratedAtDate(),
@@ -970,6 +996,70 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$sql .= 'CONSTRAINT ' . $uc->getName() . ' UNIQUE (' . $columns_list . ')' . ($alter ? ';' : '');
 
 		return $sql;
+	}
+
+	/**
+	 * Gets all indexes definition query strings for a table (CREATE INDEX statements).
+	 *
+	 * @param Table $table
+	 *
+	 * @return string
+	 */
+	protected function getTableIndexesDefinitionString(Table $table): string
+	{
+		$index_list = $table->getIndexes();
+
+		if (empty($index_list)) {
+			return '';
+		}
+
+		$table_name  = $table->getFullName();
+		$index_sql  = [];
+
+		foreach ($index_list as $index) {
+			$index_sql[] = $this->getIndexSQL($index);
+		}
+
+		$index_block = \implode(\PHP_EOL, $index_sql);
+
+		return "
+--
+-- Indexes definition for table {$this->quoteIdentifier($table_name)}
+--
+{$index_block}";
+	}
+
+	/**
+	 * Gets index CREATE statement.
+	 *
+	 * @param Index $index the index
+	 *
+	 * @return string
+	 */
+	abstract protected function getIndexSQL(Index $index): string;
+
+	/**
+	 * Gets the SQL for adding an index (CREATE INDEX).
+	 *
+	 * @param IndexAdded $action
+	 *
+	 * @return string
+	 */
+	protected function getIndexAddedString(IndexAdded $action): string
+	{
+		return $this->getIndexSQL($action->getIndex());
+	}
+
+	/**
+	 * Gets the SQL for dropping an index (DROP INDEX).
+	 *
+	 * @param IndexDeleted $action
+	 *
+	 * @return string
+	 */
+	protected function getIndexDeletedString(IndexDeleted $action): string
+	{
+		return 'DROP INDEX ' .   $this->quoteIdentifier($action->getIndex()->getName()) . ';';
 	}
 
 	/**

@@ -16,6 +16,8 @@ namespace Gobl\DBAL\Builders;
 use BackedEnum;
 use Gobl\DBAL\Column;
 use Gobl\DBAL\Constraints\ForeignKey;
+use Gobl\DBAL\Indexes\Index;
+use Gobl\DBAL\Indexes\IndexType;
 use Gobl\DBAL\Constraints\PrimaryKey;
 use Gobl\DBAL\Constraints\UniqueKey;
 use Gobl\DBAL\Exceptions\DBALException;
@@ -362,6 +364,21 @@ final class TableBuilder
 	public function unique(Column|string ...$columns): UniqueKey
 	{
 		return $this->table->addUniqueKeyConstraint($columns);
+	}
+
+	/**
+	 * Adds an index to the table.
+	 *
+	 * @param array<Column|string> $columns    the columns
+	 * @param null|IndexType       $index_type the RDBMS-specific index type, or null for the default B-Tree index
+	 *
+	 * @return Index
+	 *
+	 * @throws DBALException
+	 */
+	public function index(array $columns, ?IndexType $index_type = null): Index
+	{
+		return $this->table->addIndex($columns, $index_type);
 	}
 
 	/**

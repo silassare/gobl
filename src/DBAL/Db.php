@@ -16,6 +16,7 @@ namespace Gobl\DBAL;
 use Gobl\DBAL\Builders\NamespaceBuilder;
 use Gobl\DBAL\Constraints\Constraint;
 use Gobl\DBAL\Constraints\ForeignKeyAction;
+use Gobl\DBAL\Indexes\IndexType;
 use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
 use Gobl\DBAL\Drivers\SQLLite\SQLLite;
@@ -230,6 +231,7 @@ abstract class Db implements RDBMSInterface
 		$tables_prefix = $this->getConfig()
 			->getDbTablePrefix();
 		$tables_with_constraints = [];
+		$tables_with_indexes     = [];
 		$tables_with_relations   = [];
 		// we add tables and columns first
 		foreach ($schema as $table_name => $table_options) {
@@ -268,6 +270,21 @@ abstract class Db implements RDBMSInterface
 
 					if (!empty($table_options['relations'])) {
 						$tables_with_relations[] = $table_name;
+					}
+				}
+
+				if (isset($table_options['indexes'])) {
+					if (!\is_array($table_options['indexes'])) {
+						throw new DBALException(
+							\sprintf(
+								'Property "indexes" defined in table "%s" should be an array.',
+								$table_name
+							)
+						);
+					}
+
+					if (!empty($table_options['indexes'])) {
+						$tables_with_indexes[] = $table_name;
 					}
 				}
 
@@ -485,7 +502,7 @@ abstract class Db implements RDBMSInterface
 				try {
 					switch ($type) {
 						case 'unique_key':
-						case 'unique':// old to be removed
+						case 'unique': // old to be removed
 							$tbl->addUniqueKeyConstraint($columns);
 
 							break;
@@ -569,6 +586,58 @@ abstract class Db implements RDBMSInterface
 					throw new DBALException(
 						\sprintf('Unable to add constraint to table "%s".', $table_name),
 						$constraint,
+						$t
+					);
+				}
+			}
+		}
+
+		// we add indexes after constraints
+		foreach ($tables_with_indexes as $table_name) {
+			$tbl = $this->tables[$table_name];
+
+			/** @var array $table_options */
+			$table_options = $schema[$table_name];
+
+			foreach ($table_options['indexes'] as $index_def) {
+				if ($index_def instanceof \Gobl\DBAL\Indexes\Index) {
+					$index_def = $index_def->toArray();
+				}
+
+				$columns = $index_def['columns'] ?? null;
+
+				if (!\is_array($columns) || empty($columns)) {
+					throw new DBALException(
+						\sprintf(
+							'Required "columns" is not defined or is empty for an index in table "%s".',
+							$table_name
+						),
+						$index_def
+					);
+				}
+
+				try {
+					$index_type = null;
+
+					if (isset($index_def['type'])) {
+						$index_type = IndexType::tryFrom($index_def['type']);
+
+						if (!$index_type) {
+							throw new DBALException(
+								\sprintf(
+									'Invalid index type "%s" in table "%s".',
+									$index_def['type'],
+									$table_name
+								)
+							);
+						}
+					}
+
+					$tbl->addIndex($columns, $index_type);
+				} catch (Throwable $t) {
+					throw new DBALException(
+						\sprintf('Unable to add index to table "%s".', $table_name),
+						$index_def,
 						$t
 					);
 				}
@@ -814,10 +883,8 @@ abstract class Db implements RDBMSInterface
 			);
 		}
 
-		if (empty($table->getPrefix()) && !empty(
-			$prefix = $this->getConfig()
-				->getDbTablePrefix()
-		)) {
+		if (empty($table->getPrefix()) && !empty($prefix = $this->getConfig()
+			->getDbTablePrefix())) {
 			$table->setPrefix($prefix);
 		}
 

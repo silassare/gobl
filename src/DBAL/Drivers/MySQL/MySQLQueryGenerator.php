@@ -15,9 +15,12 @@ namespace Gobl\DBAL\Drivers\MySQL;
 
 use Gobl\DBAL\Constraints\ForeignKey;
 use Gobl\DBAL\Constraints\ForeignKeyAction;
+use Gobl\DBAL\Indexes\Index;
+use Gobl\DBAL\Indexes\IndexType;
 use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Diff\Actions\ColumnTypeChanged;
 use Gobl\DBAL\Diff\Actions\ForeignKeyConstraintDeleted;
+use Gobl\DBAL\Diff\Actions\IndexDeleted;
 use Gobl\DBAL\Diff\Actions\PrimaryKeyConstraintDeleted;
 use Gobl\DBAL\Diff\Actions\UniqueKeyConstraintDeleted;
 use Gobl\DBAL\Drivers\SQLQueryGeneratorBase;
@@ -174,6 +177,49 @@ SQL;
 		$constraint_name = $constraint->getName();
 
 		return 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' DROP INDEX ' . $constraint_name . ';';
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * MySQL uses: DROP INDEX name ON table_name;
+	 */
+	protected function getIndexDeletedString(IndexDeleted $action): string
+	{
+		$index      = $action->getIndex();
+		$table_name = $index->getHostTable()->getFullName();
+		$index_name = $this->quoteIdentifier($index->getName());
+
+		return 'DROP INDEX ' . $index_name . ' ON ' . $this->quoteIdentifier($table_name) . ';';
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * MySQL: FULLTEXT/SPATIAL go before INDEX keyword; BTREE/HASH use USING clause.
+	 */
+	protected function getIndexSQL(Index $index): string
+	{
+		$table_name   = $index->getHostTable()->getFullName();
+		$columns_list = $this->quoteCols($index->getColumns());
+		$index_type   = $index->getType();
+		$index_name   = $this->quoteIdentifier($index->getName());
+
+		if (IndexType::MYSQL_FULLTEXT === $index_type) {
+			return 'CREATE FULLTEXT INDEX ' . $index_name . ' ON ' . $this->quoteIdentifier($table_name) . ' (' . $columns_list . ');';
+		}
+
+		if (IndexType::MYSQL_SPATIAL === $index_type) {
+			return 'CREATE SPATIAL INDEX ' . $index_name . ' ON ' . $this->quoteIdentifier($table_name) . ' (' . $columns_list . ');';
+		}
+
+		$using = match ($index_type) {
+			IndexType::BTREE => ' USING BTREE',
+			IndexType::HASH  => ' USING HASH',
+			default          => '',
+		};
+
+		return 'CREATE INDEX ' . $index_name . $using . ' ON ' . $this->quoteIdentifier($table_name) . ' (' . $columns_list . ');';
 	}
 
 	/**

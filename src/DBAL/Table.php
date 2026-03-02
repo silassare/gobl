@@ -17,6 +17,8 @@ use Gobl\DBAL\Collections\Collection;
 use Gobl\DBAL\Constraints\Constraint;
 use Gobl\DBAL\Constraints\ForeignKey;
 use Gobl\DBAL\Constraints\ForeignKeyAction;
+use Gobl\DBAL\Indexes\Index;
+use Gobl\DBAL\Indexes\IndexType;
 use Gobl\DBAL\Constraints\PrimaryKey;
 use Gobl\DBAL\Constraints\UniqueKey;
 use Gobl\DBAL\Diff\Interfaces\DiffCapableInterface;
@@ -176,6 +178,13 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	 * @var UniqueKey[]
 	 */
 	private array $uc_constraints = [];
+
+	/**
+	 * Indexes.
+	 *
+	 * @var Index[]
+	 */
+	private array $indexes = [];
 
 	/**
 	 * Table relations list.
@@ -412,6 +421,10 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 
 			foreach ($this->fk_constraints as $fk) {
 				$fk->lock();
+			}
+
+			foreach ($this->indexes as $idx) {
+				$idx->lock();
 			}
 
 			$this->locked = true;
@@ -830,7 +843,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	 */
 	public function getPrivateColumns(): array
 	{
-		return \array_filter($this->columns, static fn ($column) => $column->isPrivate());
+		return \array_filter($this->columns, static fn($column) => $column->isPrivate());
 	}
 
 	/**
@@ -840,7 +853,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	 */
 	public function getSensitiveColumns(): array
 	{
-		return \array_filter($this->columns, static fn ($column) => $column->isSensitive());
+		return \array_filter($this->columns, static fn($column) => $column->isSensitive());
 	}
 
 	/**
@@ -1027,6 +1040,61 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 		}
 
 		return $this->uc_constraints[$constraint_name];
+	}
+
+	/**
+	 * Adds an index on given columns.
+	 *
+	 * @param array<Column|string> $columns    the columns
+	 * @param null|IndexType       $index_type the RDBMS-specific index type, or null for the default B-Tree index
+	 *
+	 * @return Index
+	 *
+	 * @throws DBALException
+	 */
+	public function addIndex(array $columns, ?IndexType $index_type = null): Index
+	{
+		$this->assertNotLocked();
+
+		if (empty($columns)) {
+			throw new DBALException(
+				\sprintf(
+					'Index on table "%s" should have at least one column.',
+					$this->getFullName()
+				)
+			);
+		}
+
+		$c_names = [];
+
+		foreach ($columns as $column) {
+			if ($column instanceof Column) {
+				$c_names[] = $column->getName();
+			} else {
+				$c_names[] = $column;
+			}
+		}
+
+		\sort($c_names);
+
+		$type_suffix     = $index_type ? '_' . $index_type->value : '';
+		$key             = \md5(\implode('_', $c_names) . $type_suffix);
+		$constraint_name = Constraint::normalizeName(\sprintf('idx_%s_%s', $this->getFullName(), $key));
+
+		if (!isset($this->indexes[$constraint_name])) {
+			$idx = new Index($constraint_name, $this, $index_type);
+
+			foreach ($columns as $column_name) {
+				if ($column_name instanceof Column) {
+					$column_name = $column_name->getName();
+				}
+				$idx->addColumn($column_name);
+			}
+
+			$this->indexes[$constraint_name] = $idx;
+		}
+
+		return $this->indexes[$constraint_name];
 	}
 
 	/**
@@ -1275,7 +1343,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	public function getRelations(bool $include_private = true): array
 	{
 		if (!$include_private) {
-			return \array_filter($this->relations, static fn ($relation) => !$relation->isPrivate());
+			return \array_filter($this->relations, static fn($relation) => !$relation->isPrivate());
 		}
 
 		return $this->relations;
@@ -1307,7 +1375,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	public function getVirtualRelations(bool $include_private = true): array
 	{
 		if (!$include_private) {
-			return \array_filter($this->virtual_relations, static fn ($relation) => !$relation->isPrivate());
+			return \array_filter($this->virtual_relations, static fn($relation) => !$relation->isPrivate());
 		}
 
 		return $this->virtual_relations;
@@ -1370,6 +1438,16 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	}
 
 	/**
+	 * Gets indexes.
+	 *
+	 * @return Index[]
+	 */
+	public function getIndexes(): array
+	{
+		return $this->indexes;
+	}
+
+	/**
 	 * Checks if the current table has foreign key that refer
 	 * to the given columns from the reference table.
 	 *
@@ -1386,7 +1464,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 			foreach ($this->fk_constraints as /* $fk_name => */ $fk) {
 				if (
 					$fk->getReferenceTable()
-						->getName() !== $reference->getName()
+					->getName() !== $reference->getName()
 				) {
 					continue;
 				}
@@ -1718,6 +1796,10 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 
 		foreach ($this->fk_constraints as $fk) {
 			$options['constraints'][] = $fk->toArray();
+		}
+
+		foreach ($this->indexes as $idx) {
+			$options['indexes'][] = $idx->toArray();
 		}
 
 		foreach ($this->relations as $relation) {

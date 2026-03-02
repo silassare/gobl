@@ -17,6 +17,7 @@ use Gobl\DBAL\Column;
 use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Drivers\SQLQueryGeneratorBase;
 use Gobl\DBAL\Exceptions\DBALException;
+use Gobl\DBAL\Indexes\Index;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Table;
 use Gobl\Gobl;
@@ -248,5 +249,17 @@ class SQLLiteQueryGenerator extends SQLQueryGeneratorBase
 		$this->defaultAndNullChunks($column, $sql);
 
 		return \implode(' ', $sql);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	protected function getIndexSQL(Index $index): string
+	{
+		$table_name   = $index->getHostTable()->getFullName();
+		$columns_list = $this->quoteCols($index->getColumns());
+		$index_name   = $this->quoteIdentifier($index->getName());
+
+		return 'CREATE INDEX ' . $index_name . ' ON ' . $this->quoteIdentifier($table_name) . ' (' . $columns_list . ');';
 	}
 }

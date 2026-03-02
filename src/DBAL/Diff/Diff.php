@@ -16,6 +16,7 @@ namespace Gobl\DBAL\Diff;
 use Gobl\DBAL\Column;
 use Gobl\DBAL\Constraints\Constraint;
 use Gobl\DBAL\Constraints\ForeignKey;
+use Gobl\DBAL\Indexes\Index;
 use Gobl\DBAL\Constraints\PrimaryKey;
 use Gobl\DBAL\Constraints\UniqueKey;
 use Gobl\DBAL\Diff\Actions\ColumnAdded;
@@ -26,6 +27,8 @@ use Gobl\DBAL\Diff\Actions\DBCharsetChanged;
 use Gobl\DBAL\Diff\Actions\DBCollateChanged;
 use Gobl\DBAL\Diff\Actions\ForeignKeyConstraintAdded;
 use Gobl\DBAL\Diff\Actions\ForeignKeyConstraintDeleted;
+use Gobl\DBAL\Diff\Actions\IndexAdded;
+use Gobl\DBAL\Diff\Actions\IndexDeleted;
 use Gobl\DBAL\Diff\Actions\PrimaryKeyConstraintAdded;
 use Gobl\DBAL\Diff\Actions\PrimaryKeyConstraintDeleted;
 use Gobl\DBAL\Diff\Actions\TableAdded;
@@ -309,6 +312,10 @@ DIFF_SQL;
 				foreach ($from_table->getUniqueKeyConstraints() as $uq) {
 					$diff[] = $this->getConstraintDeletedClassInstance($uq, $reason);
 				}
+
+				foreach ($from_table->getIndexes() as $idx) {
+					$diff[] = new IndexDeleted($idx, $reason);
+				}
 			} else {
 				$this->diffTable($from_table, $to_table, $diff);
 			}
@@ -327,6 +334,10 @@ DIFF_SQL;
 
 				foreach ($to_table->getUniqueKeyConstraints() as $uq) {
 					$diff[] = $this->getConstraintAddedClassInstance($uq, $reason);
+				}
+
+				foreach ($to_table->getIndexes() as $idx) {
+					$diff[] = new IndexAdded($idx, $reason);
 				}
 			}
 		}
@@ -384,6 +395,7 @@ DIFF_SQL;
 		$this->diffTablePKConstraint($from_table, $to_table, $diff);
 		$this->diffTableFKConstraints($from_table, $to_table, $diff);
 		$this->diffTableUQConstraints($from_table, $to_table, $diff);
+		$this->diffTableIndexes($from_table, $to_table, $diff);
 	}
 
 	/**
@@ -576,6 +588,39 @@ DIFF_SQL;
 			}
 
 			$diff[] = $this->getConstraintAddedClassInstance($to_constraint);
+		}
+	}
+
+	protected function diffTableIndexes(Table $from_table, Table $to_table, array &$diff): void
+	{
+		$from = $from_table->getIndexes();
+		$to   = $to_table->getIndexes();
+
+		foreach ($from as $key => $from_index) {
+			$to_index = $to[$key] ?? null;
+			if (!$to_index) {
+				$diff[] = new IndexDeleted($from_index);
+			} else {
+				$a_columns  = $from_index->getColumns();
+				$b_columns  = $to_index->getColumns();
+				$c_columns  = \array_merge(\array_diff($a_columns, $b_columns), \array_diff($b_columns, $a_columns));
+				$type_changed = $from_index->getType() !== $to_index->getType();
+				if (!empty($c_columns) || $type_changed) {
+					$reason = $type_changed
+						? \sprintf('index type changed from "%s" to "%s".', $from_index->getType() ?? 'default', $to_index->getType() ?? 'default')
+						: \sprintf('index columns (%s) has changed: rename, addition or deletion.', \implode(', ', $c_columns));
+					$diff[] = new IndexDeleted($from_index, $reason);
+					$diff[] = new IndexAdded($to_index, $reason);
+				}
+			}
+		}
+
+		foreach ($to as $key => $to_index) {
+			if (isset($from[$key])) {
+				continue;
+			}
+
+			$diff[] = new IndexAdded($to_index);
 		}
 	}
 

@@ -14,6 +14,8 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Drivers\PostgreSQL;
 
 use Gobl\DBAL\Column;
+use Gobl\DBAL\Indexes\Index;
+use Gobl\DBAL\Indexes\IndexType;
 use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Diff\Actions\DBCharsetChanged;
 use Gobl\DBAL\Diff\Actions\DBCollateChanged;
@@ -267,5 +269,39 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	protected function getTableCollateChangeString(TableCollateChanged $action): string
 	{
 		throw new RuntimeException('PostgreSQL does not support changing table collate via query.');
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * PostgreSQL uses: CREATE INDEX name ON table [USING method] (cols);
+	 * MYSQL_* index types are silently ignored.
+	 */
+	protected function getIndexSQL(Index $index): string
+	{
+		$table_name   = $index->getHostTable()->getFullName();
+		$columns_list = $this->quoteCols($index->getColumns());
+		$index_type   = $index->getType();
+		$index_name   = $this->quoteIdentifier($index->getName());
+
+		$access_method = match ($index_type) {
+			IndexType::BTREE        => 'btree',
+			IndexType::HASH         => 'hash',
+			IndexType::PGSQL_GIN    => 'gin',
+			IndexType::PGSQL_GIST   => 'gist',
+			IndexType::PGSQL_BRIN   => 'brin',
+			IndexType::PGSQL_SPGIST => 'spgist',
+			default                 => null,
+		};
+
+		$sql = 'CREATE INDEX ' . $index_name . ' ON ' . $this->quoteIdentifier($table_name);
+
+		if ($access_method) {
+			$sql .= ' USING ' . $access_method;
+		}
+
+		$sql .= ' (' . $columns_list . ');';
+
+		return $sql;
 	}
 }

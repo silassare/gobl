@@ -45,6 +45,10 @@ enum DiffActionType: string
 
 	case UNIQUE_KEY_CONSTRAINT_DELETED = 'UNIQUE_KEY_CONSTRAINT_DELETED';
 
+	case INDEX_ADDED = 'INDEX_ADDED';
+
+	case INDEX_DELETED = 'INDEX_DELETED';
+
 	case DB_COLLATE_CHANGED = 'DB_COLLATE_CHANGED';
 
 	case DB_CHARSET_CHANGED = 'DB_CHARSET_CHANGED';
@@ -53,7 +57,7 @@ enum DiffActionType: string
 
 	case TABLE_CHARSET_CHANGED = 'TABLE_CHARSET_CHANGED';
 
-	// DML ACTIONS
+		// DML ACTIONS
 	case ROW_INSERTED = 'ROW_INSERTED';
 
 	case ROW_DELETED = 'ROW_DELETED';
@@ -66,7 +70,8 @@ enum DiffActionType: string
 			self::FOREIGN_KEY_CONSTRAINT_DELETED => 10,
 			self::PRIMARY_KEY_CONSTRAINT_DELETED => 11,
 			self::UNIQUE_KEY_CONSTRAINT_DELETED  => 12,
-			self::TABLE_RENAMED                  => 13,
+			self::INDEX_DELETED                  => 13,
+			self::TABLE_RENAMED                  => 14,
 
 			self::TABLE_DELETED                  => 20,
 			self::COLUMN_DELETED                 => 21,
@@ -89,7 +94,8 @@ enum DiffActionType: string
 
 			self::PRIMARY_KEY_CONSTRAINT_ADDED   => 80,
 			self::UNIQUE_KEY_CONSTRAINT_ADDED    => 81,
-			self::FOREIGN_KEY_CONSTRAINT_ADDED   => 82,
+			self::INDEX_ADDED                    => 82,
+			self::FOREIGN_KEY_CONSTRAINT_ADDED   => 83,
 		};
 	}
 }
