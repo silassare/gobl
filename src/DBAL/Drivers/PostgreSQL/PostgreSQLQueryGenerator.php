@@ -13,12 +13,14 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Drivers\PostgreSQL;
 
+use Gobl\DBAL\Column;
 use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Diff\Actions\DBCharsetChanged;
 use Gobl\DBAL\Diff\Actions\DBCollateChanged;
 use Gobl\DBAL\Diff\Actions\TableCharsetChanged;
 use Gobl\DBAL\Diff\Actions\TableCollateChanged;
 use Gobl\DBAL\Drivers\SQLQueryGeneratorBase;
+use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\Gobl;
 use RuntimeException;
@@ -63,6 +65,14 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	/**
 	 * {@inheritDoc}
 	 */
+	protected function quoteIdentifier(string $name): string
+	{
+		return '"' . \str_replace('"', '""', $name) . '"';
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	protected function dbQueryTemplate(): string
 	{
 		return 'postgresql_db';
@@ -74,6 +84,157 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	protected function createTableQueryTemplate(): string
 	{
 		return 'postgresql_create_table';
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	protected function getStringColumnDefinition(Column $column): string
+	{
+		$column_name = $column->getFullName();
+		$type        = $column->getType()
+			->getBaseType();
+		$max         = $type->getOption('max', \INF);
+
+		$col = $this->quoteIdentifier($column_name);
+
+		$sql = [$col];
+
+		if (\is_finite($max) && $max <= 65535) {
+			$sql[] = "varchar({$max})";
+
+			$this->defaultAndNullChunks($column, $sql);
+		} else {
+			// PostgreSQL TEXT handles any length
+			$sql[] = 'text';
+
+			$this->defaultAndNullChunks($column, $sql, true);
+		}
+
+		return \implode(' ', $sql);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	protected function getBoolColumnDefinition(Column $column): string
+	{
+		$column_name = $column->getFullName();
+		$sql         = [$this->quoteIdentifier($column_name) . ' boolean'];
+
+		$this->defaultAndNullChunks($column, $sql);
+
+		return \implode(' ', $sql);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	protected function getIntColumnDefinition(Column $column): string
+	{
+		$column_name = $column->getFullName();
+		$type        = $column->getType()
+			->getBaseType();
+		$min         = $type->getOption('min', -\INF);
+		$max         = $type->getOption('max', \INF);
+		$col         = $this->quoteIdentifier($column_name);
+
+		if ($type->isAutoIncremented()) {
+			// PostgreSQL SERIAL = INTEGER + auto-increment sequence
+			return $col . ' serial';
+		}
+
+		$sql = [$col];
+
+		if ($min >= -32768 && $max <= 32767) {
+			$sql[] = 'smallint';
+		} else {
+			$sql[] = 'integer';
+		}
+
+		$this->defaultAndNullChunks($column, $sql);
+
+		return \implode(' ', $sql);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	protected function getBigintColumnDefinition(Column $column): string
+	{
+		$column_name = $column->getFullName();
+		$type        = $column->getType()
+			->getBaseType();
+		$col         = $this->quoteIdentifier($column_name);
+
+		if ($type->isAutoIncremented()) {
+			// PostgreSQL BIGSERIAL = BIGINT + auto-increment sequence
+			return $col . ' bigserial';
+		}
+
+		$sql = [$col . ' bigint'];
+
+		$this->defaultAndNullChunks($column, $sql);
+
+		return \implode(' ', $sql);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws DBALException
+	 */
+	protected function getFloatColumnDefinition(Column $column): string
+	{
+		$this->checkFloatColumn($column);
+
+		$column_name = $column->getFullName();
+		$mantissa    = $column->getType()
+			->getOption('mantissa');
+		$col         = $this->quoteIdentifier($column_name);
+		$sql         = [];
+
+		if (null !== $mantissa) {
+			$sql[] = $col . " float({$mantissa})";
+		} else {
+			$sql[] = $col . ' double precision';
+		}
+
+		$this->defaultAndNullChunks($column, $sql);
+
+		return \implode(' ', $sql);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws DBALException
+	 */
+	protected function getDecimalColumnDefinition(Column $column): string
+	{
+		$type = $column->getType()
+			->getBaseType();
+		$this->checkDecimalColumn($column);
+
+		$column_name = $column->getFullName();
+		$precision   = $type->getOption('precision');
+		$scale       = $type->getOption('scale');
+		$col         = $this->quoteIdentifier($column_name);
+		$sql         = [];
+
+		if (null !== $precision) {
+			if (null !== $scale) {
+				$sql[] = $col . " numeric({$precision}, {$scale})";
+			} else {
+				$sql[] = $col . " numeric({$precision})";
+			}
+		} else {
+			$sql[] = $col . ' numeric';
+		}
+
+		$this->defaultAndNullChunks($column, $sql);
+
+		return \implode(' ', $sql);
 	}
 
 	/**
