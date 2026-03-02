@@ -620,7 +620,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 *
 	 * @return string
 	 */
-	protected function quoteIdentifier(string $name): string
+	public function quoteIdentifier(string $name): string
 	{
 		return '`' . $name . '`';
 	}

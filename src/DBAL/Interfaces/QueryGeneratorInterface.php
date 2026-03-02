@@ -100,4 +100,14 @@ interface QueryGeneratorInterface
 	 * @return string
 	 */
 	public function wrapDatabaseDefinitionQuery(string $query): string;
+
+	/**
+	 * Wraps an identifier (table name, column name, etc.) in the appropriate
+	 * quote characters for this RDBMS dialect.
+	 *
+	 * @param string $name The raw identifier to quote
+	 *
+	 * @return string
+	 */
+	public function quoteIdentifier(string $name): string;
 }

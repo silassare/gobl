@@ -61,7 +61,7 @@ class SQLLiteQueryGenerator extends SQLQueryGeneratorBase
 	/**
 	 * {@inheritDoc}
 	 */
-	protected function quoteIdentifier(string $name): string
+	public function quoteIdentifier(string $name): string
 	{
 		return '"' . \str_replace('"', '""', $name) . '"';
 	}
