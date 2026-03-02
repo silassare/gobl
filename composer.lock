@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/oliup-io/code-generator.git",
-                "reference": "8b3051d31e7e01b45337f0a5572307d0fac5e1f7"
+                "reference": "ca97cd7da5aaaabc6159a575d7f7fde858e302e9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/oliup-io/code-generator/zipball/8b3051d31e7e01b45337f0a5572307d0fac5e1f7",
-                "reference": "8b3051d31e7e01b45337f0a5572307d0fac5e1f7",
+                "url": "https://api.github.com/repos/oliup-io/code-generator/zipball/ca97cd7da5aaaabc6159a575d7f7fde858e302e9",
+                "reference": "ca97cd7da5aaaabc6159a575d7f7fde858e302e9",
                 "shasum": ""
             },
             "require": {
@@ -38,9 +38,18 @@
             },
             "autoload": {
                 "psr-4": {
-                    "OLIUP\\CG\\": "src/",
+                    "OLIUP\\CG\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
                     "OLIUP\\CG\\Tests\\": "tests/"
                 }
+            },
+            "archive": {
+                "exclude": [
+                    "/tests"
+                ]
             },
             "license": [
                 "MIT"
@@ -56,7 +65,7 @@
                 "source": "https://github.com/oliup-io/code-generator/tree/main",
                 "issues": "https://github.com/oliup-io/code-generator/issues"
             },
-            "time": "2026-03-01T12:05:23+00:00"
+            "time": "2026-03-01T18:09:51+00:00"
         },
         {
             "name": "psr/http-message",
