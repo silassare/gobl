@@ -50,18 +50,23 @@ final class PrimaryKey extends Constraint
 		$column = $this->host_table->getColumnOrFail($name);
 
 		if ($column->getType()
-			->isNullable()) {
+			->isNullable()
+		) {
 			throw new DBALException(
 				\sprintf(
 					'All parts of a PRIMARY KEY must be NOT NULL; if you need NULL in a key,'
-					. ' use UNIQUE instead; check column "%s" in table "%s".',
+						. ' use UNIQUE instead; check column "%s" in table "%s".',
 					$name,
 					$this->host_table->getName()
 				)
 			);
 		}
 
-		$this->columns[] = $column->getFullName();
+		$f_name = $column->getFullName();
+
+		if (!\in_array($f_name, $this->columns, true)) {
+			$this->columns[] = $f_name;
+		}
 
 		return $this;
 	}
