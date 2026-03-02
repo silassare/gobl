@@ -1729,7 +1729,14 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 		$max   = $qb->getOptionsLimitMax();
 
-		$query  = 'DELETE ' . $delete_alias . ' FROM ' . $from . ' WHERE ' . $where;
+		if (!$multi_table_delete) {
+			// Single-table DELETE: MySQL multi-table syntax (DELETE alias FROM t)
+			// does not support LIMIT; use the standard single-table form instead.
+			$query  = 'DELETE FROM ' . $from . ' WHERE ' . $where;
+		} else {
+			$query  = 'DELETE ' . $delete_alias . ' FROM ' . $from . ' WHERE ' . $where;
+		}
+
 		$query .= $this->getOrderByQuery($qb);
 
 		if (\is_int($max)) {

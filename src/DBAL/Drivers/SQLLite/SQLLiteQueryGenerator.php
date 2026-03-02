@@ -420,9 +420,11 @@ class SQLLiteQueryGenerator extends SQLQueryGeneratorBase
 		$where = $this->getWhereQuery($qb);
 		$ob    = $this->getOrderByQuery($qb); // '' or ' ORDER BY …'
 
+		$alias = $qb->getOptionsUpdateTableAlias() ?? '';
 		$qt    = $this->getDMLTableName($table);
-		$sub   = 'SELECT rowid FROM ' . $qt . ' WHERE ' . $where . $ob . ' LIMIT ' . $max;
-		$query = 'UPDATE ' . $qt . ' SET ' . $set . ' WHERE rowid IN (' . $sub . ')';
+		$qta   = empty($alias) ? $qt : $qt . ' AS ' . $alias;
+		$sub   = 'SELECT rowid FROM ' . $qta . ' WHERE ' . $where . $ob . ' LIMIT ' . $max;
+		$query = 'UPDATE ' . $qt . (empty($alias) ? '' : ' AS ' . $alias) . ' SET ' . $set . ' WHERE rowid IN (' . $sub . ')';
 		$query .= $this->getReturningClause($qb);
 
 		return $query;
@@ -463,9 +465,11 @@ class SQLLiteQueryGenerator extends SQLQueryGeneratorBase
 		if (null !== $max) {
 			// LIMIT: rewrite as rowid subquery so ORDER BY + LIMIT work correctly.
 			$table  = \array_key_first($from_map);
-			$qt     = $this->getDMLTableName($table);
-			$ob     = $this->getOrderByQuery($qb);
-			$sub    = 'SELECT rowid FROM ' . $qt . ' WHERE ' . $where . $ob . ' LIMIT ' . $max;
+		$alias  = $from_map[$table][0] ?? '';
+		$qt     = $this->getDMLTableName($table);
+		$qta    = empty($alias) ? $qt : $qt . ' AS ' . $alias;
+		$ob     = $this->getOrderByQuery($qb);
+		$sub    = 'SELECT rowid FROM ' . $qta . ' WHERE ' . $where . $ob . ' LIMIT ' . $max;
 			$query  = 'DELETE FROM ' . $qt . ' WHERE rowid IN (' . $sub . ')';
 			$query .= $this->getReturningClause($qb);
 

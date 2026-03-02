@@ -444,9 +444,11 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		$where = $this->getWhereQuery($qb);
 		$ob    = $this->getOrderByQuery($qb); // '' or ' ORDER BY …'
 
+		$alias = $qb->getOptionsUpdateTableAlias() ?? '';
 		$qt    = $this->getDMLTableName($table);
-		$sub   = 'SELECT ctid FROM ' . $qt . ' WHERE ' . $where . $ob . ' LIMIT ' . $max;
-		$query = 'UPDATE ' . $qt . ' SET ' . $set . ' WHERE ctid IN (' . $sub . ')';
+		$from  = empty($alias) ? $qt : $qt . ' AS ' . $alias;
+		$sub   = 'SELECT ctid FROM ' . $from . ' WHERE ' . $where . $ob . ' LIMIT ' . $max;
+		$query = 'UPDATE ' . $qt . (empty($alias) ? '' : ' AS ' . $alias) . ' SET ' . $set . ' WHERE ctid IN (' . $sub . ')';
 		$query .= $this->getReturningClause($qb);
 
 		return $query;
@@ -493,7 +495,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		if (null !== $max && 1 === \count($from_list) && empty($qb->getOptionsJoins())) {
 			$qpt   = $this->getDMLTableName($primary_table);
 			$ob    = $this->getOrderByQuery($qb); // '' or ' ORDER BY …'
-			$sub   = 'SELECT ctid FROM ' . $qpt . ' WHERE ' . $where . $ob . ' LIMIT ' . $max;
+			$sub   = 'SELECT ctid FROM ' . $qpt . ' AS ' . $primary_alias . ' WHERE ' . $where . $ob . ' LIMIT ' . $max;
 			$query = 'DELETE FROM ' . $qpt . ' WHERE ctid IN (' . $sub . ')';
 			$query .= $this->getReturningClause($qb);
 

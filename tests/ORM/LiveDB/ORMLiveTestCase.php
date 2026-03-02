@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\ORM\LiveDB;
 
+use Gobl\CRUD\Events\BeforeDeleteAll;
 use Gobl\CRUD\Events\BeforePKColumnWrite;
+use Gobl\CRUD\Events\BeforeUpdateAll;
 use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
@@ -238,6 +240,72 @@ abstract class ORMLiveTestCase extends BaseTestCase
 	}
 
 	/**
+	 * deleteAllItems() without LIMIT removes all matching rows.
+	 *
+	 * This exercises the no-LIMIT DELETE path where the ORM WHERE clause uses
+	 * alias-prefixed column names (e.g. _a_.client_last_name).
+	 */
+	public function testDeleteAllItemsNoLimit(): void
+	{
+		$ctrl    = ORM::ctrl(static::$db->getTableOrFail('clients'));
+		$channel = static::$db->getTableOrFail('clients')->getFullName();
+		$marker  = 'DeleteAll_' . \uniqid();
+
+		$detach = EventManager::listen(
+			BeforeDeleteAll::class,
+			static fn() => true,
+			Event::RUN_DEFAULT,
+			$channel
+		);
+
+		try {
+			$ctrl->addItem(['client_first_name' => 'A', 'client_last_name' => $marker, 'client_given_name' => 'DA', 'client_gender' => 'unknown']);
+			$ctrl->addItem(['client_first_name' => 'B', 'client_last_name' => $marker, 'client_given_name' => 'DB', 'client_gender' => 'unknown']);
+			$ctrl->addItem(['client_first_name' => 'C', 'client_last_name' => $marker, 'client_given_name' => 'DC', 'client_gender' => 'unknown']);
+
+			$count = $ctrl->deleteAllItems(['client_last_name' => $marker]);
+
+			self::assertSame(3, $count, 'deleteAllItems must remove exactly 3 rows');
+			self::assertEmpty($ctrl->getAllItems(['client_last_name' => $marker]), 'No matching rows must remain');
+		} finally {
+			$detach();
+		}
+	}
+
+	/**
+	 * updateAllItems() without LIMIT updates all matching rows.
+	 *
+	 * This exercises the no-LIMIT UPDATE path where the ORM WHERE clause uses
+	 * alias-prefixed column names (e.g. _m_.client_last_name).
+	 */
+	public function testUpdateAllItemsNoLimit(): void
+	{
+		$ctrl    = ORM::ctrl(static::$db->getTableOrFail('clients'));
+		$channel = static::$db->getTableOrFail('clients')->getFullName();
+		$marker  = 'UpdateAll_' . \uniqid();
+
+		$detach = EventManager::listen(
+			BeforeUpdateAll::class,
+			static fn() => true,
+			Event::RUN_DEFAULT,
+			$channel
+		);
+
+		try {
+			$ctrl->addItem(['client_first_name' => 'X', 'client_last_name' => $marker, 'client_given_name' => 'UX', 'client_gender' => 'unknown']);
+			$ctrl->addItem(['client_first_name' => 'Y', 'client_last_name' => $marker, 'client_given_name' => 'UY', 'client_gender' => 'unknown']);
+
+			$count = $ctrl->updateAllItems(['client_last_name' => $marker], ['client_last_name' => $marker . '_updated']);
+
+			self::assertSame(2, $count, 'updateAllItems must update exactly 2 rows');
+			self::assertEmpty($ctrl->getAllItems(['client_last_name' => $marker]), 'Old marker must match nothing');
+			self::assertCount(2, $ctrl->getAllItems(['client_last_name' => $marker . '_updated']), 'Updated rows must be found');
+		} finally {
+			$detach();
+		}
+	}
+
+	/**
 	 * getAllItems() returns the correct count and types.
 	 */
 	public function testGetAllItems(): void
@@ -379,7 +447,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 		// Register a scoped listener and detach it when the test ends.
 		$detach = EventManager::listen(
 			BeforePKColumnWrite::class,
-			static fn () => true,
+			static fn() => true,
 			Event::RUN_DEFAULT,
 			$channel
 		);
@@ -449,7 +517,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 
 		// Resolve to actual full table names (includes namespace prefix, e.g. "gObL_clients").
 		$tables = \array_map(
-			static fn (string $name) => $db->getTableOrFail($name)->getFullName(),
+			static fn(string $name) => $db->getTableOrFail($name)->getFullName(),
 			$logical
 		);
 
