@@ -22,6 +22,7 @@ use Gobl\DBAL\Types\TypeDecimal;
 use Gobl\DBAL\Types\TypeEnum;
 use Gobl\DBAL\Types\TypeFloat;
 use Gobl\DBAL\Types\TypeInt;
+use Gobl\DBAL\Types\TypeJSON;
 use Gobl\DBAL\Types\TypeList;
 use Gobl\DBAL\Types\TypeMap;
 use Gobl\DBAL\Types\TypeString;
@@ -44,6 +45,7 @@ class TypeProviderDefault implements TypeProviderInterface
 		TypeDecimal::NAME => TypeDecimal::class,
 		TypeBool::NAME    => TypeBool::class,
 		TypeString::NAME  => TypeString::class,
+		TypeJSON::NAME    => TypeJSON::class,
 
 		// other types
 		TypeList::NAME    => TypeList::class,

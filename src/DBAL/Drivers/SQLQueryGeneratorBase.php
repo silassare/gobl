@@ -64,6 +64,7 @@ use Gobl\DBAL\Types\TypeBool;
 use Gobl\DBAL\Types\TypeDecimal;
 use Gobl\DBAL\Types\TypeFloat;
 use Gobl\DBAL\Types\TypeInt;
+use Gobl\DBAL\Types\TypeJSON;
 use Gobl\DBAL\Types\TypeString;
 use Gobl\Gobl;
 use PHPUtils\Str;
@@ -501,6 +502,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 		$sql = match ($base_type_name) {
 			TypeString::NAME  => $this->getStringColumnDefinition($column),
+			TypeJSON::NAME    => $this->getJSONColumnDefinition($column),
 			TypeBool::NAME    => $this->getBoolColumnDefinition($column),
 			TypeInt::NAME     => $this->getIntColumnDefinition($column),
 			TypeBigint::NAME  => $this->getBigintColumnDefinition($column),
@@ -536,7 +538,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$min              = $type->getOption('min', 0);
 		$max              = $type->getOption('max', \INF);
 		$medium           = $type->getOption('medium', false);
-		$long         	   = $type->getOption('long', false);
+		$long         	  = $type->getOption('long', false);
 		// for MySQL
 		// char(c) c in range(0,255);
 		// varchar(c) c in range(0,65535);
@@ -565,6 +567,55 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$this->defaultAndNullChunks($column, $sql, $force_no_default);
 
 		return \implode(' ', $sql);
+	}
+
+	/**
+	 * Gets JSON column definition query string.
+	 *
+	 * The base implementation falls back to TEXT when native JSON is disabled or the
+	 * RDBMS does not support a dedicated JSON type.  Driver subclasses that support
+	 * native JSON (MySQL ≥ 5.7, PostgreSQL) should override this method.
+	 *
+	 * @param Column $column
+	 *
+	 * @return string
+	 */
+	protected function getJSONColumnDefinition(Column $column): string
+	{
+		// Base: always delegate to text/string regardless of native_json option.
+		// Drivers that support native JSON override this method.
+
+		$j_type = $column->getType();
+
+		$nullable = $j_type->getBaseType()->isNullable();
+		$big = $j_type->getOption('big', false);
+
+		$n_col = clone $column; // to allow edit
+
+		$n_col->setType((new TypeString())->medium($big)->nullable($nullable));
+
+		return $this->getStringColumnDefinition($n_col);
+	}
+
+	/**
+	 * Returns the SQL expression that extracts a scalar value from a JSON column
+	 * at the given path (e.g. ["foo", "bar"] → $.foo.bar).
+	 *
+	 * The result is always a TEXT/VARCHAR expression so that it can be compared
+	 * with string operands in WHERE clauses.
+	 *
+	 * @param string   $col_sql_expression The already-qualified SQL column reference
+	 *                                     (e.g. `u`.`user_data` for MySQL)
+	 * @param string[] $json_path          Ordered path segments, e.g. ['foo', 'bar']
+	 *
+	 * @return string The dialect-specific SQL JSON-path extraction expression
+	 */
+	public function getJsonPathExpression(string $col_sql_expression, array $json_path): string
+	{
+		// Default: MySQL / SQLite compatible JSON_UNQUOTE(JSON_EXTRACT(col, '$.a.b'))
+		$dot_path = '$.' . \implode('.', \array_map('strval', $json_path));
+
+		return 'JSON_UNQUOTE(JSON_EXTRACT(' . $col_sql_expression . ', ' . static::singleQuote($dot_path) . '))';
 	}
 
 	/**

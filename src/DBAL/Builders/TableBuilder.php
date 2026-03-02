@@ -35,6 +35,7 @@ use Gobl\DBAL\Types\TypeDecimal;
 use Gobl\DBAL\Types\TypeEnum;
 use Gobl\DBAL\Types\TypeFloat;
 use Gobl\DBAL\Types\TypeInt;
+use Gobl\DBAL\Types\TypeJSON;
 use Gobl\DBAL\Types\TypeList;
 use Gobl\DBAL\Types\TypeMap;
 use Gobl\DBAL\Types\TypeString;
@@ -281,6 +282,25 @@ final class TableBuilder
 	public function map(string $column_name): TypeMap
 	{
 		$this->column($column_name, $type = new TypeMap());
+
+		return $type;
+	}
+
+	/**
+	 * Creates a new column of type json.
+	 *
+	 * Use {@see TypeJSON::nativeJson()} to opt-in to a native JSON column type
+	 * (MySQL >= 5.7, PostgreSQL). Without it the column is stored as TEXT.
+	 *
+	 * @param string $column_name
+	 *
+	 * @return TypeJSON
+	 *
+	 * @throws DBALException
+	 */
+	public function json(string $column_name): TypeJSON
+	{
+		$this->column($column_name, $type = new TypeJSON());
 
 		return $type;
 	}

@@ -24,6 +24,7 @@ use Gobl\DBAL\Diff\Actions\TableCollateChanged;
 use Gobl\DBAL\Drivers\SQLQueryGeneratorBase;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
+use Gobl\DBAL\Types\TypeJSON;
 use Gobl\Gobl;
 use RuntimeException;
 
@@ -237,6 +238,47 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		$this->defaultAndNullChunks($column, $sql);
 
 		return \implode(' ', $sql);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * PostgreSQL supports native JSONB (binary JSON, preferred) and JSON column types.
+	 * When native_json is enabled, JSONB is used for efficient storage and indexing.
+	 */
+	protected function getJSONColumnDefinition(Column $column): string
+	{
+		/** @var TypeJSON $base */
+		$base = $column->getType()->getBaseType();
+
+		if (!$base->getOption('native_json', false)) {
+			return parent::getJSONColumnDefinition($column);
+		}
+
+		$col = $this->quoteIdentifier($column->getFullName());
+		$sql = [$col . ' jsonb'];
+
+		$this->defaultAndNullChunks($column, $sql);
+
+		return \implode(' ', $sql);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * PostgreSQL JSON path extraction:
+	 *   - single-level: col->>'key'
+	 *   - multi-level:  col#>>'{key1,key2}'
+	 */
+	public function getJsonPathExpression(string $col_sql_expression, array $json_path): string
+	{
+		if (1 === \count($json_path)) {
+			return $col_sql_expression . "->>'" . \addslashes($json_path[0]) . "'";
+		}
+
+		$path_literal = \implode(',', \array_map('strval', $json_path));
+
+		return $col_sql_expression . "#>>'" . '{' . $path_literal . '}' . "'";
 	}
 
 	/**

@@ -24,6 +24,7 @@ use Gobl\DBAL\Queries\QBExpression;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Queries\QBType;
 use Gobl\DBAL\Queries\QBUtils;
+use Gobl\DBAL\Types\TypeJSON;
 use Gobl\DBAL\Types\Utils\TypeUtils;
 use PHPUtils\Str;
 use Throwable;
@@ -637,6 +638,54 @@ final class Filters
 							$found_column = $fqn_parts[1];
 						}
 					}
+				} catch (Throwable) {
+				}
+			} elseif (\count($parts) >= 3 && !empty($parts[0]) && !empty($parts[1])) {
+				// Detect table.column.json_path notation for JSON path filtering.
+				// e.g. 'users.user_data.profile.name' -> JSON_EXTRACT(u.user_data, '$.profile.name')
+				try {
+					$table = $this->qb->resolveTable($parts[0]);
+
+					if ($table) {
+						$col_name  = $parts[1];
+						$json_path = \array_slice($parts, 2);
+						$col_obj   = $table->getColumn($col_name);
+
+						if ($col_obj) {
+							$base_type = $col_obj->getType()->getBaseType();
+
+							if (TypeJSON::NAME !== $base_type->getName()) {
+								throw new DBALRuntimeException(\sprintf(
+									'JSON path filter "%s" is only allowed on JSON columns; column "%s" has base type "%s".',
+									$operand,
+									$col_name,
+									$base_type->getName()
+								));
+							}
+
+							/** @var TypeJSON $json_base */
+							$json_base = $base_type;
+
+							if (!$json_base->getOption('native_json', false)) {
+								throw new DBALRuntimeException(\sprintf(
+									'JSON path filter "%s" requires native_json to be enabled on column "%s".',
+									$operand,
+									$col_name
+								));
+							}
+
+							$col_fqn = $this->qb->fullyQualifiedName($parts[0], $col_obj->getFullName());
+							$operand = $this->qb->getRDBMS()
+								->getGenerator()
+								->getJsonPathExpression($col_fqn, $json_path);
+							// Track column for type-scope checks but do not enforce value type
+							// (JSON path extracts always yield text).
+							$found_table  = $table->getFullName();
+							$found_column = $col_obj->getFullName();
+						}
+					}
+				} catch (DBALRuntimeException $e) {
+					throw $e;
 				} catch (Throwable) {
 				}
 			}

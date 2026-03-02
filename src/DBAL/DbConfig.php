@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL;
 
+use Gobl\DBAL\Interfaces\RDBMSInterface;
 use PHPUtils\Interfaces\ArrayCapableInterface;
 use PHPUtils\Traits\ArrayCapableTrait;
 
@@ -42,6 +43,7 @@ final class DbConfig implements ArrayCapableInterface
 			'db_pass'            => '',
 			'db_charset'         => 'utf8mb4',
 			'db_collate'         => 'utf8mb4_unicode_ci',
+			'db_server_version'  => null,
 		], $config);
 	}
 
@@ -99,6 +101,29 @@ final class DbConfig implements ArrayCapableInterface
 	public function getDbCollate(): string
 	{
 		return $this->config['db_collate'];
+	}
+
+	/**
+	 * Returns the server version string (e.g. '8.0.13'),
+	 * first check configured value, falling back to querying the database
+	 * if not set, or null if it cannot be determined.
+	 *
+	 * @return null|string
+	 */
+	public function getDbServerVersion(?RDBMSInterface $db): ?string
+	{
+		$v = $this->config['db_server_version'];
+
+		$version = null !== $v ? (string) $v : null;
+
+		if (null === $version && null !== $db) {
+			try {
+				$version = $db->getConnection()->getAttribute(\PDO::ATTR_SERVER_VERSION);
+			} catch (\Throwable) {
+			}
+		}
+
+		return $version;
 	}
 
 	/**

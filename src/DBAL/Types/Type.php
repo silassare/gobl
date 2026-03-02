@@ -20,6 +20,7 @@ use Gobl\DBAL\Operator;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
+use Gobl\DBAL\Types\Utils\TypeUtils;
 use Gobl\ORM\ORMTypeHint;
 use PHPUtils\Traits\ArrayCapableTrait;
 
@@ -53,6 +54,7 @@ abstract class Type implements TypeInterface
 	public function __clone()
 	{
 		$this->locked = false; // we clone because we want to edit
+		$this->base_type = TypeUtils::buildTypeOrFail($this->base_type->toArray());
 	}
 
 	/**
@@ -232,6 +234,7 @@ abstract class Type implements TypeInterface
 	public function lock(): static
 	{
 		$this->locked = true;
+		$this->base_type->locked = true;
 
 		return $this;
 	}

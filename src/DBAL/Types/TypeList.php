@@ -35,7 +35,7 @@ class TypeList extends Type
 	{
 		!empty($message) && $this->msg('invalid_list_type', $message);
 
-		parent::__construct(new TypeString());
+		parent::__construct(new TypeJSON());
 	}
 
 	/**
@@ -97,14 +97,31 @@ class TypeList extends Type
 	}
 
 	/**
+	 * Enable native JSON column type in supporting RDBMS (MySQL ≥ 5.7, PostgreSQL).
+	 *
+	 * @param bool $native_json
+	 *
+	 * @return $this
+	 */
+	public function nativeJson(bool $native_json = true): static
+	{
+		/** @var TypeJSON $bt */
+		$bt = $this->base_type;
+
+		$bt->nativeJson($native_json);
+
+		return $this->setOption('native_json', $native_json);
+	}
+
+	/**
 	 * Sets whether the list is big (can hold large data).
 	 */
 	public function big(bool $big = true): static
 	{
-		/** @var TypeString $bt */
+		/** @var TypeJSON $bt */
 		$bt = $this->base_type;
 
-		$bt->medium($big);
+		$bt->big($big);
 
 		return $this->setOption('big', $big);
 	}
@@ -114,6 +131,10 @@ class TypeList extends Type
 	 */
 	public function configure(array $options): static
 	{
+		if (isset($options['native_json'])) {
+			$this->nativeJson((bool) $options['native_json']);
+		}
+
 		if (isset($options['big'])) {
 			$this->big((bool) $options['big']);
 		}

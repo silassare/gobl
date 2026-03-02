@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Drivers\MySQL;
 
+use Gobl\DBAL\Column;
 use Gobl\DBAL\Constraints\ForeignKey;
 use Gobl\DBAL\Constraints\ForeignKeyAction;
 use Gobl\DBAL\Indexes\Index;
@@ -29,6 +30,7 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\QBDelete;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Queries\QBUpdate;
+use Gobl\DBAL\Types\TypeJSON;
 use Gobl\Gobl;
 
 use const GOBL_ASSETS_DIR;
@@ -220,6 +222,44 @@ SQL;
 		};
 
 		return 'CREATE INDEX ' . $index_name . $using . ' ON ' . $this->quoteIdentifier($table_name) . ' (' . $columns_list . ');';
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * MySQL supports a native JSON column type (MySQL ≥ 5.7.8).
+	 * When native_json is enabled the column is stored as JSON; otherwise falls back to TEXT.
+	 *
+	 * DEFAULT support for JSON columns:
+	 *   - MySQL < 8.0.13: DEFAULT not allowed on NOT NULL JSON columns (only DEFAULT NULL).
+	 *   - MySQL ≥ 8.0.13: DEFAULT expressions are permitted.
+	 *
+	 * Server version resolution order:
+	 *   1. `db_server_version` in DbConfig (manual override, useful for offline DDL generation)
+	 *   2. PDO::ATTR_SERVER_VERSION from the live connection
+	 *   3. Conservative fallback (assume < 8.0.13) when no version is available
+	 */
+	protected function getJSONColumnDefinition(Column $column): string
+	{
+		/** @var TypeJSON $base */
+		$base = $column->getType()->getBaseType();
+
+		if (!$base->getOption('native_json', false)) {
+			return parent::getJSONColumnDefinition($column);
+		}
+
+		$col = $this->quoteIdentifier($column->getFullName());
+		$sql = [$col . ' json'];
+
+		// MySQL < 8.0.13: DEFAULT not allowed for NOT NULL JSON columns; allow DEFAULT NULL only.
+		// MySQL >= 8.0.13 lifted this restriction.
+		$server_version = $this->config->getDbServerVersion($this->db);
+
+		$force_no_default = null === $server_version || \version_compare((string) $server_version, '8.0.13', '<');
+
+		$this->defaultAndNullChunks($column, $sql, $force_no_default);
+
+		return \implode(' ', $sql);
 	}
 
 	/**

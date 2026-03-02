@@ -113,6 +113,19 @@ class SQLLiteQueryGenerator extends SQLQueryGeneratorBase
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * SQLite JSON path extraction: json_extract returns the value without surrounding quotes,
+	 * so no UNQUOTE wrapper is needed.
+	 */
+	public function getJsonPathExpression(string $col_sql_expression, array $json_path): string
+	{
+		$dot_path = '$.' . \implode('.', \array_map('strval', $json_path));
+
+		return 'JSON_EXTRACT(' . $col_sql_expression . ', ' . static::singleQuote($dot_path) . ')';
+	}
+
+	/**
+	 * {@inheritDoc}
 	 * SQLite uses INTEGER (0/1) for boolean.
 	 */
 	protected function getBoolColumnDefinition(Column $column): string

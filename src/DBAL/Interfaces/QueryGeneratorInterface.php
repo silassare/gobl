@@ -74,6 +74,17 @@ interface QueryGeneratorInterface
 	public function buildTotalRowCountQuery(QBSelect $qb): string;
 
 	/**
+	 * Returns the SQL expression that extracts a scalar value from a JSON column
+	 * at the given path.
+	 *
+	 * @param string   $col_sql_expression The already-qualified SQL column reference
+	 * @param string[] $json_path          Ordered path segments, e.g. ['foo', 'bar']
+	 *
+	 * @return string The dialect-specific JSON-path extraction expression
+	 */
+	public function getJsonPathExpression(string $col_sql_expression, array $json_path): string;
+
+	/**
 	 * Converts filters to sql expression.
 	 *
 	 * @param FilterInterface|Filters $filter

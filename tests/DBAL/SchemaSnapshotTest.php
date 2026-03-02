@@ -179,6 +179,7 @@ final class SchemaSnapshotTest extends BaseTestCase
 			$t->map('data')->default([]);
 			$t->map('optional_extras')->nullable();
 			$t->map('data_big')->big();
+			$t->list('list_big')->big();
 			$t->list('tags')->default([]);
 			$t->list('optional_items')->nullable();
 		});

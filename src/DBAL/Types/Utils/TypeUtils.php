@@ -23,6 +23,7 @@ use Gobl\DBAL\Types\TypeBool;
 use Gobl\DBAL\Types\TypeDecimal;
 use Gobl\DBAL\Types\TypeFloat;
 use Gobl\DBAL\Types\TypeInt;
+use Gobl\DBAL\Types\TypeJSON;
 use Gobl\DBAL\Types\TypeString;
 use InvalidArgumentException;
 
@@ -159,6 +160,7 @@ class TypeUtils
 			TypeFloat::NAME   => TypeFloat::class,
 			TypeDecimal::NAME => TypeDecimal::class,
 			TypeBool::NAME    => TypeBool::class,
+			TypeJSON::NAME    => TypeJSON::class,
 		];
 	}
 
