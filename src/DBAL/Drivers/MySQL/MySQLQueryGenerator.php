@@ -145,7 +145,7 @@ SQL;
 			->getHostTable()
 			->getFullName();
 
-		return 'ALTER TABLE `' . $table_name . '` DROP PRIMARY KEY;';
+		return 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' DROP PRIMARY KEY;';
 	}
 
 	/**
@@ -159,7 +159,7 @@ SQL;
 
 		$constraint_name = $constraint->getName();
 
-		return 'ALTER TABLE `' . $table_name . '` DROP FOREIGN KEY ' . $constraint_name . ';';
+		return 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' DROP FOREIGN KEY ' . $constraint_name . ';';
 	}
 
 	/**
@@ -173,7 +173,7 @@ SQL;
 
 		$constraint_name = $constraint->getName();
 
-		return 'ALTER TABLE `' . $table_name . '` DROP INDEX ' . $constraint_name . ';';
+		return 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' DROP INDEX ' . $constraint_name . ';';
 	}
 
 	/**
@@ -186,7 +186,7 @@ SQL;
 		$table_name        = $action->getTable()
 			->getFullName();
 
-		return 'ALTER TABLE `' . $table_name . '` CHANGE `' . $new_column->getFullName() . '` ' . $column_definition . ';';
+		return 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' CHANGE ' . $this->quoteIdentifier($new_column->getFullName()) . ' ' . $column_definition . ';';
 	}
 
 	/**

@@ -351,7 +351,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 			->getDbName();
 		$charset = $action->getCharset();
 
-		return 'ALTER DATABASE `' . $db_name . '` CHARACTER SET ' . $charset . ';';
+		return 'ALTER DATABASE ' . $this->quoteIdentifier($db_name) . ' CHARACTER SET ' . $charset . ';';
 	}
 
 	/**
@@ -366,7 +366,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 			->getDbName();
 		$collation = $action->getCollate();
 
-		return 'ALTER DATABASE `' . $db_name . '` COLLATE ' . $collation . ';';
+		return 'ALTER DATABASE ' . $this->quoteIdentifier($db_name) . ' COLLATE ' . $collation . ';';
 	}
 
 	/**
@@ -380,7 +380,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 			->getFullName();
 		$charset    = $action->getCharset();
 
-		return 'ALTER TABLE `' . $table_name . '` CONVERT TO CHARACTER SET ' . $charset . ';';
+		return 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' CONVERT TO CHARACTER SET ' . $charset . ';';
 	}
 
 	/**
@@ -394,7 +394,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 			->getFullName();
 		$collation  = $action->getCollate();
 
-		return 'ALTER TABLE `' . $table_name . '` DEFAULT COLLATE ' . $collation . ';';
+		return 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' DEFAULT COLLATE ' . $collation . ';';
 	}
 
 	/**
@@ -409,7 +409,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$new_table_name = $action->getNewTable()
 			->getFullName();
 
-		return 'ALTER TABLE `' . $old_table_name . '` RENAME TO `' . $new_table_name . '`;';
+		return 'ALTER TABLE ' . $this->quoteIdentifier($old_table_name) . ' RENAME TO ' . $this->quoteIdentifier($new_table_name) . ';';
 	}
 
 	/**
@@ -488,7 +488,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		};
 
 		if ($table_for_alter) {
-			return 'ALTER TABLE `' . $table_for_alter->getFullName() . '` ADD ' . $sql . ';';
+			return 'ALTER TABLE ' . $this->quoteIdentifier($table_for_alter->getFullName()) . ' ADD ' . $sql . ';';
 		}
 
 		return $sql;
@@ -518,7 +518,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		// mediumtext c in range(0,16777215); // 16 MB
 		// longtext c in range(0,4294967295); // 4 GB
 
-		$sql = ["`{$column_name}`"];
+		$sql = [$this->quoteIdentifier($column_name)];
 
 		if ($max <= 255 && $min === $max) {
 			$sql[] = "char({$max})";
@@ -614,6 +614,18 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	}
 
 	/**
+	 * Quote a database identifier (table name, column name, etc.).
+	 *
+	 * @param string $name
+	 *
+	 * @return string
+	 */
+	protected function quoteIdentifier(string $name): string
+	{
+		return '`' . $name . '`';
+	}
+
+	/**
 	 * Gets bool column definition query string.
 	 *
 	 * @param Column $column
@@ -624,7 +636,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	{
 		$column_name = $column->getFullName();
 
-		$sql = ["`{$column_name}` tinyint(1)"];
+		$sql = [$this->quoteIdentifier($column_name) . ' tinyint(1)'];
 
 		$this->defaultAndNullChunks($column, $sql);
 
@@ -647,7 +659,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$min         = $type->getOption('min', -\INF);
 		$max         = $type->getOption('max', \INF);
 
-		$sql = ["`{$column_name}`"];
+		$sql = [$this->quoteIdentifier($column_name)];
 
 		if ($unsigned) {
 			if ($max <= 255) {
@@ -690,7 +702,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 			->getBaseType();
 		$unsigned    = $type->getOption('unsigned');
 
-		$sql = ["`{$column_name}` bigint(20)"];
+		$sql = [$this->quoteIdentifier($column_name) . ' bigint(20)'];
 
 		if ($unsigned) {
 			$sql[] = 'unsigned';
@@ -729,9 +741,9 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$sql      = [];
 
 		if (null !== $mantissa) {
-			$sql[] = "`{$column_name}` float({$mantissa})";
+			$sql[] = $this->quoteIdentifier($column_name) . " float({$mantissa})";
 		} else {
-			$sql[] = "`{$column_name}` float";
+			$sql[] = $this->quoteIdentifier($column_name) . ' float';
 		}
 
 		if ($unsigned) {
@@ -794,12 +806,12 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 		if (null !== $precision) {
 			if (null !== $scale) {
-				$sql[] = "`{$column_name}` decimal({$precision}, {$scale})";
+				$sql[] = $this->quoteIdentifier($column_name) . " decimal({$precision}, {$scale})";
 			} else {
-				$sql[] = "`{$column_name}` decimal({$precision})";
+				$sql[] = $this->quoteIdentifier($column_name) . " decimal({$precision})";
 			}
 		} else {
-			$sql[] = "`{$column_name}` decimal";
+			$sql[] = $this->quoteIdentifier($column_name) . ' decimal';
 		}
 
 		if ($unsigned) {
@@ -874,7 +886,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 		return "
 --
--- Primary key constraints definition for table `{$table_name}`
+-- Primary key constraints definition for table {$this->quoteIdentifier($table_name)}
 --
 {$alter_table}";
 	}
@@ -889,10 +901,10 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 */
 	protected function getPrimaryKeySQL(PrimaryKey $pk, bool $alter): string
 	{
-		$columns_list    = static::quoteCols($pk->getColumns());
+		$columns_list    = $this->quoteCols($pk->getColumns());
 		$host_table_name = $pk->getHostTable()
 			->getFullName();
-		$sql             = $alter ? 'ALTER TABLE `' . $host_table_name . '` ADD ' : '';
+		$sql             = $alter ? 'ALTER TABLE ' . $this->quoteIdentifier($host_table_name) . ' ADD ' : '';
 		$sql .= 'CONSTRAINT ' . $pk->getName() . ' PRIMARY KEY (' . $columns_list . ')' . ($alter ? ';' : '');
 
 		return $sql;
@@ -905,9 +917,9 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 *
 	 * @return string
 	 */
-	protected static function quoteCols(array $list): string
+	protected function quoteCols(array $list): string
 	{
-		return '`' . \implode('` , `', $list) . '`';
+		return \implode(' , ', \array_map(fn(string $col) => $this->quoteIdentifier($col), $list));
 	}
 
 	/**
@@ -936,7 +948,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 		return "
 --
--- Unique constraints definition for table `{$table_name}`
+-- Unique constraints definition for table {$this->quoteIdentifier($table_name)}
 --
 {$alter_table}";
 	}
@@ -953,8 +965,8 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	{
 		$host_table_name = $uc->getHostTable()
 			->getFullName();
-		$columns_list    = static::quoteCols($uc->getColumns());
-		$sql             = $alter ? 'ALTER TABLE `' . $host_table_name . '` ADD ' : '';
+		$columns_list    = $this->quoteCols($uc->getColumns());
+		$sql             = $alter ? 'ALTER TABLE ' . $this->quoteIdentifier($host_table_name) . ' ADD ' : '';
 		$sql .= 'CONSTRAINT ' . $uc->getName() . ' UNIQUE (' . $columns_list . ')' . ($alter ? ';' : '');
 
 		return $sql;
@@ -986,7 +998,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 		return "
 --
--- Foreign keys constraints definition for table `{$table_name}`
+-- Foreign keys constraints definition for table {$this->quoteIdentifier($table_name)}
 --
 {$alter_table}";
 	}
@@ -1006,11 +1018,11 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$ref_table         = $fk->getReferenceTable();
 		$update_action     = $fk->getUpdateAction();
 		$delete_action     = $fk->getDeleteAction();
-		$host_columns      = static::quoteCols($fk->getHostColumns());
-		$reference_columns = static::quoteCols($fk->getReferenceColumns());
-		$sql               = $alter ? 'ALTER TABLE `' . $host_table_name . '` ADD ' : '';
+		$host_columns      = $this->quoteCols($fk->getHostColumns());
+		$reference_columns = $this->quoteCols($fk->getReferenceColumns());
+		$sql               = $alter ? 'ALTER TABLE ' . $this->quoteIdentifier($host_table_name) . ' ADD ' : '';
 		$sql .= 'CONSTRAINT ' . $fk->getName() . ' FOREIGN KEY (' . $host_columns
-			. ') REFERENCES ' . $ref_table->getFullName() . ' (' . $reference_columns . ')';
+			. ') REFERENCES ' . $this->quoteIdentifier($ref_table->getFullName()) . ' (' . $reference_columns . ')';
 
 		$sql .= ' ON UPDATE ';
 		$sql .= $this->getForeignKeyActionSQL($update_action);
@@ -1058,7 +1070,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$table_name = $action->getTable()
 			->getFullName();
 
-		return 'DROP TABLE `' . $table_name . '`;';
+		return 'DROP TABLE ' . $this->quoteIdentifier($table_name) . ';';
 	}
 
 	protected function getColumnDeletedString(ColumnDeleted $action): string
@@ -1068,7 +1080,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$column_name = $action->getColumn()
 			->getFullName();
 
-		return 'ALTER TABLE `' . $table_name . '` DROP `' . $column_name . '`;';
+		return 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' DROP ' . $this->quoteIdentifier($column_name) . ';';
 	}
 
 	/**
@@ -1084,7 +1096,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 			->getFullName();
 		$sql        = $this->getColumnDefinitionString($action->getColumn());
 
-		return 'ALTER TABLE `' . $table_name . '` ADD ' . $sql . ';';
+		return 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' ADD ' . $sql . ';';
 	}
 
 	/**
@@ -1101,7 +1113,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$new_column_name = $action->getNewColumn()
 			->getFullName();
 
-		return 'ALTER TABLE `' . $table_name . '` RENAME COLUMN `' . $old_column_name . '` TO `' . $new_column_name . '`;';
+		return 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' RENAME COLUMN ' . $this->quoteIdentifier($old_column_name) . ' TO ' . $this->quoteIdentifier($new_column_name) . ';';
 	}
 
 	/**
@@ -1117,7 +1129,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$table_name        = $action->getTable()
 			->getFullName();
 
-		return 'ALTER TABLE `' . $table_name . '` ALTER COLUMN ' . $column_definition . ';';
+		return 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' ALTER COLUMN ' . $column_definition . ';';
 	}
 
 	/**
@@ -1142,7 +1154,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 			->getFullName();
 		$constraint_name = $constraint->getName();
 
-		return 'ALTER TABLE `' . $table_name . '` DROP CONSTRAINT ' . $constraint_name . ';';
+		return 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' DROP CONSTRAINT ' . $constraint_name . ';';
 	}
 
 	/**
@@ -1167,7 +1179,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 			->getFullName();
 		$constraint_name = $constraint->getName();
 
-		return 'ALTER TABLE `' . $table_name . '` DROP CONSTRAINT ' . $constraint_name . ';';
+		return 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' DROP CONSTRAINT ' . $constraint_name . ';';
 	}
 
 	/**
@@ -1192,7 +1204,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 			->getFullName();
 		$constraint_name = $constraint->getName();
 
-		return 'ALTER TABLE `' . $table_name . '` DROP CONSTRAINT ' . $constraint_name . ';';
+		return 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' DROP CONSTRAINT ' . $constraint_name . ';';
 	}
 
 	/**
