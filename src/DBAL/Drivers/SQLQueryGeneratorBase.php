@@ -384,7 +384,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		// Default: MySQL / SQLite compatible JSON_UNQUOTE(JSON_EXTRACT(col, '$.a.b'))
 		$dot_path = '$.' . \implode('.', \array_map('strval', $json_path));
 
-		return 'JSON_UNQUOTE(JSON_EXTRACT(' . $col_sql_expression . ', ' . static::singleQuote($dot_path) . '))';
+		return 'JSON_UNQUOTE(JSON_EXTRACT(' . $col_sql_expression . ', ' . $this->quoteLiteral($dot_path) . '))';
 	}
 
 	/**
@@ -397,6 +397,18 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	public function quoteIdentifier(string $name): string
 	{
 		return '`' . $name . '`';
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * Uses standard SQL `''` doubling to escape single-quotes — correct for
+	 * MySQL (`NO_BACKSLASH_ESCAPES`-safe), PostgreSQL, and SQLite.
+	 * No database connection is required.
+	 */
+	public function quoteLiteral(string $value): string
+	{
+		return "'" . \str_replace("'", "''", $value) . "'";
 	}
 
 	/**
@@ -473,10 +485,18 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	}
 
 	/**
-	 * Gets table definition query string.
+	 * Gets the `CREATE TABLE` body SQL string.
+	 *
+	 * Generates column definitions using {@see SQLQueryGeneratorBase::getColumnDefinitionString()}, appends the primary-key
+	 * definition when it has not already been inlined (e.g. SQLite single-column auto-increment),
+	 * then passes the assembled parts through the {@see SQLQueryGeneratorBase::createTableQueryTemplate()} template.
+	 *
+	 * When `$include_fq_or_uq_alter` is `true`, `ALTER TABLE` statements for unique-key and
+	 * foreign-key constraints are appended after the `CREATE TABLE` block (used by drivers that
+	 * cannot declare FK/UK inline).
 	 *
 	 * @param Table $table
-	 * @param bool  $include_fq_or_uq_alter
+	 * @param bool  $include_fq_or_uq_alter when `true`, appends deferred FK/UK ALTER TABLE statements
 	 *
 	 * @return string
 	 *
@@ -526,10 +546,17 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	}
 
 	/**
-	 * Gets column definition query string.
+	 * Gets the SQL fragment for a column definition.
+	 *
+	 * Dispatches to the appropriate type-specific method based on the column's **base type name**:
+	 * `string` → {@see SQLQueryGeneratorBase::getStringColumnDefinition()}, `json` → {@see SQLQueryGeneratorBase::getJSONColumnDefinition()}, etc.
+	 * Throws `DBALException` for unknown base types.
+	 *
+	 * When `$table_for_alter` is provided, wraps the result in an `ALTER TABLE … ADD …` statement
+	 * suitable for adding a new column to an existing table.
 	 *
 	 * @param Column     $column
-	 * @param null|Table $table_for_alter
+	 * @param null|Table $table_for_alter when set, wraps result as ALTER TABLE … ADD statement
 	 *
 	 * @return string
 	 *
@@ -639,12 +666,26 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	}
 
 	/**
-	 * Add default and null parts to sql.
+	 * Appends `NULL`/`NOT NULL` and `DEFAULT` fragments to `$sql_parts`.
+	 *
+	 * Four-way decision tree:
+	 * - `NOT NULL` column, has default → appends `NOT NULL DEFAULT <value>`.
+	 * - `NOT NULL` column, no default → appends `NOT NULL` only.
+	 * - `NULL` column, has default → appends `NULL DEFAULT <value>`.
+	 * - `NULL` column, no default → appends `NULL DEFAULT NULL`.
+	 *
+	 * Default resolution order (highest priority first):
+	 * 1. `Type::dbQueryDefault()` (dialect-specific SQL expression, e.g. `NOW()`).
+	 * 2. `BaseType::dbQueryDefault()` (same, on the base type).
+	 * 3. `BaseType::getDefault()` → converted through `Type::phpToDb()`.
+	 *
+	 * When `$force_no_default` is `true` (e.g. TEXT/BLOB on MySQL), the DEFAULT clause is
+	 * omitted entirely.
 	 *
 	 * @param Column $column
 	 * @param array  &$sql_parts
-	 * @param bool   $force_no_default
-	 * @param bool   $quote_default
+	 * @param bool   $force_no_default skip DEFAULT generation (e.g. for TEXT/BLOB columns)
+	 * @param bool   $quote_default    whether to quote the default value as a SQL literal
 	 */
 	protected function defaultAndNullChunks(
 		Column $column,
@@ -681,7 +722,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 			$sql_parts[] = 'NOT NULL';
 
 			if (!$force_no_default && null !== $default_to_use) {
-				$default_to_use = $quote_default ? static::singleQuote((string) $default_to_use) : (string) $default_to_use;
+				$default_to_use = $quote_default ? $this->quoteLiteral((string) $default_to_use) : (string) $default_to_use;
 				$sql_parts[]    = \sprintf('DEFAULT %s', $default_to_use);
 			}
 		} else {
@@ -691,23 +732,11 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 				if (null === $default_to_use) {
 					$sql_parts[] = 'DEFAULT NULL';
 				} else {
-					$default_to_use = $quote_default ? static::singleQuote((string) $default_to_use) : (string) $default_to_use;
+					$default_to_use = $quote_default ? $this->quoteLiteral((string) $default_to_use) : (string) $default_to_use;
 					$sql_parts[]    = \sprintf('DEFAULT %s', $default_to_use);
 				}
 			}
 		}
-	}
-
-	/**
-	 * Wrap string, int... in single quote.
-	 *
-	 * @param string $value
-	 *
-	 * @return string
-	 */
-	protected static function singleQuote(string $value): string
-	{
-		return "'" . \str_replace("'", "''", $value) . "'";
 	}
 
 	/**
@@ -1004,7 +1033,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 */
 	protected function quoteCols(array $list): string
 	{
-		return \implode(' , ', \array_map(fn (string $col) => $this->quoteIdentifier($col), $list));
+		return \implode(' , ', \array_map(fn(string $col) => $this->quoteIdentifier($col), $list));
 	}
 
 	/**
@@ -1222,6 +1251,13 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		return 'DROP TABLE ' . $this->quoteIdentifier($table_name) . ';';
 	}
 
+	/**
+	 * Returns the SQL string to drop a column from a table.
+	 *
+	 * @param ColumnDeleted $action the column-deleted diff action
+	 *
+	 * @return string the ALTER TABLE … DROP … statement
+	 */
 	protected function getColumnDeletedString(ColumnDeleted $action): string
 	{
 		$table_name  = $action->getTable()
@@ -1479,7 +1515,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$x    = [];
 
 		foreach ($from as $table => $aliases) {
-			$quoted_table = $this->getDMLTableName($table);
+			$quoted_table = $this->quoteIdentifier($table);
 
 			foreach ($aliases as $alias) {
 				$x[] = $quoted_table . ' AS ' . $alias . ' ' . $this->getJoinQueryFor($qb, $alias);
@@ -1668,7 +1704,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$keyword  = $this->getInsertKeyword($qb);
 		$conflict = $this->getOnConflictClause($qb);
 
-		return $keyword . ' INTO ' . $this->getDMLTableName($table) . ' (' . $columns . ') VALUES ' . $values . $conflict . $this->getReturningClause($qb);
+		return $keyword . ' INTO ' . $this->quoteIdentifier($table) . ' (' . $columns . ') VALUES ' . $values . $conflict . $this->getReturningClause($qb);
 	}
 
 	/**
@@ -1698,7 +1734,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 		$max    = $qb->getOptionsLimitMax();
 
-		$query  = 'UPDATE ' . $this->getDMLTableName($table) . (empty($alias) ? '' : ' AS ' . $alias) . ' SET ' . $set . ' WHERE ' . $where;
+		$query  = 'UPDATE ' . $this->quoteIdentifier($table) . (empty($alias) ? '' : ' AS ' . $alias) . ' SET ' . $set . ' WHERE ' . $where;
 		$query .= $this->getOrderByQuery($qb);
 		$query .= \is_int($max) ? ' LIMIT ' . $max : '';
 		$query .= $this->getReturningClause($qb);
@@ -1753,23 +1789,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	}
 
 	/**
-	 * Returns the table name as it should appear in DML queries (SELECT/INSERT/UPDATE/DELETE).
-	 *
-	 * The base implementation returns the name unchanged (MySQL, SQLite are case-insensitive
-	 * or fold identifiers the same way regardless of quoting).
-	 * Drivers that use case-sensitive identifiers (e.g. PostgreSQL) should override this
-	 * method to double-quote the name via {@see quoteIdentifier}.
-	 *
-	 * @param string $table_name the unquoted table name as returned by {@see Table::getFullName()}
-	 *
-	 * @return string
-	 */
-	protected function getDMLTableName(string $table_name): string
-	{
-		return $table_name;
-	}
-
-	/**
 	 * Should return the db query template.
 	 *
 	 * @return string
@@ -1808,7 +1827,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 				}
 
 				$sql .= ' ' . $type->value
-					. ' JOIN ' . $this->getDMLTableName($table_to_join) . ' AS ' . $table_to_join_alias
+					. ' JOIN ' . $this->quoteIdentifier($table_to_join) . ' AS ' . $table_to_join_alias
 					. ' ON ' . (!empty($condition) ? $condition : '1 = 1');
 			}
 

@@ -160,7 +160,7 @@ class SQLLiteQueryGenerator extends SQLQueryGeneratorBase
 	{
 		$dot_path = '$.' . \implode('.', \array_map('strval', $json_path));
 
-		return 'JSON_EXTRACT(' . $col_sql_expression . ', ' . static::singleQuote($dot_path) . ')';
+		return 'JSON_EXTRACT(' . $col_sql_expression . ', ' . $this->quoteLiteral($dot_path) . ')';
 	}
 
 	/**
@@ -421,7 +421,7 @@ class SQLLiteQueryGenerator extends SQLQueryGeneratorBase
 		$ob    = $this->getOrderByQuery($qb); // '' or ' ORDER BY …'
 
 		$alias = $qb->getOptionsUpdateTableAlias() ?? '';
-		$qt    = $this->getDMLTableName($table);
+		$qt    = $this->quoteIdentifier($table);
 		$qta   = empty($alias) ? $qt : $qt . ' AS ' . $alias;
 		$sub   = 'SELECT rowid FROM ' . $qta . ' WHERE ' . $where . $ob . ' LIMIT ' . $max;
 		$query = 'UPDATE ' . $qt . (empty($alias) ? '' : ' AS ' . $alias) . ' SET ' . $set . ' WHERE rowid IN (' . $sub . ')';
@@ -466,7 +466,7 @@ class SQLLiteQueryGenerator extends SQLQueryGeneratorBase
 			// LIMIT: rewrite as rowid subquery so ORDER BY + LIMIT work correctly.
 			$table  = \array_key_first($from_map);
 		$alias  = $from_map[$table][0] ?? '';
-		$qt     = $this->getDMLTableName($table);
+		$qt     = $this->quoteIdentifier($table);
 		$qta    = empty($alias) ? $qt : $qt . ' AS ' . $alias;
 		$ob     = $this->getOrderByQuery($qb);
 		$sub    = 'SELECT rowid FROM ' . $qta . ' WHERE ' . $where . $ob . ' LIMIT ' . $max;
@@ -523,7 +523,7 @@ class SQLLiteQueryGenerator extends SQLQueryGeneratorBase
 		$x         = [];
 
 		foreach ($from as $table => $aliases) {
-			$qt = $this->getDMLTableName($table);
+			$qt = $this->quoteIdentifier($table);
 
 			foreach ($aliases as $alias) {
 				$alias_joins = $all_joins[$alias] ?? [];
@@ -548,7 +548,7 @@ class SQLLiteQueryGenerator extends SQLQueryGeneratorBase
 					// the original host is rewritten as a LEFT JOIN child of the target.
 					foreach ($right_joins as $rj) {
 						$opts  = $rj->getOptions();
-						$rt    = $this->getDMLTableName($opts['table_to_join']);
+						$rt    = $this->quoteIdentifier($opts['table_to_join']);
 						$ra    = $opts['table_to_join_alias'];
 						$cond  = (string) $opts['condition'];
 
@@ -564,7 +564,7 @@ class SQLLiteQueryGenerator extends SQLQueryGeneratorBase
 						// are appended after the swapped LEFT JOIN.
 						foreach ($normal_joins as $nj) {
 							$nopts  = $nj->getOptions();
-							$njt    = $this->getDMLTableName($nopts['table_to_join']);
+							$njt    = $this->quoteIdentifier($nopts['table_to_join']);
 							$nja    = $nopts['table_to_join_alias'];
 							$ncond  = (string) $nopts['condition'];
 

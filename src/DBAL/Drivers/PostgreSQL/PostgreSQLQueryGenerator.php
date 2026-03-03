@@ -89,20 +89,17 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	public function getJsonPathExpression(string $col_sql_expression, array $json_path): string
 	{
 		if (1 === \count($json_path)) {
-			// use PostgreSQL standard '' escaping for single-quotes.
-			// addslashes() is WRONG here: PostgreSQL (standard_conforming_strings = on,
-			// default since PG 9.1) treats backslash as a literal — only '' escapes '.
-			$safe_key = \str_replace("'", "''", (string) $json_path[0]);
-
-			return $col_sql_expression . "->>'" . $safe_key . "'";
+			return $col_sql_expression . '->>' . $this->quoteLiteral((string) $json_path[0]);
 		}
 
-		// for multi-level paths, each segment may contain characters that
-		// are special inside a PostgreSQL array literal (commas, braces, double-quotes)
-		// or that would break the surrounding SQL string literal (single-quotes).
-		// Elements containing array-literal special chars are wrapped in " with " escaped
-		// as "", and afterwards all remaining ' are doubled for the SQL literal.
-		$path_literal = \implode(',', \array_map(static function (mixed $s): string {
+		// For multi-level paths each segment is embedded inside a PostgreSQL array literal
+		// '{seg1,seg2}' which is itself a SQL string literal.
+		// Two layers of escaping are needed:
+		//   1. Array-literal layer: segments containing commas, braces, double-quotes or
+		//      spaces must be wrapped in " with inner " escaped as "".
+		//   2. SQL string-literal layer: single-quotes are doubled via singleQuote().
+		// quotes around the whole '{…}' composite literal, not just each segment.
+		$path_content = \implode(',', \array_map(static function (mixed $s): string {
 			$s = (string) $s;
 
 			if (\preg_match('/[,{}" ]/', $s)) {
@@ -110,22 +107,11 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 				$s = '"' . \str_replace('"', '""', $s) . '"';
 			}
 
-			// Escape single-quotes for the outer SQL string literal.
+			// Escape single-quotes for the outer SQL string literal (layer 2).
 			return \str_replace("'", "''", $s);
 		}, $json_path));
 
-		return $col_sql_expression . "#>>'" . '{' . $path_literal . '}' . "'";
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * PostgreSQL folds unquoted identifiers to lower-case, so mixed-case table names
-	 * (e.g. `gObL_clients`) must be double-quoted in every DML statement.
-	 */
-	protected function getDMLTableName(string $table_name): string
-	{
-		return $this->quoteIdentifier($table_name);
+		return $col_sql_expression . "#>>" . $this->quoteLiteral('{' . $path_content . '}');
 	}
 
 	/**
@@ -445,7 +431,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		$ob    = $this->getOrderByQuery($qb); // '' or ' ORDER BY …'
 
 		$alias = $qb->getOptionsUpdateTableAlias() ?? '';
-		$qt    = $this->getDMLTableName($table);
+		$qt    = $this->quoteIdentifier($table);
 		$from  = empty($alias) ? $qt : $qt . ' AS ' . $alias;
 		$sub   = 'SELECT ctid FROM ' . $from . ' WHERE ' . $where . $ob . ' LIMIT ' . $max;
 		$query = 'UPDATE ' . $qt . (empty($alias) ? '' : ' AS ' . $alias) . ' SET ' . $set . ' WHERE ctid IN (' . $sub . ')';
@@ -493,7 +479,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 
 		// Single-table DELETE with LIMIT: rewrite as ctid subquery.
 		if (null !== $max && 1 === \count($from_list) && empty($qb->getOptionsJoins())) {
-			$qpt   = $this->getDMLTableName($primary_table);
+			$qpt   = $this->quoteIdentifier($primary_table);
 			$ob    = $this->getOrderByQuery($qb); // '' or ' ORDER BY …'
 			$sub   = 'SELECT ctid FROM ' . $qpt . ' AS ' . $primary_alias . ' WHERE ' . $where . $ob . ' LIMIT ' . $max;
 			$query = 'DELETE FROM ' . $qpt . ' WHERE ctid IN (' . $sub . ')';
@@ -507,7 +493,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 
 		// Non-primary explicit FROM tables go into USING.
 		foreach (\array_slice($from_list, 1) as [$table, $alias]) {
-			$using_parts[] = $this->getDMLTableName($table) . ' AS ' . $alias;
+			$using_parts[] = $this->quoteIdentifier($table) . ' AS ' . $alias;
 			$this->flattenJoinsForUsing($qb, $alias, $using_parts, $join_conditions);
 		}
 
@@ -519,7 +505,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 			$where = '(' . \implode(') AND (', $join_conditions) . ') AND (' . $where . ')';
 		}
 
-		$primary_from = $this->getDMLTableName($primary_table) . ' AS ' . $primary_alias;
+		$primary_from = $this->quoteIdentifier($primary_table) . ' AS ' . $primary_alias;
 
 		if (empty($using_parts)) {
 			$query = 'DELETE FROM ' . $primary_from . ' WHERE ' . $where;
@@ -632,7 +618,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 				continue;
 			}
 
-			$using_parts[] = $this->getDMLTableName($target) . ' AS ' . $target_as;
+			$using_parts[] = $this->quoteIdentifier($target) . ' AS ' . $target_as;
 
 			if (!empty($cond) && '1 = 1' !== $cond) {
 				$join_conditions[] = $cond;
