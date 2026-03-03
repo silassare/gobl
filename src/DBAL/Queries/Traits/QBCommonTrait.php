@@ -15,7 +15,6 @@ namespace Gobl\DBAL\Queries\Traits;
 
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Table;
-use PDO;
 use Throwable;
 
 /**
@@ -25,6 +24,7 @@ trait QBCommonTrait
 {
 	use QBAliasTrait;
 	use QBBindTrait;
+	use QBShortcutsTrait;
 
 	/**
 	 * Help var_dump().
@@ -118,20 +118,6 @@ trait QBCommonTrait
 	{
 		return $this->db->getGenerator()
 			->buildQuery($this);
-	}
-
-	/**
-	 * Alias for {@see PDO::quote()}.
-	 *
-	 * @param int   $type
-	 * @param mixed $value
-	 *
-	 * @return string
-	 */
-	public function quote(mixed $value, int $type = PDO::PARAM_STR): string
-	{
-		return $this->db->getConnection()
-			->quote($value, $type);
 	}
 
 	/**
