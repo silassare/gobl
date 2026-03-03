@@ -41,7 +41,7 @@ final class QBInsertTest extends BaseTestCase
 		$sql          = $qb->getSqlQuery();
 		$bound_values = $qb->getBoundValues();
 		$n            = new NamedToPositionalParams($sql, $bound_values, $qb->getBoundValuesTypes());
-		self::assertSame('INSERT INTO gObL_clients (client_first_name, client_last_name, client_gender) VALUES (?, ?, ?)', $n->getNewQuery());
+		self::assertSame('INSERT INTO `gObL_clients` (client_first_name, client_last_name, client_gender) VALUES (?, ?, ?)', $n->getNewQuery());
 		self::assertSame(['John', 'Doe', 'Male'], $n->getNewParams());
 	}
 
@@ -67,7 +67,7 @@ final class QBInsertTest extends BaseTestCase
 		$sql          = $qb->getSqlQuery();
 		$bound_values = $qb->getBoundValues();
 		$n            = new NamedToPositionalParams($sql, $bound_values, $qb->getBoundValuesTypes());
-		self::assertSame('INSERT INTO gObL_clients (client_first_name, client_last_name, client_gender) VALUES (?, ?, ?), (?, ?, ?)', $n->getNewQuery());
+		self::assertSame('INSERT INTO `gObL_clients` (client_first_name, client_last_name, client_gender) VALUES (?, ?, ?), (?, ?, ?)', $n->getNewQuery());
 		self::assertSame(['John', 'Doe', 'Male', 'Alicia', 'Doe', 'Female'], $n->getNewParams());
 	}
 }

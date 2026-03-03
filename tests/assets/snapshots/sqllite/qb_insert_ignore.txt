@@ -1,5 +1,5 @@
 SQL:
-INSERT OR IGNORE INTO gObL_currencies (ccy_code, ccy_name, ccy_symbol) VALUES (:_val_a, :_val_b, :_val_c)
+INSERT OR IGNORE INTO "gObL_currencies" (ccy_code, ccy_name, ccy_symbol) VALUES (:_val_a, :_val_b, :_val_c)
 BOUND:
 {
     "_val_a": "EUR",

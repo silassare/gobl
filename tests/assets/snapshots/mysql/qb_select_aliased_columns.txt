@@ -1,4 +1,4 @@
 SQL:
-SELECT c.client_id as uid, c.client_first_name as fname FROM gObL_clients AS c WHERE 1 = 1
+SELECT c.client_id as uid, c.client_first_name as fname FROM `gObL_clients` AS c WHERE 1 = 1
 BOUND:
 []

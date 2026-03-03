@@ -1,5 +1,5 @@
 SQL:
-SELECT sub.client_id, sub.client_first_name FROM (SELECT c.client_id, c.client_first_name, c.client_last_name FROM gObL_clients AS c WHERE ((client_valid = :_val_a))) AS sub WHERE 1 = 1 ORDER BY sub.client_last_name ASC LIMIT 5 OFFSET 0
+SELECT sub.client_id, sub.client_first_name FROM `(SELECT c.client_id, c.client_first_name, c.client_last_name FROM `gObL_clients` AS c WHERE ((client_valid = :_val_a)))` AS sub WHERE 1 = 1 ORDER BY sub.client_last_name ASC LIMIT 5 OFFSET 0
 BOUND:
 {
     "_val_a": true

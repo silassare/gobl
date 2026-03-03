@@ -1,5 +1,5 @@
 SQL:
-UPDATE gObL_accounts SET account_valid = :_val_a WHERE ((account_balance < :_val_b))
+UPDATE `gObL_accounts` SET account_valid = :_val_a WHERE ((account_balance < :_val_b))
 BOUND:
 {
     "_val_a": false,

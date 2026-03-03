@@ -44,7 +44,7 @@ final class QBUpdateTest extends BaseTestCase
 		$sql          = $qb->getSqlQuery();
 		$bound_values = $qb->getBoundValues();
 		$n            = new NamedToPositionalParams($sql, $bound_values, $qb->getBoundValuesTypes());
-		self::assertSame('UPDATE gObL_clients SET client_first_name = ?, client_last_name = ? WHERE ((id = ?))', $n->getNewQuery());
+		self::assertSame('UPDATE `gObL_clients` SET client_first_name = ?, client_last_name = ? WHERE ((id = ?))', $n->getNewQuery());
 		self::assertSame(['John', 'Adams', 1], $n->getNewParams());
 	}
 }

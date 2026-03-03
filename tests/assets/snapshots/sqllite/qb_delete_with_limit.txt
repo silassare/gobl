@@ -1,5 +1,5 @@
 SQL:
-DELETE FROM gObL_clients WHERE rowid IN (SELECT rowid FROM gObL_clients AS _a_ WHERE ((client_valid = :_val_b)) LIMIT 50)
+DELETE FROM "gObL_clients" WHERE rowid IN (SELECT rowid FROM "gObL_clients" AS _a_ WHERE ((client_valid = :_val_b)) LIMIT 50)
 BOUND:
 {
     "_val_b": false

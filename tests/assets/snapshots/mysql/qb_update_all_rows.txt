@@ -1,5 +1,5 @@
 SQL:
-UPDATE gObL_clients SET client_valid = :_val_a, client_given_name = :_val_b WHERE 1 = 1
+UPDATE `gObL_clients` SET client_valid = :_val_a, client_given_name = :_val_b WHERE 1 = 1
 BOUND:
 {
     "_val_a": true,

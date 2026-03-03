@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Gobl\Tests\DBAL\Queries;
 
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
-use Gobl\DBAL\Queries\QBExpression;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\Tests\BaseTestCase;
 
@@ -314,7 +313,7 @@ final class QBSelectSnapshotTest extends BaseTestCase
 
 		$qb->innerJoin('c')
 			->to('accounts', 'a')
-			->on($qb->filters()->eq('a.account_client_id', new QBExpression('c.client_id')));
+			->on($qb->filters()->eq('a.account_client_id', $qb->expr('c.client_id')));
 
 		$qb->select('a', ['id', 'label', 'balance']);
 
@@ -335,7 +334,7 @@ final class QBSelectSnapshotTest extends BaseTestCase
 
 		$qb->leftJoin('c')
 			->to('accounts', 'a')
-			->on($qb->filters()->eq('a.account_client_id', new QBExpression('c.client_id')));
+			->on($qb->filters()->eq('a.account_client_id', $qb->expr('c.client_id')));
 
 		$qb->select('a', ['id', 'balance']);
 
@@ -362,7 +361,7 @@ final class QBSelectSnapshotTest extends BaseTestCase
 
 		$qb->rightJoin('c')
 			->to('accounts', 'a')
-			->on($qb->filters()->eq('a.account_client_id', new QBExpression('c.client_id')));
+			->on($qb->filters()->eq('a.account_client_id', $qb->expr('c.client_id')));
 
 		$qb->select('a', ['id', 'balance']);
 
@@ -383,12 +382,12 @@ final class QBSelectSnapshotTest extends BaseTestCase
 		// INNER JOIN anchored at 'c' — sub-join of 'a' is the right join
 		$qb->innerJoin('c')
 			->to('accounts', 'a')
-			->on($qb->filters()->eq('a.account_client_id', new QBExpression('c.client_id')));
+			->on($qb->filters()->eq('a.account_client_id', $qb->expr('c.client_id')));
 
 		// RIGHT JOIN anchored at 'a' — sub-level right join
 		$qb->rightJoin('a')
 			->to('transactions', 't')
-			->on($qb->filters()->eq('t.transaction_account_id', new QBExpression('a.account_id')));
+			->on($qb->filters()->eq('t.transaction_account_id', $qb->expr('a.account_id')));
 
 		$qb->select('a', ['id', 'balance']);
 
@@ -428,12 +427,12 @@ final class QBSelectSnapshotTest extends BaseTestCase
 		// First join: c (host) -> accounts as a
 		$qb->innerJoin('c')
 			->to('accounts', 'a')
-			->on($qb->filters()->eq('a.account_client_id', new QBExpression('c.client_id')));
+			->on($qb->filters()->eq('a.account_client_id', $qb->expr('c.client_id')));
 
 		// Second join: a (host, already joined) -> transactions as t
 		$qb->innerJoin('a')
 			->to('transactions', 't')
-			->on($qb->filters()->eq('t.transaction_account_id', new QBExpression('a.account_id')));
+			->on($qb->filters()->eq('t.transaction_account_id', $qb->expr('a.account_id')));
 
 		$qb->select('t', ['id', 'reference', 'amount']);
 

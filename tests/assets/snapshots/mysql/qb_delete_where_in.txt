@@ -1,5 +1,5 @@
 SQL:
-DELETE FROM gObL_clients AS _a_ WHERE ((client_id IN (:_val_b_0, :_val_b_1, :_val_b_2)))
+DELETE FROM `gObL_clients` AS _a_ WHERE ((client_id IN (:_val_b_0, :_val_b_1, :_val_b_2)))
 BOUND:
 {
     "_val_b_0": 1,

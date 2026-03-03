@@ -1,5 +1,5 @@
 SQL:
-UPDATE gObL_clients SET client_valid = :_val_a WHERE rowid IN (SELECT rowid FROM gObL_clients WHERE ((client_gender = :_val_b)) LIMIT 25)
+UPDATE "gObL_clients" SET client_valid = :_val_a WHERE rowid IN (SELECT rowid FROM "gObL_clients" WHERE ((client_gender = :_val_b)) LIMIT 25)
 BOUND:
 {
     "_val_a": false,

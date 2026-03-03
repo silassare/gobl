@@ -1,5 +1,5 @@
 SQL:
-INSERT INTO gObL_currencies (ccy_code, ccy_name, ccy_symbol) VALUES (:_val_a, :_val_b, :_val_c) ON CONFLICT (ccy_code) DO UPDATE SET ccy_name = EXCLUDED.ccy_name, ccy_symbol = EXCLUDED.ccy_symbol
+INSERT INTO "gObL_currencies" (ccy_code, ccy_name, ccy_symbol) VALUES (:_val_a, :_val_b, :_val_c) ON CONFLICT (ccy_code) DO UPDATE SET ccy_name = EXCLUDED.ccy_name, ccy_symbol = EXCLUDED.ccy_symbol
 BOUND:
 {
     "_val_a": "USD",

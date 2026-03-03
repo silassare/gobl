@@ -104,7 +104,7 @@ final class QBUpdateSnapshotTest extends BaseTestCase
 		$qb = new QBUpdate($db);
 		$qb->update('accounts')
 			->set([
-				'balance' => new QBExpression('account_balance + 100.00'),
+				'balance' => $qb->expr('account_balance + 100.00'),
 			])
 			->where($qb->filters()->eq('account_id', 7));
 
