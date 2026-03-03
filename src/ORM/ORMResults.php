@@ -264,6 +264,11 @@ abstract class ORMResults implements Countable, Iterator
 
 	/**
 	 * Rewind the Iterator to the first element.
+	 *
+	 * **One-time iteration only.** This result set wraps a forward-only PDO cursor;
+	 * calling `rewind()` a second time (as happens on a second `foreach` loop) throws
+	 * `ORMRuntimeException`. Use `fetchAllClass()` or `lazy()` if you need to iterate
+	 * the same results more than once.
 	 */
 	public function rewind(): void
 	{
@@ -289,6 +294,11 @@ abstract class ORMResults implements Countable, Iterator
 
 	/**
 	 * Count number of elements in this results.
+	 *
+	 * When `$trust_row_count` is `true` (set by the driver when `rowCount()` is reliable),
+	 * returns the PDO statement's `rowCount()`, which is O(1).
+	 * Otherwise, re-runs the query as `SELECT COUNT(*)` with the current limit preserved
+	 * (`runTotalRowsCount(true)`). The result is cached after the first call.
 	 *
 	 * @return int the custom count as an integer
 	 */
@@ -323,9 +333,11 @@ abstract class ORMResults implements Countable, Iterator
 	/**
 	 * Runs the current query and returns a statement.
 	 *
-	 * We lazily run query.
+	 * Lazily executes the underlying `QBSelect` on the first call and caches the
+	 * `PDOStatement`. Pass `$force = true` to re-execute the query (useful after
+	 * modifying the QB between calls, though this is generally not recommended).
 	 *
-	 * @param bool $force
+	 * @param bool $force re-execute even when a cached statement already exists
 	 *
 	 * @return PDOStatement
 	 */

@@ -23,6 +23,12 @@ abstract class DiffAction implements ArrayCapableInterface
 {
 	use ArrayCapableTrait;
 
+	/**
+	 * DiffAction constructor.
+	 *
+	 * @param DiffActionType $type   the type of diff action
+	 * @param string         $reason the human-readable reason describing why this action was generated
+	 */
 	public function __construct(protected DiffActionType $type, protected string $reason) {}
 
 	/**

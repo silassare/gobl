@@ -121,4 +121,21 @@ interface QueryGeneratorInterface
 	 * @return string
 	 */
 	public function quoteIdentifier(string $name): string;
+
+	/**
+	 * Quotes a scalar value as a SQL string literal using this RDBMS dialect's
+	 * escaping rules.
+	 *
+	 * Unlike `PDO::quote()`, this method requires no live database connection
+	 * and is safe to call during query building or schema generation.
+	 *
+	 * Implementations must escape any characters that would break the SQL
+	 * string literal (e.g. single-quotes) and wrap the result in the
+	 * appropriate delimiters.
+	 *
+	 * @param string $value raw string to quote
+	 *
+	 * @return string e.g. `'O''Brien'`
+	 */
+	public function quoteLiteral(string $value): string;
 }

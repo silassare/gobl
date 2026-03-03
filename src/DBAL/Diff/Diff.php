@@ -221,6 +221,17 @@ DIFF_SQL;
 		}
 
 		return new class($version, $label ?? '', $time, $up_sql, $down_sql, $configs, $tables) implements MigrationInterface {
+			/**
+			 * Migration constructor.
+			 *
+			 * @param int    $version   the migration version number
+			 * @param string $label     a human-readable migration label
+			 * @param int    $timestamp the UNIX timestamp when the migration was generated
+			 * @param string $up_sql    the SQL to run when migrating up
+			 * @param string $down_sql  the SQL to run when rolling back
+			 * @param array  $configs   the database configuration at migration time
+			 * @param array  $schema    the full table schema at migration time
+			 */
 			public function __construct(
 				private readonly int $version,
 				private readonly string $label,
@@ -231,52 +242,90 @@ DIFF_SQL;
 				private readonly array $schema,
 			) {}
 
+			/**
+			 * {@inheritDoc}
+			 */
 			public function getVersion(): int
 			{
 				return $this->version;
 			}
 
+			/**
+			 * {@inheritDoc}
+			 */
 			public function getLabel(): string
 			{
 				return $this->label;
 			}
 
+			/**
+			 * {@inheritDoc}
+			 */
 			public function getTimestamp(): int
 			{
 				return $this->timestamp;
 			}
 
+			/**
+			 * {@inheritDoc}
+			 */
 			public function getSchema(): array
 			{
 				return $this->schema;
 			}
 
+			/**
+			 * {@inheritDoc}
+			 */
 			public function getConfigs(): array
 			{
 				return $this->configs;
 			}
 
+			/**
+			 * {@inheritDoc}
+			 */
 			public function up(): string
 			{
 				return $this->up_sql;
 			}
 
+			/**
+			 * {@inheritDoc}
+			 */
 			public function down(): string
 			{
 				return $this->down_sql;
 			}
 
+			/**
+			 * {@inheritDoc}
+			 */
 			public function beforeRun(MigrationMode $mode, string $query): bool|string
 			{
 				return true;
 			}
 
+			/**
+			 * {@inheritDoc}
+			 */
 			public function afterRun(MigrationMode $mode): void {}
 		};
 	}
 
 	/**
-	 * Gets diff.
+	 * Computes the ordered list of diff actions needed to migrate `db_from` to `db_to`.
+	 *
+	 * Two-pass algorithm:
+	 * 1. **Change pass** (iterate `db_from` tables): for each existing table, either emit a
+	 *    `TableDeleted` cascade (+ its FK/UK/index deletions) when the table is gone in `db_to`,
+	 *    or delegate column/constraint diffing to `diffTable()`.
+	 * 2. **Addition pass** (iterate `db_to` tables): for each table absent in `db_from`, emit a
+	 *    `TableAdded` cascade (+ its FK/UK/index additions).
+	 *
+	 * The resulting `DiffAction[]` list is sorted by `DiffActionType::getPriority()` so that
+	 * destructive actions (e.g. FK deletions) precede constructive ones (e.g. table creation),
+	 * producing a migration that can run without constraint violations.
 	 *
 	 * @return DiffAction[]
 	 */
@@ -342,7 +391,7 @@ DIFF_SQL;
 		}
 
 		if (!empty($diff)) {
-			\usort($diff, static fn (DiffAction $a, DiffAction $b) => $a->getType()->getPriority() - $b->getType()->getPriority());
+			\usort($diff, static fn(DiffAction $a, DiffAction $b) => $a->getType()->getPriority() - $b->getType()->getPriority());
 		}
 
 		return $diff;
@@ -358,6 +407,14 @@ DIFF_SQL;
 		return \count($this->getDiff()) > 0;
 	}
 
+	/**
+	 * Creates the appropriate deleted-constraint diff action instance for the given constraint.
+	 *
+	 * @param Constraint $constraint the constraint that was deleted
+	 * @param string     $reason     optional human-readable reason for the deletion
+	 *
+	 * @return ForeignKeyConstraintDeleted|PrimaryKeyConstraintDeleted|UniqueKeyConstraintDeleted
+	 */
 	protected function getConstraintDeletedClassInstance(Constraint $constraint, string $reason = ''): ForeignKeyConstraintDeleted|PrimaryKeyConstraintDeleted|UniqueKeyConstraintDeleted
 	{
 		if ($constraint instanceof PrimaryKey) {
@@ -374,6 +431,15 @@ DIFF_SQL;
 		return $c;
 	}
 
+	/**
+	 * Computes the diff between two table versions and appends any detected change actions to $diff.
+	 *
+	 * Checks renames, columns, primary/foreign/unique-key constraints, and indexes.
+	 *
+	 * @param Table $from_table the original table state
+	 * @param Table $to_table   the target table state
+	 * @param array $diff       the accumulator array of {@see DiffAction} objects
+	 */
 	protected function diffTable(Table $from_table, Table $to_table, array &$diff): void
 	{
 		if ($from_table->getFullName() !== $to_table->getFullName()) {
@@ -428,6 +494,14 @@ DIFF_SQL;
 		}
 	}
 
+	/**
+	 * Computes the diff between two column versions and appends rename/type-change actions to $diff.
+	 *
+	 * @param Table  $table       the table that owns the columns
+	 * @param Column $from_column the original column state
+	 * @param Column $to_column   the target column state
+	 * @param array  $diff        the accumulator array of {@see DiffAction} objects
+	 */
 	protected function diffColumn(Table $table, Column $from_column, Column $to_column, array &$diff): void
 	{
 		if ($from_column->getFullName() !== $to_column->getFullName()) {
@@ -450,6 +524,13 @@ DIFF_SQL;
 		}
 	}
 
+	/**
+	 * Computes the diff of primary-key constraints between two table versions and appends actions to $diff.
+	 *
+	 * @param Table $from_table the original table state
+	 * @param Table $to_table   the target table state
+	 * @param array $diff       the accumulator array of {@see DiffAction} objects
+	 */
 	protected function diffTablePKConstraint(Table $from_table, Table $to_table, array &$diff): void
 	{
 		$a_pk = $from_table->getPrimaryKeyConstraint();
@@ -469,6 +550,14 @@ DIFF_SQL;
 		}
 	}
 
+	/**
+	 * Creates the appropriate added-constraint diff action instance for the given constraint.
+	 *
+	 * @param Constraint $constraint the constraint that was added
+	 * @param string     $reason     optional human-readable reason for the addition
+	 *
+	 * @return ForeignKeyConstraintAdded|PrimaryKeyConstraintAdded|UniqueKeyConstraintAdded
+	 */
 	protected function getConstraintAddedClassInstance(Constraint $constraint, string $reason = ''): ForeignKeyConstraintAdded|PrimaryKeyConstraintAdded|UniqueKeyConstraintAdded
 	{
 		if ($constraint instanceof PrimaryKey) {
@@ -485,6 +574,15 @@ DIFF_SQL;
 		return $c;
 	}
 
+	/**
+	 * Computes the diff of foreign-key constraints between two table versions and appends actions to $diff.
+	 *
+	 * Detects added, removed, or structurally changed foreign-key constraints.
+	 *
+	 * @param Table $from_table the original table state
+	 * @param Table $to_table   the target table state
+	 * @param array $diff       the accumulator array of {@see DiffAction} objects
+	 */
 	protected function diffTableFKConstraints(Table $from_table, Table $to_table, array &$diff): void
 	{
 		$from = $from_table->getForeignKeyConstraints();
@@ -501,8 +599,8 @@ DIFF_SQL;
 					->getFullName())) {
 					$touched = \sprintf('constraint host table changed from "%s" to "%s".', $a, $b);
 				} elseif (($a = $from_constraint->getReferenceTable()
-					->getFullName()) !== ($b = $to_constraint->getReferenceTable()
-					->getFullName())
+						->getFullName()) !== ($b = $to_constraint->getReferenceTable()
+						->getFullName())
 				) {
 					$touched = \sprintf('constraint reference table changed from "%s" to "%s".', $a, $b);
 				} elseif ($from_constraint->getColumnsMapping() !== $to_constraint->getColumnsMapping()) {
@@ -559,6 +657,15 @@ DIFF_SQL;
 		}
 	}
 
+	/**
+	 * Computes the diff of unique-key constraints between two table versions and appends actions to $diff.
+	 *
+	 * Detects added, removed, or column-changed unique-key constraints.
+	 *
+	 * @param Table $from_table the original table state
+	 * @param Table $to_table   the target table state
+	 * @param array $diff       the accumulator array of {@see DiffAction} objects
+	 */
 	protected function diffTableUQConstraints(Table $from_table, Table $to_table, array &$diff): void
 	{
 		$from = $from_table->getUniqueKeyConstraints();
@@ -590,6 +697,15 @@ DIFF_SQL;
 		}
 	}
 
+	/**
+	 * Computes the diff of indexes between two table versions and appends actions to $diff.
+	 *
+	 * Detects added, removed, or type/column-changed indexes.
+	 *
+	 * @param Table $from_table the original table state
+	 * @param Table $to_table   the target table state
+	 * @param array $diff       the accumulator array of {@see DiffAction} objects
+	 */
 	protected function diffTableIndexes(Table $from_table, Table $to_table, array &$diff): void
 	{
 		$from = $from_table->getIndexes();
@@ -624,7 +740,14 @@ DIFF_SQL;
 	}
 
 	/**
-	 * @param RDBMSInterface $db
+	 * Renders a list of `DiffAction` objects into a single SQL string.
+	 *
+	 * Each action is converted via `$db`'s generator `buildDiffActionQuery()`, then the
+	 * results are joined with newlines and wrapped in a database-definition block via
+	 * `wrapDatabaseDefinitionQuery()`. Returns an empty string when all actions produce
+	 * empty SQL (e.g. no-op actions).
+	 *
+	 * @param RDBMSInterface $db          the target database (determines the SQL dialect)
 	 * @param DiffAction[]   $diff_actions
 	 *
 	 * @return string
@@ -642,6 +765,12 @@ DIFF_SQL;
 	}
 
 	/**
+	 * Builds a `diffKey => Table` map for all tables in `$db`.
+	 *
+	 * The diff key is obtained from `Table::getDiffKey()` and is used to match tables
+	 * across the two schemas even when their names have changed (renames are tracked
+	 * separately).
+	 *
 	 * @param RDBMSInterface $db
 	 *
 	 * @return array<string, Table>
@@ -658,6 +787,11 @@ DIFF_SQL;
 	}
 
 	/**
+	 * Builds a `diffKey => Column` map for all columns in `$table`.
+	 *
+	 * Used during `diffTable()` to match columns across old and new schema versions
+	 * even after renames. The diff key is obtained from `Column::getDiffKey()`.
+	 *
 	 * @return array<string, Column>
 	 */
 	private function getColumnsKeysMap(Table $table): array

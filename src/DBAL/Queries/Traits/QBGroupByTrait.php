@@ -21,6 +21,8 @@ trait QBGroupByTrait
 	protected array $options_group_by = [];
 
 	/**
+	 * Returns the raw GROUP BY expression list accumulated by {@see groupBy()} calls.
+	 *
 	 * @return array
 	 */
 	public function getOptionsGroupBy(): array
@@ -29,7 +31,12 @@ trait QBGroupByTrait
 	}
 
 	/**
-	 * @param array $group_by
+	 * Appends expressions to the GROUP BY clause.
+	 *
+	 * Each entry in `$group_by` must be a pre-qualified SQL expression
+	 * (e.g. a column reference like `u.user_type`). Empty strings are silently skipped.
+	 *
+	 * @param array $group_by list of SQL GROUP BY expressions
 	 *
 	 * @return $this
 	 */

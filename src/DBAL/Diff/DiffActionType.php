@@ -57,13 +57,22 @@ enum DiffActionType: string
 
 	case TABLE_CHARSET_CHANGED = 'TABLE_CHARSET_CHANGED';
 
-	// DML ACTIONS
+		// DML ACTIONS
 	case ROW_INSERTED = 'ROW_INSERTED';
 
 	case ROW_DELETED = 'ROW_DELETED';
 
 	case ROW_UPDATED = 'ROW_UPDATED';
 
+	/**
+	 * Returns the execution priority of this action type.
+	 *
+	 * Lower values run first. Destructive operations (e.g. dropping foreign keys)
+	 * are ordered before structural changes, which are in turn ordered before
+	 * additive operations (e.g. adding constraints/indexes).
+	 *
+	 * @return int
+	 */
 	public function getPriority(): int
 	{
 		return match ($this) {

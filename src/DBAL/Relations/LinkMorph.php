@@ -66,6 +66,16 @@ final class LinkMorph extends Link
 	/**
 	 * LinkMorph constructor.
 	 *
+	 * **`host_is_parent` auto-detection:**
+	 * The constructor inspects both `$host_table` and `$target_table` to find which one owns
+	 * the morph child columns (`{prefix}_id` / `{prefix}_type`). The table that **does not**
+	 * own those columns is the parent; the one that does is the child.
+	 * - If `$host_table` has both morph child columns → `host_is_parent = false` (host is the child).
+	 * - If `$target_table` has both morph child columns → `host_is_parent = true` (host is the parent).
+	 * - If neither table has both columns → `DBALException` is thrown.
+	 *
+	 * The parent table **must be soft-deletable** to avoid orphaned child rows.
+	 *
 	 * @param RDBMSInterface $rdbms
 	 * @param Table          $host_table
 	 * @param Table          $target_table
@@ -213,6 +223,13 @@ final class LinkMorph extends Link
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * Only meaningful when `host_is_parent = true`: populates the target's child key column
+	 * (`morph_child_key_column`) and child type column (`morph_child_type_column`) from the
+	 * host entity's parent-key value and the stored `morph_parent_type` string.
+	 *
+	 * Returns `false` when `host_is_parent = false` (child cannot resolve the parent from itself)
+	 * or when the parent-key column value on the entity is `null`.
 	 */
 	public function fillRelation(ORMEntity $host_entity, array &$target_data = []): bool
 	{
@@ -237,6 +254,17 @@ final class LinkMorph extends Link
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * Behavior depends on `$host_is_parent` and whether a host entity is provided:
+	 *
+	 * | `host_is_parent` | `$host_entity` | Action |
+	 * |---|---|---|
+	 * | true  | present | Filter target by `child_key = entity_pk AND child_type = parent_type` |
+	 * | true  | null    | INNER JOIN target ON `child_key = host_pk AND child_type = parent_type` |
+	 * | false | present | Filter target by `parent_key = entity.child_key_column` |
+	 * | false | null    | INNER JOIN target ON `target_pk = host.child_key AND host.child_type = parent_type` |
+	 *
+	 * Returns `false` when an entity is provided but the relevant key column value is `null`.
 	 */
 	public function runLinkTypeApplyLogic(QBSelect $target_qb, ?ORMEntity $host_entity = null): bool
 	{

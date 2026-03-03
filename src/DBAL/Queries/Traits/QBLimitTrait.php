@@ -24,6 +24,8 @@ trait QBLimitTrait
 	protected ?int $options_limit_max    = null;
 
 	/**
+	 * Returns the current LIMIT max value, or `null` when no limit is set.
+	 *
 	 * @return null|int
 	 */
 	public function getOptionsLimitMax(): ?int
@@ -32,6 +34,8 @@ trait QBLimitTrait
 	}
 
 	/**
+	 * Returns the current OFFSET value, or `null` when no limit is set.
+	 *
 	 * @return null|int
 	 */
 	public function getOptionsLimitOffset(): ?int
@@ -40,12 +44,18 @@ trait QBLimitTrait
 	}
 
 	/**
-	 * Sets limits to the query result.
+	 * Sets a limit on the query result.
 	 *
-	 * @param null|int $max    maximum result to get
-	 * @param int      $offset offset of the first result
+	 * When `$max` is `null` this call is a **no-op** — the existing limit (if any) is
+	 * not cleared. Pass `null` intentionally when you want to call `limit()` without
+	 * touching the current pagination state.
+	 *
+	 * @param null|int $max    maximum number of rows to return; `null` leaves the current limit unchanged
+	 * @param int      $offset zero-based offset of the first row to return
 	 *
 	 * @return $this
+	 *
+	 * @throws DBALRuntimeException when `$max <= 0` or `$offset < 0`
 	 */
 	public function limit(?int $max = null, int $offset = 0): static
 	{

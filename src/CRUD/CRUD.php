@@ -81,6 +81,16 @@ class CRUD
 	/**
 	 * Create assertion.
 	 *
+	 * Two-phase validation:
+	 * 1. **Authorization** via `authorize()`: dispatches a `BeforeCreate` event on the table-scoped
+	 *    channel; the first listener that returns `false` (and calls `stopPropagation()`) blocks the
+	 *    action with a `CRUDException`.
+	 * 2. **Form column check** via `checkFormColumnsForCreate()`: validates that no private or
+	 *    read-only columns are being written.
+	 *
+	 * Returns a `BeforeCreateFlush` event (already dispatched) for the caller to attach
+	 * post-flush callbacks.
+	 *
 	 * @param array $form
 	 *
 	 * @return BeforeCreateFlush
@@ -243,6 +253,9 @@ class CRUD
 	/**
 	 * Dispatches entity events.
 	 *
+	 * Events are dispatched over the table's **full-name channel** (set in `__construct`).
+	 * Only listeners registered for that specific channel (i.e. scoped to this table) receive the event.
+	 *
 	 * @param ORMEntity       $entity
 	 * @param EntityEventType $event_type
 	 *
@@ -267,8 +280,13 @@ class CRUD
 	/**
 	 * Dispatches the given action for authorization.
 	 *
+	 * Uses **stop-on-first-denial** semantics: the first listener that returns `false` must
+	 * also call `$action->stopPropagation()` to prevent subsequent listeners from overriding
+	 * the denial. Returns `$default` when no listener is registered (opt-in for most actions,
+	 * opt-out for destructive `deleteAll`).
+	 *
 	 * @param CRUDAction $action
-	 * @param bool       $default
+	 * @param bool       $default the decision when no listener is registered
 	 *
 	 * @return bool
 	 */
@@ -326,6 +344,13 @@ class CRUD
 	/**
 	 * Checks if the given column can be written.
 	 *
+	 * Checks if the column is private or sensitive and dispatches the corresponding authorization events.
+	 *
+	 * @param Column $column the column being written
+	 * @param array  $form   the full form data being written (useful for context in event listeners)
+	 * @param string $field  the specific field being written (useful for context in event listeners and debug info)
+	 * @param bool   $updating whether this is an update operation (true) or a create operation (false), which can be relevant for
+	 *
 	 * @throws CRUDException
 	 */
 	private function checkForColumnWrite(Column $column, array $form, string $field, bool $updating): void
@@ -359,6 +384,12 @@ class CRUD
 
 	/**
 	 * Checks if the given column is part of the primary key and can be written.
+	 *
+	 * Primary key columns are protected by an additional event {@see BeforePKColumnWrite} to allow listeners to
+	 * enforce stricter rules on them (e.g. immutability after creation).
+	 * This is in addition to the regular column write checks performed in {@see CRUD::checkForColumnWrite()},
+	 * so PK columns that are also private/sensitive will trigger all relevant events.
+	 *
 	 *
 	 * @throws CRUDException
 	 */

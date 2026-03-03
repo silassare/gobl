@@ -25,10 +25,12 @@ use Gobl\DBAL\Queries\QBSelect;
 trait FiltersOperatorsHelpersTrait
 {
 	/**
-	 * Adds equal condition.
+	 * Adds an equals condition.
 	 *
-	 * @param string                                           $left
-	 * @param null|bool|float|int|QBExpression|QBSelect|string $right
+	 * When `$right` is `null`, automatically promotes to `IS NULL` instead of `= NULL`.
+	 *
+	 * @param string                                            $left
+	 * @param null|bool|float|int|QBExpression|QBSelect|string  $right
 	 *
 	 * @return $this
 	 */
@@ -42,10 +44,12 @@ trait FiltersOperatorsHelpersTrait
 	}
 
 	/**
-	 * Adds not equal condition.
+	 * Adds a not-equals condition.
 	 *
-	 * @param string                                           $left
-	 * @param null|bool|float|int|QBExpression|QBSelect|string $right
+	 * When `$right` is `null`, automatically promotes to `IS NOT NULL` instead of `<> NULL`.
+	 *
+	 * @param string                                            $left
+	 * @param null|bool|float|int|QBExpression|QBSelect|string  $right
 	 *
 	 * @return $this
 	 */

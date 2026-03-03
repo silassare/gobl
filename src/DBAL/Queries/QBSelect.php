@@ -58,6 +58,11 @@ class QBSelect implements QBInterface
 	}
 
 	/**
+	 * Returns the raw SELECT expression list accumulated by {@see select()} calls.
+	 *
+	 * Each entry is a pre-qualified SQL column expression such as `u.user_id`,
+	 * `u.user_id as uid`, or `u.*`.
+	 *
 	 * @return array
 	 */
 	public function getOptionsSelect(): array
@@ -66,9 +71,17 @@ class QBSelect implements QBInterface
 	}
 
 	/**
-	 * Returns the total rows count.
+	 * Executes a `COUNT(*)` query derived from this SELECT and returns the total row count.
 	 *
-	 * @param bool $preserve_limit
+	 * When `$preserve_limit` is `false`, both `max` (LIMIT) and `offset` (OFFSET) are
+	 * temporarily removed before building the count query, then restored afterwards.
+	 * This gives the true total number of matching rows regardless of pagination state.
+	 *
+	 * When `$preserve_limit` is `true`, the current LIMIT/OFFSET remain in effect,
+	 * so the count reflects only the rows in the current page window.
+	 *
+	 * @param bool $preserve_limit `false` strips pagination (default use-case for total count);
+	 *                             `true` keeps the current LIMIT/OFFSET in the count query
 	 *
 	 * @return int
 	 */
@@ -109,11 +122,16 @@ class QBSelect implements QBInterface
 	}
 
 	/**
-	 * Adds columns to select.
+	 * Adds columns to the SELECT clause.
 	 *
-	 * @param null|string|Table $table_name_or_alias
-	 * @param array             $columns
-	 * @param bool              $auto_prefix
+	 * @param null|string|Table $table_name_or_alias when provided, column references are qualified
+	 *                                               with the resolved alias/table name
+	 * @param array             $columns             column list; empty means `table.*` (select all).
+	 *                                               Integer-keyed: `['col1', 'col2']` → `alias.col1, alias.col2`.
+	 *                                               String-keyed: `['alias' => 'col']` → `alias.col AS alias`.
+	 * @param bool              $auto_prefix         when `true` (default), bare column names are
+	 *                                               prefixed with the resolved table alias;
+	 *                                               when `false`, the raw table name is used as prefix
 	 *
 	 * @return $this
 	 */

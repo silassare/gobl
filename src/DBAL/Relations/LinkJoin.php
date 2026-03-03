@@ -122,6 +122,9 @@ final class LinkJoin extends Link
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * Always returns `false` — multi-step join links span several intermediate tables,
+	 * so a single host entity cannot deterministically populate target data.
 	 */
 	public function fillRelation(ORMEntity $host_entity, array &$target_data = []): bool
 	{
@@ -130,6 +133,12 @@ final class LinkJoin extends Link
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * Applies each step's sub-link in order. The host entity is forwarded **only to the first
+	 * step** (host → first pivot), so that concrete entity values filter the entry point of
+	 * the chain. Subsequent step links receive `null` and operate in join mode.
+	 *
+	 * Returns `false` as soon as any step's `apply()` returns `false`.
 	 */
 	public function runLinkTypeApplyLogic(QBSelect $target_qb, ?ORMEntity $host_entity = null): bool
 	{

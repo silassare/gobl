@@ -77,7 +77,13 @@ final class Filters
 	}
 
 	/**
-	 * Creates filters builder instance from array.
+	 * Creates a `Filters` instance from an array using the new flat format.
+	 *
+	 * **Format auto-detection:**
+	 * - When the **first key is a string** the array is treated as the old
+	 *   `[column => [operator => value]]` format and forwarded to `fromOldFiltersArray()`.
+	 * - When the **first key is an integer** (or the array is empty) the new flat format
+	 *   is parsed: `['col', 'op', value, 'AND'|'OR', ['col2', 'op2', value2], ...]`.
 	 *
 	 *```
 	 * new filters array
@@ -86,9 +92,9 @@ final class Filters
 	 * ]
 	 *```
 	 *
-	 * @param array                      $filters
-	 * @param QBInterface                $qb
-	 * @param null|FiltersScopeInterface $scope
+	 * @param array                      $filters flat filter array (see format above)
+	 * @param QBInterface                $qb      the query builder this filter is attached to
+	 * @param null|FiltersScopeInterface $scope   optional scope for column access control
 	 *
 	 * @return static
 	 */
@@ -209,6 +215,15 @@ final class Filters
 	/**
 	 * Create a sub group for complex filters.
 	 *
+	 * Returns a new `Filters` instance that shares the same `QBInterface` and scope.
+	 * Use this when you need a reusable group to pass to `and()`, `or()`, or `where()`.
+	 *
+	 * ```php
+	 * $sub = $filters->subGroup();
+	 * $sub->eq('user_role', 'admin')->or()->eq('user_role', 'superadmin');
+	 * $filters->or($sub);
+	 * ```
+	 *
 	 * @return $this
 	 */
 	public function subGroup(): self
@@ -217,7 +232,26 @@ final class Filters
 	}
 
 	/**
-	 * Joins filters and following with AND condition.
+	 * Ensures the next condition is joined with AND, then optionally appends filters.
+	 *
+	 * When called without arguments it only switches the chaining operator so the
+	 * subsequent `->eq()`, `->in()`, etc. call is joined with AND (this is also the
+	 * default, so calling it bare is rarely necessary).
+	 *
+	 * When passed one or more arguments each is appended as an AND-joined sub-group:
+	 *
+	 * ```php
+	 * // Inline AND (bare call - usually omitted)
+	 * $f->eq('a', 1)->and()->eq('b', 2);
+	 *
+	 * // AND sub-group via callable — callable MUST return the same $g instance
+	 * $f->and(function (Filters $g) {
+	 *     return $g->isNotNull('email')->like('email', '%@example.com');
+	 * });
+	 *
+	 * // AND an existing Filters instance (must share the same QBInterface)
+	 * $f->and($otherFilters);
+	 * ```
 	 *
 	 * @param array|callable|self ...$filters
 	 *
@@ -231,22 +265,18 @@ final class Filters
 	}
 
 	/**
-	 * Merge a list of filters to the current filters.
+	 * Merges one or more filter conditions into the current filter group.
 	 *
-	 * ```
-	 * we shouldn't
-	 *
-	 * - merge a filters instance that
-	 * does not share the same {@see QBInterface} instance
-	 * this rule is to prevent same table with different
-	 * alias bug and many other possible issue...
-	 *
-	 * - merge a filters instance if its scope
-	 * {@see FiltersScopeInterface} is not allowed by the current filters instance scope
-	 * as it may lead to some information leak, as a vulnerability may
-	 * allow an user to use a filters that is not allowed
-	 * in the actual filters scope...
-	 * ```
+	 * Three safety guards are enforced when the argument is a `Filters` instance:
+	 * 1. **Self-reference** – passing `$this` throws to prevent infinite recursion;
+	 *    use {@see subGroup()} instead.
+	 * 2. **QBInterface identity** – the incoming `Filters` must share the exact same
+	 *    `QBInterface` instance. Cross-query injection is rejected to prevent
+	 *    alias conflicts and other query-corruption issues.
+	 * 3. **Scope compatibility** – when a scope is attached, the incoming `Filters`
+	 *    scope must be permitted by the current scope via
+	 *    `FiltersScopeInterface::shouldAllowFiltersScope()`, preventing unauthorized
+	 *    column access from leaking in through merged filters.
 	 *
 	 * @param array|callable|Filters ...$filters
 	 *
@@ -310,7 +340,27 @@ final class Filters
 	}
 
 	/**
-	 * Joins filters and following with OR condition.
+	 * Ensures the next condition is joined with OR, then optionally appends filters.
+	 *
+	 * When called without arguments it only switches the chaining operator so the
+	 * subsequent `->eq()`, `->in()`, etc. call is joined with OR.
+	 *
+	 * When passed one or more arguments each is appended as an OR-joined sub-group:
+	 *
+	 * ```php
+	 * // Inline OR between two equal checks
+	 * $f->eq('role', 'admin')->or()->eq('role', 'superadmin');
+	 *
+	 * // OR sub-group via callable — callable MUST return the same $g instance
+	 * $f->or(function (Filters $g) {
+	 *     return $g->lt('age', 13)->or()->gt('age', 65);
+	 * });
+	 *
+	 * // OR an existing Filters instance (must share the same QBInterface)
+	 * $f->or($otherFilters);
+	 * ```
+	 *
+	 * @param array|callable|self ...$filters
 	 *
 	 * @return $this
 	 */
@@ -322,11 +372,16 @@ final class Filters
 	}
 
 	/**
-	 * Adds a list of filters.
+	 * Appends a single filter condition.
 	 *
-	 * @param Operator   $operator the operator to use
-	 * @param string     $left     the left operand
-	 * @param null|mixed $right    the right operand if allowed
+	 * Operator normalisation applied before storage:
+	 * - `IS_TRUE` is promoted to `EQ true`.
+	 * - `IS_FALSE` is promoted to `EQ false`.
+	 *
+	 * @param Operator   $operator the comparison or unary operator to apply
+	 * @param string     $left     the left operand (column name, FQN, or alias-qualified reference)
+	 * @param null|mixed $right    the right operand; must be `null` for unary operators;
+	 *                             arrays are only valid for `IN` and `NOT_IN`
 	 *
 	 * @return $this
 	 */
@@ -607,13 +662,26 @@ final class Filters
 	}
 
 	/**
-	 * Cleans operand.
+	 * Resolves and normalises a filter operand.
+	 *
+	 * - `QBExpression` → cast to string verbatim.
+	 * - `BackedEnum` → unwrapped to its scalar `value`.
+	 * - `Column` instance → resolved to its FQN using the current QB alias map.
+	 * - `table.column` string notation → resolved to the fully qualified reference
+	 *   (e.g. `users.name` → `u.gobl_name`) when the table is registered in the QB.
+	 * - `table.column.json.path` string (3+ dot segments) → resolved to the
+	 *   dialect-specific JSON-path extraction expression (requires `native_json` enabled
+	 *   on the column's type).
+	 * - All other values pass through unchanged.
+	 *
+	 * The output references `$found_table` and `$found_column` are set when the operand
+	 * resolves to a known table/column pair (used by the scope checker).
 	 *
 	 * @param mixed       $operand
-	 * @param null|string &$found_table
-	 * @param null|string &$found_column
+	 * @param null|string &$found_table  set to the resolved table full name, or `null`
+	 * @param null|string &$found_column set to the resolved column full name, or `null`
 	 *
-	 * @return string
+	 * @return mixed normalised operand value
 	 */
 	private function cleanOperand(mixed $operand, ?string &$found_table = null, ?string &$found_column = null): mixed
 	{
@@ -709,7 +777,11 @@ final class Filters
 	}
 
 	/**
-	 * Checks if the right operand is a binding.
+	 * Returns whether the right operand is already a bound named parameter.
+	 *
+	 * A value is considered a binding when it is a string starting with `:` and
+	 * the remainder is a registered parameter name in the current QB.
+	 * Used to avoid double-binding values that were already bound by `bindArrayForInList`.
 	 *
 	 * @param mixed $right
 	 *

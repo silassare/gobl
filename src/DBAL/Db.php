@@ -159,6 +159,15 @@ abstract class Db implements RDBMSInterface
 	/**
 	 * {@inheritDoc}
 	 *
+	 * Locking the database performs the following in order:
+	 *  1. Calls `pack()` on every registered namespace (builds deferred constraints and relations).
+	 *  2. Calls `lock()` on every table (cascades to all columns, constraints, and indexes).
+	 *  3. Builds the `morph_types` lookup map (table name → morph type).
+	 *  4. Validates morph-type uniqueness: throws `DBALException` if two tables share the
+	 *     same morph type, or if a morph type collides with another table's name or full name.
+	 *
+	 * Once locked, no further tables or columns may be added.
+	 *
 	 * @throws DBALException
 	 */
 	public function lock(): static
@@ -224,6 +233,15 @@ abstract class Db implements RDBMSInterface
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * Processes the schema in three passes:
+	 *  1. **Register tables & columns** – each entry is either a `Table` instance or an array;
+	 *     column definitions may reference other columns via `ref:table.col` / `cp:table.col`.
+	 *  2. **Apply constraints/indexes** – FK, PK, UK, and index declarations are processed once
+	 *     all tables are registered so cross-table references can be resolved.
+	 *  3. **Apply relations** – relation definitions are processed last.
+	 *
+	 * When `$desired_namespace` is provided it overrides the namespace declared inside each table.
 	 *
 	 * @throws DBALException
 	 */
@@ -842,12 +860,17 @@ abstract class Db implements RDBMSInterface
 	}
 
 	/**
-	 * Clean column type options.
+	 * Strips type options that should not be inherited when a column is used as a reference.
 	 *
-	 * @param array $options The column type options
-	 * @param bool  $clone   Whether the column is cloned or not
+	 * - `auto_increment` is removed unless `$clone` is `true` (a copy column may preserve it,
+	 *   but a reference column must never auto-increment independently).
+	 * - `diff_key` is always removed because it is specific to the original column definition
+	 *   and has no meaning on a derived/reference column.
 	 *
-	 * @return array
+	 * @param array $options The raw column type options array to clean
+	 * @param bool  $clone   `true` when the column is a copy (`cp:`) rather than a reference (`ref:`)
+	 *
+	 * @return array cleaned options
 	 */
 	public static function cleanColumnTypeOptionsForReference(array $options, bool $clone): array
 	{
@@ -984,12 +1007,19 @@ abstract class Db implements RDBMSInterface
 	/**
 	 * Resolve reference column.
 	 *
-	 * @param string $reference          The reference column path
-	 * @param string $used_in_table_name The table in which the reference is being used
-	 * @param array  $schema             Schema definition
-	 * @param array  $circle             Contains all references, to prevent infinite loop
+	 * Recursively resolves a `ref:table.column` or `cp:table.column` reference to the
+	 * underlying column's type-option array.
 	 *
-	 * @return array
+	 * Resolution results are cached in `$this->resolved_column_ref` keyed by the reference
+	 * string; subsequent calls for the same reference return the cached result immediately.
+	 *
+	 * @param string $reference          The reference column path (e.g. `ref:users.user_id`)
+	 * @param string $used_in_table_name The table in which the reference is being used
+	 * @param array  $schema             Schema definition (may be partially built during `loadSchema`)
+	 * @param array  $circle             Accumulator passed by reference to detect reference cycles
+	 *                                   and prevent infinite recursion; throws on cycle detection
+	 *
+	 * @return array resolved column type options
 	 *
 	 * @throws DBALException
 	 *

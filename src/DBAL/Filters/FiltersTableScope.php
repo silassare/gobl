@@ -43,6 +43,12 @@ class FiltersTableScope implements FiltersScopeInterface
 	/**
 	 * {@inheritDoc}
 	 *
+	 * Enforces the following access rules (throws `DBALRuntimeException` on violation):
+	 * - **Private columns** are always rejected (unless `allowPrivateColumnInFilters(true)` is set).
+	 * - **Sensitive columns** are always rejected (unless `allowSensitiveColumnInFilters(true)` is set).
+	 * - All other non-private, non-sensitive public columns are allowed.
+	 * - The column's own type may impose additional restrictions via `Type::assertFilterAllowed()`.
+	 *
 	 * @throws DBALRuntimeException
 	 */
 	public function assertFilterAllowed(Filter $filter): void
@@ -80,6 +86,10 @@ class FiltersTableScope implements FiltersScopeInterface
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * Returns `true` when `$scope` is an instance of this class or a subclass.
+	 * This means a `FiltersTableScope` will accept filters from another `FiltersTableScope`
+	 * (regardless of which table it references) but will reject any other scope type.
 	 */
 	public function shouldAllowFiltersScope(FiltersScopeInterface $scope): bool
 	{

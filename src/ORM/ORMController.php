@@ -649,7 +649,17 @@ abstract class ORMController
 	}
 
 	/**
-	 * Persists (CREATE or UPDATE) a given entity instance in the database.
+	 * Persists (INSERT or UPDATE) the given entity to the database.
+	 *
+	 * - **INSERT path** (`entity->isNew()`):
+	 *   - throws `ORMException` if the auto-increment column is non-null (caller must not pre-set it).
+	 *   - after a successful insert, fetches `lastInsertId()` and hydrates the entity with it,
+	 *     then marks it saved via `isSaved(true)`.
+	 * - **UPDATE path** (entity exists and is not saved):
+	 *   - builds an identity filter via `toIdentityFilters()` and updates with `limit(1)`.
+	 *   - marks the entity saved after a successful update.
+	 *
+	 * A saved, non-new entity with no changes is silently skipped (no-op).
 	 *
 	 * @psalm-param TEntity $entity
 	 *
@@ -709,9 +719,15 @@ abstract class ORMController
 	}
 
 	/**
-	 * Clarify the user soft delete strategy intention.
+	 * Determines whether to use soft-delete or hard-delete based on the caller's intent and table capabilities.
 	 *
-	 * @throws DBALException
+	 * | `$soft`  | Result |
+	 * |----------|--------|
+	 * | `true`   | Asserts the table is soft-deletable (throws if not), returns `true`. |
+	 * | `null`   | Auto-detects: returns `true` if the table is soft-deletable, `false` otherwise. |
+	 * | `false`  | Caller explicitly requests hard-delete; returns `false` unconditionally. |
+	 *
+	 * @throws DBALException when `$soft=true` but the table does not support soft-delete
 	 */
 	private function clarifyUserSoftDeleteStrategy(?bool $soft): bool
 	{

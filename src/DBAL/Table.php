@@ -402,6 +402,10 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Locks this table to prevent further changes.
 	 *
+	 * Locking cascades to all registered columns, the PK constraint,
+	 * all unique-key constraints, all foreign-key constraints, and all indexes,
+	 * transitioning each into an immutable state.
+	 *
 	 * @return $this
 	 */
 	public function lock(): self
@@ -565,10 +569,14 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	}
 
 	/**
-	 * Sets table column prefix.
+	 * Sets the column prefix that is prepended to every column name added to this table.
 	 *
-	 * @param string $column_prefix
-	 * @param bool   $override
+	 * When `$override` is `true`, any column whose existing prefix differs from `$column_prefix`
+	 * will have its prefix overwritten when passed to {@see addColumn()}. Set this to `true`
+	 * when you want the table prefix to take unconditional precedence over per-column prefixes.
+	 *
+	 * @param string $column_prefix the prefix string (must match `Column::PREFIX_PATTERN`)
+	 * @param bool   $override      when `true`, forces the prefix onto columns that already have a different one
 	 *
 	 * @return $this
 	 */
@@ -843,7 +851,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	 */
 	public function getPrivateColumns(): array
 	{
-		return \array_filter($this->columns, static fn ($column) => $column->isPrivate());
+		return \array_filter($this->columns, static fn($column) => $column->isPrivate());
 	}
 
 	/**
@@ -853,7 +861,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	 */
 	public function getSensitiveColumns(): array
 	{
-		return \array_filter($this->columns, static fn ($column) => $column->isSensitive());
+		return \array_filter($this->columns, static fn($column) => $column->isSensitive());
 	}
 
 	/**
@@ -1100,6 +1108,14 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Adds a given column to the current table.
 	 *
+	 * If the table has a column prefix set:
+	 * - Columns with no prefix get the table's prefix assigned.
+	 * - When `$column_prefix_override` is `true`, columns with a **different** prefix have
+	 *   their prefix overwritten with the table's prefix.
+	 *
+	 * After the prefix is resolved, `lockName()` is called on the column, freezing its name
+	 * and full name so neither can be changed after the column is part of a table.
+	 *
 	 * @param Column $column the column to add
 	 *
 	 * @return $this
@@ -1343,7 +1359,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	public function getRelations(bool $include_private = true): array
 	{
 		if (!$include_private) {
-			return \array_filter($this->relations, static fn ($relation) => !$relation->isPrivate());
+			return \array_filter($this->relations, static fn($relation) => !$relation->isPrivate());
 		}
 
 		return $this->relations;
@@ -1375,7 +1391,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	public function getVirtualRelations(bool $include_private = true): array
 	{
 		if (!$include_private) {
-			return \array_filter($this->virtual_relations, static fn ($relation) => !$relation->isPrivate());
+			return \array_filter($this->virtual_relations, static fn($relation) => !$relation->isPrivate());
 		}
 
 		return $this->virtual_relations;
@@ -1464,7 +1480,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 			foreach ($this->fk_constraints as /* $fk_name => */ $fk) {
 				if (
 					$fk->getReferenceTable()
-						->getName() !== $reference->getName()
+					->getName() !== $reference->getName()
 				) {
 					continue;
 				}
@@ -1637,12 +1653,15 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	}
 
 	/**
-	 * Prepare data for database query.
+	 * Converts a PHP-land row to DB-wire values by calling `phpToDb()` on each column's type.
 	 *
-	 * @param array          $row
-	 * @param RDBMSInterface $rdbms
+	 * Only columns whose name is found in this table are converted; unknown keys are passed
+	 * through unchanged. The returned array preserves all original keys.
 	 *
-	 * @return array
+	 * @param array          $row   associative array of column name/full-name → PHP value
+	 * @param RDBMSInterface $rdbms the current RDBMS instance (passed to the type converter)
+	 *
+	 * @return array the row with all matched columns converted to their DB representation
 	 */
 	public function doPhpToDbConversion(array $row, RDBMSInterface $rdbms): array
 	{
@@ -1719,12 +1738,15 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	}
 
 	/**
-	 * Convert db raw data to php data type.
+	 * Converts DB-wire values from PDO to PHP-land values by calling `dbToPhp()` on each column's type.
 	 *
-	 * @param array          $row
-	 * @param RDBMSInterface $rdbms
+	 * This is the inverse of {@see doPhpToDbConversion()}. Columns whose name is not found
+	 * in the table are passed through unchanged.
 	 *
-	 * @return array
+	 * @param array          $row   associative array of column name/full-name → raw DB value
+	 * @param RDBMSInterface $rdbms the current RDBMS instance (passed to the type converter)
+	 *
+	 * @return array the row with all matched columns converted to their PHP representation
 	 */
 	public function doDbToPhpConversion(array $row, RDBMSInterface $rdbms): array
 	{
@@ -1838,8 +1860,11 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	}
 
 	/**
-	 * Returns the single primary key column or throws exception
-	 * if the table does not have exactly one primary key column.
+	 * Returns the single primary key column or throws an exception
+	 * if the table does not have **exactly one** primary key column.
+	 *
+	 * Throws when: (a) there is no primary key constraint, or (b) the primary key
+	 * is composite (two or more columns).
 	 *
 	 * @return Column the single primary key column
 	 */
@@ -1863,7 +1888,9 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	}
 
 	/**
-	 * Checks if this table has exactly one column in its primary key.
+	 * Returns `true` when the table's primary key consists of **exactly one** column.
+	 *
+	 * Returns `false` for tables with no primary key or a composite PK.
 	 */
 	public function hasSinglePKColumn(): bool
 	{
@@ -1872,6 +1899,14 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 
 	/**
 	 * Asserts if we can add the relation to this table.
+	 *
+	 * Guards against the following invalid states (each throws `DBALException`):
+	 * - `$relation`'s host table is not `$this`
+	 * - The relation name conflicts with an existing column name or full name
+	 * - The relation name conflicts with an existing relation name
+	 * - The relation name conflicts with an existing virtual relation name
+	 * - The relation name conflicts with an existing collection name
+	 * - The relation name is on the Gobl forbidden names list
 	 *
 	 * @param Relation $relation
 	 *

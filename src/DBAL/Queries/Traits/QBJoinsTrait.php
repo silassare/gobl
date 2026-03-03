@@ -152,7 +152,7 @@ trait QBJoinsTrait
 	 * ```php
 	 * $qb->innerJoin('c')           // host alias 'c' already in FROM
 	 *    ->to('accounts', 'a')      // target table + alias
-	 *    ->on($qb->filters()->eq('a.account_client_id', new QBExpression('c.client_id')));
+	 *    ->on($qb->filters()->eq('a.account_client_id', $qb->expr('c.client_id')));
 	 * ```
 	 *
 	 * @param JoinType     $type  JOIN type (INNER, LEFT, RIGHT)

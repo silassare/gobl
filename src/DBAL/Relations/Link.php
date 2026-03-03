@@ -73,6 +73,14 @@ abstract class Link implements LinkInterface
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * Two-phase execution:
+	 * 1. Calls `runLinkTypeApplyLogic()` (implemented by each concrete subclass) which adds
+	 *    the join / where conditions specific to the link type.
+	 * 2. If that succeeds **and** `$options['filters']` is non-empty, appends those extra
+	 *    filters to the target QB using a `FiltersTableScope` for the target table.
+	 *
+	 * Returns `false` when the link cannot be applied (e.g., a required entity column is null).
 	 */
 	final public function apply(QBSelect $target_qb, ?ORMEntity $host_entity = null): bool
 	{
@@ -93,7 +101,16 @@ abstract class Link implements LinkInterface
 	}
 
 	/**
-	 * Creates a sub-link between two tables.
+	 * Creates a sub-link between two tables via `Relation::createLink()`.
+	 *
+	 * When `$allow_nesting` is `false` (the default), the created link must itself be a
+	 * direct `Link` subclass — `LinkJoin` children are rejected to prevent unbounded recursive
+	 * join chains that could generate malformed SQL.
+	 *
+	 * @param Table $host_table
+	 * @param Table $target_table
+	 * @param array $options
+	 * @param bool  $allow_nesting when `false`, rejects `LinkJoin` sub-links (prevents recursion)
 	 *
 	 * @throws DBALException
 	 */

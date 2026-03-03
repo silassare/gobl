@@ -73,6 +73,9 @@ class PostgreSQL extends SQLDriverBase
 		return $last_id;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	protected function connect(): PDO
 	{
 		$host     = $this->config->getDbHost();

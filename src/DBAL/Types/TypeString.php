@@ -340,7 +340,8 @@ class TypeString extends Type implements BaseTypeInterface
 	/**
 	 * Medium string.
 	 *
-	 * This option can be used to indicate that the string is of medium length.
+	 * Signals that this column should use `MEDIUMTEXT` storage in MySQL (up to ~16 MB)
+	 * instead of the default `VARCHAR` / `TEXT`. Has no effect on validation logic.
 	 *
 	 * @param bool $medium
 	 *
@@ -354,7 +355,8 @@ class TypeString extends Type implements BaseTypeInterface
 	/**
 	 * Long string.
 	 *
-	 * This option can be used to indicate that the string is of long length.
+	 * Signals that this column should use `LONGTEXT` storage in MySQL (up to ~4 GB)
+	 * instead of the default `VARCHAR` / `TEXT`. Has no effect on validation logic.
 	 *
 	 * @param bool $long
 	 *

@@ -49,7 +49,12 @@ abstract class Type implements TypeInterface
 	}
 
 	/**
-	 * Type clone helper.
+	 * Resets the lock and deep-clones the base type so the cloned instance
+	 * can be safely modified without affecting the original.
+	 *
+	 * The `base_type` is rebuilt from its own `toArray()` representation via
+	 * `TypeUtils::buildTypeOrFail()` rather than a shallow `clone`, ensuring all
+	 * nested option state is independent.
 	 */
 	public function __clone()
 	{
@@ -375,14 +380,16 @@ abstract class Type implements TypeInterface
 	}
 
 	/**
-	 * Call the base type method only it is not the same as the current instance.
+	 * Forwards a method call to the base type only when the base type is a **different** type.
 	 *
-	 * This prevent infinite loop.
+	 * When the wrapper type and the base type share the same `getName()` (i.e. `Type` wraps
+	 * itself — a self-referential configuration), the call would recurse infinitely.
+	 * This guard returns `null` in that case, preventing the infinite loop.
 	 *
-	 * @param string $method
-	 * @param array  $args
+	 * @param string $method the method name to call on `$this->base_type`
+	 * @param array  $args   positional arguments to pass
 	 *
-	 * @return mixed
+	 * @return mixed the return value from the base type method, or `null` for self-references
 	 */
 	private function safelyCallOnBaseType(string $method, array $args): mixed
 	{

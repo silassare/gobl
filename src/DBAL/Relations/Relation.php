@@ -69,7 +69,17 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface
 	}
 
 	/**
-	 * Create a relation link from options.
+	 * Creates the appropriate `LinkInterface` implementation based on the `type` key in `$options`.
+	 *
+	 * Dispatches to:
+	 * - `LinkType::COLUMNS` → `LinkColumns`
+	 * - `LinkType::MORPH`   → `LinkMorph`
+	 * - `LinkType::THROUGH` → `LinkThrough` (requires `pivot_table` key)
+	 * - `LinkType::JOIN`    → `LinkJoin`
+	 *
+	 * Note: `$options['filters']` is accepted here but is **not validated at creation time**
+	 * because the target table's generated class files may not yet exist when the schema is
+	 * being built. Validation happens lazily when the relation is actually used.
 	 *
 	 * @param RDBMSInterface $rdbms
 	 * @param Table          $host_table
@@ -204,6 +214,9 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * Delegates entirely to the target table's `isPrivate()` state.
+	 * A relation to a private table is itself considered private.
 	 */
 	public function isPrivate(): bool
 	{

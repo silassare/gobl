@@ -124,6 +124,15 @@ abstract class ORMEntity implements ArrayCapableInterface
 	/**
 	 * Magic getter for column value.
 	 *
+	 * Resolution order when the stored value is `null`:
+	 * 1. If the column is auto-incremented and the entity is new → returns `null` (ID not yet assigned).
+	 * 2. If the column is non-nullable → tries `Type::getDefault()`, then `Type::getEmptyValueOfType()`;
+	 *    if both return `null`, throws `ORMRuntimeException` (programming error: required value was never set).
+	 * 3. Otherwise (nullable column) → returns `null`.
+	 *
+	 * When `$name` is not a valid column and `$strict` mode is on, throws `ORMRuntimeException`;
+	 * otherwise triggers a PHP error and returns `null`.
+	 *
 	 * @param string $name the column full name or name
 	 *
 	 * @return null|mixed
@@ -177,6 +186,13 @@ abstract class ORMEntity implements ArrayCapableInterface
 
 	/**
 	 * Magic setter for column value.
+	 *
+	 * Operates in two modes:
+	 * - **User mode** (entity is new, or the column already exists in `_oeb_row_saved`):
+	 *   validates the value via `doValidation()`, marks the entity as unsaved if the value changed.
+	 * - **Hydration mode** (PDO is filling a freshly fetched entity, i.e. the column is not yet
+	 *   in `_oeb_row_saved`): converts via `Type::dbToPhp()` and simultaneously populates both
+	 *   `_oeb_row` and `_oeb_row_saved`, so the entity is considered clean/saved immediately.
 	 *
 	 * @param string $name  the column full name or name
 	 * @param mixed  $value the column value
@@ -390,7 +406,14 @@ abstract class ORMEntity implements ArrayCapableInterface
 	abstract public static function ctrl(): ORMController;
 
 	/**
-	 * To check if this entity is saved.
+	 * Returns whether the entity has been persisted to the database.
+	 *
+	 * When `$set_as_saved` is `true`, marks the entity as persisted:
+	 * - merges `_oeb_row` into `_oeb_row_saved` (updating the snapshot of the DB state),
+	 * - clears the `isNew` flag,
+	 * - sets `_oeb_is_saved` to `true`.
+	 *
+	 * This is called automatically by `ORMController::persistItem()` after a successful INSERT or UPDATE.
 	 *
 	 * @param bool $set_as_saved if true the entity will be considered as saved
 	 *
@@ -485,12 +508,17 @@ abstract class ORMEntity implements ArrayCapableInterface
 	}
 
 	/**
-	 * Sets a column value.
+	 * Validates and returns the new value for a column.
+	 *
+	 * Only re-validates if the value actually changed from the currently stored value;
+	 * identical values pass through without a `Type::validate()` call.
+	 * On validation failure, the exception's data is enriched with `field`,
+	 * `_table_name`, and `_options` before being re-thrown.
 	 *
 	 * @param string $name  the column name or full name
 	 * @param mixed  $value the column new value
 	 *
-	 * @return mixed
+	 * @return mixed the validated (and possibly coerced) value
 	 *
 	 * @throws TypesInvalidValueException
 	 */

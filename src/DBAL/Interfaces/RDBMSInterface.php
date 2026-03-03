@@ -189,14 +189,18 @@ interface RDBMSInterface
 	public function rollBack(): bool;
 
 	/**
-	 * Executes raw sql string.
+	 * Executes a raw SQL string and returns the resulting PDO statement.
 	 *
-	 * @param string     $sql                    the sql query string
-	 * @param null|array $params                 Your sql params
-	 * @param null|array $params_types           Your sql params type
-	 * @param bool       $is_multi_queries       the sql string contains multiple query
-	 * @param bool       $in_transaction         run the query in a transaction
-	 * @param bool       $auto_close_transaction auto commit or rollback
+	 * @param string     $sql                    the SQL query string to execute
+	 * @param null|array $params                 bound parameters (named or positional)
+	 * @param null|array $params_types           PDO type for each parameter (`\PDO::PARAM_*`)
+	 * @param bool       $is_multi_queries       `true` when `$sql` contains multiple
+	 *                                           semicolon-separated statements
+	 * @param bool       $in_transaction         when `true`, wraps the execution in a transaction
+	 * @param bool       $auto_close_transaction when `true` (and `$in_transaction` is `true`),
+	 *                                           automatically commits on success or rolls back on
+	 *                                           failure; when `false`, the caller retains full
+	 *                                           control and **must** commit or roll back manually
 	 *
 	 * @return PDOStatement
 	 */

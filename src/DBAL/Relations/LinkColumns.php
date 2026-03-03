@@ -93,6 +93,10 @@ final class LinkColumns extends Link
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * Populates `$target_data` with all mapped host→target column values from `$host_entity`.
+	 * Returns `false` (leaving `$target_data` unchanged) as soon as any mapped host column
+	 * value is `null`, because a null FK value makes the relation unsatisfiable.
 	 */
 	public function fillRelation(ORMEntity $host_entity, array &$target_data = []): bool
 	{
@@ -112,6 +116,14 @@ final class LinkColumns extends Link
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * Two operating modes depending on whether a host entity is provided:
+	 *
+	 * - **Entity mode** (`$host_entity !== null`): reads concrete column values from the entity
+	 *   and adds them as equality filters on the target QB. Returns `false` if any mapped column
+	 *   value is `null` (relation unsatisfiable).
+	 * - **Join mode** (`$host_entity === null`): adds an `INNER JOIN` to the target QB joining
+	 *   the target table to the host table with the mapped columns as the ON condition.
 	 */
 	public function runLinkTypeApplyLogic(QBSelect $target_qb, ?ORMEntity $host_entity = null): bool
 	{

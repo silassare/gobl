@@ -71,6 +71,10 @@ abstract class SQLDriverBase extends Db
 	/**
 	 * {@inheritDoc}
 	 *
+	 * Implements **nested transaction emulation via SAVEPOINTs**.
+	 * - When `$transaction_counter` is 0 (outermost call), delegates to `PDO::beginTransaction()`.
+	 * - For every subsequent nested call, issues `SAVEPOINT sp_N` where `N` is the new counter value.
+	 *
 	 * @throws DBALException
 	 */
 	public function beginTransaction(): bool
@@ -90,6 +94,10 @@ abstract class SQLDriverBase extends Db
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * Decrements `$transaction_counter`:
+	 * - When it reaches 0 (outermost transaction), calls `PDO::commit()`.
+	 * - For nested transactions, issues `RELEASE SAVEPOINT sp_N` to commit the savepoint.
 	 *
 	 * @throws DBALException
 	 */
@@ -112,6 +120,11 @@ abstract class SQLDriverBase extends Db
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * Decrements `$transaction_counter`:
+	 * - When it reaches 0 (outermost transaction), calls `PDO::rollback()`.
+	 * - For nested transactions, issues `ROLLBACK TO SAVEPOINT sp_N` to roll back to the savepoint
+	 *   without aborting the outer transaction.
 	 *
 	 * @throws DBALException
 	 */
@@ -298,11 +311,16 @@ abstract class SQLDriverBase extends Db
 	}
 
 	/**
+	 * Executes a write SQL statement (INSERT, UPDATE, DELETE, DDL) and returns the affected-row count.
+	 *
+	 * Delegates to `execute()` with default options (no explicit transaction) and returns
+	 * the statement's `rowCount()` value.
+	 *
 	 * @param string     $sql
 	 * @param null|array $params
 	 * @param array      $params_types
 	 *
-	 * @return int
+	 * @return int number of rows affected
 	 *
 	 * @throws DBALException
 	 */

@@ -63,10 +63,15 @@ final class RelationBuilder
 	}
 
 	/**
-	 * Specify a relation link of type "columns".
+	 * Creates a `columns`-type relation link between the host and target tables.
 	 *
-	 * @param array<string, string> $host_to_target_columns_map
-	 * @param array                 $filters
+	 * When `$host_to_target_columns_map` is empty, the link auto-detects the column
+	 * mapping by inspecting the host table's FK constraints that reference the target table.
+	 * Pass an explicit map when the auto-detection is ambiguous or incorrect.
+	 *
+	 * @param array<string, string> $host_to_target_columns_map host column name → target column name;
+	 *                                                          empty string triggers auto-detection
+	 * @param array                 $filters                    optional extra filter conditions on the relation
 	 *
 	 * @return Relation
 	 *
@@ -98,12 +103,20 @@ final class RelationBuilder
 	}
 
 	/**
-	 * Creates a relation.
+	 * Creates a relation using the provided `$link_options` array.
 	 *
-	 * @param array $link_options
+	 * This is the core link-dispatch method. It instantiates the appropriate
+	 * `LinkInterface` implementation based on `$link_options['type']`, then wraps
+	 * it in the appropriate `Relation` subclass (`OneToOne`, `OneToMany`, etc.).
+	 *
+	 * Throws `DBALRuntimeException` if {@see from()} has not been called first
+	 * (no target table set).
+	 *
+	 * @param array $link_options link definition array (must include `type`)
 	 *
 	 * @return Relation
 	 *
+	 * @throws DBALRuntimeException when no target table is set
 	 * @throws DBALException
 	 */
 	public function using(array $link_options): Relation
@@ -150,9 +163,13 @@ final class RelationBuilder
 	}
 
 	/**
-	 * Sets the target table.
+	 * Sets the **target** table for this relation (the table being joined to).
 	 *
-	 * @param string|Table $table
+	 * Despite the name `from()`, this sets the **target** table (right-hand side of the
+	 * relation), not the host. The host table was provided to the builder's constructor.
+	 * Must be called before {@see using()}, {@see usingColumns()}, etc.
+	 *
+	 * @param string|Table $table target table name or `Table` instance
 	 *
 	 * @return $this
 	 */

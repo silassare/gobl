@@ -107,9 +107,15 @@ final class QBInsert implements QBInterface
 	}
 
 	/**
-	 * Specify values to insert.
+	 * Adds one or more rows to insert.
 	 *
-	 * @param array<int, array<string, mixed>>|array<string, mixed> $values the column => value map or array of column => value map for multi insert
+	 * Auto-detects between single-row and multi-row input:
+	 * - **String-keyed array** (e.g. `['col' => 'val', ...]`) → treated as a single row
+	 *   and forwarded to {@see singleValue()}.
+	 * - **Integer-keyed array** (e.g. `[['col' => 'val'], ['col' => 'val2']]`) → each element
+	 *   is forwarded as a separate row to {@see singleValue()}.
+	 *
+	 * @param array<int, array<string, mixed>>|array<string, mixed> $values single row map or list of row maps for multi insert
 	 *
 	 * @return $this
 	 */
@@ -130,11 +136,20 @@ final class QBInsert implements QBInterface
 	}
 
 	/**
-	 * Specify value to insert.
+	 * Appends a single row to the INSERT statement.
 	 *
-	 * @param array<string, mixed> $value the column => value map
+	 * Column set consistency is enforced: if rows have already been added, the column set of
+	 * `$value` must exactly match the column set of the first row; mismatches throw
+	 * `InvalidArgumentException`. This prevents malformed multi-row inserts.
+	 *
+	 * Throws `LogicException` if {@see into()} has not been called yet.
+	 *
+	 * @param array<string, mixed> $value column → value map for a single row
 	 *
 	 * @return $this
+	 *
+	 * @throws InvalidArgumentException when the column set differs from previous rows
+	 * @throws LogicException           when `into()` has not been called first
 	 */
 	public function singleValue(array $value): self
 	{

@@ -34,9 +34,13 @@ final class FilterGroup implements FilterInterface
 	public function __construct(protected bool $is_and) {}
 
 	/**
-	 * Returns filters in this group.
+	 * Returns the filters in this group.
 	 *
-	 * @param bool $flatten
+	 * When `$flatten` is `true`, any direct child `FilterGroup` that uses the **same**
+	 * chaining operator as this group is merged (its filters are inlined), reducing
+	 * unnecessary nesting. Child groups with a different operator are kept intact.
+	 *
+	 * @param bool $flatten when `true`, same-operator child groups are merged into this level
 	 *
 	 * @return array<FilterInterface|Filters>
 	 */
@@ -92,9 +96,17 @@ final class FilterGroup implements FilterInterface
 	}
 
 	/**
-	 * Makes sure the group use the given conditional operator.
+	 * Ensures this group uses the requested chaining operator (AND or OR).
 	 *
-	 * @param bool $is_and
+	 * When the requested operator differs from the current one, the existing filters
+	 * are **wrapped** into a new child `FilterGroup` (preserving their operator), and
+	 * the outer group's operator is changed. This avoids silently reinterpreting
+	 * existing conditions under a different conjunction.
+	 *
+	 * Example: switching an AND group to OR wraps existing AND conditions in a sub-group:
+	 * `(a AND b)` becomes `(a AND b) OR ...`
+	 *
+	 * @param bool $is_and `true` for AND, `false` for OR
 	 *
 	 * @return $this
 	 */

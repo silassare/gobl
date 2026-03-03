@@ -32,6 +32,11 @@ final class FilterRaw implements FilterInterface
 	 */
 	public function __construct(protected string $filter_query_string) {}
 
+	/**
+	 * Returns the raw SQL filter query string.
+	 *
+	 * @return string
+	 */
 	public function __toString(): string
 	{
 		return $this->filter_query_string;

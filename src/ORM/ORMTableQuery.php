@@ -86,7 +86,14 @@ abstract class ORMTableQuery extends FiltersTableScope
 	}
 
 	/**
-	 * Magic method to handle filters.
+	 * Magic method to handle dynamically generated per-column filter methods.
+	 *
+	 * On the first call for a given table, builds a whitelist of allowed filter methods by
+	 * iterating all table columns and their `Type::getAllowedFilterOperators()`. Each entry
+	 * maps a camelCase method name (e.g. `whereNameEq`, `whereAgeGt`) to a `[column, Operator]`
+	 * pair. The whitelist is cached in a static variable indexed by table name.
+	 *
+	 * Throws `BadMethodCallException` for any method name not in the whitelist.
 	 *
 	 * @param string $name
 	 * @param array  $arguments
@@ -170,6 +177,13 @@ abstract class ORMTableQuery extends FiltersTableScope
 	/**
 	 * Merge a list of filters to the current filters.
 	 *
+	 * Accepts three filter forms:
+	 * - **`static` instance** — merged directly into the current filters; passing `$this` throws.
+	 * - **`callable`** — invoked with a fresh `subGroup()` and must return the **same sub-group
+	 *   instance** (not a new one); throws `ORMRuntimeException` if the callable returns a
+	 *   different object.
+	 * - **`array`** — forwarded as-is to `Filters::where()`.
+	 *
 	 * @param array|callable|static ...$filters
 	 *
 	 * @return $this
@@ -212,6 +226,10 @@ abstract class ORMTableQuery extends FiltersTableScope
 
 	/**
 	 * Create a sub group for complex filters.
+	 *
+	 * The returned instance **shares the same `QBSelect`** as the parent (same bindings, same
+	 * alias map) but gets its own `Filters` sub-group instance so its conditions are nested
+	 * separately. Pass the returned instance to `where()` or a callable to add grouped conditions.
 	 *
 	 * @return static
 	 */
@@ -454,6 +472,12 @@ abstract class ORMTableQuery extends FiltersTableScope
 
 	/**
 	 * Create a {@see QBSelect} and apply the current filters and the relation's filters.
+	 *
+	 * Validates via `assertCanManageRelatives()` that the relation targets this query's table
+	 * and (when an entity is given) that the entity is persisted and of the correct class.
+	 *
+	 * Returns `null` when the link cannot be applied — e.g. a column-based link where a
+	 * required entity column value is `null`, making the relation unsatisfiable.
 	 */
 	public function selectRelatives(
 		Relation $relation,
@@ -554,8 +578,14 @@ abstract class ORMTableQuery extends FiltersTableScope
 	/**
 	 * Make sure the soft deleted logic is applied to the query.
 	 *
+	 * Appends an `IS FALSE` filter on the `soft_deleted` column when both:
+	 * - `$include_soft_deleted_rows` is `false` **or** `$force_exclude` is `true`, **and**
+	 * - the table actually has a `soft_deleted` column (`isSoftDeletable()`).
+	 *
+	 * Called automatically by `select()`, `update()`, etc. so callers rarely need this directly.
+	 *
 	 * @param QBSelect|QBUpdate $qb
-	 * @param bool              $force_exclude
+	 * @param bool              $force_exclude bypass `$include_soft_deleted_rows` and always exclude
 	 */
 	protected function applySoftDeletedLogic(QBSelect|QBUpdate $qb, bool $force_exclude = false): void
 	{

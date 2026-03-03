@@ -84,8 +84,13 @@ final class QBUpdate implements QBInterface
 	/**
 	 * Sets the table to update.
 	 *
-	 * @param string      $table
-	 * @param null|string $alias
+	 * When `$alias` is given it is registered as both the alias and the main alias for the
+	 * table, and stored in `$options_update_table_alias` for use by the SQL generator
+	 * when building SET and WHERE expressions. Calling `update()` a second time replaces
+	 * the previously set table.
+	 *
+	 * @param string      $table table name or full name
+	 * @param null|string $alias optional alias for the table in the generated SQL
 	 *
 	 * @return $this
 	 */
@@ -178,12 +183,21 @@ final class QBUpdate implements QBInterface
 	}
 
 	/**
-	 * Sets the columns and values to update.
+	 * Sets the columns and values for the SET clause.
 	 *
-	 * @param array $values      the column => value map
-	 * @param bool  $auto_prefix if true, columns will be auto prefixed
+	 * Each entry in `$values` is bound as a named parameter and the column→parameter
+	 * map is stored for the SQL generator. `QBExpression` values are passed through
+	 * as raw SQL fragments without binding.
+	 *
+	 * Throws `LogicException` if {@see update()} has not been called first.
+	 *
+	 * @param array $values      the column → value map (or column → `QBExpression` for raw SQL)
+	 * @param bool  $auto_prefix when `true`, column names are automatically prefixed with
+	 *                           the table's column prefix before binding
 	 *
 	 * @return $this
+	 *
+	 * @throws LogicException when `update()` has not been called first
 	 */
 	public function set(array $values, bool $auto_prefix = true): self
 	{

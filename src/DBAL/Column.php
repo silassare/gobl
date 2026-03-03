@@ -262,7 +262,16 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	/**
 	 * Locks this column to prevent further changes.
 	 *
+	 * Associates the column with `$table`, finalizes the full column name, and locks the
+	 * column's type. Locking is idempotent for the same `$table` instance — calling lock
+	 * again with the same table is a no-op. Calling lock with a **different** table throws
+	 * `DBALRuntimeException` to prevent a column instance from being shared across tables.
+	 *
+	 * @param Table $table the table this column belongs to
+	 *
 	 * @return $this
+	 *
+	 * @throws DBALRuntimeException when already locked to a different table
 	 */
 	public function lock(Table $table): self
 	{
@@ -311,13 +320,27 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	}
 
 	/**
-	 * Sets column reference.
+	 * Sets the column reference, which causes this column to inherit its type from another column.
 	 *
-	 * @param null|Column|string $reference Column instance or column reference string
-	 * @param bool               $copy      If true and reference is a column instance, the column type will
-	 *                                      be considered as a copy of the reference column type
+	 * Two reference modes are supported:
+	 *  - **`ref:` (reference)** – the resolved type is shared; changes to the source column's
+	 *    type options (via `cleanColumnTypeOptionsForReference`) are reflected here.
+	 *    `auto_increment` is stripped from the derived column.
+	 *  - **`cp:` (copy)** – the resolved type options are cloned independently at resolution
+	 *    time; subsequent changes to the source have no effect.
+	 *
+	 * The stored string format is `ref:table_name.column_name` or `cp:table_name.column_name`.
+	 * When a `Column` instance is passed, the mode is determined by `$copy`.
+	 * When a plain string is passed, it must already be in the `ref:`/`cp:` format.
+	 *
+	 * @param null|Column|string $reference `Column` instance, formatted reference string, or `null` to clear
+	 * @param bool               $copy      When `true` (and `$reference` is a `Column` instance),
+	 *                                      stores the reference as `cp:` (independent copy)
 	 *
 	 * @return Column
+	 *
+	 * @throws InvalidArgumentException when the string format is invalid or the column instance
+	 *                                   has not yet been added to a table
 	 */
 	public function setReference(self|string|null $reference, bool $copy = false): self
 	{

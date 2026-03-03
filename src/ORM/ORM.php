@@ -32,6 +32,15 @@ class ORM
 	private static array $namespaces = [];
 
 	/**
+	 * Registers a database namespace with the ORM.
+	 *
+	 * Associates `$namespace` with a database instance and an on-disk output directory
+	 * (where generated entity/controller/result classes live). The directory is resolved
+	 * relative to the project cache dir via `FSUtils` and must be a writable directory.
+	 *
+	 * Throws `ORMRuntimeException` if the namespace is already declared or if
+	 * `$out_dir` is not a writable directory.
+	 *
 	 * @param string         $namespace
 	 * @param RDBMSInterface $db
 	 * @param string         $out_dir

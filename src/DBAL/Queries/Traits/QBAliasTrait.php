@@ -40,6 +40,9 @@ trait QBAliasTrait
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * @throws DBALRuntimeException when the alias has not been declared for this table yet,
+	 *                              or when the table already has a different main alias
 	 */
 	public function setMainAlias(string|Table $table, string $alias): static
 	{
@@ -66,6 +69,8 @@ trait QBAliasTrait
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * @throws DBALRuntimeException when no main alias exists and `$declare` is `false`
 	 */
 	public function getMainAlias(string|Table $table, bool $declare = false): string
 	{
@@ -110,6 +115,8 @@ trait QBAliasTrait
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * @throws DBALRuntimeException when the alias string is invalid or already registered for a different table
 	 */
 	public function alias(string|Table $table, string $alias, bool $main = false): static
 	{

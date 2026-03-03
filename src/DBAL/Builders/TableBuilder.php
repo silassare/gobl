@@ -68,11 +68,17 @@ final class TableBuilder
 	) {}
 
 	/**
-	 * Makes sure the table is ready to be used.
+	 * Runs a user-supplied factory closure to declare columns, constraints, and relations inline.
 	 *
-	 * @param callable($this):void $factory
+	 * The `$factory` callable receives `$this` (the `TableBuilder`) as its only argument.
+	 * After the callable returns, all collected relations are immediately registered on the
+	 * table via `registerCollectedRelations()`.
+	 *
+	 * @param callable($this):void $factory closure that receives this builder and declares table structure
 	 *
 	 * @return $this
+	 *
+	 * @throws DBALRuntimeException when the factory throws
 	 */
 	public function factory(callable $factory): self
 	{
@@ -357,13 +363,17 @@ final class TableBuilder
 	}
 
 	/**
-	 * Adds or updates a column to be of the same type as another column.
+	 * Adds or updates a column to have the same type as another column.
 	 *
-	 * @param string $column_name
-	 * @param string $source_table
-	 * @param string $source_column
+	 * The type options are **copied** (cloned) from the source column at the time
+	 * this method is called. Subsequent changes to the source column's type definition
+	 * are **not** reflected in the column created here.
 	 *
-	 * @return TypeInterface
+	 * @param string $column_name   the name of the column to create/update
+	 * @param string $source_table  the table that owns the source column
+	 * @param string $source_column the column whose type to copy
+	 *
+	 * @return TypeInterface the type instance applied to the column
 	 *
 	 * @throws DBALException
 	 */
@@ -705,7 +715,11 @@ final class TableBuilder
 	}
 
 	/**
-	 * Collects indexes and foreign keys and register them to the table.
+	 * Runs all deferred FK and index factories, registering them on the table.
+	 *
+	 * FK factories are always run **before** index factories because indexes may
+	 * depend on FKs (e.g. an index on a FK column). Both factory lists are cleared
+	 * after execution so this method is idempotent on subsequent calls.
 	 *
 	 * @return $this
 	 *
@@ -734,7 +748,13 @@ final class TableBuilder
 	}
 
 	/**
-	 * Collects all relations and register them to the table.
+	 * Runs all deferred relation factories and registers the resulting relations on the table.
+	 *
+	 * Two-phase execution:
+	 *  1. Each `$relations_factories` callback is called (allows cross-table relation setup).
+	 *  2. `registerCollectedRelations()` flushes the `$collected_relations` list to the table.
+	 *
+	 * Both lists are cleared afterwards so this method is idempotent on subsequent calls.
 	 *
 	 * @return $this
 	 *

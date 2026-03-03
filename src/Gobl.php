@@ -82,9 +82,27 @@ class Gobl
 	}
 
 	/**
-	 * Add or overwrite templates.
+	 * Registers or overwrites named OTpl templates, compiling each to a cached `.otpl` file.
 	 *
-	 * @param array $templates
+	 * Each entry in `$templates` must have the shape:
+	 * ```php
+	 * [
+	 *     'template-name' => [
+	 *         'path'     => '/absolute/path/to/source.php',  // required, must be readable
+	 *         'replaces' => ['SomeToken' => '<%$...%>'],     // optional extra substitutions
+	 *     ],
+	 * ]
+	 * ```
+	 * Built-in Gobl macro substitutions (e.g. `MY_DB_NS`, `MyEntity`, `my_table`) are applied
+	 * after the caller-supplied `replaces` so the built-ins always take effect.
+	 *
+	 * Compilation is skipped when the source file and `$replaces` are unchanged (MD5 cache).
+	 *
+	 * @param array $templates map of template name → `['path' => string, 'replaces' => array]`
+	 *
+	 * @throws InvalidArgumentException when `path` is missing or not a readable file,
+	 *                                   or when `replaces` is not an array
+	 * @throws GoblRuntimeException     when the template file cannot be read or written
 	 */
 	public static function addTemplates(array $templates): void
 	{
@@ -338,12 +356,28 @@ class Gobl
 	}
 
 	/**
-	 * Converts source code to templates.
+	 * Converts PHP source code into an OTpl template by substituting well-known Gobl tokens.
 	 *
-	 * @param string $source
-	 * @param array  $replaces
+	 * The following built-in substitutions are always applied (and take precedence over any
+	 * caller-supplied `$replaces`):
 	 *
-	 * @return string
+	 * | Token                      | Template expression            |
+	 * |----------------------------|---------------------------------|
+	 * | `MY_DB_NS`                 | `<%$.namespace%>`              |
+	 * | `MyCRUDHandler`            | `<%$.class.crud%>`             |
+	 * | `MyTableQuery`             | `<%$.class.query%>`            |
+	 * | `MyEntity`                 | `<%$.class.entity%>`           |
+	 * | `MyResults`                | `<%$.class.results%>`          |
+	 * | `MyController`             | `<%$.class.controller%>`       |
+	 * | `my_table`                 | `<%$.table.name%>`             |
+	 * | `my_entity`                | `<%$.table.singular%>`         |
+	 * | `'my_pk_column_const'`     | `<%$.class.entity%>::<%...%>`  |
+	 * | `//@`                      | *(stripped)*                   |
+	 *
+	 * @param string $source   raw PHP source code to convert
+	 * @param array  $replaces additional search→replace pairs prepended before the built-ins
+	 *
+	 * @return string the converted OTpl template source
 	 */
 	private static function toTemplate(string $source, array $replaces = []): string
 	{

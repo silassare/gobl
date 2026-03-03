@@ -23,13 +23,24 @@ use Gobl\DBAL\Types\Utils\TypeUtils;
 trait QBSetColumnsValuesTrait
 {
 	/**
-	 * Bind columns values for insert or update.
+	 * Binds column values for an INSERT or UPDATE statement.
 	 *
-	 * @param string $table_name         the table name
-	 * @param array  $values             the column => value map
-	 * @param bool   $auto_prefix_column if true, columns will be auto prefixed
+	 * For each entry in `$values`:
+	 * - `QBExpression` values are passed through as raw SQL fragments (no binding).
+	 * - All other values are bound to uniquely generated named parameters and the
+	 *   parameter map is merged into the query via `bindArray()` as a side effect.
 	 *
-	 * @return array
+	 * `TypeUtils::runEnforceQueryExpressionValueType()` is called on every column
+	 * to coerce the PHP value/expression to the type expected by the column's type definition.
+	 *
+	 * When `$auto_prefix_column` is `true`, each column name is resolved to its full name
+	 * (e.g. `user_name` → `gobl_user_name`) using the registered table definition.
+	 *
+	 * @param string $table_name         the full table name (used for column resolution)
+	 * @param array  $values             column → PHP value or `QBExpression` map
+	 * @param bool   $auto_prefix_column when `true`, short column names are resolved to full names
+	 *
+	 * @return array column_full_name → SQL placeholder or raw expression map
 	 */
 	protected function bindColumnsValuesForInsertOrUpdate(string $table_name, array $values, bool $auto_prefix_column): array
 	{

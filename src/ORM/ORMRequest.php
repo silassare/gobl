@@ -91,10 +91,17 @@ class ORMRequest
 	/**
 	 * ORMRequest constructor.
 	 *
+	 * Parses a raw request payload (e.g. the decoded JSON body of an API call) into typed
+	 * properties: form data, filters, pagination, ordering, collection, and relations.
+	 *
+	 * When `$scope` is non-empty, only the sub-array at `$payload[SCOPES_PARAM][$scope]` is
+	 * parsed, enabling caller-controlled namespacing of request parameters (e.g. a single
+	 * request carrying data for multiple tables simultaneously).
+	 *
 	 * @param array  $payload
 	 * @param string $scope
-	 * @param int    $max_default
-	 * @param int    $max_allowed
+	 * @param int    $max_default default page size when the request does not specify `max`
+	 * @param int    $max_allowed hard ceiling on page size; requests above this are capped or rejected
 	 *
 	 * @throws ORMQueryException
 	 */
@@ -259,6 +266,12 @@ class ORMRequest
 
 	/**
 	 * Add filters to limit user filters.
+	 *
+	 * These filters act as a security layer: they are **always prepended** (AND-combined) to
+	 * whatever filters the end-user provides, so the caller can guarantee that certain
+	 * conditions (e.g. `user_id = current_user`) are always present regardless of user input.
+	 *
+	 * Calling this method multiple times accumulates filters (all are AND-combined).
 	 *
 	 * @param array $filters
 	 *

@@ -24,20 +24,9 @@ class QBUtils
 	protected static int $GEN_IDENTIFIER_COUNTER = 0;
 
 	/**
-	 * Wrap an expression string in a query builder expression {@see QBExpression}.
-	 *
-	 * @param string $expression
-	 *
-	 * @return QBExpression
-	 */
-	public static function exp(string $expression): QBExpression
-	{
-		return new QBExpression($expression);
-	}
-
-	/**
 	 * Reset the identifier generator counter.
-	 * Useful for testing.
+	 *
+	 * @internal Useful for testing.
 	 */
 	public static function resetIdentifierCounter(): void
 	{
@@ -99,7 +88,7 @@ class QBUtils
 	{
 		$x    = self::$GEN_IDENTIFIER_COUNTER++;
 		$list = \range('a', 'z');
-		$len  = \count($list);
+		$len  = 26;
 		$a    = '';
 
 		do {

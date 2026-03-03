@@ -41,10 +41,20 @@ final class NamespaceBuilder
 	) {}
 
 	/**
-	 * Returns the table builder instance for the given table name.
+	 * Returns (and lazily creates) the `TableBuilder` for the given table name.
 	 *
-	 * @param string                           $name    The table name
-	 * @param null|callable(TableBuilder):void $factory The table factory
+	 * If the table does not yet exist in the RDBMS, a new `Table` is created, added to
+	 * the RDBMS, and assigned to this namespace. The builder is cached by name so that
+	 * repeated calls return the same instance.
+	 *
+	 * When a `$factory` is provided it is forwarded to {@see TableBuilder::factory()}.
+	 *
+	 * @param string                           $name    the table name (without prefix)
+	 * @param null|callable(TableBuilder):void $factory optional inline factory for declaring columns/relations
+	 *
+	 * @return TableBuilder
+	 *
+	 * @throws DBALRuntimeException when the table exists in a different namespace
 	 */
 	public function table(string $name, ?callable $factory = null): TableBuilder
 	{
@@ -93,9 +103,13 @@ final class NamespaceBuilder
 	}
 
 	/**
-	 * Enables the ORM for this namespace.
+	 * Enables the ORM for this namespace, generating entity/query/results/controller classes.
 	 *
-	 * @param string $out_dir The ORM output directory
+	 * Calls {@see pack()} as a side effect first, flushing all deferred constraints and
+	 * relations before ORM class generation begins. This ordering ensures the table
+	 * structure is complete before the generator reads it.
+	 *
+	 * @param string $out_dir the directory where ORM PHP files will be written
 	 *
 	 * @return $this
 	 *
@@ -110,7 +124,11 @@ final class NamespaceBuilder
 	}
 
 	/**
-	 * Packs all tables in this namespace.
+	 * Runs `packConstraints()` then `packRelations()` on every cached `TableBuilder`.
+	 *
+	 * This materializes all deferred FK, index, and relation factory callbacks.
+	 * Called automatically by {@see enableORM()} and by `Db::lock()` before sealing
+	 * the schema.
 	 *
 	 * @throws DBALException
 	 *

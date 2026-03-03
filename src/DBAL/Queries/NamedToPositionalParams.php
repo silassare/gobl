@@ -17,6 +17,17 @@ use Gobl\DBAL\Exceptions\DBALException;
 
 /**
  * Class NamedToPositionalParams.
+ *
+ * Converts a named-parameter SQL statement (`:param_name` placeholders) into a
+ * positional-parameter statement (`?` placeholders) for drivers such as SQLite
+ * that do not support named parameters natively.
+ *
+ * Conversion happens eagerly in the constructor. The results are available via
+ * {@see getNewQuery()} and {@see getNewParams()} / {@see getNewParamsTypes()}.
+ *
+ * **IN-list expansion:** when a named parameter's value is an array, the single
+ * `?` placeholder is expanded to `?, ?, ?` (one `?` per element), allowing the
+ * same class to handle IN-list bindings transparently.
  */
 class NamedToPositionalParams
 {
@@ -31,9 +42,13 @@ class NamedToPositionalParams
 	/**
 	 * NamedToPositionalParams constructor.
 	 *
-	 * @param string $query
-	 * @param array  $params
-	 * @param array  $params_types
+	 * The conversion (`:name` → `?`) is performed immediately in the constructor.
+	 * After construction, {@see getNewQuery()} and {@see getNewParams()} hold the
+	 * positional equivalents.
+	 *
+	 * @param string $query        named-parameter SQL string
+	 * @param array  $params       parameter name → value map
+	 * @param array  $params_types parameter name → `\PDO::PARAM_*` type map
 	 */
 	public function __construct(
 		protected string $query,
@@ -114,13 +129,18 @@ class NamedToPositionalParams
 	}
 
 	/**
-	 * Internal replacer.
+	 * `preg_replace_callback` handler: replaces a single `:param_name` token with one or more `?`.
 	 *
-	 * @param array $matches
+	 * When the bound value is a scalar, a single `?` is emitted.
+	 * When the bound value is an **array** (e.g. for an IN-list), the placeholder is expanded
+	 * to `?, ?, ?` (one `?` per element) and all array values are appended to `$new_params`
+	 * in order — enabling seamless IN-list support without extra pre-processing.
 	 *
-	 * @return string
+	 * @param array $matches regex matches: `[0 => ':token', 1 => 'token']`
 	 *
-	 * @throws DBALException
+	 * @return string one or more `?` placeholders
+	 *
+	 * @throws DBALException when the parameter is not present in `$params`
 	 */
 	private function replacer(array $matches): string
 	{
