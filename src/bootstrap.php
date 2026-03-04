@@ -26,8 +26,4 @@ if (!\defined('GOBL_ASSETS_DIR')) {
 	\define('GOBL_ASSETS_DIR', GOBL_ROOT . \DIRECTORY_SEPARATOR . 'assets');
 }
 
-if (!\defined('GOBL_TEMPLATES_DIR')) {
-	\define('GOBL_TEMPLATES_DIR', GOBL_ROOT . \DIRECTORY_SEPARATOR . 'templates');
-}
-
 TypeUtils::addTypeProvider(new TypeProviderDefault());
