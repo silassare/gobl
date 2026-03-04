@@ -20,6 +20,7 @@ $common_columns = [
 	'data' => [
 		'type'    => 'map',
 		'default' => [],
+		'native_json' => true,
 	],
 	'created_at' => [
 		'type'   => 'date',
@@ -165,8 +166,7 @@ return [
 		'plural_name'   => 'currencies',
 		'singular_name' => 'currency',
 		'column_prefix' => 'ccy',
-		'relations'     => [
-		],
+		'relations'     => [],
 		'constraints' => [
 			['type' => 'primary_key', 'columns' => ['code']],
 		],

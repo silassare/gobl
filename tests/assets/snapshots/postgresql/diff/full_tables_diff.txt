@@ -32,11 +32,15 @@ ALTER TABLE "gObL_currencies" RENAME COLUMN "ccy_valid" TO "currency_valid";
 -- column type changed
 ALTER TABLE "gObL_clients" ALTER COLUMN "client_id" serial;
 -- column type changed
+ALTER TABLE "gObL_clients" ALTER COLUMN "client_data" text NOT NULL;
+-- column type changed
 ALTER TABLE "gObL_clients" ALTER COLUMN "client_updated_at" bigint NULL DEFAULT NULL;
 -- column type changed
 ALTER TABLE "gObL_accounts" ALTER COLUMN "account_id" serial;
 -- column type changed
 ALTER TABLE "gObL_accounts" ALTER COLUMN "account_client_id" integer NOT NULL;
+-- column type changed
+ALTER TABLE "gObL_accounts" ALTER COLUMN "account_data" text NOT NULL;
 -- column type changed
 ALTER TABLE "gObL_accounts" ALTER COLUMN "account_updated_at" bigint NULL DEFAULT NULL;
 -- column type changed
@@ -112,11 +116,15 @@ ALTER TABLE "gObL_currencies" RENAME COLUMN "currency_valid" TO "ccy_valid";
 -- column type changed
 ALTER TABLE "gObL_clients" ALTER COLUMN "client_id" bigserial;
 -- column type changed
+ALTER TABLE "gObL_clients" ALTER COLUMN "client_data" jsonb NOT NULL DEFAULT '{}';
+-- column type changed
 ALTER TABLE "gObL_clients" ALTER COLUMN "client_updated_at" bigint NOT NULL;
 -- column type changed
 ALTER TABLE "gObL_accounts" ALTER COLUMN "account_id" bigserial;
 -- column type changed
 ALTER TABLE "gObL_accounts" ALTER COLUMN "account_client_id" bigint NOT NULL;
+-- column type changed
+ALTER TABLE "gObL_accounts" ALTER COLUMN "account_data" jsonb NOT NULL DEFAULT '{}';
 -- column type changed
 ALTER TABLE "gObL_accounts" ALTER COLUMN "account_updated_at" bigint NOT NULL;
 -- column type changed
@@ -126,7 +134,7 @@ ALTER TABLE "gObL_currencies" ALTER COLUMN "ccy_name" varchar(60) NOT NULL;
 -- column type changed
 ALTER TABLE "gObL_currencies" ALTER COLUMN "ccy_symbol" varchar(6) NOT NULL;
 -- column type changed
-ALTER TABLE "gObL_currencies" ALTER COLUMN "ccy_data" text NOT NULL;
+ALTER TABLE "gObL_currencies" ALTER COLUMN "ccy_data" jsonb NOT NULL DEFAULT '{}';
 -- column type changed
 ALTER TABLE "gObL_currencies" ALTER COLUMN "ccy_created_at" bigint NOT NULL;
 -- column type changed
@@ -152,7 +160,7 @@ CREATE TABLE "gObL_transactions" (
 "transaction_amount" numeric NOT NULL DEFAULT '0',
 "transaction_currency_code" varchar(30) NOT NULL,
 "transaction_date" bigint NOT NULL,
-"transaction_data" text NOT NULL,
+"transaction_data" jsonb NOT NULL DEFAULT '{}',
 "transaction_created_at" bigint NOT NULL,
 "transaction_updated_at" bigint NOT NULL,
 "transaction_valid" boolean NOT NULL DEFAULT '1',

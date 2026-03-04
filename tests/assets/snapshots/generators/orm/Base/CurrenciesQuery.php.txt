@@ -19,7 +19,6 @@ use Gobl\Tests\Db\CurrenciesQuery as CurrenciesQueryReal;
  * @method $this whereCodeIsNotLike(string $value) Filters rows with `not_like` condition on column `currencies.code`.
  * @method $this whereCodeIsIn(array $value) Filters rows with `in` condition on column `currencies.code`.
  * @method $this whereCodeIsNotIn(array $value) Filters rows with `not_in` condition on column `currencies.code`.
- * @method $this whereCodeJsonContains(string $value) Filters rows with `json_contains` condition on column `currencies.code`.
  * @method $this whereNameIs(string $value) Filters rows with `eq` condition on column `currencies.name`.
  * @method $this whereNameIsNot(string $value) Filters rows with `neq` condition on column `currencies.name`.
  * @method $this whereNameIsLt(string $value) Filters rows with `lt` condition on column `currencies.name`.
@@ -30,7 +29,6 @@ use Gobl\Tests\Db\CurrenciesQuery as CurrenciesQueryReal;
  * @method $this whereNameIsNotLike(string $value) Filters rows with `not_like` condition on column `currencies.name`.
  * @method $this whereNameIsIn(array $value) Filters rows with `in` condition on column `currencies.name`.
  * @method $this whereNameIsNotIn(array $value) Filters rows with `not_in` condition on column `currencies.name`.
- * @method $this whereNameJsonContains(string $value) Filters rows with `json_contains` condition on column `currencies.name`.
  * @method $this whereSymbolIs(string $value) Filters rows with `eq` condition on column `currencies.symbol`.
  * @method $this whereSymbolIsNot(string $value) Filters rows with `neq` condition on column `currencies.symbol`.
  * @method $this whereSymbolIsLt(string $value) Filters rows with `lt` condition on column `currencies.symbol`.
@@ -41,11 +39,12 @@ use Gobl\Tests\Db\CurrenciesQuery as CurrenciesQueryReal;
  * @method $this whereSymbolIsNotLike(string $value) Filters rows with `not_like` condition on column `currencies.symbol`.
  * @method $this whereSymbolIsIn(array $value) Filters rows with `in` condition on column `currencies.symbol`.
  * @method $this whereSymbolIsNotIn(array $value) Filters rows with `not_in` condition on column `currencies.symbol`.
- * @method $this whereSymbolJsonContains(string $value) Filters rows with `json_contains` condition on column `currencies.symbol`.
  * @method $this whereDataIs(\Gobl\DBAL\Types\Utils\Map|array $value) Filters rows with `eq` condition on column `currencies.data`.
  * @method $this whereDataIsNot(\Gobl\DBAL\Types\Utils\Map|array $value) Filters rows with `neq` condition on column `currencies.data`.
  * @method $this whereDataIsLike(string $value) Filters rows with `like` condition on column `currencies.data`.
  * @method $this whereDataIsNotLike(string $value) Filters rows with `not_like` condition on column `currencies.data`.
+ * @method $this whereDataJsonContains(string $value) Filters rows with `json_contains` condition on column `currencies.data`.
+ * @method $this whereDataJsonContains(string $value) Filters rows with `json_contains` condition on column `currencies.data`.
  * @method $this whereCreatedAtIs(string|int $value) Filters rows with `eq` condition on column `currencies.created_at`.
  * @method $this whereCreatedAtIsNot(string|int $value) Filters rows with `neq` condition on column `currencies.created_at`.
  * @method $this whereCreatedAtIsLt(string|int $value) Filters rows with `lt` condition on column `currencies.created_at`.
@@ -56,7 +55,6 @@ use Gobl\Tests\Db\CurrenciesQuery as CurrenciesQueryReal;
  * @method $this whereCreatedAtIsNotLike(string $value) Filters rows with `not_like` condition on column `currencies.created_at`.
  * @method $this whereCreatedAtIsIn(array $value) Filters rows with `in` condition on column `currencies.created_at`.
  * @method $this whereCreatedAtIsNotIn(array $value) Filters rows with `not_in` condition on column `currencies.created_at`.
- * @method $this whereCreatedAtJsonContains(string $value) Filters rows with `json_contains` condition on column `currencies.created_at`.
  * @method $this whereUpdatedAtIs(string|int $value) Filters rows with `eq` condition on column `currencies.updated_at`.
  * @method $this whereUpdatedAtIsNot(string|int $value) Filters rows with `neq` condition on column `currencies.updated_at`.
  * @method $this whereUpdatedAtIsLt(string|int $value) Filters rows with `lt` condition on column `currencies.updated_at`.
@@ -67,7 +65,6 @@ use Gobl\Tests\Db\CurrenciesQuery as CurrenciesQueryReal;
  * @method $this whereUpdatedAtIsNotLike(string $value) Filters rows with `not_like` condition on column `currencies.updated_at`.
  * @method $this whereUpdatedAtIsIn(array $value) Filters rows with `in` condition on column `currencies.updated_at`.
  * @method $this whereUpdatedAtIsNotIn(array $value) Filters rows with `not_in` condition on column `currencies.updated_at`.
- * @method $this whereUpdatedAtJsonContains(string $value) Filters rows with `json_contains` condition on column `currencies.updated_at`.
  * @method $this whereValidIs(bool $value) Filters rows with `eq` condition on column `currencies.valid`.
  * @method $this whereValidIsNot(bool $value) Filters rows with `neq` condition on column `currencies.valid`.
  * @method $this whereValidIsFalse() Filters rows with `is_false` condition on column `currencies.valid`.

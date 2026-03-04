@@ -43,11 +43,15 @@ ALTER TABLE `gObL_currencies` RENAME COLUMN `ccy_valid` TO `currency_valid`;
 -- column type changed
 ALTER TABLE `gObL_clients` CHANGE `client_id` `client_id` int(11) unsigned NOT NULL AUTO_INCREMENT;
 -- column type changed
+ALTER TABLE `gObL_clients` CHANGE `client_data` `client_data` text NOT NULL;
+-- column type changed
 ALTER TABLE `gObL_clients` CHANGE `client_updated_at` `client_updated_at` bigint(20) NULL DEFAULT NULL;
 -- column type changed
 ALTER TABLE `gObL_accounts` CHANGE `account_id` `account_id` int(11) unsigned NOT NULL AUTO_INCREMENT;
 -- column type changed
 ALTER TABLE `gObL_accounts` CHANGE `account_client_id` `account_client_id` int(11) unsigned NOT NULL;
+-- column type changed
+ALTER TABLE `gObL_accounts` CHANGE `account_data` `account_data` text NOT NULL;
 -- column type changed
 ALTER TABLE `gObL_accounts` CHANGE `account_updated_at` `account_updated_at` bigint(20) NULL DEFAULT NULL;
 -- column type changed
@@ -143,11 +147,15 @@ ALTER TABLE `gObL_currencies` RENAME COLUMN `currency_valid` TO `ccy_valid`;
 -- column type changed
 ALTER TABLE `gObL_clients` CHANGE `client_id` `client_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT;
 -- column type changed
+ALTER TABLE `gObL_clients` CHANGE `client_data` `client_data` json NOT NULL DEFAULT ('{}');
+-- column type changed
 ALTER TABLE `gObL_clients` CHANGE `client_updated_at` `client_updated_at` bigint(20) NOT NULL;
 -- column type changed
 ALTER TABLE `gObL_accounts` CHANGE `account_id` `account_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT;
 -- column type changed
 ALTER TABLE `gObL_accounts` CHANGE `account_client_id` `account_client_id` bigint(20) unsigned NOT NULL;
+-- column type changed
+ALTER TABLE `gObL_accounts` CHANGE `account_data` `account_data` json NOT NULL DEFAULT ('{}');
 -- column type changed
 ALTER TABLE `gObL_accounts` CHANGE `account_updated_at` `account_updated_at` bigint(20) NOT NULL;
 -- column type changed
@@ -157,7 +165,7 @@ ALTER TABLE `gObL_currencies` CHANGE `ccy_name` `ccy_name` varchar(60) NOT NULL;
 -- column type changed
 ALTER TABLE `gObL_currencies` CHANGE `ccy_symbol` `ccy_symbol` varchar(6) NOT NULL;
 -- column type changed
-ALTER TABLE `gObL_currencies` CHANGE `ccy_data` `ccy_data` text NOT NULL;
+ALTER TABLE `gObL_currencies` CHANGE `ccy_data` `ccy_data` json NOT NULL DEFAULT ('{}');
 -- column type changed
 ALTER TABLE `gObL_currencies` CHANGE `ccy_created_at` `ccy_created_at` bigint(20) NOT NULL;
 -- column type changed
@@ -183,7 +191,7 @@ CREATE TABLE `gObL_transactions` (
 `transaction_amount` decimal unsigned NOT NULL DEFAULT '0',
 `transaction_currency_code` varchar(30) NOT NULL,
 `transaction_date` bigint(20) NOT NULL,
-`transaction_data` text NOT NULL,
+`transaction_data` json NOT NULL DEFAULT ('{}'),
 `transaction_created_at` bigint(20) NOT NULL,
 `transaction_updated_at` bigint(20) NOT NULL,
 `transaction_valid` tinyint(1) NOT NULL DEFAULT '1',

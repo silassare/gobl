@@ -16,12 +16,13 @@ namespace Gobl\Tests\DBAL\Queries;
 use Gobl\DBAL\Builders\TableBuilder;
 use Gobl\DBAL\Queries\QBExpression;
 use Gobl\DBAL\Queries\QBSelect;
+use Gobl\DBAL\Queries\Traits\QBCommonTrait;
 use Gobl\Tests\BaseTestCase;
 
 /**
  * Class QBShortcutsTest.
  *
- * Tests for the shorthand expression helpers defined in {@see \Gobl\DBAL\Queries\Traits\QBCommonTrait}:
+ * Tests for the shorthand expression helpers defined in {@see QBCommonTrait}:
  * expr(), fn(), col(), sqlNull(), sqlTrue(), sqlFalse(), sub(), and quote().
  *
  * @covers \Gobl\DBAL\Queries\Traits\QBShortcutsTrait
@@ -30,27 +31,6 @@ use Gobl\Tests\BaseTestCase;
  */
 final class QBShortcutsTest extends BaseTestCase
 {
-	/**
-	 * Creates a QBSelect instance with a 'users' table (prefix 'usr', columns: id, name)
-	 * and registers the alias 'u' for it.
-	 */
-	private static function makeQB(): QBSelect
-	{
-		$db = self::getNewDbInstance();
-		$ns = $db->ns('test');
-		$ns->table('users', static function (TableBuilder $t) {
-			$t->columnPrefix('usr');
-			$t->id();
-			$t->string('name');
-		});
-		$db->lock();
-
-		$qb = new QBSelect($db);
-		$qb->from('users', 'u');
-
-		return $qb;
-	}
-
 	// -------------------------------------------------------------------------
 	// expr()
 	// -------------------------------------------------------------------------
@@ -260,5 +240,26 @@ final class QBShortcutsTest extends BaseTestCase
 		});
 
 		self::assertInstanceOf(QBSelect::class, $sub);
+	}
+
+	/**
+	 * Creates a QBSelect instance with a 'users' table (prefix 'usr', columns: id, name)
+	 * and registers the alias 'u' for it.
+	 */
+	private static function makeQB(): QBSelect
+	{
+		$db = self::getNewDbInstance();
+		$ns = $db->ns('test');
+		$ns->table('users', static function (TableBuilder $t) {
+			$t->columnPrefix('usr');
+			$t->id();
+			$t->string('name');
+		});
+		$db->lock();
+
+		$qb = new QBSelect($db);
+		$qb->from('users', 'u');
+
+		return $qb;
 	}
 }

@@ -167,7 +167,7 @@ final class SchemaSnapshotTest extends BaseTestCase
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Map and list columns (stored as serialised text / JSON strings).
+	 * Map and list columns (stored as serialized text / JSON strings).
 	 *
 	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */

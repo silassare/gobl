@@ -178,6 +178,7 @@ final class ORMEntityTest extends BaseTestCase
 		$entity = ORM::entity($table, true, true); // strict = true
 
 		$this->expectException(ORMRuntimeException::class);
+		$this->expectExceptionMessageMatches('/Column "totally_unknown_column" not defined in table "clients"/');
 
 		/** @noinspection PhpUndefinedFieldInspection */
 		$_ = $entity->totally_unknown_column;

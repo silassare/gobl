@@ -297,8 +297,8 @@ final class ORMRequestTest extends BaseTestCase
 
 		self::assertArrayHasKey('name', $ob);
 		self::assertArrayHasKey('created_at', $ob);
-		self::assertSame("ASC", $ob['name'], '"name" implies ASC (true)');
-		self::assertSame("DESC", $ob['created_at'], '"created_at:desc" implies DESC (false)');
+		self::assertSame('ASC', $ob['name'], '"name" implies ASC (true)');
+		self::assertSame('DESC', $ob['created_at'], '"created_at:desc" implies DESC (false)');
 	}
 
 	/**

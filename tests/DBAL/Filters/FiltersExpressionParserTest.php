@@ -37,8 +37,8 @@ final class FiltersExpressionParserTest extends BaseTestCase
 	public function testEmptyExpression(): void
 	{
 		$qb     = $this->makeQB();
-		$parser = new FiltersExpressionParser('', [], $qb);
-		$result = $parser->parse();
+		$parser = new FiltersExpressionParser('', []);
+		$result = $parser->toFilters($qb);
 
 		self::assertInstanceOf(Filters::class, $result);
 		self::assertTrue($result->isEmpty());
@@ -153,19 +153,18 @@ final class FiltersExpressionParserTest extends BaseTestCase
 		}
 	}
 
-	/** toArray() returns expression and inject keys. */
+	/** toArray() returns expression and bindings keys. */
 	public function testToArray(): void
 	{
-		$qb     = $this->makeQB();
-		$inject = ['n' => 'Alice'];
-		$parser = new FiltersExpressionParser('name eq :n', $inject, $qb);
+		$bindings = ['n' => 'Alice'];
+		$parser   = new FiltersExpressionParser('name eq :n', $bindings);
 
 		$arr = $parser->toArray();
 
-		self::assertArrayHasKey('expression', $arr);
-		self::assertArrayHasKey('inject', $arr);
-		self::assertSame('name eq :n', $arr['expression']);
-		self::assertSame($inject, $arr['inject']);
+		self::assertArrayHasKey(Filters::STR_EXPR_FILTER_KEY, $arr);
+		self::assertArrayHasKey(Filters::STR_EXPR_BINDINGS_KEY, $arr);
+		self::assertSame('name eq :n', $arr[Filters::STR_EXPR_FILTER_KEY]);
+		self::assertSame($bindings, $arr[Filters::STR_EXPR_BINDINGS_KEY]);
 	}
 
 	// -------------------------------------------------------------------------
@@ -176,7 +175,7 @@ final class FiltersExpressionParserTest extends BaseTestCase
 	public function testMissingBindingThrows(): void
 	{
 		$this->expectException(DBALRuntimeException::class);
-		$this->expectExceptionMessageMatches('/Missing inject value for binding ":n"/');
+		$this->expectExceptionMessageMatches('/Missing value for binding ":n"/');
 
 		$this->parseToSql('name eq :n', []); // :n not provided
 	}
@@ -343,14 +342,14 @@ final class FiltersExpressionParserTest extends BaseTestCase
 	}
 
 	/**
-	 * Convenience: parse expression with inject and return the SQL filter string.
+	 * Convenience: parse expression with bindings and return the SQL filter string.
 	 */
-	private function parseToSql(string $expression, array $inject = []): string
+	private function parseToSql(string $expression, array $bindings = []): string
 	{
 		$qb     = $this->makeQB();
-		$parser = new FiltersExpressionParser($expression, $inject, $qb);
+		$parser = new FiltersExpressionParser($expression, $bindings);
 
-		return (string) $parser->parse();
+		return (string) $parser->toFilters($qb);
 	}
 
 	// -------------------------------------------------------------------------
@@ -358,11 +357,11 @@ final class FiltersExpressionParserTest extends BaseTestCase
 	// -------------------------------------------------------------------------
 
 	/** Convenience: parse with strict=false (literals allowed) and return the SQL filter string. */
-	private function parseToSqlNonStrict(string $expression, array $inject = []): string
+	private function parseToSqlNonStrict(string $expression, array $bindings = []): string
 	{
 		$qb     = $this->makeQB();
-		$parser = new FiltersExpressionParser($expression, $inject, $qb, null, false);
+		$parser = new FiltersExpressionParser($expression, $bindings, false);
 
-		return (string) $parser->parse();
+		return (string) $parser->toFilters($qb);
 	}
 }

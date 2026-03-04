@@ -253,7 +253,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 
 		$detach = EventManager::listen(
 			BeforeDeleteAll::class,
-			static fn() => true,
+			static fn () => true,
 			Event::RUN_DEFAULT,
 			$channel
 		);
@@ -286,7 +286,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 
 		$detach = EventManager::listen(
 			BeforeUpdateAll::class,
-			static fn() => true,
+			static fn () => true,
 			Event::RUN_DEFAULT,
 			$channel
 		);
@@ -447,7 +447,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 		// Register a scoped listener and detach it when the test ends.
 		$detach = EventManager::listen(
 			BeforePKColumnWrite::class,
-			static fn() => true,
+			static fn () => true,
 			Event::RUN_DEFAULT,
 			$channel
 		);
@@ -517,7 +517,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 
 		// Resolve to actual full table names (includes namespace prefix, e.g. "gObL_clients").
 		$tables = \array_map(
-			static fn(string $name) => $db->getTableOrFail($name)->getFullName(),
+			static fn (string $name) => $db->getTableOrFail($name)->getFullName(),
 			$logical
 		);
 

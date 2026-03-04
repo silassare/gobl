@@ -16,6 +16,7 @@ namespace Gobl\Tests\DBAL\Queries;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\Tests\BaseTestCase;
+use SQLite3;
 
 /**
  * Class QBSelectSnapshotTest.
@@ -391,7 +392,7 @@ final class QBSelectSnapshotTest extends BaseTestCase
 
 		$qb->select('a', ['id', 'balance']);
 
-		$sqliteVersion = \SQLite3::version()['versionString'];
+		$sqliteVersion = SQLite3::version()['versionString'];
 
 		if (\version_compare($sqliteVersion, '3.39.0', '<')) {
 			// Older SQLite: emulation layer does not cover sub-level RIGHT JOINs.
@@ -402,7 +403,7 @@ final class QBSelectSnapshotTest extends BaseTestCase
 		$sql = $qb->getSqlQuery();
 
 		if (\version_compare($sqliteVersion, '3.39.0', '>=')) {
-			$this->assertStringContainsString('RIGHT JOIN', $sql);
+			self::assertStringContainsString('RIGHT JOIN', $sql);
 		}
 	}
 

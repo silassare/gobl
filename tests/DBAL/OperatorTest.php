@@ -25,17 +25,20 @@ use Gobl\Tests\BaseTestCase;
  */
 final class OperatorTest extends BaseTestCase
 {
-	public function testIsUnaryAndOperandsCountMatches(): void
+	public function testIsUnaryMatches(): void
 	{
 		$expected = [];
 		$found    = [];
 
 		foreach (Operator::cases() as $op) {
 			$expected[$op->name] = [
-				'operands_count' => $op->isUnary() ? 1 : 2,
+				'unary' => match ($op) {
+					Operator::IS_TRUE, Operator::IS_FALSE, Operator::IS_NULL, Operator::IS_NOT_NULL => true,
+					default => false,
+				},
 			];
-			$found[$op->name]    = [
-				'operands_count' => $op->getOperandsCount(),
+			$found[$op->name] = [
+				'unary' => $op->isUnary(),
 			];
 		}
 
