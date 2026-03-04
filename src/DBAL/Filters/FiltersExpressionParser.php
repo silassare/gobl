@@ -39,7 +39,7 @@ use PHPUtils\Traits\ArrayCapableTrait;
  *  - Identifier  : column name, optionally table-qualified (`table.column`)
  *  - Operator    : any {@see Operator} value (e.g. `eq`, `gt`, `is_true`)
  *  - Conditional : `and` | `or`
- *  - Binding     : `:name` resolved from the `$inject` map
+ *  - Binding     : `:name` resolved from the `$bindings` map
  *  - Grouping    : `(` | `)`
  *  - Number      : integer or float literal, e.g. `42`, `3.14` (non-strict mode only)
  *  - String      : double- or single-quoted literal, e.g. `"foo bar"` (non-strict mode only)
@@ -69,19 +69,15 @@ final class FiltersExpressionParser implements FilterInterface
 	/**
 	 * FiltersExpressionParser constructor.
 	 *
-	 * @param string                     $expression The filter expression string to parse
-	 * @param array                      $inject     Map of binding name => value (e.g. `['val1' => 'bla']`)
-	 * @param QBInterface                $qb         The query builder instance to use for bindings and table/column resolution
-	 * @param null|FiltersScopeInterface $scope      Optional filters scope for validating and resolving columns in the expression
-	 * @param bool                       $strict     When `true` (default), only `:binding` references are
-	 *                                               accepted as right operands. Set to `false` to also allow
-	 *                                               inline numeric and quoted-string literals.
+	 * @param string $expression The filter expression string to parse
+	 * @param array  $bindings   Map of binding name => value (e.g. `['val1' => 'bla']`)
+	 * @param bool   $strict     When `true` (default), only `:binding` references are
+	 *                           accepted as right operands. Set to `false` to also allow
+	 *                           inline numeric and quoted-string literals.
 	 */
 	public function __construct(
 		private string $expression,
-		private array $inject,
-		private QBInterface $qb,
-		private ?FiltersScopeInterface $scope = null,
+		private array $bindings,
 		private bool $strict = true
 	) {}
 
@@ -91,26 +87,42 @@ final class FiltersExpressionParser implements FilterInterface
 	public function toArray(): array
 	{
 		return [
-			'expression' => $this->expression,
-			'inject'     => $this->inject,
+			Filters::STR_EXPR_FILTER_KEY   => $this->expression,
+			Filters::STR_EXPR_BINDINGS_KEY => $this->bindings,
 		];
 	}
 
 	/**
-	 * Parses the expression and returns the built {@see Filters} instance.
+	 * Returns the flat-array equivalent of this expression with all binding references
+	 * replaced by their resolved values from `$bindings`.
 	 *
-	 * @return Filters
+	 * The returned array is compatible with {@see Filters::fromArray()} and can be used
+	 * for debugging, serialization, or persisting a fully-resolved snapshot of the filters.
+	 *
+	 * Example — given expression `'name eq :n and age gt :a'` with bindings `['n' => 'Bob', 'a' => 18]`:
+	 * ```php
+	 * $parser->toEquivalentArrayFilters();
+	 * // ['name', 'eq', 'Bob', 'AND', 'age', 'gt', 18]
+	 * ```
+	 *
+	 * Groups `(...)` are represented as nested arrays:
+	 * ```php
+	 * // expression: 'foo eq :x and (bar gt :y or baz is_null)'
+	 * // => ['foo', 'eq', $x, 'AND', ['bar', 'gt', $y, 'OR', 'baz', 'is_null']]
+	 * ```
+	 *
+	 * @return array the resolved equivalent flat-array filters
 	 */
-	public function parse(): Filters
+	public function toEquivalentArrayFilters(): array
 	{
 		$this->tokenize();
 		$this->pos = 0;
 
-		$filters = new Filters($this->qb, $this->scope);
-
-		if (!empty($this->tokens)) {
-			$this->parseGroup($filters);
+		if (empty($this->tokens)) {
+			return [];
 		}
+
+		$result = $this->buildArrayGroup();
 
 		if ($this->pos < \count($this->tokens)) {
 			$token = $this->tokens[$this->pos];
@@ -122,14 +134,29 @@ final class FiltersExpressionParser implements FilterInterface
 					$token['type']
 				),
 				[
-					'_expression' => $this->expression,
-					'_position'   => $this->pos,
-					'_token'      => $token,
+					Filters::STR_EXPR_FILTER_KEY => $this->expression,
+					'_position'                  => $this->pos,
+					'_token'                     => $token,
 				]
 			);
 		}
 
-		return $filters;
+		$this->pos = 0;
+
+		return $result;
+	}
+
+	/**
+	 * Parses the expression and returns the built {@see Filters} instance.
+	 *
+	 * @param QBInterface                $qb    The query builder to use for bindings and table/column resolution
+	 * @param null|FiltersScopeInterface $scope Optional filters scope for validating and resolving columns
+	 *
+	 * @return Filters
+	 */
+	public function toFilters(QBInterface $qb, ?FiltersScopeInterface $scope = null): Filters
+	{
+		return Filters::fromArray($this->toEquivalentArrayFilters(), $qb, $scope);
 	}
 
 	// -------------------------------------------------------------------------
@@ -168,7 +195,7 @@ final class FiltersExpressionParser implements FilterInterface
 				continue;
 			}
 
-			// binding: :name
+			// binding :name
 			if (':' === $expr[$i]) {
 				$j = $i + 1;
 				while ($j < $len && (\ctype_alnum($expr[$j]) || '_' === $expr[$j])) {
@@ -180,7 +207,7 @@ final class FiltersExpressionParser implements FilterInterface
 				if ('' === $name) {
 					throw new DBALRuntimeException(
 						'Empty binding name in filter expression.',
-						['_expression' => $this->expression, '_position' => $i]
+						[Filters::STR_EXPR_FILTER_KEY => $this->expression, '_position' => $i]
 					);
 				}
 
@@ -213,7 +240,7 @@ final class FiltersExpressionParser implements FilterInterface
 				if ($j > $len || ($j === $len && $expr[$j - 1] !== $quote)) {
 					throw new DBALRuntimeException(
 						'Unterminated string literal in filter expression.',
-						['_expression' => $this->expression, '_position' => $i]
+						[Filters::STR_EXPR_FILTER_KEY => $this->expression, '_position' => $i]
 					);
 				}
 
@@ -271,70 +298,65 @@ final class FiltersExpressionParser implements FilterInterface
 	}
 
 	// -------------------------------------------------------------------------
-	// Recursive-descent parser
+	// Array-builder (single traversal used by both toEquivalentArrayFilters and toFilters)
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Parses: item ( COND item )*.
+	 * Builds a flat array group: item ( COND item )*.
 	 */
-	private function parseGroup(Filters $filters): void
+	private function buildArrayGroup(): array
 	{
-		$this->parseItem($filters);
+		$result = $this->buildArrayItem();
 
 		while (null !== ($token = $this->current()) && self::T_COND === $token['type']) {
 			++$this->pos;
+			$result[] = $token['value']; // 'AND' or 'OR'
 
-			if ('AND' === $token['value']) {
-				$filters->and();
-			} else {
-				$filters->or();
+			foreach ($this->buildArrayItem() as $v) {
+				$result[] = $v;
 			}
-
-			$this->parseItem($filters);
 		}
+
+		return $result;
 	}
 
 	/**
-	 * Parses: '(' group ')' | filter.
+	 * Builds: '(' group ')' → returns `[$sub_group_array]`
+	 *      OR a filter → returns `[$col, $op, $val]` or `[$col, $op]`.
 	 */
-	private function parseItem(Filters $filters): void
+	private function buildArrayItem(): array
 	{
 		$token = $this->current();
 
 		if (null === $token) {
 			throw new DBALRuntimeException(
 				'Unexpected end of filter expression.',
-				['_expression' => $this->expression, '_position' => $this->pos]
+				[Filters::STR_EXPR_FILTER_KEY => $this->expression, '_position' => $this->pos]
 			);
 		}
 
 		if (self::T_OPEN === $token['type']) {
 			++$this->pos; // consume '('
-			$sub = $filters->subGroup();
-			$this->parseGroup($sub);
+			$sub = $this->buildArrayGroup();
 			$this->expect(self::T_CLOSE);
-			$filters->where($sub);
-		} else {
-			$this->parseFilter($filters);
+
+			return [$sub]; // nested group is a single element in the outer array
 		}
+
+		return $this->buildArrayFilter();
 	}
 
 	/**
-	 * Parses: IDENT OPERATOR [right]
-	 * where right is a binding value, a literal identifier, or absent for unary operators.
+	 * Builds: IDENT OPERATOR [right-value] → `[$col, $op]` or `[$col, $op, $value]`.
 	 */
-	private function parseFilter(Filters $filters): void
+	private function buildArrayFilter(): array
 	{
 		$left_token = $this->expect(self::T_IDENT);
-		$left       = $left_token['value'];
-
-		$op_token = $this->expect(self::T_OP);
-		$operator = Operator::from($op_token['value']);
+		$op_token   = $this->expect(self::T_OP);
+		$operator   = Operator::from($op_token['value']);
 
 		if ($operator->isUnary()) {
-			$filters->add($operator, $left);
-
-			return;
+			return [$left_token['value'], $op_token['value']];
 		}
 
 		$right_token = $this->current();
@@ -344,54 +366,62 @@ final class FiltersExpressionParser implements FilterInterface
 				\sprintf(
 					'Missing right operand for operator "%s" after column "%s" in filter expression.',
 					$operator->value,
-					$left
+					$left_token['value']
 				),
-				['_expression' => $this->expression, '_position' => $this->pos]
+				[Filters::STR_EXPR_FILTER_KEY => $this->expression, '_position' => $this->pos]
 			);
 		}
 
 		++$this->pos;
 
-		if (self::T_BINDING === $right_token['type']) {
-			$name = $right_token['value'];
+		return [$left_token['value'], $op_token['value'], $this->resolveRightTokenValue($right_token)];
+	}
 
-			if (!\array_key_exists($name, $this->inject)) {
+	/**
+	 * Extracts the resolved PHP value from a right-operand token.
+	 *
+	 * Bindings are resolved from `$this->bindings`; throws when a binding name is absent.
+	 * Numeric and string literals are cast to their native PHP types.
+	 *
+	 * @param array{type: string, value: string} $token
+	 *
+	 * @return mixed
+	 *
+	 * @throws DBALRuntimeException when a `:binding` name is not in `$bindings`
+	 */
+	private function resolveRightTokenValue(array $token): mixed
+	{
+		if (self::T_BINDING === $token['type']) {
+			$name = $token['value'];
+
+			if (!\array_key_exists($name, $this->bindings)) {
 				throw new DBALRuntimeException(
 					\sprintf(
-						'Missing inject value for binding ":%s" in filter expression.',
+						'Missing value for binding ":%s" in filter expression.',
 						$name
 					),
-					[
-						'_expression' => $this->expression,
-						'_binding'    => $name,
-						'_inject'     => \array_keys($this->inject),
-					]
+					$this->toArray()
 				);
 			}
 
-			$right = $this->inject[$name];
-		} elseif (self::T_IDENT === $right_token['type']) {
-			// unquoted literal used as a column reference or raw value
-			$right = $right_token['value'];
-		} elseif (self::T_NUMBER === $right_token['type']) {
-			// inline numeric literal (non-strict mode)
-			$raw   = $right_token['value'];
-			$right = \str_contains($raw, '.') ? (float) $raw : (int) $raw;
-		} elseif (self::T_STRING === $right_token['type']) {
-			// inline quoted-string literal (non-strict mode)
-			$right = $right_token['value'];
-		} else {
-			throw new DBALRuntimeException(
-				\sprintf(
-					'Unexpected token type "%s" for right operand of operator "%s".',
-					$right_token['type'],
-					$operator->value
-				),
-				['_expression' => $this->expression, '_position' => $this->pos - 1]
-			);
+			return $this->bindings[$name];
 		}
 
-		$filters->add($operator, $left, $right);
+		if (self::T_NUMBER === $token['type']) {
+			$raw = $token['value'];
+
+			return \str_contains($raw, '.') ? (float) $raw : (int) $raw;
+		}
+
+		// T_IDENT or T_STRING → return as-is string
+		if (self::T_IDENT === $token['type'] || self::T_STRING === $token['type']) {
+			return $token['value'];
+		}
+
+		throw new DBALRuntimeException(
+			\sprintf('Unexpected token type "%s" as right operand in filter expression.', $token['type']),
+			[Filters::STR_EXPR_FILTER_KEY => $this->expression, '_position' => $this->pos - 1, '_token' => $token]
+		);
 	}
 
 	// -------------------------------------------------------------------------
@@ -418,7 +448,7 @@ final class FiltersExpressionParser implements FilterInterface
 		if (null === $token) {
 			throw new DBALRuntimeException(
 				\sprintf('Expected token "%s" but reached end of filter expression.', $type),
-				['_expression' => $this->expression, '_position' => $this->pos]
+				[Filters::STR_EXPR_FILTER_KEY => $this->expression, '_position' => $this->pos]
 			);
 		}
 
@@ -430,7 +460,7 @@ final class FiltersExpressionParser implements FilterInterface
 					$token['type'],
 					$token['value']
 				),
-				['_expression' => $this->expression, '_position' => $this->pos, '_token' => $token]
+				[Filters::STR_EXPR_FILTER_KEY => $this->expression, '_position' => $this->pos, '_token' => $token]
 			);
 		}
 

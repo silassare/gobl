@@ -335,7 +335,7 @@ final class TableBuilder
 		?callable $callable = null
 	): ForeignKey {
 		$ref_table = $this->rdbms->getTableOrFail($foreign_table);
-		$column    = $this->linkColumn($column_name, $foreign_table, $foreign_column);
+		$column    = $this->referenceColumn($column_name, $foreign_table, $foreign_column);
 
 		$column->getType()->nullable($nullable);
 
@@ -379,7 +379,7 @@ final class TableBuilder
 	 */
 	public function sameAs(string $column_name, string $source_table, string $source_column): TypeInterface
 	{
-		return $this->linkColumn($column_name, $source_table, $source_column, true)->getType();
+		return $this->referenceColumn($column_name, $source_table, $source_column, true)->getType();
 	}
 
 	/**
@@ -664,6 +664,66 @@ final class TableBuilder
 		);
 	}
 
+	// -------------------------------------------------------------------------
+	// LinkBuilder shortcuts — available as $t::linkColumns() etc. inside
+	// factory() / collectRelation() callbacks without importing LinkBuilder.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Shortcut for {@see LinkBuilder::columns()} — no import of `LinkBuilder` needed.
+	 *
+	 * Creates a `columns`-type link builder. When `$host_to_target_map` is empty, the
+	 * column mapping is auto-detected from FK constraints at query-build time.
+	 * Chain {@see LinkColumnsBuilder::map()} on the returned builder to set or replace
+	 * the map after construction.
+	 *
+	 * @param array<string, string> $host_to_target_map host column → target column;
+	 *                                                  omit for auto-detection
+	 *
+	 * @return LinkColumnsBuilder
+	 */
+	public static function linkColumns(array $host_to_target_map = []): LinkColumnsBuilder
+	{
+		return LinkBuilder::columns($host_to_target_map);
+	}
+
+	/**
+	 * Shortcut for {@see LinkBuilder::morph()} — no import of `LinkBuilder` needed.
+	 *
+	 * Creates a `morph`-type link builder using a column-name prefix
+	 * (`{prefix}_id` / `{prefix}_type`).
+	 * Chain {@see LinkMorphBuilder::parentType()} and/or {@see LinkMorphBuilder::parentKey()}
+	 * to set the optional parent constraints.
+	 *
+	 * @param string $prefix prefix for the child-key and child-type columns
+	 *
+	 * @return LinkMorphBuilder
+	 */
+	public static function linkMorph(string $prefix): LinkMorphBuilder
+	{
+		return LinkBuilder::morph($prefix);
+	}
+
+	/**
+	 * Shortcut for {@see LinkBuilder::morphExplicit()} — no import of `LinkBuilder` needed.
+	 *
+	 * Creates a `morph`-type link builder with explicit child-key and child-type column names,
+	 * for when the morph columns do not follow the `{prefix}_id` / `{prefix}_type` convention.
+	 * Chain {@see LinkMorphBuilder::parentType()} and/or {@see LinkMorphBuilder::parentKey()}
+	 * to set the optional parent constraints.
+	 *
+	 * @param string $child_key_column  column on the child table holding the parent PK value
+	 * @param string $child_type_column column on the child table holding the parent type string
+	 *
+	 * @return LinkMorphBuilder
+	 */
+	public static function linkMorphExplicit(
+		string $child_key_column,
+		string $child_type_column,
+	): LinkMorphBuilder {
+		return LinkBuilder::morphExplicit($child_key_column, $child_type_column);
+	}
+
 	/**
 	 * Adds relations to the table.
 	 *
@@ -825,7 +885,7 @@ final class TableBuilder
 	 *
 	 * @throws DBALException
 	 */
-	private function linkColumn(
+	private function referenceColumn(
 		string $column_name,
 		string $source_table,
 		string $source_column,

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Filters\Interfaces;
 
 use Gobl\DBAL\Filters\Filter;
+use Gobl\DBAL\Queries\Interfaces\QBInterface;
 
 /**
  * Interface FiltersScopeInterface.
@@ -23,27 +24,28 @@ interface FiltersScopeInterface
 	/**
 	 * Asserts if a filter is allowed.
 	 *
-	 * @param Filter $filter
+	 * @param Filter           $filter the filter to check
+	 * @param null|QBInterface $qb     optional query builder used for alias resolution
 	 */
-	public function assertFilterAllowed(Filter $filter): void;
+	public function assertFilterAllowed(Filter $filter, ?QBInterface $qb = null): void;
 
 	/**
-	 * Should return the given column fully qualified name or return as is.
+	 * Should return the given column fully qualified name or null if it doesn't exist in the scope.
 	 *
 	 * `users.user_id` is FQN of `user_id` from the table `users`
 	 *
 	 * @param string $column_name
 	 *
-	 * @return string
+	 * @return ?string
 	 */
-	public function getColumnFQName(string $column_name): string;
+	public function tryGetColumnFQName(string $column_name): ?string;
 
 	/**
 	 * Checks if a given filters scope is allowed.
 	 *
-	 * This is helpful to safely merge filters.
+	 * This is helpful to safely merge filters from different sources (sub-queries etc.).
 	 *
-	 * @param FiltersScopeInterface $scope
+	 * @param FiltersScopeInterface $scope the scope to check
 	 *
 	 * @return bool
 	 */

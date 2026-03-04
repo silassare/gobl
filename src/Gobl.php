@@ -101,7 +101,7 @@ class Gobl
 	 * @param array $templates map of template name → `['path' => string, 'replaces' => array]`
 	 *
 	 * @throws InvalidArgumentException when `path` is missing or not a readable file,
-	 *                                   or when `replaces` is not an array
+	 *                                  or when `replaces` is not an array
 	 * @throws GoblRuntimeException     when the template file cannot be read or written
 	 */
 	public static function addTemplates(array $templates): void

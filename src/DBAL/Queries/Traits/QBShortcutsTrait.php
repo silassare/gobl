@@ -70,11 +70,11 @@ trait QBShortcutsTrait
 	 * ```
 	 *
 	 * @param string              $function SQL function name (e.g. `'COUNT'`, `'COALESCE'`, `'NOW'`)
-	 * @param string|QBExpression ...$args  `string` → quoted literal; `QBExpression` → raw SQL
+	 * @param QBExpression|string ...$args  `string` → quoted literal; `QBExpression` → raw SQL
 	 *
 	 * @return QBExpression
 	 */
-	public function fn(string $function, string|QBExpression ...$args): QBExpression
+	public function fn(string $function, QBExpression|string ...$args): QBExpression
 	{
 		$parts = [];
 

@@ -13,11 +13,11 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Filters;
 
-use BackedEnum;
 use Gobl\DBAL\Filters\Interfaces\FilterInterface;
+use Gobl\DBAL\Filters\Operands\FilterLeftOperand;
+use Gobl\DBAL\Filters\Operands\FilterRightOperand;
 use Gobl\DBAL\Operator;
-use Gobl\DBAL\Queries\Interfaces\QBInterface;
-use Gobl\DBAL\Queries\QBExpression;
+use InvalidArgumentException;
 use PHPUtils\Traits\ArrayCapableTrait;
 
 /**
@@ -28,21 +28,26 @@ final class Filter implements FilterInterface
 	use ArrayCapableTrait;
 
 	/**
+	 * The left operand as string to be used in the query.
+	 */
+	protected ?string $left_for_query = null;
+
+	/**
+	 * The right operand as string to be used in the query.
+	 */
+	protected ?string $right_for_query = null;
+
+	/**
 	 * Filter constructor.
 	 *
-	 * @param Operator    $operator  The operator
-	 * @param string      $left      The left operand as provided by the user
-	 * @param mixed       $right     The right operand as provided by the user
-	 * @param string      $left_str  The left operand as string to be used in the query
-	 * @param null|string $right_str The right operand as string to be used in the query
-	 *                               or null if not yet defined like for prepared statements
+	 * @param Operator                $operator The operator
+	 * @param FilterLeftOperand       $left     The left operand
+	 * @param null|FilterRightOperand $right    The right operand
 	 */
 	public function __construct(
 		protected Operator $operator,
-		protected string $left,
-		protected array|BackedEnum|bool|float|int|QBExpression|QBInterface|string|null $right,
-		protected string $left_str,
-		protected ?string $right_str,
+		protected FilterLeftOperand $left,
+		protected ?FilterRightOperand $right,
 	) {}
 
 	/**
@@ -50,15 +55,15 @@ final class Filter implements FilterInterface
 	 */
 	public function __destruct()
 	{
-		unset($this->operator, $this->left_str, $this->right_str, $this->left, $this->right);
+		unset($this->operator, $this->left, $this->right);
 	}
 
 	/**
 	 * Get filter left operand.
 	 *
-	 * @return string
+	 * @return FilterLeftOperand
 	 */
-	public function getLeftOperand(): string
+	public function getLeftOperand(): FilterLeftOperand
 	{
 		return $this->left;
 	}
@@ -66,31 +71,43 @@ final class Filter implements FilterInterface
 	/**
 	 * Get filter right operand.
 	 *
-	 * @return null|array|BackedEnum|bool|float|int|QBExpression|QBInterface|string
+	 * @return null|FilterRightOperand
 	 */
-	public function getRightOperand(): array|BackedEnum|bool|float|int|QBExpression|QBInterface|string|null
+	public function getRightOperand(): ?FilterRightOperand
 	{
 		return $this->right;
 	}
 
 	/**
-	 * Get filter right operand as string.
+	 * Sets the left operand for query.
 	 *
-	 * @return null|string
+	 * @param string $left_for_query
+	 *
+	 * @return $this
 	 */
-	public function getRightOperandString(): ?string
+	public function setLeftOperandForQuery(string $left_for_query): static
 	{
-		return $this->right_str;
+		$this->left_for_query = $left_for_query;
+
+		return $this;
 	}
 
 	/**
-	 * Get filter left operand as a string.
+	 * Sets the right operand for query.
 	 *
-	 * @return mixed
+	 * @param null|string $right_for_query
+	 *
+	 * @return $this
 	 */
-	public function getLeftOperandString(): string
+	public function setRightOperandForQuery(?string $right_for_query): static
 	{
-		return $this->left_str;
+		if ($this->operator->isUnary() && null !== $right_for_query) {
+			throw new InvalidArgumentException('Cannot set a right operand for a unary operator.');
+		}
+
+		$this->right_for_query = $right_for_query;
+
+		return $this;
 	}
 
 	/**
@@ -108,13 +125,12 @@ final class Filter implements FilterInterface
 	 */
 	public function toArray(): array
 	{
-		return $this->operator->isUnary() ? [
-			$this->left,
-			$this->operator,
-		] : [
-			$this->left,
-			$this->operator,
-			$this->right,
-		];
+		$out = [$this->left, $this->operator];
+
+		if (!$this->operator->isUnary()) {
+			$out[] = $this->right;
+		}
+
+		return $out;
 	}
 }

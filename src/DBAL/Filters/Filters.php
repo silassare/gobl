@@ -17,6 +17,8 @@ use BackedEnum;
 use Gobl\DBAL\Column;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface;
+use Gobl\DBAL\Filters\Operands\FilterLeftOperand;
+use Gobl\DBAL\Filters\Operands\FilterRightOperand;
 use Gobl\DBAL\Filters\Traits\FiltersOperatorsHelpersTrait;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Queries\Interfaces\QBInterface;
@@ -24,10 +26,8 @@ use Gobl\DBAL\Queries\QBExpression;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Queries\QBType;
 use Gobl\DBAL\Queries\QBUtils;
-use Gobl\DBAL\Types\TypeJSON;
 use Gobl\DBAL\Types\Utils\TypeUtils;
 use PHPUtils\Str;
-use Throwable;
 
 /**
  * Class FiltersBuilder.
@@ -35,6 +35,9 @@ use Throwable;
 final class Filters
 {
 	use FiltersOperatorsHelpersTrait;
+
+	public const STR_EXPR_FILTER_KEY   = '_$filter';
+	public const STR_EXPR_BINDINGS_KEY = '_$bindings';
 
 	private FilterGroup $group;
 
@@ -80,17 +83,40 @@ final class Filters
 	 * Creates a `Filters` instance from an array using the new flat format.
 	 *
 	 * **Format auto-detection:**
-	 * - When the **first key is a string** the array is treated as the old
-	 *   `[column => [operator => value]]` format and forwarded to `fromOldFiltersArray()`.
+	 * - When we find the special key `self::STR_EXPR_FILTER_KEY`
+	 *   the array is treated as string expression format and forwarded to {@see self::fromString()}.
 	 * - When the **first key is an integer** (or the array is empty) the new flat format
 	 *   is parsed: `['col', 'op', value, 'AND'|'OR', ['col2', 'op2', value2], ...]`.
+	 * - When we have **string key** the array is treated as the old filters format
+	 *   `[foo => [operator => value], bar => [operator => value]]` format and forwarded to {@see self::fromOldFiltersArray()}.
 	 *
-	 *```
-	 * new filters array
+	 * - New filters array format example
+	 * ```
 	 * [
-	 *   ['foo', 'eq', 'value', 'OR', ['bar', 'lt', 8]], 'AND', 'baz', 'is_null']
+	 *   ['foo', 'eq', 'value', 'OR', ['bar', 'lt', 8]], 'AND', 'baz', 'is_null'
 	 * ]
-	 *```
+	 * ```
+	 *
+	 * - The new format also supports a special string-expression form when the first key is `self::STR_EXPR_FILTER_KEY`:
+	 *
+	 * ```
+	 * [
+	 *  '_$filter' => 'foo eq :val1 and bar lt :val2',
+	 *  '_$bindings' => ['val1' => 'value', 'val2' => 8]
+	 * ]
+	 * ```
+	 *
+	 * - You can also mix the string expression with the flat format in the same array:
+	 * ```
+	 * [
+	 * 	[
+	 * 		'_$filter' => 'foo eq :val1 and bar lt :val2',
+	 * 		'_$bindings' => ['val1' => 'value', 'val2' => 8]
+	 * 	]
+	 * 	'OR',
+	 * 	['baz', 'is_null']
+	 * ]
+	 * ```
 	 *
 	 * @param array                      $filters flat filter array (see format above)
 	 * @param QBInterface                $qb      the query builder this filter is attached to
@@ -100,9 +126,47 @@ final class Filters
 	 */
 	public static function fromArray(array $filters, QBInterface $qb, ?FiltersScopeInterface $scope = null): self
 	{
-		$key = \key($filters);
+		// check new string expression format with bindings
+		if (isset($filters[self::STR_EXPR_FILTER_KEY])) {
+			$expression = $filters[self::STR_EXPR_FILTER_KEY];
+			$bindings   = $filters[self::STR_EXPR_BINDINGS_KEY] ?? [];
 
-		if (!\is_int($key)) {
+			// strict: ensure we don't have other keys that would potentially indicate a mistake
+			// we can ignore it but we choose to be strict here to fail early and avoid confusion
+			foreach ($filters as $k => $_v) {
+				if (!\in_array($k, [self::STR_EXPR_FILTER_KEY, self::STR_EXPR_BINDINGS_KEY], true)) {
+					throw new DBALRuntimeException(
+						\sprintf(
+							'Unexpected key "%s" found in filters array with "%s" key; only "%s" and "%s" are allowed when using string expression format.',
+							$k,
+							self::STR_EXPR_FILTER_KEY,
+							self::STR_EXPR_FILTER_KEY,
+							self::STR_EXPR_BINDINGS_KEY
+						),
+						['_filters' => $filters]
+					);
+				}
+			}
+
+			if (!\is_string($expression)) {
+				throw new DBALRuntimeException(
+					\sprintf('Invalid filter expression, found "%s" while expecting a string.', \get_debug_type($expression)),
+					['_filters' => $filters]
+				);
+			}
+
+			if (!\is_array($bindings)) {
+				throw new DBALRuntimeException(
+					\sprintf('Invalid filter bindings, found "%s" while expecting an array.', \get_debug_type($bindings)),
+					['_filters' => $filters]
+				);
+			}
+
+			return self::fromString($expression, $bindings, $qb, $scope);
+		}
+
+		// check old format
+		if (!\is_int(\key($filters))) {
 			return self::fromOldFiltersArray($filters, $qb, $scope);
 		}
 
@@ -374,124 +438,106 @@ final class Filters
 	/**
 	 * Appends a single filter condition.
 	 *
-	 * Operator normalisation applied before storage:
+	 * Operator normalization applied before storage:
 	 * - `IS_TRUE` is promoted to `EQ true`.
 	 * - `IS_FALSE` is promoted to `EQ false`.
 	 *
-	 * @param Operator   $operator the comparison or unary operator to apply
-	 * @param string     $left     the left operand (column name, FQN, or alias-qualified reference)
-	 * @param null|mixed $right    the right operand; must be `null` for unary operators;
-	 *                             arrays are only valid for `IN` and `NOT_IN`
+	 * @param Operator   $operator     the comparison or unary operator to apply
+	 * @param string     $u_left       the left operand (column name, FQN, or alias-qualified reference)
+	 * @param null|mixed $unsafe_right the right operand; must be `null` for unary operators;
+	 *                                 arrays are only valid for `IN` and `NOT_IN`
 	 *
 	 * @return $this
 	 */
 	public function add(
 		Operator $operator,
 		string $left,
-		array|BackedEnum|bool|float|int|QBExpression|QBInterface|string|null $right = null
+		array|BackedEnum|bool|Column|float|int|QBExpression|QBInterface|string|null $u_right = null
 	): self {
 		if (Operator::IS_TRUE === $operator) {
-			$operator = Operator::EQ;
-			$right    = true;
+			$operator   = Operator::EQ;
+			$u_right    = true;
 		} elseif (Operator::IS_FALSE === $operator) {
-			$operator = Operator::EQ;
-			$right    = false;
+			$operator   = Operator::EQ;
+			$u_right    = false;
 		}
 
-		$operands_count = $operator->getOperandsCount();
+		$left_operand  = new FilterLeftOperand($left, $this->qb, $this->scope);
+		$right_operand =   null;
 
-		$real_left  = $left;
-		$real_right = $right;
-
-		$left = $this->cleanOperand($left, $detected_left_table, $detected_left_column);
-
-		if ($this->scope) {
-			$left = $detected_left_column ?? $left;
-
-			$tmp_filter = new Filter($operator, $real_left, $real_right, $left, null);
-
-			$this->scope->assertFilterAllowed($tmp_filter);
-
-			if (!$detected_left_table) {
-				$left = $this->scope->getColumnFQName($left);
-			}
-		}
-
-		if (2 === $operands_count) {
+		if (!$operator->isUnary()) {
 			$try_enforce_query_type = true;
 
-			if ($right instanceof QBInterface && QBType::SELECT !== $right->getType()) {
+			if ($u_right instanceof QBInterface && QBType::SELECT !== $u_right->getType()) {
 				throw new DBALRuntimeException(
 					\sprintf(
 						'right operand of type "%s" should be a "SELECT" not: %s',
-						$right::class,
-						$right->getType()->name
+						$u_right::class,
+						$u_right->getType()->name
 					)
 				);
 			}
 
+			// for IN operators we accept only: array, SELECT and expressions
 			if (Operator::IN === $operator || Operator::NOT_IN === $operator) {
-				if (\is_array($right)) {
-					$right = $this->qb->bindArrayForInList($right, [], true);
-				} elseif ($right instanceof QBSelect) {
-					$this->qb->bindMergeFrom($right);
-					$right                  = '(' . $right->getSqlQuery() . ')';
+				if ($u_right instanceof QBSelect || $u_right instanceof QBExpression) {
 					$try_enforce_query_type = false;
-				} elseif ($right instanceof QBExpression) {
-					$right                  = (string) $right;
-					$try_enforce_query_type = false;
-				} else {
+				} elseif (!\is_array($u_right)) {
 					throw new DBALRuntimeException(
 						\sprintf(
 							'operator "%s" right operand should be of type "%s" not: %s',
 							$operator->name,
 							\implode('|', ['array', QBSelect::class, QBExpression::class]),
-							\get_debug_type($right)
+							\get_debug_type($u_right)
 						)
 					);
 				}
-			} elseif ($right instanceof QBInterface) {
-				$this->qb->bindMergeFrom($right);
-				$right = '(' . $right->getSqlQuery() . ')';
-			} elseif ($right instanceof QBExpression) {
-				$right = (string) $right;
-			} else {
-				if (\is_array($right)) {
-					throw new DBALRuntimeException(
-						\sprintf(
-							'"array" type for right operand not supported by operator: %s',
-							$operator->name
-						)
-					);
-				}
+			} elseif (\is_array($u_right)) {
+				// for non-IN operators we don't allow array as right operand
+				throw new DBALRuntimeException(
+					\sprintf(
+						'"array" type for right operand not supported by operator: %s',
+						$operator->name
+					)
+				);
+			}
 
-				$right = $this->cleanOperand($right, $detected_right_table, $detected_right_column);
+			$right_operand = new FilterRightOperand($u_right, $this->qb, $this->scope);
+			$right_nz      = $right_operand->getValueNormalized();
 
-				if (!$detected_right_column && !$this->isRightOperandABinding($right)) {
+			if ($right_operand->canBeSafelyBound()) {
+				if (\is_array($right_nz)) {
+					$right_nz = $this->qb->bindArrayForInList($right_nz, [], true);
+				} else {
 					$param_key = QBUtils::newParamKey();
-					$this->qb->bindNamed($param_key, $right);
 
-					$right = ':' . $param_key;
+					$this->qb->bindNamed($param_key, $right_nz);
+
+					$right_nz = ':' . $param_key;
 				}
 			}
 
-			if ($detected_left_table && $detected_left_column && $try_enforce_query_type) {
-				$right = TypeUtils::runEnforceQueryExpressionValueType(
-					$detected_left_table,
-					$detected_left_column,
-					$right,
+			// Enforce query-compatible types for the right operand when possible, using the detected column from the left operand.
+			// This is best-effort and only applied when we have a detected column on the left operand
+			if ($try_enforce_query_type && $left_operand->hasDetectedTableAndColumn()) {
+				$detected = $left_operand->getDetectedTableAndColumn();
+
+				$right_nz = TypeUtils::runEnforceQueryExpressionValueType(
+					$detected['table'],
+					$detected['column'],
+					$right_nz,
 					$this->qb->getRDBMS()
 				);
 			}
 
-			if (\is_array($right)) {
-				$right = '(' . \implode(', ', $right) . ')';
-			}
-		} else {
-			$right = null;
+			$right_operand->setValueNormalized($right_nz);
 		}
 
-		$filter = new Filter($operator, $real_left, $real_right, $left, $right);
+		$filter = new Filter($operator, $left_operand, $right_operand);
+
+		if ($this->scope) {
+			$this->scope->assertFilterAllowed($filter, $this->qb);
+		}
 
 		$this->group->push($filter);
 
@@ -523,14 +569,14 @@ final class Filters
 	 *
 	 *   // same as
 	 *   $expression = 'foo eq :val1 and bar eq :val2 and (baz eq :val3 or baz gt :val4)';
-	 *   $inject = ['val1' => 'bla', 'val2' => 'kat', 'val3' => 8, 'val4' => 10];
+	 *   $bindings = ['val1' => 'bla', 'val2' => 'kat', 'val3' => 8, 'val4' => 10];
 	 *
 	 *   // or with strict mode off (inline static values)
 	 *   $expression = 'foo eq "bla" and bar eq "kat" and (baz eq 8 or baz gt 10)';
 	 * ```
 	 *
 	 * @param string                     $expression The filter expression string to parse
-	 * @param array                      $inject     Map of binding name => value (e.g. `['val1' => 'bla']`)
+	 * @param array                      $bindings   Map of binding name => value (e.g. `['val1' => 'bla']`)
 	 * @param QBInterface                $qb         The query builder instance to use for bindings and table/column resolution
 	 * @param null|FiltersScopeInterface $scope      Optional filters scope for validating and resolving columns in the expression
 	 * @param bool                       $strict     When `true` (default), only `:binding` references are
@@ -541,14 +587,14 @@ final class Filters
 	 */
 	public static function fromString(
 		string $expression,
-		array $inject,
+		array $bindings,
 		QBInterface $qb,
 		?FiltersScopeInterface $scope = null,
 		bool $strict = true
 	): self {
-		$parser = new FiltersExpressionParser($expression, $inject, $qb, $scope, $strict);
+		$parser = new FiltersExpressionParser($expression, $bindings, $strict);
 
-		return $parser->parse();
+		return $parser->toFilters($qb, $scope);
 	}
 
 	/**
@@ -659,136 +705,5 @@ final class Filters
 		}
 
 		return $instance;
-	}
-
-	/**
-	 * Resolves and normalises a filter operand.
-	 *
-	 * - `QBExpression` → cast to string verbatim.
-	 * - `BackedEnum` → unwrapped to its scalar `value`.
-	 * - `Column` instance → resolved to its FQN using the current QB alias map.
-	 * - `table.column` string notation → resolved to the fully qualified reference
-	 *   (e.g. `users.name` → `u.gobl_name`) when the table is registered in the QB.
-	 * - `table.column.json.path` string (3+ dot segments) → resolved to the
-	 *   dialect-specific JSON-path extraction expression (requires `native_json` enabled
-	 *   on the column's type).
-	 * - All other values pass through unchanged.
-	 *
-	 * The output references `$found_table` and `$found_column` are set when the operand
-	 * resolves to a known table/column pair (used by the scope checker).
-	 *
-	 * @param mixed       $operand
-	 * @param null|string &$found_table  set to the resolved table full name, or `null`
-	 * @param null|string &$found_column set to the resolved column full name, or `null`
-	 *
-	 * @return mixed normalised operand value
-	 */
-	private function cleanOperand(mixed $operand, ?string &$found_table = null, ?string &$found_column = null): mixed
-	{
-		if ($operand instanceof QBExpression) {
-			$operand = (string) $operand;
-		} elseif ($operand instanceof BackedEnum) {
-			$operand = $operand->value;
-		} elseif (\is_string($operand) && \strlen($operand) > 2 && ':' !== $operand[0] && '(' !== $operand[0]) {
-			$parts = \explode('.', $operand);
-
-			if (2 === \count($parts) && !empty($parts[0]) && !empty($parts[1])) {
-				try {
-					$table_name = $this->qb->resolveTable($parts[0])
-						?->getFullName();
-					if ($table_name) {
-						$operand = $this->qb->fullyQualifiedName($parts[0], $parts[1]);
-						// we found a table and column
-						$fqn_parts = \explode('.', $operand);
-
-						if (2 === \count($fqn_parts)) {
-							$found_table  = $table_name;
-							$found_column = $fqn_parts[1];
-						}
-					}
-				} catch (Throwable) {
-				}
-			} elseif (\count($parts) >= 3 && !empty($parts[0]) && !empty($parts[1])) {
-				// Detect table.column.json_path notation for JSON path filtering.
-				// e.g. 'users.user_data.profile.name' -> JSON_EXTRACT(u.user_data, '$.profile.name')
-				try {
-					$table = $this->qb->resolveTable($parts[0]);
-
-					if ($table) {
-						$col_name  = $parts[1];
-						$json_path = \array_slice($parts, 2);
-						$col_obj   = $table->getColumn($col_name);
-
-						if ($col_obj) {
-							$base_type = $col_obj->getType()->getBaseType();
-
-							if (TypeJSON::NAME !== $base_type->getName()) {
-								throw new DBALRuntimeException(\sprintf(
-									'JSON path filter "%s" is only allowed on JSON columns; column "%s" has base type "%s".',
-									$operand,
-									$col_name,
-									$base_type->getName()
-								));
-							}
-
-							/** @var TypeJSON $json_base */
-							$json_base = $base_type;
-
-							if (!$json_base->getOption('native_json', false)) {
-								throw new DBALRuntimeException(\sprintf(
-									'JSON path filter "%s" requires native_json to be enabled on column "%s".',
-									$operand,
-									$col_name
-								));
-							}
-
-							$col_fqn = $this->qb->fullyQualifiedName($parts[0], $col_obj->getFullName());
-							$operand = $this->qb->getRDBMS()
-								->getGenerator()
-								->getJsonPathExpression($col_fqn, $json_path);
-							// Track column for type-scope checks but do not enforce value type
-							// (JSON path extracts always yield text).
-							$found_table  = $table->getFullName();
-							$found_column = $col_obj->getFullName();
-						}
-					}
-				} catch (DBALRuntimeException $e) {
-					throw $e;
-				} catch (Throwable) {
-				}
-			}
-		} elseif ($operand instanceof Column) {
-			$column = $operand;
-			$table  = $column->getTable();
-
-			if (null === $table) {
-				throw new DBALRuntimeException(
-					\sprintf('attempt to use unlocked column "%s" in a query.', $column->getName())
-				);
-			}
-
-			$found_table  = $table->getFullName();
-			$found_column = $column->getFullName();
-
-			$operand = $this->qb->fullyQualifiedName($found_table, $found_column);
-		}
-
-		return $operand;
-	}
-
-	/**
-	 * Returns whether the right operand is already a bound named parameter.
-	 *
-	 * A value is considered a binding when it is a string starting with `:` and
-	 * the remainder is a registered parameter name in the current QB.
-	 * Used to avoid double-binding values that were already bound by `bindArrayForInList`.
-	 *
-	 * @param mixed $right
-	 *
-	 * @return bool
-	 */
-	private function isRightOperandABinding(mixed $right): bool
-	{
-		return \is_string($right) && $right && ':' === $right[0] && $this->qb->isBoundParam(\substr($right, 1));
 	}
 }

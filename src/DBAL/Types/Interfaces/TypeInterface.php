@@ -13,12 +13,16 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Types\Interfaces;
 
+use Gobl\DBAL\Column;
 use Gobl\DBAL\Filters\Filter;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
+use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
+use Gobl\ORM\ORMTableQuery;
 use Gobl\ORM\ORMTypeHint;
+use OLIUP\CG\PHPMethod;
 use PHPUtils\Interfaces\ArrayCapableInterface;
 
 /**
@@ -207,6 +211,20 @@ interface TypeInterface extends ArrayCapableInterface
 	 * @return Operator[]
 	 */
 	public function getAllowedFilterOperators(): array;
+
+	/**
+	 * Called to apply query builder filter.
+	 *
+	 * @return void
+	 */
+	public function queryBuilderApplyFilter(ORMTableQuery $qb, Column $column, Operator $operator, array $args): void;
+
+	/**
+	 * Called to enhance query builder filter method when the operator is supported by the type.
+	 *
+	 * @return void
+	 */
+	public function queryBuilderEnhanceFilterMethod(Table $table, Column $column, Operator $operator, PHPMethod $method): void;
 
 	/**
 	 * Adds option key value pair.

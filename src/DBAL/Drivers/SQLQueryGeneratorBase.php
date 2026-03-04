@@ -1473,8 +1473,8 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 */
 	protected function operatorFilterToExpression(Filter $filter): string
 	{
-		$left  = $filter->getLeftOperandString();
-		$right = $filter->getRightOperandString();
+		$left  = $filter->getLeftOperand()->getValueForQuery();
+		$right = $filter->getRightOperand()?->getValueForQuery();
 		$op    = $filter->getOperator();
 
 		// Function-call style: MySQL JSON_CONTAINS(col, value)

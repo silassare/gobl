@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Relations;
 
+use Gobl\DBAL\Builders\LinkBuilder;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\QBSelect;
@@ -38,7 +39,7 @@ final class LinkJoin extends Link
 	 * @param Table          $host_table
 	 * @param Table          $target_table
 	 * @param array{
-	 * 			steps: array{join: string, link: array},
+	 * 			steps: array{join: string, link: array|\Gobl\DBAL\Builders\LinkBuilder} }[],
 	 *          filters?: null|array,
 	 *       } $options
 	 *
@@ -71,9 +72,12 @@ final class LinkJoin extends Link
 				));
 			}
 
-			if (!\is_array($link_option)) {
+			if ($link_option instanceof LinkBuilder) {
+				$link_option = $link_option->toArray();
+			} elseif (!\is_array($link_option)) {
 				throw new DBALException(\sprintf(
-					'The "link" option must be an array for the step %d not "%s".',
+					'The "link" option must be an array|%s for the step %d not "%s".',
+					LinkBuilder::class,
 					$key,
 					\gettype($link_option)
 				));

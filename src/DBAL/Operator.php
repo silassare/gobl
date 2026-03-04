@@ -104,16 +104,6 @@ enum Operator: string
 	}
 
 	/**
-	 * Gets operands count for this operator.
-	 *
-	 * @return int
-	 */
-	public function getOperandsCount(): int
-	{
-		return $this->isUnary() ? 1 : 2;
-	}
-
-	/**
 	 * Checks if this is an unary operator.
 	 *
 	 * @return bool

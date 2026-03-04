@@ -26,7 +26,7 @@ class QBUtils
 	/**
 	 * Reset the identifier generator counter.
 	 *
-	 * @internal Useful for testing.
+	 * @internal useful for testing
 	 */
 	public static function resetIdentifierCounter(): void
 	{
@@ -88,7 +88,7 @@ class QBUtils
 	{
 		$x    = self::$GEN_IDENTIFIER_COUNTER++;
 		$list = \range('a', 'z');
-		$len  = 26;
+		$len  = \count($list);
 		$a    = '';
 
 		do {

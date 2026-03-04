@@ -103,7 +103,7 @@ final class RelationBuilder
 	}
 
 	/**
-	 * Creates a relation using the provided `$link_options` array.
+	 * Creates a relation using the provided `$link_options` array or a {@see LinkBuilder} instance.
 	 *
 	 * This is the core link-dispatch method. It instantiates the appropriate
 	 * `LinkInterface` implementation based on `$link_options['type']`, then wraps
@@ -112,15 +112,19 @@ final class RelationBuilder
 	 * Throws `DBALRuntimeException` if {@see from()} has not been called first
 	 * (no target table set).
 	 *
-	 * @param array $link_options link definition array (must include `type`)
+	 * @param array|LinkBuilder $link_options link definition array or a fluent `LinkBuilder` instance
 	 *
 	 * @return Relation
 	 *
 	 * @throws DBALRuntimeException when no target table is set
 	 * @throws DBALException
 	 */
-	public function using(array $link_options): Relation
+	public function using(array|LinkBuilder $link_options): Relation
 	{
+		if ($link_options instanceof LinkBuilder) {
+			$link_options = $link_options->toArray();
+		}
+
 		if (!$this->target_table) {
 			throw new DBALRuntimeException(\sprintf(
 				'Target table is not set you must call the "%s" method first.',
@@ -207,10 +211,38 @@ final class RelationBuilder
 	/**
 	 * Specify a relation link of type "through".
 	 *
-	 * @param string|Table         $pivot_table
-	 * @param array<string, mixed> $host_to_pivot_link_options
-	 * @param array<string, mixed> $pivot_to_target_link_options
-	 * @param array                $filters
+	 * Creates a `THROUGH`-type relation that traverses a **pivot** (junction) table.
+	 * The relation is defined by two sub-links:
+	 * - `$host_to_pivot`   from the host table to the pivot table.
+	 * - `$pivot_to_target` from the pivot table to the ultimate target table.
+	 *
+	 * Each sub-link can be:
+	 * - `null`        auto-detected via FK constraints (same as passing `[]`).
+	 * - `array`       raw link-option array (backward-compatible).
+	 * - `LinkBuilder` type-safe fluent builder (recommended for new code).
+	 *
+	 * ### Example
+	 *
+	 * ```php
+	 * // Raw-array style (still works)
+	 * $builder->through('sessions_teachers', [], [
+	 *     'type'    => 'columns',
+	 *     'columns' => ['session_id' => 'for_id'],
+	 *     'filters' => [['for_type', 'eq', 'session']],
+	 * ]);
+	 *
+	 * // Recommended LinkBuilder style
+	 * $builder->through(
+	 *     'sessions_teachers',
+	 *     null,
+	 *     LinkBuilder::columns(['session_id' => 'for_id'])->filter('for_type', 'eq', 'session'),
+	 * );
+	 * ```
+	 *
+	 * @param string|Table           $pivot_table
+	 * @param null|array|LinkBuilder $host_to_pivot   sub-link: host to pivot (null = auto)
+	 * @param null|array|LinkBuilder $pivot_to_target sub-link: pivot to target (null = auto)
+	 * @param array                  $filters         optional extra filters on the through relation
 	 *
 	 * @return Relation
 	 *
@@ -218,8 +250,8 @@ final class RelationBuilder
 	 */
 	public function through(
 		string|Table $pivot_table,
-		array $host_to_pivot_link_options = [],
-		array $pivot_to_target_link_options = [],
+		array|LinkBuilder|null $host_to_pivot = null,
+		array|LinkBuilder|null $pivot_to_target = null,
 		array $filters = [],
 	): Relation {
 		if (\is_string($pivot_table)) {
@@ -229,8 +261,8 @@ final class RelationBuilder
 		$options = [
 			'type'            => LinkType::THROUGH->value,
 			'pivot_table'     => $pivot_table,
-			'host_to_pivot'   => $host_to_pivot_link_options,
-			'pivot_to_target' => $pivot_to_target_link_options,
+			'host_to_pivot'   => $host_to_pivot instanceof LinkBuilder ? $host_to_pivot->toArray() : ($host_to_pivot ?? []),
+			'pivot_to_target' => $pivot_to_target instanceof LinkBuilder ? $pivot_to_target->toArray() : ($pivot_to_target ?? []),
 			'filters'         => $filters,
 		];
 

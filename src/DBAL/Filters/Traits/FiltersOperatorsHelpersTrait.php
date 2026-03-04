@@ -29,8 +29,8 @@ trait FiltersOperatorsHelpersTrait
 	 *
 	 * When `$right` is `null`, automatically promotes to `IS NULL` instead of `= NULL`.
 	 *
-	 * @param string                                            $left
-	 * @param null|bool|float|int|QBExpression|QBSelect|string  $right
+	 * @param string                                           $left
+	 * @param null|bool|float|int|QBExpression|QBSelect|string $right
 	 *
 	 * @return $this
 	 */
@@ -48,8 +48,8 @@ trait FiltersOperatorsHelpersTrait
 	 *
 	 * When `$right` is `null`, automatically promotes to `IS NOT NULL` instead of `<> NULL`.
 	 *
-	 * @param string                                            $left
-	 * @param null|bool|float|int|QBExpression|QBSelect|string  $right
+	 * @param string                                           $left
+	 * @param null|bool|float|int|QBExpression|QBSelect|string $right
 	 *
 	 * @return $this
 	 */

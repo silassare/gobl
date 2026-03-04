@@ -189,7 +189,7 @@ abstract class CSGenerator
 				'rightOperandTypeHint' => $this->toTypeHintString(
 					ORMTypeHint::getOperatorRightOperandTypesHint($type, $operator)
 				),
-				'noArg' => 1 === $operator->getOperandsCount(),
+				'noArg' => $operator->isUnary(),
 			];
 
 			$filtersRules[] = $rule;

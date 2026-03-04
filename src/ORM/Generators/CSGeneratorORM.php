@@ -835,7 +835,7 @@ return static::table()->getVirtualRelation(\'{relation_name}\')->getController()
 					$col_inject
 				);
 
-				$has_no_arg = 1 === $operator->getOperandsCount();
+				$has_no_arg = $operator->isUnary();
 
 				if ($has_no_arg) {
 					$class_comment_lines[] = '@method $this ' . $method . '() ' . $comment;

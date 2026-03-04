@@ -102,18 +102,18 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 */
 	public function __call(string $name, array $arguments)
 	{
-		/** @var array<string, array<string, array{0:string, 1:Operator}>> $filters_methods */
+		/** @var array<string, array<string, array{0:Column, 1:Operator}>> $filters_methods */
 		static $filters_methods = [];
 
 		if (!isset($filters_methods[$this->table_name])) {
-			/** @var array<string, array{0:string, 1:Operator}> $methods */
+			/** @var array<string, array{0:Column, 1:Operator}> $methods */
 			$methods = [];
 
 			foreach ($this->table->getColumns() as $column) {
 				$type = $column->getType();
 				foreach ($type->getAllowedFilterOperators() as $operator) {
 					$method           = Str::toMethodName('where_' . $operator->getFilterSuffix($column));
-					$methods[$method] = [$column->getFullName(), $operator];
+					$methods[$method] = [$column, $operator];
 				}
 			}
 
@@ -124,9 +124,10 @@ abstract class ORMTableQuery extends FiltersTableScope
 
 		if (isset($methods[$name])) {
 			[$column, $op] = $methods[$name];
-			$value         = $arguments[0] ?? null;
 
-			return $this->filterBy($op, $column, $value);
+			$column->getType()->queryBuilderApplyFilter($this, $column, $op, $arguments);
+
+			return $this;
 		}
 
 		throw new BadMethodCallException('Call to undefined method ' . static::class . '::' . $name . '()');
@@ -137,10 +138,10 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 *
 	 * @throws ORMQueryException
 	 */
-	public function assertFilterAllowed(Filter $filter): void
+	public function assertFilterAllowed(Filter $filter, ?QBInterface $qb = null): void
 	{
 		try {
-			parent::assertFilterAllowed($filter);
+			parent::assertFilterAllowed($filter, $qb);
 		} catch (Throwable $t) {
 			throw new ORMQueryException('GOBL_ORM_FILTER_NOT_ALLOWED', $filter->toArray(), $t);
 		}

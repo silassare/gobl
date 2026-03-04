@@ -729,7 +729,7 @@ class ORMRequest
 		$list = [];
 
 		foreach ($order_by as $name => $ord) {
-			$list[] = $ord === 'ASC' ? $name : $name . self::ORDER_BY_DELIMITER_ASC_DESC . 'desc';
+			$list[] = 'ASC' === $ord ? $name : $name . self::ORDER_BY_DELIMITER_ASC_DESC . 'desc';
 		}
 
 		return \implode(self::ORDER_BY_DELIMITER, $list);

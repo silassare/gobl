@@ -391,7 +391,7 @@ DIFF_SQL;
 		}
 
 		if (!empty($diff)) {
-			\usort($diff, static fn(DiffAction $a, DiffAction $b) => $a->getType()->getPriority() - $b->getType()->getPriority());
+			\usort($diff, static fn (DiffAction $a, DiffAction $b) => $a->getType()->getPriority() - $b->getType()->getPriority());
 		}
 
 		return $diff;
@@ -599,8 +599,8 @@ DIFF_SQL;
 					->getFullName())) {
 					$touched = \sprintf('constraint host table changed from "%s" to "%s".', $a, $b);
 				} elseif (($a = $from_constraint->getReferenceTable()
-						->getFullName()) !== ($b = $to_constraint->getReferenceTable()
-						->getFullName())
+					->getFullName()) !== ($b = $to_constraint->getReferenceTable()
+					->getFullName())
 				) {
 					$touched = \sprintf('constraint reference table changed from "%s" to "%s".', $a, $b);
 				} elseif ($from_constraint->getColumnsMapping() !== $to_constraint->getColumnsMapping()) {
@@ -747,7 +747,7 @@ DIFF_SQL;
 	 * `wrapDatabaseDefinitionQuery()`. Returns an empty string when all actions produce
 	 * empty SQL (e.g. no-op actions).
 	 *
-	 * @param RDBMSInterface $db          the target database (determines the SQL dialect)
+	 * @param RDBMSInterface $db           the target database (determines the SQL dialect)
 	 * @param DiffAction[]   $diff_actions
 	 *
 	 * @return string

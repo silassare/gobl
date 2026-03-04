@@ -465,11 +465,11 @@ class SQLLiteQueryGenerator extends SQLQueryGeneratorBase
 		if (null !== $max) {
 			// LIMIT: rewrite as rowid subquery so ORDER BY + LIMIT work correctly.
 			$table  = \array_key_first($from_map);
-		$alias  = $from_map[$table][0] ?? '';
-		$qt     = $this->quoteIdentifier($table);
-		$qta    = empty($alias) ? $qt : $qt . ' AS ' . $alias;
-		$ob     = $this->getOrderByQuery($qb);
-		$sub    = 'SELECT rowid FROM ' . $qta . ' WHERE ' . $where . $ob . ' LIMIT ' . $max;
+			$alias  = $from_map[$table][0] ?? '';
+			$qt     = $this->quoteIdentifier($table);
+			$qta    = empty($alias) ? $qt : $qt . ' AS ' . $alias;
+			$ob     = $this->getOrderByQuery($qb);
+			$sub    = 'SELECT rowid FROM ' . $qta . ' WHERE ' . $where . $ob . ' LIMIT ' . $max;
 			$query  = 'DELETE FROM ' . $qt . ' WHERE rowid IN (' . $sub . ')';
 			$query .= $this->getReturningClause($qb);
 
@@ -603,35 +603,6 @@ class SQLLiteQueryGenerator extends SQLQueryGeneratorBase
 	}
 
 	/**
-	 * Recursively walks the join sub-tree of `$alias` and throws if any RIGHT JOIN is found.
-	 *
-	 * @param QBDelete|QBSelect   $qb
-	 * @param string              $alias
-	 * @param array<string, bool> $visited cycle-guard
-	 *
-	 * @throws DBALRuntimeException when a RIGHT JOIN is found at sub-join level
-	 */
-	private function assertNoSubLevelRightJoin(QBDelete|QBSelect $qb, string $alias, array $visited): void
-	{
-		$joins = $qb->getOptionsJoins()[$alias] ?? [];
-
-		foreach ($joins as $join) {
-			if (JoinType::RIGHT === $join->getType()) {
-				throw new DBALRuntimeException(
-					'SQLite does not support RIGHT JOIN at sub-join level. '
-						. 'Top-level RIGHT JOINs are automatically emulated using LEFT JOIN with swapped tables.'
-				);
-			}
-
-			$target = $join->getOptions()['table_to_join_alias'];
-
-			if (!isset($visited[$target])) {
-				$this->assertNoSubLevelRightJoin($qb, $target, $visited + [$target => true]);
-			}
-		}
-	}
-
-	/**
 	 * {@inheritDoc}
 	 *
 	 * SQLite uses `INSERT OR IGNORE INTO` for conflict-ignore mode.
@@ -701,6 +672,35 @@ class SQLLiteQueryGenerator extends SQLQueryGeneratorBase
 		$columns = empty($opts['columns']) ? ['*'] : $opts['columns'];
 
 		return ' RETURNING ' . \implode(', ', $columns);
+	}
+
+	/**
+	 * Recursively walks the join sub-tree of `$alias` and throws if any RIGHT JOIN is found.
+	 *
+	 * @param QBDelete|QBSelect   $qb
+	 * @param string              $alias
+	 * @param array<string, bool> $visited cycle-guard
+	 *
+	 * @throws DBALRuntimeException when a RIGHT JOIN is found at sub-join level
+	 */
+	private function assertNoSubLevelRightJoin(QBDelete|QBSelect $qb, string $alias, array $visited): void
+	{
+		$joins = $qb->getOptionsJoins()[$alias] ?? [];
+
+		foreach ($joins as $join) {
+			if (JoinType::RIGHT === $join->getType()) {
+				throw new DBALRuntimeException(
+					'SQLite does not support RIGHT JOIN at sub-join level. '
+						. 'Top-level RIGHT JOINs are automatically emulated using LEFT JOIN with swapped tables.'
+				);
+			}
+
+			$target = $join->getOptions()['table_to_join_alias'];
+
+			if (!isset($visited[$target])) {
+				$this->assertNoSubLevelRightJoin($qb, $target, $visited + [$target => true]);
+			}
+		}
 	}
 
 	/**

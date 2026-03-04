@@ -236,9 +236,9 @@ interface QBInterface
 	 * or explicitly set via {@see setMainAlias()}, or implicitly assigned by `from()`.
 	 *
 	 * @param string|Table $table   table name, declared alias, or `Table` instance
-	 * @param bool         $declare When `true`, a new alias is auto-generated and
+	 * @param bool         $declare when `true`, a new alias is auto-generated and
 	 *                              registered as the main alias when none exists,
-	 *                              instead of throwing a runtime exception.
+	 *                              instead of throwing a runtime exception
 	 *
 	 * @return string the main alias
 	 */
@@ -271,8 +271,8 @@ interface QBInterface
 	 *
 	 * @param string|Table $table table name, full name, or `Table` instance
 	 * @param string       $alias alias string (must match {@see Table::ALIAS_PATTERN})
-	 * @param bool         $main  When `true`, also marks this alias as the main alias
-	 *                            for the table (equivalent to calling {@see setMainAlias()} afterwards).
+	 * @param bool         $main  when `true`, also marks this alias as the main alias
+	 *                            for the table (equivalent to calling {@see setMainAlias()} afterwards)
 	 *
 	 * @return $this
 	 */

@@ -346,9 +346,9 @@ class CRUD
 	 *
 	 * Checks if the column is private or sensitive and dispatches the corresponding authorization events.
 	 *
-	 * @param Column $column the column being written
-	 * @param array  $form   the full form data being written (useful for context in event listeners)
-	 * @param string $field  the specific field being written (useful for context in event listeners and debug info)
+	 * @param Column $column   the column being written
+	 * @param array  $form     the full form data being written (useful for context in event listeners)
+	 * @param string $field    the specific field being written (useful for context in event listeners and debug info)
 	 * @param bool   $updating whether this is an update operation (true) or a create operation (false), which can be relevant for
 	 *
 	 * @throws CRUDException
@@ -389,7 +389,6 @@ class CRUD
 	 * enforce stricter rules on them (e.g. immutability after creation).
 	 * This is in addition to the regular column write checks performed in {@see CRUD::checkForColumnWrite()},
 	 * so PK columns that are also private/sensitive will trigger all relevant events.
-	 *
 	 *
 	 * @throws CRUDException
 	 */

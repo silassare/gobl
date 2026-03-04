@@ -13,15 +13,19 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Types;
 
+use Gobl\DBAL\Column;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Filters\Filter;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
+use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
 use Gobl\DBAL\Types\Utils\TypeUtils;
+use Gobl\ORM\ORMTableQuery;
 use Gobl\ORM\ORMTypeHint;
+use OLIUP\CG\PHPMethod;
 use PHPUtils\Traits\ArrayCapableTrait;
 
 /**
@@ -142,12 +146,32 @@ abstract class Type implements TypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	public function queryBuilderApplyFilter(ORMTableQuery $qb, Column $column, Operator $operator, array $args): void
+	{
+		$value = $args[0] ?? null;
+
+		$qb->filterBy($operator, $column->getFullName(), $value);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function queryBuilderEnhanceFilterMethod(Table $table, Column $column, Operator $operator, PHPMethod $method): void {}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function getAllowedFilterOperators(): array
 	{
-		$operators = Operator::cases();
+		$operators = $this->safelyCallOnBaseType(__FUNCTION__, []) ?? Operator::cases();
 
 		foreach ($operators as $key => $op) {
 			if (Operator::IS_FALSE === $op || Operator::IS_TRUE === $op) {
+				unset($operators[$key]);
+			}
+
+			// JSON containment is only available with a native JSON column.
+			if (Operator::JSON_CONTAINS === $op && !$this->getOption('native_json', false)) {
 				unset($operators[$key]);
 			}
 

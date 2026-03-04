@@ -340,7 +340,7 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	 * @return Column
 	 *
 	 * @throws InvalidArgumentException when the string format is invalid or the column instance
-	 *                                   has not yet been added to a table
+	 *                                  has not yet been added to a table
 	 */
 	public function setReference(self|string|null $reference, bool $copy = false): self
 	{

@@ -111,7 +111,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 			return \str_replace("'", "''", $s);
 		}, $json_path));
 
-		return $col_sql_expression . "#>>" . $this->quoteLiteral('{' . $path_content . '}');
+		return $col_sql_expression . '#>>' . $this->quoteLiteral('{' . $path_content . '}');
 	}
 
 	/**
@@ -292,7 +292,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		/** @var TypeJSON $base */
 		$base = $column->getType()->getBaseType();
 
-		if (!$base->getOption('native_json', false)) {
+		if (!$base->isNativeJson()) {
 			return parent::getJSONColumnDefinition($column);
 		}
 
@@ -313,8 +313,8 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	protected function operatorFilterToExpression(Filter $filter): string
 	{
 		if (Operator::JSON_CONTAINS === $filter->getOperator()) {
-			$left  = $filter->getLeftOperandString();
-			$right = $filter->getRightOperandString();
+			$left  = $filter->getLeftOperand()->getValueForQuery();
+			$right = $filter->getRightOperand()?->getValueForQuery();
 
 			return $left . ' @> ' . ($right ?? 'NULL') . '::jsonb';
 		}

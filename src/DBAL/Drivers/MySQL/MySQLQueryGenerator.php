@@ -245,7 +245,7 @@ SQL;
 		/** @var TypeJSON $base */
 		$base = $column->getType()->getBaseType();
 
-		if (!$base->getOption('native_json', false)) {
+		if (!$base->isNativeJson()) {
 			return parent::getJSONColumnDefinition($column);
 		}
 
@@ -259,6 +259,19 @@ SQL;
 		$force_no_default = null === $server_version || \version_compare($server_version, '8.0.13', '<');
 
 		$this->defaultAndNullChunks($column, $sql, $force_no_default);
+
+		if (!$force_no_default) {
+			// mysql 8.0.13+ require additional format if default is `{"foo": "bar"}`
+			// we need to quote and also add () around the default value to make it work
+			// so we need to: `('{"foo": "bar"}')`
+			// in our chunk the last item is: `DEFAULT '{"foo": "bar"}'`
+			// so we need to change it to: `DEFAULT ('{"foo": "bar"}')`
+			$last = end($sql);
+			if (str_starts_with($last, 'DEFAULT ') && str_contains($last, '{')) {
+				$parts = explode('DEFAULT ', $last, 2);
+				$sql[count($sql) - 1] = 'DEFAULT (' . $parts[1] . ')';
+			}
+		}
 
 		return \implode(' ', $sql);
 	}

@@ -110,7 +110,7 @@ final class Index implements ArrayCapableInterface
 	 *
 	 * @return $this
 	 */
-	public function lock(): self
+	public function lock(): static
 	{
 		if (!$this->locked) {
 			$this->assertIsValid();

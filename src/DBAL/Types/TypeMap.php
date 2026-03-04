@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Types;
 
 use Gobl\DBAL\Interfaces\RDBMSInterface;
-use Gobl\DBAL\Operator;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\Utils\Map;
 use Gobl\ORM\ORMTypeHint;
@@ -66,31 +65,6 @@ class TypeMap extends Type
 		}
 
 		return new Map($v);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getAllowedFilterOperators(): array
-	{
-		$operators = [
-			Operator::EQ,
-			Operator::NEQ,
-			Operator::LIKE,
-			Operator::NOT_LIKE,
-		];
-
-		if ($this->isNullable()) {
-			$operators[] = Operator::IS_NULL;
-			$operators[] = Operator::IS_NOT_NULL;
-		}
-
-		// JSON containment is only available with a native JSON column.
-		if ($this->getOption('native_json', false)) {
-			$operators[] = Operator::JSON_CONTAINS;
-		}
-
-		return $operators;
 	}
 
 	/**

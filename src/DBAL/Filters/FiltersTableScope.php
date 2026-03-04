@@ -15,6 +15,7 @@ namespace Gobl\DBAL\Filters;
 
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface;
+use Gobl\DBAL\Queries\Interfaces\QBInterface;
 use Gobl\DBAL\Queries\QBUtils;
 use Gobl\DBAL\Table;
 
@@ -51,10 +52,10 @@ class FiltersTableScope implements FiltersScopeInterface
 	 *
 	 * @throws DBALRuntimeException
 	 */
-	public function assertFilterAllowed(Filter $filter): void
+	public function assertFilterAllowed(Filter $filter, ?QBInterface $qb = null): void
 	{
 		// left operand should be a column
-		$column = $this->table->getColumnOrFail($filter->getLeftOperand());
+		$column = $this->table->getColumnOrFail($filter->getLeftOperand()->getDetectedColumnOrValueAsDefined());
 
 		if (!$this->allow_sensitive_column_in_filters && $column->isSensitive()) {
 			throw new DBALRuntimeException('Field not allowed in filters.', [
@@ -75,13 +76,13 @@ class FiltersTableScope implements FiltersScopeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function getColumnFQName($column_name): string
+	public function tryGetColumnFQName(string $column_name): ?string
 	{
 		if ($col = $this->table->getColumn($column_name)) {
 			return $this->table_alias . '.' . $col->getFullName();
 		}
 
-		return $column_name;
+		return null;
 	}
 
 	/**

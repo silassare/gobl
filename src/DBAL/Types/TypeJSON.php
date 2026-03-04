@@ -13,11 +13,16 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Types;
 
+use Gobl\DBAL\Column;
+use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
+use Gobl\DBAL\Operator;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
+use Gobl\ORM\ORMTableQuery;
 use Gobl\ORM\ORMTypeHint;
 use Gobl\ORM\ORMUniversalType;
+use InvalidArgumentException;
 
 /**
  * Class TypeJSON.
@@ -104,6 +109,14 @@ class TypeJSON extends Type implements BaseTypeInterface
 	}
 
 	/**
+	 * Returns whether the column is configured to use the native JSON type (when supported by the RDBMS).
+	 */
+	public function isNativeJson(): bool
+	{
+		return $this->getOption('native_json', false);
+	}
+
+	/**
 	 * {@inheritDoc}
 	 */
 	public function configure(array $options): static
@@ -169,6 +182,62 @@ class TypeJSON extends Type implements BaseTypeInterface
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
 	{
 		return $this->validate($value);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getAllowedFilterOperators(): array
+	{
+		$operators = [
+			Operator::EQ,
+			Operator::NEQ,
+			Operator::LIKE,
+			Operator::NOT_LIKE,
+			Operator::JSON_CONTAINS,
+		];
+
+		if ($this->isNullable()) {
+			$operators[] = Operator::IS_NULL;
+			$operators[] = Operator::IS_NOT_NULL;
+		}
+
+		// JSON containment is only available with a native JSON column.
+		if ($this->getOption('native_json', false)) {
+			$operators[] = Operator::JSON_CONTAINS;
+		}
+
+		return $operators;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function queryBuilderApplyFilter(ORMTableQuery $qb, Column $column, Operator $operator, array $args): void
+	{
+		$field = $column->getName();
+		$value = $args[0] ?? null;
+
+		if (Operator::JSON_CONTAINS === $operator) {
+			$json_path = $args[0] ?? null;
+
+			if (!is_string($json_path) || empty($json_path)) {
+				throw new InvalidArgumentException(
+					sprintf(
+						'Invalid JSON path for %s operator on column %s: got "%s" while a non-empty string is expected.',
+						Operator::JSON_CONTAINS->value,
+						$column->getFullName()
+					)
+				);
+			}
+
+			$value = $args[1] ?? null;
+
+			$field = $qb->getTableAlias() . '.' . $column->getName() . '.' . $json_path;
+		}
+
+
+		$qb->filterBy($operator, $field, $value);
 	}
 
 	/**
