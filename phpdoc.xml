@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<phpdocumentor
+    configVersion="3"
+    xmlns="https://www.phpdoc.org"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="https://docs.phpdoc.org/latest/phpdoc.xsd"
+>
+    <title>Gobl API Reference</title>
+
+    <paths>
+        <output>docs/api</output>
+        <cache>.phpdoc/cache</cache>
+    </paths>
+
+    <version number="2.0.0">
+        <folder>latest</folder>
+
+        <api format="php">
+            <source dsn=".">
+                <path>src</path>
+            </source>
+
+            <output>api/php</output>
+
+            <ignore hidden="true" symlinks="true">
+                <path>vendor/**</path>
+                <path>tests/**</path>
+            </ignore>
+
+            <extensions>
+                <extension>php</extension>
+            </extensions>
+
+            <visibility>public</visibility>
+            <default-package-name>Gobl</default-package-name>
+            <include-source>true</include-source>
+        </api>
+    </version>
+
+    <template name="default"/>
+</phpdocumentor>
