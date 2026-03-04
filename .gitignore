@@ -3,7 +3,6 @@
 .gobl
 /vendor
 /ignore
-/tests/tmp
 **/otpl_done/*
 
 # cs fixer
@@ -18,5 +17,12 @@
 gobl.test.log.txt
 
 
-# Generated ORM test classes (PSR-4 mapped, rebuilt on each test run)
-/tests/Db/
+# Generated file during tests: ORM test classes (PSR-4 mapped, rebuilt on each test run)
+/tests/tmp/
+
+# Documentation build output
+/docs/.vitepress/dist
+/docs/.vitepress/cache
+/docs/node_modules
+/docs/api
+/.phpdoc/cache
