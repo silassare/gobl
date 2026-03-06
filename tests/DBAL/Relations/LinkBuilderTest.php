@@ -310,7 +310,7 @@ final class LinkBuilderTest extends BaseTestCase
 		$qb = new QBSelect($db);
 		$qb->from('schedules');
 
-		// Must not throw DBALRuntimeException("Field not allowed in filters.")
+		// Must not throw DBALRuntimeException("Field not allowed in filters of this scope.")
 		$applied = $relation->getLink()->apply($qb);
 
 		self::assertTrue($applied, 'apply() must return true when link is resolved in join mode');

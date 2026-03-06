@@ -485,6 +485,92 @@ abstract class ORMLiveTestCase extends BaseTestCase
 		}
 	}
 
+	/**
+	 * JSON path filter queries work against a live database.
+	 *
+	 * Scenario:
+	 *   - Insert a client whose `data` column holds a structured JSON object.
+	 *   - Verify the generated WHERE clauses (EQ by path, HAS_KEY top-level,
+	 *     HAS_KEY nested path, dotted-segment via quoted path notation) return the expected rows.
+	 *
+	 * All three drivers support EQ-by-path, HAS_KEY (top-level and nested), and quoted-segment
+	 * path notation.  Only CONTAINS is MySQL/PostgreSQL-only (SQLite has no equivalent
+	 * of JSON_CONTAINS / @>) and is not tested here.
+	 */
+	public function testJsonPathFilters(): void
+	{
+		$table = static::$db->getTableOrFail('clients');
+		$ctrl  = ORM::ctrl($table);
+
+		$marker = 'JsonPathTest_' . \uniqid();
+
+		// Insert a client whose JSON data has a nested structure and a
+		// top-level key whose name contains a literal dot.
+		$entity = $ctrl->addItem([
+			'client_first_name' => 'JsonTest',
+			'client_last_name'  => $marker,
+			'client_given_name' => 'JT',
+			'client_gender'     => 'unknown',
+			'client_data'       => [
+				'user'     => ['role' => 'admin', 'level' => 3],
+				'tag'      => 'vip',
+				'meta.key' => 'dotted',
+			],
+		]);
+
+		$id = (string) $entity->id;
+		self::assertNotEmpty($id, 'Entity must have a generated PK after insert');
+
+		// ------------------------------------------------------------------
+		// EQ by path: whereDataIs('admin', 'user.role')
+		// Each assertion uses a fresh query instance to avoid filter accumulation.
+		// ------------------------------------------------------------------
+		$found = ORM::query($table)->whereDataIs('admin', 'user.role')->find(1)->fetchClass();
+		self::assertNotNull($found, 'whereDataIs should find a row with matching path value');
+		self::assertSame($id, (string) $found->id);
+
+		// No match on wrong value
+		$notFound = ORM::query($table)->whereDataIs('nobody', 'user.role')->find(1)->fetchClass();
+		self::assertNull($notFound, 'whereDataIs should return null for a non-matching value');
+
+		// ------------------------------------------------------------------
+		// HAS_KEY: whereDataHasKey('tag')
+		// ------------------------------------------------------------------
+		$foundHasKey = ORM::query($table)->whereDataHasKey('tag')->find(1)->fetchClass();
+		self::assertNotNull($foundHasKey, 'whereDataHasKey should find a row that has the top-level key');
+
+		$notFoundHasKey = ORM::query($table)->whereDataHasKey('nonexistent_key_xyz')->find(1)->fetchClass();
+		self::assertNull($notFoundHasKey, 'whereDataHasKey should return null when key is absent');
+
+		// ------------------------------------------------------------------
+		// HAS_KEY nested path: whereDataHasKey('user.role') — multi-segment
+		// ------------------------------------------------------------------
+		$foundHasPath = ORM::query($table)->whereDataHasKey('user.role')->find(1)->fetchClass();
+		self::assertNotNull($foundHasPath, 'whereDataHasKey (multi-segment) should find a row with the nested key present');
+
+		$notFoundHasPath = ORM::query($table)->whereDataHasKey('user.nonexistent_xyz')->find(1)->fetchClass();
+		self::assertNull($notFoundHasPath, 'whereDataHasKey (multi-segment) should return null when nested key is absent');
+
+		// ------------------------------------------------------------------
+		// Dotted key via quoted path notation: whereDataIs('dotted', "'meta.key'")
+		// The stored JSON has a top-level key whose name is literally "meta.key".
+		// Using 'meta.key' (with surrounding single-quote delimiters) instructs
+		// JsonPath to treat it as a single segment, producing
+		// a safely double-quoted path like `$."meta.key"` in MySQL/SQLite syntax.
+		// ------------------------------------------------------------------
+		$foundDotted = ORM::query($table)->whereDataIs('dotted', "'meta.key'")->find(1)->fetchClass();
+		self::assertNotNull(
+			$foundDotted,
+			"whereDataIs with a quoted-segment path (\"'meta.key'\") must find a row whose JSON key is literally 'meta.key'"
+		);
+		self::assertSame($id, (string) $foundDotted->id);
+
+		// ------------------------------------------------------------------
+		// Cleanup: delete the inserted test row
+		// ------------------------------------------------------------------
+		$ctrl->deleteOneItem(['client_id' => $id]);
+	}
+
 	// -------------------------------------------------------------------------
 	// Abstract interface implemented by concrete driver test classes
 	// -------------------------------------------------------------------------

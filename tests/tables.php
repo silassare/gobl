@@ -18,8 +18,8 @@ $id = [
 ];
 $common_columns = [
 	'data' => [
-		'type'    => 'map',
-		'default' => [],
+		'type'        => 'map',
+		'default'     => [],
 		'native_json' => true,
 	],
 	'created_at' => [
@@ -167,7 +167,7 @@ return [
 		'singular_name' => 'currency',
 		'column_prefix' => 'ccy',
 		'relations'     => [],
-		'constraints' => [
+		'constraints'   => [
 			['type' => 'primary_key', 'columns' => ['code']],
 		],
 		'meta' => [

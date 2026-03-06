@@ -61,7 +61,7 @@ final class CSGeneratorORMSnapshotTest extends BaseTestCase
 			// Normalize directory separator to forward slash for snapshot key
 			$snapshotKey = 'generators/orm/' . \str_replace(\DIRECTORY_SEPARATOR, '/', $relative);
 			$content     = (string) \file_get_contents($absPath);
-			// ORM files contain no timestamps, but normalise anyway for future safety
+			// ORM files contain no timestamps, but normalize anyway for future safety
 			$this->assertMatchesContentSnapshot($snapshotKey, $content);
 		}
 	}
