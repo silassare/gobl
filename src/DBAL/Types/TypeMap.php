@@ -13,9 +13,12 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Types;
 
+use Gobl\DBAL\Column;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
+use Gobl\DBAL\Operator;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\Utils\Map;
+use Gobl\ORM\ORMTableQuery;
 use Gobl\ORM\ORMTypeHint;
 use Gobl\ORM\ORMUniversalType;
 use JsonException;
@@ -127,6 +130,19 @@ class TypeMap extends Type
 		}
 
 		return parent::configure($options);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * Delegates to the base type (TypeJSON) so that JSON path operators
+	 * (EQ, NEQ, LIKE, NOT_LIKE with a path string as first arg, plus
+	 * CONTAINS and HAS_KEY including their path-aware variants) are handled
+	 * correctly by TypeJSON's path-aware implementation.
+	 */
+	public function queryBuilderApplyFilter(ORMTableQuery $qb, Column $column, Operator $operator, array $args): void
+	{
+		$this->safelyCallOnBaseType(__FUNCTION__, [$qb, $column, $operator, $args]);
 	}
 
 	/**

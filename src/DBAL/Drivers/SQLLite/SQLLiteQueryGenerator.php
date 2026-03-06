@@ -28,6 +28,7 @@ use Gobl\DBAL\Queries\QBInsert;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Queries\QBUpdate;
 use Gobl\DBAL\Table;
+use Gobl\DBAL\Types\Utils\JsonPath;
 use Gobl\Gobl;
 
 use const GOBL_ASSETS_DIR;
@@ -156,11 +157,35 @@ class SQLLiteQueryGenerator extends SQLQueryGeneratorBase
 	 * SQLite JSON path extraction: json_extract returns the value without surrounding quotes,
 	 * so no UNQUOTE wrapper is needed.
 	 */
-	public function getJsonPathExpression(string $col_sql_expression, array $json_path): string
+	public function getJsonPathExtractionExpression(JsonPath $json_path): string
 	{
-		$dot_path = '$.' . \implode('.', \array_map('strval', $json_path));
+		$col_fqn  =  $this->getJsonPathColumnFQN($json_path);
+		$dot_path =  $this->getJsonPathSegmentsAsString($json_path);
 
-		return 'JSON_EXTRACT(' . $col_sql_expression . ', ' . $this->quoteLiteral($dot_path) . ')';
+		return 'JSON_EXTRACT(' . $col_fqn . ', ' . $this->quoteLiteral($dot_path) . ')';
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * SQLite does not support JSON containment checks equivalent to `JSON_CONTAINS` or `@>`.
+	 */
+	public function getJsonContainsExpression(string $left, string $right): string
+	{
+		throw new DBALRuntimeException(
+			'SQLite does not support JSON containment checks. '
+				. 'Use JSON path equality filters instead.'
+		);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * SQLite key existence via json_extract: `json_extract(col, '$.' || key) IS NOT NULL`
+	 */
+	public function getJsonHasKeyExpression(string $col_sql_expression, string $key_expression): string
+	{
+		return 'json_extract(' . $col_sql_expression . ', \'$.\'||' . $key_expression . ') IS NOT NULL';
 	}
 
 	/**
@@ -211,14 +236,14 @@ class SQLLiteQueryGenerator extends SQLQueryGeneratorBase
 	 * {@inheritDoc}
 	 *
 	 * SQLite has no JSON containment function equivalent to MySQL's JSON_CONTAINS or PostgreSQL's @>.
-	 * Use JSON path equality filters (table.column.path notation) as a workaround.
+	 * Use JSON path equality filters as a workaround if applicable to your use case.
 	 */
 	protected function operatorFilterToExpression(Filter $filter): string
 	{
-		if (Operator::JSON_CONTAINS === $filter->getOperator()) {
+		if (Operator::CONTAINS === $filter->getOperator()) {
 			throw new DBALRuntimeException(
-				'SQLite does not support JSON containment checks (JSON_CONTAINS). '
-					. 'Use JSON path equality filters (table.column.path notation) instead.'
+				'SQLite has no JSON containment function equivalent to MySQL\'s JSON_CONTAINS or PostgreSQL\'s @>. '
+					. 'Use JSON path equality filters as a workaround if applicable to your use case.'
 			);
 		}
 

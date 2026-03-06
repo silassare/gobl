@@ -16,10 +16,13 @@ namespace Gobl\DBAL\Filters\Operands;
 use BackedEnum;
 use Gobl\DBAL\Column;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
+use Gobl\DBAL\Filters\FilterFieldNotation;
+use Gobl\DBAL\Filters\FilterResolvedColumn;
 use Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface;
 use Gobl\DBAL\Queries\Interfaces\QBInterface;
 use Gobl\DBAL\Queries\QBExpression;
 use Gobl\DBAL\Types\TypeJSON;
+use Gobl\DBAL\Types\Utils\JsonPath;
 use Throwable;
 
 /**
@@ -40,19 +43,17 @@ abstract class FilterOperand
 	protected bool $can_be_bound = true;
 
 	/**
-	 * Detected table and column names (if any).
-	 *
-	 * @var null|array{table: string, column: string}
+	 * @var null|FilterResolvedColumn The resolved column for this operand
 	 */
-	protected ?array $detected_table_and_column = null;
+	protected ?FilterResolvedColumn $resolved_column = null;
 
 	/**
 	 * FilterOperand constructor.
 	 *
-	 * @param null|array|BackedEnum|bool|Column|float|int|QBExpression|QBInterface|string $user_defined The operand as provided by the user
+	 * @param null|array|BackedEnum|bool|Column|FilterFieldNotation|float|int|QBExpression|QBInterface|string $user_defined The operand as provided by the user
 	 */
 	public function __construct(
-		protected array|BackedEnum|bool|Column|float|int|QBExpression|QBInterface|string|null $user_defined,
+		protected array|BackedEnum|bool|Column|FilterFieldNotation|float|int|QBExpression|QBInterface|string|null $user_defined,
 		protected QBInterface $qb,
 		protected ?FiltersScopeInterface $scope = null
 	) {
@@ -64,15 +65,15 @@ abstract class FilterOperand
 	 */
 	public function __destruct()
 	{
-		unset($this->user_defined, $this->normalized, $this->detected_table_and_column);
+		unset($this->user_defined, $this->normalized, $this->resolved_column);
 	}
 
 	/**
 	 * Get user defined operand value.
 	 *
-	 * @return null|array|BackedEnum|bool|Column|float|int|QBExpression|QBInterface|string
+	 * @return null|array|BackedEnum|bool|Column|FilterFieldNotation|float|int|QBExpression|QBInterface|string
 	 */
-	public function getValueAsDefined(): array|BackedEnum|bool|Column|float|int|QBExpression|QBInterface|string|null
+	public function getValueAsDefined(): array|BackedEnum|bool|Column|FilterFieldNotation|float|int|QBExpression|QBInterface|string|null
 	{
 		return $this->user_defined;
 	}
@@ -118,34 +119,37 @@ abstract class FilterOperand
 	}
 
 	/**
-	 * Checks if a table and column were detected for this operand.
+	 * Checks if a field notation was detected for this operand.
 	 */
-	public function hasDetectedTableAndColumn(): bool
+	public function hasResolvedColumn(): bool
 	{
-		return null !== $this->detected_table_and_column;
+		return null !== $this->resolved_column;
 	}
 
 	/**
-	 * Get detected table and column names (if any).
+	 * Get resolved column (if any).
 	 *
-	 * @return null|array{table: string, column: string}
+	 * @return null|FilterResolvedColumn
 	 */
-	public function getDetectedTableAndColumn(): ?array
+	public function getResolvedColumn(): ?FilterResolvedColumn
 	{
-		return $this->detected_table_and_column;
+		return $this->resolved_column;
 	}
 
 	/**
-	 * Set detected table and column names.
+	 * Get resolved column (if any).
+	 *
+	 * @return FilterResolvedColumn
 	 */
-	public function setDetectedTableAndColumn(string $table_full_name, string $column_full_name): static
+	public function getResolvedColumnOrFail(): FilterResolvedColumn
 	{
-		$this->detected_table_and_column = [
-			'table'  => $table_full_name,
-			'column' => $column_full_name,
-		];
+		if (null === $this->resolved_column) {
+			throw new DBALRuntimeException('No resolved column for this operand.', [
+				'operand_value' => $this->getValueAsDefined(),
+			]);
+		}
 
-		return $this;
+		return $this->resolved_column;
 	}
 
 	/**
@@ -153,14 +157,25 @@ abstract class FilterOperand
 	 *
 	 * An operand can be bound if and only if:
 	 * - it is not explicitly marked as non-bindable
-	 * - it does not have a detected table and column
+	 * - it does not have a resolved column
 	 * - it is not already a binding (IMPORTANT to recheck: because it can be the case)
 	 *
 	 * @return bool
 	 */
 	public function canBeSafelyBound(): bool
 	{
-		return $this->can_be_bound && !$this->hasDetectedTableAndColumn() && !$this->isABinding();
+		return $this->can_be_bound && !$this->hasResolvedColumn() && !$this->isABinding();
+	}
+
+	/**
+	 * Whether this operand should attempt to resolve a plain string as a field notation.
+	 *
+	 * Returns `false` in the base class (safe for right operands carrying user data).
+	 * Overridden to `true` in {@see FilterLeftOperand}.
+	 */
+	protected function shouldResolveFieldNotation(): bool
+	{
+		return false;
 	}
 
 	/**
@@ -185,21 +200,24 @@ abstract class FilterOperand
 	 * - `QBExpression` → cast to string verbatim.
 	 * - `BackedEnum` → unwrapped to its scalar `value`.
 	 * - `Column` instance → resolved to its FQN using the current QB alias map.
+	 * - `FilterFieldNotation` instance → always resolved to its column reference (or JSON extraction
+	 *   expression) regardless of operand position; safe because the caller explicitly constructed it.
 	 * - `table.column` string notation → resolved to the fully qualified reference
 	 *   (e.g. `users.name` → `u.gobl_name`) when the table is registered in the QB.
-	 * - `table.column.json.path` string (3+ dot segments) → resolved to the
-	 *   dialect-specific JSON-path extraction expression (requires `native_json` enabled
-	 *   on the column's type).
+	 *   Only auto-resolved for left operands (see `shouldResolveFieldNotation()`); right operands
+	 *   carrying user input are never auto-resolved to prevent IDOR-style column probing.
+	 * - `table.column#json_path` | `column#json_path` → resolved to the dialect-specific JSON-path extraction
+	 *   expression (requires `native_json` enabled on the column's type).
 	 */
 	protected function normalizeOperand(): void
 	{
 		$uv = $this->user_defined;
 
-		/** @var null|string $found_table */
-		$found_table = null;
+		/** @var null|FilterFieldNotation $dfn */
+		$dfn = null;
 
-		/** @var null|string $found_column */
-		$found_column = null;
+		/** @var null|FilterResolvedColumn $resolved */
+		$resolved = null;
 
 		if ($uv instanceof QBExpression) {
 			$this->can_be_bound = false;
@@ -222,84 +240,48 @@ abstract class FilterOperand
 				);
 			}
 
-			$found_table  = $table->getFullName();
-			$found_column = $column->getFullName();
-			$uv           = $this->qb->fullyQualifiedName($found_table, $found_column);
+			$uv  = $this->qb->fullyQualifiedName($table->getFullName(), $column->getFullName());
+
+			try {
+				$dfn      = FilterFieldNotation::fromString($uv, $this->qb, $this->scope);
+				$resolved = $dfn->getResolvedColumnOrFail();
+			} catch (DBALRuntimeException $e) {
+				throw new DBALRuntimeException(
+					\sprintf('attempt to use a column "%s" out of context in a filter.', $column->getFullName()),
+					[
+						'_column' => $column->getFullName(),
+						'_table'  => $table->getFullName(),
+					],
+					$e
+				);
+			}
+		} elseif ($uv instanceof FilterFieldNotation) {
+			// Explicit FilterFieldNotation: the caller deliberately constructed this notation object,
+			// so resolving it is safe regardless of which side (left or right) it is used on.
+			// Unlike plain strings (which may carry user input on the right side), this is always
+			// developer-controlled and not subject to the shouldResolveFieldNotation() guard.
+			$this->can_be_bound = false;
+			$dfn                = $uv;
+
+			if (!$dfn->isResolved()) {
+				// Notation was created without QB/scope context; resolve it now.
+				$dfn = FilterFieldNotation::fromString((string) $dfn, $this->qb, $this->scope);
+			}
+
+			[$uv, $resolved] = $this->notationToSqlExpr($dfn);
 		} elseif ($uv instanceof BackedEnum) {
 			$uv = $uv->value;
 		} elseif (\is_string($uv) && \strlen($uv) > 2 && ':' !== $uv[0] && '(' !== $uv[0]) {
-			if ($this->scope && !\str_contains($uv, '.')) {
-				// try resolve as column in scope when no dot notation is used,
-				// this is for column name only filters, `name` instead of `users.name`
-				// e.g. [name, 'eq', 'foo'] instead of [name, 'eq', 'foo'] or [u.name, 'eq', 'foo']
-				// this also allow using column aliases in filters without table prefix
-				$uv = $this->scope->tryGetColumnFQName($uv) ?? $uv;
-			}
-
-			$parts = \explode('.', $uv);
-			$len   = \count($parts);
-
-			if (2 === $len && !empty($parts[0]) && !empty($parts[1])) {
-				try {
-					$table_name = $this->qb->resolveTable($parts[0])
-						?->getFullName();
-
-					if ($table_name) {
-						$uv        = $this->qb->fullyQualifiedName($parts[0], $parts[1]);
-						$fqn_parts = \explode('.', $uv);
-
-						// we found a table and column
-						if (2 === \count($fqn_parts)) {
-							$found_table  = $table_name;
-							$found_column = $fqn_parts[1];
-						}
-					}
-				} catch (Throwable) {
-				}
-			} elseif ($len >= 3 && !empty($parts[0]) && !empty($parts[1])) {
-				// Detect table.column.json_path notation for JSON path filtering.
-
+			if ($this->shouldResolveFieldNotation()) {
 				$rethrow = false;
 
 				try {
-					$table = $this->qb->resolveTable($parts[0]);
+					// if invalid it will fail with an exception which we catch and ignore to keep the original string as-is
+					$dfn = FilterFieldNotation::fromString($uv, $this->qb, $this->scope);
 
-					if ($table) {
-						$col_name  = $parts[1];
-						$json_path = \array_slice($parts, 2);
-						$col_obj   = $table->getColumn($col_name);
-
-						if ($col_obj) {
-							$base_type = $col_obj->getType()->getBaseType();
-
-							if (!$base_type instanceof TypeJSON) {
-								$rethrow = true;
-
-								throw new DBALRuntimeException(\sprintf(
-									'JSON path filter "%s" is only allowed on JSON columns; column "%s" has base type "%s".',
-									$uv,
-									$col_name,
-									$base_type->getName()
-								));
-							}
-
-							if (!$base_type->isNativeJson()) {
-								$rethrow = true;
-
-								throw new DBALRuntimeException(\sprintf(
-									'JSON path filter "%s" requires native_json to be enabled on column "%s".',
-									$uv,
-									$col_name
-								));
-							}
-
-							$col_fqn = $this->qb->fullyQualifiedName($parts[0], $col_obj->getFullName());
-							$gen     = $this->qb->getRDBMS()->getGenerator();
-
-							$uv           = $gen->getJsonPathExpression($col_fqn, $json_path);
-							$found_table  = $table->getFullName();
-							$found_column = $col_obj->getFullName();
-						}
+					if ($dfn->isResolved()) {
+						$rethrow         = true;
+						[$uv, $resolved] = $this->notationToSqlExpr($dfn);
 					}
 				} catch (Throwable $t) {
 					if ($rethrow) {
@@ -309,13 +291,65 @@ abstract class FilterOperand
 			}
 		}
 
-		if ($found_table && $found_column) {
-			$this->can_be_bound              = false;
-			$this->detected_table_and_column =  ['table' => $found_table, 'column' => $found_column];
+		if ($resolved) {
+			$this->can_be_bound    = false;
+			$this->resolved_column = $resolved;
 		} else {
-			$this->detected_table_and_column =   null;
+			$this->resolved_column = null;
 		}
 
 		$this->normalized = $uv;
+	}
+
+	/**
+	 * Converts a resolved FilterFieldNotation to its SQL expression string and resolved-column pair.
+	 *
+	 * - Plain column reference: returns the fully qualified name (e.g. `_a_.col_name`).
+	 * - JSON path notation: returns the dialect-specific extraction expression
+	 *   (e.g. `JSON_UNQUOTE(JSON_EXTRACT(...))`).
+	 *
+	 * @return array{0: string, 1: FilterResolvedColumn}
+	 *
+	 * @throws DBALRuntimeException when the JSON path is used on a non-JSON or non-native-JSON column
+	 */
+	private function notationToSqlExpr(FilterFieldNotation $dfn): array
+	{
+		$resolved = $dfn->getResolvedColumnOrFail();
+
+		if ($dfn->hasPathSegments()) {
+			$tbl       = $this->qb->resolveTable($resolved->getTableOrAlias());
+			$col       = $tbl->getColumnOrFail($resolved->getColumnName());
+			$base_type = $col->getType()->getBaseType();
+
+			if (!$base_type instanceof TypeJSON) {
+				throw new DBALRuntimeException(\sprintf(
+					'JSON path filter "%s" is only allowed on JSON columns; column "%s" has base type "%s".',
+					(string) $dfn,
+					$col->getFullName(),
+					$base_type->getName()
+				));
+			}
+
+			if (!$base_type->isNativeJson()) {
+				throw new DBALRuntimeException(\sprintf(
+					'JSON path filter "%s" requires native_json to be enabled on column "%s".',
+					(string) $dfn,
+					$col->getFullName()
+				));
+			}
+
+			$rdbms = $this->qb->getRDBMS();
+			$gen   = $rdbms->getGenerator();
+			$sql   = $gen->getJsonPathExtractionExpression(JsonPath::fromFieldNotation($dfn));
+		} else {
+			// Plain column reference: use the alias (e.g. `_a_`) so fullyQualifiedName
+			// recognizes it as a declared QB alias rather than a raw table name.
+			$sql = $this->qb->fullyQualifiedName(
+				$resolved->getTableOrAlias(),
+				$resolved->getColumnName()
+			);
+		}
+
+		return [$sql, $resolved];
 	}
 }

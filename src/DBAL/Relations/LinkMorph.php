@@ -15,6 +15,7 @@ namespace Gobl\DBAL\Relations;
 
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
+use Gobl\DBAL\Queries\QBExpression;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Table;
 use Gobl\ORM\ORMEntity;
@@ -298,7 +299,7 @@ final class LinkMorph extends Link
 
 			$filters->eq(
 				$target_qb->fullyQualifiedName($this->target_table, $this->morph_child_key_column),
-				$target_qb->fullyQualifiedName($this->host_table, $this->morph_parent_key_column)
+				new QBExpression($target_qb->fullyQualifiedName($this->host_table, $this->morph_parent_key_column))
 			);
 			$filters->eq(
 				$target_qb->fullyQualifiedName($this->target_table, $this->morph_child_type_column),
@@ -331,7 +332,7 @@ final class LinkMorph extends Link
 
 		$filters->eq(
 			$target_qb->fullyQualifiedName($this->target_table, $this->morph_parent_key_column),
-			$target_qb->fullyQualifiedName($this->host_table, $this->morph_child_key_column)
+			new QBExpression($target_qb->fullyQualifiedName($this->host_table, $this->morph_child_key_column))
 		);
 		$filters->eq(
 			$target_qb->fullyQualifiedName($this->host_table, $this->morph_child_type_column),

@@ -150,13 +150,16 @@ abstract class Type implements TypeInterface
 	{
 		$value = $args[0] ?? null;
 
-		$qb->filterBy($operator, $column->getFullName(), $value);
+		$qb->filterBy($column->getFullName(), $operator, $value);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public function queryBuilderEnhanceFilterMethod(Table $table, Column $column, Operator $operator, PHPMethod $method): void {}
+	public function queryBuilderEnhanceFilterMethod(Table $table, Column $column, Operator $operator, PHPMethod $method): void
+	{
+		$this->safelyCallOnBaseType(__FUNCTION__, [$table, $column, $operator, $method]);
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -170,8 +173,11 @@ abstract class Type implements TypeInterface
 				unset($operators[$key]);
 			}
 
-			// JSON containment is only available with a native JSON column.
-			if (Operator::JSON_CONTAINS === $op && !$this->getOption('native_json', false)) {
+			// JSON operators are only available with a native JSON column.
+			if (
+				(Operator::CONTAINS === $op || Operator::HAS_KEY === $op)
+				&& !$this->getOption('native_json', false)
+			) {
 				unset($operators[$key]);
 			}
 
@@ -415,7 +421,7 @@ abstract class Type implements TypeInterface
 	 *
 	 * @return mixed the return value from the base type method, or `null` for self-references
 	 */
-	private function safelyCallOnBaseType(string $method, array $args): mixed
+	protected function safelyCallOnBaseType(string $method, array $args): mixed
 	{
 		if ($this->base_type->getName() === $this->getName()) {
 			return null;

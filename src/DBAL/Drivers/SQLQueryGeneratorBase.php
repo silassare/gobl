@@ -66,6 +66,7 @@ use Gobl\DBAL\Types\TypeFloat;
 use Gobl\DBAL\Types\TypeInt;
 use Gobl\DBAL\Types\TypeJSON;
 use Gobl\DBAL\Types\TypeString;
+use Gobl\DBAL\Types\Utils\JsonPath;
 use Gobl\Gobl;
 use PHPUtils\Str;
 
@@ -367,24 +368,34 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	}
 
 	/**
-	 * Returns the SQL expression that extracts a scalar value from a JSON column
-	 * at the given path (e.g. ["foo", "bar"] -> $.foo.bar).
-	 *
-	 * The result is always a TEXT/VARCHAR expression so that it can be compared
-	 * with string operands in WHERE clauses.
-	 *
-	 * @param string   $col_sql_expression The already-qualified SQL column reference
-	 *                                     (e.g. `u`.`user_data` for MySQL)
-	 * @param string[] $json_path          Ordered path segments, e.g. ['foo', 'bar']
-	 *
-	 * @return string The dialect-specific SQL JSON-path extraction expression
+	 * {@inheritDoc}
 	 */
-	public function getJsonPathExpression(string $col_sql_expression, array $json_path): string
+	public function getJsonPathExtractionExpression(JsonPath $json_path): string
 	{
-		// Default: MySQL / SQLite compatible JSON_UNQUOTE(JSON_EXTRACT(col, '$.a.b'))
-		$dot_path = '$.' . \implode('.', \array_map('strval', $json_path));
+		$col_fqn  =  $this->getJsonPathColumnFQN($json_path);
+		$dot_path =  $this->getJsonPathSegmentsAsString($json_path);
 
-		return 'JSON_UNQUOTE(JSON_EXTRACT(' . $col_sql_expression . ', ' . $this->quoteLiteral($dot_path) . '))';
+		return 'JSON_UNQUOTE(JSON_EXTRACT(' . $col_fqn . ', ' . $this->quoteLiteral($dot_path) . '))';
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * Default implementation: MySQL-compatible `JSON_CONTAINS(left, right)`.
+	 */
+	public function getJsonContainsExpression(string $left, string $right): string
+	{
+		return 'JSON_CONTAINS(' . $left . ', ' . $right . ')';
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * Default implementation: MySQL-compatible `JSON_CONTAINS_PATH(col, 'one', CONCAT('$.', key))`.
+	 */
+	public function getJsonHasKeyExpression(string $col_sql_expression, string $key_expression): string
+	{
+		return 'JSON_CONTAINS_PATH(' . $col_sql_expression . ', \'one\', CONCAT(\'$.\',' . $key_expression . '))';
 	}
 
 	/**
@@ -409,6 +420,49 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	public function quoteLiteral(string $value): string
 	{
 		return "'" . \str_replace("'", "''", $value) . "'";
+	}
+
+	/**
+	 * Converts JSON path segments into a properly escaped JSON path string for use in SQL expressions.
+	 */
+	protected function getJsonPathSegmentsAsString(JsonPath $json_path): string
+	{
+		$path_segments = $json_path->getPathSegments();
+
+		// Segments that are valid unquoted identifiers (`[a-zA-Z_][a-zA-Z0-9_]*`)
+		// are used as-is.  All other segments are wrapped in double-quotes with
+		// internal `"` escaped as `\"` and `\` escaped as `\\` (MySQL JSON path
+		// syntax inside the path expression string).
+
+		$parts = \array_map(static function (string $seg): string {
+			// Safe identifier: starts with letter or underscore, rest alphanumeric/underscore
+			if (\preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $seg)) {
+				return $seg;
+			}
+
+			// Double-quote the segment; escape backslash and double-quote per JSON path spec
+			$escaped = \str_replace(['\\', '"'], ['\\\\', '\"'], $seg);
+
+			return '"' . $escaped . '"';
+		}, $path_segments);
+
+		return '$.' . \implode('.', $parts);
+	}
+
+	/**
+	 * Get the fully qualified column reference or JSON path expression for a filter operand.
+	 */
+	protected function getJsonPathColumnFQN(JsonPath $json_path): string
+	{
+		$col_name = $json_path->getColumnName();
+		$table    = $json_path->getTableOrAlias();
+
+		if (null === $table) {
+			// No table or alias specified, return just the column name
+			return $this->quoteIdentifier($col_name);
+		}
+
+		return $this->quoteIdentifier($table) . '.' . $this->quoteIdentifier($col_name);
 	}
 
 	/**
@@ -723,7 +777,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 			if (!$force_no_default && null !== $default_to_use) {
 				$default_to_use = $quote_default ? $this->quoteLiteral((string) $default_to_use) : (string) $default_to_use;
-				$sql_parts[]    = \sprintf('DEFAULT %s', $default_to_use);
+				$sql_parts[]    = $this->formatDefaultChunk($column, $default_to_use);
 			}
 		} else {
 			$sql_parts[] = 'NULL';
@@ -733,10 +787,26 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 					$sql_parts[] = 'DEFAULT NULL';
 				} else {
 					$default_to_use = $quote_default ? $this->quoteLiteral((string) $default_to_use) : (string) $default_to_use;
-					$sql_parts[]    = \sprintf('DEFAULT %s', $default_to_use);
+					$sql_parts[]    = $this->formatDefaultChunk($column, $default_to_use);
 				}
 			}
 		}
+	}
+
+	/**
+	 * Formats the DEFAULT clause chunk for a column definition.
+	 *
+	 * Override in dialect subclasses when the DEFAULT syntax differs (e.g. MySQL requires
+	 * expression defaults to be wrapped in parentheses for JSON columns).
+	 *
+	 * @param Column $column         The column being defined
+	 * @param string $quoted_default The already-quoted (or raw) default value string
+	 *
+	 * @return string The full `DEFAULT ...` clause fragment
+	 */
+	protected function formatDefaultChunk(Column $column, string $quoted_default): string
+	{
+		return 'DEFAULT ' . $quoted_default;
 	}
 
 	/**
@@ -1033,7 +1103,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 */
 	protected function quoteCols(array $list): string
 	{
-		return \implode(' , ', \array_map(fn(string $col) => $this->quoteIdentifier($col), $list));
+		return \implode(' , ', \array_map(fn (string $col) => $this->quoteIdentifier($col), $list));
 	}
 
 	/**
@@ -1478,8 +1548,13 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		$op    = $filter->getOperator();
 
 		// Function-call style: MySQL JSON_CONTAINS(col, value)
-		if (Operator::JSON_CONTAINS === $op) {
-			return 'JSON_CONTAINS(' . $left . ', ' . ($right ?? 'NULL') . ')';
+		if (Operator::CONTAINS === $op) {
+			return $this->getJsonContainsExpression($left, $right ?? 'NULL');
+		}
+
+		// Function-call style: MySQL JSON_CONTAINS_PATH(col, 'one', CONCAT('$.', key))
+		if (Operator::HAS_KEY === $op) {
+			return $this->getJsonHasKeyExpression($left, $right ?? 'NULL');
 		}
 
 		$sql_op = match ($op) {

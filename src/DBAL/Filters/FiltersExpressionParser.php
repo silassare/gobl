@@ -36,7 +36,8 @@ use PHPUtils\Traits\ArrayCapableTrait;
  * ```
  *
  * Token types:
- *  - Identifier  : column name, optionally table-qualified (`table.column`)
+ *  - Identifier  : column name, optionally table-qualified and/or with json key path
+ *    (`table.column` | `table.column#json.path` | `column#json.path`), e.g. `users.name` or `accounts.data#user.tags`
  *  - Operator    : any {@see Operator} value (e.g. `eq`, `gt`, `is_true`)
  *  - Conditional : `and` | `or`
  *  - Binding     : `:name` resolved from the `$bindings` map
@@ -278,9 +279,34 @@ final class FiltersExpressionParser implements FilterInterface
 			}
 
 			// word: identifier, operator, or conditional
+			// Single-quoted segments inside an identifier (e.g. `table.column#foo.'key with dot'.sub`)
+			// are consumed verbatim — including any spaces inside the quotes — so that the
+			// full JSON path notation `table.column#'quoted.segment'` is tokenized as a
+			// single T_IDENT token.
 			$j = $i;
-			while ($j < $len && !\ctype_space($expr[$j]) && '(' !== $expr[$j] && ')' !== $expr[$j]) {
-				++$j;
+
+			while ($j < $len && '(' !== $expr[$j] && ')' !== $expr[$j]) {
+				if ("'" === $expr[$j]) {
+					// Consume an entire single-quoted segment (supports '' as escaped quote).
+					++$j; // skip opening quote
+
+					while ($j < $len) {
+						if ("'" === $expr[$j]) {
+							++$j; // skip the quote character
+							if ($j < $len && "'" === $expr[$j]) {
+								++$j; // '' -> escaped quote, keep going
+							} else {
+								break; // end of quoted segment
+							}
+						} else {
+							++$j;
+						}
+					}
+				} elseif (\ctype_space($expr[$j])) {
+					break; // stop at whitespace outside a quoted segment
+				} else {
+					++$j;
+				}
 			}
 
 			$word  = \substr($expr, $i, $j - $i);

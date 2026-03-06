@@ -31,6 +31,7 @@ use Gobl\DBAL\Queries\QBDelete;
 use Gobl\DBAL\Queries\QBInsert;
 use Gobl\DBAL\Queries\QBUpdate;
 use Gobl\DBAL\Types\TypeJSON;
+use Gobl\DBAL\Types\Utils\JsonPath;
 use Gobl\Gobl;
 use RuntimeException;
 
@@ -86,11 +87,53 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	 *   - single-level: col->>'key'
 	 *   - multi-level:  col#>>'{key1,key2}'
 	 */
-	public function getJsonPathExpression(string $col_sql_expression, array $json_path): string
+	public function getJsonPathExtractionExpression(JsonPath $json_path): string
 	{
-		if (1 === \count($json_path)) {
-			return $col_sql_expression . '->>' . $this->quoteLiteral((string) $json_path[0]);
+		$col_expr      =  $this->getJsonPathColumnFQN($json_path);
+		$path_segments = $json_path->getPathSegments();
+
+		if (1 === \count($path_segments)) {
+			return $col_expr . '->>' . $this->quoteLiteral((string) $path_segments[0]);
 		}
+
+		$path_content = $this->getJsonPathSegmentsAsString($json_path);
+
+		return $col_expr . '#>>' . $this->quoteLiteral('{' . $path_content . '}');
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * PostgreSQL JSON containment: `left @> right::jsonb`
+	 */
+	public function getJsonContainsExpression(string $left, string $right): string
+	{
+		return $left . ' @> ' . $right . '::jsonb';
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * PostgreSQL key existence: `jsonb_path_exists(col, ('$.' || key)::jsonpath)`
+	 *
+	 * Uses `jsonb_path_exists()` (equivalent to the `@?` jsonpath operator but
+	 * avoids the bare `?` character which PDO interprets as a positional-parameter
+	 * placeholder when mixed with named parameters).
+	 *
+	 * - Single-segment: `'tag'`  -> `'$.tag'::jsonpath`   -> checks top-level key `tag`
+	 * - Multi-segment:  `'user.role'` -> `'$.user.role'::jsonpath` -> checks nested key
+	 */
+	public function getJsonHasKeyExpression(string $col_sql_expression, string $key_expression): string
+	{
+		return 'jsonb_path_exists(' . $col_sql_expression . ", ('$.' || " . $key_expression . ')::jsonpath)';
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	protected function getJsonPathSegmentsAsString(JsonPath $json_path): string
+	{
+		$path_segments = $json_path->getPathSegments();
 
 		// For multi-level paths each segment is embedded inside a PostgreSQL array literal
 		// '{seg1,seg2}' which is itself a SQL string literal.
@@ -99,7 +142,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		//      spaces must be wrapped in " with inner " escaped as "".
 		//   2. SQL string-literal layer: single-quotes are doubled via singleQuote().
 		// quotes around the whole '{…}' composite literal, not just each segment.
-		$path_content = \implode(',', \array_map(static function (mixed $s): string {
+		return \implode(',', \array_map(static function (mixed $s): string {
 			$s = (string) $s;
 
 			if (\preg_match('/[,{}" ]/', $s)) {
@@ -109,9 +152,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 
 			// Escape single-quotes for the outer SQL string literal (layer 2).
 			return \str_replace("'", "''", $s);
-		}, $json_path));
-
-		return $col_sql_expression . '#>>' . $this->quoteLiteral('{' . $path_content . '}');
+		}, $path_segments));
 	}
 
 	/**
@@ -307,16 +348,15 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	/**
 	 * {@inheritDoc}
 	 *
-	 * PostgreSQL uses the `@>` containment operator on jsonb columns:
-	 *   `col @> value::jsonb`
+	 * Delegates CONTAINS to `getJsonContainsExpression` for the `@>` syntax.
 	 */
 	protected function operatorFilterToExpression(Filter $filter): string
 	{
-		if (Operator::JSON_CONTAINS === $filter->getOperator()) {
+		if (Operator::CONTAINS === $filter->getOperator()) {
 			$left  = $filter->getLeftOperand()->getValueForQuery();
 			$right = $filter->getRightOperand()?->getValueForQuery();
 
-			return $left . ' @> ' . ($right ?? 'NULL') . '::jsonb';
+			return $this->getJsonContainsExpression($left, $right ?? 'NULL');
 		}
 
 		return parent::operatorFilterToExpression($filter);

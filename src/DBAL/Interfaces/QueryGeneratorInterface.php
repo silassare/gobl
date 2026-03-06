@@ -20,6 +20,7 @@ use Gobl\DBAL\Filters\Filters;
 use Gobl\DBAL\Filters\Interfaces\FilterInterface;
 use Gobl\DBAL\Queries\Interfaces\QBInterface;
 use Gobl\DBAL\Queries\QBSelect;
+use Gobl\DBAL\Types\Utils\JsonPath;
 
 /**
  * Interface QueryGeneratorInterface.
@@ -74,15 +75,33 @@ interface QueryGeneratorInterface
 	public function buildTotalRowCountQuery(QBSelect $qb): string;
 
 	/**
-	 * Returns the SQL expression that extracts a scalar value from a JSON column
-	 * at the given path.
+	 * Returns the SQL expression that extracts a scalar value from a JSON column at the given path.
 	 *
-	 * @param string   $col_sql_expression The already-qualified SQL column reference
-	 * @param string[] $json_path          Ordered path segments, e.g. ['foo', 'bar']
+	 * @param JsonPath $json_path The JSON path object
 	 *
 	 * @return string The dialect-specific JSON-path extraction expression
 	 */
-	public function getJsonPathExpression(string $col_sql_expression, array $json_path): string;
+	public function getJsonPathExtractionExpression(JsonPath $json_path): string;
+
+	/**
+	 * Returns the dialect-specific SQL expression for JSON containment.
+	 *
+	 * @param string $left  The left operand (JSON column expression or path expression)
+	 * @param string $right The right operand (already-quoted JSON value or bound placeholder)
+	 *
+	 * @return string The dialect-specific JSON containment SQL expression
+	 */
+	public function getJsonContainsExpression(string $left, string $right): string;
+
+	/**
+	 * Returns the dialect-specific SQL expression that checks for top-level key existence.
+	 *
+	 * @param string $col_sql_expression The already-qualified SQL column reference
+	 * @param string $key_expression     The bound-parameter placeholder for the key string
+	 *
+	 * @return string The dialect-specific key-existence SQL expression
+	 */
+	public function getJsonHasKeyExpression(string $col_sql_expression, string $key_expression): string;
 
 	/**
 	 * Converts filters to sql expression.

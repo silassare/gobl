@@ -34,6 +34,7 @@ use Gobl\ORM\ORMUniversalType;
 use Gobl\ORM\Utils\ORMClassKind;
 use OLIUP\CG\PHPClass;
 use OLIUP\CG\PHPFile;
+use OLIUP\CG\PHPMethod;
 use OLIUP\CG\PHPNamespace;
 use OLIUP\CG\PHPType;
 use PHPUtils\FS\FSUtils;
@@ -822,7 +823,7 @@ return static::table()->getVirtualRelation(\'{relation_name}\')->getController()
 		foreach ($table->getColumns() as $column) {
 			$type = $column->getType();
 			foreach ($type->getAllowedFilterOperators() as $operator) {
-				$method = Str::toMethodName('where_' . $operator->getFilterSuffix($column));
+				$method_name = Str::toMethodName('where_' . $operator->getFilterSuffix($column));
 
 				$col_inject = $inject + [
 					'rule_name'   => $operator->value,
@@ -830,20 +831,54 @@ return static::table()->getVirtualRelation(\'{relation_name}\')->getController()
 					'column_name' => $column->getName(),
 				];
 
-				$comment = Str::interpolate(
+				// Let the type customize the method signature before we build the @method tag.
+				// Types may prepend a $path arg (e.g. TypeJSON for native JSON columns).
+				$php_method = new PHPMethod($method_name);
+
+				// comment may be enhanced by the type
+				$php_method->comment(Str::interpolate(
 					'Filters rows with `{rule_name}` condition on column `{table_name}.{column_name}`.',
 					$col_inject
-				);
+				));
 
-				$has_no_arg = $operator->isUnary();
+				$type->queryBuilderEnhanceFilterMethod($table, $column, $operator, $php_method);
 
-				if ($has_no_arg) {
-					$class_comment_lines[] = '@method $this ' . $method . '() ' . $comment;
+				// If the type added body children to the method, render it as a real method in the class.
+				// Otherwise, build a @method docblock tag so IDEs see the correct signature while
+				// __call dispatches the call at runtime.
+				if (!empty($php_method->getChildren())) {
+					$class->addMethod($php_method);
 				} else {
-					$arg_type = $this->toTypeHintString(
-						ORMTypeHint::getOperatorRightOperandTypesHint($type, $operator)
-					);
-					$class_comment_lines[] = '@method $this ' . $method . '(' . $arg_type . ' $value) ' . $comment;
+					$enhanced_args = $php_method->getArguments();
+					// Get plain comment text (without docblock delimiters) for the @method tag.
+					$comment =   $php_method->getComment()?->getContent() ?? '';
+
+					if (!empty($enhanced_args)) {
+						// Type provided a custom signature: render each argument (with optional default value)
+						$args_str = \implode(', ', \array_map(
+							static function ($a): string {
+								$s = (null !== $a->getType() ? (string) $a->getType() : 'mixed') . ' $' . $a->getName();
+								$v = $a->getValue();
+								if (null !== $v) {
+									$raw = $v->getValue();
+									$s .= ' = ' . (null === $raw ? 'null' : (\is_string($raw) ? "'" . \addslashes($raw) . "'" : \var_export($raw, true)));
+								}
+
+								return $s;
+							},
+							$enhanced_args
+						));
+						$class_comment_lines[] = '@method static ' . $method_name . '(' . $args_str . ') ' . $comment;
+					} elseif ($operator->isUnary()) {
+						// No args: unary operator with no right operand
+						$class_comment_lines[] = '@method static ' . $method_name . '() ' . $comment;
+					} else {
+						// Fallback: standard single $value arg
+						$arg_type = $this->toTypeHintString(
+							ORMTypeHint::getOperatorRightOperandTypesHint($type, $operator)
+						);
+						$class_comment_lines[] = '@method static ' . $method_name . '(' . $arg_type . ' $value) ' . $comment;
+					}
 				}
 			}
 		}

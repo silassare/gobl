@@ -103,9 +103,9 @@ abstract class Link implements LinkInterface
 				$scope_bundle = new FiltersMultiScope();
 
 				// target has highest priority
-				$scope_bundle->push($t_scope, $this->target_table);
+				$scope_bundle->push($t_scope, $this->target_table, $target_alias);
 				// host has second priority (allows referencing host columns, e.g. pivot columns, in filters)
-				$scope_bundle->push($h_scope, $this->host_table);
+				$scope_bundle->push($h_scope, $this->host_table, $host_alias);
 
 				$target_qb->andWhere(Filters::fromArray($link_filters, $target_qb, $scope_bundle));
 			}

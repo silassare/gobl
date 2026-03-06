@@ -233,7 +233,8 @@ SQL;
 	 *
 	 * DEFAULT support for JSON columns:
 	 *   - MySQL < 8.0.13: DEFAULT not allowed on NOT NULL JSON columns (only DEFAULT NULL).
-	 *   - MySQL >= 8.0.13: DEFAULT expressions are permitted.
+	 *   - MySQL >= 8.0.13: DEFAULT expressions are permitted, but the value must be wrapped in
+	 *     parentheses: `DEFAULT ('{"foo":"bar"}')`.
 	 *
 	 * Server version resolution order:
 	 *   1. `db_server_version` in DbConfig (manual override, useful for offline DDL generation)
@@ -254,26 +255,29 @@ SQL;
 
 		// MySQL < 8.0.13: DEFAULT not allowed for NOT NULL JSON columns; allow DEFAULT NULL only.
 		// MySQL >= 8.0.13 lifted this restriction.
-		$server_version = $this->config->getDbServerVersion($this->db);
-
+		$server_version   = $this->config->getDbServerVersion($this->db);
 		$force_no_default = null === $server_version || \version_compare($server_version, '8.0.13', '<');
 
 		$this->defaultAndNullChunks($column, $sql, $force_no_default);
 
-		if (!$force_no_default) {
-			// mysql 8.0.13+ require additional format if default is `{"foo": "bar"}`
-			// we need to quote and also add () around the default value to make it work
-			// so we need to: `('{"foo": "bar"}')`
-			// in our chunk the last item is: `DEFAULT '{"foo": "bar"}'`
-			// so we need to change it to: `DEFAULT ('{"foo": "bar"}')`
-			$last = end($sql);
-			if (str_starts_with($last, 'DEFAULT ') && str_contains($last, '{')) {
-				$parts = explode('DEFAULT ', $last, 2);
-				$sql[count($sql) - 1] = 'DEFAULT (' . $parts[1] . ')';
-			}
+		return \implode(' ', $sql);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * MySQL 8.0.13+ requires JSON column defaults to use the expression syntax:
+	 * `DEFAULT ('{"foo":"bar"}')` instead of `DEFAULT '{"foo":"bar"}'`.
+	 */
+	protected function formatDefaultChunk(Column $column, string $quoted_default): string
+	{
+		$base_type = $column->getType()->getBaseType();
+
+		if ($base_type instanceof TypeJSON && $base_type->isNativeJson()) {
+			return 'DEFAULT (' . $quoted_default . ')';
 		}
 
-		return \implode(' ', $sql);
+		return parent::formatDefaultChunk($column, $quoted_default);
 	}
 
 	/**

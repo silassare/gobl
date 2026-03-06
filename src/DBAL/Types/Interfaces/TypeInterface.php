@@ -214,15 +214,14 @@ interface TypeInterface extends ArrayCapableInterface
 
 	/**
 	 * Called to apply query builder filter.
-	 *
-	 * @return void
 	 */
 	public function queryBuilderApplyFilter(ORMTableQuery $qb, Column $column, Operator $operator, array $args): void;
 
 	/**
 	 * Called to enhance query builder filter method when the operator is supported by the type.
 	 *
-	 * @return void
+	 * If the method have a body we add it in the class body otherwise we just add it in class comment as we have magic
+	 * {@see Gobl\ORM\ORMTableQuery::__call()} method in the query builder.
 	 */
 	public function queryBuilderEnhanceFilterMethod(Table $table, Column $column, Operator $operator, PHPMethod $method): void;
 

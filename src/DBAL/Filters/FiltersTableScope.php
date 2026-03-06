@@ -54,17 +54,19 @@ class FiltersTableScope implements FiltersScopeInterface
 	 */
 	public function assertFilterAllowed(Filter $filter, ?QBInterface $qb = null): void
 	{
-		// left operand should be a column
-		$column = $this->table->getColumnOrFail($filter->getLeftOperand()->getDetectedColumnOrValueAsDefined());
+		// left operand should be a resolved column
+		$col_name = $filter->getLeftOperand()->getResolvedColumnOrFail()->getColumnName();
+
+		$column = $this->table->getColumnOrFail($col_name);
 
 		if (!$this->allow_sensitive_column_in_filters && $column->isSensitive()) {
-			throw new DBALRuntimeException('Field not allowed in filters.', [
+			throw new DBALRuntimeException('Field not allowed in filters of this scope.', [
 				'field' => $filter->getLeftOperand(),
 				'_why'  => 'Column is sensitive.',
 			]);
 		}
 		if (!$this->allow_private_column_in_filters && $column->isPrivate()) {
-			throw new DBALRuntimeException('Field not allowed in filters.', [
+			throw new DBALRuntimeException('Field not allowed in filters of this scope.', [
 				'field' => $filter->getLeftOperand(),
 				'_why'  => 'Column is private.',
 			]);
@@ -76,13 +78,13 @@ class FiltersTableScope implements FiltersScopeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function tryGetColumnFQName(string $column_name): ?string
+	public function tryResolveFieldNotation(FilterFieldNotation $fn, QBInterface $qb): void
 	{
-		if ($col = $this->table->getColumn($column_name)) {
-			return $this->table_alias . '.' . $col->getFullName();
-		}
+		$name = $fn->getColumnName() ?? $fn->getField();
 
-		return null;
+		if ($col = $this->table->getColumn($name)) {
+			$fn->markAsResolved($this->table_alias, $col->getFullName());
+		}
 	}
 
 	/**

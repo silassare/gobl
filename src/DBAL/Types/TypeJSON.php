@@ -14,15 +14,18 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Types;
 
 use Gobl\DBAL\Column;
-use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
+use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
 use Gobl\ORM\ORMTableQuery;
 use Gobl\ORM\ORMTypeHint;
 use Gobl\ORM\ORMUniversalType;
 use InvalidArgumentException;
+use JsonSerializable;
+use OLIUP\CG\PHPMethod;
+use OLIUP\CG\PHPType;
 
 /**
  * Class TypeJSON.
@@ -186,6 +189,16 @@ class TypeJSON extends Type implements BaseTypeInterface
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * Operators depend on whether the column is native JSON or TEXT-stored JSON.
+	 *
+	 * TEXT-stored JSON (native_json=false):
+	 *   Only string-comparison operators apply to the raw JSON string value.
+	 *   No JSON-aware functions are available, so containment operators are excluded.
+	 *
+	 * Native JSON (native_json=true):
+	 *   All operators run through path-based JSON extraction (via `queryBuilderApplyFilter`)
+	 *   except `CONTAINS` and `HAS_KEY`, which operate on the whole column without a path.
 	 */
 	public function getAllowedFilterOperators(): array
 	{
@@ -194,7 +207,6 @@ class TypeJSON extends Type implements BaseTypeInterface
 			Operator::NEQ,
 			Operator::LIKE,
 			Operator::NOT_LIKE,
-			Operator::JSON_CONTAINS,
 		];
 
 		if ($this->isNullable()) {
@@ -202,9 +214,10 @@ class TypeJSON extends Type implements BaseTypeInterface
 			$operators[] = Operator::IS_NOT_NULL;
 		}
 
-		// JSON containment is only available with a native JSON column.
-		if ($this->getOption('native_json', false)) {
-			$operators[] = Operator::JSON_CONTAINS;
+		if ($this->isNativeJson()) {
+			// Whole-column containment + key existence (single- and multi-segment)
+			$operators[] = Operator::CONTAINS;
+			$operators[] = Operator::HAS_KEY;
 		}
 
 		return $operators;
@@ -215,29 +228,135 @@ class TypeJSON extends Type implements BaseTypeInterface
 	 */
 	public function queryBuilderApplyFilter(ORMTableQuery $qb, Column $column, Operator $operator, array $args): void
 	{
-		$field = $column->getName();
-		$value = $args[0] ?? null;
+		// TEXT-stored JSON: standard filter on the raw string column
+		if (!$this->isNativeJson()) {
+			$value = $operator->isUnary() ? null : ($args[0] ?? null);
+			$qb->filterBy($column->getFullName(), $operator, $value);
 
-		if (Operator::JSON_CONTAINS === $operator) {
-			$json_path = $args[0] ?? null;
+			return;
+		}
 
-			if (!is_string($json_path) || empty($json_path)) {
+		if (Operator::CONTAINS === $operator) {
+			$value   =  $args[0] ?? null;
+			$at_path = isset($args[1]) && \is_string($args[1]) && '' !== $args[1] ? $args[1] : null;
+
+			$qb->filterBy($column->getFullName(), Operator::CONTAINS, $value, $at_path);
+
+			return;
+		}
+
+		if (Operator::HAS_KEY === $operator) {
+			$path_str = $args[0] ?? null;
+
+			if (!\is_string($path_str) || '' === $path_str) {
 				throw new InvalidArgumentException(
-					sprintf(
-						'Invalid JSON path for %s operator on column %s: got "%s" while a non-empty string is expected.',
-						Operator::JSON_CONTAINS->value,
+					\sprintf(
+						'Expected a non-empty path string as first argument for operator "%s" on JSON column "%s".',
+						$operator->value,
 						$column->getFullName()
 					)
 				);
 			}
 
-			$value = $args[1] ?? null;
+			// here path is treated as value but Operator::HAS_KEY is well-known by the driver
+			// to generate the appropriate key-existence expression
+			$qb->filterBy($column->getFullName(), Operator::HAS_KEY, $path_str);
 
-			$field = $qb->getTableAlias() . '.' . $column->getName() . '.' . $json_path;
+			return;
 		}
 
+		// All other native JSON operators:
+		// - Unary (IS_NULL, IS_NOT_NULL): $args[0] = dot-notation path, no value
+		// - Non-unary (EQ, NEQ, LIKE, NOT_LIKE): $args[0] = value, $args[1] = dot-notation path
+		if ($operator->isUnary()) {
+			$json_path = $args[0] ?? null;
+			$value     = null;
+		} else {
+			$value     = $args[0] ?? null;
+			$json_path = $args[1] ?? null;
+		}
 
-		$qb->filterBy($operator, $field, $value);
+		if (!\is_string($json_path) || '' === $json_path) {
+			throw new InvalidArgumentException(
+				\sprintf(
+					'Expected a non-empty string path as %s argument for operator "%s" on JSON column "%s".',
+					$operator->isUnary() ? 'first' : 'second',
+					$operator->value,
+					$column->getFullName()
+				)
+			);
+		}
+
+		$qb->filterBy($column->getFullName(), $operator, $value, $json_path);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * Enhancement rules for native JSON filter methods:
+	 *
+	 * - `CONTAINS`: `$value` (JSON-serializable) + optional `$path` (dot-notation, default null).
+	 *   When `$path` is given the containment check is applied to the extracted sub-value.
+	 * - `HAS_KEY`: single `$path` (dot-notation path). A single segment checks the top-level
+	 *   key; multiple segments check whether the nested key resolves to a non-null value.
+	 * - All other native JSON operators: for unary (IS_NULL/IS_NOT_NULL) only `$path`;
+	 *   for non-unary (EQ/NEQ/LIKE/NOT_LIKE) `$value` first then `$path` (mirrors CONTAINS convention).
+	 *
+	 * For TEXT-stored JSON, no enhancement is performed.
+	 */
+	public function queryBuilderEnhanceFilterMethod(Table $table, Column $column, Operator $operator, PHPMethod $method): void
+	{
+		if (!$this->isNativeJson()) {
+			return;
+		}
+
+		$col_ref = '`' . $table->getName() . '.' . $column->getName() . '`';
+
+		$comment = match ($operator) {
+			Operator::CONTAINS    => "Filters rows where {$col_ref} contains JSON fragment \$value. Optional \$path (dot-notation) applies the check to the extracted sub-value (e.g. 'user.tags' checks within `\$.user.tags`). Not supported on SQLite.",
+			Operator::HAS_KEY     => "Filters rows where {$col_ref} has the JSON key at \$path. A single segment (e.g. 'tag') checks the top-level key; multiple segments (e.g. 'user.role') check existence of the nested key.",
+			Operator::IS_NULL     => "Filters rows where {$col_ref} at dot-notation \$path is null.",
+			Operator::IS_NOT_NULL => "Filters rows where {$col_ref} at dot-notation \$path is not null.",
+			Operator::EQ          => "Filters rows where \$value equals the extracted value of {$col_ref} at dot-notation \$path.",
+			Operator::NEQ         => "Filters rows where \$value does not equal the extracted value of {$col_ref} at dot-notation \$path.",
+			Operator::LIKE        => "Filters rows where \$value matches the extracted value of {$col_ref} at dot-notation \$path using LIKE.",
+			Operator::NOT_LIKE    => "Filters rows where \$value does not match the extracted value of {$col_ref} at dot-notation \$path using LIKE.",
+			default               => null,
+		};
+
+		if (null !== $comment) {
+			$method->setComment($comment);
+		}
+
+		if (Operator::CONTAINS === $operator) {
+			$method->newArgument('value')
+				->setType(new PHPType('null', 'int', 'float', 'string', 'array', '\JsonSerializable'));
+			$method->newArgument('path')
+				->setType(new PHPType('null', 'string'))
+				->setValue(null);
+
+			return;
+		}
+
+		if (Operator::HAS_KEY === $operator) {
+			// $path: single segment = top-level key; multi-segment = nested key existence
+			$method->newArgument('path')->setType('string');
+
+			return;
+		}
+
+		// All other native JSON operators:
+		// - Unary (IS_NULL, IS_NOT_NULL): only $path argument
+		// - Non-unary (EQ, NEQ, LIKE, NOT_LIKE): $value first, then $path (mirrors CONTAINS convention)
+		if (!$operator->isUnary()) {
+			$value_type = match ($operator) {
+				Operator::LIKE, Operator::NOT_LIKE => new PHPType('string'),
+				default                            => new PHPType('string', 'int', 'float', 'null'),
+			};
+			$method->newArgument('value')->setType($value_type);
+		}
+
+		$method->newArgument('path')->setType('string');
 	}
 
 	/**
@@ -262,5 +381,27 @@ class TypeJSON extends Type implements BaseTypeInterface
 	public function getWriteTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::mixed()->addUniversalTypes(ORMUniversalType::ARRAY, ORMUniversalType::MAP);
+	}
+
+	/**
+	 * Serializes a CONTAINS filter value to a JSON-encoded string.
+	 *
+	 * This is used to convert the right-hand operand of a CONTAINS filter to the appropriate
+	 * JSON-encoded string representation.
+	 * - `null` and `string` are passed through as-is (string is assumed pre-encoded).
+	 * - `int`|`float`|`bool` are JSON-encoded to a string (e.g. 42 -> '42', 3.14 -> '3.14', true -> 'true', false -> 'false')
+	 * - `array`|`\JsonSerializable` are JSON-encoded (e.g. ['a', 'b'] -> '["a","b"]', ['role => 'admin'] -> '{"role":"admin"}')
+	 *
+	 * @param null|array|bool|float|int|JsonSerializable|string $value
+	 *
+	 * @return null|string
+	 */
+	public static function serializeJsonValue(array|bool|float|int|JsonSerializable|string|null $value): ?string
+	{
+		if (null === $value || \is_string($value)) {
+			return $value;
+		}
+
+		return \json_encode($value, \JSON_THROW_ON_ERROR);
 	}
 }

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Gobl\ORM;
 
 use BadMethodCallException;
+use Gobl\DBAL\Column;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Filters\Filter;
 use Gobl\DBAL\Filters\Filters;
@@ -63,7 +64,11 @@ abstract class ORMTableQuery extends FiltersTableScope
 
 		parent::__construct($this->db->getTableOrFail($table_name));
 
-		$this->qb      = $qb = new QBSelect($this->db);
+		$this->qb = $qb = new QBSelect($this->db);
+		// Register the table alias in the QB immediately so that FilterOperand::normalizeOperand()
+		// can resolve `table_alias.column#json_path` notation during filter-add time (before find()
+		// adds the FROM clause).
+		$qb->alias($this->table->getFullName(), $this->table_alias);
 		$this->filters = $qb->filters($this);
 	}
 
@@ -341,8 +346,8 @@ abstract class ORMTableQuery extends FiltersTableScope
 	{
 		$del = new QBDelete($this->db);
 		$del->from($this->table->getFullName(), $this->getTableAlias())
-			->where($this->getFilters())
-			->bindMergeFrom($this->getBindingSource());
+			->bindMergeFrom($this->getBindingSource())
+			->where($this->getFilters());
 
 		return $del;
 	}
@@ -392,8 +397,8 @@ abstract class ORMTableQuery extends FiltersTableScope
 				Table::COLUMN_SOFT_DELETED    => true,
 				Table::COLUMN_SOFT_DELETED_AT => \time(),
 			])
-			->where($this->getFilters())
-			->bindMergeFrom($this->getBindingSource());
+			->bindMergeFrom($this->getBindingSource())
+			->where($this->getFilters());
 
 		$this->applySoftDeletedLogic($upd, true);
 
@@ -418,8 +423,8 @@ abstract class ORMTableQuery extends FiltersTableScope
 		$upd = new QBUpdate($this->db);
 		$upd->update($this->table->getFullName(), $this->getTableAlias())
 			->set($values)
-			->where($this->getFilters())
-			->bindMergeFrom($this->getBindingSource());
+			->bindMergeFrom($this->getBindingSource())
+			->where($this->getFilters());
 
 		$this->applySoftDeletedLogic($upd);
 
@@ -459,8 +464,8 @@ abstract class ORMTableQuery extends FiltersTableScope
 		$sel = new QBSelect($this->db);
 		$sel->select($this->table_alias)
 			->from($this->table->getFullName(), $this->getTableAlias())
-			->where($this->getFilters())
-			->bindMergeFrom($this->getBindingSource());
+			->bindMergeFrom($this->getBindingSource())
+			->where($this->getFilters());
 
 		$this->applySoftDeletedLogic($sel);
 
@@ -561,17 +566,20 @@ abstract class ORMTableQuery extends FiltersTableScope
 	/**
 	 * Filters rows in the table.
 	 *
-	 * @param Operator $operator the operator to use
-	 * @param string   $column   the column name or full name
-	 * @param mixed    $value    the filter value
+	 * @param string      $column   the column name or full name
+	 * @param Operator    $operator the operator to use
+	 * @param mixed       $value    the filter value
+	 * @param null|string $at_path  optional JSON path for JSON column filters
 	 *
 	 * @return $this
 	 */
-	protected function filterBy(Operator $operator, string $column, mixed $value = null): static
+	public function filterBy(string $column, Operator $operator, mixed $value = null, ?string $at_path = null): static
 	{
 		$this->table->assertHasColumn($column);
 
-		$this->filters->add($operator, $column, $value);
+		$left = null === $at_path ? $column : $this->table_alias . '.' . $column . '#' . $at_path;
+
+		$this->filters->add($operator, $left, $value);
 
 		return $this;
 	}

@@ -47,13 +47,28 @@ enum Operator: string
 	case IS_FALSE = 'is_false';
 
 	/**
-	 * JSON containment check.
+	 * JSON whole-column or sub-path containment check.
 	 *
-	 * - MySQL:      `JSON_CONTAINS(col, value)`
-	 * - PostgreSQL: `col @> value::jsonb`
-	 * - SQLite:     not supported (throws)
+	 * - Whole-column (no path): `JSON_CONTAINS(col, value)` / `col @> value::jsonb`
+	 * - Sub-path (with path):   same but applied to `json_extract(col, '$.path')` / `col->'path'`
+	 * - SQLite:                 not supported (throws)
 	 */
-	case JSON_CONTAINS = 'json_contains';
+	case CONTAINS = 'contains';
+
+	/**
+	 * JSON key existence check.
+	 *
+	 * Single-segment path (top-level key):
+	 * - MySQL:      `JSON_CONTAINS_PATH(col, 'one', CONCAT('$.', key))`
+	 * - PostgreSQL: `jsonb_exists(col, key)`
+	 * - SQLite:     `json_extract(col, '$.'||key) IS NOT NULL`
+	 *
+	 * Multi-segment path (nested key, e.g. 'user.role'):
+	 * - MySQL:      `json_extract(col, '$.user.role') IS NOT NULL`
+	 * - PostgreSQL: `(col #> '{user,role}') IS NOT NULL`
+	 * - SQLite:     `json_extract(col, '$.user.role') IS NOT NULL`
+	 */
+	case HAS_KEY = 'has_key';
 
 	/**
 	 * Gets operand filter suffix used in ORM.
@@ -85,21 +100,22 @@ enum Operator: string
 		}
 
 		return $name . '_' . match ($this) {
-			self::EQ            => 'is',
-			self::NEQ           => 'is_not',
-			self::LT            => 'is_lt',
-			self::LTE           => 'is_lte',
-			self::GT            => 'is_gt',
-			self::GTE           => 'is_gte',
-			self::LIKE          => 'is_like',
-			self::NOT_LIKE      => 'is_not_like',
-			self::IS_NULL       => 'is_null',
-			self::IS_NOT_NULL   => 'is_not_null',
-			self::IN            => 'is_in',
-			self::NOT_IN        => 'is_not_in',
-			self::IS_TRUE       => 'is_true',
-			self::IS_FALSE      => 'is_false',
-			self::JSON_CONTAINS => 'json_contains',
+			self::EQ          => 'is',
+			self::NEQ         => 'is_not',
+			self::LT          => 'is_lt',
+			self::LTE         => 'is_lte',
+			self::GT          => 'is_gt',
+			self::GTE         => 'is_gte',
+			self::LIKE        => 'is_like',
+			self::NOT_LIKE    => 'is_not_like',
+			self::IS_NULL     => 'is_null',
+			self::IS_NOT_NULL => 'is_not_null',
+			self::IN          => 'is_in',
+			self::NOT_IN      => 'is_not_in',
+			self::IS_TRUE     => 'is_true',
+			self::IS_FALSE    => 'is_false',
+			self::CONTAINS    => 'contains',
+			self::HAS_KEY     => 'has_key',
 		};
 	}
 

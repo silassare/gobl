@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Filters\Operands;
 
+use Gobl\DBAL\Filters\FilterFieldNotation;
 use Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface;
 use Gobl\DBAL\Queries\Interfaces\QBInterface;
 
@@ -24,10 +25,10 @@ class FilterLeftOperand extends FilterOperand
 	/**
 	 * FilterLeftOperand constructor.
 	 *
-	 * @param string $user_defined The operand as provided by the user
+	 * @param FilterFieldNotation|string $user_defined The operand as provided by the user
 	 */
 	public function __construct(
-		string $user_defined,
+		FilterFieldNotation|string $user_defined,
 		QBInterface $qb,
 		?FiltersScopeInterface $scope = null
 	) {
@@ -47,15 +48,13 @@ class FilterLeftOperand extends FilterOperand
 	}
 
 	/**
-	 * Get detected column or value as defined (if any).
+	 * {@inheritDoc}
 	 *
-	 * @return string
+	 * Left operands are always developer-supplied column references,
+	 * so string auto-resolution as field notation is safe and desired.
 	 */
-	public function getDetectedColumnOrValueAsDefined(): string
+	protected function shouldResolveFieldNotation(): bool
 	{
-		/** @var string $ud */
-		$ud = $this->user_defined;
-
-		return $this->detected_table_and_column['column'] ?? $ud;
+		return true;
 	}
 }

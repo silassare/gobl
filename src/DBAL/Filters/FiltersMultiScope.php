@@ -26,24 +26,13 @@ use Gobl\DBAL\Table;
  * For example this is used in relation link filters (`Link::apply()`) where conditions may
  * legitimately reference columns from either the link's **host** or **target** table
  * (e.g. referencing a pivot column from a `pivot_to_target` sub-link).
- *
- * Scopes are checked in order:
- * - The **first** scope has the highest priority for both column resolution and FQN qualification.
- * - If the column is not found in the first scope the next scopes are tried in turn.
- * - Bare column names that are not found in any registered scope cause a `DBALRuntimeException`
- *   to be thrown (unknown column).
  */
 class FiltersMultiScope implements FiltersScopeInterface
 {
 	/**
-	 * @var array<int, array{table: ?Table, scope: FiltersScopeInterface}>
-	 */
-	private array $entries = [];
-
-	/**
 	 * @var array<string, array{table: ?Table, scope: FiltersScopeInterface}>
 	 */
-	private array $entries_table_map = [];
+	private array $entries = [];
 
 	/**
 	 * FiltersMultiScope constructor.
@@ -52,18 +41,24 @@ class FiltersMultiScope implements FiltersScopeInterface
 
 	/**
 	 * Add a scope to this multi-scope.
+	 *
+	 * Scopes are checked in declaration order, so the most important scope should be pushed first.
+	 *
+	 * @param FiltersScopeInterface $scope The scope for that table
+	 * @param Table                 $table The table
+	 * @param null|string           $alias An optional alias used as alternative key to reference the scope (e.g. a table alias used in the query builder)
 	 */
-	public function push(FiltersScopeInterface $scope, ?Table $table = null): self
+	public function push(FiltersScopeInterface $scope, Table $table, ?string $alias = null): self
 	{
-		$this->entries[] = [
+		$entry = [
 			'table' => $table,
 			'scope' => $scope,
 		];
-		if (null !== $table) {
-			$this->entries_table_map[$table->getFullName()] = [
-				'table' => $table,
-				'scope' => $scope,
-			];
+
+		$this->entries[$table->getFullName()] = $entry;
+
+		if ($alias) {
+			$this->entries[$alias] = $entry;
 		}
 
 		return $this;
@@ -77,32 +72,37 @@ class FiltersMultiScope implements FiltersScopeInterface
 	 */
 	public function assertFilterAllowed(Filter $filter, ?QBInterface $qb = null): void
 	{
-		$left_operand = $filter->getLeftOperand();
-		$dtc          = $left_operand->getDetectedTableAndColumn();
-		$left         = $left_operand->getDetectedColumnOrValueAsDefined();
+		// left operand should be a resolved column
+		$resolved = $filter->getLeftOperand()->getResolvedColumnOrFail();
 
-		if ($dtc) {
-			$entry = $this->entries_table_map[$dtc['table']] ?? null;
+		$table_key = $resolved->getTableOrAlias();
 
-			if ($entry && $entry['table']->hasColumn($left)) {
+		if ($table_key) {
+			$entry = $this->entries[$table_key] ?? null;
+			// left operand should be a column
+			$col_name = $resolved->getColumnName();
+
+			if ($entry) {
 				$entry['scope']->assertFilterAllowed($filter, $qb);
 
 				return; // handled by the owning table's scope
 			}
 		}
 
-		foreach ($this->entries as $entry) {
-			$col_fqn = $entry['scope']->tryGetColumnFQName($left);
+		$dfn = $resolved->getFieldNotation();
 
-			if (null !== $col_fqn) {
+		foreach ($this->entries as $entry) {
+			$entry['scope']->tryResolveFieldNotation($dfn, $qb);
+
+			if ($dfn->isResolved()) {
 				$entry['scope']->assertFilterAllowed($filter, $qb);
 
 				return; // handled by this scope
 			}
 		}
 
-		throw new DBALRuntimeException('Field not allowed in filters.', [
-			'field' => $left,
+		throw new DBALRuntimeException('Field not allowed in filters of this scope.', [
+			'field' => $resolved->getColumnName(),
 			'_why'  => 'Field/Column is not found in any registered filter scope.',
 		]);
 	}
@@ -110,24 +110,30 @@ class FiltersMultiScope implements FiltersScopeInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function tryGetColumnFQName(string $column_name): ?string
+	public function tryResolveFieldNotation(FilterFieldNotation $fn, QBInterface $qb): void
 	{
 		foreach ($this->entries as $entry) {
-			$fqn = $entry['scope']->tryGetColumnFQName($column_name);
+			$entry['scope']->tryResolveFieldNotation($fn, $qb);
 
-			if (null !== $fqn) {
-				return $fqn;
+			if ($fn->isResolved()) {
+				return;
 			}
 		}
-
-		return null;
 	}
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * A scope is allowed if at least one registered scope allows it.
 	 */
 	public function shouldAllowFiltersScope(FiltersScopeInterface $scope): bool
 	{
-		return true;
+		foreach ($this->entries as $entry) {
+			if ($entry['scope']->shouldAllowFiltersScope($scope)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

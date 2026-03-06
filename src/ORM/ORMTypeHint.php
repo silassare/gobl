@@ -76,7 +76,7 @@ final class ORMTypeHint
 			Operator::IS_NULL, Operator::IS_NOT_NULL                                              => self::null(),
 			Operator::IN, Operator::NOT_IN                                                        => self::array(),
 			Operator::IS_TRUE, Operator::IS_FALSE                                                 => self::bool(),
-			Operator::JSON_CONTAINS                                                               => self::string(),
+			Operator::CONTAINS, Operator::HAS_KEY => self::string(),
 		};
 	}
 

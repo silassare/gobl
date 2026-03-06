@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Filters\Interfaces;
 
 use Gobl\DBAL\Filters\Filter;
+use Gobl\DBAL\Filters\FilterFieldNotation;
 use Gobl\DBAL\Queries\Interfaces\QBInterface;
 
 /**
@@ -30,15 +31,12 @@ interface FiltersScopeInterface
 	public function assertFilterAllowed(Filter $filter, ?QBInterface $qb = null): void;
 
 	/**
-	 * Should return the given column fully qualified name or null if it doesn't exist in the scope.
+	 * Should try to resolve a provided unresolved field notation.
 	 *
-	 * `users.user_id` is FQN of `user_id` from the table `users`
-	 *
-	 * @param string $column_name
-	 *
-	 * @return ?string
+	 * @param FilterFieldNotation $fn the field notation to resolve
+	 * @param QBInterface         $qb query builder context
 	 */
-	public function tryGetColumnFQName(string $column_name): ?string;
+	public function tryResolveFieldNotation(FilterFieldNotation $fn, QBInterface $qb): void;
 
 	/**
 	 * Checks if a given filters scope is allowed.

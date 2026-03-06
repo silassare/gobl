@@ -17,6 +17,7 @@ use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Filters\Filters;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
+use Gobl\DBAL\Queries\QBExpression;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Table;
 use Gobl\ORM\ORMEntity;
@@ -164,7 +165,9 @@ final class LinkColumns extends Link
 		foreach ($this->columns_mapping as $host_column => $target_column) {
 			$filters->eq(
 				$target_qb->fullyQualifiedName($this->target_table, $target_column),
-				$target_qb->fullyQualifiedName($this->host_table, $host_column),
+				// Wrap in QBExpression so the host-column FQN is used as a raw SQL expression
+				// rather than a bound parameter (FilterRightOperand does not auto-resolve strings).
+				new QBExpression($target_qb->fullyQualifiedName($this->host_table, $host_column)),
 			);
 		}
 

@@ -26,7 +26,9 @@ use Gobl\DBAL\Queries\QBExpression;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Queries\QBType;
 use Gobl\DBAL\Queries\QBUtils;
+use Gobl\DBAL\Types\TypeJSON;
 use Gobl\DBAL\Types\Utils\TypeUtils;
+use JsonSerializable;
 use PHPUtils\Str;
 
 /**
@@ -101,7 +103,7 @@ final class Filters
 	 *
 	 * ```
 	 * [
-	 *  '_$filter' => 'foo eq :val1 and bar lt :val2',
+	 *  '_$filter' => 'foo eq :val1 and bar lt :val2 and baz gt 5',
 	 *  '_$bindings' => ['val1' => 'value', 'val2' => 8]
 	 * ]
 	 * ```
@@ -110,7 +112,7 @@ final class Filters
 	 * ```
 	 * [
 	 * 	[
-	 * 		'_$filter' => 'foo eq :val1 and bar lt :val2',
+	 * 		'_$filter' => 'foo eq :val1 and bar lt :val2 and baz gt 5',
 	 * 		'_$bindings' => ['val1' => 'value', 'val2' => 8]
 	 * 	]
 	 * 	'OR',
@@ -368,7 +370,7 @@ final class Filters
 					))->suspectObject($entry->qb);
 				}
 
-				if ($this->scope && (!$entry->scope || !$this->scope->shouldAllowFiltersScope($entry->scope))) {
+				if ($this->scope && $this->scope !== $entry->scope && (!$entry->scope || !$this->scope->shouldAllowFiltersScope($entry->scope))) {
 					$e = (new DBALRuntimeException(
 						'Provided filters instance scope is not allowed by the current filter scope.'
 					));
@@ -442,17 +444,21 @@ final class Filters
 	 * - `IS_TRUE` is promoted to `EQ true`.
 	 * - `IS_FALSE` is promoted to `EQ false`.
 	 *
-	 * @param Operator   $operator     the comparison or unary operator to apply
-	 * @param string     $u_left       the left operand (column name, FQN, or alias-qualified reference)
-	 * @param null|mixed $unsafe_right the right operand; must be `null` for unary operators;
-	 *                                 arrays are only valid for `IN` and `NOT_IN`
+	 * @param Operator                   $operator the comparison or unary operator to apply
+	 * @param FilterFieldNotation|string $left     the left operand: column name, FQN, alias-qualified reference,
+	 *                                             or an explicit FilterFieldNotation for typed/pre-parsed references
+	 * @param null|mixed                 $right    the right operand; must be `null` for unary operators;
+	 *                                             pass a FilterFieldNotation for column-to-column comparisons
+	 *                                             (plain strings are NEVER auto-resolved as column refs for security);
+	 *                                             arrays and `\JsonSerializable` are auto-serialized to JSON for `CONTAINS`;
+	 *                                             arrays are also valid for `IN` and `NOT_IN`
 	 *
 	 * @return $this
 	 */
 	public function add(
 		Operator $operator,
-		string $left,
-		array|BackedEnum|bool|Column|float|int|QBExpression|QBInterface|string|null $u_right = null
+		FilterFieldNotation|string $left,
+		array|BackedEnum|bool|Column|FilterFieldNotation|float|int|JsonSerializable|QBExpression|QBInterface|string|null $u_right = null
 	): self {
 		if (Operator::IS_TRUE === $operator) {
 			$operator   = Operator::EQ;
@@ -460,6 +466,25 @@ final class Filters
 		} elseif (Operator::IS_FALSE === $operator) {
 			$operator   = Operator::EQ;
 			$u_right    = false;
+		} elseif (Operator::HAS_KEY === $operator) {
+			if (!\is_string($u_right) || empty($u_right)) {
+				throw new DBALRuntimeException(
+					\sprintf(
+						'operator "%s" requires a non-empty string right operand representing the JSON path to check for existence of a key.',
+						$operator->name
+					)
+				);
+			}
+		}
+
+		// Normalize null right-operand for equality operators to IS_NULL / IS_NOT_NULL.
+		// Mirrors Filters::fromArray() behavior: ['col', 'eq', null] -> IS_NULL.
+		if (null === $u_right) {
+			if (Operator::EQ === $operator) {
+				$operator = Operator::IS_NULL;
+			} elseif (Operator::NEQ === $operator) {
+				$operator = Operator::IS_NOT_NULL;
+			}
 		}
 
 		$left_operand  = new FilterLeftOperand($left, $this->qb, $this->scope);
@@ -478,6 +503,29 @@ final class Filters
 				);
 			}
 
+			if (\is_array($u_right)) {
+				$allow_array = [Operator::IN, Operator::NOT_IN, Operator::CONTAINS];
+
+				if (!\in_array($operator, $allow_array, true)) {
+					throw new DBALRuntimeException(
+						\sprintf(
+							'array type is only supported for right operand of "%s" operator, not: %s',
+							\implode('", "', \array_map(static fn ($op) => $op->name, $allow_array)),
+							$operator->name
+						)
+					);
+				}
+			} elseif ($u_right instanceof JsonSerializable && Operator::CONTAINS !== $operator) {
+				throw new DBALRuntimeException(
+					\sprintf(
+						'%s type is only supported for right operand of "%s" operator, not: %s',
+						JsonSerializable::class,
+						Operator::CONTAINS->name,
+						$operator->name
+					)
+				);
+			}
+
 			// for IN operators we accept only: array, SELECT and expressions
 			if (Operator::IN === $operator || Operator::NOT_IN === $operator) {
 				if ($u_right instanceof QBSelect || $u_right instanceof QBExpression) {
@@ -492,14 +540,13 @@ final class Filters
 						)
 					);
 				}
-			} elseif (\is_array($u_right)) {
-				// for non-IN operators we don't allow array as right operand
-				throw new DBALRuntimeException(
-					\sprintf(
-						'"array" type for right operand not supported by operator: %s',
-						$operator->name
-					)
-				);
+			} elseif (Operator::CONTAINS === $operator) {
+				// CONTAINS: auto-serialize to JSON string.
+				$u_right                = TypeJSON::serializeJsonValue($u_right);
+				$try_enforce_query_type = false;
+			} elseif (Operator::HAS_KEY === $operator) {
+				// HAS_KEY right operand is a key path string, not a typed column value.
+				$try_enforce_query_type = false;
 			}
 
 			$right_operand = new FilterRightOperand($u_right, $this->qb, $this->scope);
@@ -519,12 +566,13 @@ final class Filters
 
 			// Enforce query-compatible types for the right operand when possible, using the detected column from the left operand.
 			// This is best-effort and only applied when we have a detected column on the left operand
-			if ($try_enforce_query_type && $left_operand->hasDetectedTableAndColumn()) {
-				$detected = $left_operand->getDetectedTableAndColumn();
+			if ($try_enforce_query_type && $left_operand->hasResolvedColumn()) {
+				$resolved = $left_operand->getResolvedColumnOrFail();
+				$table    = $resolved->getTable();
 
 				$right_nz = TypeUtils::runEnforceQueryExpressionValueType(
-					$detected['table'],
-					$detected['column'],
+					$table->getFullName(),
+					$resolved->getColumnName(),
 					$right_nz,
 					$this->qb->getRDBMS()
 				);
