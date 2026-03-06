@@ -1,5 +1,8 @@
 # Gobl - AI Coding Instructions
 
+IMPORTANT: no hallucination or invention. Go through the entire code base to understand before generating code, the `.github/copilot-instructions.md` or docs. Focus on what can be directly observed in the codebase, not on idealized practices or assumptions.
+when bug or issue is found in the codebase, do not fix it directly, but rather ask for feedback and approval.
+
 ## Project Overview
 
 Gobl is a PHP 8.1+ library providing a **DBAL** (Database Abstraction Layer), an **ORM**, and a **CRUD event system**. It supports MySQL, PostgreSQL, and SQLite via PDO. Code generation produces typed entity/controller/query classes for PHP, TypeScript, and Dart. It is designed to be embedded in larger frameworks. The TypeScript/Dart generated classes auto-convert API JSON responses to typed entity instances on frontends.

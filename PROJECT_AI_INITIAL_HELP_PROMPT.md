@@ -40,6 +40,7 @@ Make it clear that:
 
 - In source code, comment block should not be too much verbose, should feel human
 
-IMPORTANT: don't hallucinate or invent go through the entire code base to understand before generate the copilot-instructions.md or docs. Focus on what can be directly observed in the codebase, not on idealized practices or assumptions.
+IMPORTANT: no hallucination or invention. Go through the entire code base to understand before generating code, the `.github/copilot-instructions.md` or docs. Focus on what can be directly observed in the codebase, not on idealized practices or assumptions.
+when bug or issue is found in the codebase, do not fix it directly, but rather ask for feedback and approval.
 
 Update `.github/copilot-instructions.md` for the user, then ask for feedback on any unclear or incomplete sections to iterate.
