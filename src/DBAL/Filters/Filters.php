@@ -85,39 +85,66 @@ final class Filters
 	 * Creates a `Filters` instance from an array using the new flat format.
 	 *
 	 * **Format auto-detection:**
-	 * - When we find the special key `self::STR_EXPR_FILTER_KEY`
-	 *   the array is treated as string expression format and forwarded to {@see self::fromString()}.
-	 * - When the **first key is an integer** (or the array is empty) the new flat format
+	 * - When we find the special key `self::STR_EXPR_FILTER_KEY` (`'_$filter'`)
+	 *   the array is treated as the string-expression format and forwarded to {@see self::fromString()}.
+	 * - When the **first key is an integer** (or the array is empty) the flat format
 	 *   is parsed: `['col', 'op', value, 'AND'|'OR', ['col2', 'op2', value2], ...]`.
-	 * - When we have **string key** the array is treated as the old filters format
-	 *   `[foo => [operator => value], bar => [operator => value]]` format and forwarded to {@see self::fromOldFiltersArray()}.
+	 * - When we have a **string key** the array is treated as the legacy format
+	 *   `[col => [operator => value], ...]` and forwarded to {@see self::fromOldFiltersArray()}.
 	 *
-	 * - New filters array format example
+	 * **Flat array format:**
 	 * ```
 	 * [
-	 *   ['foo', 'eq', 'value', 'OR', ['bar', 'lt', 8]], 'AND', 'baz', 'is_null'
+	 *   ['foo', 'eq', 'value'], 'OR', ['bar', 'lt', 8], 'AND', 'baz', 'is_null'
 	 * ]
 	 * ```
 	 *
-	 * - The new format also supports a special string-expression form when the first key is `self::STR_EXPR_FILTER_KEY`:
+	 * **String-expression format (`_$filter` / `_$bindings`):**
 	 *
-	 * ```
-	 * [
-	 *  '_$filter' => 'foo eq :val1 and bar lt :val2 and baz gt 5',
-	 *  '_$bindings' => ['val1' => 'value', 'val2' => 8]
-	 * ]
+	 * When the array has the `'_$filter'` key, it is treated as a string expression
+	 * with named bindings. The expression syntax uses column names, operators, and
+	 * `:name` binding references. The expression is parsed in strict mode by default
+	 * (only `:binding` references are accepted as right-hand operands; inline numeric or
+	 * string literals are not allowed and will throw).
+	 *
+	 * - `'_$filter'` (string, required): the filter expression, e.g. `'foo eq :v1 and bar lt :v2'`.
+	 * - `'_$bindings'` (array, optional, default `[]`): map of binding name to value, e.g. `['v1' => 'x', 'v2' => 8]`.
+	 * - No other keys are allowed alongside `'_$filter'`; any extra key throws a {@see DBALRuntimeException}.
+	 *
+	 * ```php
+	 * // Standalone string-expression (no bindings needed when expression is unary-only)
+	 * Filters::fromArray(
+	 *     ['_$filter' => 'name is_null'],
+	 *     $qb
+	 * );
+	 *
+	 * // With bindings
+	 * Filters::fromArray(
+	 *     [
+	 *         '_$filter'   => 'foo eq :val1 and bar lt :val2',
+	 *         '_$bindings' => ['val1' => 'value', 'val2' => 8],
+	 *     ],
+	 *     $qb
+	 * );
 	 * ```
 	 *
-	 * - You can also mix the string expression with the flat format in the same array:
-	 * ```
-	 * [
-	 * 	[
-	 * 		'_$filter' => 'foo eq :val1 and bar lt :val2 and baz gt 5',
-	 * 		'_$bindings' => ['val1' => 'value', 'val2' => 8]
-	 * 	]
-	 * 	'OR',
-	 * 	['baz', 'is_null']
-	 * ]
+	 * **Mixed format** - string-expression nested inside a flat-array group:
+	 *
+	 * A `'_$filter'` map can appear as one element of a flat-array filter alongside
+	 * plain flat conditions joined by `'AND'` / `'OR'`:
+	 *
+	 * ```php
+	 * Filters::fromArray(
+	 *     [
+	 *         [
+	 *             '_$filter'   => 'foo eq :val1 and bar lt :val2',
+	 *             '_$bindings' => ['val1' => 'value', 'val2' => 8],
+	 *         ],
+	 *         'OR',
+	 *         ['baz', 'is_null'],
+	 *     ],
+	 *     $qb
+	 * );
 	 * ```
 	 *
 	 * @param array                      $filters flat filter array (see format above)
@@ -510,7 +537,7 @@ final class Filters
 					throw new DBALRuntimeException(
 						\sprintf(
 							'array type is only supported for right operand of "%s" operator, not: %s',
-							\implode('", "', \array_map(static fn ($op) => $op->name, $allow_array)),
+							\implode('", "', \array_map(static fn($op) => $op->name, $allow_array)),
 							$operator->name
 						)
 					);
