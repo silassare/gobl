@@ -491,9 +491,9 @@ abstract class ORMLiveTestCase extends BaseTestCase
 	 * Scenario:
 	 *   - Insert a client whose `data` column holds a structured JSON object.
 	 *   - Verify the generated WHERE clauses (EQ by path, HAS_KEY top-level,
-	 *     HAS_KEY nested path, dotted-segment via quoted path notation) return the expected rows.
+	 *     HAS_KEY nested path, dotted-segment via bracket path notation) return the expected rows.
 	 *
-	 * All three drivers support EQ-by-path, HAS_KEY (top-level and nested), and quoted-segment
+	 * All three drivers support EQ-by-path, HAS_KEY (top-level and nested), and bracket-segment
 	 * path notation.  Only CONTAINS is MySQL/PostgreSQL-only (SQLite has no equivalent
 	 * of JSON_CONTAINS / @>) and is not tested here.
 	 */
@@ -543,7 +543,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 		self::assertNull($notFoundHasKey, 'whereDataHasKey should return null when key is absent');
 
 		// ------------------------------------------------------------------
-		// HAS_KEY nested path: whereDataHasKey('user.role') — multi-segment
+		// HAS_KEY nested path: whereDataHasKey('user.role') - multi-segment
 		// ------------------------------------------------------------------
 		$foundHasPath = ORM::query($table)->whereDataHasKey('user.role')->find(1)->fetchClass();
 		self::assertNotNull($foundHasPath, 'whereDataHasKey (multi-segment) should find a row with the nested key present');
@@ -552,16 +552,16 @@ abstract class ORMLiveTestCase extends BaseTestCase
 		self::assertNull($notFoundHasPath, 'whereDataHasKey (multi-segment) should return null when nested key is absent');
 
 		// ------------------------------------------------------------------
-		// Dotted key via quoted path notation: whereDataIs('dotted', "'meta.key'")
+		// Dotted key via bracket path notation: whereDataIs('dotted', "['meta.key']")
 		// The stored JSON has a top-level key whose name is literally "meta.key".
-		// Using 'meta.key' (with surrounding single-quote delimiters) instructs
-		// JsonPath to treat it as a single segment, producing
-		// a safely double-quoted path like `$."meta.key"` in MySQL/SQLite syntax.
+		// Using ['meta.key'] (bracket notation) instructs JsonPath to treat it
+		// as a single segment, producing a safely quoted path like `$."meta.key"`
+		// in MySQL/SQLite syntax.
 		// ------------------------------------------------------------------
-		$foundDotted = ORM::query($table)->whereDataIs('dotted', "'meta.key'")->find(1)->fetchClass();
+		$foundDotted = ORM::query($table)->whereDataIs('dotted', "['meta.key']")->find(1)->fetchClass();
 		self::assertNotNull(
 			$foundDotted,
-			"whereDataIs with a quoted-segment path (\"'meta.key'\") must find a row whose JSON key is literally 'meta.key'"
+			"whereDataIs with a bracket-segment path (\"['meta.key']\") must find a row whose JSON key is literally 'meta.key'"
 		);
 		self::assertSame($id, (string) $foundDotted->id);
 

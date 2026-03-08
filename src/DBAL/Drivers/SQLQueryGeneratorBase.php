@@ -404,7 +404,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	/**
 	 * {@inheritDoc}
 	 *
-	 * Uses standard SQL `''` doubling to escape single-quotes — correct for
+	 * Uses standard SQL `''` doubling to escape single-quotes - correct for
 	 * MySQL (`NO_BACKSLASH_ESCAPES`-safe), PostgreSQL, and SQLite.
 	 * No database connection is required.
 	 */

@@ -147,7 +147,7 @@ final class LinkThrough extends Link
 	/**
 	 * {@inheritDoc}
 	 *
-	 * Always returns `false` — pivot-table links span two hops, so a single
+	 * Always returns `false` - pivot-table links span two hops, so a single
 	 * host entity cannot populate the target data without a database round-trip.
 	 */
 	public function fillRelation(ORMEntity $host_entity, array &$target_data = []): bool
@@ -159,8 +159,8 @@ final class LinkThrough extends Link
 	 * {@inheritDoc}
 	 *
 	 * The pivot join is applied in **pivot-first** order:
-	 * 1. `pivot_to_target_link->apply()` (join mode, no entity) — joins the pivot to the target.
-	 * 2. `host_to_pivot_link->apply($host_entity)` — either filters by entity values (entity mode)
+	 * 1. `pivot_to_target_link->apply()` (join mode, no entity) - joins the pivot to the target.
+	 * 2. `host_to_pivot_link->apply($host_entity)` - either filters by entity values (entity mode)
 	 *    or adds the host->pivot join (join mode).
 	 *
 	 * This ordering ensures the JOIN clauses are emitted in the correct inside-out sequence

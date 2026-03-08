@@ -151,7 +151,7 @@ class TypeDate extends Type
 	 * Automatically sets the date value to the current date/time when the value is null.
 	 *
 	 * This is equivalent to `DEFAULT CURRENT_TIMESTAMP` / `ON UPDATE CURRENT_TIMESTAMP`
-	 * in SQL — the actual enforcement happens in PHP before the query is sent.
+	 * in SQL - the actual enforcement happens in PHP before the query is sent.
 	 * Typically used for `created_at` and `updated_at` columns.
 	 *
 	 * @param bool $auto
@@ -167,8 +167,8 @@ class TypeDate extends Type
 	 * Sets the date format used for storage and output.
 	 *
 	 * Accepted values:
-	 *  - `'timestamp'`   — stores/returns a Unix timestamp integer (default for `auto` columns)
-	 *  - `DATE_ATOM`     — ISO 8601 string, e.g. `2024-01-15T20:30:00+00:00` (library default)
+	 *  - `'timestamp'`   - stores/returns a Unix timestamp integer (default for `auto` columns)
+	 *  - `DATE_ATOM`     - ISO 8601 string, e.g. `2024-01-15T20:30:00+00:00` (library default)
 	 *  - any PHP `date()` format string, e.g. `'Y-m-d H:i:s'`, `'Y-m-d'`
 	 *
 	 * @param string $format

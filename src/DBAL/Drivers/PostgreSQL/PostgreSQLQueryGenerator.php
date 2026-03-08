@@ -407,7 +407,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		$max = $qb->getOptionsLimitMax();
 
 		if (null === $max) {
-			// No LIMIT – fall through to the standard implementation.
+			// No LIMIT - fall through to the standard implementation.
 			if (!empty($qb->getOptionsOrderBy())) {
 				throw new DBALRuntimeException('PostgreSQL does not support ORDER BY in UPDATE statements.');
 			}

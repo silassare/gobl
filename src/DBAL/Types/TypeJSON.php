@@ -43,7 +43,7 @@ use OLIUP\CG\PHPType;
  * TypeJSON models a **JSON document** (object or array root), not an arbitrary JSON
  * *value* (scalar). Although `"hello"`, `42`, and `true` are valid JSON in every
  * RDBMS, storing a scalar via TypeJSON would produce a raw string like `'"hello"'`
- * (with the extra JSON quotes) in `dbToPhp()` return value, which is confusing —
+ * (with the extra JSON quotes) in `dbToPhp()` return value, which is confusing -
  * use TypeString, TypeInt, or TypeBool for scalar columns instead.
  *
  * ## json_of option

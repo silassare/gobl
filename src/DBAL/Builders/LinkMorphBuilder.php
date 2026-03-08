@@ -22,8 +22,8 @@ namespace Gobl\DBAL\Builders;
  * In addition to the common {@see LinkBuilder::filter()} / {@see LinkBuilder::filters()} /
  * {@see LinkBuilder::toArray()} methods it exposes:
  *
- * - {@see parentType()} — explicit parent-type string (defaults to parent table full name)
- * - {@see parentKey()}  — explicit parent PK column (defaults to auto-detected)
+ * - {@see parentType()} - explicit parent-type string (defaults to parent table full name)
+ * - {@see parentKey()}  - explicit parent PK column (defaults to auto-detected)
  *
  * ### Usage
  *

@@ -206,20 +206,87 @@ final class JsonPatchTest extends BaseTestCase
 		(new JsonPatch())->remove('');
 	}
 
-	public function testSetPathWithEmptySegmentSkips(): void
+	public function testSetPathWithEmptySegmentThrows(): void
 	{
-		// FilterFieldNotation::parsePath silently drops the empty segment between consecutive dots.
-		$patch = new JsonPatch();
-		$patch->set('a..b', 'val');
-		self::assertSame(['a' => ['b' => 'val']], $patch->toArray());
+		$this->expectException(InvalidArgumentException::class);
+		(new JsonPatch())->set('a..b', 'val');
 	}
 
-	public function testRemovePathWithEmptySegmentSkips(): void
+	public function testRemovePathWithEmptySegmentThrows(): void
 	{
-		// FilterFieldNotation::parsePath silently drops the empty segment between consecutive dots.
-		$patch = new JsonPatch(['a' => ['b' => 1]]);
-		$patch->remove('a..b');
-		self::assertSame(['a' => []], $patch->toArray());
+		$this->expectException(InvalidArgumentException::class);
+		(new JsonPatch(['a' => ['b' => 1]]))->remove('a..b');
+	}
+
+	// =========================================================================
+	// parsePath: JS-like bracket notation
+	// =========================================================================
+
+	public function testParsePathBracketInteger(): void
+	{
+		$patch = new JsonPatch();
+		$patch->set('foo[0]', 'val');
+		self::assertSame(['foo' => ['val']], $patch->toArray());
+	}
+
+	public function testParsePathBracketSingleQuoted(): void
+	{
+		$patch = new JsonPatch();
+		$patch->set("foo['bar.baz']", 'val');
+		self::assertSame(['foo' => ['bar.baz' => 'val']], $patch->toArray());
+	}
+
+	public function testParsePathBracketDoubleQuoted(): void
+	{
+		$patch = new JsonPatch();
+		$patch->set('foo["bar.baz"]', 'val');
+		self::assertSame(['foo' => ['bar.baz' => 'val']], $patch->toArray());
+	}
+
+	public function testParsePathBracketEscapedSingleQuote(): void
+	{
+		$patch = new JsonPatch();
+		$patch->set("foo['it\\'s']", 'val');
+		self::assertSame(['foo' => ["it's" => 'val']], $patch->toArray());
+	}
+
+	public function testParsePathBracketEscapedDoubleQuote(): void
+	{
+		$patch = new JsonPatch();
+		$patch->set('foo["say \"hi\""]', 'val');
+		self::assertSame(['foo' => ['say "hi"' => 'val']], $patch->toArray());
+	}
+
+	public function testParsePathBracketAsFirstSegment(): void
+	{
+		$patch = new JsonPatch();
+		$patch->set('["first"].sub', 'val');
+		self::assertSame(['first' => ['sub' => 'val']], $patch->toArray());
+	}
+
+	public function testParsePathConsecutiveBrackets(): void
+	{
+		$patch = new JsonPatch();
+		$patch->set('foo["a"]["b"]', 'val');
+		self::assertSame(['foo' => ['a' => ['b' => 'val']]], $patch->toArray());
+	}
+
+	public function testParsePathTrailingDotThrows(): void
+	{
+		$this->expectException(InvalidArgumentException::class);
+		(new JsonPatch())->set('foo.', 'val');
+	}
+
+	public function testParsePathUnclosedBracketThrows(): void
+	{
+		$this->expectException(InvalidArgumentException::class);
+		(new JsonPatch())->set('foo[0', 'val');
+	}
+
+	public function testParsePathInvalidBracketContentThrows(): void
+	{
+		$this->expectException(InvalidArgumentException::class);
+		(new JsonPatch())->set('foo[bar]', 'val');
 	}
 
 	// =========================================================================

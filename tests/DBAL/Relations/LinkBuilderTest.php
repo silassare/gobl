@@ -41,7 +41,7 @@ use Gobl\Tests\BaseTestCase;
 final class LinkBuilderTest extends BaseTestCase
 {
 	// =========================================================================
-	// LinkBuilder — factory methods
+	// LinkBuilder - factory methods
 	// =========================================================================
 
 	/** columns() with no map defaults to empty 'columns' key. */
@@ -101,7 +101,7 @@ final class LinkBuilderTest extends BaseTestCase
 	}
 
 	// =========================================================================
-	// LinkBuilder — filter chaining
+	// LinkBuilder - filter chaining
 	// =========================================================================
 
 	/** A single filter() call produces a single-triple filters array. */
@@ -146,7 +146,7 @@ final class LinkBuilderTest extends BaseTestCase
 	}
 
 	// =========================================================================
-	// RelationBuilder::through() — accepts LinkBuilder
+	// RelationBuilder::through() - accepts LinkBuilder
 	// =========================================================================
 
 	/**
@@ -156,7 +156,7 @@ final class LinkBuilderTest extends BaseTestCase
 	{
 		$db = self::getSampleDB();
 
-		// articles → tags through taggables; taggables morph link is auto-detected
+		// articles -> tags through taggables; taggables morph link is auto-detected
 		// We call through() with null args just to confirm no TypeError is raised.
 		$articles = $db->getTableOrFail('articles');
 		$relation = $articles->getRelation('tags');
@@ -288,7 +288,7 @@ final class LinkBuilderTest extends BaseTestCase
 			$t->id();
 			$t->foreign('session_id', 'sessions', 'id');
 			$t->foreign('schedule_id', 'schedules', 'id');
-			$t->string('for_type'); // pivot-only column — NOT present on 'schedules'
+			$t->string('for_type'); // pivot-only column - NOT present on 'schedules'
 		});
 
 		$sessions->factory(static function (TableBuilder $t) {
@@ -296,7 +296,7 @@ final class LinkBuilderTest extends BaseTestCase
 				->from('schedules')
 				->through(
 					'sess_schedules',
-					null, // auto-detect host→pivot
+					null, // auto-detect host->pivot
 					LinkBuilder::columns(['schedule_id' => 'id'])
 						->filter('for_type', 'eq', 'session')
 				);
@@ -375,7 +375,7 @@ final class LinkBuilderTest extends BaseTestCase
 					'sess_schedules',
 					null,
 					LinkBuilder::columns(['schedule_id' => 'id'])
-						->filter('totally_unknown_col', 'eq', 'session') // ← not in any table
+						->filter('totally_unknown_col', 'eq', 'session') // <- not in any table
 				);
 		});
 
@@ -492,7 +492,7 @@ final class LinkBuilderTest extends BaseTestCase
 
 	/**
 	 * LinkThrough::fillRelation() always returns false because it requires a DB round-trip.
-	 * This is the designed limitation — use selectRelatives() instead.
+	 * This is the designed limitation - use selectRelatives() instead.
 	 */
 	public function testThroughFillRelationReturnsFalse(): void
 	{

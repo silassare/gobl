@@ -28,7 +28,7 @@ namespace Gobl\DBAL\Builders;
  * // Auto-detect FK mapping
  * $link = LinkBuilder::columns();
  *
- * // Explicit map — pass to factory or chain ->map()
+ * // Explicit map - pass to factory or chain ->map()
  * $link = LinkBuilder::columns(['session_id' => 'for_id']);
  * $link = LinkBuilder::columns()->map(['session_id' => 'for_id']);
  *

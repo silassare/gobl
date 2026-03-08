@@ -233,11 +233,11 @@ abstract class Db implements RDBMSInterface
 	 * {@inheritDoc}
 	 *
 	 * Processes the schema in three passes:
-	 *  1. **Register tables & columns** – each entry is either a `Table` instance or an array;
+	 *  1. **Register tables & columns** - each entry is either a `Table` instance or an array;
 	 *     column definitions may reference other columns via `ref:table.col` / `cp:table.col`.
-	 *  2. **Apply constraints/indexes** – FK, PK, UK, and index declarations are processed once
+	 *  2. **Apply constraints/indexes** - FK, PK, UK, and index declarations are processed once
 	 *     all tables are registered so cross-table references can be resolved.
-	 *  3. **Apply relations** – relation definitions are processed last.
+	 *  3. **Apply relations** - relation definitions are processed last.
 	 *
 	 * When `$desired_namespace` is provided it overrides the namespace declared inside each table.
 	 *

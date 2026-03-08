@@ -33,15 +33,15 @@ use PHPUtils\Traits\ArrayCapableTrait;
  * | `LinkBuilder::morphExplicit(...)`      | `LinkMorphBuilder`      | `->parentType()`, `->parentKey()` |
  *
  * All sub-builders share the common `->filter()`, `->filters()`, and `->toArray()` methods
- * defined here.  Chaining is immutable — every call returns a new clone.
+ * defined here.  Chaining is immutable - every call returns a new clone.
  *
  * ### Usage examples
  *
  * ```php
- * // Columns link — auto-detect FK
+ * // Columns link - auto-detect FK
  * $link = LinkBuilder::columns();
  *
- * // Columns link — explicit map (two equivalent forms)
+ * // Columns link - explicit map (two equivalent forms)
  * $link = LinkBuilder::columns(['session_id' => 'for_id']);
  * $link = LinkBuilder::columns()->map(['session_id' => 'for_id']);
  *
@@ -79,7 +79,7 @@ class LinkBuilder implements ArrayCapableInterface
 	protected function __construct(protected array $options) {}
 
 	// -------------------------------------------------------------------------
-	// Factory methods — each returns the dedicated sub-builder for that path
+	// Factory methods - each returns the dedicated sub-builder for that path
 	// -------------------------------------------------------------------------
 
 	/**

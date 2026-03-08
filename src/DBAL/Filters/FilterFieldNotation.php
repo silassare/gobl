@@ -27,17 +27,22 @@ use InvalidArgumentException;
  *  - `column#json_path` here column may be a custom field name not real column name
  *    and later resolved via {@see FiltersScopeInterface::tryResolveFieldNotation()} to the real column name
  *
- * The path portion after `#` is parsed into segments using the following rules:
+ * The path portion after `#` is parsed into segments using JS-like notation:
  *
  * Rules:
- *   - Plain segment: any characters except `.` and `'`.
- *   - Single-quoted segment: enclosed in `'...'`; a literal `'` inside is `''`.
+ *   - Plain segment: `foo` - identifier chars (no `.`, `[`, `'`, `"`).
+ *   - Bracket-integer segment: `[0]` - non-negative integer index.
+ *   - Bracket-quoted segment: `['...']` or `["..."]` - any key, with `\'` or `\"` for escaping.
+ *   - Segments are separated by `.` (optional after a `]`).
+ *   - Empty segments (from consecutive dots) are not allowed and will throw.
  *
  * Examples:
- *   `table.column#foo.bar`            -> `['foo', 'bar']`
- *   `table.column#foo.'bar.baz'.qux`  -> `['foo', 'bar.baz', 'qux']`
- *   `table.column#'it''s'.key`        -> `["it's", 'key']`
- *   `table.column#'space key'.sub`    -> `['space key', 'sub']`
+ *   `table.column#foo.bar`                -> `['foo', 'bar']`
+ *   `table.column#foo[0].bar`             -> `['foo', '0', 'bar']`
+ *   `table.column#foo['bar.baz'].qux`     -> `['foo', 'bar.baz', 'qux']`
+ *   `table.column#['it\'s'].key`          -> `["it's", 'key']`
+ *   `table.column#['space key'].sub`      -> `['space key', 'sub']`
+ *   `table.column#foo["bar"]["baz"]`      -> `['foo', 'bar', 'baz']`
  */
 final class FilterFieldNotation
 {
@@ -133,16 +138,29 @@ final class FilterFieldNotation
 	}
 
 	/**
-	 * Parse a JSON path string into an array of segments according to the defined syntax rules.
+	 * Parse a JSON path string into an array of segments using JS-like notation.
+	 *
+	 * Grammar:
+	 *   path          := segment ( ('.' segment) | bracket )*
+	 *   segment       := plain | bracket
+	 *   plain         := [^.['"]+ (no dot, bracket, or quote)
+	 *   bracket       := '[' ( sq-content | dq-content | integer ) ']'
+	 *   sq-content    := ['] ( [^'\\] | [\']['] )* [']   (escape: \')
+	 *   dq-content    := ["] ( [^"\\] | [\\]["] )* ["]   (escape: \")
+	 *   integer       := [0-9]+
+	 *
+	 * Rules:
+	 *   - A `.` separator between segments is optional after a `]`.
+	 *   - Empty plain segments (e.g. consecutive dots) throw.
 	 *
 	 * @return array<int,string> The parsed path segments
 	 *
-	 * @throws InvalidArgumentException if the path string is invalid (e.g. empty segment, unclosed quote)
+	 * @throws InvalidArgumentException if the path is empty, has empty segments, or is malformed
 	 */
 	public static function parsePath(string $path): array
 	{
 		if ('' === $path) {
-			throw new InvalidArgumentException('Invalid JSON path string: path portion cannot be empty');
+			throw new InvalidArgumentException('Invalid JSON path: path portion cannot be empty');
 		}
 
 		$segments = [];
@@ -150,45 +168,95 @@ final class FilterFieldNotation
 		$i        = 0;
 
 		while ($i < $len) {
-			if ("'" === $path[$i]) {
-				// Quoted segment: collect until the closing unescaped single-quote
+			if ('[' === $path[$i]) {
+				// Bracket segment: [integer], ['...'], or ["..."]
 				++$i;
-				$seg = '';
 
-				while ($i < $len) {
-					if ("'" === $path[$i]) {
-						if ($i + 1 < $len && "'" === $path[$i + 1]) {
-							// Escaped single-quote ''  ->  '
-							$seg .= "'";
+				if ($i >= $len) {
+					throw new InvalidArgumentException('Invalid JSON path: unexpected end after `[`');
+				}
+
+				$quote = $path[$i];
+
+				if ("'" === $quote || '"' === $quote) {
+					// Bracket-quoted segment: ['...'] or ["..."]
+					++$i;
+					$seg = '';
+
+					while ($i < $len) {
+						$ch = $path[$i];
+
+						if ('\\' === $ch && $i + 1 < $len && $path[$i + 1] === $quote) {
+							// Escaped quote: \\' or \\"
+							$seg .= $quote;
 							$i += 2;
-						} else {
-							// End of quoted segment
+						} elseif ($ch === $quote) {
+							// Closing quote
 							++$i;
 
 							break;
+						} else {
+							$seg .= $ch;
+							++$i;
 						}
-					} else {
-						$seg .= $path[$i++];
 					}
-				}
 
-				$segments[] = $seg;
+					if ($i >= $len || ']' !== $path[$i]) {
+						throw new InvalidArgumentException('Invalid JSON path: missing closing `]` after quoted segment');
+					}
+
+					++$i; // consume ']'
+					$segments[] = $seg;
+				} elseif (\ctype_digit($path[$i])) {
+					// Bracket-integer segment: [0], [42], ...
+					$start = $i;
+
+					while ($i < $len && \ctype_digit($path[$i])) {
+						++$i;
+					}
+
+					if ($i >= $len || ']' !== $path[$i]) {
+						throw new InvalidArgumentException('Invalid JSON path: missing closing `]` after integer index');
+					}
+
+					++$i; // consume ']'
+					$segments[] = \substr($path, $start, $i - $start - 1);
+				} else {
+					throw new InvalidArgumentException(
+						\sprintf('Invalid JSON path: expected quote or integer after `[`, got `%s`', $path[$i])
+					);
+				}
 			} else {
-				// Plain segment: collect until the next '.' or "'"
+				// Plain segment: collect until '.', '[', or end
 				$start = $i;
 
-				while ($i < $len && '.' !== $path[$i] && "'" !== $path[$i]) {
+				while ($i < $len && '.' !== $path[$i] && '[' !== $path[$i]) {
+					$ch = $path[$i];
+
+					if ("'" === $ch || '"' === $ch) {
+						throw new InvalidArgumentException(
+							\sprintf('Invalid JSON path: unexpected quote `%s` in plain segment; use bracket notation `[\'key\']`.', $ch)
+						);
+					}
+
 					++$i;
 				}
 
-				if ($i > $start) {
-					$segments[] = \substr($path, $start, $i - $start);
+				if ($i === $start) {
+					throw new InvalidArgumentException('Invalid JSON path: empty segment (consecutive dots not allowed)');
 				}
+
+				$segments[] = \substr($path, $start, $i - $start);
 			}
 
-			// Consume the separator dot between segments
+			// Consume the optional dot separator between segments (mandatory after plain, optional after ']')
 			if ($i < $len && '.' === $path[$i]) {
 				++$i;
+
+				// A trailing dot (nothing after it) is an error
+				if ($i >= $len) {
+					throw new InvalidArgumentException('Invalid JSON path: trailing dot');
+				}
 			}
 		}
 
@@ -287,7 +355,7 @@ final class FilterFieldNotation
 	 *
 	 * Each segment is a key in the JSON structure, in order from top-level to leaf.
 	 *
-	 * @return array<int,string> The path segments (e.g. `['foo', 'bar', 'baz.qux']` for `table.column#foo.bar.'baz.qux'`)
+	 * @return array<int,string> The path segments (e.g. `['foo', 'bar', 'baz.qux']` for `table.column#foo.bar['baz.qux']`)
 	 */
 	public function getPathSegments(): array
 	{
@@ -295,24 +363,32 @@ final class FilterFieldNotation
 	}
 
 	/**
-	 * Builds a dot-notation path string from an array of key segments.
+	 * Serializes path_segments back to a path string using JS-like bracket notation.
 	 *
-	 * Segments that need quoting (contain `.`, `'`, space, or are empty) are
-	 * wrapped in single-quotes with inner single-quotes escaped as `''`.
+	 * Plain identifiers (no `.`, `[`, `'`, `"`, space) are emitted as-is and joined by `.`.
+	 * Everything else is emitted as `['...']` with `'` escaped as `\\'`.
+	 * Bracket segments are concatenated without a dot separator.
 	 *
-	 * @param string[] $segments Ordered list of path segments
-	 *
-	 * @return string The dot-notation path string
+	 * @return string The path string
 	 */
 	public function getPathSegmentsAsString(): string
 	{
-		return \implode('.', \array_map(static function (string $seg): string {
-			if ('' === $seg || \str_contains($seg, '.') || \str_contains($seg, "'") || \str_contains($seg, ' ')) {
-				return "'" . \str_replace("'", "''", $seg) . "'";
-			}
+		$out   = '';
+		$first = true;
 
-			return $seg;
-		}, $this->path_segments));
+		foreach ($this->path_segments as $seg) {
+			if (\preg_match('/^[^.[\'"\ ]+$/', $seg)) {
+				// Plain segment: emit with a dot separator
+				$out .= ($first ? '' : '.') . $seg;
+				$first = false;
+			} else {
+				// Bracket-quoted: no dot separator before '['
+				$out .= "['" . \str_replace("'", "\\'", $seg) . "']";
+				$first = false;
+			}
+		}
+
+		return $out;
 	}
 
 	/**

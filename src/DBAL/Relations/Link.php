@@ -72,7 +72,7 @@ abstract class Link implements LinkInterface
 	 * 2. If that succeeds **and** `$options['filters']` is non-empty, appends those extra
 	 *    filters to the target QB using a `FiltersMultiScope` that covers both the
 	 *    target table (highest priority) and the host table. This lets link-level filters
-	 *    safely reference columns on either table — e.g. a pivot column in a
+	 *    safely reference columns on either table - e.g. a pivot column in a
 	 *    `pivot_to_target` sub-link of a `through` relation.
 	 *
 	 * Returns `false` when the link cannot be applied (e.g., a required entity column is null).
@@ -115,14 +115,14 @@ abstract class Link implements LinkInterface
 	 * require their own sub-links internally, which would produce unbounded
 	 * recursive join chains and malformed SQL.
 	 *
-	 * Only "simple" link types — `LinkColumns` and `LinkMorph` — are nestable:
+	 * Only "simple" link types - `LinkColumns` and `LinkMorph` - are nestable:
 	 * - `LinkColumns` maps FK columns directly and generates no extra joins.
 	 * - `LinkMorph` adds a single polymorphic constraint, also without extra joins.
 	 *
 	 * Why `LinkJoin` cannot be nested:
 	 * A `LinkJoin` is itself composed of one or more sub-links. Embedding a `LinkJoin`
 	 * as a sub-link would create a recursive structure where each level could
-	 * add arbitrary JOINs and WHERE conditions — it becomes impossible to validate
+	 * add arbitrary JOINs and WHERE conditions - it becomes impossible to validate
 	 * or generate deterministic SQL.
 	 *
 	 * @param Table $host_table

@@ -97,7 +97,7 @@ final class FiltersExpressionParser implements FilterInterface
 	 * The returned array is compatible with {@see Filters::fromArray()} and can be used
 	 * for debugging, serialization, or persisting a fully-resolved snapshot of the filters.
 	 *
-	 * Example — given expression `'name eq :n and age gt :a'` with bindings `['n' => 'Bob', 'a' => 18]`:
+	 * Example - given expression `'name eq :n and age gt :a'` with bindings `['n' => 'Bob', 'a' => 18]`:
 	 * ```php
 	 * $parser->toEquivalentArrayFilters();
 	 * // ['name', 'eq', 'Bob', 'AND', 'age', 'gt', 18]
@@ -276,31 +276,42 @@ final class FiltersExpressionParser implements FilterInterface
 			}
 
 			// word: identifier, operator, or conditional
-			// Single-quoted segments inside an identifier (e.g. `table.column#foo.'key with dot'.sub`)
-			// are consumed verbatim — including any spaces inside the quotes — so that the
-			// full JSON path notation `table.column#'quoted.segment'` is tokenized as a
-			// single T_IDENT token.
+			// Bracket segments (e.g. `col#foo['key with dot']`) are consumed verbatim
+			// so the full path is tokenized as a single T_IDENT token.
 			$j = $i;
 
 			while ($j < $len && '(' !== $expr[$j] && ')' !== $expr[$j]) {
-				if ("'" === $expr[$j]) {
-					// Consume an entire single-quoted segment (supports '' as escaped quote).
-					++$j; // skip opening quote
+				if ('[' === $expr[$j]) {
+					// Consume an entire bracket segment: ['...'], ["..."], or [integer].
+					++$j; // skip '['
 
-					while ($j < $len) {
-						if ("'" === $expr[$j]) {
-							++$j; // skip the quote character
-							if ($j < $len && "'" === $expr[$j]) {
-								++$j; // '' -> escaped quote, keep going
+					if ($j < $len && ("'" === $expr[$j] || '"' === $expr[$j])) {
+						$q = $expr[$j];
+						++$j; // skip opening quote
+
+						while ($j < $len) {
+							if ('\\' === $expr[$j] && $j + 1 < $len && $expr[$j + 1] === $q) {
+								$j += 2; // \' or \" -> escaped quote, keep going
+							} elseif ($expr[$j] === $q) {
+								++$j; // skip closing quote
+
+								break;
 							} else {
-								break; // end of quoted segment
+								++$j;
 							}
-						} else {
+						}
+					} else {
+						// integer or other: consume until ']'
+						while ($j < $len && ']' !== $expr[$j]) {
 							++$j;
 						}
 					}
+
+					if ($j < $len && ']' === $expr[$j]) {
+						++$j; // skip ']'
+					}
 				} elseif (\ctype_space($expr[$j])) {
-					break; // stop at whitespace outside a quoted segment
+					break; // stop at whitespace outside a bracket
 				} else {
 					++$j;
 				}

@@ -134,7 +134,7 @@ class NamedToPositionalParams
 	 * When the bound value is a scalar, a single `?` is emitted.
 	 * When the bound value is an **array** (e.g. for an IN-list), the placeholder is expanded
 	 * to `?, ?, ?` (one `?` per element) and all array values are appended to `$new_params`
-	 * in order — enabling seamless IN-list support without extra pre-processing.
+	 * in order - enabling seamless IN-list support without extra pre-processing.
 	 *
 	 * @param array $matches regex matches: `[0 => ':token', 1 => 'token']`
 	 *

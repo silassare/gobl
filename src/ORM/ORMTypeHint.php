@@ -28,7 +28,7 @@ final class ORMTypeHint
 	 */
 	private array $universal_types = [];
 
-	/** Element type when this hint carries LIST — defaults to UNKNOWN. */
+	/** Element type when this hint carries LIST - defaults to UNKNOWN. */
 	private ORMUniversalType $list_of = ORMUniversalType::UNKNOWN;
 
 	/** Revival class for typed list elements (implements JsonOfInterface). */

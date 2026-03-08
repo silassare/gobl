@@ -56,9 +56,9 @@ trait QBShortcutsTrait
 	 * Builds an injection-safe SQL function call expression.
 	 *
 	 * - `string` arguments are treated as **literal values** and are quoted
-	 *   via {@see quote()} — safe for user-supplied data.
+	 *   via {@see quote()} - safe for user-supplied data.
 	 * - `QBExpression` arguments (created with {@see expr()} or {@see col()}) are
-	 *   embedded **verbatim** as raw SQL fragments — use these for column
+	 *   embedded **verbatim** as raw SQL fragments - use these for column
 	 *   references, wildcards, or nested function calls.
 	 *
 	 * ```php
@@ -92,7 +92,7 @@ trait QBShortcutsTrait
 	 * and filters without manually constructing `"alias.prefixed_column_name"`.
 	 *
 	 * ```php
-	 * // Join ON condition — no manual prefix needed:
+	 * // Join ON condition - no manual prefix needed:
 	 * $qb->leftJoin('p')
 	 *    ->to('users', 'u')
 	 *    ->on($qb->filters()->eq('p.post_author_id', $qb->col('u', 'user_id')));
@@ -191,7 +191,7 @@ trait QBShortcutsTrait
 	 * ```
 	 *
 	 * When a callable is provided it receives the new `QBSelect` instance and
-	 * must return it (or void — the instance is returned regardless).
+	 * must return it (or void - the instance is returned regardless).
 	 *
 	 * @param null|callable(QBSelect):mixed $factory optional factory to configure the sub-select inline
 	 *

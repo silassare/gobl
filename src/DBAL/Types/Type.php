@@ -532,7 +532,7 @@ abstract class Type implements TypeInterface
 	 * Forwards a method call to the base type only when the base type is a **different** type.
 	 *
 	 * When the wrapper type and the base type share the same `getName()` (i.e. `Type` wraps
-	 * itself — a self-referential configuration), the call would recurse infinitely.
+	 * itself - a self-referential configuration), the call would recurse infinitely.
 	 * This guard returns `null` in that case, preventing the infinite loop.
 	 *
 	 * @param string $method the method name to call on `$this->base_type`

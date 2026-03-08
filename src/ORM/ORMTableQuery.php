@@ -184,11 +184,11 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 * Merge a list of filters to the current filters.
 	 *
 	 * Accepts three filter forms:
-	 * - **`static` instance** — merged directly into the current filters; passing `$this` throws.
-	 * - **`callable`** — invoked with a fresh `subGroup()` and must return the **same sub-group
+	 * - **`static` instance** - merged directly into the current filters; passing `$this` throws.
+	 * - **`callable`** - invoked with a fresh `subGroup()` and must return the **same sub-group
 	 *   instance** (not a new one); throws `ORMRuntimeException` if the callable returns a
 	 *   different object.
-	 * - **`array`** — forwarded as-is to `Filters::where()`.
+	 * - **`array`** - forwarded as-is to `Filters::where()`.
 	 *
 	 * @param array|callable|static ...$filters
 	 *
@@ -482,7 +482,7 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 * Validates via `assertCanManageRelatives()` that the relation targets this query's table
 	 * and (when an entity is given) that the entity is persisted and of the correct class.
 	 *
-	 * Returns `null` when the link cannot be applied — e.g. a column-based link where a
+	 * Returns `null` when the link cannot be applied - e.g. a column-based link where a
 	 * required entity column value is `null`, making the relation unsatisfiable.
 	 */
 	public function selectRelatives(

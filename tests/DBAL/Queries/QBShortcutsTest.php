@@ -95,7 +95,7 @@ final class QBShortcutsTest extends BaseTestCase
 		$col = $qb->col('u', 'name');
 
 		self::assertInstanceOf(QBExpression::class, $col);
-		// table 'users' has prefix 'usr', so 'name' → full name 'usr_name'
+		// table 'users' has prefix 'usr', so 'name' -> full name 'usr_name'
 		self::assertSame('u.usr_name', (string) $col);
 	}
 
@@ -114,7 +114,7 @@ final class QBShortcutsTest extends BaseTestCase
 		$qb  = self::makeQB();
 		$col = $qb->col('foo', 'bar');
 
-		// unknown alias/table → verbatim dot-notation
+		// unknown alias/table -> verbatim dot-notation
 		self::assertSame('foo.bar', (string) $col);
 	}
 

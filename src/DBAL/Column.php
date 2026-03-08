@@ -248,7 +248,7 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	 * Locks this column to prevent further changes.
 	 *
 	 * Associates the column with `$table`, finalizes the full column name, and locks the
-	 * column's type. Locking is idempotent for the same `$table` instance — calling lock
+	 * column's type. Locking is idempotent for the same `$table` instance - calling lock
 	 * again with the same table is a no-op. Calling lock with a **different** table throws
 	 * `DBALRuntimeException` to prevent a column instance from being shared across tables.
 	 *
@@ -308,10 +308,10 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	 * Sets the column reference, which causes this column to inherit its type from another column.
 	 *
 	 * Two reference modes are supported:
-	 *  - **`ref:` (reference)** – the resolved type is shared; changes to the source column's
+	 *  - **`ref:` (reference)** - the resolved type is shared; changes to the source column's
 	 *    type options (via `cleanColumnTypeOptionsForReference`) are reflected here.
 	 *    `auto_increment` is stripped from the derived column.
-	 *  - **`cp:` (copy)** – the resolved type options are cloned independently at resolution
+	 *  - **`cp:` (copy)** - the resolved type options are cloned independently at resolution
 	 *    time; subsequent changes to the source have no effect.
 	 *
 	 * The stored string format is `ref:table_name.column_name` or `cp:table_name.column_name`.

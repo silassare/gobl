@@ -665,12 +665,12 @@ final class TableBuilder
 	}
 
 	// -------------------------------------------------------------------------
-	// LinkBuilder shortcuts — available as $t::linkColumns() etc. inside
+	// LinkBuilder shortcuts - available as $t::linkColumns() etc. inside
 	// factory() / collectRelation() callbacks without importing LinkBuilder.
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Shortcut for {@see LinkBuilder::columns()} — no import of `LinkBuilder` needed.
+	 * Shortcut for {@see LinkBuilder::columns()} - no import of `LinkBuilder` needed.
 	 *
 	 * Creates a `columns`-type link builder. When `$host_to_target_map` is empty, the
 	 * column mapping is auto-detected from FK constraints at query-build time.
@@ -688,7 +688,7 @@ final class TableBuilder
 	}
 
 	/**
-	 * Shortcut for {@see LinkBuilder::morph()} — no import of `LinkBuilder` needed.
+	 * Shortcut for {@see LinkBuilder::morph()} - no import of `LinkBuilder` needed.
 	 *
 	 * Creates a `morph`-type link builder using a column-name prefix
 	 * (`{prefix}_id` / `{prefix}_type`).
@@ -705,7 +705,7 @@ final class TableBuilder
 	}
 
 	/**
-	 * Shortcut for {@see LinkBuilder::morphExplicit()} — no import of `LinkBuilder` needed.
+	 * Shortcut for {@see LinkBuilder::morphExplicit()} - no import of `LinkBuilder` needed.
 	 *
 	 * Creates a `morph`-type link builder with explicit child-key and child-type column names,
 	 * for when the morph columns do not follow the `{prefix}_id` / `{prefix}_type` convention.

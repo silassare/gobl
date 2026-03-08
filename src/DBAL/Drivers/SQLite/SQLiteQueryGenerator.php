@@ -95,7 +95,7 @@ class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 				}
 			}
 
-			// Inline FOREIGN KEY constraints — SQLite supports table-level FOREIGN KEY declarations
+			// Inline FOREIGN KEY constraints - SQLite supports table-level FOREIGN KEY declarations
 			foreach ($table->getForeignKeyConstraints() as $fk) {
 				$sql[] = $this->getForeignKeySQL($fk, false);
 			}
@@ -403,7 +403,7 @@ class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 		$max = $qb->getOptionsLimitMax();
 
 		if (null === $max) {
-			// No LIMIT – fall through to the standard implementation.
+			// No LIMIT - fall through to the standard implementation.
 			if (!empty($qb->getOptionsOrderBy())) {
 				throw new DBALRuntimeException('SQLite does not support ORDER BY in UPDATE statements.');
 			}
@@ -521,7 +521,7 @@ class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 	protected function getFromQuery(QBDelete|QBSelect $qb): string
 	{
 		if ($this->supportsNativeRightJoin()) {
-			// SQLite >= 3.39.0: native RIGHT JOIN support — use the standard path.
+			// SQLite >= 3.39.0: native RIGHT JOIN support - use the standard path.
 			return parent::getFromQuery($qb);
 		}
 
@@ -548,7 +548,7 @@ class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 				}
 
 				if (empty($right_joins)) {
-					// Standard path – no RIGHT JOINs on this alias.
+					// Standard path - no RIGHT JOINs on this alias.
 					$x[] = \trim($qt . ' AS ' . $alias . ' ' . $this->getJoinQueryFor($qb, $alias));
 				} else {
 					// Emulation: each RIGHT JOIN becomes a separate FROM entry where
@@ -724,7 +724,7 @@ class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 		$version = $this->config->getDbServerVersion($this->db);
 
 		if (null === $version) {
-			// Cannot determine version — safe default: emulate.
+			// Cannot determine version - safe default: emulate.
 			return false;
 		}
 

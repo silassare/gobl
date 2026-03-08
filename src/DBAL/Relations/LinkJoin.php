@@ -127,7 +127,7 @@ final class LinkJoin extends Link
 	/**
 	 * {@inheritDoc}
 	 *
-	 * Always returns `false` — multi-step join links span several intermediate tables,
+	 * Always returns `false` - multi-step join links span several intermediate tables,
 	 * so a single host entity cannot deterministically populate target data.
 	 */
 	public function fillRelation(ORMEntity $host_entity, array &$target_data = []): bool

@@ -54,7 +54,7 @@ use JsonSerializable;
  *   - An intermediate key that exists but is not an array is overwritten by `set()`.
  *   - `remove()` on a non-existent path is a silent no-op.
  *
- * > **Note:** JsonPatch operates purely in PHP — no SQL-level `JSON_SET` / `JSON_REMOVE`
+ * > **Note:** JsonPatch operates purely in PHP - no SQL-level `JSON_SET` / `JSON_REMOVE`
  * > expressions are generated. The full JSON document is sent to the database on every save,
  * > which is adequate for small-to-medium payloads (up to a few KB). This is safe and
  * > efficient for the typical pattern of loading an entity, patching it, then saving it.
@@ -134,11 +134,12 @@ final class JsonPatch
 	}
 
 	/**
-	 * Parses a dot-notation path into an array of non-empty segment strings.
+	 * Parses a path string into an array of segment strings.
 	 *
 	 * Delegates to {@see FilterFieldNotation::parsePath()} which supports
-	 * plain segments and single-quoted segments (e.g. `'key with spaces'`).
-	 * Empty segments (e.g. from consecutive dots `a..b`) are silently skipped.
+	 * plain segments (`foo.bar`), bracket-integer segments (`[0]`),
+	 * and bracket-quoted segments (`['key with spaces']` or `["key"]`).
+	 * Empty segments (e.g. from consecutive dots `a..b`) throw an exception.
 	 *
 	 * @param string $path
 	 *

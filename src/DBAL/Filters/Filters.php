@@ -337,7 +337,7 @@ final class Filters
 	 * // Inline AND (bare call - usually omitted)
 	 * $f->eq('a', 1)->and()->eq('b', 2);
 	 *
-	 * // AND sub-group via callable — callable MUST return the same $g instance
+	 * // AND sub-group via callable - callable MUST return the same $g instance
 	 * $f->and(function (Filters $g) {
 	 *     return $g->isNotNull('email')->like('email', '%@example.com');
 	 * });
@@ -361,12 +361,12 @@ final class Filters
 	 * Merges one or more filter conditions into the current filter group.
 	 *
 	 * Three safety guards are enforced when the argument is a `Filters` instance:
-	 * 1. **Self-reference** – passing `$this` throws to prevent infinite recursion;
+	 * 1. **Self-reference** - passing `$this` throws to prevent infinite recursion;
 	 *    use {@see subGroup()} instead.
-	 * 2. **QBInterface identity** – the incoming `Filters` must share the exact same
+	 * 2. **QBInterface identity** - the incoming `Filters` must share the exact same
 	 *    `QBInterface` instance. Cross-query injection is rejected to prevent
 	 *    alias conflicts and other query-corruption issues.
-	 * 3. **Scope compatibility** – when a scope is attached, the incoming `Filters`
+	 * 3. **Scope compatibility** - when a scope is attached, the incoming `Filters`
 	 *    scope must be permitted by the current scope via
 	 *    `FiltersScopeInterface::shouldAllowFiltersScope()`, preventing unauthorized
 	 *    column access from leaking in through merged filters.
@@ -444,7 +444,7 @@ final class Filters
 	 * // Inline OR between two equal checks
 	 * $f->eq('role', 'admin')->or()->eq('role', 'superadmin');
 	 *
-	 * // OR sub-group via callable — callable MUST return the same $g instance
+	 * // OR sub-group via callable - callable MUST return the same $g instance
 	 * $f->or(function (Filters $g) {
 	 *     return $g->lt('age', 13)->or()->gt('age', 65);
 	 * });

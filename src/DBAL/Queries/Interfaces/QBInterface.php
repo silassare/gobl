@@ -37,11 +37,11 @@ interface QBInterface
 	 *
 	 * | Query type   | Return value                                               |
 	 * |--------------|------------------------------------------------------------|
-	 * | `SELECT`     | `PDOStatement` – open result statement, ready to iterate   |
-	 * | `INSERT`     | `string` – last insert ID as returned by the RDBMS         |
-	 * | `UPDATE`     | `int` – number of affected rows                            |
-	 * | `DELETE`     | `int` – number of affected rows                            |
-	 * | DDL / other  | `bool` – `true` on success                                 |
+	 * | `SELECT`     | `PDOStatement` - open result statement, ready to iterate   |
+	 * | `INSERT`     | `string` - last insert ID as returned by the RDBMS         |
+	 * | `UPDATE`     | `int` - number of affected rows                            |
+	 * | `DELETE`     | `int` - number of affected rows                            |
+	 * | DDL / other  | `bool` - `true` on success                                 |
 	 *
 	 * @return bool|int|PDOStatement|string
 	 */
@@ -188,7 +188,7 @@ interface QBInterface
 	 * Resolves a table name, alias, or `Table` instance to the corresponding registered `Table` object.
 	 *
 	 * Resolution order:
-	 *  1. `Table` instance – returned as-is (no database lookup performed).
+	 *  1. `Table` instance - returned as-is (no database lookup performed).
 	 *  2. String looked up as a table name / full name in the current database.
 	 *  3. String treated as a declared alias: the mapped table name is looked up
 	 *     in the database.

@@ -343,7 +343,7 @@ final class QBSelectSnapshotTest extends BaseTestCase
 	}
 
 	/**
-	 * RIGHT JOIN — all three drivers.
+	 * RIGHT JOIN - all three drivers.
 	 *
 	 * MySQL and PostgreSQL emit native RIGHT JOIN syntax.
 	 * SQLite emulates it transparently as LEFT JOIN with swapped tables:
@@ -380,12 +380,12 @@ final class QBSelectSnapshotTest extends BaseTestCase
 		$qb->from('clients', 'c')
 			->select('c', ['id', 'first_name']);
 
-		// INNER JOIN anchored at 'c' — sub-join of 'a' is the right join
+		// INNER JOIN anchored at 'c' - sub-join of 'a' is the right join
 		$qb->innerJoin('c')
 			->to('accounts', 'a')
 			->on($qb->filters()->eq('a.account_client_id', $qb->expr('c.client_id')));
 
-		// RIGHT JOIN anchored at 'a' — sub-level right join
+		// RIGHT JOIN anchored at 'a' - sub-level right join
 		$qb->rightJoin('a')
 			->to('transactions', 't')
 			->on($qb->filters()->eq('t.transaction_account_id', $qb->expr('a.account_id')));
@@ -399,7 +399,7 @@ final class QBSelectSnapshotTest extends BaseTestCase
 			$this->expectException(DBALRuntimeException::class);
 		}
 
-		// On SQLite >= 3.39.0 this must not throw — native RIGHT JOIN handles it.
+		// On SQLite >= 3.39.0 this must not throw - native RIGHT JOIN handles it.
 		$sql = $qb->getSqlQuery();
 
 		if (\version_compare($sqliteVersion, '3.39.0', '>=')) {

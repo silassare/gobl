@@ -55,7 +55,7 @@ class PostgreSQL extends SQLDriverBase
 		try {
 			$last_id = $this->getConnection()->lastInsertId();
 		} catch (PDOException) {
-			// lastval() is not yet defined – no SERIAL sequence was used in this session.
+			// lastval() is not yet defined - no SERIAL sequence was used in this session.
 			$last_id = false;
 		}
 

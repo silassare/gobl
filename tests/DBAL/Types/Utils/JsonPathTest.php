@@ -57,7 +57,7 @@ final class JsonPathTest extends BaseTestCase
 	public function testJsonPathSegmentsEmpty(): void
 	{
 		$this->expectException(InvalidArgumentException::class);
-		$this->expectExceptionMessage('Invalid JSON path string: path portion cannot be empty');
+		$this->expectExceptionMessage('Invalid JSON path: path portion cannot be empty');
 
 		JsonPath::fromString('column#');
 	}
@@ -72,42 +72,42 @@ final class JsonPathTest extends BaseTestCase
 
 	public function testJsonPathQuotedSegmentWithDot(): void
 	{
-		$p = JsonPath::fromString("column#foo.'bar.baz'.qux");
+		$p = JsonPath::fromString("column#foo['bar.baz'].qux");
 
 		self::assertSame(['foo', 'bar.baz', 'qux'], $p->getPathSegments());
 	}
 
 	public function testJsonPathQuotedSegmentAtStart(): void
 	{
-		$p = JsonPath::fromString("column#'a.b'.c");
+		$p = JsonPath::fromString("column#['a.b'].c");
 
 		self::assertSame(['a.b', 'c'], $p->getPathSegments());
 	}
 
 	public function testJsonPathQuotedSegmentAtEnd(): void
 	{
-		$p = JsonPath::fromString("column#a.'b.c'");
+		$p = JsonPath::fromString("column#a['b.c']");
 
 		self::assertSame(['a', 'b.c'], $p->getPathSegments());
 	}
 
 	public function testJsonPathEscapedSingleQuoteInsideSegment(): void
 	{
-		$p = JsonPath::fromString("column#'it''s'.key");
+		$p = JsonPath::fromString("column#['it\\'s'].key");
 
 		self::assertSame(["it's", 'key'], $p->getPathSegments());
 	}
 
 	public function testJsonPathSegmentWithSpace(): void
 	{
-		$p = JsonPath::fromString("column#'space key'.sub");
+		$p = JsonPath::fromString("column#['space key'].sub");
 
 		self::assertSame(['space key', 'sub'], $p->getPathSegments());
 	}
 
 	public function testJsonPathSegmentAllQuoted(): void
 	{
-		$p = JsonPath::fromString("column#'a.b'.'c.d'");
+		$p = JsonPath::fromString("column#['a.b']['c.d']");
 
 		self::assertSame(['a.b', 'c.d'], $p->getPathSegments());
 	}
@@ -168,11 +168,10 @@ final class JsonPathTest extends BaseTestCase
 		return [
 			['column#foo.bar'],
 			['column#key'],
-			['column#foo."bar.baz"'],
-			["column#'space key'.sub"],
-			['column#"a\b"'],
-			['column#"say\"hi\""'],
-			["column#a.'b c'.d"],
+			["column#foo['bar.baz']"],
+			["column#['space key'].sub"],
+			["column#['it\\'s'].key"],
+			["column#a['b c'].d"],
 			['column#user_id.key_1.abc123'],
 		];
 	}

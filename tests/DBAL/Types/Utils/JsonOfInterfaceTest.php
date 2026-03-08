@@ -35,7 +35,7 @@ use stdClass;
 final class JsonOfInterfaceTest extends BaseTestCase
 {
 	// =========================================================================
-	// SampleJsonOf fixture — round-trip
+	// SampleJsonOf fixture - round-trip
 	// =========================================================================
 
 	public function testReviveFromArray(): void
@@ -278,7 +278,7 @@ final class JsonOfInterfaceTest extends BaseTestCase
 	{
 		$patch = new JsonPatch();
 		$obj   = new SampleJsonOf('PatchTest', 77);
-		// set() accepts JsonSerializable — no exception should be thrown.
+		// set() accepts JsonSerializable - no exception should be thrown.
 		$patch->set('item', $obj);
 
 		// toArray() stores the value verbatim (no jsonSerialize call).

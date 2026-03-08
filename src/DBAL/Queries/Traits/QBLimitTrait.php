@@ -46,7 +46,7 @@ trait QBLimitTrait
 	/**
 	 * Sets a limit on the query result.
 	 *
-	 * When `$max` is `null` this call is a **no-op** — the existing limit (if any) is
+	 * When `$max` is `null` this call is a **no-op** - the existing limit (if any) is
 	 * not cleared. Pass `null` intentionally when you want to call `limit()` without
 	 * touching the current pagination state.
 	 *
