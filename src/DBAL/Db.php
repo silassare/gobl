@@ -33,6 +33,7 @@ use Gobl\DBAL\Relations\OneToMany;
 use Gobl\DBAL\Relations\OneToOne;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Relations\RelationType;
+use Gobl\DBAL\Traits\LockTrait;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
 use Gobl\DBAL\Types\Utils\Map;
 use Gobl\DBAL\Types\Utils\TypeUtils;
@@ -45,6 +46,8 @@ use Throwable;
  */
 abstract class Db implements RDBMSInterface
 {
+	use LockTrait;
+
 	public const REG_COLUMN_REF = '~^(ref|cp):(\w+)\.(\w+)$~';
 
 	/**
@@ -92,8 +95,6 @@ abstract class Db implements RDBMSInterface
 	 * @var null|PDO
 	 */
 	private ?PDO $db_connection = null;
-
-	private bool $locked = false;
 
 	private array $resolved_column_ref = [];
 
@@ -931,16 +932,6 @@ abstract class Db implements RDBMSInterface
 		$this->tables[$name]                 = $table->lockName();
 
 		return $this;
-	}
-
-	/**
-	 * Asserts the database is not locked.
-	 */
-	public function assertNotLocked(): void
-	{
-		if ($this->locked) {
-			throw new DBALRuntimeException('The database is locked.');
-		}
 	}
 
 	/**

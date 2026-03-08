@@ -14,7 +14,9 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Constraints;
 
 use Gobl\DBAL\Exceptions\DBALException;
+use Gobl\DBAL\Interfaces\LockInterface;
 use Gobl\DBAL\Table;
+use Gobl\DBAL\Traits\LockTrait;
 use InvalidArgumentException;
 use PHPUtils\Interfaces\ArrayCapableInterface;
 use PHPUtils\Traits\ArrayCapableTrait;
@@ -22,9 +24,10 @@ use PHPUtils\Traits\ArrayCapableTrait;
 /**
  * Class Constraint.
  */
-abstract class Constraint implements ArrayCapableInterface
+abstract class Constraint implements ArrayCapableInterface, LockInterface
 {
 	use ArrayCapableTrait;
+	use LockTrait;
 
 	public const NAME_PATTERN = '[a-zA-Z](?:[a-zA-Z0-9_]*[a-zA-Z0-9])?';
 
@@ -46,9 +49,6 @@ abstract class Constraint implements ArrayCapableInterface
 
 	/** @var Table */
 	protected Table $host_table;
-
-	/** @var bool */
-	protected bool $locked = false;
 
 	/**
 	 * Constraint constructor.

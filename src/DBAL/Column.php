@@ -15,6 +15,7 @@ namespace Gobl\DBAL;
 
 use Gobl\DBAL\Diff\Interfaces\DiffCapableInterface;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
+use Gobl\DBAL\Traits\LockTrait;
 use Gobl\DBAL\Traits\MetadataTrait;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
 use Gobl\DBAL\Types\Type;
@@ -32,6 +33,7 @@ use Throwable;
 final class Column implements ArrayCapableInterface, DiffCapableInterface
 {
 	use ArrayCapableTrait;
+	use LockTrait;
 	use MetadataTrait;
 
 	public const NAME_PATTERN = '[a-z](?:[a-z0-9_]*[a-z0-9])?';
@@ -91,8 +93,6 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	 */
 	private TypeInterface $type;
 	private ?string $reference = null;
-
-	private bool $locked = false;
 
 	private bool $locked_name = false;
 
@@ -178,21 +178,6 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 		}
 
 		return $this;
-	}
-
-	/**
-	 * Asserts if this column is not locked.
-	 */
-	public function assertNotLocked(): void
-	{
-		if ($this->locked) {
-			throw new DBALRuntimeException(
-				\sprintf(
-					'You should not try to edit locked column "%s".',
-					$this->name
-				)
-			);
-		}
 	}
 
 	/**

@@ -24,9 +24,11 @@ use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Indexes\Index;
 use Gobl\DBAL\Indexes\IndexType;
+use Gobl\DBAL\Interfaces\LockInterface;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Relations\VirtualRelation;
+use Gobl\DBAL\Traits\LockTrait;
 use Gobl\DBAL\Traits\MetadataTrait;
 use Gobl\Exceptions\GoblRuntimeException;
 use InvalidArgumentException;
@@ -38,9 +40,10 @@ use Throwable;
 /**
  * Class Table.
  */
-final class Table implements ArrayCapableInterface, DiffCapableInterface
+final class Table implements ArrayCapableInterface, DiffCapableInterface, LockInterface
 {
 	use ArrayCapableTrait;
+	use LockTrait;
 	use MetadataTrait;
 
 	public const ALIAS_PATTERN  = '[a-zA-Z_][a-zA-Z0-9_]*';
@@ -141,8 +144,6 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	 * @var bool
 	 */
 	private bool $private = false;
-
-	private bool $locked = false;
 
 	private bool $locked_name = false;
 
@@ -408,7 +409,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 	 *
 	 * @return $this
 	 */
-	public function lock(): self
+	public function lock(): static
 	{
 		if (!$this->locked) {
 			$this->assertIsValid();
@@ -599,21 +600,6 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface
 		$this->column_prefix_override = $override;
 
 		return $this;
-	}
-
-	/**
-	 * Asserts if this table is not locked.
-	 */
-	public function assertNotLocked(): void
-	{
-		if ($this->locked) {
-			throw new DBALRuntimeException(
-				\sprintf(
-					'You should not try to edit locked table "%s".',
-					$this->name
-				)
-			);
-		}
 	}
 
 	/**

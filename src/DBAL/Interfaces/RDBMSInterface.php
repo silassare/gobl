@@ -24,17 +24,12 @@ use PDOStatement;
 /**
  * Interface RDBMSInterface.
  */
-interface RDBMSInterface
+interface RDBMSInterface extends LockInterface
 {
 	/**
 	 * Create instance.
 	 */
 	public static function new(DbConfig $config): static;
-
-	/**
-	 * Locks this db instance to prevent further changes.
-	 */
-	public function lock(): static;
 
 	/**
 	 * Gets PDO connection.
