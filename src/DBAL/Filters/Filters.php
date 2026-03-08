@@ -537,7 +537,7 @@ final class Filters
 					throw new DBALRuntimeException(
 						\sprintf(
 							'array type is only supported for right operand of "%s" operator, not: %s',
-							\implode('", "', \array_map(static fn($op) => $op->name, $allow_array)),
+							\implode('", "', \array_map(static fn ($op) => $op->name, $allow_array)),
 							$operator->name
 						)
 					);
