@@ -282,7 +282,8 @@ final class SchemaSnapshotTest extends BaseTestCase
 	{
 		$this->assertMatchesContentSnapshot(
 			$name,
-			$db->getGenerator()->buildDatabase()
+			$db->getGenerator()->buildDatabase(),
+			'sql'
 		);
 	}
 }

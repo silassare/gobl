@@ -1,0 +1,16 @@
+-- >>>>@UP>>>>
+-- table deleted
+DROP TABLE "gObL_temporary";
+
+-- >>>>@DOWN>>>>
+-- table added
+--
+-- Table structure for table "gObL_temporary"
+--
+DROP TABLE IF EXISTS "gObL_temporary";
+CREATE TABLE "gObL_temporary" (
+"id" integer PRIMARY KEY AUTOINCREMENT,
+"label" text NOT NULL
+);
+
+

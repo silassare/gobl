@@ -323,20 +323,21 @@ abstract class BaseTestCase extends TestCase
 	 *
 	 * @param string $snapshotName Slash-separated key, e.g. "mysql/db_schema_full"
 	 * @param string $content      The raw content to snapshot
+	 * @param string $extension    File extension for the snapshot file (default: 'txt')
 	 */
-	protected function assertMatchesContentSnapshot(string $snapshotName, string $content): void
+	protected function assertMatchesContentSnapshot(string $snapshotName, string $content, string $extension = 'txt'): void
 	{
 		$normalized = self::normalizeGeneratedContent($content);
 
 		$expected_dir  = GOBL_TEST_SNAPSHOTS . \DIRECTORY_SEPARATOR
 			. \str_replace('/', \DIRECTORY_SEPARATOR, \dirname($snapshotName));
 		$expected_file = GOBL_TEST_SNAPSHOTS . \DIRECTORY_SEPARATOR
-			. \str_replace('/', \DIRECTORY_SEPARATOR, $snapshotName) . '.txt';
+			. \str_replace('/', \DIRECTORY_SEPARATOR, $snapshotName) . '.' . $extension;
 
 		$actual_dir  = GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'snapshots' . \DIRECTORY_SEPARATOR
 			. \str_replace('/', \DIRECTORY_SEPARATOR, \dirname($snapshotName));
 		$actual_file = GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'snapshots' . \DIRECTORY_SEPARATOR
-			. \str_replace('/', \DIRECTORY_SEPARATOR, $snapshotName) . '.txt';
+			. \str_replace('/', \DIRECTORY_SEPARATOR, $snapshotName) . '.' . $extension;
 
 		if (!\is_dir($actual_dir)) {
 			\mkdir($actual_dir, 0755, true);

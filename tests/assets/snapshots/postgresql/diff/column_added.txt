@@ -1,7 +1,0 @@
-UP:
--- column added
-ALTER TABLE "gObL_posts" ADD "body" text NULL;
-
-DOWN:
--- column deleted
-ALTER TABLE "gObL_posts" DROP "body";

@@ -491,7 +491,8 @@ final class DiffSnapshotTest extends BaseTestCase
 		if (!$diff->hasChanges()) {
 			$this->assertMatchesContentSnapshot(
 				$driver . '/diff/' . $snapshotName,
-				'UP:' . \PHP_EOL . '(no changes)' . \PHP_EOL . \PHP_EOL . 'DOWN:' . \PHP_EOL . '(no changes)'
+				'-- >>>>@UP>>>>' . \PHP_EOL . '(no changes)' . \PHP_EOL . \PHP_EOL . '-- >>>>@DOWN>>>>' . \PHP_EOL . '(no changes)',
+				'sql'
 			);
 
 			return;
@@ -505,9 +506,9 @@ final class DiffSnapshotTest extends BaseTestCase
 		/** @var MigrationInterface $migration */
 		$migration = require $temp_file;
 
-		$content = 'UP:' . \PHP_EOL . $migration->up()
-			. \PHP_EOL . \PHP_EOL . 'DOWN:' . \PHP_EOL . $migration->down();
+		$content = '-- >>>>@UP>>>>' . \PHP_EOL . $migration->up()
+			. \PHP_EOL . \PHP_EOL . '-- >>>>@DOWN>>>>' . \PHP_EOL . $migration->down();
 
-		$this->assertMatchesContentSnapshot($driver . '/diff/' . $snapshotName, $content);
+		$this->assertMatchesContentSnapshot($driver . '/diff/' . $snapshotName, $content, 'sql');
 	}
 }

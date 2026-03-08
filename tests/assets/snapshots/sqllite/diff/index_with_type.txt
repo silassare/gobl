@@ -1,7 +1,0 @@
-UP:
--- index added
-CREATE INDEX "idx_gObL_articles_644833183490a3a1d9aad19d7afad739" ON "gObL_articles" ("article_title");
-
-DOWN:
--- index deleted
-DROP INDEX "idx_gObL_articles_644833183490a3a1d9aad19d7afad739";
