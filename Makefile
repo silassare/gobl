@@ -1,4 +1,4 @@
-.PHONY: docs docs-dev docs-build docs-api docs-preview test cs-fix
+.PHONY: docs docs-dev docs-build docs-api docs-preview test test-unit test-docker test-docker-down cs cs-fix help
 
 # Documentation
 
@@ -43,6 +43,14 @@ test:
 ## Run only unit tests (no live DB)
 test-unit:
 	vendor/bin/phpunit --exclude-group live
+
+## Run the full test suite inside Docker (requires Docker + Compose)
+test-docker:
+	docker compose run --rm --build php
+
+## Stop and remove Docker test containers
+test-docker-down:
+	docker compose down --volumes --remove-orphans
 
 # = Code style
 
