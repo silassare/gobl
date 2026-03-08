@@ -138,9 +138,6 @@ class TypeFloat extends Type implements BaseTypeInterface
 		return (bool) $this->getOption('unsigned', false);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public static function getInstance(array $options): static
 	{
 		return (new self())->configure($options);
@@ -192,41 +189,26 @@ class TypeFloat extends Type implements BaseTypeInterface
 		return $this->setOption('mantissa', $mantissa);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getName(): string
 	{
 		return self::NAME;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?float
 	{
 		return null === $value ? null : (float) $value;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getEmptyValueOfType(): ?float
 	{
 		return $this->isNullable() ? null : 0.0;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getReadTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::float();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getWriteTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::float()

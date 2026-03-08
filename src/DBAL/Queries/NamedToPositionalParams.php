@@ -42,13 +42,13 @@ class NamedToPositionalParams
 	/**
 	 * NamedToPositionalParams constructor.
 	 *
-	 * The conversion (`:name` → `?`) is performed immediately in the constructor.
+	 * The conversion (`:name` -> `?`) is performed immediately in the constructor.
 	 * After construction, {@see getNewQuery()} and {@see getNewParams()} hold the
 	 * positional equivalents.
 	 *
 	 * @param string $query        named-parameter SQL string
-	 * @param array  $params       parameter name → value map
-	 * @param array  $params_types parameter name → `\PDO::PARAM_*` type map
+	 * @param array  $params       parameter name -> value map
+	 * @param array  $params_types parameter name -> `\PDO::PARAM_*` type map
 	 */
 	public function __construct(
 		protected string $query,

@@ -228,8 +228,8 @@ class ORM
 				$tq->where($filters);
 			} catch (Throwable $t) {
 				throw new ORMQueryException('Failed to apply filters to query.', [
-					'filters' => $filters,
-					'_table'  => $table->getName(),
+					'_filters' => $filters,
+					'_table'   => $table->getName(),
 				], $t);
 			}
 		}

@@ -120,9 +120,6 @@ final class Filter implements FilterInterface
 		return $this->operator;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function toArray(): array
 	{
 		$out = [$this->left, $this->operator];

@@ -65,33 +65,21 @@ class ValidationSubject implements ValidationSubjectInterface
 		$this->locked = false;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getReference(): string
 	{
 		return $this->reference;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getReferenceDebug(): string
 	{
 		return $this->referenceDebug;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getUnsafeValue(): mixed
 	{
 		return $this->unsafeValue;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function setUnsafeValue(mixed $value): void
 	{
 		$this->assertNotLocked();
@@ -102,9 +90,6 @@ class ValidationSubject implements ValidationSubjectInterface
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function reject(string|Throwable $reason, ?array $debug = null): void
 	{
 		$this->assertNotLocked();
@@ -122,9 +107,6 @@ class ValidationSubject implements ValidationSubjectInterface
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function next(mixed $value): void
 	{
 		$this->assertNotLocked();
@@ -144,9 +126,6 @@ class ValidationSubject implements ValidationSubjectInterface
 		};
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function accept(mixed $value): void
 	{
 		$this->assertNotLocked();
@@ -155,41 +134,26 @@ class ValidationSubject implements ValidationSubjectInterface
 		$this->status     = ValidationStatus::ACCEPTED;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getStatus(): ValidationStatus
 	{
 		return $this->status;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function isValid(): bool
 	{
 		return ValidationStatus::ACCEPTED === $this->status;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function isTerminal(): bool
 	{
 		return ValidationStatus::ACCEPTED === $this->status || ValidationStatus::REJECTED === $this->status;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getRejectionException(): ?Throwable
 	{
 		return $this->rejectionException;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getCleanValue(): mixed
 	{
 		if (!$this->isValid()) {
@@ -204,9 +168,6 @@ class ValidationSubject implements ValidationSubjectInterface
 		return $this->cleanValue;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function lock(): void
 	{
 		if (!$this->isValid()) {

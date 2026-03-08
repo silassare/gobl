@@ -115,9 +115,6 @@ class CSGeneratorDart extends CSGenerator
 		return $this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function toTypeHintString(ORMTypeHint $type_hint): string
 	{
 		$types      = $type_hint->getUniversalTypes();

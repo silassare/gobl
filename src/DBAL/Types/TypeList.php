@@ -51,9 +51,6 @@ class TypeList extends Type
 		parent::__construct($base);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public static function getInstance(array $options): static
 	{
 		return (new self())->configure($options);
@@ -80,17 +77,11 @@ class TypeList extends Type
 		return $list;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getEmptyValueOfType(): ?array
 	{
 		return $this->isNullable() ? null : [];
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getName(): string
 	{
 		return self::NAME;
@@ -178,9 +169,6 @@ class TypeList extends Type
 		return null;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function configure(array $options): static
 	{
 		if (isset($options['list_of'])) {
@@ -219,9 +207,6 @@ class TypeList extends Type
 		$this->safelyCallOnBaseType(__FUNCTION__, [$qb, $column, $operator, $args]);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getReadTypeHint(): ORMTypeHint
 	{
 		$class = $this->getListOfClass();

@@ -80,9 +80,6 @@ final class QBInsert implements QBInterface
 		return $this->db->insert($sql, $values, $types);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getType(): QBType
 	{
 		return QBType::INSERT;
@@ -110,9 +107,9 @@ final class QBInsert implements QBInterface
 	 * Adds one or more rows to insert.
 	 *
 	 * Auto-detects between single-row and multi-row input:
-	 * - **String-keyed array** (e.g. `['col' => 'val', ...]`) → treated as a single row
+	 * - **String-keyed array** (e.g. `['col' => 'val', ...]`) -> treated as a single row
 	 *   and forwarded to {@see singleValue()}.
-	 * - **Integer-keyed array** (e.g. `[['col' => 'val'], ['col' => 'val2']]`) → each element
+	 * - **Integer-keyed array** (e.g. `[['col' => 'val'], ['col' => 'val2']]`) -> each element
 	 *   is forwarded as a separate row to {@see singleValue()}.
 	 *
 	 * @param array<int, array<string, mixed>>|array<string, mixed> $values single row map or list of row maps for multi insert
@@ -144,7 +141,7 @@ final class QBInsert implements QBInterface
 	 *
 	 * Throws `LogicException` if {@see into()} has not been called yet.
 	 *
-	 * @param array<string, mixed> $value column → value map for a single row
+	 * @param array<string, mixed> $value column -> value map for a single row
 	 *
 	 * @return $this
 	 *

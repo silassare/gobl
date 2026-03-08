@@ -48,25 +48,16 @@ abstract class Link implements LinkInterface
 		protected readonly array $options,
 	) {}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getHostTable(): Table
 	{
 		return $this->host_table;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getTargetTable(): Table
 	{
 		return $this->target_table;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getType(): LinkType
 	{
 		return $this->type;

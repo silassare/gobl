@@ -71,9 +71,9 @@ final class LinkMorph extends Link
 	 * The constructor inspects both `$host_table` and `$target_table` to find which one owns
 	 * the morph child columns (`{prefix}_id` / `{prefix}_type`). The table that **does not**
 	 * own those columns is the parent; the one that does is the child.
-	 * - If `$host_table` has both morph child columns → `host_is_parent = false` (host is the child).
-	 * - If `$target_table` has both morph child columns → `host_is_parent = true` (host is the parent).
-	 * - If neither table has both columns → `DBALException` is thrown.
+	 * - If `$host_table` has both morph child columns -> `host_is_parent = false` (host is the child).
+	 * - If `$target_table` has both morph child columns -> `host_is_parent = true` (host is the parent).
+	 * - If neither table has both columns -> `DBALException` is thrown.
 	 *
 	 * The parent table **must be soft-deletable** to avoid orphaned child rows.
 	 *
@@ -342,9 +342,6 @@ final class LinkMorph extends Link
 		return true;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function toArray(): array
 	{
 		return [

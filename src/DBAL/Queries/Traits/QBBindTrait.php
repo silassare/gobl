@@ -28,34 +28,22 @@ trait QBBindTrait
 	/** @var int[]|null[] */
 	private array $bound_values_types = [];
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getBoundValues(): array
 	{
 		return $this->bound_values;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getBoundValuesTypes(): array
 	{
 		return $this->bound_values_types;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function resetParameters(): void
 	{
 		$this->bound_values       = [];
 		$this->bound_values_types = [];
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function bindArray(array $params, array $types = []): static
 	{
 		foreach ($params as $param => $value) {
@@ -90,9 +78,6 @@ trait QBBindTrait
 		return $this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function bindMergeFrom(QBInterface $qb): static
 	{
 		if ($qb === $this) {
@@ -125,9 +110,6 @@ trait QBBindTrait
 		return $return_placeholders ? $placeholders : $params;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function isBoundParam(string $name): bool
 	{
 		return isset($this->bound_values[$name]);

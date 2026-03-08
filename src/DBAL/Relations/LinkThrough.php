@@ -161,7 +161,7 @@ final class LinkThrough extends Link
 	 * The pivot join is applied in **pivot-first** order:
 	 * 1. `pivot_to_target_link->apply()` (join mode, no entity) — joins the pivot to the target.
 	 * 2. `host_to_pivot_link->apply($host_entity)` — either filters by entity values (entity mode)
-	 *    or adds the host→pivot join (join mode).
+	 *    or adds the host->pivot join (join mode).
 	 *
 	 * This ordering ensures the JOIN clauses are emitted in the correct inside-out sequence
 	 * required by the SQL generator.
@@ -175,9 +175,6 @@ final class LinkThrough extends Link
 		return false;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function toArray(): array
 	{
 		return [

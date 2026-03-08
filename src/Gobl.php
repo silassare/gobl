@@ -98,7 +98,7 @@ class Gobl
 	 *
 	 * Compilation is skipped when the source file and `$replaces` are unchanged (MD5 cache).
 	 *
-	 * @param array $templates map of template name → `['path' => string, 'replaces' => array]`
+	 * @param array $templates map of template name -> `['path' => string, 'replaces' => array]`
 	 *
 	 * @throws InvalidArgumentException when `path` is missing or not a readable file,
 	 *                                  or when `replaces` is not an array
@@ -375,7 +375,7 @@ class Gobl
 	 * | `//@`                      | *(stripped)*                   |
 	 *
 	 * @param string $source   raw PHP source code to convert
-	 * @param array  $replaces additional search→replace pairs prepended before the built-ins
+	 * @param array  $replaces additional search->replace pairs prepended before the built-ins
 	 *
 	 * @return string the converted OTpl template source
 	 */

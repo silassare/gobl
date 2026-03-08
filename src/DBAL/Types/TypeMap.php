@@ -49,9 +49,6 @@ class TypeMap extends Type
 		parent::__construct($base);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public static function getInstance(array $options): static
 	{
 		return (new self())->configure($options);
@@ -77,17 +74,11 @@ class TypeMap extends Type
 		return new Map($v);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getEmptyValueOfType(): ?Map
 	{
 		return $this->isNullable() ? null : new Map();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getName(): string
 	{
 		return self::NAME;
@@ -123,9 +114,6 @@ class TypeMap extends Type
 		return $this->setOption('big', $big);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function configure(array $options): static
 	{
 		if (isset($options['native_json'])) {
@@ -152,9 +140,6 @@ class TypeMap extends Type
 		$this->safelyCallOnBaseType(__FUNCTION__, [$qb, $column, $operator, $args]);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getReadTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::map();

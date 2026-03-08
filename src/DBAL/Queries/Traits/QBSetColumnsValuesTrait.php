@@ -34,13 +34,13 @@ trait QBSetColumnsValuesTrait
 	 * to coerce the PHP value/expression to the type expected by the column's type definition.
 	 *
 	 * When `$auto_prefix_column` is `true`, each column name is resolved to its full name
-	 * (e.g. `user_name` → `gobl_user_name`) using the registered table definition.
+	 * (e.g. `user_name` -> `gobl_user_name`) using the registered table definition.
 	 *
 	 * @param string $table_name         the full table name (used for column resolution)
-	 * @param array  $values             column → PHP value or `QBExpression` map
+	 * @param array  $values             column -> PHP value or `QBExpression` map
 	 * @param bool   $auto_prefix_column when `true`, short column names are resolved to full names
 	 *
-	 * @return array column_full_name → SQL placeholder or raw expression map
+	 * @return array column_full_name -> SQL placeholder or raw expression map
 	 */
 	protected function bindColumnsValuesForInsertOrUpdate(string $table_name, array $values, bool $auto_prefix_column): array
 	{

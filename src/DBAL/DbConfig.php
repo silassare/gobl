@@ -150,9 +150,6 @@ final class DbConfig implements ArrayCapableInterface
 		return $config;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function toArray(): array
 	{
 		return $this->config;

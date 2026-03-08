@@ -35,9 +35,6 @@ final class UniqueKeyConstraintAdded extends DiffAction
 		return $this->constraint;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function toArray(): array
 	{
 		return [

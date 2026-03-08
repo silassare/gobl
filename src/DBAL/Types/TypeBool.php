@@ -74,25 +74,16 @@ class TypeBool extends Type implements BaseTypeInterface
 		return $this->setOption('strict', $strict);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public static function getInstance(array $options): static
 	{
 		return (new self())->configure($options);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getName(): string
 	{
 		return self::NAME;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function configure(array $options): static
 	{
 		if (isset($options['strict'])) {
@@ -102,25 +93,16 @@ class TypeBool extends Type implements BaseTypeInterface
 		return parent::configure($options);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?bool
 	{
 		return null === $value ? null : (bool) $value;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function default(mixed $default): static
 	{
 		return parent::default((int) ((bool) $default));
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getAllowedFilterOperators(): array
 	{
 		$operators = [
@@ -138,25 +120,16 @@ class TypeBool extends Type implements BaseTypeInterface
 		return $operators;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getEmptyValueOfType(): ?bool
 	{
 		return $this->isNullable() ? null : false;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getReadTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::bool();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getWriteTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::bool();

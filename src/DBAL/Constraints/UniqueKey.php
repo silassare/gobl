@@ -63,14 +63,8 @@ final class UniqueKey extends Constraint
 		return $this->columns;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function assertIsValid(): void {}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function toArray(): array
 	{
 		$columns = [];

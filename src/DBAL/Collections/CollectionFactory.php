@@ -45,9 +45,6 @@ class CollectionFactory extends Collection
 		unset($this->factory);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getItems(ORMRequest $request, ?int &$total_records = null): array
 	{
 		return ($this->factory)($request, $total_records);

@@ -82,9 +82,6 @@ final class FiltersExpressionParser implements FilterInterface
 		private bool $strict = true
 	) {}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function toArray(): array
 	{
 		return [
@@ -347,8 +344,8 @@ final class FiltersExpressionParser implements FilterInterface
 	}
 
 	/**
-	 * Builds: '(' group ')' → returns `[$sub_group_array]`
-	 *      OR a filter → returns `[$col, $op, $val]` or `[$col, $op]`.
+	 * Builds: '(' group ')' -> returns `[$sub_group_array]`
+	 *      OR a filter -> returns `[$col, $op, $val]` or `[$col, $op]`.
 	 */
 	private function buildArrayItem(): array
 	{
@@ -373,7 +370,7 @@ final class FiltersExpressionParser implements FilterInterface
 	}
 
 	/**
-	 * Builds: IDENT OPERATOR [right-value] → `[$col, $op]` or `[$col, $op, $value]`.
+	 * Builds: IDENT OPERATOR [right-value] -> `[$col, $op]` or `[$col, $op, $value]`.
 	 */
 	private function buildArrayFilter(): array
 	{
@@ -439,7 +436,7 @@ final class FiltersExpressionParser implements FilterInterface
 			return \str_contains($raw, '.') ? (float) $raw : (int) $raw;
 		}
 
-		// T_IDENT or T_STRING → return as-is string
+		// T_IDENT or T_STRING -> return as-is string
 		if (self::T_IDENT === $token['type'] || self::T_STRING === $token['type']) {
 			return $token['value'];
 		}

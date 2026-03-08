@@ -1644,7 +1644,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 	 * Only columns whose name is found in this table are converted; unknown keys are passed
 	 * through unchanged. The returned array preserves all original keys.
 	 *
-	 * @param array          $row   associative array of column name/full-name → PHP value
+	 * @param array          $row   associative array of column name/full-name -> PHP value
 	 * @param RDBMSInterface $rdbms the current RDBMS instance (passed to the type converter)
 	 *
 	 * @return array the row with all matched columns converted to their DB representation
@@ -1729,7 +1729,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 	 * This is the inverse of {@see doPhpToDbConversion()}. Columns whose name is not found
 	 * in the table are passed through unchanged.
 	 *
-	 * @param array          $row   associative array of column name/full-name → raw DB value
+	 * @param array          $row   associative array of column name/full-name -> raw DB value
 	 * @param RDBMSInterface $rdbms the current RDBMS instance (passed to the type converter)
 	 *
 	 * @return array the row with all matched columns converted to their PHP representation
@@ -1748,9 +1748,6 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 		return $row;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function toArray(): array
 	{
 		$options = [
@@ -1817,9 +1814,6 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 		return $options;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getDiffKey(): string
 	{
 		if (empty($this->diff_key)) {
@@ -1829,9 +1823,6 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 		return $this->diff_key;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function setDiffKey(string $diff_key): self
 	{
 		$this->assertNotLocked();

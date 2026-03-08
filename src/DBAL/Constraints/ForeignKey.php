@@ -342,9 +342,6 @@ final class ForeignKey extends Constraint
 		return \array_values($this->columns_map);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function toArray(): array
 	{
 		$columns = [];

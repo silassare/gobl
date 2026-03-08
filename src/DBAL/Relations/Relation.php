@@ -72,10 +72,10 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface
 	 * Creates the appropriate `LinkInterface` implementation based on the `type` key in `$options`.
 	 *
 	 * Dispatches to:
-	 * - `LinkType::COLUMNS` → `LinkColumns`
-	 * - `LinkType::MORPH`   → `LinkMorph`
-	 * - `LinkType::THROUGH` → `LinkThrough` (requires `pivot_table` key)
-	 * - `LinkType::JOIN`    → `LinkJoin`
+	 * - `LinkType::COLUMNS` -> `LinkColumns`
+	 * - `LinkType::MORPH`   -> `LinkMorph`
+	 * - `LinkType::THROUGH` -> `LinkThrough` (requires `pivot_table` key)
+	 * - `LinkType::JOIN`    -> `LinkJoin`
 	 *
 	 * Note: `$options['filters']` is accepted here but is **not validated at creation time**
 	 * because the target table's generated class files may not yet exist when the schema is
@@ -168,17 +168,11 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface
 		return $this->link;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function isPaginated(): bool
 	{
 		return $this->type->isMultiple();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getHostTable(): Table
 	{
 		return $this->link->getHostTable();
@@ -204,9 +198,6 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface
 		return Str::toGetterName($this->getName());
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getName(): string
 	{
 		return $this->name;
@@ -233,9 +224,6 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface
 		return $this->link->getTargetTable();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function toArray(): array
 	{
 		$options['type']   = $this->type->value;
@@ -246,9 +234,6 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface
 		return $options;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getController(): RelationControllerInterface
 	{
 		return new ORMEntityRelationController($this);

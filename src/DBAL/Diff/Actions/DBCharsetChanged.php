@@ -43,9 +43,6 @@ final class DBCharsetChanged extends DiffAction
 		return $this->db;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function toArray(): array
 	{
 		return [

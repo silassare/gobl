@@ -197,16 +197,16 @@ abstract class FilterOperand
 	/**
 	 * Resolves and normalizes a filter operand.
 	 *
-	 * - `QBExpression` → cast to string verbatim.
-	 * - `BackedEnum` → unwrapped to its scalar `value`.
-	 * - `Column` instance → resolved to its FQN using the current QB alias map.
-	 * - `FilterFieldNotation` instance → always resolved to its column reference (or JSON extraction
+	 * - `QBExpression` -> cast to string verbatim.
+	 * - `BackedEnum` -> unwrapped to its scalar `value`.
+	 * - `Column` instance -> resolved to its FQN using the current QB alias map.
+	 * - `FilterFieldNotation` instance -> always resolved to its column reference (or JSON extraction
 	 *   expression) regardless of operand position; safe because the caller explicitly constructed it.
-	 * - `table.column` string notation → resolved to the fully qualified reference
-	 *   (e.g. `users.name` → `u.gobl_name`) when the table is registered in the QB.
+	 * - `table.column` string notation -> resolved to the fully qualified reference
+	 *   (e.g. `users.name` -> `u.gobl_name`) when the table is registered in the QB.
 	 *   Only auto-resolved for left operands (see `shouldResolveFieldNotation()`); right operands
 	 *   carrying user input are never auto-resolved to prevent IDOR-style column probing.
-	 * - `table.column#json_path` | `column#json_path` → resolved to the dialect-specific JSON-path extraction
+	 * - `table.column#json_path` | `column#json_path` -> resolved to the dialect-specific JSON-path extraction
 	 *   expression (requires `native_json` enabled on the column's type).
 	 */
 	protected function normalizeOperand(): void

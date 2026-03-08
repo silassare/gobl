@@ -85,9 +85,6 @@ Time: {$date}";
 ';
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function generate(array $tables, string $path, string $header = ''): static
 	{
 		$fs = new FSUtils($path);
@@ -124,9 +121,6 @@ Time: {$date}";
 		return $this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function toTypeHintString(ORMTypeHint $type_hint): string
 	{
 		if ($php_type = $type_hint->getPHPType()) {

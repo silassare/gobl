@@ -81,9 +81,6 @@ class TypeEnum extends Type
 		return $this->setOption(self::OPTION_ENUM_CLASS, $enum_class);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public static function getInstance(array $options): static
 	{
 		return (new self())->configure($options);
@@ -117,17 +114,11 @@ class TypeEnum extends Type
 		return $this->toEnumValue($value);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getEmptyValueOfType(): ?BackedEnum
 	{
 		return null;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getName(): string
 	{
 		return self::NAME;

@@ -24,33 +24,21 @@ class MySQL extends SQLDriverBase
 {
 	public const NAME = 'mysql';
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getGenerator(): MySQLQueryGenerator
 	{
 		return new MySQLQueryGenerator($this, $this->config);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getType(): string
 	{
 		return self::NAME;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public static function new(DbConfig $config): static
 	{
 		return new self($config);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	protected function connect(): PDO
 	{
 		$host     = $this->config->getDbHost();

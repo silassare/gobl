@@ -44,9 +44,6 @@ final class ColumnDeleted extends DiffAction
 		return $this->column;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function toArray(): array
 	{
 		return [

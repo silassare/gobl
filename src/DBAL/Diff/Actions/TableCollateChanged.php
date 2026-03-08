@@ -43,9 +43,6 @@ final class TableCollateChanged extends DiffAction
 		return $this->table;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function toArray(): array
 	{
 		return [

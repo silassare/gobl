@@ -20,7 +20,7 @@ namespace Gobl\DBAL\Builders;
  *
  * Returned by {@see LinkBuilder::columns()}.  In addition to the common
  * {@see LinkBuilder::filter()} / {@see LinkBuilder::filters()} / {@see LinkBuilder::toArray()}
- * methods it exposes {@see map()} to set or replace the explicit host→target column map.
+ * methods it exposes {@see map()} to set or replace the explicit host->target column map.
  *
  * ### Usage
  *
@@ -40,11 +40,11 @@ namespace Gobl\DBAL\Builders;
 final class LinkColumnsBuilder extends LinkBuilder
 {
 	/**
-	 * Sets (or replaces) the explicit host→target column map.
+	 * Sets (or replaces) the explicit host->target column map.
 	 *
 	 * Pass an empty array to revert to FK auto-detection.
 	 *
-	 * @param array<string, string> $host_to_target_map host column → target column
+	 * @param array<string, string> $host_to_target_map host column -> target column
 	 *
 	 * @return static
 	 */

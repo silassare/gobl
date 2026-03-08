@@ -49,9 +49,6 @@ class QBSelect implements QBInterface
 	 */
 	public function __construct(protected RDBMSInterface $db) {}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getType(): QBType
 	{
 		return QBType::SELECT;
@@ -127,8 +124,8 @@ class QBSelect implements QBInterface
 	 * @param null|string|Table $table_name_or_alias when provided, column references are qualified
 	 *                                               with the resolved alias/table name
 	 * @param array             $columns             column list; empty means `table.*` (select all).
-	 *                                               Integer-keyed: `['col1', 'col2']` → `alias.col1, alias.col2`.
-	 *                                               String-keyed: `['alias' => 'col']` → `alias.col AS alias`.
+	 *                                               Integer-keyed: `['col1', 'col2']` -> `alias.col1, alias.col2`.
+	 *                                               String-keyed: `['alias' => 'col']` -> `alias.col AS alias`.
 	 * @param bool              $auto_prefix         when `true` (default), bare column names are
 	 *                                               prefixed with the resolved table alias;
 	 *                                               when `false`, the raw table name is used as prefix

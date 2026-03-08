@@ -191,9 +191,6 @@ final class Index implements ArrayCapableInterface, LockInterface
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function toArray(): array
 	{
 		$columns = [];

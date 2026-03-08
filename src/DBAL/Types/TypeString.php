@@ -68,9 +68,6 @@ class TypeString extends Type implements BaseTypeInterface
 		parent::__construct($this);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public static function getInstance(array $options): static
 	{
 		return (new self())->configure($options);
@@ -150,9 +147,6 @@ class TypeString extends Type implements BaseTypeInterface
 		return $this->setOption('one_of', \array_unique($list));
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getName(): string
 	{
 		return self::NAME;
@@ -204,33 +198,21 @@ class TypeString extends Type implements BaseTypeInterface
 		return parent::configure($options);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?string
 	{
 		return null === $value ? null : (string) $value;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getEmptyValueOfType(): ?string
 	{
 		return $this->isNullable() ? null : '';
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getReadTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::string();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getWriteTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::string();

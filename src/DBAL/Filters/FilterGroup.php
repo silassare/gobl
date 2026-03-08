@@ -123,9 +123,6 @@ final class FilterGroup implements FilterInterface
 		return $this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function toArray(): array
 	{
 		return $this->getFilters();

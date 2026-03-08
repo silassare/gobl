@@ -51,17 +51,11 @@ trait QBCommonTrait
 	 */
 	private function __clone() {}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function fullyQualifiedName(string|Table $table_name_or_alias, string $column): string
 	{
 		return $this->fullyQualifiedNameArray($table_name_or_alias, [$column])[0];
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function fullyQualifiedNameArray(string|Table $table_name_or_alias, array $columns = []): array
 	{
 		$table = $this->resolveTable($table_name_or_alias);
@@ -120,9 +114,6 @@ trait QBCommonTrait
 			->buildQuery($this);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function resolveTable(string|Table $table_name_or_alias): ?Table
 	{
 		/** @var null|Table $resolved_table */

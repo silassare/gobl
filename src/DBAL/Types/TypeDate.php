@@ -46,9 +46,6 @@ class TypeDate extends Type
 		parent::__construct(self::chooseBaseType());
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public static function getInstance(array $options): static
 	{
 		return (new self())->configure($options);
@@ -185,9 +182,6 @@ class TypeDate extends Type
 		return $this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?string
 	{
 		if (null === $value) {
@@ -210,9 +204,6 @@ class TypeDate extends Type
 		return $value;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function default(mixed $default): static
 	{
 		$this->base_type->default($default);
@@ -220,9 +211,6 @@ class TypeDate extends Type
 		return parent::default($default);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getName(): string
 	{
 		return self::NAME;
@@ -256,9 +244,6 @@ class TypeDate extends Type
 		return 'microseconds' === $this->getOption('precision');
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getDefault(): ?string
 	{
 		$default = parent::getDefault();
@@ -274,9 +259,6 @@ class TypeDate extends Type
 		return null;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function shouldEnforceDefaultValue(RDBMSInterface $rdbms): bool
 	{
 		return false;

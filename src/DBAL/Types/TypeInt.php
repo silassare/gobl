@@ -137,17 +137,11 @@ class TypeInt extends Type implements BaseTypeInterface
 		return (bool) $this->getOption('unsigned', false);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public static function getInstance(array $options): static
 	{
 		return (new self())->configure($options);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getName(): string
 	{
 		return self::NAME;
@@ -175,33 +169,21 @@ class TypeInt extends Type implements BaseTypeInterface
 		return parent::configure($options);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?int
 	{
 		return null === $value ? null : (int) $value;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getEmptyValueOfType(): ?int
 	{
 		return $this->isNullable() ? null : 0;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getReadTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::int();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getWriteTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::int();

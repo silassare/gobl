@@ -95,7 +95,7 @@ final class LinkColumns extends Link
 	/**
 	 * {@inheritDoc}
 	 *
-	 * Populates `$target_data` with all mapped host→target column values from `$host_entity`.
+	 * Populates `$target_data` with all mapped host->target column values from `$host_entity`.
 	 * Returns `false` (leaving `$target_data` unchanged) as soon as any mapped host column
 	 * value is `null`, because a null FK value makes the relation unsatisfiable.
 	 */
@@ -174,9 +174,6 @@ final class LinkColumns extends Link
 		return true;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function toArray(): array
 	{
 		return [

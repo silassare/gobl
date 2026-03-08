@@ -53,9 +53,6 @@ class QBDelete implements QBInterface
 		$this->disable_duplicate_from = true;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getType(): QBType
 	{
 		return QBType::DELETE;

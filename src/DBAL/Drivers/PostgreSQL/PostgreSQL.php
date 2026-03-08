@@ -25,25 +25,16 @@ class PostgreSQL extends SQLDriverBase
 {
 	public const NAME = 'postgresql';
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getGenerator(): PostgreSQLQueryGenerator
 	{
 		return new PostgreSQLQueryGenerator($this, $this->config);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getType(): string
 	{
 		return self::NAME;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public static function new(DbConfig $config): static
 	{
 		return new self($config);
@@ -73,9 +64,6 @@ class PostgreSQL extends SQLDriverBase
 		return $last_id;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	protected function connect(): PDO
 	{
 		$host     = $this->config->getDbHost();

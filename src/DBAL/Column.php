@@ -502,9 +502,6 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 		return $this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function toArray(): array
 	{
 		$options = [
@@ -537,9 +534,6 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 		return $options;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getDiffKey(): string
 	{
 		if (empty($this->diff_key)) {
@@ -550,9 +544,6 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 		return $this->diff_key;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function setDiffKey(string $diff_key): self
 	{
 		$this->assertNotLocked();

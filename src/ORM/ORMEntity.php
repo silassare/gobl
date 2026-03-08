@@ -129,10 +129,10 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 * Magic getter for column value.
 	 *
 	 * Resolution order when the stored value is `null`:
-	 * 1. If the column is auto-incremented and the entity is new → returns `null` (ID not yet assigned).
-	 * 2. If the column is non-nullable → tries `Type::getDefault()`, then `Type::getEmptyValueOfType()`;
+	 * 1. If the column is auto-incremented and the entity is new -> returns `null` (ID not yet assigned).
+	 * 2. If the column is non-nullable -> tries `Type::getDefault()`, then `Type::getEmptyValueOfType()`;
 	 *    if both return `null`, throws `ORMRuntimeException` (programming error: required value was never set).
-	 * 3. Otherwise (nullable column) → returns `null`.
+	 * 3. Otherwise (nullable column) -> returns `null`.
 	 *
 	 * When `$name` is not a valid column and `$strict` mode is on, throws `ORMRuntimeException`;
 	 * otherwise triggers a PHP error and returns `null`.
@@ -327,9 +327,6 @@ abstract class ORMEntity implements ArrayCapableInterface
 		return $this->_oeb_is_new;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function toArray(bool $hide_sensitive_data = true): array
 	{
 		$row = $this->toRow();
@@ -563,7 +560,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 
 			if ($ex instanceof TypesInvalidValueException) {
 				$debug = \array_replace($ex->getData(), [
-					'field'       => $full_name,
+					'field'       => $column->getName(),
 					'_table_name' => $this->_oeb_table->getName(),
 					'_options'    => $type->toArray(),
 				]);
@@ -574,7 +571,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 			}
 
 			throw new TypesInvalidValueException('Validation failed.', [
-				'field'       => $full_name,
+				'field'       => $column->getName(),
 				'_table_name' => $this->_oeb_table->getName(),
 			]);
 		}

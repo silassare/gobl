@@ -42,9 +42,6 @@ final class FilterRaw implements FilterInterface
 		return $this->filter_query_string;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function toArray(): array
 	{
 		return [

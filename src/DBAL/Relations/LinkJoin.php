@@ -139,7 +139,7 @@ final class LinkJoin extends Link
 	 * {@inheritDoc}
 	 *
 	 * Applies each step's sub-link in order. The host entity is forwarded **only to the first
-	 * step** (host → first pivot), so that concrete entity values filter the entry point of
+	 * step** (host -> first pivot), so that concrete entity values filter the entry point of
 	 * the chain. Subsequent step links receive `null` and operate in join mode.
 	 *
 	 * Returns `false` as soon as any step's `apply()` returns `false`.
@@ -159,9 +159,6 @@ final class LinkJoin extends Link
 		return true;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function toArray(): array
 	{
 		return [

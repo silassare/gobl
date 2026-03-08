@@ -64,17 +64,11 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function wrapDatabaseDefinitionQuery(string $query): string
 	{
 		return $query;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function quoteIdentifier(string $name): string
 	{
 		return '"' . \str_replace('"', '""', $name) . '"';
@@ -128,9 +122,6 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		return 'jsonb_path_exists(' . $col_sql_expression . ", ('$.' || " . $key_expression . ')::jsonpath)';
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	protected function getJsonPathSegmentsAsString(JsonPath $json_path): string
 	{
 		$path_segments = $json_path->getPathSegments();
@@ -141,7 +132,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		//   1. Array-literal layer: segments containing commas, braces, double-quotes or
 		//      spaces must be wrapped in " with inner " escaped as "".
 		//   2. SQL string-literal layer: single-quotes are doubled via singleQuote().
-		// quotes around the whole '{…}' composite literal, not just each segment.
+		// quotes around the whole '{...}' composite literal, not just each segment.
 		return \implode(',', \array_map(static function (mixed $s): string {
 			$s = (string) $s;
 
@@ -155,25 +146,16 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		}, $path_segments));
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	protected function dbQueryTemplate(): string
 	{
 		return 'postgresql_db';
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	protected function createTableQueryTemplate(): string
 	{
 		return 'postgresql_create_table';
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	protected function getStringColumnDefinition(Column $column): string
 	{
 		$column_name = $column->getFullName();
@@ -199,9 +181,6 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		return \implode(' ', $sql);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	protected function getBoolColumnDefinition(Column $column): string
 	{
 		$column_name = $column->getFullName();
@@ -212,9 +191,6 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		return \implode(' ', $sql);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	protected function getIntColumnDefinition(Column $column): string
 	{
 		$column_name = $column->getFullName();
@@ -242,9 +218,6 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		return \implode(' ', $sql);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	protected function getBigintColumnDefinition(Column $column): string
 	{
 		$column_name = $column->getFullName();
@@ -362,33 +335,21 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		return parent::operatorFilterToExpression($filter);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	protected function getDBCharsetChangeString(DBCharsetChanged $action): string
 	{
 		throw new RuntimeException('PostgreSQL does not support changing database charset via query.');
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	protected function getDBCollateChangeString(DBCollateChanged $action): string
 	{
 		throw new RuntimeException('PostgreSQL does not support changing database collate via query.');
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	protected function getTableCharsetChangeString(TableCharsetChanged $action): string
 	{
 		throw new RuntimeException('PostgreSQL does not support changing table charset via query.');
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	protected function getTableCollateChangeString(TableCollateChanged $action): string
 	{
 		throw new RuntimeException('PostgreSQL does not support changing table collate via query.');
@@ -434,8 +395,8 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	 * PostgreSQL does not natively support LIMIT in UPDATE. When a LIMIT is
 	 * requested we rewrite the statement as a ctid sub-query:
 	 *
-	 *   UPDATE t SET … WHERE ctid IN (
-	 *     SELECT ctid FROM t WHERE … [ORDER BY …] LIMIT n
+	 *   UPDATE t SET ... WHERE ctid IN (
+	 *     SELECT ctid FROM t WHERE ... [ORDER BY ...] LIMIT n
 	 *   )
 	 *
 	 * When LIMIT is absent the standard base-class implementation is used.
@@ -468,7 +429,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 
 		$set   = \implode(', ', $set_parts);
 		$where = $this->getWhereQuery($qb);
-		$ob    = $this->getOrderByQuery($qb); // '' or ' ORDER BY …'
+		$ob    = $this->getOrderByQuery($qb); // '' or ' ORDER BY ...'
 
 		$alias = $qb->getOptionsUpdateTableAlias() ?? '';
 		$qt    = $this->quoteIdentifier($table);
@@ -492,7 +453,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	 * For single-table DELETE with LIMIT a ctid sub-query is used:
 	 *
 	 *   DELETE FROM t WHERE ctid IN (
-	 *     SELECT ctid FROM t WHERE … [ORDER BY …] LIMIT n
+	 *     SELECT ctid FROM t WHERE ... [ORDER BY ...] LIMIT n
 	 *   )
 	 */
 	protected function getDeleteQuery(QBDelete $qb): string
@@ -520,7 +481,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		// Single-table DELETE with LIMIT: rewrite as ctid subquery.
 		if (null !== $max && 1 === \count($from_list) && empty($qb->getOptionsJoins())) {
 			$qpt   = $this->quoteIdentifier($primary_table);
-			$ob    = $this->getOrderByQuery($qb); // '' or ' ORDER BY …'
+			$ob    = $this->getOrderByQuery($qb); // '' or ' ORDER BY ...'
 			$sub   = 'SELECT ctid FROM ' . $qpt . ' AS ' . $primary_alias . ' WHERE ' . $where . $ob . ' LIMIT ' . $max;
 			$query = 'DELETE FROM ' . $qpt . ' WHERE ctid IN (' . $sub . ')';
 			$query .= $this->getReturningClause($qb);

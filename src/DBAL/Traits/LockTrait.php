@@ -24,17 +24,11 @@ trait LockTrait
 {
 	protected bool $locked = false;
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function isLocked(): bool
 	{
 		return $this->locked;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function assertNotLocked(): void
 	{
 		if ($this->locked) {

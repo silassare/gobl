@@ -43,9 +43,6 @@ final class TableRenamed extends DiffAction
 		return $this->new_table;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function toArray(): array
 	{
 		return [

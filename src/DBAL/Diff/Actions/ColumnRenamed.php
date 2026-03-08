@@ -52,9 +52,6 @@ final class ColumnRenamed extends DiffAction
 		return $this->new_column;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function toArray(): array
 	{
 		return [

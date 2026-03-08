@@ -73,9 +73,6 @@ final class QBUpdate implements QBInterface
 		return $this->db->update($sql, $values, $types);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getType(): QBType
 	{
 		return QBType::UPDATE;
@@ -185,13 +182,13 @@ final class QBUpdate implements QBInterface
 	/**
 	 * Sets the columns and values for the SET clause.
 	 *
-	 * Each entry in `$values` is bound as a named parameter and the column→parameter
+	 * Each entry in `$values` is bound as a named parameter and the column->parameter
 	 * map is stored for the SQL generator. `QBExpression` values are passed through
 	 * as raw SQL fragments without binding.
 	 *
 	 * Throws `LogicException` if {@see update()} has not been called first.
 	 *
-	 * @param array $values      the column → value map (or column → `QBExpression` for raw SQL)
+	 * @param array $values      the column -> value map (or column -> `QBExpression` for raw SQL)
 	 * @param bool  $auto_prefix when `true`, column names are automatically prefixed with
 	 *                           the table's column prefix before binding
 	 *

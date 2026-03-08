@@ -69,7 +69,7 @@ final class RelationBuilder
 	 * mapping by inspecting the host table's FK constraints that reference the target table.
 	 * Pass an explicit map when the auto-detection is ambiguous or incorrect.
 	 *
-	 * @param array<string, string> $host_to_target_columns_map host column name → target column name;
+	 * @param array<string, string> $host_to_target_columns_map host column name -> target column name;
 	 *                                                          empty string triggers auto-detection
 	 * @param array                 $filters                    optional extra filter conditions on the relation
 	 *

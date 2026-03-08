@@ -142,9 +142,6 @@ class TypeDecimal extends Type implements BaseTypeInterface
 		return (bool) $this->getOption('unsigned', false);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public static function getInstance(array $options): static
 	{
 		return (new self())->configure($options);
@@ -215,41 +212,26 @@ class TypeDecimal extends Type implements BaseTypeInterface
 		return $this->setOption('precision', $precision);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getName(): string
 	{
 		return self::NAME;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?string
 	{
 		return null === $value ? null : (string) $value;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getEmptyValueOfType(): ?float
 	{
 		return $this->isNullable() ? null : 0.0;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getReadTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::decimal();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getWriteTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::decimal()

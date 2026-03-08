@@ -677,7 +677,7 @@ final class TableBuilder
 	 * Chain {@see LinkColumnsBuilder::map()} on the returned builder to set or replace
 	 * the map after construction.
 	 *
-	 * @param array<string, string> $host_to_target_map host column → target column;
+	 * @param array<string, string> $host_to_target_map host column -> target column;
 	 *                                                  omit for auto-detection
 	 *
 	 * @return LinkColumnsBuilder

@@ -233,17 +233,11 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		return $query;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function buildTotalRowCountQuery(QBSelect $qb): string
 	{
 		return 'SELECT COUNT(1) FROM (' . $this->buildQuery($qb) . ') AS ' . QBUtils::newAlias();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function buildQuery(QBInterface $qb): string
 	{
 		$type = $qb->getType();
@@ -367,9 +361,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		]);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getJsonPathExtractionExpression(JsonPath $json_path): string
 	{
 		$col_fqn  =  $this->getJsonPathColumnFQN($json_path);
@@ -603,14 +594,14 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 * Gets the SQL fragment for a column definition.
 	 *
 	 * Dispatches to the appropriate type-specific method based on the column's **base type name**:
-	 * `string` → {@see SQLQueryGeneratorBase::getStringColumnDefinition()}, `json` → {@see SQLQueryGeneratorBase::getJSONColumnDefinition()}, etc.
+	 * `string` -> {@see SQLQueryGeneratorBase::getStringColumnDefinition()}, `json` -> {@see SQLQueryGeneratorBase::getJSONColumnDefinition()}, etc.
 	 * Throws `DBALException` for unknown base types.
 	 *
-	 * When `$table_for_alter` is provided, wraps the result in an `ALTER TABLE … ADD …` statement
+	 * When `$table_for_alter` is provided, wraps the result in an `ALTER TABLE ... ADD ...` statement
 	 * suitable for adding a new column to an existing table.
 	 *
 	 * @param Column     $column
-	 * @param null|Table $table_for_alter when set, wraps result as ALTER TABLE … ADD statement
+	 * @param null|Table $table_for_alter when set, wraps result as ALTER TABLE ... ADD statement
 	 *
 	 * @return string
 	 *
@@ -723,15 +714,15 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 * Appends `NULL`/`NOT NULL` and `DEFAULT` fragments to `$sql_parts`.
 	 *
 	 * Four-way decision tree:
-	 * - `NOT NULL` column, has default → appends `NOT NULL DEFAULT <value>`.
-	 * - `NOT NULL` column, no default → appends `NOT NULL` only.
-	 * - `NULL` column, has default → appends `NULL DEFAULT <value>`.
-	 * - `NULL` column, no default → appends `NULL DEFAULT NULL`.
+	 * - `NOT NULL` column, has default -> appends `NOT NULL DEFAULT <value>`.
+	 * - `NOT NULL` column, no default -> appends `NOT NULL` only.
+	 * - `NULL` column, has default -> appends `NULL DEFAULT <value>`.
+	 * - `NULL` column, no default -> appends `NULL DEFAULT NULL`.
 	 *
 	 * Default resolution order (highest priority first):
 	 * 1. `Type::dbQueryDefault()` (dialect-specific SQL expression, e.g. `NOW()`).
 	 * 2. `BaseType::dbQueryDefault()` (same, on the base type).
-	 * 3. `BaseType::getDefault()` → converted through `Type::phpToDb()`.
+	 * 3. `BaseType::getDefault()` -> converted through `Type::phpToDb()`.
 	 *
 	 * When `$force_no_default` is `true` (e.g. TEXT/BLOB on MySQL), the DEFAULT clause is
 	 * omitted entirely.
@@ -1326,7 +1317,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 *
 	 * @param ColumnDeleted $action the column-deleted diff action
 	 *
-	 * @return string the ALTER TABLE … DROP … statement
+	 * @return string the ALTER TABLE ... DROP ... statement
 	 */
 	protected function getColumnDeletedString(ColumnDeleted $action): string
 	{

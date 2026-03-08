@@ -97,17 +97,11 @@ trait QBAliasTrait
 		));
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function isDeclaredAlias(string $str): bool
 	{
 		return isset($this->aliases_to_tables_map[$str]);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getAliasTable(string $alias): ?string
 	{
 		return $this->aliases_to_tables_map[$alias] ?? null;

@@ -75,9 +75,6 @@ class FiltersTableScope implements FiltersScopeInterface
 		$column->getType()->assertFilterAllowed($filter);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function tryResolveFieldNotation(FilterFieldNotation $fn, QBInterface $qb): void
 	{
 		$name = $fn->getColumnName() ?? $fn->getField();

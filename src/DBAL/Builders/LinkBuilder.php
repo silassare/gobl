@@ -30,7 +30,7 @@ use PHPUtils\Traits\ArrayCapableTrait;
  * |--------------------------------------|-------------------------|-----------------------------------|
  * | `LinkBuilder::columns()`             | `LinkColumnsBuilder`    | `->map(array)`                    |
  * | `LinkBuilder::morph(string $prefix)` | `LinkMorphBuilder`      | `->parentType()`, `->parentKey()` |
- * | `LinkBuilder::morphExplicit(…)`      | `LinkMorphBuilder`      | `->parentType()`, `->parentKey()` |
+ * | `LinkBuilder::morphExplicit(...)`      | `LinkMorphBuilder`      | `->parentType()`, `->parentKey()` |
  *
  * All sub-builders share the common `->filter()`, `->filters()`, and `->toArray()` methods
  * defined here.  Chaining is immutable — every call returns a new clone.
@@ -90,7 +90,7 @@ class LinkBuilder implements ArrayCapableInterface
 	 * Pass an explicit map here or call {@see LinkColumnsBuilder::map()} on the returned
 	 * builder when the auto-detection would be ambiguous.
 	 *
-	 * @param array<string, string> $host_to_target_map host column → target column;
+	 * @param array<string, string> $host_to_target_map host column -> target column;
 	 *                                                  omit to use auto-detection
 	 *
 	 * @return LinkColumnsBuilder

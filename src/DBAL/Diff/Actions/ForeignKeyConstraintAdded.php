@@ -35,9 +35,6 @@ final class ForeignKeyConstraintAdded extends DiffAction
 		return $this->constraint;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function toArray(): array
 	{
 		return [

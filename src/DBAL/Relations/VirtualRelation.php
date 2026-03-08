@@ -76,25 +76,16 @@ abstract class VirtualRelation implements VirtualRelationInterface
 		$this->paginated  = $paginated;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function isPaginated(): bool
 	{
 		return $this->paginated;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getName(): string
 	{
 		return $this->name;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getHostTable(): Table
 	{
 		return $this->host_table;

@@ -65,12 +65,12 @@ trait QBShortcutsTrait
 	 * $qb->fn('COUNT', $qb->expr('*'))                              // COUNT(*)
 	 * $qb->fn('NOW')                                                 // NOW()
 	 * $qb->fn('COALESCE', $qb->col('u', 'name'), $qb->col('u', 'email'))  // COALESCE(alias.col, alias.col)
-	 * $qb->fn('DATE_FORMAT', $qb->col('o', 'date'), '%Y-%m')        // DATE_FORMAT(alias.col, '%Y-%m')  ← quoted
-	 * $qb->fn('CONCAT', $qb->col('u', 'fname'), ' ', $qb->col('u', 'lname'))  // CONCAT(…, ' ', …)  ← quoted
+	 * $qb->fn('DATE_FORMAT', $qb->col('o', 'date'), '%Y-%m')        // DATE_FORMAT(alias.col, '%Y-%m')  <- quoted
+	 * $qb->fn('CONCAT', $qb->col('u', 'fname'), ' ', $qb->col('u', 'lname'))  // CONCAT(..., ' ', ...)  <- quoted
 	 * ```
 	 *
 	 * @param string              $function SQL function name (e.g. `'COUNT'`, `'COALESCE'`, `'NOW'`)
-	 * @param QBExpression|string ...$args  `string` → quoted literal; `QBExpression` → raw SQL
+	 * @param QBExpression|string ...$args  `string` -> quoted literal; `QBExpression` -> raw SQL
 	 *
 	 * @return QBExpression
 	 */
@@ -177,7 +177,7 @@ trait QBShortcutsTrait
 	 * as a derived table in `FROM`.
 	 *
 	 * ```php
-	 * // NOT IN (SELECT …)
+	 * // NOT IN (SELECT ...)
 	 * $qb->filters()->notIn(
 	 *     'u.user_id',
 	 *     $qb->sub(fn($s) => $s->from('banned_users', 'b')->select('b', ['id']))
@@ -185,7 +185,7 @@ trait QBShortcutsTrait
 	 *
 	 * // Derived table in FROM:
 	 * $qb->from(
-	 *     $qb->sub(fn($s) => $s->from('orders')->select()->where(…)),
+	 *     $qb->sub(fn($s) => $s->from('orders')->select()->where(...)),
 	 *     'sub'
 	 * );
 	 * ```

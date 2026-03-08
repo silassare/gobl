@@ -35,9 +35,6 @@ final class TableAdded extends DiffAction
 		return $this->table;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function toArray(): array
 	{
 		return [

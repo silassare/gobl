@@ -242,73 +242,46 @@ DIFF_SQL;
 				private readonly array $schema,
 			) {}
 
-			/**
-			 * {@inheritDoc}
-			 */
 			public function getVersion(): int
 			{
 				return $this->version;
 			}
 
-			/**
-			 * {@inheritDoc}
-			 */
 			public function getLabel(): string
 			{
 				return $this->label;
 			}
 
-			/**
-			 * {@inheritDoc}
-			 */
 			public function getTimestamp(): int
 			{
 				return $this->timestamp;
 			}
 
-			/**
-			 * {@inheritDoc}
-			 */
 			public function getSchema(): array
 			{
 				return $this->schema;
 			}
 
-			/**
-			 * {@inheritDoc}
-			 */
 			public function getConfigs(): array
 			{
 				return $this->configs;
 			}
 
-			/**
-			 * {@inheritDoc}
-			 */
 			public function up(): string
 			{
 				return $this->up_sql;
 			}
 
-			/**
-			 * {@inheritDoc}
-			 */
 			public function down(): string
 			{
 				return $this->down_sql;
 			}
 
-			/**
-			 * {@inheritDoc}
-			 */
 			public function beforeRun(MigrationMode $mode, string $query): bool|string
 			{
 				return true;
 			}
 
-			/**
-			 * {@inheritDoc}
-			 */
 			public function afterRun(MigrationMode $mode): void {}
 		};
 	}

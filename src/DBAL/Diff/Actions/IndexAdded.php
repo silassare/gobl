@@ -35,9 +35,6 @@ final class IndexAdded extends DiffAction
 		return $this->index;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function toArray(): array
 	{
 		return [

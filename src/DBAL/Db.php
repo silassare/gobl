@@ -163,7 +163,7 @@ abstract class Db implements RDBMSInterface
 	 * Locking the database performs the following in order:
 	 *  1. Calls `pack()` on every registered namespace (builds deferred constraints and relations).
 	 *  2. Calls `lock()` on every table (cascades to all columns, constraints, and indexes).
-	 *  3. Builds the `morph_types` lookup map (table name → morph type).
+	 *  3. Builds the `morph_types` lookup map (table name -> morph type).
 	 *  4. Validates morph-type uniqueness: throws `DBALException` if two tables share the
 	 *     same morph type, or if a morph type collides with another table's name or full name.
 	 *
@@ -210,9 +210,6 @@ abstract class Db implements RDBMSInterface
 		return $this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getTables(?string $namespace = null): array
 	{
 		if (null !== $namespace) {
@@ -824,9 +821,6 @@ abstract class Db implements RDBMSInterface
 		return null;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getTable(string $name): ?Table
 	{
 		if ($this->hasTable($name)) {
@@ -840,9 +834,6 @@ abstract class Db implements RDBMSInterface
 		return null;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getTableByMorphType(string $morph_type): ?Table
 	{
 		if (isset($this->morph_types[$morph_type])) {
@@ -852,9 +843,6 @@ abstract class Db implements RDBMSInterface
 		return null;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function hasTable(string $name): bool
 	{
 		return isset($this->tables[$name]) || isset($this->tbl_full_name_map[$name]);
@@ -934,9 +922,6 @@ abstract class Db implements RDBMSInterface
 		return $this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getTableOrFail(string $name): Table
 	{
 		$this->assertHasTable($name);
@@ -948,9 +933,6 @@ abstract class Db implements RDBMSInterface
 		return $this->tables[$name];
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function assertHasTable(string $name): void
 	{
 		if (!$this->hasTable($name)) {
@@ -958,17 +940,11 @@ abstract class Db implements RDBMSInterface
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function ns(string $namespace): NamespaceBuilder
 	{
 		return $this->namespace($namespace);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function namespace(string $namespace): NamespaceBuilder
 	{
 		if (!isset($this->namespaces[$namespace])) {

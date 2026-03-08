@@ -90,17 +90,11 @@ class TypeJSON extends Type implements BaseTypeInterface
 		parent::__construct($this);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public static function getInstance(array $options): static
 	{
 		return (new self())->configure($options);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getName(): string
 	{
 		return self::NAME;
@@ -182,9 +176,6 @@ class TypeJSON extends Type implements BaseTypeInterface
 		return $this->getOption('native_json', false);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function configure(array $options): static
 	{
 		if (isset($options['json_of'])) {
@@ -328,9 +319,6 @@ class TypeJSON extends Type implements BaseTypeInterface
 		return $operators;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function queryBuilderApplyFilter(ORMTableQuery $qb, Column $column, Operator $operator, array $args): void
 	{
 		// TEXT-stored JSON: standard filter on the raw string column
@@ -464,9 +452,6 @@ class TypeJSON extends Type implements BaseTypeInterface
 		$method->newArgument('path')->setType('string');
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getEmptyValueOfType(): mixed
 	{
 		return $this->isNullable() ? null : 'null';

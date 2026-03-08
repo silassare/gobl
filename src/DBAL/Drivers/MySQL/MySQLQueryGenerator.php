@@ -65,9 +65,6 @@ class MySQLQueryGenerator extends SQLQueryGeneratorBase
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function wrapDatabaseDefinitionQuery(string $query): string
 	{
 		$charset = $this->config->getDbCharset();
@@ -121,9 +118,6 @@ SQL;
 		return parent::getForeignKeySQL($fk, $alter);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	protected function getLimitQuery(QBDelete|QBSelect|QBUpdate $qb): string
 	{
 		$ignore_offset = $qb instanceof QBUpdate || $qb instanceof QBDelete;
@@ -142,9 +136,6 @@ SQL;
 		return $sql;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	protected function getPrimaryKeyConstraintDeletedString(PrimaryKeyConstraintDeleted $action): string
 	{
 		$table_name = $action->getConstraint()
@@ -154,9 +145,6 @@ SQL;
 		return 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' DROP PRIMARY KEY;';
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	protected function getForeignKeyConstraintDeletedString(ForeignKeyConstraintDeleted $action): string
 	{
 		$constraint = $action->getConstraint();
@@ -168,9 +156,6 @@ SQL;
 		return 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' DROP FOREIGN KEY ' . $constraint_name . ';';
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	protected function getUniqueKeyConstraintDeletedString(UniqueKeyConstraintDeleted $action): string
 	{
 		$constraint = $action->getConstraint();
@@ -336,17 +321,11 @@ SQL;
 		return 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' CHANGE ' . $this->quoteIdentifier($new_column->getFullName()) . ' ' . $column_definition . ';';
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	protected function dbQueryTemplate(): string
 	{
 		return 'mysql_db';
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	protected function createTableQueryTemplate(): string
 	{
 		return 'mysql_create_table';

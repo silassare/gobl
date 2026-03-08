@@ -54,9 +54,6 @@ class TypeProviderDefault implements TypeProviderInterface
 		TypeEnum::NAME    => TypeEnum::class,
 	];
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getTypeInstance(string $name, array $options): ?TypeInterface
 	{
 		if (isset(self::$types[$name])) {
@@ -69,9 +66,6 @@ class TypeProviderDefault implements TypeProviderInterface
 		return null;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function hasType(string $name): bool
 	{
 		return isset(self::$types[$name]);

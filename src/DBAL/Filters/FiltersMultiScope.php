@@ -107,9 +107,6 @@ class FiltersMultiScope implements FiltersScopeInterface
 		]);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function tryResolveFieldNotation(FilterFieldNotation $fn, QBInterface $qb): void
 	{
 		foreach ($this->entries as $entry) {
