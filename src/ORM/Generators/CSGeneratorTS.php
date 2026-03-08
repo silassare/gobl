@@ -116,17 +116,36 @@ class CSGeneratorTS extends CSGenerator
 		$ts_types = [];
 
 		foreach ($types as $type) {
-			$ts_types[] = match ($type) {
-				ORMUniversalType::ARRAY                                                       => 'unknown[]',
-				ORMUniversalType::MAP                                                         => 'Record<string, unknown>',
-				ORMUniversalType::STRING, ORMUniversalType::DECIMAL, ORMUniversalType::BIGINT => 'string',
-				ORMUniversalType::FLOAT, ORMUniversalType::INT                                => 'number',
-				ORMUniversalType::BOOL                                                        => 'boolean',
-				ORMUniversalType::NULL                                                        => 'null',
-				ORMUniversalType::MIXED                                                       => 'any',
-			};
+			if (ORMUniversalType::LIST === $type) {
+				// list_of_class: TS can't import foreign PHP classes, fall back to unknown[].
+				$element    = null !== $type_hint->getListOfClass()
+					? 'unknown'
+					: $this->toUniversalTypeString($type_hint->getListOf());
+				$ts_types[] = $element . '[]';
+
+				continue;
+			}
+
+			$ts_types[] = $this->toUniversalTypeString($type);
 		}
 
 		return \implode('|', $ts_types);
+	}
+
+	/**
+	 * Maps a single ORMUniversalType to its TypeScript string representation.
+	 */
+	private function toUniversalTypeString(ORMUniversalType $type): string
+	{
+		return match ($type) {
+			ORMUniversalType::LIST                                                        => 'unknown[]',
+			ORMUniversalType::MAP                                                         => 'Record<string, unknown>',
+			ORMUniversalType::STRING, ORMUniversalType::DECIMAL, ORMUniversalType::BIGINT => 'string',
+			ORMUniversalType::FLOAT, ORMUniversalType::INT                                => 'number',
+			ORMUniversalType::BOOL                                                        => 'boolean',
+			ORMUniversalType::NULL                                                        => 'null',
+			ORMUniversalType::ANY                                                         => 'any',
+			ORMUniversalType::UNKNOWN                                                     => 'unknown',
+		};
 	}
 }

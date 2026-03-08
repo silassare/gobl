@@ -18,9 +18,12 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
+use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
 
 /**
  * Class TypeDate.
+ *
+ * @extends Type<mixed, null|string>
  */
 class TypeDate extends Type
 {
@@ -232,44 +235,7 @@ class TypeDate extends Type
 	 */
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
 	{
-		return $this->validate($value);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function validate(mixed $value): ?string
-	{
-		$debug = [
-			'value' => $value,
-		];
-
-		// if empty value and not (0 or 0.0)
-		if (empty($value) && !\is_numeric($value)) {
-			if ($this->isAuto()) {
-				return $this->now();
-			}
-
-			$value = $this->getDefault();
-
-			if (null === $value && $this->isNullable()) {
-				return null;
-			}
-		}
-
-		$value = self::toTimestamp($value);
-
-		if (null === $value) {
-			throw new TypesInvalidValueException('invalid_date_type', $debug);
-		}
-
-		try {
-			$value = $this->base_type->validate($value);
-		} catch (TypesInvalidValueException $e) {
-			throw new TypesInvalidValueException('invalid_date', $debug, $e);
-		}
-
-		return $value;
+		return $this->validate($value)->getCleanValue();
 	}
 
 	/**
@@ -314,6 +280,54 @@ class TypeDate extends Type
 	public function shouldEnforceDefaultValue(RDBMSInterface $rdbms): bool
 	{
 		return false;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws TypesInvalidValueException
+	 */
+	protected function runValidation(ValidationSubjectInterface $subject): void
+	{
+		$value = $subject->getUnsafeValue();
+		$debug = [
+			'value' => $value,
+		];
+
+		// if empty value and not (0 or 0.0)
+		if (empty($value) && !\is_numeric($value)) {
+			if ($this->isAuto()) {
+				$subject->accept($this->now());
+
+				return;
+			}
+
+			$value = $this->getDefault();
+
+			if (null === $value && $this->isNullable()) {
+				$subject->accept(null);
+
+				return;
+			}
+		}
+
+		$value = self::toTimestamp($value);
+
+		if (null === $value) {
+			$subject->reject($this->msg('invalid_date_type'), $debug);
+
+			return;
+		}
+
+		try {
+			$value = $this->base_type->validate($value)->getCleanValue();
+		} catch (TypesInvalidValueException $e) {
+			$subject->reject(new TypesInvalidValueException('invalid_date', $debug, $e));
+
+			return;
+		}
+
+		$subject->accept($value);
 	}
 
 	/**

@@ -15,6 +15,7 @@ namespace Gobl\ORM;
 
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
+use Gobl\DBAL\Types\Utils\JsonOfInterface;
 use OLIUP\CG\PHPType;
 
 /**
@@ -26,6 +27,12 @@ final class ORMTypeHint
 	 * @var array<string,ORMUniversalType> the universal types
 	 */
 	private array $universal_types = [];
+
+	/** Element type when this hint carries LIST — defaults to UNKNOWN. */
+	private ORMUniversalType $list_of = ORMUniversalType::UNKNOWN;
+
+	/** Revival class for typed list elements (implements JsonOfInterface). */
+	private ?string $list_of_class = null;
 
 	private ?PHPType $php_type = null;
 
@@ -74,7 +81,7 @@ final class ORMTypeHint
 			Operator::EQ, Operator::NEQ, Operator::LT, Operator::LTE, Operator::GT, Operator::GTE => $type->getWriteTypeHint(),
 			Operator::LIKE, Operator::NOT_LIKE                                                    => self::string(),
 			Operator::IS_NULL, Operator::IS_NOT_NULL                                              => self::null(),
-			Operator::IN, Operator::NOT_IN                                                        => self::array(),
+			Operator::IN, Operator::NOT_IN                                                        => self::list(),
 			Operator::IS_TRUE, Operator::IS_FALSE                                                 => self::bool(),
 			Operator::CONTAINS, Operator::HAS_KEY => self::string(),
 		};
@@ -101,13 +108,18 @@ final class ORMTypeHint
 	}
 
 	/**
-	 * Creates array type hint instance.
+	 * Creates list type hint instance.
+	 *
+	 * @param null|ORMUniversalType $of element type for the list (defaults to UNKNOWN)
 	 *
 	 * @return self
 	 */
-	public static function array(): self
+	public static function list(?ORMUniversalType $of = null): self
 	{
-		return new self(ORMUniversalType::ARRAY);
+		$hint          = new self(ORMUniversalType::LIST);
+		$hint->list_of = $of ?? ORMUniversalType::UNKNOWN;
+
+		return $hint;
 	}
 
 	/**
@@ -143,11 +155,33 @@ final class ORMTypeHint
 	/**
 	 * Creates mixed type hint instance.
 	 *
+	 * @deprecated use {@see self::any()} instead
+	 *
 	 * @return self
 	 */
 	public static function mixed(): self
 	{
-		return new self(ORMUniversalType::MIXED);
+		return self::any();
+	}
+
+	/**
+	 * Creates any type hint instance (permissive, disables type checking).
+	 *
+	 * @return self
+	 */
+	public static function any(): self
+	{
+		return new self(ORMUniversalType::ANY);
+	}
+
+	/**
+	 * Creates unknown type hint instance (safe unknown, forces narrowing in TS).
+	 *
+	 * @return self
+	 */
+	public static function unknown(): self
+	{
+		return new self(ORMUniversalType::UNKNOWN);
 	}
 
 	/**
@@ -178,6 +212,41 @@ final class ORMTypeHint
 	public static function map(): self
 	{
 		return new self(ORMUniversalType::MAP);
+	}
+
+	/**
+	 * Gets the element type for LIST hints.
+	 *
+	 * @return ORMUniversalType
+	 */
+	public function getListOf(): ORMUniversalType
+	{
+		return $this->list_of;
+	}
+
+	/**
+	 * Sets the revival class for typed LIST element hints.
+	 *
+	 * @param class-string<JsonOfInterface> $class
+	 *
+	 * @return $this
+	 */
+	public function setListOfClass(string $class): self
+	{
+		$this->list_of_class = $class;
+
+		return $this;
+	}
+
+	/**
+	 * Gets the revival class for LIST element hints, or null if not set.
+	 *
+	 * @return null|class-string<JsonOfInterface>
+	 */
+	public function getListOfClass(): ?string
+	{
+		/** @var null|class-string<JsonOfInterface> $v */
+		return $this->list_of_class;
 	}
 
 	/**

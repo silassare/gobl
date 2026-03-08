@@ -15,6 +15,7 @@ namespace Gobl\DBAL\Types\Interfaces;
 
 use Gobl\DBAL\Column;
 use Gobl\DBAL\Filters\Filter;
+use Gobl\DBAL\Interfaces\LockInterface;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Table;
@@ -27,8 +28,11 @@ use PHPUtils\Interfaces\ArrayCapableInterface;
 
 /**
  * Interface TypeInterface.
+ *
+ * @template TUnsafe
+ * @template TClean
  */
-interface TypeInterface extends ArrayCapableInterface
+interface TypeInterface extends ArrayCapableInterface, LockInterface
 {
 	/**
 	 * Gets type instance based on given options.
@@ -40,13 +44,6 @@ interface TypeInterface extends ArrayCapableInterface
 	 * @throws TypesException when options is invalid
 	 */
 	public static function getInstance(array $options): static;
-
-	/**
-	 * Locks the type to prevent further changes.
-	 *
-	 * @return $this
-	 */
-	public function lock(): static;
 
 	/**
 	 * @return BaseTypeInterface
@@ -125,15 +122,51 @@ interface TypeInterface extends ArrayCapableInterface
 	public function default(mixed $default): static;
 
 	/**
-	 * Called to validate a form field value.
+	 * Runs the full validation pipeline on an already-created subject.
 	 *
-	 * @param mixed $value the value to validate
+	 * The pipeline calls hooks in order:
+	 *  1. {@see TypeValidatorInterface::preValidate()} -- skipped when already terminal.
+	 *  2. {@see Type::runValidation()} -- skipped when already terminal.
+	 *  3. {@see TypeValidatorInterface::postValidate()} -- always runs.
 	 *
-	 * @return mixed the cleaned value to use
-	 *
-	 * @throws TypesInvalidValueException
+	 * Returns `true` when the subject ends up valid, `false` otherwise.
+	 * This method does NOT throw; inspect `$subject->getRejectionException()` for the cause.
+	 * For a throw-on-failure convenience see {@see validate()}.
 	 */
-	public function validate(mixed $value): mixed;
+	public function applyValidation(ValidationSubjectInterface $subject): bool;
+
+	/**
+	 * Creates a validation subject wrapping the given raw value.
+	 *
+	 * @param mixed  $value          the raw value to validate
+	 * @param string $reference      short reference for error messages (e.g. column short name)
+	 * @param string $referenceDebug verbose debug reference (e.g. column full name or FQCN)
+	 *
+	 * @return ValidationSubjectInterface<TUnsafe, TClean>
+	 */
+	public function createValidationSubject(mixed $value, string $reference = '', string $referenceDebug = ''): ValidationSubjectInterface;
+
+	/**
+	 * Validates `$value` through the full pipeline and returns the subject, or throws on failure.
+	 *
+	 * Internally creates a {@see ValidationSubjectInterface} via {@see createValidationSubject()},
+	 * runs {@see applyValidation()}, and re-throws the stored rejection exception
+	 * (a {@see TypesInvalidValueException}) on failure.
+	 *
+	 * If a {@see ValidationSubjectInterface} instance is passed as `$value`, it is used
+	 * directly (the `$reference` and `$referenceDebug` arguments are ignored in that case).
+	 *
+	 * Use `$subject->getCleanValue()` on the returned subject to read the clean value.
+	 *
+	 * @param mixed|ValidationSubjectInterface $value          the raw value to validate, or an existing subject
+	 * @param string                           $reference      short reference for error messages
+	 * @param string                           $referenceDebug verbose debug reference
+	 *
+	 * @return ValidationSubjectInterface<TUnsafe, TClean> the subject carrying the clean value
+	 *
+	 * @throws TypesInvalidValueException when validation fails
+	 */
+	public function validate(mixed $value, string $reference = '', string $referenceDebug = ''): ValidationSubjectInterface;
 
 	/**
 	 * Called to convert db value to php compatible value.

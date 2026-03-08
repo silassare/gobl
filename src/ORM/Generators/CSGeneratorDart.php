@@ -124,17 +124,35 @@ class CSGeneratorDart extends CSGenerator
 		$dart_types = [];
 
 		foreach ($types as $type) {
-			$dart_types[] = match ($type) {
-				ORMUniversalType::ARRAY => 'List',
-				ORMUniversalType::MAP   => 'Map',
-				ORMUniversalType::STRING, ORMUniversalType::DECIMAL, ORMUniversalType::BIGINT => 'String',
-				ORMUniversalType::FLOAT, ORMUniversalType::INT => 'num',
-				ORMUniversalType::BOOL  => 'bool',
-				ORMUniversalType::NULL  => 'null',
-				ORMUniversalType::MIXED => 'dynamic',
-			};
+			if (ORMUniversalType::LIST === $type) {
+				// list_of_class: Dart can't import foreign PHP classes, fall back to List<dynamic>.
+				$element      = null !== $type_hint->getListOfClass()
+					? 'dynamic'
+					: $this->toUniversalTypeString($type_hint->getListOf());
+				$dart_types[] = 'List<' . $element . '>';
+
+				continue;
+			}
+
+			$dart_types[] = $this->toUniversalTypeString($type);
 		}
 
 		return \implode('|', $dart_types);
+	}
+
+	/**
+	 * Maps a single ORMUniversalType to its Dart string representation.
+	 */
+	private function toUniversalTypeString(ORMUniversalType $type): string
+	{
+		return match ($type) {
+			ORMUniversalType::LIST                                                        => 'List<dynamic>',
+			ORMUniversalType::MAP                                                         => 'Map',
+			ORMUniversalType::STRING, ORMUniversalType::DECIMAL, ORMUniversalType::BIGINT => 'String',
+			ORMUniversalType::FLOAT, ORMUniversalType::INT                                => 'num',
+			ORMUniversalType::BOOL                                                        => 'bool',
+			ORMUniversalType::NULL                                                        => 'null',
+			ORMUniversalType::ANY, ORMUniversalType::UNKNOWN                              => 'dynamic',
+		};
 	}
 }

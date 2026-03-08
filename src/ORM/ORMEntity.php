@@ -21,6 +21,7 @@ use Gobl\DBAL\Operator;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
+use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
 use Gobl\Exceptions\GoblException;
 use Gobl\ORM\Exceptions\ORMException;
 use Gobl\ORM\Exceptions\ORMRuntimeException;
@@ -69,6 +70,9 @@ abstract class ORMEntity implements ArrayCapableInterface
 
 	/** @var array */
 	private array $_oeb_row_saved = [];
+
+	/** @var array<string, ValidationSubjectInterface> */
+	private array $_oeb_subjects = [];
 
 	/**
 	 * ORMEntity constructor.
@@ -528,23 +532,54 @@ abstract class ORMEntity implements ArrayCapableInterface
 		$full_name = $column->getFullName();
 		$type      = $column->getType();
 
-		if ($this->_oeb_row[$full_name] !== $value) {
-			try {
-				$value = $type->validate($value);
-			} catch (TypesInvalidValueException $e) {
-				$debug = \array_replace($e->getData(), [
+		// Fast path: caller provides an already-accepted ValidationSubjectInterface
+		if ($value instanceof ValidationSubjectInterface && $value->isValid()) {
+			$this->_oeb_subjects[$full_name] = $value;
+
+			return $value->getCleanValue();
+		}
+
+		// Extract raw value if wrapped in a non-accepted subject
+		$rawValue = $value instanceof ValidationSubjectInterface ? $value->getUnsafeValue() : $value;
+
+		// Check cached subject for same raw value (avoid re-validation when raw input is unchanged)
+		$cached = $this->_oeb_subjects[$full_name] ?? null;
+
+		if ($cached instanceof ValidationSubjectInterface && $cached->isValid()) {
+			$cached->setUnsafeValue($rawValue); // resets to UNCHECKED only if value changed
+
+			if ($cached->isValid()) {
+				return $cached->getCleanValue(); // same raw value, skip re-validation
+			}
+
+			$subject = $cached; // reuse the subject (now UNCHECKED, ready for re-validation)
+		} else {
+			$subject                         = $type->createValidationSubject($rawValue, $column->getName(), $full_name);
+			$this->_oeb_subjects[$full_name] = $subject;
+		}
+
+		if (!$type->applyValidation($subject)) {
+			$ex = $subject->getRejectionException();
+
+			if ($ex instanceof TypesInvalidValueException) {
+				$debug = \array_replace($ex->getData(), [
 					'field'       => $full_name,
 					'_table_name' => $this->_oeb_table->getName(),
 					'_options'    => $type->toArray(),
 				]);
 
-				$e->setData($debug);
+				$ex->setData($debug);
 
-				throw $e;
+				throw $ex;
 			}
+
+			throw new TypesInvalidValueException('Validation failed.', [
+				'field'       => $full_name,
+				'_table_name' => $this->_oeb_table->getName(),
+			]);
 		}
 
-		return $value;
+		return $subject->getCleanValue();
 	}
 
 	/**

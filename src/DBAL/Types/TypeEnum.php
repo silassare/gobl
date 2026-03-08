@@ -17,6 +17,7 @@ use BackedEnum;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
+use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
 use Gobl\ORM\ORMTypeHint;
 use OLIUP\CG\PHPEnum;
 use OLIUP\CG\PHPType;
@@ -24,6 +25,8 @@ use Throwable;
 
 /**
  * Class TypeEnum.
+ *
+ * @extends Type<mixed, null|BackedEnum>
  */
 class TypeEnum extends Type
 {
@@ -160,46 +163,7 @@ class TypeEnum extends Type
 	 */
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): int|string|null
 	{
-		return $this->validate($value)?->value;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @return null|BackedEnum
-	 *
-	 * @throws TypesInvalidValueException
-	 * @throws TypesException
-	 */
-	public function validate(mixed $value): ?BackedEnum
-	{
-		$debug = [
-			'value' => $value,
-		];
-
-		if (null === $value) {
-			$value = $this->getDefault();
-
-			if (null === $value && $this->isNullable()) {
-				return null;
-			}
-		}
-
-		$enum_cls = $this->getEnumClass();
-		if (\is_string($value) || \is_int($value)) {
-			try {
-				$value = $this->toEnumValue($value);
-			} catch (Throwable $t) {
-				throw new TypesInvalidValueException($this->msg('invalid_enum_value_type'), $debug, $t);
-			}
-		}
-
-		if ($value instanceof $enum_cls) {
-			/** @var BackedEnum $value */
-			return $value;
-		}
-
-		throw new TypesInvalidValueException($this->msg('invalid_enum_value_type'), $debug);
+		return $this->validate($value)->getCleanValue()?->value;
 	}
 
 	/**
@@ -219,6 +183,51 @@ class TypeEnum extends Type
 		}
 
 		return $cls;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws TypesInvalidValueException
+	 * @throws TypesException
+	 */
+	protected function runValidation(ValidationSubjectInterface $subject): void
+	{
+		$value = $subject->getUnsafeValue();
+		$debug = [
+			'value' => $value,
+		];
+
+		if (null === $value) {
+			$value = $this->getDefault();
+
+			if (null === $value && $this->isNullable()) {
+				$subject->accept(null);
+
+				return;
+			}
+		}
+
+		$enum_cls = $this->getEnumClass();
+
+		if (\is_string($value) || \is_int($value)) {
+			try {
+				$value = $this->toEnumValue($value);
+			} catch (Throwable $t) {
+				$subject->reject(new TypesInvalidValueException($this->msg('invalid_enum_value_type'), $debug, $t));
+
+				return;
+			}
+		}
+
+		if ($value instanceof $enum_cls) {
+			/** @var BackedEnum $value */
+			$subject->accept($value);
+
+			return;
+		}
+
+		$subject->reject($this->msg('invalid_enum_value_type'), $debug);
 	}
 
 	/**

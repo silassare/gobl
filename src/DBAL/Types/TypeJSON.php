@@ -17,8 +17,12 @@ use Gobl\DBAL\Column;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Table;
+use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
+use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
+use Gobl\DBAL\Types\Utils\JsonOfInterface;
+use Gobl\DBAL\Types\Utils\JsonPatch;
 use Gobl\ORM\ORMTableQuery;
 use Gobl\ORM\ORMTypeHint;
 use Gobl\ORM\ORMUniversalType;
@@ -34,14 +38,34 @@ use OLIUP\CG\PHPType;
  * the RDBMS does not support it.  TypeMap and TypeList use this as their base type
  * so that schema builders can opt-in to native JSON columns per-driver.
  *
+ * ## Why scalar values are rejected
+ *
+ * TypeJSON models a **JSON document** (object or array root), not an arbitrary JSON
+ * *value* (scalar). Although `"hello"`, `42`, and `true` are valid JSON in every
+ * RDBMS, storing a scalar via TypeJSON would produce a raw string like `'"hello"'`
+ * (with the extra JSON quotes) in `dbToPhp()` return value, which is confusing —
+ * use TypeString, TypeInt, or TypeBool for scalar columns instead.
+ *
+ * ## json_of option
+ *
+ * When `json_of` is set to a FQCN implementing {@see JsonOfInterface}, TypeJSON:
+ *  - accepts instances of that class directly in `validate()` (they are JSON-encoded);
+ *  - accepts plain arrays and passes them through `ClassName::revive($decoded)` to
+ *    produce the typed object before re-encoding;
+ *  - revives the stored JSON on `dbToPhp()` by calling `ClassName::revive($decoded)`
+ *    so the getter returns a typed object instead of a raw string;
+ *  - emits the correct PHP type hint in generated ORM classes.
+ *
  * Usage as a standalone column type:
  * ```php
  * $t->column('data', (new TypeJSON())->nativeJson());
+ * $t->column('meta', (new TypeJSON())->jsonOf(MyMeta::class));
  * ```
  *
  * Usage via the builder shorthand (when added to TableBuilder):
  * ```php
  * $t->json('data')->nativeJson();
+ * $t->json('meta')->jsonOf(MyMeta::class);
  * ```
  *
  * TypeMap/TypeList automatically use TypeJSON as their base; to enable the native
@@ -80,6 +104,45 @@ class TypeJSON extends Type implements BaseTypeInterface
 	public function getName(): string
 	{
 		return self::NAME;
+	}
+
+	/**
+	 * Binds a revival class to this JSON column.
+	 *
+	 * The class must implement {@see JsonOfInterface}.
+	 * On read, the stored JSON is decoded and passed to `ClassName::revive($decoded)`
+	 * so the ORM getter returns a typed object.
+	 * On write, instances of the class are JSON-encoded directly; plain arrays are
+	 * first revived then encoded.
+	 *
+	 * @param class-string<JsonOfInterface> $class
+	 *
+	 * @return $this
+	 */
+	public function jsonOf(string $class): static
+	{
+		if (!\is_a($class, JsonOfInterface::class, true)) {
+			throw new InvalidArgumentException(
+				\sprintf(
+					'json_of class "%s" must implement %s.',
+					$class,
+					JsonOfInterface::class
+				)
+			);
+		}
+
+		return $this->setOption('json_of', $class);
+	}
+
+	/**
+	 * Returns the revival class name set via {@see jsonOf()}, or null if none.
+	 *
+	 * @return null|class-string<JsonOfInterface>
+	 */
+	public function getJsonOf(): ?string
+	{
+		/** @var null|class-string<JsonOfInterface> $v */
+		return $this->getOption('json_of');
 	}
 
 	/**
@@ -124,6 +187,10 @@ class TypeJSON extends Type implements BaseTypeInterface
 	 */
 	public function configure(array $options): static
 	{
+		if (isset($options['json_of'])) {
+			$this->jsonOf((string) $options['json_of']);
+		}
+
 		if (isset($options['native_json'])) {
 			$this->nativeJson((bool) $options['native_json']);
 		}
@@ -132,32 +199,86 @@ class TypeJSON extends Type implements BaseTypeInterface
 			$this->big((bool) $options['big']);
 		}
 
+		if (isset($options['json_data_type'])) {
+			$this->jsonDataType((string) $options['json_data_type']);
+		}
+
 		return parent::configure($options);
+	}
+
+	/**
+	 * Restricts the kind of JSON document stored in this column.
+	 *
+	 * Accepted values:
+	 *  - `'any'`    -- any JSON object or array (default)
+	 *  - `'array'`  -- only a JSON array (sequential PHP array)
+	 *  - `'object'` -- only a JSON object (associative PHP array or object)
+	 *
+	 * This option has no effect when {@see jsonOf()} is also set (the revival class
+	 * defines its own structure contract).
+	 *
+	 * @param string $type one of 'any', 'array', 'object'
+	 *
+	 * @return $this
+	 *
+	 * @throws TypesException when an unknown type value is supplied
+	 */
+	public function jsonDataType(string $type): static
+	{
+		if (!\in_array($type, ['any', 'array', 'object'], true)) {
+			throw new TypesException(\sprintf(
+				'json_data_type must be "any", "array", or "object", got "%s".',
+				$type
+			));
+		}
+
+		return $this->setOption('json_data_type', $type);
+	}
+
+	/**
+	 * Returns the configured json_data_type, defaulting to `'any'`.
+	 */
+	public function getJsonDataType(): string
+	{
+		return $this->getOption('json_data_type', 'any');
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * Only accepts array, object, or null. Scalar values (string, int, float, bool) are rejected.
-	 * When used as base type for TypeMap/TypeList, validation is handled by the wrapper type.
+	 * When `json_of` is set, decodes the stored JSON and revives it via the configured class.
+	 * Otherwise returns the raw JSON string.
+	 */
+	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): mixed
+	{
+		if (null === $value) {
+			return null;
+		}
+
+		$json_of = $this->getJsonOf();
+
+		if (null !== $json_of) {
+			$decoded = \json_decode((string) $value, true);
+
+			return $json_of::revive($decoded);
+		}
+
+		return (string) $value;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * Validates the value first then JSON-encodes it for DB storage.
 	 *
 	 * @throws TypesInvalidValueException
 	 */
-	public function validate(mixed $value): ?string
+	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
 	{
+		$value = $this->validate($value)->getCleanValue();
+
 		if (null === $value) {
-			$def = $this->getDefault();
-
-			if (null !== $def) {
-				$value = $def;
-			} elseif ($this->isNullable()) {
-				return null;
-			}
-		}
-
-		// Only arrays and objects are accepted.
-		if (!\is_array($value) && !\is_object($value)) {
-			throw new TypesInvalidValueException($this->msg('invalid_json_type'), ['value' => $value]);
+			return null;
 		}
 
 		$encoded = \json_encode($value);
@@ -169,22 +290,6 @@ class TypeJSON extends Type implements BaseTypeInterface
 		}
 
 		return $encoded;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?string
-	{
-		return null === $value ? null : (string) $value;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
-	{
-		return $this->validate($value);
 	}
 
 	/**
@@ -369,18 +474,42 @@ class TypeJSON extends Type implements BaseTypeInterface
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * When `json_of` is set, returns a PHP-typed hint for the revival class.
+	 * Otherwise returns a string hint (raw JSON text).
 	 */
 	public function getReadTypeHint(): ORMTypeHint
 	{
+		$json_of = $this->getJsonOf();
+
+		if (null !== $json_of) {
+			$hint = ORMTypeHint::unknown();
+			$hint->setPHPType(new PHPType('\\' . $json_of));
+
+			return $hint;
+		}
+
 		return ORMTypeHint::string();
 	}
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * When `json_of` is set, accepts instances of the revival class or plain arrays.
+	 * Otherwise accepts any JSON-serializable value (UNKNOWN|LIST|MAP).
 	 */
 	public function getWriteTypeHint(): ORMTypeHint
 	{
-		return ORMTypeHint::mixed()->addUniversalTypes(ORMUniversalType::ARRAY, ORMUniversalType::MAP);
+		$json_of = $this->getJsonOf();
+
+		if (null !== $json_of) {
+			$hint = ORMTypeHint::unknown();
+			$hint->setPHPType(new PHPType('\\' . $json_of, 'array'));
+
+			return $hint;
+		}
+
+		return ORMTypeHint::unknown()->addUniversalTypes(ORMUniversalType::LIST, ORMUniversalType::MAP);
 	}
 
 	/**
@@ -403,5 +532,89 @@ class TypeJSON extends Type implements BaseTypeInterface
 		}
 
 		return \json_encode($value, \JSON_THROW_ON_ERROR);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * Accepts array, object, {@see JsonPatch}, or (when `json_of` is set) instances of
+	 * the configured revival class. Scalar values are always rejected -- use TypeString,
+	 * TypeInt, or TypeBool for scalar columns.
+	 * When used as base type for TypeMap/TypeList, validation is handled by the wrapper type.
+	 * A {@see JsonPatch} instance is coerced to its underlying array before being returned.
+	 * When `json_of` is set and the value is an array, it is revived via `ClassName::revive($value)`
+	 * so the returned value is always the typed object.
+	 *
+	 * @throws TypesInvalidValueException
+	 */
+	protected function runValidation(ValidationSubjectInterface $subject): void
+	{
+		$value = $subject->getUnsafeValue();
+
+		if ($value instanceof JsonPatch) {
+			$value = $value->toArray();
+		}
+
+		$json_of = $this->getJsonOf();
+
+		if (null === $value) {
+			$def = $this->getDefault();
+
+			if (null !== $def) {
+				$value = $def;
+			} elseif ($this->isNullable()) {
+				$subject->accept(null);
+
+				return;
+			}
+		}
+
+		// When json_of is set: accept instances directly, revive plain arrays.
+		if (null !== $json_of) {
+			if (\is_array($value)) {
+				$subject->accept($json_of::revive($value));
+
+				return;
+			}
+
+			if (!$value instanceof $json_of) {
+				$subject->reject($this->msg('invalid_json_type'), ['value' => $value]);
+
+				return;
+			}
+
+			$subject->accept($value);
+
+			return;
+		}
+
+		// Without json_of: only arrays and objects are accepted.
+		if (!\is_array($value) && !\is_object($value)) {
+			$subject->reject($this->msg('invalid_json_type'), ['value' => $value]);
+
+			return;
+		}
+
+		// json_data_type enforcement (only when json_of is not set)
+		$json_data_type = $this->getJsonDataType();
+
+		if ('array' === $json_data_type) {
+			if (!\is_array($value) || !\array_is_list($value)) {
+				$subject->reject($this->msg('invalid_json_array_type'), ['value' => $value]);
+
+				return;
+			}
+		} elseif ('object' === $json_data_type) {
+			$is_assoc_array = \is_array($value) && !\array_is_list($value);
+			$is_obj         = \is_object($value);
+
+			if (!$is_assoc_array && !$is_obj) {
+				$subject->reject($this->msg('invalid_json_object_type'), ['value' => $value]);
+
+				return;
+			}
+		}
+
+		$subject->accept($value);
 	}
 }

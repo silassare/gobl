@@ -17,10 +17,13 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
+use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
 use Gobl\ORM\ORMTypeHint;
 
 /**
  * Class TypeBool.
+ *
+ * @extends Type<mixed, null|bool>
  */
 class TypeBool extends Type implements BaseTypeInterface
 {
@@ -85,42 +88,6 @@ class TypeBool extends Type implements BaseTypeInterface
 	public function getName(): string
 	{
 		return self::NAME;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @return null|bool
-	 *
-	 * @throws TypesInvalidValueException
-	 */
-	public function validate(mixed $value): ?bool
-	{
-		$debug = [
-			'value' => $value,
-		];
-
-		if (null === $value) {
-			$value = $this->getDefault();
-
-			if (null === $value && $this->isNullable()) {
-				return null;
-			}
-		}
-
-		if (true === $value || false === $value || 1 === $value || 0 === $value) {
-			return (bool) $value;
-		}
-
-		if (\is_string($value) && !$this->isStrict()) {
-			$value = \strtolower($value);
-
-			if (isset(self::$map_extended[$value])) {
-				return self::$map_extended[$value];
-			}
-		}
-
-		throw new TypesInvalidValueException($this->msg('invalid_bool_type'), $debug);
 	}
 
 	/**
@@ -202,7 +169,7 @@ class TypeBool extends Type implements BaseTypeInterface
 	 */
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?int
 	{
-		$value = $this->validate($value);
+		$value = $this->validate($value)->getCleanValue();
 
 		if (null === $value) {
 			return null;
@@ -219,5 +186,46 @@ class TypeBool extends Type implements BaseTypeInterface
 	public function isStrict(): bool
 	{
 		return (bool) $this->getOption('strict', true);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws TypesInvalidValueException
+	 */
+	protected function runValidation(ValidationSubjectInterface $subject): void
+	{
+		$value = $subject->getUnsafeValue();
+		$debug = [
+			'value' => $value,
+		];
+
+		if (null === $value) {
+			$value = $this->getDefault();
+
+			if (null === $value && $this->isNullable()) {
+				$subject->accept(null);
+
+				return;
+			}
+		}
+
+		if (true === $value || false === $value || 1 === $value || 0 === $value) {
+			$subject->accept((bool) $value);
+
+			return;
+		}
+
+		if (\is_string($value) && !$this->isStrict()) {
+			$value = \strtolower($value);
+
+			if (isset(self::$map_extended[$value])) {
+				$subject->accept(self::$map_extended[$value]);
+
+				return;
+			}
+		}
+
+		$subject->reject($this->msg('invalid_bool_type'), $debug);
 	}
 }

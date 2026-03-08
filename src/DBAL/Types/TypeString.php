@@ -17,10 +17,13 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
+use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
 use Gobl\ORM\ORMTypeHint;
 
 /**
  * Class TypeString.
+ *
+ * @extends Type<mixed, null|string>
  */
 class TypeString extends Type implements BaseTypeInterface
 {
@@ -158,76 +161,6 @@ class TypeString extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @return null|string
-	 *
-	 * @throws TypesInvalidValueException
-	 */
-	public function validate(mixed $value): ?string
-	{
-		$debug = [
-			'value' => $value,
-		];
-
-		if (\is_numeric($value)) { // accept numeric value
-			$value = (string) $value;
-		}
-
-		if (null === $value || '' === $value) {
-			$def = $this->getDefault();
-
-			if (null !== $def) {
-				$value = $def;
-			} elseif ($this->isNullable()) {
-				return null;
-			}
-		}
-
-		if (!\is_string($value)) {
-			throw new TypesInvalidValueException($this->msg('invalid_string_type'), $debug);
-		}
-
-		if (false === $this->getOption('multiline')) {
-			$value = \preg_replace('~\s+~', ' ', $value);
-		}
-
-		if (true === $this->getOption('trim')) {
-			$value = \trim($value);
-		}
-
-		$min = $this->getOption('min');
-
-		if (null !== $min && \strlen($value) < $min) {
-			throw new TypesInvalidValueException($this->msg('string_length_must_be_gt_or_equal_to_min'), $debug);
-		}
-
-		$max = $this->getOption('max');
-
-		if (null !== $max && \strlen($value) > $max) {
-			if (!$this->canTruncate()) {
-				throw new TypesInvalidValueException($this->msg('string_length_must_be_lt_or_equal_to_max'), $debug);
-			}
-
-			$value = \substr($value, 0, $max);
-		}
-
-		$pattern = $this->getOption('pattern');
-
-		if (null !== $pattern && !\preg_match($pattern, $value)) {
-			throw new TypesInvalidValueException($this->msg('string_pattern_check_fails'), $debug);
-		}
-
-		$one_of = $this->getOption('one_of');
-
-		if (!empty($one_of) && !\in_array($value, $one_of, true)) {
-			throw new TypesInvalidValueException($this->msg('string_not_in_allowed_list'), $debug);
-		}
-
-		return $value;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws TypesException
 	 */
 	public function configure(array $options): static
@@ -310,7 +243,7 @@ class TypeString extends Type implements BaseTypeInterface
 	 */
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
 	{
-		return $this->validate($value);
+		return $this->validate($value)->getCleanValue();
 	}
 
 	/**
@@ -399,5 +332,86 @@ class TypeString extends Type implements BaseTypeInterface
 	public function oneLine(bool $one_line = true): static
 	{
 		return $this->multiline(!$one_line);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws TypesInvalidValueException
+	 */
+	protected function runValidation(ValidationSubjectInterface $subject): void
+	{
+		$value = $subject->getUnsafeValue();
+		$debug = [
+			'value' => $value,
+		];
+
+		if (\is_numeric($value)) { // accept numeric value
+			$value = (string) $value;
+		}
+
+		if (null === $value || '' === $value) {
+			$def = $this->getDefault();
+
+			if (null !== $def) {
+				$value = $def;
+			} elseif ($this->isNullable()) {
+				$subject->accept(null);
+
+				return;
+			}
+		}
+
+		if (!\is_string($value)) {
+			$subject->reject($this->msg('invalid_string_type'), $debug);
+
+			return;
+		}
+
+		if (false === $this->getOption('multiline')) {
+			$value = \preg_replace('~\s+~', ' ', $value);
+		}
+
+		if (true === $this->getOption('trim')) {
+			$value = \trim($value);
+		}
+
+		$min = $this->getOption('min');
+
+		if (null !== $min && \strlen($value) < $min) {
+			$subject->reject($this->msg('string_length_must_be_gt_or_equal_to_min'), $debug);
+
+			return;
+		}
+
+		$max = $this->getOption('max');
+
+		if (null !== $max && \strlen($value) > $max) {
+			if (!$this->canTruncate()) {
+				$subject->reject($this->msg('string_length_must_be_lt_or_equal_to_max'), $debug);
+
+				return;
+			}
+
+			$value = \substr($value, 0, $max);
+		}
+
+		$pattern = $this->getOption('pattern');
+
+		if (null !== $pattern && !\preg_match($pattern, $value)) {
+			$subject->reject($this->msg('string_pattern_check_fails'), $debug);
+
+			return;
+		}
+
+		$one_of = $this->getOption('one_of');
+
+		if (!empty($one_of) && !\in_array($value, $one_of, true)) {
+			$subject->reject($this->msg('string_not_in_allowed_list'), $debug);
+
+			return;
+		}
+
+		$subject->accept($value);
 	}
 }

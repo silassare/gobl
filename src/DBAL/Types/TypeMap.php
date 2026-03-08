@@ -17,14 +17,18 @@ use Gobl\DBAL\Column;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
+use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
+use Gobl\DBAL\Types\Utils\JsonPatch;
 use Gobl\DBAL\Types\Utils\Map;
 use Gobl\ORM\ORMTableQuery;
 use Gobl\ORM\ORMTypeHint;
-use Gobl\ORM\ORMUniversalType;
 use JsonException;
+use OLIUP\CG\PHPType;
 
 /**
  * Class TypeMap.
+ *
+ * @extends Type<mixed, null|array<string, mixed>>
  */
 class TypeMap extends Type
 {
@@ -39,7 +43,10 @@ class TypeMap extends Type
 	{
 		!empty($message) && $this->msg('invalid_map_type', $message);
 
-		parent::__construct(new TypeJSON());
+		$base = new TypeJSON();
+		$base->jsonDataType('object'); // enforce JSON object semantics on the base type for schema reflection
+
+		parent::__construct($base);
 	}
 
 	/**
@@ -155,10 +162,16 @@ class TypeMap extends Type
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * Accepts {@see Map}, array, or {@see JsonPatch}.
+	 * A {@see JsonPatch} instance is coerced to a {@see Map} inside {@see validate()}.
 	 */
 	public function getWriteTypeHint(): ORMTypeHint
 	{
-		return ORMTypeHint::map()->addUniversalTypes(ORMUniversalType::ARRAY);
+		$hint = ORMTypeHint::map();
+		$hint->setPHPType(new PHPType('\\' . Map::class, 'array', '\\' . JsonPatch::class));
+
+		return $hint;
 	}
 
 	/**
@@ -169,40 +182,13 @@ class TypeMap extends Type
 	 */
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
 	{
-		$value = $this->validate($value);
+		$value = $this->validate($value)->getCleanValue();
 
 		if (null === $value) {
 			return null;
 		}
 
 		return \json_encode($value, \JSON_THROW_ON_ERROR);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function validate(mixed $value): ?Map
-	{
-		$debug = [
-			'value' => $value,
-		];
-
-		if (null === $value) {
-			$value = $this->getDefault();
-
-			if (null === $value && $this->isNullable()) {
-				return null;
-			}
-		}
-
-		try {
-			// this checks if we can serialize to JSON
-			\json_encode($value, \JSON_THROW_ON_ERROR);
-		} catch (JsonException $e) {
-			throw new TypesInvalidValueException($this->msg('unable_to_serialize_map_value'), $debug, $e);
-		}
-
-		return $this->ensureMap($value);
 	}
 
 	/**
@@ -219,6 +205,49 @@ class TypeMap extends Type
 		}
 
 		return $this->ensureMap($default);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws TypesInvalidValueException
+	 */
+	protected function runValidation(ValidationSubjectInterface $subject): void
+	{
+		$value = $subject->getUnsafeValue();
+
+		if ($value instanceof JsonPatch) {
+			$value = $value->toMap();
+		}
+
+		$debug = [
+			'value' => $value,
+		];
+
+		if (null === $value) {
+			$value = $this->getDefault();
+
+			if (null === $value && $this->isNullable()) {
+				$subject->accept(null);
+
+				return;
+			}
+		}
+
+		try {
+			// this checks if we can serialize to JSON
+			\json_encode($value, \JSON_THROW_ON_ERROR);
+		} catch (JsonException $e) {
+			$subject->reject(new TypesInvalidValueException($this->msg('unable_to_serialize_map_value'), $debug, $e));
+
+			return;
+		}
+
+		try {
+			$subject->accept($this->ensureMap($value));
+		} catch (TypesInvalidValueException $e) {
+			$subject->reject($e);
+		}
 	}
 
 	/**

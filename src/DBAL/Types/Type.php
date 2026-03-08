@@ -19,21 +19,33 @@ use Gobl\DBAL\Filters\Filter;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Table;
+use Gobl\DBAL\Traits\LockTrait;
 use Gobl\DBAL\Types\Exceptions\TypesException;
+use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
+use Gobl\DBAL\Types\Interfaces\TypeValidatorInterface;
+use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
 use Gobl\DBAL\Types\Utils\TypeUtils;
+use Gobl\DBAL\Types\Validation\ValidationSubject;
 use Gobl\ORM\ORMTableQuery;
 use Gobl\ORM\ORMTypeHint;
 use OLIUP\CG\PHPMethod;
 use PHPUtils\Traits\ArrayCapableTrait;
+use Throwable;
 
 /**
  * Class Type.
+ *
+ * @template TUnsafe
+ * @template TClean
+ *
+ * @implements TypeInterface<TUnsafe, TClean>
  */
 abstract class Type implements TypeInterface
 {
 	use ArrayCapableTrait;
+	use LockTrait;
 
 	protected BaseTypeInterface $base_type;
 
@@ -41,7 +53,9 @@ abstract class Type implements TypeInterface
 
 	protected array $error_messages = [];
 
-	protected bool $locked = false;
+	private ?TypeValidatorInterface $_type_pre_validator = null;
+
+	private ?TypeValidatorInterface $_type_post_validator = null;
 
 	/**
 	 * Type constructor.
@@ -101,6 +115,14 @@ abstract class Type implements TypeInterface
 
 		if (\array_key_exists('default', $options)) {
 			$this->default($options['default']);
+		}
+
+		if (isset($options['validator:pre'])) {
+			$this->preValidator((string) $options['validator:pre']);
+		}
+
+		if (isset($options['validator:post'])) {
+			$this->postValidator((string) $options['validator:post']);
 		}
 
 		return $this;
@@ -268,6 +290,22 @@ abstract class Type implements TypeInterface
 	 */
 	public function lock(): static
 	{
+		if ($this->locked) {
+			return $this;
+		}
+
+		if ($this->hasDefault()) {
+			try {
+				$this->validate($this->getDefault());
+			} catch (Throwable $e) {
+				throw new DBALRuntimeException(
+					\sprintf('Default value for type "%s" failed validation.', $this->getName()),
+					null,
+					$e
+				);
+			}
+		}
+
 		$this->locked = true;
 
 		return $this;
@@ -287,6 +325,133 @@ abstract class Type implements TypeInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	final public function applyValidation(ValidationSubjectInterface $subject): bool
+	{
+		// Pre-validator: skip when already terminal
+		if (!$subject->isTerminal()) {
+			$pre = $this->getPreValidator();
+
+			if (null !== $pre) {
+				$pre->preValidate($subject);
+			}
+		}
+
+		// Core type validation: skip when already terminal
+		if (!$subject->isTerminal()) {
+			try {
+				$this->runValidation($subject);
+			} catch (TypesInvalidValueException $e) {
+				$subject->reject($e);
+			}
+		}
+
+		// Post-validator: always runs
+		$post = $this->getPostValidator();
+
+		if (null !== $post) {
+			$post->postValidate($subject);
+		}
+
+		return $subject->isValid();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function createValidationSubject(mixed $value, string $reference = '', string $referenceDebug = ''): ValidationSubjectInterface
+	{
+		return new ValidationSubject($value, $reference, $referenceDebug);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function validate(mixed $value, string $reference = '', string $referenceDebug = ''): ValidationSubjectInterface
+	{
+		if ($value instanceof ValidationSubjectInterface) {
+			$subject = $value;
+		} else {
+			$subject = $this->createValidationSubject($value, $reference, $referenceDebug);
+		}
+
+		if (!$this->applyValidation($subject)) {
+			$ex = $subject->getRejectionException();
+
+			throw $ex ?? new TypesInvalidValueException(
+				\sprintf('Validation failed for type "%s".', $this->getName())
+			);
+		}
+
+		return $subject;
+	}
+
+	/**
+	 * Attaches a pre-validator to run before this type's own {@see runValidation()}.
+	 *
+	 * @param string|TypeValidatorInterface $validator a validator instance or its FQCN
+	 *
+	 * @return $this
+	 *
+	 * @throws TypesException when a FQCN is given that does not implement TypeValidatorInterface
+	 */
+	public function preValidator(string|TypeValidatorInterface $validator): static
+	{
+		$this->assertNotLocked();
+
+		if ($validator instanceof TypeValidatorInterface) {
+			$this->_type_pre_validator      = $validator;
+			$this->options['validator:pre'] = $validator::class;
+		} else {
+			if (!\is_a($validator, TypeValidatorInterface::class, true)) {
+				throw new TypesException(\sprintf(
+					'validator:pre class "%s" must implement %s.',
+					$validator,
+					TypeValidatorInterface::class
+				));
+			}
+
+			$this->options['validator:pre'] = $validator;
+			$this->_type_pre_validator      = null; // lazy instantiation
+		}
+
+		return $this;
+	}
+
+	/**
+	 * Attaches a post-validator to run after this type's own {@see runValidation()}.
+	 *
+	 * @param string|TypeValidatorInterface $validator a validator instance or its FQCN
+	 *
+	 * @return $this
+	 *
+	 * @throws TypesException when a FQCN is given that does not implement TypeValidatorInterface
+	 */
+	public function postValidator(string|TypeValidatorInterface $validator): static
+	{
+		$this->assertNotLocked();
+
+		if ($validator instanceof TypeValidatorInterface) {
+			$this->_type_post_validator      = $validator;
+			$this->options['validator:post'] = $validator::class;
+		} else {
+			if (!\is_a($validator, TypeValidatorInterface::class, true)) {
+				throw new TypesException(\sprintf(
+					'validator:post class "%s" must implement %s.',
+					$validator,
+					TypeValidatorInterface::class
+				));
+			}
+
+			$this->options['validator:post'] = $validator;
+			$this->_type_post_validator      = null; // lazy instantiation
+		}
+
+		return $this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): float|int|string|null
 	{
 		return $this->safelyCallOnBaseType(__FUNCTION__, [$value, $rdbms]);
@@ -297,9 +462,7 @@ abstract class Type implements TypeInterface
 	 */
 	final public function setOption(string $key, mixed $value): static
 	{
-		if ($this->locked) {
-			throw new DBALRuntimeException('Locked type cannot be modified.');
-		}
+		$this->assertNotLocked();
 
 		$this->options[$key] = $value;
 
@@ -331,6 +494,49 @@ abstract class Type implements TypeInterface
 		$opt['type'] = $this->getName();
 
 		return $opt;
+	}
+
+	/**
+	 * The core validation logic for this type.
+	 *
+	 * Called from {@see validate()} after the pre-validator and before the post-validator,
+	 * both of which are skipped when the subject is already terminal.
+	 * Call `$subject->accept($cleanValue)` on success, or `$subject->reject($reason)` on failure.
+	 * May also throw {@see TypesInvalidValueException}; it is caught and forwarded to
+	 * `$subject->reject()` automatically.
+	 */
+	abstract protected function runValidation(ValidationSubjectInterface $subject): void;
+
+	/**
+	 * Returns the pre-validator, instantiating from class name when set via options.
+	 */
+	protected function getPreValidator(): ?TypeValidatorInterface
+	{
+		if (null === $this->_type_pre_validator) {
+			$class = $this->getOption('validator:pre');
+
+			if (null !== $class) {
+				$this->_type_pre_validator = new $class();
+			}
+		}
+
+		return $this->_type_pre_validator;
+	}
+
+	/**
+	 * Returns the post-validator, instantiating from class name when set via options.
+	 */
+	protected function getPostValidator(): ?TypeValidatorInterface
+	{
+		if (null === $this->_type_post_validator) {
+			$class = $this->getOption('validator:post');
+
+			if (null !== $class) {
+				$this->_type_post_validator = new $class();
+			}
+		}
+
+		return $this->_type_post_validator;
 	}
 
 	/**

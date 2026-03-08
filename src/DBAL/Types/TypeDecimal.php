@@ -17,11 +17,14 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
+use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
 use Gobl\ORM\ORMTypeHint;
 use Gobl\ORM\ORMUniversalType;
 
 /**
  * Class TypeDecimal.
+ *
+ * @extends Type<mixed, null|string>
  */
 class TypeDecimal extends Type implements BaseTypeInterface
 {
@@ -260,18 +263,17 @@ class TypeDecimal extends Type implements BaseTypeInterface
 	 */
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
 	{
-		return $this->validate($value);
+		return $this->validate($value)->getCleanValue();
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @return null|string
-	 *
 	 * @throws TypesInvalidValueException
 	 */
-	public function validate(mixed $value): ?string
+	protected function runValidation(ValidationSubjectInterface $subject): void
 	{
+		$value = $subject->getUnsafeValue();
 		$debug = [
 			'value' => $value,
 		];
@@ -280,29 +282,40 @@ class TypeDecimal extends Type implements BaseTypeInterface
 			$value = $this->getDefault();
 
 			if (null === $value && $this->isNullable()) {
-				return null;
+				$subject->accept(null);
+
+				return;
 			}
 		}
 
 		if (!\is_numeric($value) && !\is_float($value) && !\is_int($value)) {
-			throw new TypesInvalidValueException($this->msg('invalid_decimal_type'), $debug);
+			$subject->reject($this->msg('invalid_decimal_type'), $debug);
+
+			return;
 		}
 
 		if (0 > $value && $this->isUnsigned()) {
-			throw new TypesInvalidValueException($this->msg('invalid_unsigned_decimal_type'), $debug);
+			$subject->reject($this->msg('invalid_unsigned_decimal_type'), $debug);
+
+			return;
 		}
 
 		$min = $this->getOption('min');
 
 		if (null !== $min && !self::isLt($min, $value, true)) {
-			throw new TypesInvalidValueException($this->msg('decimal_value_must_be_gt_or_equal_to_min'), $debug);
+			$subject->reject($this->msg('decimal_value_must_be_gt_or_equal_to_min'), $debug);
+
+			return;
 		}
+
 		$max = $this->getOption('max');
 
 		if (null !== $max && !self::isLt($value, $max, true)) {
-			throw new TypesInvalidValueException($this->msg('decimal_value_must_be_lt_or_equal_to_max'), $debug);
+			$subject->reject($this->msg('decimal_value_must_be_lt_or_equal_to_max'), $debug);
+
+			return;
 		}
 
-		return (string) $value;
+		$subject->accept((string) $value);
 	}
 }

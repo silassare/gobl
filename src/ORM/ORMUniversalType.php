@@ -20,7 +20,7 @@ namespace Gobl\ORM;
  */
 enum ORMUniversalType: string
 {
-	case ARRAY = 'ARRAY';
+	case LIST = 'LIST';
 
 	case MAP = 'MAP';
 
@@ -38,5 +38,16 @@ enum ORMUniversalType: string
 
 	case NULL = 'NULL';
 
-	case MIXED = 'MIXED';
+	/**
+	 * Permissive — accepted as-is, disables type checking downstream.
+	 * Maps to: PHP `mixed`, TS `any`, Dart `dynamic`.
+	 */
+	case ANY = 'ANY';
+
+	/**
+	 * Safe unknown — value exists but its shape is not known.
+	 * Maps to: PHP `mixed`, TS `unknown`, Dart `dynamic`.
+	 * Use as the default `list_of` element type and for TypeJSON write hints.
+	 */
+	case UNKNOWN = 'UNKNOWN';
 }

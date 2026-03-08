@@ -17,10 +17,13 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
+use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
 use Gobl\ORM\ORMTypeHint;
 
 /**
  * Class TypeInt.
+ *
+ * @extends Type<mixed, null|int>
  */
 class TypeInt extends Type implements BaseTypeInterface
 {
@@ -153,78 +156,6 @@ class TypeInt extends Type implements BaseTypeInterface
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @return null|int
-	 *
-	 * @throws TypesInvalidValueException
-	 */
-	public function validate(mixed $value): ?int
-	{
-		$debug = [
-			'value' => $value,
-		];
-
-		if (null === $value) {
-			if ($this->isAutoIncremented()) {
-				return null;
-			}
-
-			$value = $this->getDefault();
-
-			if (null === $value && $this->isNullable()) {
-				return null;
-			}
-		}
-
-		if (!\is_numeric($value)) {
-			throw new TypesInvalidValueException($this->msg('invalid_int_type'), $debug);
-		}
-
-		$value += 0;
-
-		if (!\is_int($value)) {
-			throw new TypesInvalidValueException($this->msg('invalid_int_type'), $debug);
-		}
-
-		if (0 > $value && $this->isUnsigned()) {
-			throw new TypesInvalidValueException($this->msg('invalid_unsigned_int_type'), $debug);
-		}
-
-		$min = $this->getOption('min');
-
-		if (null !== $min && $value < $min) {
-			throw new TypesInvalidValueException($this->msg('int_value_must_be_gt_or_equal_to_min'), $debug);
-		}
-
-		$max = $this->getOption('max');
-
-		if (null !== $max && ($value > $max)) {
-			throw new TypesInvalidValueException($this->msg('int_value_must_be_lt_or_equal_to_max'), $debug);
-		}
-
-		if ($value < ($this->isUnsigned() ? self::INT_UNSIGNED_MIN : self::INT_SIGNED_MIN)) {
-			throw new TypesInvalidValueException(
-				$this->msg(
-					'int_value_must_be_gt_or_equal_to_allowed_int_min'
-				),
-				$debug
-			);
-		}
-
-		if ($value > ($this->isUnsigned() ? self::INT_UNSIGNED_MAX : self::INT_SIGNED_MAX)) {
-			throw new TypesInvalidValueException(
-				$this->msg(
-					'int_value_must_be_lt_or_equal_to_allowed_int_max'
-				),
-				$debug
-			);
-		}
-
-		return $value;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws TypesException
 	 */
 	public function configure(array $options): static
@@ -283,7 +214,86 @@ class TypeInt extends Type implements BaseTypeInterface
 	 */
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?int
 	{
-		return $this->validate($value);
+		return $this->validate($value)->getCleanValue();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws TypesInvalidValueException
+	 */
+	protected function runValidation(ValidationSubjectInterface $subject): void
+	{
+		$value = $subject->getUnsafeValue();
+		$debug = [
+			'value' => $value,
+		];
+
+		if (null === $value) {
+			if ($this->isAutoIncremented()) {
+				$subject->accept(null);
+
+				return;
+			}
+
+			$value = $this->getDefault();
+
+			if (null === $value && $this->isNullable()) {
+				$subject->accept(null);
+
+				return;
+			}
+		}
+
+		if (!\is_numeric($value)) {
+			$subject->reject($this->msg('invalid_int_type'), $debug);
+
+			return;
+		}
+
+		$value += 0;
+
+		if (!\is_int($value)) {
+			$subject->reject($this->msg('invalid_int_type'), $debug);
+
+			return;
+		}
+
+		if (0 > $value && $this->isUnsigned()) {
+			$subject->reject($this->msg('invalid_unsigned_int_type'), $debug);
+
+			return;
+		}
+
+		$min = $this->getOption('min');
+
+		if (null !== $min && $value < $min) {
+			$subject->reject($this->msg('int_value_must_be_gt_or_equal_to_min'), $debug);
+
+			return;
+		}
+
+		$max = $this->getOption('max');
+
+		if (null !== $max && ($value > $max)) {
+			$subject->reject($this->msg('int_value_must_be_lt_or_equal_to_max'), $debug);
+
+			return;
+		}
+
+		if ($value < ($this->isUnsigned() ? self::INT_UNSIGNED_MIN : self::INT_SIGNED_MIN)) {
+			$subject->reject($this->msg('int_value_must_be_gt_or_equal_to_allowed_int_min'), $debug);
+
+			return;
+		}
+
+		if ($value > ($this->isUnsigned() ? self::INT_UNSIGNED_MAX : self::INT_SIGNED_MAX)) {
+			$subject->reject($this->msg('int_value_must_be_lt_or_equal_to_allowed_int_max'), $debug);
+
+			return;
+		}
+
+		$subject->accept($value);
 	}
 
 	/**

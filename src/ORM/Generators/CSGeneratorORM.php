@@ -13,11 +13,14 @@ declare(strict_types=1);
 
 namespace Gobl\ORM\Generators;
 
+use Gobl\DBAL\Column;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Relations\VirtualRelation;
 use Gobl\DBAL\Table;
+use Gobl\DBAL\Types\TypeJSON;
+use Gobl\DBAL\Types\Utils\JsonPatch;
 use Gobl\DBAL\Types\Utils\Map;
 use Gobl\Exceptions\GoblException;
 use Gobl\Gobl;
@@ -134,15 +137,21 @@ Time: {$date}";
 		$php_types = [];
 
 		foreach ($types as $type) {
+			if (ORMUniversalType::LIST === $type && null !== ($list_class = $type_hint->getListOfClass())) {
+				$php_types[] = '\\' . $list_class . '[]';
+
+				continue;
+			}
+
 			$php_types[] = match ($type) {
-				ORMUniversalType::ARRAY => 'array',
-				ORMUniversalType::MAP   => '\\' . Map::class,
+				ORMUniversalType::LIST              => 'array',
+				ORMUniversalType::MAP               => '\\' . Map::class,
 				ORMUniversalType::DECIMAL, ORMUniversalType::STRING, ORMUniversalType::BIGINT => 'string',
-				ORMUniversalType::BOOL  => 'bool',
-				ORMUniversalType::FLOAT => 'float',
-				ORMUniversalType::INT   => 'int',
-				ORMUniversalType::NULL  => 'null',
-				ORMUniversalType::MIXED => 'mixed',
+				ORMUniversalType::BOOL              => 'bool',
+				ORMUniversalType::FLOAT             => 'float',
+				ORMUniversalType::INT               => 'int',
+				ORMUniversalType::NULL              => 'null',
+				ORMUniversalType::ANY, ORMUniversalType::UNKNOWN => 'mixed',
 			};
 		}
 
@@ -423,6 +432,12 @@ return $this;',
 			$set->setReturnType('static')
 				->newArgument($column_name)
 				->setType($col_inject['write_type_hint']);
+
+			// For JSON-based columns (TypeJSON, TypeMap, TypeList) generate
+			// patchColumnName(), setColumnNameKey(), and removeColumnNameKey().
+			if ($type->getBaseType() instanceof TypeJSON) {
+				$this->addJsonPatchMethods($class, $table, $column);
+			}
 		}
 
 		foreach ($table->getRelations() as $relation) {
@@ -456,6 +471,56 @@ return $this;',
 		}
 
 		return 'get' . Str::toClassName($column_name);
+	}
+
+	/**
+	 * Adds patchColumnName(), setColumnNameKey(), and removeColumnNameKey() methods
+	 * for JSON-based columns (TypeJSON, TypeMap, TypeList).
+	 */
+	private function addJsonPatchMethods(PHPClass $class, Table $table, Column $column): void
+	{
+		$column_name       = $column->getName();
+		$type              = $column->getType();
+		$getter_name       = self::propertyGetterName($column_name);
+		$setter_name       = 'set' . Str::toClassName($column_name);
+		$patch_method      = 'patch' . Str::toClassName($column_name);
+		$set_key_method    = 'set' . Str::toClassName($column_name) . 'Key';
+		$remove_key_method = 'remove' . Str::toClassName($column_name) . 'Key';
+		$json_patch_type   = '\\' . JsonPatch::class;
+		$value_type        = 'array|float|int|string|\JsonSerializable|null';
+
+		// For plain TypeJSON the getter returns a JSON string; decode first.
+		// For TypeMap / TypeList the getter returns the native value; wrap directly.
+		if ($type instanceof TypeJSON && $type->getBaseType() === $type) {
+			$patch_body = '$data = $this->' . $getter_name . '();' . "\n\t\t"
+				. 'return new ' . $json_patch_type . '(null === $data ? [] : (\json_decode($data, true) ?? []));';
+		} else {
+			$patch_body = 'return new ' . $json_patch_type . '($this->' . $getter_name . '() ?? []);';
+		}
+
+		// patchColumnName(): seeds a JsonPatch from the current column value.
+		$class->newMethod($patch_method)
+			->public()
+			->setComment('Seeds a ' . $json_patch_type . ' from the current `' . $column_name . '` value.')
+			->setReturnType($json_patch_type)
+			->addChild($patch_body);
+
+		// setColumnNameKey(): one-liner set at a dot-notation path.
+		$sk = $class->newMethod($set_key_method)
+			->public()
+			->setComment('Sets a value at the given dot-notation path in `' . $column_name . '`.')
+			->setReturnType('static')
+			->addChild('return $this->' . $setter_name . '($this->' . $patch_method . '()->set($path, $value));');
+		$sk->newArgument('path')->setType('string');
+		$sk->newArgument('value')->setType($value_type);
+
+		// removeColumnNameKey(): one-liner remove at a dot-notation path.
+		$rk = $class->newMethod($remove_key_method)
+			->public()
+			->setComment('Removes the key at the given dot-notation path from `' . $column_name . '`.')
+			->setReturnType('static')
+			->addChild('return $this->' . $setter_name . '($this->' . $patch_method . '()->remove($path));');
+		$rk->newArgument('path')->setType('string');
 	}
 
 	private function addRelationGetterMethod(PHPClass $class, Relation $relation): void
