@@ -23,6 +23,8 @@ $finder->in([
 ])
 	->name('*.php')
 	->notPath('otpl_done')
+	->notPath('tmp/')
+	->notPath('snapshots/')
 	->notPath('blate_cache')
 	->notPath('vendor')
 	->notPath('assets')
