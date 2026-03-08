@@ -90,9 +90,9 @@ class Client extends ClientBase with ClientMixin<Client> {
   Client setGender(String nVal) { gender = nVal; return this; }
 
   Map get data { return doGet(COL_DATA, Map); }
-  set data(Map|List nVal) { doSet(COL_DATA, nVal, Map); }
+  set data(Map nVal) { doSet(COL_DATA, nVal, Map); }
   Map getData() { return data; }
-  Client setData(Map|List nVal) { data = nVal; return this; }
+  Client setData(Map nVal) { data = nVal; return this; }
 
   String get created_at { return doGet(COL_CREATED_AT, String); }
   set created_at(String|num nVal) { doSet(COL_CREATED_AT, nVal, String); }

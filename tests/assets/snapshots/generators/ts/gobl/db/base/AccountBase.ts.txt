@@ -59,7 +59,7 @@ export default abstract class AccountBase extends GoblEntity {
 	set currency_code(nVal: string) { this._set(AccountBase.COL_CURRENCY_CODE, nVal); }
 
 	get data(): Record<string, unknown> { return this._data[AccountBase.COL_DATA]; }
-	set data(nVal: Record<string, unknown>|unknown[]) { this._set(AccountBase.COL_DATA, nVal); }
+	set data(nVal: Record<string, unknown>) { this._set(AccountBase.COL_DATA, nVal); }
 
 	get created_at(): string { return this._data[AccountBase.COL_CREATED_AT]; }
 	set created_at(nVal: string|number) { this._set(AccountBase.COL_CREATED_AT, nVal); }

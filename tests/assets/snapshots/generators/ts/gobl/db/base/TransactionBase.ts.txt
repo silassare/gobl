@@ -79,7 +79,7 @@ export default abstract class TransactionBase extends GoblEntity {
 	set date(nVal: string|number) { this._set(TransactionBase.COL_DATE, nVal); }
 
 	get data(): Record<string, unknown> { return this._data[TransactionBase.COL_DATA]; }
-	set data(nVal: Record<string, unknown>|unknown[]) { this._set(TransactionBase.COL_DATA, nVal); }
+	set data(nVal: Record<string, unknown>) { this._set(TransactionBase.COL_DATA, nVal); }
 
 	get created_at(): string { return this._data[TransactionBase.COL_CREATED_AT]; }
 	set created_at(nVal: string|number) { this._set(TransactionBase.COL_CREATED_AT, nVal); }

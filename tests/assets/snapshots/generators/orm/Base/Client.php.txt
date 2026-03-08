@@ -239,15 +239,39 @@ abstract class Client extends \Gobl\ORM\ORMEntity
 	/**
 	 * Setter for column `clients.data`.
 	 * 
-	 * @param \Gobl\DBAL\Types\Utils\Map|array $data
+	 * @param \Gobl\DBAL\Types\Utils\Map|array|\Gobl\DBAL\Types\Utils\JsonPatch $data
 	 * 
 	 * @return static
 	 */
-	public function setData(\Gobl\DBAL\Types\Utils\Map|array $data): static
+	public function setData(\Gobl\DBAL\Types\Utils\Map|array|\Gobl\DBAL\Types\Utils\JsonPatch $data): static
 	{
 		$this->data = $data;
 
 		return $this;
+	}
+
+	/**
+	 * Seeds a \Gobl\DBAL\Types\Utils\JsonPatch from the current `data` value.
+	 */
+	public function patchData(): \Gobl\DBAL\Types\Utils\JsonPatch
+	{
+		return new \Gobl\DBAL\Types\Utils\JsonPatch($this->getData() ?? []);
+	}
+
+	/**
+	 * Sets a value at the given dot-notation path in `data`.
+	 */
+	public function setDataKey(string $path, array|float|int|string|\JsonSerializable|null $value): static
+	{
+		return $this->setData($this->patchData()->set($path, $value));
+	}
+
+	/**
+	 * Removes the key at the given dot-notation path from `data`.
+	 */
+	public function removeDataKey(string $path): static
+	{
+		return $this->setData($this->patchData()->remove($path));
 	}
 
 	/**

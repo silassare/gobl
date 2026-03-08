@@ -59,7 +59,7 @@ export default abstract class ClientBase extends GoblEntity {
 	set gender(nVal: string) { this._set(ClientBase.COL_GENDER, nVal); }
 
 	get data(): Record<string, unknown> { return this._data[ClientBase.COL_DATA]; }
-	set data(nVal: Record<string, unknown>|unknown[]) { this._set(ClientBase.COL_DATA, nVal); }
+	set data(nVal: Record<string, unknown>) { this._set(ClientBase.COL_DATA, nVal); }
 
 	get created_at(): string { return this._data[ClientBase.COL_CREATED_AT]; }
 	set created_at(nVal: string|number) { this._set(ClientBase.COL_CREATED_AT, nVal); }

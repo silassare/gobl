@@ -30,77 +30,77 @@ final class TypeStringTest extends BaseTestCase
 	public function testStringValid(): void
 	{
 		$t = new TypeString();
-		self::assertSame('hello world', $t->validate('hello world'));
+		self::assertSame('hello world', $t->validate('hello world')->getCleanValue());
 	}
 
 	public function testStringAcceptsNumericInput(): void
 	{
 		$t = new TypeString();
-		self::assertSame('42', $t->validate(42));
+		self::assertSame('42', $t->validate(42)->getCleanValue());
 	}
 
 	public function testStringNullWithNullable(): void
 	{
 		$t = (new TypeString())->nullable();
-		self::assertNull($t->validate(null));
+		self::assertNull($t->validate(null)->getCleanValue());
 	}
 
 	public function testStringNullWithDefault(): void
 	{
 		$t = (new TypeString())->default('N/A');
-		self::assertSame('N/A', $t->validate(null));
+		self::assertSame('N/A', $t->validate(null)->getCleanValue());
 	}
 
 	public function testStringEmptyFallsBackToDefault(): void
 	{
 		$t = (new TypeString())->default('fallback');
-		self::assertSame('fallback', $t->validate(''));
+		self::assertSame('fallback', $t->validate('')->getCleanValue());
 	}
 
 	public function testStringMinConstraint(): void
 	{
 		$t = (new TypeString())->min(5);
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate('hi');
+		$t->validate('hi')->getCleanValue();
 	}
 
 	public function testStringMaxConstraint(): void
 	{
 		$t = (new TypeString())->max(5);
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate('hello world');
+		$t->validate('hello world')->getCleanValue();
 	}
 
 	public function testStringTruncateInsteadOfThrow(): void
 	{
 		$t = (new TypeString())->max(5)->truncate();
-		self::assertSame('hello', $t->validate('hello world'));
+		self::assertSame('hello', $t->validate('hello world')->getCleanValue());
 	}
 
 	public function testStringPatternValid(): void
 	{
 		$t = (new TypeString())->pattern('/^[a-z]+$/');
-		self::assertSame('hello', $t->validate('hello'));
+		self::assertSame('hello', $t->validate('hello')->getCleanValue());
 	}
 
 	public function testStringPatternInvalid(): void
 	{
 		$t = (new TypeString())->pattern('/^[a-z]+$/');
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate('Hello123');
+		$t->validate('Hello123')->getCleanValue();
 	}
 
 	public function testStringOneOfValid(): void
 	{
 		$t = (new TypeString())->oneOf(['active', 'inactive', 'pending']);
-		self::assertSame('active', $t->validate('active'));
+		self::assertSame('active', $t->validate('active')->getCleanValue());
 	}
 
 	public function testStringOneOfInvalid(): void
 	{
 		$t = (new TypeString())->oneOf(['active', 'inactive']);
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate('deleted');
+		$t->validate('deleted')->getCleanValue();
 	}
 
 	public function testStringMultilineCollapseWhitespace(): void
@@ -108,13 +108,13 @@ final class TypeStringTest extends BaseTestCase
 		// by default multiline=true, so whitespace is not collapsed in multiline strings
 		// disable multiline to collapse
 		$t = (new TypeString())->multiline(false);
-		self::assertSame('a b c', $t->validate("a   b\n  c"));
+		self::assertSame('a b c', $t->validate("a   b\n  c")->getCleanValue());
 	}
 
 	public function testStringTrimOption(): void
 	{
 		$t = (new TypeString())->trim();
-		self::assertSame('hello', $t->validate('  hello  '));
+		self::assertSame('hello', $t->validate('  hello  ')->getCleanValue());
 	}
 
 	public function testStringMinGreaterThanMaxThrows(): void

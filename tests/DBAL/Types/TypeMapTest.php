@@ -35,7 +35,7 @@ final class TypeMapTest extends BaseTestCase
 	public function testValidateAcceptsAssocArray(): void
 	{
 		$t      = new TypeMap();
-		$result = $t->validate(['name' => 'John', 'age' => 30]);
+		$result = $t->validate(['name' => 'John', 'age' => 30])->getCleanValue();
 		self::assertInstanceOf(Map::class, $result);
 		self::assertSame(['name' => 'John', 'age' => 30], $result->getData());
 	}
@@ -43,7 +43,7 @@ final class TypeMapTest extends BaseTestCase
 	public function testValidateAcceptsEmptyArray(): void
 	{
 		$t      = new TypeMap();
-		$result = $t->validate([]);
+		$result = $t->validate([])->getCleanValue();
 		self::assertInstanceOf(Map::class, $result);
 		self::assertSame([], $result->getData());
 	}
@@ -53,13 +53,13 @@ final class TypeMapTest extends BaseTestCase
 		$t    = new TypeMap();
 		$data = ['key' => 'value'];
 		$map  = new Map($data);
-		self::assertSame($map, $t->validate($map));
+		self::assertSame($map, $t->validate($map)->getCleanValue());
 	}
 
 	public function testValidateAcceptsNestedMap(): void
 	{
 		$t      = new TypeMap();
-		$result = $t->validate(['user' => ['name' => 'Alice', 'roles' => ['admin', 'editor']]]);
+		$result = $t->validate(['user' => ['name' => 'Alice', 'roles' => ['admin', 'editor']]])->getCleanValue();
 		self::assertInstanceOf(Map::class, $result);
 		self::assertSame('Alice', $result->getData()['user']['name']);
 	}
@@ -72,14 +72,14 @@ final class TypeMapTest extends BaseTestCase
 	{
 		$t = new TypeMap();
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate('not a map');
+		$t->validate('not a map')->getCleanValue();
 	}
 
 	public function testValidateRejectsInt(): void
 	{
 		$t = new TypeMap();
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate(42);
+		$t->validate(42)->getCleanValue();
 	}
 
 	public function testValidateRejectsStdClass(): void
@@ -87,7 +87,7 @@ final class TypeMapTest extends BaseTestCase
 		// plain objects that are not Map instances are rejected
 		$t = new TypeMap();
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate(new stdClass());
+		$t->validate(new stdClass())->getCleanValue();
 	}
 
 	// -------------------------------------------------------------------------
@@ -97,20 +97,20 @@ final class TypeMapTest extends BaseTestCase
 	public function testValidateNullWithNullable(): void
 	{
 		$t = (new TypeMap())->nullable();
-		self::assertNull($t->validate(null));
+		self::assertNull($t->validate(null)->getCleanValue());
 	}
 
 	public function testValidateNullWithoutNullableThrows(): void
 	{
 		$t = new TypeMap();
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate(null);
+		$t->validate(null)->getCleanValue();
 	}
 
 	public function testValidateNullUsesDefaultArray(): void
 	{
 		$t      = (new TypeMap())->default(['status' => 'new']);
-		$result = $t->validate(null);
+		$result = $t->validate(null)->getCleanValue();
 		self::assertInstanceOf(Map::class, $result);
 		self::assertSame('new', $result->getData()['status']);
 	}

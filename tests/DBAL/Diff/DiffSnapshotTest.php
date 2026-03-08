@@ -429,8 +429,8 @@ final class DiffSnapshotTest extends BaseTestCase
 	}
 
 	/**
-	 * Full real-world diff: the production test schema (tables.php) migrated to
-	 * the modified schema (tables.diff.php). Heaviest integration scenario.
+	 * Full real-world diff: the production test schema (assets/schemas.php) migrated to
+	 * the modified schema (assets/schema.with.changes.php). Heaviest integration scenario.
 	 *
 	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */

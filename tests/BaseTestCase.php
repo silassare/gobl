@@ -149,7 +149,7 @@ abstract class BaseTestCase extends TestCase
 
 	protected static function getTablesDefinitions(): array
 	{
-		return require GOBL_TEST_ROOT . \DIRECTORY_SEPARATOR . 'tables.php';
+		return require GOBL_TEST_ASSETS . \DIRECTORY_SEPARATOR . 'schemas.php';
 	}
 
 	/**
@@ -229,7 +229,7 @@ abstract class BaseTestCase extends TestCase
 
 	protected static function getTablesDiffDefinitions(): array
 	{
-		return require GOBL_TEST_ROOT . \DIRECTORY_SEPARATOR . 'tables.diff.php';
+		return require GOBL_TEST_ASSETS . \DIRECTORY_SEPARATOR . 'schema.with.changes.php';
 	}
 
 	/**
@@ -328,9 +328,9 @@ abstract class BaseTestCase extends TestCase
 	{
 		$normalized = self::normalizeGeneratedContent($content);
 
-		$expected_dir  = GOBL_TEST_ASSETS . \DIRECTORY_SEPARATOR . 'snapshots' . \DIRECTORY_SEPARATOR
+		$expected_dir  = GOBL_TEST_SNAPSHOTS . \DIRECTORY_SEPARATOR
 			. \str_replace('/', \DIRECTORY_SEPARATOR, \dirname($snapshotName));
-		$expected_file = GOBL_TEST_ASSETS . \DIRECTORY_SEPARATOR . 'snapshots' . \DIRECTORY_SEPARATOR
+		$expected_file = GOBL_TEST_SNAPSHOTS . \DIRECTORY_SEPARATOR
 			. \str_replace('/', \DIRECTORY_SEPARATOR, $snapshotName) . '.txt';
 
 		$actual_dir  = GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'snapshots' . \DIRECTORY_SEPARATOR
@@ -384,9 +384,9 @@ abstract class BaseTestCase extends TestCase
 		$content = 'SQL:' . \PHP_EOL . $sql . \PHP_EOL
 			. 'BOUND:' . \PHP_EOL . \json_encode($boundValues, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
 
-		$expected_dir  = GOBL_TEST_ASSETS . \DIRECTORY_SEPARATOR . 'snapshots' . \DIRECTORY_SEPARATOR
+		$expected_dir  = GOBL_TEST_SNAPSHOTS . \DIRECTORY_SEPARATOR
 			. \str_replace('/', \DIRECTORY_SEPARATOR, \dirname($snapshotName));
-		$expected_file = GOBL_TEST_ASSETS . \DIRECTORY_SEPARATOR . 'snapshots' . \DIRECTORY_SEPARATOR
+		$expected_file = GOBL_TEST_SNAPSHOTS . \DIRECTORY_SEPARATOR
 			. \str_replace('/', \DIRECTORY_SEPARATOR, $snapshotName) . '.txt';
 
 		$actual_dir  = GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'snapshots' . \DIRECTORY_SEPARATOR

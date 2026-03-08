@@ -49,7 +49,7 @@ export default abstract class CurrencyBase extends GoblEntity {
 	set symbol(nVal: string) { this._set(CurrencyBase.COL_SYMBOL, nVal); }
 
 	get data(): Record<string, unknown> { return this._data[CurrencyBase.COL_DATA]; }
-	set data(nVal: Record<string, unknown>|unknown[]) { this._set(CurrencyBase.COL_DATA, nVal); }
+	set data(nVal: Record<string, unknown>) { this._set(CurrencyBase.COL_DATA, nVal); }
 
 	get created_at(): string { return this._data[CurrencyBase.COL_CREATED_AT]; }
 	set created_at(nVal: string|number) { this._set(CurrencyBase.COL_CREATED_AT, nVal); }

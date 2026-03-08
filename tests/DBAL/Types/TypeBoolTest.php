@@ -29,39 +29,39 @@ final class TypeBoolTest extends BaseTestCase
 	public function testBoolValidBooleans(): void
 	{
 		$t = new TypeBool();
-		self::assertTrue($t->validate(true));
-		self::assertFalse($t->validate(false));
-		self::assertTrue($t->validate(1));
-		self::assertFalse($t->validate(0));
+		self::assertTrue($t->validate(true)->getCleanValue());
+		self::assertFalse($t->validate(false)->getCleanValue());
+		self::assertTrue($t->validate(1)->getCleanValue());
+		self::assertFalse($t->validate(0)->getCleanValue());
 	}
 
 	public function testBoolStringInputsNonStrict(): void
 	{
 		$t = (new TypeBool())->strict(false);
-		self::assertTrue($t->validate('true'));
-		self::assertFalse($t->validate('false'));
-		self::assertTrue($t->validate('yes'));
-		self::assertFalse($t->validate('no'));
-		self::assertTrue($t->validate('1'));
-		self::assertFalse($t->validate('0'));
+		self::assertTrue($t->validate('true')->getCleanValue());
+		self::assertFalse($t->validate('false')->getCleanValue());
+		self::assertTrue($t->validate('yes')->getCleanValue());
+		self::assertFalse($t->validate('no')->getCleanValue());
+		self::assertTrue($t->validate('1')->getCleanValue());
+		self::assertFalse($t->validate('0')->getCleanValue());
 	}
 
 	public function testBoolInvalidStringThrows(): void
 	{
 		$t = new TypeBool();
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate('maybe');
+		$t->validate('maybe')->getCleanValue();
 	}
 
 	public function testBoolNullWithNullable(): void
 	{
 		$t = (new TypeBool())->nullable();
-		self::assertNull($t->validate(null));
+		self::assertNull($t->validate(null)->getCleanValue());
 	}
 
 	public function testBoolNullWithDefault(): void
 	{
 		$t = (new TypeBool())->default(true);
-		self::assertTrue($t->validate(null));
+		self::assertTrue($t->validate(null)->getCleanValue());
 	}
 }

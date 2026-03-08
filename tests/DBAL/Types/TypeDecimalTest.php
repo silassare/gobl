@@ -29,55 +29,55 @@ final class TypeDecimalTest extends BaseTestCase
 	public function testDecimalValid(): void
 	{
 		$t = new TypeDecimal();
-		self::assertSame('3.14', $t->validate('3.14'));
-		self::assertSame('0', $t->validate(0));
-		self::assertSame('-1.5', $t->validate(-1.5));
-		self::assertSame('42', $t->validate(42));
+		self::assertSame('3.14', $t->validate('3.14')->getCleanValue());
+		self::assertSame('0', $t->validate(0)->getCleanValue());
+		self::assertSame('-1.5', $t->validate(-1.5)->getCleanValue());
+		self::assertSame('42', $t->validate(42)->getCleanValue());
 	}
 
 	public function testDecimalRejectsNonNumeric(): void
 	{
 		$t = new TypeDecimal();
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate('hello');
+		$t->validate('hello')->getCleanValue();
 	}
 
 	public function testDecimalUnsignedRejectsNegative(): void
 	{
 		$t = (new TypeDecimal())->unsigned();
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate(-1);
+		$t->validate(-1)->getCleanValue();
 	}
 
 	public function testDecimalUnsignedAcceptsZero(): void
 	{
 		$t = (new TypeDecimal())->unsigned();
-		self::assertSame('0', $t->validate(0));
+		self::assertSame('0', $t->validate(0)->getCleanValue());
 	}
 
 	public function testDecimalNullWithNullable(): void
 	{
 		$t = (new TypeDecimal())->nullable();
-		self::assertNull($t->validate(null));
+		self::assertNull($t->validate(null)->getCleanValue());
 	}
 
 	public function testDecimalNullWithDefault(): void
 	{
 		$t = (new TypeDecimal())->default('0.00');
-		self::assertSame('0.00', $t->validate(null));
+		self::assertSame('0.00', $t->validate(null)->getCleanValue());
 	}
 
 	public function testDecimalMinConstraint(): void
 	{
 		$t = (new TypeDecimal())->min('10');
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate('5');
+		$t->validate('5')->getCleanValue();
 	}
 
 	public function testDecimalMaxConstraint(): void
 	{
 		$t = (new TypeDecimal())->max('100');
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate('200');
+		$t->validate('200')->getCleanValue();
 	}
 }

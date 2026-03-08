@@ -34,34 +34,34 @@ final class TypeListTest extends BaseTestCase
 	public function testValidateAcceptsIndexedArray(): void
 	{
 		$t = new TypeList();
-		self::assertSame(['a', 'b', 'c'], $t->validate(['a', 'b', 'c']));
+		self::assertSame(['a', 'b', 'c'], $t->validate(['a', 'b', 'c'])->getCleanValue());
 	}
 
 	public function testValidateAcceptsEmptyArray(): void
 	{
 		$t = new TypeList();
-		self::assertSame([], $t->validate([]));
+		self::assertSame([], $t->validate([])->getCleanValue());
 	}
 
 	public function testValidateNormalizesAssocToList(): void
 	{
 		// assoc arrays are re-indexed with array_values
 		$t      = new TypeList();
-		$result = $t->validate(['x' => 1, 'y' => 2]);
+		$result = $t->validate(['x' => 1, 'y' => 2])->getCleanValue();
 		self::assertSame([1, 2], $result);
 	}
 
 	public function testValidateAcceptsNestedArray(): void
 	{
 		$t      = new TypeList();
-		$result = $t->validate([[1, 2], [3, 4]]);
+		$result = $t->validate([[1, 2], [3, 4]])->getCleanValue();
 		self::assertSame([[1, 2], [3, 4]], $result);
 	}
 
 	public function testValidateMixedTypesPreserved(): void
 	{
 		$t = new TypeList();
-		self::assertSame([1, 'two', true, null], $t->validate([1, 'two', true, null]));
+		self::assertSame([1, 'two', true, null], $t->validate([1, 'two', true, null])->getCleanValue());
 	}
 
 	// -------------------------------------------------------------------------
@@ -72,21 +72,21 @@ final class TypeListTest extends BaseTestCase
 	{
 		$t = new TypeList();
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate('not an array');
+		$t->validate('not an array')->getCleanValue();
 	}
 
 	public function testValidateRejectsInt(): void
 	{
 		$t = new TypeList();
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate(42);
+		$t->validate(42)->getCleanValue();
 	}
 
 	public function testValidateRejectsObject(): void
 	{
 		$t = new TypeList();
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate(new stdClass());
+		$t->validate(new stdClass())->getCleanValue();
 	}
 
 	// -------------------------------------------------------------------------
@@ -96,20 +96,20 @@ final class TypeListTest extends BaseTestCase
 	public function testValidateNullWithNullable(): void
 	{
 		$t = (new TypeList())->nullable();
-		self::assertNull($t->validate(null));
+		self::assertNull($t->validate(null)->getCleanValue());
 	}
 
 	public function testValidateNullWithoutNullableThrows(): void
 	{
 		$t = new TypeList();
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate(null);
+		$t->validate(null)->getCleanValue();
 	}
 
 	public function testValidateNullUsesDefault(): void
 	{
 		$t      = (new TypeList())->default(['default_item']);
-		$result = $t->validate(null);
+		$result = $t->validate(null)->getCleanValue();
 		self::assertSame(['default_item'], $result);
 	}
 

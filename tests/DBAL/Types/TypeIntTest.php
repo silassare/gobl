@@ -31,96 +31,96 @@ final class TypeIntTest extends BaseTestCase
 	{
 		$t = new TypeInt();
 
-		self::assertSame(0, $t->validate(0));
-		self::assertSame(42, $t->validate(42));
-		self::assertSame(-1, $t->validate(-1));
+		self::assertSame(0, $t->validate(0)->getCleanValue());
+		self::assertSame(42, $t->validate(42)->getCleanValue());
+		self::assertSame(-1, $t->validate(-1)->getCleanValue());
 	}
 
 	public function testIntAcceptsIntegerNumericString(): void
 	{
 		$t = new TypeInt();
-		self::assertSame(5, $t->validate('5'));
+		self::assertSame(5, $t->validate('5')->getCleanValue());
 	}
 
 	public function testIntRejectsFloat(): void
 	{
 		$t = new TypeInt();
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate(3.14);
+		$t->validate(3.14)->getCleanValue();
 	}
 
 	public function testIntRejectsFloatString(): void
 	{
 		$t = new TypeInt();
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate('3.14');
+		$t->validate('3.14')->getCleanValue();
 	}
 
 	public function testIntRejectsNonNumericString(): void
 	{
 		$t = new TypeInt();
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate('hello');
+		$t->validate('hello')->getCleanValue();
 	}
 
 	public function testIntNullWithNullable(): void
 	{
 		$t = (new TypeInt())->nullable();
-		self::assertNull($t->validate(null));
+		self::assertNull($t->validate(null)->getCleanValue());
 	}
 
 	public function testIntNullWithDefault(): void
 	{
 		$t = (new TypeInt())->default(99);
-		self::assertSame(99, $t->validate(null));
+		self::assertSame(99, $t->validate(null)->getCleanValue());
 	}
 
 	public function testIntNullThrowsWithoutNullableOrDefault(): void
 	{
 		$t = new TypeInt();
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate(null);
+		$t->validate(null)->getCleanValue();
 	}
 
 	public function testIntUnsignedRejectsNegative(): void
 	{
 		$t = (new TypeInt())->unsigned();
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate(-1);
+		$t->validate(-1)->getCleanValue();
 	}
 
 	public function testIntUnsignedAcceptsZero(): void
 	{
 		$t = (new TypeInt())->unsigned();
-		self::assertSame(0, $t->validate(0));
+		self::assertSame(0, $t->validate(0)->getCleanValue());
 	}
 
 	public function testIntMinConstraint(): void
 	{
 		$t = (new TypeInt())->min(10);
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate(5);
+		$t->validate(5)->getCleanValue();
 	}
 
 	public function testIntMaxConstraint(): void
 	{
 		$t = (new TypeInt())->max(10);
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate(15);
+		$t->validate(15)->getCleanValue();
 	}
 
 	public function testIntMinMaxAccepted(): void
 	{
 		$t = (new TypeInt())->min(-5)->max(5);
-		self::assertSame(-5, $t->validate(-5));
-		self::assertSame(0, $t->validate(0));
-		self::assertSame(5, $t->validate(5));
+		self::assertSame(-5, $t->validate(-5)->getCleanValue());
+		self::assertSame(0, $t->validate(0)->getCleanValue());
+		self::assertSame(5, $t->validate(5)->getCleanValue());
 	}
 
 	public function testIntAutoIncrementNullReturnsNull(): void
 	{
 		$t = (new TypeInt())->autoIncrement();
-		self::assertNull($t->validate(null));
+		self::assertNull($t->validate(null)->getCleanValue());
 	}
 
 	public function testIntMinGreaterThanMaxThrows(): void

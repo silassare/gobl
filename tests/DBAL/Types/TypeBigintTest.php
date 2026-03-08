@@ -29,54 +29,54 @@ final class TypeBigintTest extends BaseTestCase
 	public function testBigintValid(): void
 	{
 		$t = new TypeBigint();
-		self::assertSame('0', $t->validate(0));
-		self::assertSame('42', $t->validate('42'));
-		self::assertSame('-1', $t->validate('-1'));
-		self::assertSame('9223372036854775807', $t->validate('9223372036854775807'));
+		self::assertSame('0', $t->validate(0)->getCleanValue());
+		self::assertSame('42', $t->validate('42')->getCleanValue());
+		self::assertSame('-1', $t->validate('-1')->getCleanValue());
+		self::assertSame('9223372036854775807', $t->validate('9223372036854775807')->getCleanValue());
 	}
 
 	public function testBigintRejectsNonNumeric(): void
 	{
 		$t = new TypeBigint();
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate('not-a-number');
+		$t->validate('not-a-number')->getCleanValue();
 	}
 
 	public function testBigintUnsignedAcceptsZero(): void
 	{
 		$t = (new TypeBigint())->unsigned();
-		self::assertSame('0', $t->validate('0'));
+		self::assertSame('0', $t->validate('0')->getCleanValue());
 	}
 
 	public function testBigintNullWithNullable(): void
 	{
 		$t = (new TypeBigint())->nullable();
-		self::assertNull($t->validate(null));
+		self::assertNull($t->validate(null)->getCleanValue());
 	}
 
 	public function testBigintNullWithDefault(): void
 	{
 		$t = (new TypeBigint())->default('100');
-		self::assertSame('100', $t->validate(null));
+		self::assertSame('100', $t->validate(null)->getCleanValue());
 	}
 
 	public function testBigintAutoIncrementNullReturnsNull(): void
 	{
 		$t = (new TypeBigint())->autoIncrement();
-		self::assertNull($t->validate(null));
+		self::assertNull($t->validate(null)->getCleanValue());
 	}
 
 	public function testBigintMinConstraint(): void
 	{
 		$t = (new TypeBigint())->min('10');
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate('5');
+		$t->validate('5')->getCleanValue();
 	}
 
 	public function testBigintMaxConstraint(): void
 	{
 		$t = (new TypeBigint())->max('100');
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate('200');
+		$t->validate('200')->getCleanValue();
 	}
 }

@@ -29,7 +29,7 @@ final class TypeDateTest extends BaseTestCase
 	public function testDateAcceptsNumericTimestamp(): void
 	{
 		$t      = new TypeDate();
-		$result = $t->validate(1609459200);
+		$result = $t->validate(1609459200)->getCleanValue();
 		self::assertIsString($result);
 		self::assertNotEmpty($result);
 	}
@@ -37,14 +37,14 @@ final class TypeDateTest extends BaseTestCase
 	public function testDateAcceptsNumericTimestampString(): void
 	{
 		$t      = new TypeDate();
-		$result = $t->validate('1609459200');
+		$result = $t->validate('1609459200')->getCleanValue();
 		self::assertIsString($result);
 	}
 
 	public function testDateAcceptsDateString(): void
 	{
 		$t      = new TypeDate();
-		$result = $t->validate('2021-01-01');
+		$result = $t->validate('2021-01-01')->getCleanValue();
 		self::assertIsString($result);
 	}
 
@@ -52,25 +52,25 @@ final class TypeDateTest extends BaseTestCase
 	{
 		$t = new TypeDate();
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate('not-a-date');
+		$t->validate('not-a-date')->getCleanValue();
 	}
 
 	public function testDateNullWithNullable(): void
 	{
 		$t = (new TypeDate())->nullable();
-		self::assertNull($t->validate(null));
+		self::assertNull($t->validate(null)->getCleanValue());
 	}
 
 	public function testDateEmptyNullableReturnsNull(): void
 	{
 		$t = (new TypeDate())->nullable();
-		self::assertNull($t->validate(''));
+		self::assertNull($t->validate('')->getCleanValue());
 	}
 
 	public function testDateAutoGeneratesTimestamp(): void
 	{
 		$t      = (new TypeDate())->auto();
-		$result = $t->validate(null);   // empty + auto => generates current time
+		$result = $t->validate(null)->getCleanValue();   // empty + auto => generates current time
 		self::assertIsString($result);
 		self::assertNotEmpty($result);
 	}

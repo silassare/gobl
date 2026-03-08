@@ -75,27 +75,27 @@ final class TypeEnumTest extends BaseTestCase
 	public function testValidateWithEnumInstance(): void
 	{
 		$t = new TypeEnum(TestStatus::class);
-		self::assertSame(TestStatus::Active, $t->validate(TestStatus::Active));
+		self::assertSame(TestStatus::Active, $t->validate(TestStatus::Active)->getCleanValue());
 	}
 
 	public function testValidateWithValidStringValue(): void
 	{
 		$t = new TypeEnum(TestStatus::class);
-		self::assertSame(TestStatus::Inactive, $t->validate('inactive'));
+		self::assertSame(TestStatus::Inactive, $t->validate('inactive')->getCleanValue());
 	}
 
 	public function testValidateWithInvalidStringValueThrows(): void
 	{
 		$t = new TypeEnum(TestStatus::class);
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate('deleted');
+		$t->validate('deleted')->getCleanValue();
 	}
 
 	public function testValidateWithWrongEnumInstanceThrows(): void
 	{
 		$t = new TypeEnum(TestStatus::class);
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate(TestPriority::High);
+		$t->validate(TestPriority::High)->getCleanValue();
 	}
 
 	// -------------------------------------------------------------------------
@@ -105,7 +105,7 @@ final class TypeEnumTest extends BaseTestCase
 	public function testValidateIntBackedWithValidInt(): void
 	{
 		$t = new TypeEnum(TestPriority::class);
-		self::assertSame(TestPriority::Medium, $t->validate(2));
+		self::assertSame(TestPriority::Medium, $t->validate(2)->getCleanValue());
 	}
 
 	public function testValidateIntBackedWithStringValueThrows(): void
@@ -113,14 +113,14 @@ final class TypeEnumTest extends BaseTestCase
 		// PHP int-backed enums require int, not string, in ::from()
 		$t = new TypeEnum(TestPriority::class);
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate('1');
+		$t->validate('1')->getCleanValue();
 	}
 
 	public function testValidateIntBackedWithInvalidValueThrows(): void
 	{
 		$t = new TypeEnum(TestPriority::class);
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate(99);
+		$t->validate(99)->getCleanValue();
 	}
 
 	// -------------------------------------------------------------------------
@@ -130,20 +130,20 @@ final class TypeEnumTest extends BaseTestCase
 	public function testValidateNullWithNullable(): void
 	{
 		$t = (new TypeEnum(TestStatus::class))->nullable();
-		self::assertNull($t->validate(null));
+		self::assertNull($t->validate(null)->getCleanValue());
 	}
 
 	public function testValidateNullWithoutNullableThrows(): void
 	{
 		$t = new TypeEnum(TestStatus::class);
 		$this->expectException(TypesInvalidValueException::class);
-		$t->validate(null);
+		$t->validate(null)->getCleanValue();
 	}
 
 	public function testValidateNullUsesDefault(): void
 	{
 		$t = (new TypeEnum(TestStatus::class))->default(TestStatus::Pending->value);
-		self::assertSame(TestStatus::Pending, $t->validate(null));
+		self::assertSame(TestStatus::Pending, $t->validate(null)->getCleanValue());
 	}
 
 	// -------------------------------------------------------------------------
