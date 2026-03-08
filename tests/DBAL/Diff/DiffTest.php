@@ -109,7 +109,7 @@ final class DiffTest extends BaseTestCase
 		// "return 1772640455;" inside getTimestamp()
 		$content = \preg_replace(
 			'/\breturn \d{10}+;/',
-			'return [GENERATED_TIMESTAMP];',
+			'return 0;',
 			$content
 		);
 

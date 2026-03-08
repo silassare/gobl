@@ -30,7 +30,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 	 */
 	public function getTimestamp(): int
 	{
-		return [GENERATED_TIMESTAMP];
+		return 0;
 	}
 
 	/**
