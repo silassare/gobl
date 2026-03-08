@@ -2,7 +2,7 @@
 
 IMPORTANT: no hallucination or invention. Go through the entire code base to understand before generating code, the `.github/copilot-instructions.md` or docs. Focus on what can be directly observed in the codebase, not on idealized practices or assumptions.
 When bug or issue is found in the codebase, do not fix it directly, but rather ask for feedback and approval.
-If `AGENTS.md`, `CLAUDE.md`, `GEMINI.md` not exists symlink to `.github/copilot-instructions.md`
+`AGENTS.md`, `CLAUDE.md`, and `GEMINI.md` are symlinks to `.github/copilot-instructions.md` -- keep them that way.
 
 ## Project Overview
 
@@ -146,6 +146,26 @@ Full event list (`Gobl\CRUD\Events\`):
 
 Authorization events use **stop-on-first-denial**: listener must return `false` AND call `$action->stopPropagation()`. `deleteAll` is denied by default unless a listener explicitly allows it.
 
+## Filter Field Notation
+
+Filter operands use the form `[table.]column[#path]`. The `#path` portion is parsed into segments using JS-like notation (implemented in `FilterFieldNotation`):
+
+- **Plain segment**: `foo` - identifier chars only (no `.`, `[`, `'`, `"`).
+- **Bracket-integer segment**: `[0]` - non-negative integer index.
+- **Bracket-quoted segment**: `['...']` or `["..."]` - any key; use `\'` / `\"` to escape quotes inside.
+- Segments are separated by `.` (optional after `]`).
+- Empty segments (consecutive dots) throw an exception.
+
+```
+column#foo.bar              -> ['foo', 'bar']
+column#foo[0].bar           -> ['foo', '0', 'bar']
+column#foo['bar.baz'].qux   -> ['foo', 'bar.baz', 'qux']
+column#['it\'s'].key        -> ["it's", 'key']
+column#foo["bar"]["baz"]    -> ['foo', 'bar', 'baz']
+```
+
+`getPathSegmentsAsString()` serializes segments back: plain dot-notation for simple identifiers, `['...']` for segments containing special characters.
+
 ## Custom Type Providers
 
 Built-in types come from `TypeProviderDefault` (registered automatically in `bootstrap.php`). Extend with custom types:
@@ -182,6 +202,8 @@ Migration files are anonymous classes implementing `MigrationInterface` with `ge
 | -------------------------------- | --------------------------- |
 | Run full test suite              | `./run_test` or `make test` |
 | Run unit tests only (no live DB) | `make test-unit`            |
+| Run tests via Docker             | `make test-docker`          |
+| Tear down Docker test containers | `make test-docker-down`     |
 | Check code style                 | `make cs`                   |
 | Auto-fix code style              | `make cs-fix`               |
 | Docs dev server                  | `make docs-dev`             |
@@ -217,24 +239,25 @@ Live DB tests require `.env.test` (see `.env.test.example`). `./run_test` cleans
 
 ## Key Files
 
-| File                                                                              | Purpose                                                                                 |
-| --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| [src/Gobl.php](../src/Gobl.php)                                                   | Static entry point, cache/template management, forbidden name lists                     |
-| [src/bootstrap.php](../src/bootstrap.php)                                         | Defines `GOBL_ROOT`, `GOBL_VERSION`, `GOBL_ASSETS_DIR`; registers default type provider |
-| [src/DBAL/Db.php](../src/DBAL/Db.php)                                             | Abstract RDBMS base, `ns()`, `loadSchema()`, `newInstanceOf()`, column ref resolution   |
-| [src/DBAL/Builders/TableBuilder.php](../src/DBAL/Builders/TableBuilder.php)       | Fluent schema builder API                                                               |
-| [src/DBAL/Table.php](../src/DBAL/Table.php)                                       | Schema table model, soft-delete constants, morph support                                |
-| [src/DBAL/Column.php](../src/DBAL/Column.php)                                     | Column model, private/sensitive flags, type binding                                     |
-| [src/DBAL/Types/Type.php](../src/DBAL/Types/Type.php)                             | Abstract base for all column types                                                      |
-| [src/DBAL/Types/Utils/TypeUtils.php](../src/DBAL/Types/Utils/TypeUtils.php)       | `addTypeProvider()`, type resolution                                                    |
-| [src/ORM/ORM.php](../src/ORM/ORM.php)                                             | Namespace registry, `declareNamespace()`                                                |
-| [src/ORM/ORMEntity.php](../src/ORM/ORMEntity.php)                                 | Entity base, magic column access, `save()`, dirty tracking                              |
-| [src/ORM/ORMController.php](../src/ORM/ORMController.php)                         | `addItem()`, `updateOneItem()`, `deleteOneItem()`, `getItem()`, `getAllItems()`         |
-| [src/ORM/ORMEntityCRUD.php](../src/ORM/ORMEntityCRUD.php)                         | Consumer event subscription base (extends `CRUDEventProducer`)                          |
-| [src/ORM/Generators/CSGeneratorORM.php](../src/ORM/Generators/CSGeneratorORM.php) | PHP ORM class generator                                                                 |
-| [src/CRUD/CRUD.php](../src/CRUD/CRUD.php)                                         | Per-operation event dispatcher (used internally by `ORMController`)                     |
-| [src/CRUD/CRUDEventProducer.php](../src/CRUD/CRUDEventProducer.php)               | `listen()`, `onBefore*`, `onAfter*` subscription methods                                |
-| [src/DBAL/MigrationRunner.php](../src/DBAL/MigrationRunner.php)                   | Version-based migration runner                                                          |
-| [tests/assets/schemas.php](../tests/assets/schemas.php)                           | Reference array schema used throughout tests                                            |
-| [tests/BaseTestCase.php](../tests/BaseTestCase.php)                               | Test scaffolding: DB bootstrap, fluent builder usage, multi-driver helpers              |
-| [tests/tmp/output/ORM_Db/](../tests/tmp/output/ORM_Db/)                           | Generated ORM PHP classes (reference for expected output shape)                         |
+| File                                                                                    | Purpose                                                                                 |
+| --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| [src/Gobl.php](../src/Gobl.php)                                                         | Static entry point, cache/template management, forbidden name lists                     |
+| [src/bootstrap.php](../src/bootstrap.php)                                               | Defines `GOBL_ROOT`, `GOBL_VERSION`, `GOBL_ASSETS_DIR`; registers default type provider |
+| [src/DBAL/Db.php](../src/DBAL/Db.php)                                                   | Abstract RDBMS base, `ns()`, `loadSchema()`, `newInstanceOf()`, column ref resolution   |
+| [src/DBAL/Builders/TableBuilder.php](../src/DBAL/Builders/TableBuilder.php)             | Fluent schema builder API                                                               |
+| [src/DBAL/Table.php](../src/DBAL/Table.php)                                             | Schema table model, soft-delete constants, morph support                                |
+| [src/DBAL/Column.php](../src/DBAL/Column.php)                                           | Column model, private/sensitive flags, type binding                                     |
+| [src/DBAL/Types/Type.php](../src/DBAL/Types/Type.php)                                   | Abstract base for all column types                                                      |
+| [src/DBAL/Types/Utils/TypeUtils.php](../src/DBAL/Types/Utils/TypeUtils.php)             | `addTypeProvider()`, type resolution                                                    |
+| [src/ORM/ORM.php](../src/ORM/ORM.php)                                                   | Namespace registry, `declareNamespace()`                                                |
+| [src/ORM/ORMEntity.php](../src/ORM/ORMEntity.php)                                       | Entity base, magic column access, `save()`, dirty tracking                              |
+| [src/ORM/ORMController.php](../src/ORM/ORMController.php)                               | `addItem()`, `updateOneItem()`, `deleteOneItem()`, `getItem()`, `getAllItems()`         |
+| [src/ORM/ORMEntityCRUD.php](../src/ORM/ORMEntityCRUD.php)                               | Consumer event subscription base (extends `CRUDEventProducer`)                          |
+| [src/ORM/Generators/CSGeneratorORM.php](../src/ORM/Generators/CSGeneratorORM.php)       | PHP ORM class generator                                                                 |
+| [src/CRUD/CRUD.php](../src/CRUD/CRUD.php)                                               | Per-operation event dispatcher (used internally by `ORMController`)                     |
+| [src/CRUD/CRUDEventProducer.php](../src/CRUD/CRUDEventProducer.php)                     | `listen()`, `onBefore*`, `onAfter*` subscription methods                                |
+| [src/DBAL/Filters/FilterFieldNotation.php](../src/DBAL/Filters/FilterFieldNotation.php) | Operand path parser: bracket/dot notation, segment serialization                        |
+| [src/DBAL/MigrationRunner.php](../src/DBAL/MigrationRunner.php)                         | Version-based migration runner                                                          |
+| [tests/assets/schemas.php](../tests/assets/schemas.php)                                 | Reference array schema used throughout tests                                            |
+| [tests/BaseTestCase.php](../tests/BaseTestCase.php)                                     | Test scaffolding: DB bootstrap, fluent builder usage, multi-driver helpers              |
+| [tests/tmp/output/ORM_Db/](../tests/tmp/output/ORM_Db/)                                 | Generated ORM PHP classes (reference for expected output shape)                         |
