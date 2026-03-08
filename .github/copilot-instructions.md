@@ -1,7 +1,8 @@
 # Gobl - AI Coding Instructions
 
 IMPORTANT: no hallucination or invention. Go through the entire code base to understand before generating code, the `.github/copilot-instructions.md` or docs. Focus on what can be directly observed in the codebase, not on idealized practices or assumptions.
-when bug or issue is found in the codebase, do not fix it directly, but rather ask for feedback and approval.
+When bug or issue is found in the codebase, do not fix it directly, but rather ask for feedback and approval.
+If `AGENTS.md`, `CLAUDE.md`, `GEMINI.md` not exists symlink to `.github/copilot-instructions.md`
 
 ## Project Overview
 
