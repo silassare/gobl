@@ -1,8 +1,8 @@
 .PHONY: docs docs-dev docs-build docs-api docs-preview test cs-fix
 
-# ─── Documentation ────────────────────────────────────────────────────────────
+# Documentation
 
-# phpDocumentor phar — downloaded on first use
+# phpDocumentor phar - downloaded on first use
 PHPDOC_PHAR ?= /tmp/phpDocumentor.phar
 PHPDOC_VERSION ?= 3.7.1
 PHPDOC_URL = https://github.com/phpDocumentor/phpDocumentor/releases/download/v$(PHPDOC_VERSION)/phpDocumentor.phar
@@ -34,7 +34,7 @@ docs-preview:
 docs-install:
 	cd docs && pnpm install
 
-# ─── Tests ────────────────────────────────────────────────────────────────────
+# = Tests
 
 ## Run the full test suite
 test:
@@ -44,7 +44,7 @@ test:
 test-unit:
 	vendor/bin/phpunit --exclude-group live
 
-# ─── Code style ───────────────────────────────────────────────────────────────
+# = Code style
 
 ## Check code style
 cs:
@@ -54,7 +54,7 @@ cs:
 cs-fix:
 	vendor/bin/php-cs-fixer fix
 
-# ─── Help ─────────────────────────────────────────────────────────────────────
+# = Help
 
 ## Print available targets
 help:
