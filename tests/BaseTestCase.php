@@ -20,8 +20,8 @@ use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Drivers\MySQL\MySQLQueryGenerator;
 use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
 use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQLQueryGenerator;
-use Gobl\DBAL\Drivers\SQLLite\SQLLite;
-use Gobl\DBAL\Drivers\SQLLite\SQLLiteQueryGenerator;
+use Gobl\DBAL\Drivers\SQLite\SQLite;
+use Gobl\DBAL\Drivers\SQLite\SQLiteQueryGenerator;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\QBUtils;
 use Gobl\DBAL\Relations\LinkType;
@@ -99,7 +99,7 @@ abstract class BaseTestCase extends TestCase
 	 * Returns a DbConfig instance for the given driver type, populated with connection
 	 * parameters from environment variables (or .env.test).
 	 *
-	 * @param string $type Driver type (MySQL, PostgreSQL, SQLLite)
+	 * @param string $type Driver type (MySQL, PostgreSQL, SQLite)
 	 *
 	 * @return DbConfig
 	 */
@@ -128,9 +128,9 @@ abstract class BaseTestCase extends TestCase
 				'db_charset'      => 'utf8',
 				'db_collate'      => 'utf8',
 			],
-			SQLLite::NAME => [
+			SQLite::NAME => [
 				'db_table_prefix' => 'gObL',
-				// SQLLite::connect() uses db_host as the file path passed to `sqlite:<path>`.
+				// SQLite::connect() uses db_host as the file path passed to `sqlite:<path>`.
 				// Use ":memory:" for an in-process in-memory DB (default),
 				// or an absolute/relative file path to persist the database to disk.
 				'db_host'         => self::env('GOBL_TEST_SQLITE_FILE', ':memory:'),
@@ -244,7 +244,7 @@ abstract class BaseTestCase extends TestCase
 		return [
 			MySQL::NAME      => [MySQL::NAME, MySQL::class],
 			PostgreSQL::NAME => [PostgreSQL::NAME, PostgreSQL::class],
-			SQLLite::NAME    => [SQLLite::NAME, SQLLite::class],
+			SQLite::NAME     => [SQLite::NAME, SQLite::class],
 		];
 	}
 
@@ -282,9 +282,9 @@ abstract class BaseTestCase extends TestCase
 				'rdbms'     => PostgreSQL::class,
 				'generator' => PostgreSQLQueryGenerator::class,
 			],
-			SQLLite::NAME => [
-				'rdbms'     => SQLLite::class,
-				'generator' => SQLLiteQueryGenerator::class,
+			SQLite::NAME => [
+				'rdbms'     => SQLite::class,
+				'generator' => SQLiteQueryGenerator::class,
 			],
 		];
 	}

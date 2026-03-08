@@ -375,7 +375,7 @@ final class QBSelectSnapshotTest extends BaseTestCase
 	 */
 	public function testSelectRightJoinSubLevelSQLiteThrows(): void
 	{
-		$db = self::getNewDbInstanceWithSchema('sqllite');
+		$db = self::getNewDbInstanceWithSchema('sqlite');
 		$qb = new QBSelect($db);
 		$qb->from('clients', 'c')
 			->select('c', ['id', 'first_name']);

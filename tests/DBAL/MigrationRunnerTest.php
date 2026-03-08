@@ -18,7 +18,7 @@ use Gobl\DBAL\Builders\TableBuilder;
 use Gobl\DBAL\Diff\Diff;
 use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
-use Gobl\DBAL\Drivers\SQLLite\SQLLite;
+use Gobl\DBAL\Drivers\SQLite\SQLite;
 use Gobl\DBAL\Interfaces\MigrationInterface;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\MigrationMode;
@@ -76,7 +76,7 @@ final class MigrationRunnerTest extends BaseTestCase
 
 		if (\extension_loaded('pdo_sqlite')) {
 			try {
-				$db = $this->getNewDbInstance(SQLLite::NAME);
+				$db = $this->getNewDbInstance(SQLite::NAME);
 
 				foreach ($tables as $table) {
 					try {
@@ -488,7 +488,7 @@ final class MigrationRunnerTest extends BaseTestCase
 	private function tableExists(RDBMSInterface $db, string $table): bool
 	{
 		try {
-			if ($db instanceof SQLLite) {
+			if ($db instanceof SQLite) {
 				$stmt = $db->select("SELECT name FROM sqlite_master WHERE type='table' AND name='{$table}';");
 			} else {
 				$stmt = $db->select("SELECT table_name FROM information_schema.tables WHERE table_name='{$table}';");

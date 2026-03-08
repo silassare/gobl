@@ -18,7 +18,7 @@ use Exception;
 use Gobl\DBAL\Db;
 use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Drivers\MySQL\MySQL;
-use Gobl\DBAL\Drivers\SQLLite\SQLLite;
+use Gobl\DBAL\Drivers\SQLite\SQLite;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Queries\QBUtils;
 use Gobl\Gobl;
@@ -41,17 +41,11 @@ abstract class SQLDriverBase extends Db
 	 */
 	protected function __construct(protected DbConfig $config) {}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getConfig(): DbConfig
 	{
 		return $this->config;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function runInTransaction(Closure $callable): mixed
 	{
 		$failed  = true;
@@ -232,7 +226,7 @@ abstract class SQLDriverBase extends Db
 	{
 		$db_type = $this->getType();
 
-		if (SQLLite::NAME === $db_type || 'postgresql' === $db_type) {
+		if (SQLite::NAME === $db_type || 'postgresql' === $db_type) {
 			// SQLite's PDO prepare() only compiles the first SQL statement when given a
 			// multi-statement string; PDO::exec() forwards to sqlite3_exec() which
 			// properly handles all semicolon-separated statements in one call.

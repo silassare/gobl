@@ -15,18 +15,18 @@ namespace Gobl\Tests\DBAL;
 
 use Gobl\DBAL\Db;
 use Gobl\DBAL\DbConfig;
-use Gobl\DBAL\Drivers\SQLLite\SQLLite;
+use Gobl\DBAL\Drivers\SQLite\SQLite;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\Tests\BaseTestCase;
 
 /**
- * Class SQLLiteDbTest.
+ * Class SQLiteDbTest.
  *
  * @internal
  *
  * @coversNothing
  */
-final class SQLLiteDbTest extends BaseTestCase
+final class SQLiteDbTest extends BaseTestCase
 {
 	/**
 	 * buildDatabase() on a real SQLite connection produces valid SQL.
@@ -54,7 +54,7 @@ final class SQLLiteDbTest extends BaseTestCase
 			'db_name' => $file,
 		]);
 
-		$db = Db::newInstanceOf(SQLLite::NAME, $config);
+		$db = Db::newInstanceOf(SQLite::NAME, $config);
 		$db->ns(self::TEST_DB_NAMESPACE)
 			->schema(self::getTablesDefinitions());
 

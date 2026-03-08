@@ -33,7 +33,7 @@ use Gobl\Tests\BaseTestCase;
  *
  * @covers \Gobl\DBAL\Drivers\MySQL\MySQLQueryGenerator
  * @covers \Gobl\DBAL\Drivers\PostgreSQL\PostgreSQLQueryGenerator
- * @covers \Gobl\DBAL\Drivers\SQLLite\SQLLiteQueryGenerator
+ * @covers \Gobl\DBAL\Drivers\SQLite\SQLiteQueryGenerator
  * @covers \Gobl\DBAL\Drivers\SQLQueryGeneratorBase
  *
  * @internal

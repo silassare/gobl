@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Gobl\DBAL\Drivers\SQLLite;
+namespace Gobl\DBAL\Drivers\SQLite;
 
 use Gobl\DBAL\Column;
 use Gobl\DBAL\DbConfig;
@@ -34,14 +34,14 @@ use Gobl\Gobl;
 use const GOBL_ASSETS_DIR;
 
 /**
- * Class SQLLiteQueryGenerator.
+ * Class SQLiteQueryGenerator.
  */
-class SQLLiteQueryGenerator extends SQLQueryGeneratorBase
+class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 {
 	private static bool $templates_registered = false;
 
 	/**
-	 * SQLLiteQueryGenerator constructor.
+	 * SQLiteQueryGenerator constructor.
 	 *
 	 * @param RDBMSInterface $db
 	 * @param DbConfig       $config
@@ -54,15 +54,12 @@ class SQLLiteQueryGenerator extends SQLQueryGeneratorBase
 			self::$templates_registered = true;
 
 			Gobl::addTemplates([
-				'sqllite_db'           => ['path' => GOBL_ASSETS_DIR . '/sqllite/db.sql'],
-				'sqllite_create_table' => ['path' => GOBL_ASSETS_DIR . '/sqllite/create_table.sql'],
+				'sqlite_db'           => ['path' => GOBL_ASSETS_DIR . '/sqlite/db.sql'],
+				'sqlite_create_table' => ['path' => GOBL_ASSETS_DIR . '/sqlite/create_table.sql'],
 			]);
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function wrapDatabaseDefinitionQuery(string $query): string
 	{
 		return $query;
@@ -73,7 +70,7 @@ class SQLLiteQueryGenerator extends SQLQueryGeneratorBase
 	 *
 	 * SQLite does not support ALTER TABLE ADD CONSTRAINT (only ADD COLUMN and RENAME TO).
 	 * This override builds all constraints (FOREIGN KEY, UNIQUE) inline inside each
-	 * CREATE TABLE statement rather than as separate ALTER TABLE… ADD statements.
+	 * CREATE TABLE statement rather than as separate ALTER TABLE... ADD statements.
 	 */
 	public function buildDatabase(?string $namespace = null): string
 	{
@@ -143,9 +140,6 @@ class SQLLiteQueryGenerator extends SQLQueryGeneratorBase
 		]);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function quoteIdentifier(string $name): string
 	{
 		return '"' . \str_replace('"', '""', $name) . '"';
@@ -188,25 +182,16 @@ class SQLLiteQueryGenerator extends SQLQueryGeneratorBase
 		return 'json_extract(' . $col_sql_expression . ', \'$.\'||' . $key_expression . ') IS NOT NULL';
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	protected function dbQueryTemplate(): string
 	{
-		return 'sqllite_db';
+		return 'sqlite_db';
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	protected function createTableQueryTemplate(): string
 	{
-		return 'sqllite_create_table';
+		return 'sqlite_create_table';
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	protected function getStringColumnDefinition(Column $column): string
 	{
 		$column_name = $column->getFullName();
@@ -390,9 +375,6 @@ class SQLLiteQueryGenerator extends SQLQueryGeneratorBase
 		return \implode(' ', $sql);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	protected function getIndexSQL(Index $index): string
 	{
 		$table_name   = $index->getHostTable()->getFullName();
@@ -409,8 +391,8 @@ class SQLLiteQueryGenerator extends SQLQueryGeneratorBase
 	 * SQLITE_ENABLE_UPDATE_DELETE_LIMIT compile-time flag). When a LIMIT
 	 * is requested we rewrite the statement as a rowid sub-query:
 	 *
-	 *   UPDATE t SET … WHERE rowid IN (
-	 *     SELECT rowid FROM t WHERE … [ORDER BY …] LIMIT n
+	 *   UPDATE t SET ... WHERE rowid IN (
+	 *     SELECT rowid FROM t WHERE ... [ORDER BY ...] LIMIT n
 	 *   )
 	 *
 	 * When LIMIT is absent the standard base-class implementation is used.
@@ -443,7 +425,7 @@ class SQLLiteQueryGenerator extends SQLQueryGeneratorBase
 
 		$set   = \implode(', ', $set_parts);
 		$where = $this->getWhereQuery($qb);
-		$ob    = $this->getOrderByQuery($qb); // '' or ' ORDER BY …'
+		$ob    = $this->getOrderByQuery($qb); // '' or ' ORDER BY ...'
 
 		$alias = $qb->getOptionsUpdateTableAlias() ?? '';
 		$qt    = $this->quoteIdentifier($table);
@@ -465,7 +447,7 @@ class SQLLiteQueryGenerator extends SQLQueryGeneratorBase
 	 * When a LIMIT is requested a rowid sub-query is used:
 	 *
 	 *   DELETE FROM t WHERE rowid IN (
-	 *     SELECT rowid FROM t WHERE … [ORDER BY …] LIMIT n
+	 *     SELECT rowid FROM t WHERE ... [ORDER BY ...] LIMIT n
 	 *   )
 	 *
 	 * ORDER BY without LIMIT still throws via the guard.

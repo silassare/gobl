@@ -11,46 +11,34 @@
 
 declare(strict_types=1);
 
-namespace Gobl\DBAL\Drivers\SQLLite;
+namespace Gobl\DBAL\Drivers\SQLite;
 
 use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Drivers\SQLDriverBase;
 use PDO;
 
 /**
- * Class SQLLite.
+ * Class SQLite.
  */
-class SQLLite extends SQLDriverBase
+class SQLite extends SQLDriverBase
 {
-	public const NAME = 'sqllite';
+	public const NAME = 'sqlite';
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getGenerator(): SQLLiteQueryGenerator
+	public function getGenerator(): SQLiteQueryGenerator
 	{
-		return new SQLLiteQueryGenerator($this, $this->config);
+		return new SQLiteQueryGenerator($this, $this->config);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getType(): string
 	{
 		return self::NAME;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public static function new(DbConfig $config): static
 	{
 		return new self($config);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	protected function connect(): PDO
 	{
 		$host = $this->config->getDbHost();

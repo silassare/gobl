@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\ORM\LiveDB;
 
-use Gobl\DBAL\Drivers\SQLLite\SQLLite;
+use Gobl\DBAL\Drivers\SQLite\SQLite;
 
 /**
  * Class ORMSQLiteLiveTest.
@@ -39,6 +39,6 @@ final class ORMSQLiteLiveTest extends ORMLiveTestCase
 	 */
 	protected static function getDriverName(): string
 	{
-		return SQLLite::NAME;
+		return SQLite::NAME;
 	}
 }
