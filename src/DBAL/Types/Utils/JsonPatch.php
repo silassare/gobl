@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Types\Utils;
 
-use Gobl\DBAL\Filters\FilterFieldNotation;
+use Gobl\DBAL\Filters\DotPath;
 use JsonSerializable;
 
 /**
@@ -136,10 +136,11 @@ final class JsonPatch
 	/**
 	 * Parses a path string into an array of segment strings.
 	 *
-	 * Delegates to {@see FilterFieldNotation::parsePath()} which supports
+	 * Delegates to {@see DotPath::parse()} which supports
 	 * plain segments (`foo.bar`), bracket-integer segments (`[0]`),
 	 * and bracket-quoted segments (`['key with spaces']` or `["key"]`).
 	 * Empty segments (e.g. from consecutive dots `a..b`) throw an exception.
+	 * Plain segments must be [a-zA-Z0-9_]+ only; anything else requires bracket notation.
 	 *
 	 * @param string $path
 	 *
@@ -147,7 +148,7 @@ final class JsonPatch
 	 */
 	private static function parsePath(string $path): array
 	{
-		return FilterFieldNotation::parsePath($path);
+		return DotPath::parse($path)->getSegments();
 	}
 
 	/**

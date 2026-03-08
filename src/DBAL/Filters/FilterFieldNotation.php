@@ -131,7 +131,7 @@ final class FilterFieldNotation
 		}
 
 		if (null !== $path) {
-			$segments = self::parsePath($path);
+			$segments = DotPath::parse($path)->getSegments();
 		}
 
 		return new self($field, $table_or_alias, null, $segments, $qb, $scope);
@@ -140,127 +140,15 @@ final class FilterFieldNotation
 	/**
 	 * Parse a JSON path string into an array of segments using JS-like notation.
 	 *
-	 * Grammar:
-	 *   path          := segment ( ('.' segment) | bracket )*
-	 *   segment       := plain | bracket
-	 *   plain         := [^.['"]+ (no dot, bracket, or quote)
-	 *   bracket       := '[' ( sq-content | dq-content | integer ) ']'
-	 *   sq-content    := ['] ( [^'\\] | [\']['] )* [']   (escape: \')
-	 *   dq-content    := ["] ( [^"\\] | [\\]["] )* ["]   (escape: \")
-	 *   integer       := [0-9]+
-	 *
-	 * Rules:
-	 *   - A `.` separator between segments is optional after a `]`.
-	 *   - Empty plain segments (e.g. consecutive dots) throw.
+	 * @deprecated use {@see DotPath::parse()} instead
 	 *
 	 * @return array<int,string> The parsed path segments
 	 *
-	 * @throws InvalidArgumentException if the path is empty, has empty segments, or is malformed
+	 * @throws InvalidArgumentException if the path is empty, has empty/invalid segments, or is malformed
 	 */
 	public static function parsePath(string $path): array
 	{
-		if ('' === $path) {
-			throw new InvalidArgumentException('Invalid JSON path: path portion cannot be empty');
-		}
-
-		$segments = [];
-		$len      = \strlen($path);
-		$i        = 0;
-
-		while ($i < $len) {
-			if ('[' === $path[$i]) {
-				// Bracket segment: [integer], ['...'], or ["..."]
-				++$i;
-
-				if ($i >= $len) {
-					throw new InvalidArgumentException('Invalid JSON path: unexpected end after `[`');
-				}
-
-				$quote = $path[$i];
-
-				if ("'" === $quote || '"' === $quote) {
-					// Bracket-quoted segment: ['...'] or ["..."]
-					++$i;
-					$seg = '';
-
-					while ($i < $len) {
-						$ch = $path[$i];
-
-						if ('\\' === $ch && $i + 1 < $len && $path[$i + 1] === $quote) {
-							// Escaped quote: \\' or \\"
-							$seg .= $quote;
-							$i += 2;
-						} elseif ($ch === $quote) {
-							// Closing quote
-							++$i;
-
-							break;
-						} else {
-							$seg .= $ch;
-							++$i;
-						}
-					}
-
-					if ($i >= $len || ']' !== $path[$i]) {
-						throw new InvalidArgumentException('Invalid JSON path: missing closing `]` after quoted segment');
-					}
-
-					++$i; // consume ']'
-					$segments[] = $seg;
-				} elseif (\ctype_digit($path[$i])) {
-					// Bracket-integer segment: [0], [42], ...
-					$start = $i;
-
-					while ($i < $len && \ctype_digit($path[$i])) {
-						++$i;
-					}
-
-					if ($i >= $len || ']' !== $path[$i]) {
-						throw new InvalidArgumentException('Invalid JSON path: missing closing `]` after integer index');
-					}
-
-					++$i; // consume ']'
-					$segments[] = \substr($path, $start, $i - $start - 1);
-				} else {
-					throw new InvalidArgumentException(
-						\sprintf('Invalid JSON path: expected quote or integer after `[`, got `%s`', $path[$i])
-					);
-				}
-			} else {
-				// Plain segment: collect until '.', '[', or end
-				$start = $i;
-
-				while ($i < $len && '.' !== $path[$i] && '[' !== $path[$i]) {
-					$ch = $path[$i];
-
-					if ("'" === $ch || '"' === $ch) {
-						throw new InvalidArgumentException(
-							\sprintf('Invalid JSON path: unexpected quote `%s` in plain segment; use bracket notation `[\'key\']`.', $ch)
-						);
-					}
-
-					++$i;
-				}
-
-				if ($i === $start) {
-					throw new InvalidArgumentException('Invalid JSON path: empty segment (consecutive dots not allowed)');
-				}
-
-				$segments[] = \substr($path, $start, $i - $start);
-			}
-
-			// Consume the optional dot separator between segments (mandatory after plain, optional after ']')
-			if ($i < $len && '.' === $path[$i]) {
-				++$i;
-
-				// A trailing dot (nothing after it) is an error
-				if ($i >= $len) {
-					throw new InvalidArgumentException('Invalid JSON path: trailing dot');
-				}
-			}
-		}
-
-		return $segments;
+		return DotPath::parse($path)->getSegments();
 	}
 
 	/**
@@ -365,30 +253,13 @@ final class FilterFieldNotation
 	/**
 	 * Serializes path_segments back to a path string using JS-like bracket notation.
 	 *
-	 * Plain identifiers (no `.`, `[`, `'`, `"`, space) are emitted as-is and joined by `.`.
-	 * Everything else is emitted as `['...']` with `'` escaped as `\\'`.
-	 * Bracket segments are concatenated without a dot separator.
+	 * Delegates to {@see DotPath::__toString()}.
 	 *
 	 * @return string The path string
 	 */
 	public function getPathSegmentsAsString(): string
 	{
-		$out   = '';
-		$first = true;
-
-		foreach ($this->path_segments as $seg) {
-			if (\preg_match('/^[^.[\'"\ ]+$/', $seg)) {
-				// Plain segment: emit with a dot separator
-				$out .= ($first ? '' : '.') . $seg;
-				$first = false;
-			} else {
-				// Bracket-quoted: no dot separator before '['
-				$out .= "['" . \str_replace("'", "\\'", $seg) . "']";
-				$first = false;
-			}
-		}
-
-		return $out;
+		return (string) new DotPath($this->path_segments);
 	}
 
 	/**
