@@ -1,0 +1,11 @@
+{
+	"files.associations": {
+		"**/tests/assets/snapshots/generators/orm/**/*.txt": "php",
+		"**/tests/assets/snapshots/generators/ts/**/*.txt": "typescript",
+		"**/tests/assets/snapshots/generators/dart/**/*.txt": "dart"
+	},
+	"search.exclude": {
+		"**/tests/assets/snapshots/**": true,
+		"**/tests/tmp/**": true
+	}
+}

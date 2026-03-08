@@ -10,6 +10,8 @@
 		<directory name="src"/>
 		<ignoreFiles>
 			<directory name="vendor"/>
+			<directory name="tests/assets/snapshots"/>
+			<directory name="tests/tmp"/>
 		</ignoreFiles>
 	</projectFiles>
 	<issueHandlers>
