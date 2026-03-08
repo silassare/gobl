@@ -25,7 +25,7 @@ DBAL (Db, Table, Column, Types, Queries, Relations, Migrations, Diff)
 
 ## Schema Definition - Two Approaches
 
-**Array-based** (see [tests/tables.php](../tests/tables.php)):
+**Array-based** (see [tests/assets/schemas.php](../tests/assets/schemas.php)):
 
 ```php
 $db->ns('App\Db')->schema([
@@ -234,6 +234,6 @@ Live DB tests require `.env.test` (see `.env.test.example`). `./run_test` cleans
 | [src/CRUD/CRUD.php](../src/CRUD/CRUD.php)                                         | Per-operation event dispatcher (used internally by `ORMController`)                     |
 | [src/CRUD/CRUDEventProducer.php](../src/CRUD/CRUDEventProducer.php)               | `listen()`, `onBefore*`, `onAfter*` subscription methods                                |
 | [src/DBAL/MigrationRunner.php](../src/DBAL/MigrationRunner.php)                   | Version-based migration runner                                                          |
-| [tests/tables.php](../tests/tables.php)                                           | Reference array schema used throughout tests                                            |
+| [tests/assets/schemas.php](../tests/assets/schemas.php)                           | Reference array schema used throughout tests                                            |
 | [tests/BaseTestCase.php](../tests/BaseTestCase.php)                               | Test scaffolding: DB bootstrap, fluent builder usage, multi-driver helpers              |
 | [tests/tmp/output/ORM_Db/](../tests/tmp/output/ORM_Db/)                           | Generated ORM PHP classes (reference for expected output shape)                         |
