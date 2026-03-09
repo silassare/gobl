@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>.
+ * Copyright (c) Emile Silas Sare.
  *
  * This file is part of the Gobl package.
  *

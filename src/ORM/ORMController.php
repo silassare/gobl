@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>.
+ * Copyright (c) Emile Silas Sare.
  *
  * This file is part of the Gobl package.
  *
@@ -586,7 +586,8 @@ abstract class ORMController
 	protected static function assertFiltersNotEmpty(ORMTableQuery $filters): void
 	{
 		if ($filters->getFilters()
-			->isEmpty()) {
+			->isEmpty()
+		) {
 			throw new ORMQueryException('GOBL_ORM_REQUEST_FILTERS_EMPTY');
 		}
 	}

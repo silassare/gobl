@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>.
+ * Copyright (c) Emile Silas Sare.
  *
  * This file is part of the Gobl package.
  *
@@ -155,7 +155,7 @@ trait QBFromTrait
 			throw new DBALRuntimeException(
 				\sprintf(
 					'Table "%s" is already defined in "from" clause for query type "%s" provided in "%s".'
-					. 'If you need the same table twice keep it simple and use a JOIN clause.',
+						. 'If you need the same table twice keep it simple and use a JOIN clause.',
 					$table,
 					$this->getType()->name,
 					static::class

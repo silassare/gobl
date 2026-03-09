@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>.
+ * Copyright (c) Emile Silas Sare.
  *
  * This file is part of the Gobl package.
  *
@@ -172,8 +172,7 @@ return [
 		'plural_name'   => 'currencies',
 		'singular_name' => 'currency',
 		'column_prefix' => 'currency',
-		'relations'     => [
-		],
+		'relations'     => [],
 		'constraints' => [
 			// DIFF: PRIMARY KEY REMOVED
 			// ['type' => 'primary_key', 'columns' => ['code']],
@@ -207,8 +206,7 @@ return [
 		'plural_name'   => 'orders',
 		'singular_name' => 'order',
 		'column_prefix' => 'order',
-		'relations'     => [
-		],
+		'relations'     => [],
 		'constraints' => [
 			['type' => 'primary_key', 'columns' => ['id']],
 		],

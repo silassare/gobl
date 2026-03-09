@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>.
+ * Copyright (c) Emile Silas Sare.
  *
  * This file is part of the Gobl package.
  *
@@ -33,7 +33,7 @@ $finder->in([
 	->ignoreVCS(true);
 
 $header = <<<'EOF'
-Copyright (c) Emile Silas Sare <emile.silas@gmail.com>.
+Copyright (c) Emile Silas Sare.
 
 This file is part of the Gobl package.
 
