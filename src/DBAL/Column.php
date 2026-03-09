@@ -15,7 +15,6 @@ namespace Gobl\DBAL;
 
 use Gobl\DBAL\Diff\Interfaces\DiffCapableInterface;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
-use PHPUtils\Traits\LockTrait;
 use Gobl\DBAL\Traits\MetadataTrait;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
 use Gobl\DBAL\Types\Type;
@@ -25,6 +24,7 @@ use Gobl\Gobl;
 use InvalidArgumentException;
 use PHPUtils\Interfaces\ArrayCapableInterface;
 use PHPUtils\Traits\ArrayCapableTrait;
+use PHPUtils\Traits\LockTrait;
 use Throwable;
 
 /**

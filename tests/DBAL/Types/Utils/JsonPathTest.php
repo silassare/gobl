@@ -57,7 +57,7 @@ final class JsonPathTest extends BaseTestCase
 	public function testJsonPathSegmentsEmpty(): void
 	{
 		$this->expectException(InvalidArgumentException::class);
-		$this->expectExceptionMessage('Invalid JSON path: path portion cannot be empty');
+		$this->expectExceptionMessage('Invalid dot path: path cannot be empty');
 
 		JsonPath::fromString('column#');
 	}

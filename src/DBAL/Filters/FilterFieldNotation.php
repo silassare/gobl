@@ -17,6 +17,7 @@ use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface;
 use Gobl\DBAL\Queries\Interfaces\QBInterface;
 use InvalidArgumentException;
+use PHPUtils\DotPath;
 
 /**
  * Utility class for operand notation in filters, specifically for handling column

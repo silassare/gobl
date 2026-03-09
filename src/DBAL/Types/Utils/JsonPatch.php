@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Types\Utils;
 
-use Gobl\DBAL\Filters\DotPath;
 use JsonSerializable;
+use PHPUtils\DotPath;
 
 /**
  * Class JsonPatch.

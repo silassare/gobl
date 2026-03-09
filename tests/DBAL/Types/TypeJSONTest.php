@@ -21,6 +21,7 @@ use Gobl\DBAL\Types\TypeMap;
 use Gobl\DBAL\Types\Utils\Map;
 use Gobl\Tests\BaseTestCase;
 use JsonSerializable;
+use PHPUtils\Exceptions\RuntimeException as PHPUtilsRuntimeException;
 use stdClass;
 
 /**
@@ -169,7 +170,7 @@ final class TypeJSONTest extends BaseTestCase
 	{
 		$t = (new TypeJSON())->lock();
 
-		$this->expectException(DBALRuntimeException::class);
+		$this->expectException(PHPUtilsRuntimeException::class);
 		$this->expectExceptionMessage('cannot be modified');
 		$t->nativeJson(true); // internally calls setOption()
 	}
@@ -186,7 +187,7 @@ final class TypeJSONTest extends BaseTestCase
 	{
 		$t = (new TypeJSON())->lock();
 
-		$this->expectException(DBALRuntimeException::class);
+		$this->expectException(PHPUtilsRuntimeException::class);
 		$t->assertNotLocked();
 	}
 
