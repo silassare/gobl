@@ -11,7 +11,8 @@
 	stopOnFailure="false"
 	stopOnIncomplete="false"
 	stopOnSkipped="false"
-	stopOnRisky="false">
+	stopOnRisky="false"
+	bootstrap="tests/autoload.php">
 
     <php>
         <ini name="error_reporting" value="-1"/>
