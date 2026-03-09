@@ -2,6 +2,7 @@
 	"name": "silassare/gobl",
 	"description": "Gobl allows you to use a Database Abstraction Layer (DBAL) and Object-Relational Mapping (ORM) to query your database with PHP.",
 	"license": "MIT",
+	"version": "2.0.0",
 	"keywords": [
 		"gobl",
 		"ORM",
@@ -14,9 +15,10 @@
 		"ext-pdo": "*",
 		"ext-json": "*",
 		"ext-bcmath": "*",
-		"silassare/otpl": "^2.0.0",
-		"silassare/php-utils": "^1.0.4",
-		"oliup/code-generator": "^1.0.0"
+		"silassare/otpl": "^2.0.1",
+		"silassare/php-utils": "^2.0.0",
+		"oliup/code-generator": "^1.0.0",
+		"silassare/blate": "^1.1.0"
 	},
 	"require-dev": {
 		"oliup/oliup-cs-php": "dev-main",
@@ -62,7 +64,7 @@
 	"minimum-stability": "dev",
 	"extra": {
 		"branch-alias": {
-			"dev-main": "2.0.x-dev"
+			"dev-main": "3.0.x-dev"
 		}
 	},
 	"config": {
