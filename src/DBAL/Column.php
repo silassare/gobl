@@ -15,7 +15,7 @@ namespace Gobl\DBAL;
 
 use Gobl\DBAL\Diff\Interfaces\DiffCapableInterface;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
-use Gobl\DBAL\Traits\LockTrait;
+use PHPUtils\Traits\LockTrait;
 use Gobl\DBAL\Traits\MetadataTrait;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
 use Gobl\DBAL\Types\Type;

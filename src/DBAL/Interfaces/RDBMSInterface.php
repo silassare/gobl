@@ -20,6 +20,7 @@ use Gobl\DBAL\Table;
 use Gobl\Exceptions\GoblException;
 use PDO;
 use PDOStatement;
+use PHPUtils\Interfaces\LockInterface;
 
 /**
  * Interface RDBMSInterface.

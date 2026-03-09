@@ -15,7 +15,6 @@ namespace Gobl\DBAL\Types\Interfaces;
 
 use Gobl\DBAL\Column;
 use Gobl\DBAL\Filters\Filter;
-use Gobl\DBAL\Interfaces\LockInterface;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Table;
@@ -25,6 +24,7 @@ use Gobl\ORM\ORMTableQuery;
 use Gobl\ORM\ORMTypeHint;
 use OLIUP\CG\PHPMethod;
 use PHPUtils\Interfaces\ArrayCapableInterface;
+use PHPUtils\Interfaces\LockInterface;
 
 /**
  * Interface TypeInterface.

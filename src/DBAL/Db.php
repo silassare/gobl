@@ -33,12 +33,12 @@ use Gobl\DBAL\Relations\OneToMany;
 use Gobl\DBAL\Relations\OneToOne;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Relations\RelationType;
-use Gobl\DBAL\Traits\LockTrait;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
 use Gobl\DBAL\Types\Utils\Map;
 use Gobl\DBAL\Types\Utils\TypeUtils;
 use InvalidArgumentException;
 use PDO;
+use PHPUtils\Traits\LockTrait;
 use Throwable;
 
 /**

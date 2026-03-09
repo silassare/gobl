@@ -24,17 +24,17 @@ use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Indexes\Index;
 use Gobl\DBAL\Indexes\IndexType;
-use Gobl\DBAL\Interfaces\LockInterface;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Relations\VirtualRelation;
-use Gobl\DBAL\Traits\LockTrait;
 use Gobl\DBAL\Traits\MetadataTrait;
 use Gobl\Exceptions\GoblRuntimeException;
 use InvalidArgumentException;
 use OLIUP\CG\PHPNamespace;
 use PHPUtils\Interfaces\ArrayCapableInterface;
+use PHPUtils\Interfaces\LockInterface;
 use PHPUtils\Traits\ArrayCapableTrait;
+use PHPUtils\Traits\LockTrait;
 use Throwable;
 
 /**

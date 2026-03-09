@@ -14,12 +14,12 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Constraints;
 
 use Gobl\DBAL\Exceptions\DBALException;
-use Gobl\DBAL\Interfaces\LockInterface;
 use Gobl\DBAL\Table;
-use Gobl\DBAL\Traits\LockTrait;
 use InvalidArgumentException;
 use PHPUtils\Interfaces\ArrayCapableInterface;
+use PHPUtils\Interfaces\LockInterface;
 use PHPUtils\Traits\ArrayCapableTrait;
+use PHPUtils\Traits\LockTrait;
 
 /**
  * Class Constraint.
