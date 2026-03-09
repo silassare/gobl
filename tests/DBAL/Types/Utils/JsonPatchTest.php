@@ -195,14 +195,14 @@ final class JsonPatchTest extends BaseTestCase
 	public function testSetEmptyPathThrows(): void
 	{
 		$this->expectException(InvalidArgumentException::class);
-		$this->expectExceptionMessage('path portion cannot be empty');
+		$this->expectExceptionMessage('Invalid dot path: path cannot be empty');
 		(new JsonPatch())->set('', 'val');
 	}
 
 	public function testRemoveEmptyPathThrows(): void
 	{
 		$this->expectException(InvalidArgumentException::class);
-		$this->expectExceptionMessage('path portion cannot be empty');
+		$this->expectExceptionMessage('Invalid dot path: path cannot be empty');
 		(new JsonPatch())->remove('');
 	}
 
