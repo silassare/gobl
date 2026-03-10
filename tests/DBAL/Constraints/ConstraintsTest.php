@@ -25,247 +25,247 @@ use Gobl\Tests\BaseTestCase;
 /**
  * Class ConstraintsTest.
  *
+ * @covers \Gobl\DBAL\Constraints\ForeignKey
  * @covers \Gobl\DBAL\Constraints\PrimaryKey
  * @covers \Gobl\DBAL\Constraints\UniqueKey
- * @covers \Gobl\DBAL\Constraints\ForeignKey
  *
  * @internal
  */
 final class ConstraintsTest extends BaseTestCase
 {
-    // -------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------
+	// -------------------------------------------------------------------
+	// PrimaryKey
+	// -------------------------------------------------------------------
 
-    private static function makeUsersTable(): Table
-    {
-        $t = new Table('users', 'u');
-        $t->addColumn(new Column('id', 'u', ['type' => 'bigint', 'auto_increment' => true]));
-        $t->addColumn(new Column('email', 'u'));
-        $t->addColumn(new Column('name', 'u'));
-        $t->addPrimaryKeyConstraint(['id']);
-        return $t;
-    }
+	public function testPrimaryKeyAddColumnAndGetColumns(): void
+	{
+		$users = self::makeUsersTable();
+		$pk    = new PrimaryKey('pk_users', $users);
 
-    private static function makePostsTable(): Table
-    {
-        $t = new Table('posts', 'p');
-        $t->addColumn(new Column('id', 'p', ['type' => 'bigint', 'auto_increment' => true]));
-        $t->addColumn(new Column('user_id', 'p', ['type' => 'bigint']));
-        $t->addColumn(new Column('title', 'p'));
+		$pk->addColumn('id');
 
-        return $t;
-    }
+		self::assertSame(['u_id'], $pk->getColumns());
+	}
 
-    // -------------------------------------------------------------------
-    // PrimaryKey
-    // -------------------------------------------------------------------
+	public function testPrimaryKeyRejectsNullableColumn(): void
+	{
+		$table  = new Table('items', 'i');
+		$column = new Column('optional', 'i', ['type' => 'string', 'nullable' => true]);
+		$table->addColumn($column);
 
-    public function testPrimaryKeyAddColumnAndGetColumns(): void
-    {
-        $users = self::makeUsersTable();
-        $pk    = new PrimaryKey('pk_users', $users);
+		$pk = new PrimaryKey('pk_items', $table);
 
-        $pk->addColumn('id');
+		$this->expectException(DBALException::class);
+		$pk->addColumn('optional');
+	}
 
-        self::assertSame(['u_id'], $pk->getColumns());
-    }
+	public function testPrimaryKeyToArray(): void
+	{
+		$users = self::makeUsersTable();
+		$pk    = new PrimaryKey('pk_users', $users);
+		$pk->addColumn('id');
 
-    public function testPrimaryKeyRejectsNullableColumn(): void
-    {
-        $table  = new Table('items', 'i');
-        $column = new Column('optional', 'i', ['type' => 'string', 'nullable' => true]);
-        $table->addColumn($column);
+		$arr = $pk->toArray();
 
-        $pk = new PrimaryKey('pk_items', $table);
+		self::assertSame('primary_key', $arr['type']);
+		self::assertSame(['id'], $arr['columns']);
+	}
 
-        $this->expectException(DBALException::class);
-        $pk->addColumn('optional');
-    }
+	public function testPrimaryKeyLockPreventsEdit(): void
+	{
+		$users = self::makeUsersTable();
+		$pk    = new PrimaryKey('pk_users', $users);
+		$pk->addColumn('id');
+		$pk->lock();
 
-    public function testPrimaryKeyToArray(): void
-    {
-        $users = self::makeUsersTable();
-        $pk    = new PrimaryKey('pk_users', $users);
-        $pk->addColumn('id');
+		$this->expectException(DBALException::class);
+		$pk->addColumn('email');
+	}
 
-        $arr = $pk->toArray();
+	public function testPrimaryKeyIgnoresDuplicateColumn(): void
+	{
+		$users = self::makeUsersTable();
+		$pk    = new PrimaryKey('pk_users', $users);
+		$pk->addColumn('id');
+		$pk->addColumn('id'); // duplicate
 
-        self::assertSame('primary_key', $arr['type']);
-        self::assertSame(['id'], $arr['columns']);
-    }
+		self::assertCount(1, $pk->getColumns());
+	}
 
-    public function testPrimaryKeyLockPreventsEdit(): void
-    {
-        $users = self::makeUsersTable();
-        $pk    = new PrimaryKey('pk_users', $users);
-        $pk->addColumn('id');
-        $pk->lock();
+	// -------------------------------------------------------------------
+	// UniqueKey
+	// -------------------------------------------------------------------
 
-        $this->expectException(DBALException::class);
-        $pk->addColumn('email');
-    }
+	public function testUniqueKeyAddColumnAndGetColumns(): void
+	{
+		$users = self::makeUsersTable();
+		$uk    = new UniqueKey('uk_users_email', $users);
 
-    public function testPrimaryKeyIgnoresDuplicateColumn(): void
-    {
-        $users = self::makeUsersTable();
-        $pk    = new PrimaryKey('pk_users', $users);
-        $pk->addColumn('id');
-        $pk->addColumn('id'); // duplicate
+		$uk->addColumn('email');
 
-        self::assertCount(1, $pk->getColumns());
-    }
+		self::assertSame(['u_email'], $uk->getColumns());
+	}
 
-    // -------------------------------------------------------------------
-    // UniqueKey
-    // -------------------------------------------------------------------
+	public function testUniqueKeyToArray(): void
+	{
+		$users = self::makeUsersTable();
+		$uk    = new UniqueKey('uk_users_email', $users);
+		$uk->addColumn('email');
 
-    public function testUniqueKeyAddColumnAndGetColumns(): void
-    {
-        $users = self::makeUsersTable();
-        $uk    = new UniqueKey('uk_users_email', $users);
+		$arr = $uk->toArray();
 
-        $uk->addColumn('email');
+		self::assertSame('unique_key', $arr['type']);
+		self::assertSame(['email'], $arr['columns']);
+	}
 
-        self::assertSame(['u_email'], $uk->getColumns());
-    }
+	public function testUniqueKeyMultipleColumns(): void
+	{
+		$users = self::makeUsersTable();
+		$uk    = new UniqueKey('uk_users_email_name', $users);
+		$uk->addColumn('email');
+		$uk->addColumn('name');
 
-    public function testUniqueKeyToArray(): void
-    {
-        $users = self::makeUsersTable();
-        $uk    = new UniqueKey('uk_users_email', $users);
-        $uk->addColumn('email');
+		self::assertSame(['u_email', 'u_name'], $uk->getColumns());
+		self::assertSame(['email', 'name'], $uk->toArray()['columns']);
+	}
 
-        $arr = $uk->toArray();
+	public function testUniqueKeyLockPreventsEdit(): void
+	{
+		$users = self::makeUsersTable();
+		$uk    = new UniqueKey('uk_users_email', $users);
+		$uk->addColumn('email');
+		$uk->lock();
 
-        self::assertSame('unique_key', $arr['type']);
-        self::assertSame(['email'], $arr['columns']);
-    }
+		$this->expectException(DBALException::class);
+		$uk->addColumn('name');
+	}
 
-    public function testUniqueKeyMultipleColumns(): void
-    {
-        $users = self::makeUsersTable();
-        $uk    = new UniqueKey('uk_users_email_name', $users);
-        $uk->addColumn('email');
-        $uk->addColumn('name');
+	// -------------------------------------------------------------------
+	// ForeignKey
+	// -------------------------------------------------------------------
 
-        self::assertSame(['u_email', 'u_name'], $uk->getColumns());
-        self::assertSame(['email', 'name'], $uk->toArray()['columns']);
-    }
+	public function testForeignKeyBasics(): void
+	{
+		$users  = self::makeUsersTable();
+		$posts  = self::makePostsTable();
+		$fk     = new ForeignKey('fk_posts_user_id', $posts, $users);
 
-    public function testUniqueKeyLockPreventsEdit(): void
-    {
-        $users = self::makeUsersTable();
-        $uk    = new UniqueKey('uk_users_email', $users);
-        $uk->addColumn('email');
-        $uk->lock();
+		$fk->addColumn('user_id', 'id');
 
-        $this->expectException(DBALException::class);
-        $uk->addColumn('name');
-    }
+		self::assertSame($users, $fk->getReferenceTable());
+		self::assertSame(['p_user_id'], $fk->getHostColumns());
+		self::assertSame(['u_id'], $fk->getReferenceColumns());
+		self::assertSame(['p_user_id' => 'u_id'], $fk->getColumnsMapping());
+	}
 
-    // -------------------------------------------------------------------
-    // ForeignKey
-    // -------------------------------------------------------------------
+	public function testForeignKeyDefaultActions(): void
+	{
+		$users = self::makeUsersTable();
+		$posts = self::makePostsTable();
+		$fk    = new ForeignKey('fk_posts_user_id', $posts, $users);
 
-    public function testForeignKeyBasics(): void
-    {
-        $users  = self::makeUsersTable();
-        $posts  = self::makePostsTable();
-        $fk     = new ForeignKey('fk_posts_user_id', $posts, $users);
+		self::assertSame(ForeignKeyAction::NO_ACTION, $fk->getUpdateAction());
+		self::assertSame(ForeignKeyAction::NO_ACTION, $fk->getDeleteAction());
+	}
 
-        $fk->addColumn('user_id', 'id');
+	public function testForeignKeyOnUpdateCascade(): void
+	{
+		$users = self::makeUsersTable();
+		$posts = self::makePostsTable();
+		$fk    = new ForeignKey('fk_posts_user_id', $posts, $users);
+		$fk->onUpdateCascade();
 
-        self::assertSame($users, $fk->getReferenceTable());
-        self::assertSame(['p_user_id'], $fk->getHostColumns());
-        self::assertSame(['u_id'], $fk->getReferenceColumns());
-        self::assertSame(['p_user_id' => 'u_id'], $fk->getColumnsMapping());
-    }
+		self::assertSame(ForeignKeyAction::CASCADE, $fk->getUpdateAction());
+	}
 
-    public function testForeignKeyDefaultActions(): void
-    {
-        $users = self::makeUsersTable();
-        $posts = self::makePostsTable();
-        $fk    = new ForeignKey('fk_posts_user_id', $posts, $users);
+	public function testForeignKeyOnDeleteSetNull(): void
+	{
+		$users = self::makeUsersTable();
+		$posts = self::makePostsTable();
+		$fk    = new ForeignKey('fk_posts_user_id', $posts, $users);
+		$fk->onDeleteSetNull();
 
-        self::assertSame(ForeignKeyAction::NO_ACTION, $fk->getUpdateAction());
-        self::assertSame(ForeignKeyAction::NO_ACTION, $fk->getDeleteAction());
-    }
+		self::assertSame(ForeignKeyAction::SET_NULL, $fk->getDeleteAction());
+	}
 
-    public function testForeignKeyOnUpdateCascade(): void
-    {
-        $users = self::makeUsersTable();
-        $posts = self::makePostsTable();
-        $fk    = new ForeignKey('fk_posts_user_id', $posts, $users);
-        $fk->onUpdateCascade();
+	public function testForeignKeyOnUpdateRestrict(): void
+	{
+		$users = self::makeUsersTable();
+		$posts = self::makePostsTable();
+		$fk    = new ForeignKey('fk_posts_user_id', $posts, $users);
+		$fk->onUpdateRestrict();
 
-        self::assertSame(ForeignKeyAction::CASCADE, $fk->getUpdateAction());
-    }
+		self::assertSame(ForeignKeyAction::RESTRICT, $fk->getUpdateAction());
+	}
 
-    public function testForeignKeyOnDeleteSetNull(): void
-    {
-        $users = self::makeUsersTable();
-        $posts = self::makePostsTable();
-        $fk    = new ForeignKey('fk_posts_user_id', $posts, $users);
-        $fk->onDeleteSetNull();
+	public function testForeignKeyOnDeleteSetDefault(): void
+	{
+		$users = self::makeUsersTable();
+		$posts = self::makePostsTable();
+		$fk    = new ForeignKey('fk_posts_user_id', $posts, $users);
+		$fk->onDeleteSetDefault();
 
-        self::assertSame(ForeignKeyAction::SET_NULL, $fk->getDeleteAction());
-    }
+		self::assertSame(ForeignKeyAction::SET_DEFAULT, $fk->getDeleteAction());
+	}
 
-    public function testForeignKeyOnUpdateRestrict(): void
-    {
-        $users = self::makeUsersTable();
-        $posts = self::makePostsTable();
-        $fk    = new ForeignKey('fk_posts_user_id', $posts, $users);
-        $fk->onUpdateRestrict();
+	public function testForeignKeyToArray(): void
+	{
+		$users = self::makeUsersTable();
+		$posts = self::makePostsTable();
+		$fk    = new ForeignKey('fk_posts_user_id', $posts, $users);
+		$fk->addColumn('user_id', 'id');
+		$fk->onDeleteCascade();
 
-        self::assertSame(ForeignKeyAction::RESTRICT, $fk->getUpdateAction());
-    }
+		$arr = $fk->toArray();
 
-    public function testForeignKeyOnDeleteSetDefault(): void
-    {
-        $users = self::makeUsersTable();
-        $posts = self::makePostsTable();
-        $fk    = new ForeignKey('fk_posts_user_id', $posts, $users);
-        $fk->onDeleteSetDefault();
+		self::assertSame('foreign_key', $arr['type']);
+		self::assertSame(['user_id' => 'id'], $arr['columns']);
+		self::assertSame(ForeignKeyAction::CASCADE->value, $arr['delete']);
+	}
 
-        self::assertSame(ForeignKeyAction::SET_DEFAULT, $fk->getDeleteAction());
-    }
+	public function testForeignKeyAssertIsValidThrowsWhenNoColumns(): void
+	{
+		$users = self::makeUsersTable();
+		$posts = self::makePostsTable();
+		$fk    = new ForeignKey('fk_posts_user_id', $posts, $users);
 
-    public function testForeignKeyToArray(): void
-    {
-        $users = self::makeUsersTable();
-        $posts = self::makePostsTable();
-        $fk    = new ForeignKey('fk_posts_user_id', $posts, $users);
-        $fk->addColumn('user_id', 'id');
-        $fk->onDeleteCascade();
+		$this->expectException(DBALException::class);
+		$fk->assertIsValid();
+	}
 
-        $arr = $fk->toArray();
+	public function testForeignKeyLockPreventsEdit(): void
+	{
+		$users = self::makeUsersTable();
+		$posts = self::makePostsTable();
+		$fk    = new ForeignKey('fk_posts_user_id', $posts, $users);
+		$fk->addColumn('user_id', 'id');
+		$fk->lock(); // users has PK on id, so assertIsValid passes
 
-        self::assertSame('foreign_key', $arr['type']);
-        self::assertSame(['user_id' => 'id'], $arr['columns']);
-        self::assertSame(ForeignKeyAction::CASCADE->value, $arr['delete']);
-    }
+		$this->expectException(DBALException::class);
+		$fk->addColumn('user_id', 'id');
+	}
+	// -------------------------------------------------------------------
+	// Helpers
+	// -------------------------------------------------------------------
 
-    public function testForeignKeyAssertIsValidThrowsWhenNoColumns(): void
-    {
-        $users = self::makeUsersTable();
-        $posts = self::makePostsTable();
-        $fk    = new ForeignKey('fk_posts_user_id', $posts, $users);
+	private static function makeUsersTable(): Table
+	{
+		$t = new Table('users', 'u');
+		$t->addColumn(new Column('id', 'u', ['type' => 'bigint', 'auto_increment' => true]));
+		$t->addColumn(new Column('email', 'u'));
+		$t->addColumn(new Column('name', 'u'));
+		$t->addPrimaryKeyConstraint(['id']);
 
-        $this->expectException(DBALException::class);
-        $fk->assertIsValid();
-    }
+		return $t;
+	}
 
-    public function testForeignKeyLockPreventsEdit(): void
-    {
-        $users = self::makeUsersTable();
-        $posts = self::makePostsTable();
-        $fk    = new ForeignKey('fk_posts_user_id', $posts, $users);
-        $fk->addColumn('user_id', 'id');
-        $fk->lock(); // users has PK on id, so assertIsValid passes
+	private static function makePostsTable(): Table
+	{
+		$t = new Table('posts', 'p');
+		$t->addColumn(new Column('id', 'p', ['type' => 'bigint', 'auto_increment' => true]));
+		$t->addColumn(new Column('user_id', 'p', ['type' => 'bigint']));
+		$t->addColumn(new Column('title', 'p'));
 
-        $this->expectException(DBALException::class);
-        $fk->addColumn('user_id', 'id');
-    }
+		return $t;
+	}
 }

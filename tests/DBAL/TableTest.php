@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Gobl\Tests\DBAL;
 
 use Gobl\DBAL\Column;
-use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Indexes\IndexType;
 use Gobl\DBAL\Table;
 use Gobl\Tests\BaseTestCase;
@@ -68,9 +67,9 @@ final class TableTest extends BaseTestCase
 
 		self::assertSame(Table::TABLE_DEFAULT_NAMESPACE, $table->getNamespace());
 
-		$table->setNamespace('My\\App\\Db');
+		$table->setNamespace('My\App\Db');
 
-		self::assertSame('My\\App\\Db', $table->getNamespace());
+		self::assertSame('My\App\Db', $table->getNamespace());
 	}
 
 	public function testSetCharsetAndCollate(): void

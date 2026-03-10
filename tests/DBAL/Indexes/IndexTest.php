@@ -31,121 +31,121 @@ use InvalidArgumentException;
  */
 final class IndexTest extends BaseTestCase
 {
-    private static function makeTable(): Table
-    {
-        $t = new Table('orders', 'o');
-        $t->addColumn(new Column('id', 'o', ['type' => 'bigint', 'auto_increment' => true]));
-        $t->addColumn(new Column('status', 'o'));
-        $t->addColumn(new Column('created_at', 'o', ['type' => 'bigint']));
+	public function testBasicConstruction(): void
+	{
+		$table = self::makeTable();
+		$index = new Index('idx_status', $table);
 
-        return $t;
-    }
+		self::assertSame('idx_status', $index->getName());
+		self::assertSame($table, $index->getHostTable());
+		self::assertNull($index->getType());
+		self::assertSame([], $index->getColumns());
+	}
 
-    public function testBasicConstruction(): void
-    {
-        $table = self::makeTable();
-        $index = new Index('idx_status', $table);
+	public function testConstructionWithType(): void
+	{
+		$table = self::makeTable();
+		$index = new Index('idx_status', $table, IndexType::BTREE);
 
-        self::assertSame('idx_status', $index->getName());
-        self::assertSame($table, $index->getHostTable());
-        self::assertNull($index->getType());
-        self::assertSame([], $index->getColumns());
-    }
+		self::assertSame(IndexType::BTREE, $index->getType());
+	}
 
-    public function testConstructionWithType(): void
-    {
-        $table = self::makeTable();
-        $index = new Index('idx_status', $table, IndexType::BTREE);
+	public function testAddColumn(): void
+	{
+		$table = self::makeTable();
+		$index = new Index('idx_status', $table);
+		$index->addColumn('status');
 
-        self::assertSame(IndexType::BTREE, $index->getType());
-    }
+		self::assertSame(['o_status'], $index->getColumns());
+	}
 
-    public function testAddColumn(): void
-    {
-        $table = self::makeTable();
-        $index = new Index('idx_status', $table);
-        $index->addColumn('status');
+	public function testAddMultipleColumns(): void
+	{
+		$table = self::makeTable();
+		$index = new Index('idx_status_created', $table);
+		$index->addColumn('status');
+		$index->addColumn('created_at');
 
-        self::assertSame(['o_status'], $index->getColumns());
-    }
+		self::assertSame(['o_status', 'o_created_at'], $index->getColumns());
+	}
 
-    public function testAddMultipleColumns(): void
-    {
-        $table = self::makeTable();
-        $index = new Index('idx_status_created', $table);
-        $index->addColumn('status');
-        $index->addColumn('created_at');
+	public function testAddNonExistentColumnThrows(): void
+	{
+		$table = self::makeTable();
+		$index = new Index('idx_foo', $table);
 
-        self::assertSame(['o_status', 'o_created_at'], $index->getColumns());
-    }
+		$this->expectException(DBALRuntimeException::class);
+		$index->addColumn('nonexistent');
+	}
 
-    public function testAddNonExistentColumnThrows(): void
-    {
-        $table = self::makeTable();
-        $index = new Index('idx_foo', $table);
+	public function testToArray(): void
+	{
+		$table = self::makeTable();
+		$index = new Index('idx_status', $table, IndexType::HASH);
+		$index->addColumn('status');
 
-        $this->expectException(DBALRuntimeException::class);
-        $index->addColumn('nonexistent');
-    }
+		$arr = $index->toArray();
 
-    public function testToArray(): void
-    {
-        $table = self::makeTable();
-        $index = new Index('idx_status', $table, IndexType::HASH);
-        $index->addColumn('status');
+		self::assertSame(['status'], $arr['columns']);
+		self::assertSame(IndexType::HASH->value, $arr['type']);
+	}
 
-        $arr = $index->toArray();
+	public function testToArrayWithoutType(): void
+	{
+		$table = self::makeTable();
+		$index = new Index('idx_status', $table);
+		$index->addColumn('status');
 
-        self::assertSame(['status'], $arr['columns']);
-        self::assertSame(IndexType::HASH->value, $arr['type']);
-    }
+		$arr = $index->toArray();
 
-    public function testToArrayWithoutType(): void
-    {
-        $table = self::makeTable();
-        $index = new Index('idx_status', $table);
-        $index->addColumn('status');
+		self::assertArrayNotHasKey('type', $arr);
+		self::assertSame(['status'], $arr['columns']);
+	}
 
-        $arr = $index->toArray();
+	public function testLockPreventsAddColumn(): void
+	{
+		$table = self::makeTable();
+		$index = new Index('idx_status', $table);
+		$index->addColumn('status');
+		$index->lock();
 
-        self::assertArrayNotHasKey('type', $arr);
-        self::assertSame(['status'], $arr['columns']);
-    }
+		$this->expectException(DBALException::class);
+		$index->addColumn('created_at');
+	}
 
-    public function testLockPreventsAddColumn(): void
-    {
-        $table = self::makeTable();
-        $index = new Index('idx_status', $table);
-        $index->addColumn('status');
-        $index->lock();
+	public function testAssertIsValidThrowsWhenNoColumns(): void
+	{
+		$table = self::makeTable();
+		$index = new Index('idx_empty', $table);
 
-        $this->expectException(DBALException::class);
-        $index->addColumn('created_at');
-    }
+		$this->expectException(DBALException::class);
+		$index->assertIsValid();
+	}
 
-    public function testAssertIsValidThrowsWhenNoColumns(): void
-    {
-        $table = self::makeTable();
-        $index = new Index('idx_empty', $table);
+	public function testInvalidNameThrows(): void
+	{
+		$table = self::makeTable();
 
-        $this->expectException(DBALException::class);
-        $index->assertIsValid();
-    }
+		$this->expectException(InvalidArgumentException::class);
+		new Index('_bad_name', $table);
+	}
 
-    public function testInvalidNameThrows(): void
-    {
-        $table = self::makeTable();
+	public function testNameTooLongThrows(): void
+	{
+		$table    = self::makeTable();
+		$longName = \str_repeat('a', Index::MAX_INDEX_NAME_LENGTH + 1);
 
-        $this->expectException(InvalidArgumentException::class);
-        new Index('_bad_name', $table);
-    }
+		$this->expectException(InvalidArgumentException::class);
+		new Index($longName, $table);
+	}
 
-    public function testNameTooLongThrows(): void
-    {
-        $table    = self::makeTable();
-        $longName = \str_repeat('a', Index::MAX_INDEX_NAME_LENGTH + 1);
+	private static function makeTable(): Table
+	{
+		$t = new Table('orders', 'o');
+		$t->addColumn(new Column('id', 'o', ['type' => 'bigint', 'auto_increment' => true]));
+		$t->addColumn(new Column('status', 'o'));
+		$t->addColumn(new Column('created_at', 'o', ['type' => 'bigint']));
 
-        $this->expectException(InvalidArgumentException::class);
-        new Index($longName, $table);
-    }
+		return $t;
+	}
 }
