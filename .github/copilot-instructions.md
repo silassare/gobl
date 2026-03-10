@@ -21,7 +21,7 @@ DBAL (Db, Table, Column, Types, Queries, Relations, Migrations, Diff)
 - `src/DBAL/` - schema model, query builders (`QBSelect`, `QBInsert`, `QBUpdate`, `QBDelete`), drivers, diff/migration engine
 - `src/ORM/` - entity base classes, controller, code generators (`CSGeneratorORM`, `CSGeneratorTS`, `CSGeneratorDart`)
 - `src/CRUD/` - before/after event system via `CRUD` and `CRUDEventProducer`
-- `src/Gobl.php` - static entry point: project cache dir, OTpl template management, forbidden name lists
+- `src/Gobl.php` - static entry point: project cache dir, templates management, forbidden name lists
 - `src/bootstrap.php` - defines `GOBL_ROOT`, `GOBL_VERSION`, `GOBL_ASSETS_DIR` and registers the default type provider
 
 ## Schema Definition - Two Approaches
@@ -100,8 +100,6 @@ Per table, 5 class pairs are generated (`Base/` = auto-generated, parent dir = u
 
 **Never edit `Base/` files** - they are overwritten on every generation run.
 
-See [tests/tmp/output/ORM_Db/](../tests/tmp/output/ORM_Db/) for the expected output shape.
-
 TypeScript/Dart generators: `CSGeneratorTS`, `CSGeneratorDart` - produce typed frontend entity classes.
 
 ## ORM Entity Usage
@@ -175,15 +173,6 @@ Built-in types come from `TypeProviderDefault` (registered automatically in `boo
 TypeUtils::addTypeProvider(new MyCustomTypeProvider());
 ```
 
-## Custom Templates
-
-`Gobl::addTemplate()` / `Gobl::addTemplates()` register OTpl templates used by code generators. Templates are compiled and cached under `.gobl/cache/`. `GOBL_TEMPLATES_DIR` no longer exists as a constant.
-
-```php
-Gobl::setProjectCacheDir('/your/app/root');  // must be a writable directory
-Gobl::addTemplate('my-tpl', '/absolute/path/to/source.php', ['MY_TOKEN' => '<%$value%>']);
-```
-
 ## Migrations
 
 `Diff` engine compares two schema states and generates migration SQL. `MigrationRunner` applies them:
@@ -239,25 +228,38 @@ Live DB tests require `.env.test` (see `.env.test.example`). `./run_test` cleans
 
 ## Key Files
 
-| File                                                                                    | Purpose                                                                                 |
-| --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| [src/Gobl.php](../src/Gobl.php)                                                         | Static entry point, cache/template management, forbidden name lists                     |
-| [src/bootstrap.php](../src/bootstrap.php)                                               | Defines `GOBL_ROOT`, `GOBL_VERSION`, `GOBL_ASSETS_DIR`; registers default type provider |
-| [src/DBAL/Db.php](../src/DBAL/Db.php)                                                   | Abstract RDBMS base, `ns()`, `loadSchema()`, `newInstanceOf()`, column ref resolution   |
-| [src/DBAL/Builders/TableBuilder.php](../src/DBAL/Builders/TableBuilder.php)             | Fluent schema builder API                                                               |
-| [src/DBAL/Table.php](../src/DBAL/Table.php)                                             | Schema table model, soft-delete constants, morph support                                |
-| [src/DBAL/Column.php](../src/DBAL/Column.php)                                           | Column model, private/sensitive flags, type binding                                     |
-| [src/DBAL/Types/Type.php](../src/DBAL/Types/Type.php)                                   | Abstract base for all column types                                                      |
-| [src/DBAL/Types/Utils/TypeUtils.php](../src/DBAL/Types/Utils/TypeUtils.php)             | `addTypeProvider()`, type resolution                                                    |
-| [src/ORM/ORM.php](../src/ORM/ORM.php)                                                   | Namespace registry, `declareNamespace()`                                                |
-| [src/ORM/ORMEntity.php](../src/ORM/ORMEntity.php)                                       | Entity base, magic column access, `save()`, dirty tracking                              |
-| [src/ORM/ORMController.php](../src/ORM/ORMController.php)                               | `addItem()`, `updateOneItem()`, `deleteOneItem()`, `getItem()`, `getAllItems()`         |
-| [src/ORM/ORMEntityCRUD.php](../src/ORM/ORMEntityCRUD.php)                               | Consumer event subscription base (extends `CRUDEventProducer`)                          |
-| [src/ORM/Generators/CSGeneratorORM.php](../src/ORM/Generators/CSGeneratorORM.php)       | PHP ORM class generator                                                                 |
-| [src/CRUD/CRUD.php](../src/CRUD/CRUD.php)                                               | Per-operation event dispatcher (used internally by `ORMController`)                     |
-| [src/CRUD/CRUDEventProducer.php](../src/CRUD/CRUDEventProducer.php)                     | `listen()`, `onBefore*`, `onAfter*` subscription methods                                |
-| [src/DBAL/Filters/FilterFieldNotation.php](../src/DBAL/Filters/FilterFieldNotation.php) | Operand path parser: bracket/dot notation, segment serialization                        |
-| [src/DBAL/MigrationRunner.php](../src/DBAL/MigrationRunner.php)                         | Version-based migration runner                                                          |
-| [tests/assets/schemas.php](../tests/assets/schemas.php)                                 | Reference array schema used throughout tests                                            |
-| [tests/BaseTestCase.php](../tests/BaseTestCase.php)                                     | Test scaffolding: DB bootstrap, fluent builder usage, multi-driver helpers              |
-| [tests/tmp/output/ORM_Db/](../tests/tmp/output/ORM_Db/)                                 | Generated ORM PHP classes (reference for expected output shape)                         |
+| File                                                                                                | Purpose                                                                                 |
+| --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| [src/Gobl.php](../src/Gobl.php)                                                                     | Static entry point, cache/template management, forbidden name lists                     |
+| [src/bootstrap.php](../src/bootstrap.php)                                                           | Defines `GOBL_ROOT`, `GOBL_VERSION`, `GOBL_ASSETS_DIR`; registers default type provider |
+| [src/DBAL/Db.php](../src/DBAL/Db.php)                                                               | Abstract RDBMS base, `ns()`, `loadSchema()`, `newInstanceOf()`, column ref resolution   |
+| [src/DBAL/Builders/TableBuilder.php](../src/DBAL/Builders/TableBuilder.php)                         | Fluent schema builder API                                                               |
+| [src/DBAL/Table.php](../src/DBAL/Table.php)                                                         | Schema table model, soft-delete constants, morph support                                |
+| [src/DBAL/Column.php](../src/DBAL/Column.php)                                                       | Column model, private/sensitive flags, type binding                                     |
+| [src/DBAL/Types/Type.php](../src/DBAL/Types/Type.php)                                               | Abstract base for all column types                                                      |
+| [src/DBAL/Types/Utils/TypeUtils.php](../src/DBAL/Types/Utils/TypeUtils.php)                         | `addTypeProvider()`, type resolution                                                    |
+| [src/ORM/ORM.php](../src/ORM/ORM.php)                                                               | Namespace registry, `declareNamespace()`                                                |
+| [src/ORM/ORMEntity.php](../src/ORM/ORMEntity.php)                                                   | Entity base, magic column access, `save()`, dirty tracking                              |
+| [src/ORM/ORMController.php](../src/ORM/ORMController.php)                                           | `addItem()`, `updateOneItem()`, `deleteOneItem()`, `getItem()`, `getAllItems()`         |
+| [src/ORM/ORMEntityCRUD.php](../src/ORM/ORMEntityCRUD.php)                                           | Consumer event subscription base (extends `CRUDEventProducer`)                          |
+| [src/ORM/Generators/CSGeneratorORM.php](../src/ORM/Generators/CSGeneratorORM.php)                   | PHP ORM class generator                                                                 |
+| [src/CRUD/CRUD.php](../src/CRUD/CRUD.php)                                                           | Per-operation event dispatcher (used internally by `ORMController`)                     |
+| [src/CRUD/CRUDEventProducer.php](../src/CRUD/CRUDEventProducer.php)                                 | `listen()`, `onBefore*`, `onAfter*` subscription methods                                |
+| [src/DBAL/Filters/FilterFieldNotation.php](../src/DBAL/Filters/FilterFieldNotation.php)             | Operand path parser: bracket/dot notation, segment serialization                        |
+| [src/DBAL/MigrationRunner.php](../src/DBAL/MigrationRunner.php)                                     | Version-based migration runner                                                          |
+| [tests/assets/schemas.php](../tests/assets/schemas.php)                                             | Reference array schema used throughout tests                                            |
+| [tests/BaseTestCase.php](../tests/BaseTestCase.php)                                                 | Test scaffolding: DB bootstrap, fluent builder usage, multi-driver helpers              |
+| [tests/DBAL/TableTest.php](../tests/DBAL/TableTest.php)                                             | Table schema model tests (columns, constraints, indexes, lock, soft-delete)             |
+| [tests/DBAL/Filters/FilterFieldNotationTest.php](../tests/DBAL/Filters/FilterFieldNotationTest.php) | FilterFieldNotation: parse, bracket/dot segments, round-trip, resolve                   |
+| [tests/DBAL/Constraints/ConstraintsTest.php](../tests/DBAL/Constraints/ConstraintsTest.php)         | PrimaryKey, UniqueKey, ForeignKey constraint tests                                      |
+| [tests/DBAL/Indexes/IndexTest.php](../tests/DBAL/Indexes/IndexTest.php)                             | Index construction, addColumn, toArray, lock, assertIsValid                             |
+| [tests/ORM/ORMClassKindTest.php](../tests/ORM/ORMClassKindTest.php)                                 | ORMClassKind enum: getClassName, isBaseClass, getBaseKind, getClassFQN                  |
+
+## Test Coverage Notes
+
+- `Table` columns are stored keyed by **short name** (e.g., `'password'`), not full name (`'u_password'`). `getPrivateColumns()` / `getSensitiveColumns()` return arrays with short-name keys.
+- `Table::addForeignKeyConstraint(?string $name, Table $ref, array $cols_map, ...)` — first arg is the constraint name (nullable), not the reference table.
+- `ForeignKey::assertIsValid()` (called during `lock()`) requires the referenced columns to be PK or UK in the reference table — ensure the reference table has a `addPrimaryKeyConstraint()` before locking.
+- `ForeignKeyAction` enum values are **lowercase** (e.g., `ForeignKeyAction::CASCADE->value === 'cascade'`).
+- `Constraint::assertNotLocked()` throws `DBALException` (overrides the `LockTrait` default). `Table` and other `LockTrait` users throw `PHPUtils\Exceptions\RuntimeException`.
+- `Index::addColumn()` for a nonexistent column throws `DBALRuntimeException` (via `Table::getColumnOrFail()`), not `DBALException`.
