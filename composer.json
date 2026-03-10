@@ -22,7 +22,7 @@
 		"oliup/oliup-cs-php": "dev-main",
 		"roave/security-advisories": "dev-latest",
 		"phpunit/phpunit": "^9.5.9",
-		"vimeo/psalm": "^5.26.1"
+		"vimeo/psalm": "^6.0"
 	},
 	"homepage": "https://github.com/silassare/gobl#readme",
 	"archive": {
