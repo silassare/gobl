@@ -1,0 +1,30 @@
+{@if $length(gobl_header)}{= gobl_header}{:else}
+/**
+ * Auto generated file,
+ *
+ * INFO: you are free to edit it,
+ * but make sure to know what you are doing.
+ *
+ * Proudly With: {= gobl_version}
+ * Time: {= gobl_time}
+ */
+{/if}
+{@raw}
+import { getEntityCache, type GoblEntityData } from "gobl-utils-ts";
+{/raw}
+import {= class.entity_base} from "./base/{= class.entity_base}";
+
+export default class {= class.entity} extends {= class.entity_base} {='{'}
+	constructor(data?: GoblEntityData) {='{'}
+		super(data, "{= class.entity}", {= class.entity}.PREFIX, [...{= class.entity}.COLUMNS]);
+	{='}'}
+
+	public static fromCache(key: string): {= class.entity} | undefined {='{'}
+		const cache = getEntityCache<{= class.entity}>("{= class.entity}");
+		return cache && cache.get(key);
+	{='}'}
+
+	//====================================================
+	//=     Your custom implementation goes here
+	//====================================================
+{='}'}

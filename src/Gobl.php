@@ -13,10 +13,9 @@ declare(strict_types=1);
 
 namespace Gobl;
 
+use Blate\Blate;
 use Gobl\Exceptions\GoblRuntimeException;
 use InvalidArgumentException;
-use JsonException;
-use OTpl\OTpl;
 use PHPUtils\Exceptions\RuntimeException;
 use PHPUtils\FS\FSUtils;
 use Throwable;
@@ -29,37 +28,32 @@ class Gobl
 	/**
 	 * @var string
 	 */
-	private static string $project_cache_dir = GOBL_ROOT;
+	private static string $def_output_dir = GOBL_ROOT . '.gobl';
 
 	/**
-	 * @var array
-	 */
-	private static array $tpl_cache;
-
-	/**
-	 * @var array
+	 * @var array<string, string>
 	 */
 	private static array $templates = [];
 
 	/**
-	 * Returns project cache directory.
+	 * Returns default output directory path.
 	 *
 	 * @return string
 	 */
-	public static function getProjectCacheDir(): string
+	public static function getDefaultOutputDir(): string
 	{
-		return self::$project_cache_dir;
+		return self::$def_output_dir;
 	}
 
 	/**
-	 * Sets project cache directory.
+	 * Sets default output directory path.
 	 *
 	 * @param string $dir
 	 */
-	public static function setProjectCacheDir(string $dir): void
+	public static function setDefaultOutputDir(string $dir): void
 	{
-		if (self::$project_cache_dir !== $dir) {
-			$fs = new FSUtils($dir);
+		if (self::$def_output_dir !== $dir) {
+			$fs = new FSUtils(GOBL_ROOT);
 
 			try {
 				$fs->filter()
@@ -68,135 +62,35 @@ class Gobl
 					->isDir()
 					->assert($dir);
 			} catch (RuntimeException $e) {
-				throw new GoblRuntimeException(\sprintf('Can\'t set "%s" as gobl root dir.', $dir), null, $e);
+				throw new GoblRuntimeException(\sprintf('Can\'t set "%s" as gobl cache dir.', $dir), null, $e);
 			}
 
-			self::$project_cache_dir = $fs->resolve('.');
-
-			if (!empty(self::$templates)) {
-				$templates       = self::$templates;
-				self::$templates = [];
-				self::addTemplates($templates);
-			}
+			self::$def_output_dir = $fs->resolve($dir);
 		}
 	}
 
 	/**
-	 * Registers or overwrites named OTpl templates, compiling each to a cached `.otpl` file.
+	 * Registers or overwrites named templates file.
 	 *
-	 * Each entry in `$templates` must have the shape:
-	 * ```php
-	 * [
-	 *     'template-name' => [
-	 *         'path'     => '/absolute/path/to/source.php',  // required, must be readable
-	 *         'replaces' => ['SomeToken' => '<%$...%>'],     // optional extra substitutions
-	 *     ],
-	 * ]
-	 * ```
-	 * Built-in Gobl macro substitutions (e.g. `MY_DB_NS`, `MyEntity`, `my_table`) are applied
-	 * after the caller-supplied `replaces` so the built-ins always take effect.
+	 * @param array<string,string> $templates map of template name -> path
 	 *
-	 * Compilation is skipped when the source file and `$replaces` are unchanged (MD5 cache).
-	 *
-	 * @param array $templates map of template name -> `['path' => string, 'replaces' => array]`
-	 *
-	 * @throws InvalidArgumentException when `path` is missing or not a readable file,
-	 *                                  or when `replaces` is not an array
-	 * @throws GoblRuntimeException     when the template file cannot be read or written
+	 * @throws InvalidArgumentException when template path is not a string or is empty
 	 */
 	public static function addTemplates(array $templates): void
 	{
-		try {
-			$cache_file = (new FSUtils(self::getGoblCacheDir()))->resolve('templates.cache.json');
-			$fs         = new FSUtils(self::getProjectCacheDir());
-
-			if (empty(self::$tpl_cache) && \file_exists($cache_file)) {
-				$fs->filter()
-					->isFile()
-					->isReadable()
-					->isWritable()
-					->assert($cache_file);
-				self::$tpl_cache = \json_decode(\file_get_contents($cache_file), true, 512, \JSON_THROW_ON_ERROR);
+		foreach ($templates as $name => $path) {
+			if (!\is_string($path) || empty($path)) {
+				throw new InvalidArgumentException(
+					\sprintf(
+						'Template "%s" path is invalid, got "%s" while expecting a non-empty string.',
+						$name,
+						\get_debug_type($path)
+					)
+				);
 			}
 
-			$changed = false;
-
-			foreach ($templates as $name => $template) {
-				$replaces = $template['replaces'] ?? [];
-				$path     = $template['path'] ?? null;
-
-				if (!\is_string($path)) {
-					throw new InvalidArgumentException(
-						\sprintf(
-							'Template "%s" option "path" is invalid, expect "string".',
-							$name,
-						)
-					);
-				}
-
-				if (!\is_array($replaces)) {
-					throw new InvalidArgumentException(
-						\sprintf(
-							'Template "%s" option "replaces" is invalid, expect "array".',
-							$name,
-						)
-					);
-				}
-
-				try {
-					$fs->filter()
-						->isFile()
-						->isReadable()
-						->assert($path);
-				} catch (Throwable $t) {
-					throw new GoblRuntimeException(
-						\sprintf(
-							'Template "%s" path "%s" should be a valid file path.',
-							$name,
-							$path,
-						),
-						null,
-						$t
-					);
-				}
-
-				$path = $fs->resolve($template['path']);
-
-				$sum = \md5($name . \json_encode($replaces, \JSON_THROW_ON_ERROR) . \md5_file($path));
-
-				if (!isset(self::$tpl_cache[$path]['md5']) || self::$tpl_cache[$path]['md5'] !== $sum) {
-					$changed = true;
-
-					self::$tpl_cache[$name] = ['path' => $path, 'md5' => $sum];
-					self::$templates[$name] = $template;
-
-					$output   = self::toTemplate(\file_get_contents($path), $replaces);
-					$out_path = self::getTemplateFilePath($name);
-
-					$fs->wf($out_path, $output);
-				}
-			}
-
-			if ($changed) {
-				$fs->wf($cache_file, \json_encode(self::$tpl_cache, \JSON_THROW_ON_ERROR));
-			}
-		} catch (JsonException $e) {
-			throw new GoblRuntimeException('JSON error.', null, $e);
+			self::addTemplate($name, $path);
 		}
-	}
-
-	/**
-	 * Returns Gobl cache directory.
-	 *
-	 * @return string
-	 */
-	public static function getGoblCacheDir(): string
-	{
-		$fu = new FSUtils(self::$project_cache_dir);
-
-		return $fu->cd('.gobl', true)
-			->cd('cache', true)
-			->getRoot();
 	}
 
 	/**
@@ -208,24 +102,45 @@ class Gobl
 	 */
 	public static function getTemplateFilePath(string $name): string
 	{
-		return (new FSUtils(self::getGoblCacheDir()))->resolve($name . '.otpl');
+		$path = self::$templates[$name] ?? null;
+
+		if (empty($path)) {
+			throw new InvalidArgumentException(\sprintf('Unknown template "%s".', $name));
+		}
+
+		return $path;
 	}
 
 	/**
 	 * Add or overwrite a template.
 	 *
-	 * @param string $name
-	 * @param string $path
-	 * @param array  $replaces
+	 * @param string $name The template name
+	 * @param string $path The template path
 	 */
-	public static function addTemplate(string $name, string $path, array $replaces = []): void
+	public static function addTemplate(string $name, string $path): void
 	{
-		self::addTemplates([
-			$name => [
-				'path'     => $path,
-				'replaces' => $replaces,
-			],
-		]);
+		$fs = new FSUtils(GOBL_ASSETS_DIR);
+
+		try {
+			$fs->filter()
+				->isFile()
+				->isReadable()
+				->assert($path);
+		} catch (Throwable $t) {
+			throw new GoblRuntimeException(
+				\sprintf(
+					'Template "%s" path "%s" should be a valid file path.',
+					$name,
+					$path,
+				),
+				null,
+				$t
+			);
+		}
+
+		$path = $fs->resolve($path);
+
+		self::$templates[$name] = $path;
 	}
 
 	/**
@@ -251,13 +166,13 @@ class Gobl
 	 *
 	 * @param string $name the template name
 	 *
-	 * @return OTpl
+	 * @return Blate
 	 */
-	public static function getTemplateCompiler(string $name): OTpl
+	public static function getTemplateCompiler(string $name): Blate
 	{
-		$path = self::getTemplateFilePath($name);
-
 		try {
+			$path = self::getTemplateFilePath($name);
+
 			$fs = new FSUtils();
 
 			$fs->filter()
@@ -265,13 +180,12 @@ class Gobl
 				->isFile()
 				->assert($path);
 
-			$o = new OTpl();
-			$o->parse($path);
+			$b = Blate::fromPath($path);
 		} catch (Throwable $t) {
 			throw new GoblRuntimeException('Gobl template parse error.', null, $t);
 		}
 
-		return $o;
+		return $b;
 	}
 
 	/**
@@ -353,50 +267,5 @@ class Gobl
 	public static function ql(): QueriesLogger
 	{
 		return QueriesLogger::get();
-	}
-
-	/**
-	 * Converts PHP source code into an OTpl template by substituting well-known Gobl tokens.
-	 *
-	 * The following built-in substitutions are always applied (and take precedence over any
-	 * caller-supplied `$replaces`):
-	 *
-	 * | Token                      | Template expression            |
-	 * |----------------------------|---------------------------------|
-	 * | `MY_DB_NS`                 | `<%$.namespace%>`              |
-	 * | `MyCRUDHandler`            | `<%$.class.crud%>`             |
-	 * | `MyTableQuery`             | `<%$.class.query%>`            |
-	 * | `MyEntity`                 | `<%$.class.entity%>`           |
-	 * | `MyResults`                | `<%$.class.results%>`          |
-	 * | `MyController`             | `<%$.class.controller%>`       |
-	 * | `my_table`                 | `<%$.table.name%>`             |
-	 * | `my_entity`                | `<%$.table.singular%>`         |
-	 * | `'my_pk_column_const'`     | `<%$.class.entity%>::<%...%>`  |
-	 * | `//@`                      | *(stripped)*                   |
-	 *
-	 * @param string $source   raw PHP source code to convert
-	 * @param array  $replaces additional search->replace pairs prepended before the built-ins
-	 *
-	 * @return string the converted OTpl template source
-	 */
-	private static function toTemplate(string $source, array $replaces = []): string
-	{
-		$replaces = [
-			'//@'                    => '',
-			'MY_DB_NS'               => '<%$.namespace%>',
-			'MyCRUDHandler'          => '<%$.class.crud%>',
-			'MyTableQuery'           => '<%$.class.query%>',
-			'MyEntity'               => '<%$.class.entity%>',
-			'MyResults'              => '<%$.class.results%>',
-			'MyController'           => '<%$.class.controller%>',
-			'my_table'               => '<%$.table.name%>',
-			'my_entity'              => '<%$.table.singular%>',
-			'\'my_pk_column_const\'' => '<%$.class.entity%>::<%$.pk_columns[0].const%>',
-		] + $replaces;
-
-		$search      = \array_keys($replaces);
-		$replacement = \array_values($replaces);
-
-		return \str_replace($search, $replacement, $source);
 	}
 }

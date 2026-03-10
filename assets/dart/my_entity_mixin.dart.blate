@@ -1,0 +1,20 @@
+{@if $length(gobl_header)}{= gobl_header}{:else}
+// Auto generated file
+//
+// INFO: you are free to edit it,
+// but make sure to know what you are doing.
+//
+// Proudly With: {= gobl_version}
+// Time: {= gobl_time}
+{/if}
+
+import '../base/{= table.name}_base.dart';
+import '../entities/{= table.name}.dart';
+
+mixin {= class.entity}Mixin<T extends {= class.entity}> on {= class.entity} {='{'}
+  T get self;
+
+  //====================================================
+  //=   Your custom implementation goes here
+  //====================================================
+{='}'}

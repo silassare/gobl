@@ -17,7 +17,6 @@ use Exception;
 use Gobl\Gobl;
 use Gobl\ORM\ORMTypeHint;
 use Gobl\ORM\ORMUniversalType;
-use PHPUtils\FS\FSUtils;
 
 /**
  * Class CSGeneratorTS.
@@ -34,26 +33,20 @@ class CSGeneratorTS extends CSGenerator
 	 *
 	 * @throws Exception
 	 */
-	public function generate(array $tables, string $path, string $header = ''): static
+	public function generate(array $tables, ?string $path = null, string $header = ''): static
 	{
 		if (!self::$templates_registered) {
 			self::$templates_registered = true;
 
 			Gobl::addTemplates([
-				'ts.bundle'            => ['path' => GOBL_ASSETS_DIR . '/ts/TSBundle.ts'],
-				'ts.enums'             => ['path' => GOBL_ASSETS_DIR . '/ts/TSEnums.ts'],
-				'ts.entity.base.class' => ['path' => GOBL_ASSETS_DIR . '/ts/MyEntityBase.ts'],
-				'ts.entity.class'      => ['path' => GOBL_ASSETS_DIR . '/ts/MyEntity.ts'],
+				'ts.bundle'            => 'ts/TSBundle.ts.blate',
+				'ts.enums'             => 'ts/TSEnums.ts.blate',
+				'ts.entity.base.class' => 'ts/MyEntityBase.ts.blate',
+				'ts.entity.class'      => 'ts/MyEntity.ts.blate',
 			]);
 		}
 
-		$fs = new FSUtils($path);
-
-		$fs->filter()
-			->isDir()
-			->isWritable()
-			->assert('.');
-
+		$fs           = self::outputDirFS($path);
 		$path         = $fs->getRoot();
 		$ds           = \DIRECTORY_SEPARATOR;
 		$path_gobl    = $path . $ds . 'gobl';
@@ -79,7 +72,7 @@ class CSGeneratorTS extends CSGenerator
 			$inject['gobl_time']    = $time;
 			$inject['gobl_version'] = GOBL_VERSION;
 			$entity_class           = $inject['class']['entity'];
-			$entity_base_class      = $entity_class . 'Base';
+			$entity_base_class      = $inject['class']['entity_base'];
 			$inject['columns_list'] = \implode('|', \array_keys($inject['columns']));
 
 			$column = \next($inject['columns']);

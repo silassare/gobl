@@ -1,0 +1,59 @@
+{@if $length(gobl_header)}{= gobl_header}{:else}
+// Auto generated file
+//
+// WARNING: please don't edit.
+//
+// Proudly With: {= gobl_version}
+// Time: {= gobl_time}
+{/if}
+import '../base/{= table.name}_base.dart';
+import '../mixins/{= table.name}_mixin.dart';
+
+class {= class.entity} extends {= class.entity_base} with {= class.entity}Mixin<{= class.entity}> {='{'}
+  static const ENTITY_NAME = '{= class.entity}';
+  static const PREFIX = '{= columns_prefix}';
+  static const COLUMNS = [
+  {@each column in columns} '{= column.full_name}',
+  {/each}
+  ];
+  {@each column in columns}static const {= column.const} = '{= column.full_name}';
+  {/each}
+
+  {= class.entity}([Map<String, dynamic> initialData = const {='{}'}])
+      : super(
+      initialData: initialData,
+      name: ENTITY_NAME,
+      prefix: PREFIX,
+      columns: COLUMNS);
+
+  @override
+  {= class.entity} get self {='{'}
+    return this;
+  {='}'}
+{@if $length(pk_columns) == 1}
+  @override
+  String singlePKValue() {='{'}
+    return '{= pk_columns[0].name}';
+  {='}'}
+{/if}
+
+  @override
+  List<String> identifierColumns() {='{'}
+    return [
+{@each pk in pk_columns}
+      {= pk.const},{:else}...COLUMNS,
+{/each}
+    ];
+  {='}'}
+  @override
+  {= class.entity} fromJson(Map<String, dynamic> json) {='{'}
+    return {= class.entity}(json);
+  {='}'}
+
+{@each column in columns}
+  {= column.read_type_hint} get {= column.name} {='{'} return doGet({= column.const}, {= column.read_type_hint}); {='}'}
+  set {= column.name}({= column.write_type_hint} v) {='{'} doSet({= column.const}, v, {= column.read_type_hint}); {='}'}
+  {= column.read_type_hint} get{= column.method_suffix}() {='{'} return {= column.name}; {='}'}
+  {= class.entity} set{= column.method_suffix}({= column.write_type_hint} v) {='{'} {= column.name} = v; return this; {='}'}
+{/each}
+{='}'}

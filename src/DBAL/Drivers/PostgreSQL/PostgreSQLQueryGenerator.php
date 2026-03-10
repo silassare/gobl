@@ -35,8 +35,6 @@ use Gobl\DBAL\Types\Utils\JsonPath;
 use Gobl\Gobl;
 use RuntimeException;
 
-use const GOBL_ASSETS_DIR;
-
 /**
  * Class PostgreSQLQueryGenerator.
  */
@@ -58,8 +56,8 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 			self::$templates_registered = true;
 
 			Gobl::addTemplates([
-				'postgresql_db'           => ['path' => GOBL_ASSETS_DIR . '/postgresql/db.sql'],
-				'postgresql_create_table' => ['path' => GOBL_ASSETS_DIR . '/postgresql/create_table.sql'],
+				'postgresql_db'           => 'postgresql/db.sql.blate',
+				'postgresql_create_table' => 'postgresql/create_table.sql.blate',
 			]);
 		}
 	}

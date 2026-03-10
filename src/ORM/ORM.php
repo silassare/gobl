@@ -51,7 +51,7 @@ class ORM
 			throw new ORMRuntimeException(\sprintf('Namespace "%s" is already declared in the ORM.', $namespace));
 		}
 
-		$fs       = new FSUtils(Gobl::getProjectCacheDir());
+		$fs       = new FSUtils(Gobl::getDefaultOutputDir());
 		$abs_path = $fs->resolve($out_dir);
 
 		try {
@@ -151,7 +151,7 @@ class ORM
 	 *
 	 * @return string
 	 */
-	public static function getOutputDirectory(string $namespace): string
+	public static function getOutputDir(string $namespace): string
 	{
 		if (!isset(self::$namespaces[$namespace])) {
 			throw new ORMRuntimeException(\sprintf('Namespace "%s" was not declared in the ORM.', $namespace));

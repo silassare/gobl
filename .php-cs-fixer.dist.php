@@ -22,7 +22,6 @@ $finder->in([
 	__DIR__ . '/tests',
 ])
 	->name('*.php')
-	->notPath('otpl_done')
 	->notPath('tmp/')
 	->notPath('snapshots/')
 	->notPath('blate_cache')

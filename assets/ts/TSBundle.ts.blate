@@ -1,0 +1,26 @@
+{@if $length(gobl_header)}{= gobl_header}{:else}
+/**
+ * Auto generated file
+ *
+ * WARNING: please don't edit.
+ *
+ * Proudly With: {= gobl_version}
+ * Time: {= gobl_time}
+ */
+{/if}
+{@raw}
+import { register as _r } from 'gobl-utils-ts';
+{/raw}
+
+{@each _:name in entities}import {= name} from './db/{= name}';
+{/each}
+
+{@each _:name in entities}_r('{= name}', {= name});
+{/each}
+
+export * from './enums.ts';
+
+export {='{'}
+{@each _:name in entities}	{= name},
+{/each}
+{='}'};

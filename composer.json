@@ -14,7 +14,6 @@
 		"ext-pdo": "*",
 		"ext-json": "*",
 		"ext-bcmath": "*",
-		"silassare/otpl": "^2.0.1",
 		"silassare/php-utils": "^2.0.0",
 		"oliup/code-generator": "^1.0.0",
 		"silassare/blate": "^1.1.0"

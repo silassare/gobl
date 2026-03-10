@@ -34,8 +34,6 @@ use Gobl\DBAL\Queries\QBUpdate;
 use Gobl\DBAL\Types\TypeJSON;
 use Gobl\Gobl;
 
-use const GOBL_ASSETS_DIR;
-
 /**
  * Class MySQLQueryGenerator.
  */
@@ -59,8 +57,8 @@ class MySQLQueryGenerator extends SQLQueryGeneratorBase
 			self::$templates_registered = true;
 
 			Gobl::addTemplates([
-				'mysql_db'           => ['path' => GOBL_ASSETS_DIR . '/mysql/db.sql'],
-				'mysql_create_table' => ['path' => GOBL_ASSETS_DIR . '/mysql/create_table.sql'],
+				'mysql_db'           => 'mysql/db.sql.blate',
+				'mysql_create_table' => 'mysql/create_table.sql.blate',
 			]);
 		}
 	}

@@ -26,6 +26,7 @@ use Gobl\Gobl;
 use Gobl\ORM\ORMTypeHint;
 use Gobl\ORM\Utils\ORMClassKind;
 use OLIUP\CG\PHPEnum;
+use PHPUtils\FS\FSUtils;
 use PHPUtils\Str;
 
 /**
@@ -144,11 +145,16 @@ abstract class CSGenerator
 			'pk_columns' => $pk_columns,
 			'private'    => $table->isPrivate(),
 			'class'      => [
-				'crud'       => ORMClassKind::CRUD->getClassName($table),
-				'entity'     => ORMClassKind::ENTITY->getClassName($table),
-				'results'    => ORMClassKind::RESULTS->getClassName($table),
-				'query'      => ORMClassKind::QUERY->getClassName($table),
-				'controller' => ORMClassKind::CONTROLLER->getClassName($table),
+				'crud'            => ORMClassKind::CRUD->getClassName($table),
+				'crud_base'       => ORMClassKind::BASE_CRUD->getClassName($table),
+				'entity'          => ORMClassKind::ENTITY->getClassName($table),
+				'entity_base'     => ORMClassKind::BASE_ENTITY->getClassName($table),
+				'results'         => ORMClassKind::RESULTS->getClassName($table),
+				'results_base'    => ORMClassKind::BASE_RESULTS->getClassName($table),
+				'query'           => ORMClassKind::QUERY->getClassName($table),
+				'query_base'      => ORMClassKind::BASE_QUERY->getClassName($table),
+				'controller'      => ORMClassKind::CONTROLLER->getClassName($table),
+				'controller_base' => ORMClassKind::BASE_CONTROLLER->getClassName($table),
 			],
 			'table' => [
 				'name'     => $table->getName(),
@@ -184,33 +190,33 @@ abstract class CSGenerator
 			$method = Str::toMethodName('where_' . $operator->getFilterSuffix($column));
 
 			$rule = [
-				'name'                 => $operator->value,
-				'method'               => $method,
-				'rightOperandTypeHint' => $this->toTypeHintString(
+				'name'                    => $operator->value,
+				'method'                  => $method,
+				'right_operand_type_hint' => $this->toTypeHintString(
 					ORMTypeHint::getOperatorRightOperandTypesHint($type, $operator)
 				),
-				'noArg' => $operator->isUnary(),
+				'no_arg' => $operator->isUnary(),
 			];
 
 			$filtersRules[] = $rule;
 		}
 
 		return [
-			'private'           => $column->isPrivate(),
-			'sensitive'         => $column->isSensitive(),
-			'name'              => $column_name,
-			'fullName'          => $column->getFullName(),
-			'prefix'            => $column->getPrefix(),
-			'isAutoIncremented' => $type->isAutoIncremented(),
-			'isNullable'        => $type->isNullable(),
-			'hasDefault'        => $type->hasDefault(),
-			'filtersRules'      => $filtersRules,
-			'methodSuffix'      => Str::toClassName($column_name),
-			'const'             => self::toColumnNameConst($column),
-			'argName'           => $column_name,
-			'writeTypeHint'     => $this->getWriteTypeHintString($type),
-			'readTypeHint'      => $this->getReadTypeHintString($type),
-			'readTypeHintSaved' => $this->getReadTypeHintString($type, true),
+			'private'              => $column->isPrivate(),
+			'sensitive'            => $column->isSensitive(),
+			'name'                 => $column_name,
+			'full_name'            => $column->getFullName(),
+			'prefix'               => $column->getPrefix(),
+			'is_auto_incremented'  => $type->isAutoIncremented(),
+			'is_nullable'          => $type->isNullable(),
+			'has_default'          => $type->hasDefault(),
+			'filters_rules'        => $filtersRules,
+			'method_suffix'        => Str::toClassName($column_name),
+			'const'                => self::toColumnNameConst($column),
+			'arg_name'             => $column_name,
+			'write_type_hint'      => $this->getWriteTypeHintString($type),
+			'read_type_hint'       => $this->getReadTypeHintString($type),
+			'read_type_hint_saved' => $this->getReadTypeHintString($type, true),
 		];
 	}
 
@@ -328,11 +334,11 @@ abstract class CSGenerator
 
 			$r_name = $relation->getName();
 			$list[] = [
-				'name'         => $r_name,
-				'type'         => $type->value,
-				'methodSuffix' => Str::toClassName($r_name),
-				'host'         => $this->getTableInject($host_table),
-				'target'       => $this->getTableInject($target_table),
+				'name'          => $r_name,
+				'type'          => $type->value,
+				'method_suffix' => Str::toClassName($r_name),
+				'host'          => $this->getTableInject($host_table),
+				'target'        => $this->getTableInject($target_table),
 			];
 		}
 
@@ -345,13 +351,28 @@ abstract class CSGenerator
 	/**
 	 * Generate classes for tables in the database.
 	 *
-	 * @param Table[] $tables the tables list
-	 * @param string  $path   the destination folder path
-	 * @param string  $header the source header to use
+	 * @param Table[]     $tables the tables list
+	 * @param null|string $path   the destination folder path
+	 * @param string      $header the source header to use
 	 *
 	 * @return $this
 	 */
-	abstract public function generate(array $tables, string $path, string $header = ''): static;
+	abstract public function generate(array $tables, ?string $path = null, string $header = ''): static;
+
+	/**
+	 * Returns a FSUtils instance for the given output directory path, or the default one if not provided.
+	 */
+	protected static function outputDirFS(?string $path = null)
+	{
+		$fs = new FSUtils($path ?? Gobl::getDefaultOutputDir());
+
+		$fs->filter()
+			->isDir()
+			->isWritable()
+			->assert('.');
+
+		return $fs;
+	}
 
 	/**
 	 * @param class-string<BackedEnum> $enum_class

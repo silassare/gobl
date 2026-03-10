@@ -17,7 +17,6 @@ use Exception;
 use Gobl\Gobl;
 use Gobl\ORM\ORMTypeHint;
 use Gobl\ORM\ORMUniversalType;
-use PHPUtils\FS\FSUtils;
 
 /**
  * Class CSGeneratorDart.
@@ -34,27 +33,21 @@ class CSGeneratorDart extends CSGenerator
 	 *
 	 * @throws Exception
 	 */
-	public function generate(array $tables, string $path, string $header = ''): static
+	public function generate(array $tables, ?string $path = null, string $header = ''): static
 	{
 		if (!self::$templates_registered) {
 			self::$templates_registered = true;
 
 			Gobl::addTemplates([
-				'dart.entity.class'       => ['path' => GOBL_ASSETS_DIR . '/dart/my_entity.dart'],
-				'dart.entity.base.class'  => ['path' => GOBL_ASSETS_DIR . '/dart/my_entity_base.dart'],
-				'dart.entity.mixin.class' => ['path' => GOBL_ASSETS_DIR . '/dart/my_entity_mixin.dart'],
-				'dart.bundle'             => ['path' => GOBL_ASSETS_DIR . '/dart/bundle.dart'],
-				'dart.register'           => ['path' => GOBL_ASSETS_DIR . '/dart/register.dart'],
+				'dart.entity.class'       => 'dart/my_entity.dart.blate',
+				'dart.entity.base.class'  => 'dart/my_entity_base.dart.blate',
+				'dart.entity.mixin.class' => 'dart/my_entity_mixin.dart.blate',
+				'dart.bundle'             => 'dart/bundle.dart.blate',
+				'dart.register'           => 'dart/register.dart.blate',
 			]);
 		}
 
-		$fs = new FSUtils($path);
-
-		$fs->filter()
-			->isDir()
-			->isWritable()
-			->assert('.');
-
+		$fs               = self::outputDirFS($path);
 		$path             = $fs->getRoot();
 		$ds               = \DIRECTORY_SEPARATOR;
 		$path_gobl        = $path . $ds . 'gobl';

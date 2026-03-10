@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8684fd8dd0f7fc334039e99e130e4357",
+    "content-hash": "97c31dbb490454d601fed7ee06093c58",
     "packages": [
         {
             "name": "oliup/code-generator",
@@ -127,12 +127,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:silassare/blate.git",
-                "reference": "f853c44b38d5b687d0d525ebb84dbd51c677c50f"
+                "reference": "993983a4a25850bf22eb5962f63301d850466ccb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/silassare/blate/zipball/f853c44b38d5b687d0d525ebb84dbd51c677c50f",
-                "reference": "f853c44b38d5b687d0d525ebb84dbd51c677c50f",
+                "url": "https://api.github.com/repos/silassare/blate/zipball/993983a4a25850bf22eb5962f63301d850466ccb",
+                "reference": "993983a4a25850bf22eb5962f63301d850466ccb",
                 "shasum": ""
             },
             "require": {
@@ -193,61 +193,7 @@
                 "source": "https://github.com/silassare/blate/tree/main",
                 "issues": "https://github.com/silassare/blate/issues"
             },
-            "time": "2026-03-09T12:58:53+00:00"
-        },
-        {
-            "name": "silassare/otpl",
-            "version": "2.0.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/silassare/otpl-php.git",
-                "reference": "4e1dca2087a30ce4e6241f6bb3ddc3548be7c102"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/silassare/otpl-php/zipball/4e1dca2087a30ce4e6241f6bb3ddc3548be7c102",
-                "reference": "4e1dca2087a30ce4e6241f6bb3ddc3548be7c102",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=8.1",
-                "silassare/php-utils": "^2.0.0"
-            },
-            "require-dev": {
-                "oliup/oliup-cs-php": "dev-main",
-                "phpunit/phpunit": "^9.5.26",
-                "roave/security-advisories": "dev-latest",
-                "vimeo/psalm": "^5.26.1"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "OTpl\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Emile Silas Sare",
-                    "homepage": "https://github.com/silassare"
-                }
-            ],
-            "description": "[DEPRECATED] A simple template system write once run everywhere! Use silassare/blate instead: https://github.com/silassare/blate",
-            "homepage": "https://github.com/silassare/otpl-php#readme",
-            "keywords": [
-                "otemplate",
-                "otpl",
-                "template"
-            ],
-            "support": {
-                "issues": "https://github.com/silassare/otpl-php/issues",
-                "source": "https://github.com/silassare/otpl-php/tree/v2.0.1"
-            },
-            "abandoned": "https://github.com/silassare/blate",
-            "time": "2026-03-08T18:16:04+00:00"
+            "time": "2026-03-10T15:40:23+00:00"
         },
         {
             "name": "silassare/php-utils",
@@ -3178,18 +3124,18 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "68e4c6721ef8cd2c366bd5e2290baf007d3f0e6d"
+                "reference": "36683ac82ccf638fea90e617a83057de184a5833"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/68e4c6721ef8cd2c366bd5e2290baf007d3f0e6d",
-                "reference": "68e4c6721ef8cd2c366bd5e2290baf007d3f0e6d",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/36683ac82ccf638fea90e617a83057de184a5833",
+                "reference": "36683ac82ccf638fea90e617a83057de184a5833",
                 "shasum": ""
             },
             "conflict": {
                 "3f/pygmentize": "<1.2",
                 "adaptcms/adaptcms": "<=1.3",
-                "admidio/admidio": "<=4.3.16",
+                "admidio/admidio": "<5.0.6",
                 "adodb/adodb-php": "<=5.22.9",
                 "aheinze/cockpit": "<2.2",
                 "aimeos/ai-admin-graphql": ">=2022.04.1,<2022.10.10|>=2023.04.1,<2023.10.6|>=2024.04.1,<2024.07.2",
@@ -3240,7 +3186,7 @@
                 "automattic/jetpack": "<9.8",
                 "awesome-support/awesome-support": "<=6.0.7",
                 "aws/aws-sdk-php": "<3.368",
-                "azuracast/azuracast": "<=0.23.1",
+                "azuracast/azuracast": "<=0.23.3",
                 "b13/seo_basics": "<0.8.2",
                 "backdrop/backdrop": "<=1.32",
                 "backpack/crud": "<3.4.9",
@@ -3462,6 +3408,7 @@
                 "flarum/flarum": "<0.1.0.0-beta8",
                 "flarum/framework": "<1.8.10",
                 "flarum/mentions": "<1.6.3",
+                "flarum/nicknames": "<1.8.3",
                 "flarum/sticky": ">=0.1.0.0-beta14,<=0.1.0.0-beta15",
                 "flarum/tags": "<=0.1.0.0-beta13",
                 "floriangaerber/magnesium": "<0.3.1",
@@ -3945,7 +3892,7 @@
                 "sylius/grid-bundle": "<1.10.1",
                 "sylius/paypal-plugin": "<1.6.2|>=1.7,<1.7.2|>=2,<2.0.2",
                 "sylius/resource-bundle": ">=1,<1.3.14|>=1.4,<1.4.7|>=1.5,<1.5.2|>=1.6,<1.6.4",
-                "sylius/sylius": "<1.12.19|>=1.13.0.0-alpha1,<1.13.4",
+                "sylius/sylius": "<1.9.12|>=1.10,<1.10.16|>=1.11,<1.11.17|>=1.12.0.0-alpha1,<1.12.19|>=1.13.0.0-alpha1,<1.13.4",
                 "symbiote/silverstripe-multivaluefield": ">=3,<3.1",
                 "symbiote/silverstripe-queuedjobs": ">=3,<3.0.2|>=3.1,<3.1.4|>=4,<4.0.7|>=4.1,<4.1.2|>=4.2,<4.2.4|>=4.3,<4.3.3|>=4.4,<4.4.3|>=4.5,<4.5.1|>=4.6,<4.6.4",
                 "symbiote/silverstripe-seed": "<6.0.3",
@@ -4073,8 +4020,9 @@
                 "wallabag/wallabag": "<2.6.11",
                 "wanglelecc/laracms": "<=1.0.3",
                 "wapplersystems/a21glossary": "<=0.4.10",
-                "web-auth/webauthn-framework": ">=3.3,<3.3.4|>=4.5,<4.9",
-                "web-auth/webauthn-lib": ">=4.5,<4.9",
+                "web-auth/webauthn-framework": "<5.2.4",
+                "web-auth/webauthn-lib": "<5.2.4",
+                "web-auth/webauthn-symfony-bundle": "<5.2.4",
                 "web-feet/coastercms": "==5.5",
                 "web-tp3/wec_map": "<3.0.3",
                 "webbuilders-group/silverstripe-kapost-bridge": "<0.4",
@@ -4197,7 +4145,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-03-07T02:54:13+00:00"
+            "time": "2026-03-10T01:37:07+00:00"
         },
         {
             "name": "sebastian/cli-parser",

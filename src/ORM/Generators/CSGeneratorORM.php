@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\ORM\Generators;
 
+use Exception;
 use Gobl\DBAL\Column;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\QBSelect;
@@ -40,7 +41,6 @@ use OLIUP\CG\PHPFile;
 use OLIUP\CG\PHPMethod;
 use OLIUP\CG\PHPNamespace;
 use OLIUP\CG\PHPType;
-use PHPUtils\FS\FSUtils;
 use PHPUtils\Str;
 
 /**
@@ -85,15 +85,14 @@ Time: {$date}";
 ';
 	}
 
-	public function generate(array $tables, string $path, string $header = ''): static
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws Exception
+	 */
+	public function generate(array $tables, ?string $path = null, string $header = ''): static
 	{
-		$fs = new FSUtils($path);
-
-		$fs->filter()
-			->isDir()
-			->isWritable()
-			->assert('.');
-
+		$fs        = self::outputDirFS($path);
 		$path      = $fs->getRoot();
 		$ds        = \DIRECTORY_SEPARATOR;
 		$path_base = $path . $ds . 'Base';
@@ -178,23 +177,23 @@ Time: {$date}";
 
 	private function getExtendsOf(Table $table, ORMClassKind $kind): PHPFile
 	{
-		$db_ns      = $table->getNamespace();
-		$class_name = $kind->getClassName($table);
-		$file       = new PHPFile();
-		$namespace  = new PHPNamespace($db_ns);
-		$class      = $namespace->newClass($class_name);
+		$db_ns           = $table->getNamespace();
+		$class_name      = $kind->getClassName($table);
+		$class_name_base = $kind->getBaseKind()->getClassName($table);
+		$file            = new PHPFile();
+		$namespace       = new PHPNamespace($db_ns);
+		$class           = $namespace->newClass($class_name);
 
 		$inject = [
-			'class_name'   => $class->getName(),
-			'db_namespace' => $db_ns,
+			'class_name'      => $class_name,
+			'class_name_base' => $class_name_base,
+			'db_namespace'    => $db_ns,
 		];
 
-		$base_class       = Str::interpolate('{db_namespace}\Base\{class_name}', $inject);
-		$base_class_alias = Str::interpolate('{class_name}Base', $inject);
+		$base_class       = Str::interpolate('{db_namespace}\Base\{class_name_base}', $inject);
+		$namespace->use($base_class);
 
-		$namespace->use($base_class, $base_class_alias);
-
-		$class->extends($base_class_alias)
+		$class->extends($base_class)
 			->setContent($this->editable_body_comment)
 			->comment(Str::interpolate('Class {class_name}.', $inject));
 
@@ -203,14 +202,16 @@ Time: {$date}";
 
 	private function getBaseEntity(Table $table): PHPFile
 	{
-		$db_ns      = $table->getNamespace();
-		$class_name = ORMClassKind::BASE_ENTITY->getClassName($table);
-		$file       = new PHPFile();
-		$namespace  = new PHPNamespace(\sprintf('%s\Base', $db_ns));
-		$class      = $namespace->newClass($class_name);
+		$db_ns          = $table->getNamespace();
+		$class_name     = ORMClassKind::BASE_ENTITY->getClassName($table);
+		$class_name_sub = ORMClassKind::ENTITY->getClassName($table);
+		$file           = new PHPFile();
+		$namespace      = new PHPNamespace(\sprintf('%s\Base', $db_ns));
+		$class          = $namespace->newClass($class_name);
 
 		$inject = [
-			'class_name'         => $class->getName(),
+			'class_name'         => $class_name,
+			'class_name_sub'     => $class_name_sub,
 			'ctrl_class_name'    => ORMClassKind::CONTROLLER->getClassName($table),
 			'qb_class_name'      => ORMClassKind::QUERY->getClassName($table),
 			'results_class_name' => ORMClassKind::RESULTS->getClassName($table),
@@ -218,17 +219,16 @@ Time: {$date}";
 			'db_namespace'       => $db_ns,
 		];
 
-		$sub_class       = Str::interpolate('{db_namespace}\{class_name}', $inject);
-		$sub_class_alias = Str::interpolate('{class_name}Real', $inject);
+		$sub_class  = Str::interpolate('{db_namespace}\{class_name_sub}', $inject);
 
-		$namespace->use($sub_class, $sub_class_alias);
+		$namespace->use($sub_class);
 
 		$class->extends(new PHPClass(ORMEntity::class))
 			->abstract();
 
 		$class->setComment(
 			Str::interpolate(
-				'Class {class_name}.',
+				'Class {class_name}.' . \PHP_EOL,
 				$inject
 			)
 		);
@@ -270,7 +270,7 @@ Time: {$date}";
 			->public()
 			->addChild(
 				Str::interpolate(
-					'return new {class_name}Real($is_new, $strict);',
+					'return new {class_name_sub}($is_new, $strict);',
 					$inject
 				)
 			)
@@ -761,21 +761,22 @@ return static::table()->getVirtualRelation(\'{relation_name}\')->getController()
 	{
 		$db_ns             = $table->getNamespace();
 		$class_name        = ORMClassKind::BASE_CRUD->getClassName($table);
+		$class_name_sub    = ORMClassKind::CRUD->getClassName($table);
 		$entity_class_name = ORMClassKind::ENTITY->getClassName($table);
 		$file              = new PHPFile();
 		$namespace         = new PHPNamespace(\sprintf('%s\Base', $db_ns));
 		$class             = $namespace->newClass($class_name);
 
 		$inject = [
-			'class_name'        => $class->getName(),
+			'class_name'        => $class_name,
+			'class_name_sub'    => $class_name_sub,
 			'entity_class_name' => $entity_class_name,
 			'db_namespace'      => $db_ns,
 		];
 
-		$sub_class       = Str::interpolate('{db_namespace}\{class_name}', $inject);
-		$sub_class_alias = Str::interpolate('{class_name}Real', $inject);
+		$sub_class = Str::interpolate('{db_namespace}\{class_name_sub}', $inject);
 
-		$namespace->use($sub_class, $sub_class_alias);
+		$namespace->use($sub_class);
 
 		$class->extends(ORMEntityCRUD::class)
 			->comment(
@@ -806,7 +807,7 @@ return static::table()->getVirtualRelation(\'{relation_name}\')->getController()
 		$class->newMethod('new')
 			->static()
 			->public()
-			->addChild(Str::interpolate('return new {class_name}Real();', $inject))
+			->addChild(Str::interpolate('return new {class_name_sub}();', $inject))
 			->setReturnType('static')
 			->comment(
 				Str::interpolate(
@@ -822,22 +823,23 @@ return static::table()->getVirtualRelation(\'{relation_name}\')->getController()
 
 	private function getBaseQuery(Table $table): PHPFile
 	{
-		$db_ns      = $table->getNamespace();
-		$class_name = ORMClassKind::BASE_QUERY->getClassName($table);
-		$file       = new PHPFile();
-		$namespace  = new PHPNamespace(\sprintf('%s\Base', $db_ns));
-		$class      = $namespace->newClass($class_name);
+		$db_ns          = $table->getNamespace();
+		$class_name     = ORMClassKind::BASE_QUERY->getClassName($table);
+		$class_name_sub = ORMClassKind::QUERY->getClassName($table);
+		$file           = new PHPFile();
+		$namespace      = new PHPNamespace(\sprintf('%s\Base', $db_ns));
+		$class          = $namespace->newClass($class_name);
 
 		$inject = [
-			'class_name'        => $class->getName(),
+			'class_name'        => $class_name,
+			'class_name_sub'    => $class_name_sub,
 			'entity_class_name' => ORMClassKind::ENTITY->getClassName($table),
 			'db_namespace'      => $db_ns,
 		];
 
-		$sub_class       = Str::interpolate('{db_namespace}\{class_name}', $inject);
-		$sub_class_alias = Str::interpolate('{class_name}Real', $inject);
+		$sub_class = Str::interpolate('{db_namespace}\{class_name_sub}', $inject);
 
-		$namespace->use($sub_class, $sub_class_alias);
+		$namespace->use($sub_class);
 
 		$class_comment_lines   = [];
 		$class_comment_lines[] = Str::interpolate('Class {class_name}.', $inject);
@@ -846,6 +848,7 @@ return static::table()->getVirtualRelation(\'{relation_name}\')->getController()
 			'@extends \\' . ORMTableQuery::class . '<\{db_namespace}\{entity_class_name}>',
 			$inject
 		);
+		$class_comment_lines[] = '';
 
 		$class->extends(new PHPClass(ORMTableQuery::class))
 			->abstract();
@@ -868,7 +871,7 @@ return static::table()->getVirtualRelation(\'{relation_name}\')->getController()
 		$class->newMethod('new')
 			->static()
 			->public()
-			->addChild(Str::interpolate('return new {class_name}Real();', $inject))
+			->addChild(Str::interpolate('return new {class_name_sub}();', $inject))
 			->setReturnType('static')
 			->comment(
 				Str::interpolate(
@@ -953,21 +956,22 @@ return static::table()->getVirtualRelation(\'{relation_name}\')->getController()
 	{
 		$db_ns             = $table->getNamespace();
 		$class_name        = ORMClassKind::BASE_RESULTS->getClassName($table);
+		$class_name_sub    = ORMClassKind::RESULTS->getClassName($table);
 		$entity_class_name = ORMClassKind::ENTITY->getClassName($table);
 		$file              = new PHPFile();
 		$namespace         = new PHPNamespace(\sprintf('%s\Base', $db_ns));
 		$class             = $namespace->newClass($class_name);
 
 		$inject = [
-			'class_name'        => $class->getName(),
+			'class_name'        => $class_name,
+			'class_name_sub'    => $class_name_sub,
 			'entity_class_name' => $entity_class_name,
 			'db_namespace'      => $db_ns,
 		];
 
-		$sub_class       = Str::interpolate('{db_namespace}\{class_name}', $inject);
-		$sub_class_alias = Str::interpolate('{class_name}Real', $inject);
+		$sub_class = Str::interpolate('{db_namespace}\{class_name_sub}', $inject);
 
-		$namespace->use($sub_class, $sub_class_alias);
+		$namespace->use($sub_class);
 
 		$class->extends(new PHPClass(ORMResults::class))
 			->abstract()
@@ -1002,7 +1006,7 @@ return static::table()->getVirtualRelation(\'{relation_name}\')->getController()
 			->static()
 			->public()
 			->addChild(
-				Str::interpolate('return new {class_name}Real($query);', $inject)
+				Str::interpolate('return new {class_name_sub}($query);', $inject)
 			)
 			->setReturnType('static');
 		$create_instance->newArgument('query')
@@ -1025,6 +1029,7 @@ return static::table()->getVirtualRelation(\'{relation_name}\')->getController()
 	{
 		$db_ns              = $table->getNamespace();
 		$class_name         = ORMClassKind::BASE_CONTROLLER->getClassName($table);
+		$class_name_sub     = ORMClassKind::CONTROLLER->getClassName($table);
 		$entity_class_name  = ORMClassKind::ENTITY->getClassName($table);
 		$results_class_name = ORMClassKind::RESULTS->getClassName($table);
 		$query_class_name   = ORMClassKind::QUERY->getClassName($table);
@@ -1033,17 +1038,17 @@ return static::table()->getVirtualRelation(\'{relation_name}\')->getController()
 		$class              = $namespace->newClass($class_name);
 
 		$inject = [
-			'class_name'         => $class->getName(),
+			'class_name'         => $class_name,
+			'class_name_sub'     => $class_name_sub,
 			'entity_class_name'  => $entity_class_name,
 			'results_class_name' => $results_class_name,
 			'query_class_name'   => $query_class_name,
 			'db_namespace'       => $db_ns,
 		];
 
-		$sub_class       = Str::interpolate('{db_namespace}\{class_name}', $inject);
-		$sub_class_alias = Str::interpolate('{class_name}Real', $inject);
+		$sub_class = Str::interpolate('{db_namespace}\{class_name_sub}', $inject);
 
-		$namespace->use($sub_class, $sub_class_alias);
+		$namespace->use($sub_class);
 
 		$class->extends(new PHPClass(ORMController::class))
 			->abstract()
@@ -1074,7 +1079,7 @@ return static::table()->getVirtualRelation(\'{relation_name}\')->getController()
 		$class->newMethod('new')
 			->static()
 			->public()
-			->addChild(Str::interpolate('return new {class_name}Real();', $inject))
+			->addChild(Str::interpolate('return new {class_name_sub}();', $inject))
 			->setReturnType('static')
 			->comment(
 				Str::interpolate(

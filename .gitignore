@@ -3,7 +3,7 @@
 .gobl
 /vendor
 /ignore
-**/otpl_done/*
+**/blate_cache/*
 
 # cs fixer
 .php-cs-fixer.cache

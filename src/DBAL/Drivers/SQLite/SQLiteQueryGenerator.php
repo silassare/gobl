@@ -31,8 +31,6 @@ use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\Utils\JsonPath;
 use Gobl\Gobl;
 
-use const GOBL_ASSETS_DIR;
-
 /**
  * Class SQLiteQueryGenerator.
  */
@@ -54,8 +52,8 @@ class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 			self::$templates_registered = true;
 
 			Gobl::addTemplates([
-				'sqlite_db'           => ['path' => GOBL_ASSETS_DIR . '/sqlite/db.sql'],
-				'sqlite_create_table' => ['path' => GOBL_ASSETS_DIR . '/sqlite/create_table.sql'],
+				'sqlite_db'           => 'sqlite/db.sql.blate',
+				'sqlite_create_table' => 'sqlite/create_table.sql.blate',
 			]);
 		}
 	}

@@ -1,0 +1,46 @@
+{@if $length(gobl_header)}{= gobl_header}{:else}
+/**
+ * Auto generated file
+ *
+ * WARNING: please don't edit.
+ *
+ * Proudly With: {= gobl_version}
+ * Time: {= gobl_time}
+ */
+{/if}
+{@raw}
+import {GoblEntity} from 'gobl-utils-ts';
+{/raw}
+
+export default abstract class {= class.entity_base} extends GoblEntity {='{'}
+	public static readonly PREFIX = '{= columns_prefix}';
+	public static readonly COLUMNS = [{@each column in columns}
+		'{= column.full_name}',{/each}
+	] as const;
+{@each column in columns}	public static readonly {= column.const} = '{= column.full_name}';
+{/each}
+{@if $length(pk_columns) == 1}
+	public singlePKValue():string {='{'}
+		const id = this.{= pk_columns[0].name};
+		if (id === undefined || id === null) {='{'}
+			throw new Error('Cannot get single PK value for unsaved "{= class.entity}".');
+		{='}'}
+		return String(id);
+	{='}'}
+{/if}
+{@if $length(pk_columns)}
+	public identifierColumns(): string[] {='{'}
+		return [{@each pk in pk_columns}{= class.entity_base}.{= pk.const}{= $if(
+			$length(pk_columns) != 1, ',', ''
+		)}{/each}];
+	{='}'}
+{:else}
+	public identifierColumns() {='{'}
+		return [...{= class.entity_base}.COLUMNS];
+	{='}'}
+{/if}
+{@each column in columns}
+	get {= column.name}(): {= column.read_type_hint_saved} {='{'} return this._data[{= class.entity_base}.{= column.const}]; {='}'}
+	set {= column.name}(v: {= column.write_type_hint}) {='{'} this._set({= class.entity_base}.{= column.const}, v); {='}'}
+{/each}
+{='}'}

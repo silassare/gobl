@@ -1,0 +1,19 @@
+{@if $length(gobl_header)}{= gobl_header}{:else}
+/**
+ * Auto generated file
+ *
+ * WARNING: please don't edit.
+ *
+ * Proudly With: {= gobl_version}
+ * Time: {= gobl_time}
+ */
+{/if}
+
+{@each cases:name in enums}
+export enum {= name} {='{'}
+{@each value:case in cases}
+	{= case} = {= value},{/each}
+{='}'}
+{/each}
+
+export {='{}'};

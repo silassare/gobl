@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Gobl\ORM\Utils;
 
 use Gobl\DBAL\Table;
+use LogicException;
 use PHPUtils\Str;
 
 /**
@@ -78,11 +79,31 @@ enum ORMClassKind: string
 	public function getClassName(Table $table): string
 	{
 		return match ($this) {
-			self::ENTITY, self::BASE_ENTITY         => Str::toClassName($table->getSingularName()),
-			self::QUERY, self::BASE_QUERY           => Str::toClassName($table->getPluralName() . '_query'),
-			self::CONTROLLER, self::BASE_CONTROLLER => Str::toClassName($table->getPluralName() . '_controller'),
-			self::CRUD, self::BASE_CRUD             => Str::toClassName($table->getPluralName() . '_crud'),
-			self::RESULTS, self::BASE_RESULTS       => Str::toClassName($table->getPluralName() . '_results')
+			self::ENTITY          => Str::toClassName($table->getSingularName()),
+			self::BASE_ENTITY     => Str::toClassName($table->getSingularName() . '_base'),
+			self::QUERY           => Str::toClassName($table->getPluralName() . '_query'),
+			self::BASE_QUERY      => Str::toClassName($table->getPluralName() . '_query_base'),
+			self::CONTROLLER      => Str::toClassName($table->getPluralName() . '_controller'),
+			self::BASE_CONTROLLER => Str::toClassName($table->getPluralName() . '_controller_base'),
+			self::CRUD            => Str::toClassName($table->getPluralName() . '_crud'),
+			self::BASE_CRUD       => Str::toClassName($table->getPluralName() . '_crud_base'),
+			self::RESULTS         => Str::toClassName($table->getPluralName() . '_results'),
+			self::BASE_RESULTS    => Str::toClassName($table->getPluralName() . '_results_base')
+		};
+	}
+
+	/**
+	 * Returns the base class kind for this class kind.
+	 */
+	public function getBaseKind(): self
+	{
+		return match ($this) {
+			self::ENTITY     => self::BASE_ENTITY,
+			self::QUERY      => self::BASE_QUERY,
+			self::RESULTS    => self::BASE_RESULTS,
+			self::CONTROLLER => self::BASE_CONTROLLER,
+			self::CRUD       => self::BASE_CRUD,
+			default          => throw new LogicException('Invalid class kind: ' . $this->value)
 		};
 	}
 }
