@@ -3,10 +3,11 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\Db\Base;
 
-use Gobl\Tests\Db\Client as ClientReal;
+use Gobl\Tests\Db\Client;
 
 /**
- * Class Client.
+ * Class ClientBase.
+ * 
  * @property string|null $id Getter for column `clients.id`.
  * @property string $first_name Getter for column `clients.first_name`.
  * @property string $last_name Getter for column `clients.last_name`.
@@ -17,7 +18,7 @@ use Gobl\Tests\Db\Client as ClientReal;
  * @property string $updated_at Getter for column `clients.updated_at`.
  * @property bool $valid Getter for column `clients.valid`.
  */
-abstract class Client extends \Gobl\ORM\ORMEntity
+abstract class ClientBase extends \Gobl\ORM\ORMEntity
 {
 	public const TABLE_NAME = 'clients';
 	public const TABLE_NAMESPACE = 'Gobl\\Tests\\Db';
@@ -31,7 +32,7 @@ abstract class Client extends \Gobl\ORM\ORMEntity
 	public const COL_UPDATED_AT = 'client_updated_at';
 	public const COL_VALID = 'client_valid';
 	/**
-	 * Client constructor.
+	 * ClientBase constructor.
 	 * 
 	 * @param bool $is_new true for new entity false for entity fetched
 	 *                      from the database, default is true
@@ -55,7 +56,7 @@ abstract class Client extends \Gobl\ORM\ORMEntity
 	 */
 	public static function new(bool $is_new = true, bool $strict = true): static
 	{
-		return new ClientReal($is_new, $strict);
+		return new Client($is_new, $strict);
 	}
 
 	/**

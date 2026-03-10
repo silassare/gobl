@@ -3,18 +3,18 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\Db\Base;
 
-use Gobl\Tests\Db\TransactionsController as TransactionsControllerReal;
+use Gobl\Tests\Db\TransactionsController;
 
 /**
- * Class TransactionsController.
+ * Class TransactionsControllerBase.
  * 
  * @extends \Gobl\ORM\ORMController<\Gobl\Tests\Db\Transaction, \Gobl\Tests\Db\TransactionsQuery, \Gobl\Tests\Db\TransactionsResults>
  * 
  */
-abstract class TransactionsController extends \Gobl\ORM\ORMController
+abstract class TransactionsControllerBase extends \Gobl\ORM\ORMController
 {
 	/**
-	 * TransactionsController constructor.
+	 * TransactionsControllerBase constructor.
 	 */
 	public function __construct()
 	{
@@ -32,6 +32,6 @@ abstract class TransactionsController extends \Gobl\ORM\ORMController
 	 */
 	public static function new(): static
 	{
-		return new TransactionsControllerReal();
+		return new TransactionsController();
 	}
 }

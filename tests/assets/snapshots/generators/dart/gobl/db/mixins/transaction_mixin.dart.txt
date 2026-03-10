@@ -7,13 +7,14 @@
 // Proudly With: gobl [GOBL_VERSION]
 // Time: [GENERATED_AT]
 
-import '../base/transaction_base.dart';
-import '../entities/transaction.dart';
 
-mixin TransactionMixin<T extends Transaction> on TransactionBase {
+import '../base/transactions_base.dart';
+import '../entities/transactions.dart';
+
+mixin TransactionMixin<T extends Transaction> on Transaction {
   T get self;
 
   //====================================================
-  //=	Your custom implementation goes here
+  //=   Your custom implementation goes here
   //====================================================
 }

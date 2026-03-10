@@ -9,7 +9,8 @@
  */
 
 
-import { register } from 'gobl-utils-ts';
+import { register as _r } from 'gobl-utils-ts';
+
 
 import Client from './db/Client';
 import Account from './db/Account';
@@ -17,20 +18,18 @@ import Transaction from './db/Transaction';
 import Currency from './db/Currency';
 
 
-// START: ENTITIES REGISTRATION
-register('Client', Client);
-register('Account', Account);
-register('Transaction', Transaction);
-register('Currency', Currency);
+_r('Client', Client);
+_r('Account', Account);
+_r('Transaction', Transaction);
+_r('Currency', Currency);
 
-// END: ENTITIES REGISTRATION
 
 export * from './enums.ts';
 
 export {
-Client,
-Account,
-Transaction,
-Currency,
+	Client,
+	Account,
+	Transaction,
+	Currency,
 
 };

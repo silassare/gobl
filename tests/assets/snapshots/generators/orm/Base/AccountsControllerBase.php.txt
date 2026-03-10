@@ -3,18 +3,18 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\Db\Base;
 
-use Gobl\Tests\Db\AccountsController as AccountsControllerReal;
+use Gobl\Tests\Db\AccountsController;
 
 /**
- * Class AccountsController.
+ * Class AccountsControllerBase.
  * 
  * @extends \Gobl\ORM\ORMController<\Gobl\Tests\Db\Account, \Gobl\Tests\Db\AccountsQuery, \Gobl\Tests\Db\AccountsResults>
  * 
  */
-abstract class AccountsController extends \Gobl\ORM\ORMController
+abstract class AccountsControllerBase extends \Gobl\ORM\ORMController
 {
 	/**
-	 * AccountsController constructor.
+	 * AccountsControllerBase constructor.
 	 */
 	public function __construct()
 	{
@@ -32,6 +32,6 @@ abstract class AccountsController extends \Gobl\ORM\ORMController
 	 */
 	public static function new(): static
 	{
-		return new AccountsControllerReal();
+		return new AccountsController();
 	}
 }

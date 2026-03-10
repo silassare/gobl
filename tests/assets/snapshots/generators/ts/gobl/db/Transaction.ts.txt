@@ -9,7 +9,9 @@
  * Time: [GENERATED_AT]
  */
 
+
 import { getEntityCache, type GoblEntityData } from "gobl-utils-ts";
+
 import TransactionBase from "./base/TransactionBase";
 
 export default class Transaction extends TransactionBase {
@@ -23,6 +25,6 @@ export default class Transaction extends TransactionBase {
 	}
 
 	//====================================================
-	//=	Your custom implementation goes here
+	//=     Your custom implementation goes here
 	//====================================================
 }

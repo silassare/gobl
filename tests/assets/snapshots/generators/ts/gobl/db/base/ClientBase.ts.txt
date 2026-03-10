@@ -8,7 +8,9 @@
  * Time: [GENERATED_AT]
  */
 
+
 import {GoblEntity} from 'gobl-utils-ts';
+
 
 export default abstract class ClientBase extends GoblEntity {
 	public static readonly PREFIX = 'client';
@@ -33,41 +35,46 @@ export default abstract class ClientBase extends GoblEntity {
 	public static readonly COL_UPDATED_AT = 'client_updated_at';
 	public static readonly COL_VALID = 'client_valid';
 
+
 	public singlePKValue():string {
 		const id = this.id;
 		if (id === undefined || id === null) {
-			throw new Error('Cannot get single PK value for unsaved Client.');
+			throw new Error('Cannot get single PK value for unsaved "Client".');
 		}
 		return String(id);
 	}
+
+
 	public identifierColumns(): string[] {
-		return [ ClientBase.COL_ID ];
+		return [ClientBase.COL_ID];
 	}
+
+
 	get id(): string { return this._data[ClientBase.COL_ID]; }
-	set id(nVal: string|number|null) { this._set(ClientBase.COL_ID, nVal); }
+	set id(v: string|number|null) { this._set(ClientBase.COL_ID, v); }
 
 	get first_name(): string { return this._data[ClientBase.COL_FIRST_NAME]; }
-	set first_name(nVal: string) { this._set(ClientBase.COL_FIRST_NAME, nVal); }
+	set first_name(v: string) { this._set(ClientBase.COL_FIRST_NAME, v); }
 
 	get last_name(): string { return this._data[ClientBase.COL_LAST_NAME]; }
-	set last_name(nVal: string) { this._set(ClientBase.COL_LAST_NAME, nVal); }
+	set last_name(v: string) { this._set(ClientBase.COL_LAST_NAME, v); }
 
 	get given_name(): string { return this._data[ClientBase.COL_GIVEN_NAME]; }
-	set given_name(nVal: string) { this._set(ClientBase.COL_GIVEN_NAME, nVal); }
+	set given_name(v: string) { this._set(ClientBase.COL_GIVEN_NAME, v); }
 
 	get gender(): string { return this._data[ClientBase.COL_GENDER]; }
-	set gender(nVal: string) { this._set(ClientBase.COL_GENDER, nVal); }
+	set gender(v: string) { this._set(ClientBase.COL_GENDER, v); }
 
 	get data(): Record<string, unknown> { return this._data[ClientBase.COL_DATA]; }
-	set data(nVal: Record<string, unknown>) { this._set(ClientBase.COL_DATA, nVal); }
+	set data(v: Record<string, unknown>) { this._set(ClientBase.COL_DATA, v); }
 
 	get created_at(): string { return this._data[ClientBase.COL_CREATED_AT]; }
-	set created_at(nVal: string|number) { this._set(ClientBase.COL_CREATED_AT, nVal); }
+	set created_at(v: string|number) { this._set(ClientBase.COL_CREATED_AT, v); }
 
 	get updated_at(): string { return this._data[ClientBase.COL_UPDATED_AT]; }
-	set updated_at(nVal: string|number) { this._set(ClientBase.COL_UPDATED_AT, nVal); }
+	set updated_at(v: string|number) { this._set(ClientBase.COL_UPDATED_AT, v); }
 
 	get valid(): boolean { return this._data[ClientBase.COL_VALID]; }
-	set valid(nVal: boolean) { this._set(ClientBase.COL_VALID, nVal); }
+	set valid(v: boolean) { this._set(ClientBase.COL_VALID, v); }
 
 }

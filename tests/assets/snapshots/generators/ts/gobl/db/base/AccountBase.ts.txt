@@ -8,7 +8,9 @@
  * Time: [GENERATED_AT]
  */
 
+
 import {GoblEntity} from 'gobl-utils-ts';
+
 
 export default abstract class AccountBase extends GoblEntity {
 	public static readonly PREFIX = 'account';
@@ -33,41 +35,46 @@ export default abstract class AccountBase extends GoblEntity {
 	public static readonly COL_UPDATED_AT = 'account_updated_at';
 	public static readonly COL_VALID = 'account_valid';
 
+
 	public singlePKValue():string {
 		const id = this.id;
 		if (id === undefined || id === null) {
-			throw new Error('Cannot get single PK value for unsaved Account.');
+			throw new Error('Cannot get single PK value for unsaved "Account".');
 		}
 		return String(id);
 	}
+
+
 	public identifierColumns(): string[] {
-		return [ AccountBase.COL_ID ];
+		return [AccountBase.COL_ID];
 	}
+
+
 	get id(): string { return this._data[AccountBase.COL_ID]; }
-	set id(nVal: string|number|null) { this._set(AccountBase.COL_ID, nVal); }
+	set id(v: string|number|null) { this._set(AccountBase.COL_ID, v); }
 
 	get client_id(): string { return this._data[AccountBase.COL_CLIENT_ID]; }
-	set client_id(nVal: string|number) { this._set(AccountBase.COL_CLIENT_ID, nVal); }
+	set client_id(v: string|number) { this._set(AccountBase.COL_CLIENT_ID, v); }
 
 	get label(): string { return this._data[AccountBase.COL_LABEL]; }
-	set label(nVal: string) { this._set(AccountBase.COL_LABEL, nVal); }
+	set label(v: string) { this._set(AccountBase.COL_LABEL, v); }
 
 	get balance(): string { return this._data[AccountBase.COL_BALANCE]; }
-	set balance(nVal: string|number|number) { this._set(AccountBase.COL_BALANCE, nVal); }
+	set balance(v: string|number|number) { this._set(AccountBase.COL_BALANCE, v); }
 
 	get currency_code(): string { return this._data[AccountBase.COL_CURRENCY_CODE]; }
-	set currency_code(nVal: string) { this._set(AccountBase.COL_CURRENCY_CODE, nVal); }
+	set currency_code(v: string) { this._set(AccountBase.COL_CURRENCY_CODE, v); }
 
 	get data(): Record<string, unknown> { return this._data[AccountBase.COL_DATA]; }
-	set data(nVal: Record<string, unknown>) { this._set(AccountBase.COL_DATA, nVal); }
+	set data(v: Record<string, unknown>) { this._set(AccountBase.COL_DATA, v); }
 
 	get created_at(): string { return this._data[AccountBase.COL_CREATED_AT]; }
-	set created_at(nVal: string|number) { this._set(AccountBase.COL_CREATED_AT, nVal); }
+	set created_at(v: string|number) { this._set(AccountBase.COL_CREATED_AT, v); }
 
 	get updated_at(): string { return this._data[AccountBase.COL_UPDATED_AT]; }
-	set updated_at(nVal: string|number) { this._set(AccountBase.COL_UPDATED_AT, nVal); }
+	set updated_at(v: string|number) { this._set(AccountBase.COL_UPDATED_AT, v); }
 
 	get valid(): boolean { return this._data[AccountBase.COL_VALID]; }
-	set valid(nVal: boolean) { this._set(AccountBase.COL_VALID, nVal); }
+	set valid(v: boolean) { this._set(AccountBase.COL_VALID, v); }
 
 }

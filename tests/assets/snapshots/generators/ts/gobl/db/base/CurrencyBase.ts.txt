@@ -8,7 +8,9 @@
  * Time: [GENERATED_AT]
  */
 
+
 import {GoblEntity} from 'gobl-utils-ts';
+
 
 export default abstract class CurrencyBase extends GoblEntity {
 	public static readonly PREFIX = 'ccy';
@@ -29,35 +31,40 @@ export default abstract class CurrencyBase extends GoblEntity {
 	public static readonly COL_UPDATED_AT = 'ccy_updated_at';
 	public static readonly COL_VALID = 'ccy_valid';
 
+
 	public singlePKValue():string {
 		const id = this.code;
 		if (id === undefined || id === null) {
-			throw new Error('Cannot get single PK value for unsaved Currency.');
+			throw new Error('Cannot get single PK value for unsaved "Currency".');
 		}
 		return String(id);
 	}
+
+
 	public identifierColumns(): string[] {
-		return [ CurrencyBase.COL_CODE ];
+		return [CurrencyBase.COL_CODE];
 	}
+
+
 	get code(): string { return this._data[CurrencyBase.COL_CODE]; }
-	set code(nVal: string) { this._set(CurrencyBase.COL_CODE, nVal); }
+	set code(v: string) { this._set(CurrencyBase.COL_CODE, v); }
 
 	get name(): string { return this._data[CurrencyBase.COL_NAME]; }
-	set name(nVal: string) { this._set(CurrencyBase.COL_NAME, nVal); }
+	set name(v: string) { this._set(CurrencyBase.COL_NAME, v); }
 
 	get symbol(): string { return this._data[CurrencyBase.COL_SYMBOL]; }
-	set symbol(nVal: string) { this._set(CurrencyBase.COL_SYMBOL, nVal); }
+	set symbol(v: string) { this._set(CurrencyBase.COL_SYMBOL, v); }
 
 	get data(): Record<string, unknown> { return this._data[CurrencyBase.COL_DATA]; }
-	set data(nVal: Record<string, unknown>) { this._set(CurrencyBase.COL_DATA, nVal); }
+	set data(v: Record<string, unknown>) { this._set(CurrencyBase.COL_DATA, v); }
 
 	get created_at(): string { return this._data[CurrencyBase.COL_CREATED_AT]; }
-	set created_at(nVal: string|number) { this._set(CurrencyBase.COL_CREATED_AT, nVal); }
+	set created_at(v: string|number) { this._set(CurrencyBase.COL_CREATED_AT, v); }
 
 	get updated_at(): string { return this._data[CurrencyBase.COL_UPDATED_AT]; }
-	set updated_at(nVal: string|number) { this._set(CurrencyBase.COL_UPDATED_AT, nVal); }
+	set updated_at(v: string|number) { this._set(CurrencyBase.COL_UPDATED_AT, v); }
 
 	get valid(): boolean { return this._data[CurrencyBase.COL_VALID]; }
-	set valid(nVal: boolean) { this._set(CurrencyBase.COL_VALID, nVal); }
+	set valid(v: boolean) { this._set(CurrencyBase.COL_VALID, v); }
 
 }

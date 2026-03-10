@@ -3,18 +3,18 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\Db\Base;
 
-use Gobl\Tests\Db\CurrenciesCrud as CurrenciesCrudReal;
+use Gobl\Tests\Db\CurrenciesCrud;
 
 /**
- * Class CurrenciesCrud.
+ * Class CurrenciesCrudBase.
  * 
  * @extends \Gobl\ORM\ORMEntityCRUD<\Gobl\Tests\Db\Currency>
  * 
  */
-class CurrenciesCrud extends \Gobl\ORM\ORMEntityCRUD
+class CurrenciesCrudBase extends \Gobl\ORM\ORMEntityCRUD
 {
 	/**
-	 * CurrenciesCrud constructor.
+	 * CurrenciesCrudBase constructor.
 	 */
 	public function __construct()
 	{
@@ -32,6 +32,6 @@ class CurrenciesCrud extends \Gobl\ORM\ORMEntityCRUD
 	 */
 	public static function new(): static
 	{
-		return new CurrenciesCrudReal();
+		return new CurrenciesCrud();
 	}
 }

@@ -3,18 +3,18 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\Db\Base;
 
-use Gobl\Tests\Db\CurrenciesController as CurrenciesControllerReal;
+use Gobl\Tests\Db\CurrenciesController;
 
 /**
- * Class CurrenciesController.
+ * Class CurrenciesControllerBase.
  * 
  * @extends \Gobl\ORM\ORMController<\Gobl\Tests\Db\Currency, \Gobl\Tests\Db\CurrenciesQuery, \Gobl\Tests\Db\CurrenciesResults>
  * 
  */
-abstract class CurrenciesController extends \Gobl\ORM\ORMController
+abstract class CurrenciesControllerBase extends \Gobl\ORM\ORMController
 {
 	/**
-	 * CurrenciesController constructor.
+	 * CurrenciesControllerBase constructor.
 	 */
 	public function __construct()
 	{
@@ -32,6 +32,6 @@ abstract class CurrenciesController extends \Gobl\ORM\ORMController
 	 */
 	public static function new(): static
 	{
-		return new CurrenciesControllerReal();
+		return new CurrenciesController();
 	}
 }

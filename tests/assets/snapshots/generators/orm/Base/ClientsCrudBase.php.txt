@@ -3,18 +3,18 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\Db\Base;
 
-use Gobl\Tests\Db\ClientsCrud as ClientsCrudReal;
+use Gobl\Tests\Db\ClientsCrud;
 
 /**
- * Class ClientsCrud.
+ * Class ClientsCrudBase.
  * 
  * @extends \Gobl\ORM\ORMEntityCRUD<\Gobl\Tests\Db\Client>
  * 
  */
-class ClientsCrud extends \Gobl\ORM\ORMEntityCRUD
+class ClientsCrudBase extends \Gobl\ORM\ORMEntityCRUD
 {
 	/**
-	 * ClientsCrud constructor.
+	 * ClientsCrudBase constructor.
 	 */
 	public function __construct()
 	{
@@ -32,6 +32,6 @@ class ClientsCrud extends \Gobl\ORM\ORMEntityCRUD
 	 */
 	public static function new(): static
 	{
-		return new ClientsCrudReal();
+		return new ClientsCrud();
 	}
 }

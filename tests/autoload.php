@@ -11,6 +11,8 @@
 
 declare(strict_types=1);
 
+use Blate\Blate;
+
 require_once \dirname(__DIR__) . '/vendor/autoload.php';
 
 \define('GOBL_TEST_MODE', true);
@@ -20,6 +22,8 @@ require_once \dirname(__DIR__) . '/vendor/autoload.php';
 \define('GOBL_TEST_PROJECT_DIR', GOBL_TEST_ROOT . \DIRECTORY_SEPARATOR . 'tmp');
 \define('GOBL_TEST_OUTPUT', GOBL_TEST_PROJECT_DIR . \DIRECTORY_SEPARATOR . 'output');
 \define('GOBL_TEST_ORM_OUTPUT', GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'ORM_Db');
+
+Blate::setCacheDir(GOBL_TEST_PROJECT_DIR);
 
 if (!\function_exists('gobl_test_log')) {
 	function gobl_test_log(mixed $value): void

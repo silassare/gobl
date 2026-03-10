@@ -9,7 +9,9 @@
  * Time: [GENERATED_AT]
  */
 
+
 import { getEntityCache, type GoblEntityData } from "gobl-utils-ts";
+
 import AccountBase from "./base/AccountBase";
 
 export default class Account extends AccountBase {
@@ -23,6 +25,6 @@ export default class Account extends AccountBase {
 	}
 
 	//====================================================
-	//=	Your custom implementation goes here
+	//=     Your custom implementation goes here
 	//====================================================
 }

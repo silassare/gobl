@@ -3,12 +3,13 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\Db\Base;
 
-use Gobl\Tests\Db\TransactionsQuery as TransactionsQueryReal;
+use Gobl\Tests\Db\TransactionsQuery;
 
 /**
- * Class TransactionsQuery.
+ * Class TransactionsQueryBase.
  * 
  * @extends \Gobl\ORM\ORMTableQuery<\Gobl\Tests\Db\Transaction>
+ * 
  * @method static whereIdIs(string|int $value) Filters rows with `eq` condition on column `transactions.id`.
  * @method static whereIdIsNot(string|int $value) Filters rows with `neq` condition on column `transactions.id`.
  * @method static whereIdIsLt(string|int $value) Filters rows with `lt` condition on column `transactions.id`.
@@ -130,10 +131,10 @@ use Gobl\Tests\Db\TransactionsQuery as TransactionsQueryReal;
  * @method static whereValidIsFalse() Filters rows with `is_false` condition on column `transactions.valid`.
  * @method static whereValidIsTrue() Filters rows with `is_true` condition on column `transactions.valid`.
  */
-abstract class TransactionsQuery extends \Gobl\ORM\ORMTableQuery
+abstract class TransactionsQueryBase extends \Gobl\ORM\ORMTableQuery
 {
 	/**
-	 * TransactionsQuery constructor.
+	 * TransactionsQueryBase constructor.
 	 */
 	public function __construct()
 	{
@@ -151,6 +152,6 @@ abstract class TransactionsQuery extends \Gobl\ORM\ORMTableQuery
 	 */
 	public static function new(): static
 	{
-		return new TransactionsQueryReal();
+		return new TransactionsQuery();
 	}
 }

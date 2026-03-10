@@ -7,13 +7,14 @@
 // Proudly With: gobl [GOBL_VERSION]
 // Time: [GENERATED_AT]
 
-import '../base/account_base.dart';
-import '../entities/account.dart';
 
-mixin AccountMixin<T extends Account> on AccountBase {
+import '../base/accounts_base.dart';
+import '../entities/accounts.dart';
+
+mixin AccountMixin<T extends Account> on Account {
   T get self;
 
   //====================================================
-  //=	Your custom implementation goes here
+  //=   Your custom implementation goes here
   //====================================================
 }

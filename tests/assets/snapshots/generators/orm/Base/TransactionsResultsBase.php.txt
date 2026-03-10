@@ -3,17 +3,17 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\Db\Base;
 
-use Gobl\Tests\Db\TransactionsResults as TransactionsResultsReal;
+use Gobl\Tests\Db\TransactionsResults;
 
 /**
- * Class TransactionsResults.
+ * Class TransactionsResultsBase.
  * 
  * @extends \Gobl\ORM\ORMResults<\Gobl\Tests\Db\Transaction>
  */
-abstract class TransactionsResults extends \Gobl\ORM\ORMResults
+abstract class TransactionsResultsBase extends \Gobl\ORM\ORMResults
 {
 	/**
-	 * TransactionsResults constructor.
+	 * TransactionsResultsBase constructor.
 	 */
 	public function __construct(\Gobl\DBAL\Queries\QBSelect $query)
 	{
@@ -32,6 +32,6 @@ abstract class TransactionsResults extends \Gobl\ORM\ORMResults
 	 */
 	public static function new(\Gobl\DBAL\Queries\QBSelect $query): static
 	{
-		return new TransactionsResultsReal($query);
+		return new TransactionsResults($query);
 	}
 }

@@ -3,18 +3,18 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\Db\Base;
 
-use Gobl\Tests\Db\ClientsController as ClientsControllerReal;
+use Gobl\Tests\Db\ClientsController;
 
 /**
- * Class ClientsController.
+ * Class ClientsControllerBase.
  * 
  * @extends \Gobl\ORM\ORMController<\Gobl\Tests\Db\Client, \Gobl\Tests\Db\ClientsQuery, \Gobl\Tests\Db\ClientsResults>
  * 
  */
-abstract class ClientsController extends \Gobl\ORM\ORMController
+abstract class ClientsControllerBase extends \Gobl\ORM\ORMController
 {
 	/**
-	 * ClientsController constructor.
+	 * ClientsControllerBase constructor.
 	 */
 	public function __construct()
 	{
@@ -32,6 +32,6 @@ abstract class ClientsController extends \Gobl\ORM\ORMController
 	 */
 	public static function new(): static
 	{
-		return new ClientsControllerReal();
+		return new ClientsController();
 	}
 }

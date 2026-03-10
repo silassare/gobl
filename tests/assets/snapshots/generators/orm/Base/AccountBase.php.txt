@@ -3,10 +3,11 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\Db\Base;
 
-use Gobl\Tests\Db\Account as AccountReal;
+use Gobl\Tests\Db\Account;
 
 /**
- * Class Account.
+ * Class AccountBase.
+ * 
  * @property string|null $id Getter for column `accounts.id`.
  * @property string $client_id Getter for column `accounts.client_id`.
  * @property string $label Getter for column `accounts.label`.
@@ -17,7 +18,7 @@ use Gobl\Tests\Db\Account as AccountReal;
  * @property string $updated_at Getter for column `accounts.updated_at`.
  * @property bool $valid Getter for column `accounts.valid`.
  */
-abstract class Account extends \Gobl\ORM\ORMEntity
+abstract class AccountBase extends \Gobl\ORM\ORMEntity
 {
 	public const TABLE_NAME = 'accounts';
 	public const TABLE_NAMESPACE = 'Gobl\\Tests\\Db';
@@ -31,7 +32,7 @@ abstract class Account extends \Gobl\ORM\ORMEntity
 	public const COL_UPDATED_AT = 'account_updated_at';
 	public const COL_VALID = 'account_valid';
 	/**
-	 * Account constructor.
+	 * AccountBase constructor.
 	 * 
 	 * @param bool $is_new true for new entity false for entity fetched
 	 *                      from the database, default is true
@@ -55,7 +56,7 @@ abstract class Account extends \Gobl\ORM\ORMEntity
 	 */
 	public static function new(bool $is_new = true, bool $strict = true): static
 	{
-		return new AccountReal($is_new, $strict);
+		return new Account($is_new, $strict);
 	}
 
 	/**

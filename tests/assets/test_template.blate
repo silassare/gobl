@@ -1,2 +1,2 @@
 // this is just for test
-my_entity
+{= class.entity}

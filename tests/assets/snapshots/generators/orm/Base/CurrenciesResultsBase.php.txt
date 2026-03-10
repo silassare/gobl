@@ -3,17 +3,17 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\Db\Base;
 
-use Gobl\Tests\Db\CurrenciesResults as CurrenciesResultsReal;
+use Gobl\Tests\Db\CurrenciesResults;
 
 /**
- * Class CurrenciesResults.
+ * Class CurrenciesResultsBase.
  * 
  * @extends \Gobl\ORM\ORMResults<\Gobl\Tests\Db\Currency>
  */
-abstract class CurrenciesResults extends \Gobl\ORM\ORMResults
+abstract class CurrenciesResultsBase extends \Gobl\ORM\ORMResults
 {
 	/**
-	 * CurrenciesResults constructor.
+	 * CurrenciesResultsBase constructor.
 	 */
 	public function __construct(\Gobl\DBAL\Queries\QBSelect $query)
 	{
@@ -32,6 +32,6 @@ abstract class CurrenciesResults extends \Gobl\ORM\ORMResults
 	 */
 	public static function new(\Gobl\DBAL\Queries\QBSelect $query): static
 	{
-		return new CurrenciesResultsReal($query);
+		return new CurrenciesResults($query);
 	}
 }

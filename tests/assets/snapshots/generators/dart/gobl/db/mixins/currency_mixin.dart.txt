@@ -7,13 +7,14 @@
 // Proudly With: gobl [GOBL_VERSION]
 // Time: [GENERATED_AT]
 
-import '../base/currency_base.dart';
-import '../entities/currency.dart';
 
-mixin CurrencyMixin<T extends Currency> on CurrencyBase {
+import '../base/currencies_base.dart';
+import '../entities/currencies.dart';
+
+mixin CurrencyMixin<T extends Currency> on Currency {
   T get self;
 
   //====================================================
-  //=	Your custom implementation goes here
+  //=   Your custom implementation goes here
   //====================================================
 }

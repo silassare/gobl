@@ -25,38 +25,11 @@ use Gobl\Gobl;
  */
 final class GoblTest extends BaseTestCase
 {
-	public function testSetRootDir(): void
-	{
-		$non_existent_path = GOBL_TEST_PROJECT_DIR . '/nothing';
-
-		Gobl::setProjectCacheDir(GOBL_TEST_PROJECT_DIR);
-		self::assertSame(GOBL_TEST_PROJECT_DIR, Gobl::getProjectCacheDir());
-
-		Gobl::setProjectCacheDir(GOBL_TEST_PROJECT_DIR . \DIRECTORY_SEPARATOR);
-		self::assertSame(GOBL_TEST_PROJECT_DIR, Gobl::getProjectCacheDir());
-
-		$this->expectException(GoblRuntimeException::class);
-		Gobl::setProjectCacheDir($non_existent_path);
-	}
-
-	public function testGetRootDir(): void
-	{
-		Gobl::setProjectCacheDir(GOBL_TEST_PROJECT_DIR);
-		self::assertSame(GOBL_TEST_PROJECT_DIR, Gobl::getProjectCacheDir());
-	}
-
-	public function testGetCacheDir(): void
-	{
-		Gobl::setProjectCacheDir(GOBL_TEST_PROJECT_DIR);
-		$expected = GOBL_TEST_PROJECT_DIR . \DIRECTORY_SEPARATOR . '.gobl' . \DIRECTORY_SEPARATOR . 'cache';
-		self::assertSame($expected, Gobl::getGoblCacheDir());
-	}
-
 	public function testAddTemplate(): void
 	{
 		$template_name              = 'test_template';
-		$template_path              = GOBL_TEST_ASSETS . \DIRECTORY_SEPARATOR . 'test_template.txt';
-		$non_existent_template_path = GOBL_TEST_ASSETS . \DIRECTORY_SEPARATOR . 'test_non_existent.txt';
+		$template_path              = GOBL_TEST_ASSETS . \DIRECTORY_SEPARATOR . 'test_template.blate';
+		$non_existent_template_path = GOBL_TEST_ASSETS . \DIRECTORY_SEPARATOR . 'test_non_existent.blate';
 
 		Gobl::addTemplate($template_name, $template_path);
 
@@ -74,20 +47,13 @@ final class GoblTest extends BaseTestCase
 
 	public function testAddTemplates(): void
 	{
-		$template = GOBL_TEST_ASSETS . \DIRECTORY_SEPARATOR . 'test_template.txt';
+		$template = GOBL_TEST_ASSETS . \DIRECTORY_SEPARATOR . 'test_template.blate';
 
-		Gobl::addTemplates(['test_template_array' => ['path' => $template]]);
+		Gobl::addTemplates(['test_template_array'  => $template]);
 
 		self::assertFileExists(Gobl::getTemplateFilePath('test_template_array'));
 
-		Gobl::addTemplates(['test_template_array' => ['path' => $template]]);
-	}
-
-	public function testGetTemplateFilePath(): void
-	{
-		$expected = Gobl::getGoblCacheDir() . \DIRECTORY_SEPARATOR . 'test_template.otpl';
-
-		self::assertSame($expected, Gobl::getTemplateFilePath('test_template'));
+		Gobl::addTemplates(['test_template_array' =>  $template]);
 	}
 
 	public function testGetUnknownTemplateCompiler(): void

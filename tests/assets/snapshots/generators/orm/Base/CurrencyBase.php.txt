@@ -3,10 +3,11 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\Db\Base;
 
-use Gobl\Tests\Db\Currency as CurrencyReal;
+use Gobl\Tests\Db\Currency;
 
 /**
- * Class Currency.
+ * Class CurrencyBase.
+ * 
  * @property string $code Getter for column `currencies.code`.
  * @property string $name Getter for column `currencies.name`.
  * @property string $symbol Getter for column `currencies.symbol`.
@@ -15,7 +16,7 @@ use Gobl\Tests\Db\Currency as CurrencyReal;
  * @property string $updated_at Getter for column `currencies.updated_at`.
  * @property bool $valid Getter for column `currencies.valid`.
  */
-abstract class Currency extends \Gobl\ORM\ORMEntity
+abstract class CurrencyBase extends \Gobl\ORM\ORMEntity
 {
 	public const TABLE_NAME = 'currencies';
 	public const TABLE_NAMESPACE = 'Gobl\\Tests\\Db';
@@ -27,7 +28,7 @@ abstract class Currency extends \Gobl\ORM\ORMEntity
 	public const COL_UPDATED_AT = 'ccy_updated_at';
 	public const COL_VALID = 'ccy_valid';
 	/**
-	 * Currency constructor.
+	 * CurrencyBase constructor.
 	 * 
 	 * @param bool $is_new true for new entity false for entity fetched
 	 *                      from the database, default is true
@@ -51,7 +52,7 @@ abstract class Currency extends \Gobl\ORM\ORMEntity
 	 */
 	public static function new(bool $is_new = true, bool $strict = true): static
 	{
-		return new CurrencyReal($is_new, $strict);
+		return new Currency($is_new, $strict);
 	}
 
 	/**

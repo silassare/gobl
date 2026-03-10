@@ -8,7 +8,9 @@
  * Time: [GENERATED_AT]
  */
 
+
 import {GoblEntity} from 'gobl-utils-ts';
+
 
 export default abstract class TransactionBase extends GoblEntity {
 	public static readonly PREFIX = 'transaction';
@@ -41,53 +43,58 @@ export default abstract class TransactionBase extends GoblEntity {
 	public static readonly COL_UPDATED_AT = 'transaction_updated_at';
 	public static readonly COL_VALID = 'transaction_valid';
 
+
 	public singlePKValue():string {
 		const id = this.id;
 		if (id === undefined || id === null) {
-			throw new Error('Cannot get single PK value for unsaved Transaction.');
+			throw new Error('Cannot get single PK value for unsaved "Transaction".');
 		}
 		return String(id);
 	}
+
+
 	public identifierColumns(): string[] {
-		return [ TransactionBase.COL_ID ];
+		return [TransactionBase.COL_ID];
 	}
+
+
 	get id(): string { return this._data[TransactionBase.COL_ID]; }
-	set id(nVal: string|number|null) { this._set(TransactionBase.COL_ID, nVal); }
+	set id(v: string|number|null) { this._set(TransactionBase.COL_ID, v); }
 
 	get account_id(): string { return this._data[TransactionBase.COL_ACCOUNT_ID]; }
-	set account_id(nVal: string|number) { this._set(TransactionBase.COL_ACCOUNT_ID, nVal); }
+	set account_id(v: string|number) { this._set(TransactionBase.COL_ACCOUNT_ID, v); }
 
 	get reference(): string { return this._data[TransactionBase.COL_REFERENCE]; }
-	set reference(nVal: string) { this._set(TransactionBase.COL_REFERENCE, nVal); }
+	set reference(v: string) { this._set(TransactionBase.COL_REFERENCE, v); }
 
 	get source(): string { return this._data[TransactionBase.COL_SOURCE]; }
-	set source(nVal: string) { this._set(TransactionBase.COL_SOURCE, nVal); }
+	set source(v: string) { this._set(TransactionBase.COL_SOURCE, v); }
 
 	get type(): string { return this._data[TransactionBase.COL_TYPE]; }
-	set type(nVal: string) { this._set(TransactionBase.COL_TYPE, nVal); }
+	set type(v: string) { this._set(TransactionBase.COL_TYPE, v); }
 
 	get state(): string { return this._data[TransactionBase.COL_STATE]; }
-	set state(nVal: string) { this._set(TransactionBase.COL_STATE, nVal); }
+	set state(v: string) { this._set(TransactionBase.COL_STATE, v); }
 
 	get amount(): string { return this._data[TransactionBase.COL_AMOUNT]; }
-	set amount(nVal: string|number|number) { this._set(TransactionBase.COL_AMOUNT, nVal); }
+	set amount(v: string|number|number) { this._set(TransactionBase.COL_AMOUNT, v); }
 
 	get currency_code(): string { return this._data[TransactionBase.COL_CURRENCY_CODE]; }
-	set currency_code(nVal: string) { this._set(TransactionBase.COL_CURRENCY_CODE, nVal); }
+	set currency_code(v: string) { this._set(TransactionBase.COL_CURRENCY_CODE, v); }
 
 	get date(): string { return this._data[TransactionBase.COL_DATE]; }
-	set date(nVal: string|number) { this._set(TransactionBase.COL_DATE, nVal); }
+	set date(v: string|number) { this._set(TransactionBase.COL_DATE, v); }
 
 	get data(): Record<string, unknown> { return this._data[TransactionBase.COL_DATA]; }
-	set data(nVal: Record<string, unknown>) { this._set(TransactionBase.COL_DATA, nVal); }
+	set data(v: Record<string, unknown>) { this._set(TransactionBase.COL_DATA, v); }
 
 	get created_at(): string { return this._data[TransactionBase.COL_CREATED_AT]; }
-	set created_at(nVal: string|number) { this._set(TransactionBase.COL_CREATED_AT, nVal); }
+	set created_at(v: string|number) { this._set(TransactionBase.COL_CREATED_AT, v); }
 
 	get updated_at(): string { return this._data[TransactionBase.COL_UPDATED_AT]; }
-	set updated_at(nVal: string|number) { this._set(TransactionBase.COL_UPDATED_AT, nVal); }
+	set updated_at(v: string|number) { this._set(TransactionBase.COL_UPDATED_AT, v); }
 
 	get valid(): boolean { return this._data[TransactionBase.COL_VALID]; }
-	set valid(nVal: boolean) { this._set(TransactionBase.COL_VALID, nVal); }
+	set valid(v: boolean) { this._set(TransactionBase.COL_VALID, v); }
 
 }

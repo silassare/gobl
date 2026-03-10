@@ -3,10 +3,11 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\Db\Base;
 
-use Gobl\Tests\Db\Transaction as TransactionReal;
+use Gobl\Tests\Db\Transaction;
 
 /**
- * Class Transaction.
+ * Class TransactionBase.
+ * 
  * @property string|null $id Getter for column `transactions.id`.
  * @property string $account_id Getter for column `transactions.account_id`.
  * @property string $reference Getter for column `transactions.reference`.
@@ -21,7 +22,7 @@ use Gobl\Tests\Db\Transaction as TransactionReal;
  * @property string $updated_at Getter for column `transactions.updated_at`.
  * @property bool $valid Getter for column `transactions.valid`.
  */
-abstract class Transaction extends \Gobl\ORM\ORMEntity
+abstract class TransactionBase extends \Gobl\ORM\ORMEntity
 {
 	public const TABLE_NAME = 'transactions';
 	public const TABLE_NAMESPACE = 'Gobl\\Tests\\Db';
@@ -39,7 +40,7 @@ abstract class Transaction extends \Gobl\ORM\ORMEntity
 	public const COL_UPDATED_AT = 'transaction_updated_at';
 	public const COL_VALID = 'transaction_valid';
 	/**
-	 * Transaction constructor.
+	 * TransactionBase constructor.
 	 * 
 	 * @param bool $is_new true for new entity false for entity fetched
 	 *                      from the database, default is true
@@ -63,7 +64,7 @@ abstract class Transaction extends \Gobl\ORM\ORMEntity
 	 */
 	public static function new(bool $is_new = true, bool $strict = true): static
 	{
-		return new TransactionReal($is_new, $strict);
+		return new Transaction($is_new, $strict);
 	}
 
 	/**

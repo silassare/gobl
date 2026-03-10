@@ -7,13 +7,14 @@
 // Proudly With: gobl [GOBL_VERSION]
 // Time: [GENERATED_AT]
 
-import '../base/client_base.dart';
-import '../entities/client.dart';
 
-mixin ClientMixin<T extends Client> on ClientBase {
+import '../base/clients_base.dart';
+import '../entities/clients.dart';
+
+mixin ClientMixin<T extends Client> on Client {
   T get self;
 
   //====================================================
-  //=	Your custom implementation goes here
+  //=   Your custom implementation goes here
   //====================================================
 }
