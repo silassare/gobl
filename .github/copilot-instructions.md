@@ -164,6 +164,18 @@ column#foo["bar"]["baz"]    -> ['foo', 'bar', 'baz']
 
 `getPathSegmentsAsString()` serializes segments back: plain dot-notation for simple identifiers, `['...']` for segments containing special characters.
 
+## Filter Type Coercion
+
+When a filter value is bound to a column, the DBAL automatically casts the PHP value to its DB-compatible form via the column type. Two hook points exist on `TypeInterface`:
+
+- `shouldCastValueForFilter(Operator, RDBMSInterface): bool` — return `false` to skip casting for a specific operator+RDBMS combination (default: `true`).
+- `castValueForFilter(mixed, Operator, RDBMSInterface): float|int|string|null` — perform the cast (e.g., JSON-encode arrays, serialize enum labels).
+- `shouldCastExpressionForQuery(RDBMSInterface): bool` — return `true` to wrap the SQL placeholder.
+- `castExpressionForQuery(string, RDBMSInterface): string` — wrap the placeholder in a DB-level expression (e.g., `CAST(? AS JSONB)` for PostgreSQL).
+
+`TypeUtils::runCastValueForFilter(Column, mixed, Operator, RDBMSInterface)` and
+`TypeUtils::runCastExpressionForQuery(Column, string, RDBMSInterface)` are the static helpers called by the query builders. Custom type implementations should override `castValueForFilter` / `castExpressionForQuery` rather than calling `runCast*` directly.
+
 ## Custom Type Providers
 
 Built-in types come from `TypeProviderDefault` (registered automatically in `bootstrap.php`). Extend with custom types:
@@ -253,6 +265,8 @@ auto-complete/validation is at `docs/public/schema.json`.
 6. **Filter methods.** The fluent filter helpers are: `eq`, `neq`, `lt`, `lte`, `gt`, `gte`,
    `like`, `notLike`, `isNull`, `isNotNull`, `in`, `notIn`, `isTrue`, `isFalse`,
    `contains`, `containsAtPath`, `hasKey`. There is no `jsonContains` method.
+   Filter values are automatically coerced to their DB form via `TypeUtils::runCastValueForFilter()`
+   and SQL placeholders may be wrapped via `TypeUtils::runCastExpressionForQuery()`.
 
 7. **Relation schema format.** In the PHP array schema, relations are simple:
 
@@ -317,32 +331,33 @@ Live DB tests require `.env.test` (see `.env.test.example`). `./run_test` cleans
 
 ## Key Files
 
-| File                                                                                                | Purpose                                                                                 |
-| --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| [src/Gobl.php](../src/Gobl.php)                                                                     | Static entry point, cache/template management, forbidden name lists                     |
-| [src/bootstrap.php](../src/bootstrap.php)                                                           | Defines `GOBL_ROOT`, `GOBL_VERSION`, `GOBL_ASSETS_DIR`; registers default type provider |
-| [src/DBAL/Db.php](../src/DBAL/Db.php)                                                               | Abstract RDBMS base, `ns()`, `loadSchema()`, `newInstanceOf()`, column ref resolution   |
-| [src/DBAL/Builders/TableBuilder.php](../src/DBAL/Builders/TableBuilder.php)                         | Fluent schema builder API                                                               |
-| [src/DBAL/Table.php](../src/DBAL/Table.php)                                                         | Schema table model, soft-delete constants, morph support                                |
-| [src/DBAL/Column.php](../src/DBAL/Column.php)                                                       | Column model, private/sensitive flags, type binding                                     |
-| [src/DBAL/Types/Type.php](../src/DBAL/Types/Type.php)                                               | Abstract base for all column types                                                      |
-| [src/DBAL/Types/Utils/TypeUtils.php](../src/DBAL/Types/Utils/TypeUtils.php)                         | `addTypeProvider()`, type resolution                                                    |
-| [src/ORM/ORM.php](../src/ORM/ORM.php)                                                               | Namespace registry, `declareNamespace()`                                                |
-| [src/ORM/ORMEntity.php](../src/ORM/ORMEntity.php)                                                   | Entity base, magic column access, `save()`, dirty tracking                              |
-| [src/ORM/ORMController.php](../src/ORM/ORMController.php)                                           | `addItem()`, `updateOneItem()`, `deleteOneItem()`, `getItem()`, `getAllItems()`         |
-| [src/ORM/ORMEntityCRUD.php](../src/ORM/ORMEntityCRUD.php)                                           | Consumer event subscription base (extends `CRUDEventProducer`)                          |
-| [src/ORM/Generators/CSGeneratorORM.php](../src/ORM/Generators/CSGeneratorORM.php)                   | PHP ORM class generator                                                                 |
-| [src/CRUD/CRUD.php](../src/CRUD/CRUD.php)                                                           | Per-operation event dispatcher (used internally by `ORMController`)                     |
-| [src/CRUD/CRUDEventProducer.php](../src/CRUD/CRUDEventProducer.php)                                 | `listen()`, `onBefore*`, `onAfter*` subscription methods                                |
-| [src/DBAL/Filters/FilterFieldNotation.php](../src/DBAL/Filters/FilterFieldNotation.php)             | Operand path parser: bracket/dot notation, segment serialization                        |
-| [src/DBAL/MigrationRunner.php](../src/DBAL/MigrationRunner.php)                                     | Version-based migration runner                                                          |
-| [tests/assets/schemas.php](../tests/assets/schemas.php)                                             | Reference array schema used throughout tests                                            |
-| [tests/BaseTestCase.php](../tests/BaseTestCase.php)                                                 | Test scaffolding: DB bootstrap, fluent builder usage, multi-driver helpers              |
-| [tests/DBAL/TableTest.php](../tests/DBAL/TableTest.php)                                             | Table schema model tests (columns, constraints, indexes, lock, soft-delete)             |
-| [tests/DBAL/Filters/FilterFieldNotationTest.php](../tests/DBAL/Filters/FilterFieldNotationTest.php) | FilterFieldNotation: parse, bracket/dot segments, round-trip, resolve                   |
-| [tests/DBAL/Constraints/ConstraintsTest.php](../tests/DBAL/Constraints/ConstraintsTest.php)         | PrimaryKey, UniqueKey, ForeignKey constraint tests                                      |
-| [tests/DBAL/Indexes/IndexTest.php](../tests/DBAL/Indexes/IndexTest.php)                             | Index construction, addColumn, toArray, lock, assertIsValid                             |
-| [tests/ORM/ORMClassKindTest.php](../tests/ORM/ORMClassKindTest.php)                                 | ORMClassKind enum: getClassName, isBaseClass, getBaseKind, getClassFQN                  |
+| File                                                                                                | Purpose                                                                                        |
+| --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| [src/Gobl.php](../src/Gobl.php)                                                                     | Static entry point, cache/template management, forbidden name lists                            |
+| [src/bootstrap.php](../src/bootstrap.php)                                                           | Defines `GOBL_ROOT`, `GOBL_VERSION`, `GOBL_ASSETS_DIR`; registers default type provider        |
+| [src/DBAL/Db.php](../src/DBAL/Db.php)                                                               | Abstract RDBMS base, `ns()`, `loadSchema()`, `newInstanceOf()`, column ref resolution          |
+| [src/DBAL/Builders/TableBuilder.php](../src/DBAL/Builders/TableBuilder.php)                         | Fluent schema builder API                                                                      |
+| [src/DBAL/Table.php](../src/DBAL/Table.php)                                                         | Schema table model, soft-delete constants, morph support                                       |
+| [src/DBAL/Column.php](../src/DBAL/Column.php)                                                       | Column model, private/sensitive flags, type binding                                            |
+| [src/DBAL/Types/Type.php](../src/DBAL/Types/Type.php)                                               | Abstract base for all column types                                                             |
+| [src/DBAL/Types/Interfaces/TypeInterface.php](../src/DBAL/Types/Interfaces/TypeInterface.php)       | Type contract: `castValueForFilter()`, `castExpressionForQuery()`, validation hooks            |
+| [src/DBAL/Types/Utils/TypeUtils.php](../src/DBAL/Types/Utils/TypeUtils.php)                         | `addTypeProvider()`, type resolution, `runCastValueForFilter()`, `runCastExpressionForQuery()` |
+| [src/ORM/ORM.php](../src/ORM/ORM.php)                                                               | Namespace registry, `declareNamespace()`                                                       |
+| [src/ORM/ORMEntity.php](../src/ORM/ORMEntity.php)                                                   | Entity base, magic column access, `save()`, dirty tracking                                     |
+| [src/ORM/ORMController.php](../src/ORM/ORMController.php)                                           | `addItem()`, `updateOneItem()`, `deleteOneItem()`, `getItem()`, `getAllItems()`                |
+| [src/ORM/ORMEntityCRUD.php](../src/ORM/ORMEntityCRUD.php)                                           | Consumer event subscription base (extends `CRUDEventProducer`)                                 |
+| [src/ORM/Generators/CSGeneratorORM.php](../src/ORM/Generators/CSGeneratorORM.php)                   | PHP ORM class generator                                                                        |
+| [src/CRUD/CRUD.php](../src/CRUD/CRUD.php)                                                           | Per-operation event dispatcher (used internally by `ORMController`)                            |
+| [src/CRUD/CRUDEventProducer.php](../src/CRUD/CRUDEventProducer.php)                                 | `listen()`, `onBefore*`, `onAfter*` subscription methods                                       |
+| [src/DBAL/Filters/FilterFieldNotation.php](../src/DBAL/Filters/FilterFieldNotation.php)             | Operand path parser: bracket/dot notation, segment serialization                               |
+| [src/DBAL/MigrationRunner.php](../src/DBAL/MigrationRunner.php)                                     | Version-based migration runner                                                                 |
+| [tests/assets/schemas.php](../tests/assets/schemas.php)                                             | Reference array schema used throughout tests                                                   |
+| [tests/BaseTestCase.php](../tests/BaseTestCase.php)                                                 | Test scaffolding: DB bootstrap, fluent builder usage, multi-driver helpers                     |
+| [tests/DBAL/TableTest.php](../tests/DBAL/TableTest.php)                                             | Table schema model tests (columns, constraints, indexes, lock, soft-delete)                    |
+| [tests/DBAL/Filters/FilterFieldNotationTest.php](../tests/DBAL/Filters/FilterFieldNotationTest.php) | FilterFieldNotation: parse, bracket/dot segments, round-trip, resolve                          |
+| [tests/DBAL/Constraints/ConstraintsTest.php](../tests/DBAL/Constraints/ConstraintsTest.php)         | PrimaryKey, UniqueKey, ForeignKey constraint tests                                             |
+| [tests/DBAL/Indexes/IndexTest.php](../tests/DBAL/Indexes/IndexTest.php)                             | Index construction, addColumn, toArray, lock, assertIsValid                                    |
+| [tests/ORM/ORMClassKindTest.php](../tests/ORM/ORMClassKindTest.php)                                 | ORMClassKind enum: getClassName, isBaseClass, getBaseKind, getClassFQN                         |
 
 ## Test Coverage Notes
 
