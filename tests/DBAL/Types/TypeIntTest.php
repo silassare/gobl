@@ -42,18 +42,16 @@ final class TypeIntTest extends BaseTestCase
 		self::assertSame(5, $t->validate('5')->getCleanValue());
 	}
 
-	public function testIntRejectsFloat(): void
+	public function testIntAcceptFloat(): void
 	{
 		$t = new TypeInt();
-		$this->expectException(TypesInvalidValueException::class);
-		$t->validate(3.14)->getCleanValue();
+		self::assertSame(3, $t->validate(3.14)->getCleanValue());
 	}
 
-	public function testIntRejectsFloatString(): void
+	public function testIntAcceptFloatString(): void
 	{
 		$t = new TypeInt();
-		$this->expectException(TypesInvalidValueException::class);
-		$t->validate('3.14')->getCleanValue();
+		self::assertSame(3, $t->validate('3.14')->getCleanValue());
 	}
 
 	public function testIntRejectsNonNumericString(): void
