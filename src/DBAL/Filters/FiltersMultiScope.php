@@ -79,8 +79,6 @@ class FiltersMultiScope implements FiltersScopeInterface
 
 		if ($table_key) {
 			$entry = $this->entries[$table_key] ?? null;
-			// left operand should be a column
-			$col_name = $resolved->getColumnName();
 
 			if ($entry) {
 				$entry['scope']->assertFilterAllowed($filter, $qb);

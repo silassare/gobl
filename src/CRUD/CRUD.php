@@ -419,7 +419,7 @@ class CRUD
 	{
 		$form = $base_action->getForm();
 
-		foreach ($form as $field => $value) {
+		foreach ($form as $field => $_) {
 			if (!$this->table->hasColumn($field)) {
 				continue;
 			}

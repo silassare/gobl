@@ -34,6 +34,8 @@ use OLIUP\CG\PHPType;
 /**
  * Class TypeJSON.
  *
+ * @extends Type<mixed, mixed>
+ *
  * A JSON-capable base type that falls back to TEXT when native JSON is disabled or
  * the RDBMS does not support it.  TypeMap and TypeList use this as their base type
  * so that schema builders can opt-in to native JSON columns per-driver.

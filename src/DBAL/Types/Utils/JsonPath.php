@@ -27,7 +27,7 @@ final class JsonPath
 	/**
 	 * JsonPath constructor.
 	 *
-	 * @param string            $column         The column name
+	 * @param string            $column_name    The column name
 	 * @param array<int,string> $path_segments  The path segments as an array of strings (e.g. `['foo', 'bar', 'baz.qux']`)
 	 * @param null|string       $table_or_alias Optional table name or alias for disambiguation in filters
 	 */

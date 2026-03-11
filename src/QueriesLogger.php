@@ -129,7 +129,7 @@ class QueriesLogger
 			return fn (string $step = 'end') => $this->update($i, $step);
 		}
 
-		return fn (string $step = 'end') => $this;
+		return fn (string $_step = 'end') => $this;
 	}
 
 	/**

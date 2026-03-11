@@ -109,7 +109,6 @@ final class FilterFieldNotation
 	{
 		$field          = \trim($notation);
 		$hashPos        = \strpos($field, '#');
-		$table_or_alias = null;
 		$path           = null;
 		$segments       = [];
 

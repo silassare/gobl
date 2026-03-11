@@ -154,7 +154,6 @@ abstract class ORMResults implements Countable, Iterator
 		$entity = $stmt->fetch();
 
 		if ($entity instanceof $this->entity_class) {
-			/** @var TEntity $entity */
 			$entity->isSaved(true); // the entity is fetched from the database
 
 			return $entity;

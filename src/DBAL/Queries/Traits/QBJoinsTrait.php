@@ -169,7 +169,6 @@ trait QBJoinsTrait
 		if ($table instanceof Table) {
 			$resolved_table_name = $table->getFullName();
 		} else {
-			/** @var string $table */
 			$resolved_table_name = $this->getAliasTable($table);
 
 			// argument is an alias

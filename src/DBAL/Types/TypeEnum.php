@@ -212,7 +212,6 @@ class TypeEnum extends Type
 		}
 
 		if ($value instanceof $enum_cls) {
-			/** @var BackedEnum $value */
 			$subject->accept($value);
 
 			return;

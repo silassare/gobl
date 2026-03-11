@@ -298,7 +298,7 @@ final class ForeignKey extends Constraint
 			);
 		}
 
-		foreach ($this->columns_map as $full_name => $target_full_name) {
+		foreach ($this->columns_map as $full_name => $_) {
 			$col = $this->host_table->getColumnOrFail($full_name);
 
 			if (

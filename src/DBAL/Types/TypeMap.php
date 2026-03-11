@@ -221,7 +221,7 @@ class TypeMap extends Type
 
 		try {
 			// this checks if we can serialize to JSON
-			\json_encode($value, \JSON_THROW_ON_ERROR);
+			$_ = \json_encode($value, \JSON_THROW_ON_ERROR);
 		} catch (JsonException $e) {
 			$subject->reject(new TypesInvalidValueException($this->msg('unable_to_serialize_map_value'), $debug, $e));
 
