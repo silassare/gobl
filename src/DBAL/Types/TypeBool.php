@@ -151,6 +151,11 @@ class TypeBool extends Type implements BaseTypeInterface
 		return $value ? 1 : 0;
 	}
 
+	public function castValueForFilter(mixed $value, Operator $operator, RDBMSInterface $rdbms): float|int|string|null
+	{
+		return $this->phpToDb($value, $rdbms);
+	}
+
 	/**
 	 * Checks if this is strict.
 	 *

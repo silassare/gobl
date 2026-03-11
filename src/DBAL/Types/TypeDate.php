@@ -15,6 +15,7 @@ namespace Gobl\DBAL\Types;
 
 use DateTime;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
+use Gobl\DBAL\Operator;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
@@ -257,6 +258,11 @@ class TypeDate extends Type
 		}
 
 		return null;
+	}
+
+	public function castValueForFilter(mixed $value, Operator $operator, RDBMSInterface $rdbms): float|int|string|null
+	{
+		return $this->phpToDb($value, $rdbms);
 	}
 
 	public function shouldEnforceDefaultValue(RDBMSInterface $rdbms): bool

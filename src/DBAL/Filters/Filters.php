@@ -579,6 +579,28 @@ final class Filters
 			$right_operand = new FilterRightOperand($u_right, $this->qb, $this->scope);
 			$right_nz      = $right_operand->getValueNormalized();
 
+			// Convert the right-operand value to its DB-compatible form using the column's type
+			// BEFORE binding, so the bound PDO parameter carries the already-converted value
+			// (e.g. '2024-12-31' on a date column becomes the Unix timestamp integer).
+			// Skipped when: the right operand is a subquery/expression, or the operator's right
+			// operand is not a column-typed scalar (CONTAINS, HAS_KEY, IN with QBSelect).
+			if ($try_enforce_query_type && $right_operand->canBeSafelyBound() && $left_operand->hasResolvedColumn()) {
+				$_resolved = $left_operand->getResolvedColumnOrFail();
+				$_col      = $_resolved->getTable()->getColumnOrFail($_resolved->getColumnName());
+				$_rdbms    = $this->qb->getRDBMS();
+
+				if (\is_array($right_nz)) {
+					$right_nz = \array_map(
+						static fn ($v) => TypeUtils::runCastValueForFilter($_col, $v, $operator, $_rdbms),
+						$right_nz
+					);
+				} else {
+					$right_nz = TypeUtils::runCastValueForFilter($_col, $right_nz, $operator, $_rdbms);
+				}
+
+				$right_operand->setValueNormalized($right_nz);
+			}
+
 			if ($right_operand->canBeSafelyBound()) {
 				if (\is_array($right_nz)) {
 					$right_nz = $this->qb->bindArrayForInList($right_nz, [], true);
@@ -591,18 +613,19 @@ final class Filters
 				}
 			}
 
-			// Enforce query-compatible types for the right operand when possible, using the detected column from the left operand.
-			// This is best-effort and only applied when we have a detected column on the left operand
+			// SQL-expression-level type enforcement (e.g. CAST wrappers) applied after binding.
+			// No built-in type currently activates this hook; it exists for custom type providers.
 			if ($try_enforce_query_type && $left_operand->hasResolvedColumn()) {
 				$resolved = $left_operand->getResolvedColumnOrFail();
-				$table    = $resolved->getTable();
+				$_col     = $resolved->getTable()->getColumnOrFail($resolved->getColumnName());
 
-				$right_nz = TypeUtils::runEnforceQueryExpressionValueType(
-					$table->getFullName(),
-					$resolved->getColumnName(),
-					$right_nz,
-					$this->qb->getRDBMS()
-				);
+				if (\is_array($right_nz)) {
+					foreach ($right_nz as $k => $entry) {
+						$right_nz[$k] = TypeUtils::runCastExpressionForQuery($_col, $entry, $this->qb->getRDBMS());
+					}
+				} else {
+					$right_nz = TypeUtils::runCastExpressionForQuery($_col, $right_nz, $this->qb->getRDBMS());
+				}
 			}
 
 			$right_operand->setValueNormalized($right_nz);

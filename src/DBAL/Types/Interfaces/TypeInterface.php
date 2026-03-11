@@ -194,6 +194,48 @@ interface TypeInterface extends ArrayCapableInterface, LockInterface
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): float|int|string|null;
 
 	/**
+	 * Converts a PHP filter right-operand value to its DB-compatible form.
+	 *
+	 * Called by {@see Gobl\DBAL\Filters\Filters::add()} via {@see Gobl\DBAL\Types\Utils\TypeUtils::runCastValueForFilter()}
+	 * when the left operand resolves to a known column, so that filter values are coerced to the same DB representation as
+	 * values written by the ORM (e.g. date strings become Unix timestamps, booleans become
+	 * 0/1 integers).
+	 *
+	 * The default implementation in {@see Type} returns scalar values unchanged, which is
+	 * correct for string-stored types (TypeString, TypeEnum, TypeJSON, etc.).
+	 * Types that store a different representation (TypeDate, TypeBool, TypeInt, TypeFloat,
+	 * TypeBigint, TypeDecimal) override this and delegate to {@see phpToDb()}.
+	 *
+	 * Custom type implementations can override this method to apply their own conversion
+	 * strategy without affecting the full {@see phpToDb()} write path.
+	 *
+	 * NOTE: This method is NOT called for:
+	 *  - unary operators (IS_NULL, IS_NOT_NULL, IS_TRUE, IS_FALSE) -- no right operand
+	 *  - CONTAINS and HAS_KEY -- right operand is JSON-specific, not a column-typed value
+	 *  - subquery or expression right operands (QBSelect, QBExpression)
+	 *
+	 * @param mixed          $value    the raw PHP value provided as the filter right operand
+	 * @param Operator       $operator the filter operator being applied
+	 * @param RDBMSInterface $rdbms    the current RDBMS
+	 *
+	 * @return null|float|int|string the value coerced to its DB form
+	 */
+	public function castValueForFilter(mixed $value, Operator $operator, RDBMSInterface $rdbms): float|int|string|null;
+
+	/**
+	 * Whether {@see castValueForFilter()} should be called for the given operator.
+	 *
+	 * Returning `false` skips the cast entirely for that operator/rdbms combination,
+	 * which is useful when a type wants to convert for EQ/IN but pass LIKE patterns through unchanged.
+	 *
+	 * @param Operator       $operator the filter operator being applied
+	 * @param RDBMSInterface $rdbms    the current RDBMS
+	 *
+	 * @return bool
+	 */
+	public function shouldCastValueForFilter(Operator $operator, RDBMSInterface $rdbms): bool;
+
+	/**
 	 * Should we enforce default value at the database level.
 	 *
 	 * @param RDBMSInterface $rdbms
@@ -220,23 +262,32 @@ interface TypeInterface extends ArrayCapableInterface, LockInterface
 	public function assertFilterAllowed(Filter $filter): void;
 
 	/**
-	 * Should we enforce query expression value type.
+	 * Whether {@see castExpressionForQuery()} should wrap the SQL placeholder for this column.
+	 *
+	 * When `true`, {@see TypeUtils::runCastExpressionForQuery()} will call
+	 * {@see castExpressionForQuery()} to wrap the bound parameter placeholder
+	 * in a SQL-level cast (e.g. `CAST(:p AS TYPE)`). No built-in type activates
+	 * this by default; it exists as an extension point for custom type providers.
 	 *
 	 * @param RDBMSInterface $rdbms the RDBMS
 	 *
 	 * @return bool
 	 */
-	public function shouldEnforceQueryExpressionValueType(RDBMSInterface $rdbms): bool;
+	public function shouldCastExpressionForQuery(RDBMSInterface $rdbms): bool;
 
 	/**
-	 * Called to enforce query expression value type.
+	 * Wraps a SQL placeholder expression in a DB-level cast for this column's type.
 	 *
-	 * @param string         $expression the query expression
+	 * Called only when {@see shouldCastExpressionForQuery()} returns `true`.
+	 * Receives the placeholder string (e.g. `:param_key`) and must return
+	 * a valid SQL expression (e.g. `CAST(:param_key AS UNSIGNED)`).
+	 *
+	 * @param string         $expression the SQL placeholder or expression to wrap
 	 * @param RDBMSInterface $rdbms      the RDBMS
 	 *
 	 * @return string
 	 */
-	public function enforceQueryExpressionValueType(string $expression, RDBMSInterface $rdbms): string;
+	public function castExpressionForQuery(string $expression, RDBMSInterface $rdbms): string;
 
 	/**
 	 * Returns allowed filters operators.

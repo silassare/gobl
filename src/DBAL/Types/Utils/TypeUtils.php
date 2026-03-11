@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Types\Utils;
 
+use Gobl\DBAL\Column;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
+use Gobl\DBAL\Operator;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
@@ -165,36 +167,56 @@ class TypeUtils
 	}
 
 	/**
-	 * This enforce query expression value type (support array as value).
+	 * Casts a single filter right-operand value to its DB-compatible form.
 	 *
-	 * @param string          $table_name
-	 * @param string          $column_name
-	 * @param string|string[] $expression
-	 * @param RDBMSInterface  $rdbms
+	 * Delegates to the column type's {@see TypeInterface::castValueForFilter()}
+	 * after checking {@see TypeInterface::shouldCastValueForFilter()}.
+	 * The caller is responsible for looping over arrays.
 	 *
-	 * @return string|string[]
+	 * @param Column         $column   the resolved column whose type drives the conversion
+	 * @param mixed          $value    the single PHP value to convert
+	 * @param Operator       $operator the filter operator being applied
+	 * @param RDBMSInterface $rdbms    the current RDBMS
+	 *
+	 * @return null|float|int|string
 	 */
-	public static function runEnforceQueryExpressionValueType(
-		string $table_name,
-		string $column_name,
-		array|string $expression,
+	public static function runCastValueForFilter(
+		Column $column,
+		mixed $value,
+		Operator $operator,
 		RDBMSInterface $rdbms
-	): array|string {
-		$table = $rdbms->getTableOrFail($table_name);
-		$col   = $table->getColumnOrFail($column_name);
-		$type  = $col->getType();
+	): float|int|string|null {
+		$type = $column->getType();
 
-		if ($type->shouldEnforceQueryExpressionValueType($rdbms)) {
-			if (\is_array($expression)) {
-				$arr = $expression;
-				foreach ($arr as $key => $entry) {
-					$arr[$key] = $type->enforceQueryExpressionValueType($entry, $rdbms);
-				}
+		if ($type->shouldCastValueForFilter($operator, $rdbms)) {
+			return $type->castValueForFilter($value, $operator, $rdbms);
+		}
 
-				return $arr;
-			}
+		return $value;
+	}
 
-			return $type->enforceQueryExpressionValueType($expression, $rdbms);
+	/**
+	 * Wraps a single SQL placeholder in a DB-level cast when the column type requires it.
+	 *
+	 * Delegates to {@see TypeInterface::castExpressionForQuery()}
+	 * after checking {@see TypeInterface::shouldCastExpressionForQuery()}.
+	 * The caller is responsible for looping over arrays.
+	 *
+	 * @param Column         $column     the resolved column whose type drives the cast
+	 * @param string         $expression the SQL placeholder or expression to wrap
+	 * @param RDBMSInterface $rdbms      the current RDBMS
+	 *
+	 * @return string
+	 */
+	public static function runCastExpressionForQuery(
+		Column $column,
+		string $expression,
+		RDBMSInterface $rdbms
+	): string {
+		$type = $column->getType();
+
+		if ($type->shouldCastExpressionForQuery($rdbms)) {
+			return $type->castExpressionForQuery($expression, $rdbms);
 		}
 
 		return $expression;

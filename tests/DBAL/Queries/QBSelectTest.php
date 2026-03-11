@@ -105,7 +105,7 @@ final class QBSelectTest extends BaseTestCase
 		self::assertSame('SELECT * FROM `gObL_tags` AS _e_  INNER JOIN `gObL_taggables` AS _f_ ON (_e_.id = _f_.tag_id) INNER JOIN `gObL_articles` AS _g_ ON (_f_.taggable_id = _g_.id AND _f_.taggable_type = :_val_h) WHERE ((_f_.created_at > :_val_i))', $qb_b->getSqlQuery());
 		self::assertSame([
 			'_val_h' => 'articles',
-			'_val_i' => '2020-01-01',
+			'_val_i' => (string) \strtotime('2020-01-01'),
 		], $qb_b->getBoundValues());
 	}
 }

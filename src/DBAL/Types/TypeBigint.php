@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Types;
 
 use Gobl\DBAL\Interfaces\RDBMSInterface;
+use Gobl\DBAL\Operator;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
@@ -201,6 +202,11 @@ class TypeBigint extends Type implements BaseTypeInterface
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
 	{
 		return $this->validate($value)->getCleanValue();
+	}
+
+	public function castValueForFilter(mixed $value, Operator $operator, RDBMSInterface $rdbms): float|int|string|null
+	{
+		return $this->phpToDb($value, $rdbms);
 	}
 
 	/**

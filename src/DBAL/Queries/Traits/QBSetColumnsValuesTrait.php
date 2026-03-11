@@ -15,6 +15,7 @@ namespace Gobl\DBAL\Queries\Traits;
 
 use Gobl\DBAL\Queries\QBExpression;
 use Gobl\DBAL\Queries\QBUtils;
+use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\Utils\TypeUtils;
 
 /**
@@ -30,7 +31,7 @@ trait QBSetColumnsValuesTrait
 	 * - All other values are bound to uniquely generated named parameters and the
 	 *   parameter map is merged into the query via `bindArray()` as a side effect.
 	 *
-	 * `TypeUtils::runEnforceQueryExpressionValueType()` is called on every column
+	 * {@see TypeUtils::runCastExpressionForQuery()} is called on every column
 	 * to coerce the PHP value/expression to the type expected by the column's type definition.
 	 *
 	 * When `$auto_prefix_column` is `true`, each column name is resolved to its full name
@@ -46,9 +47,9 @@ trait QBSetColumnsValuesTrait
 	{
 		$params  = [];
 		$columns = [];
+		$table   = $this->db->getTableOrFail($table_name);
 
 		if ($auto_prefix_column) {
-			$table      = $this->db->getTableOrFail($table_name);
 			$table_name = $table->getFullName();
 
 			$tmp = [];
@@ -62,7 +63,9 @@ trait QBSetColumnsValuesTrait
 			$values = $tmp;
 		}
 
-		foreach ($values as $column => $value) {
+		foreach ($values as $column_full_name => $value) {
+			$col = $table->getColumnOrFail($column_full_name);
+
 			if ($value instanceof QBExpression) {
 				$value = (string) $value;
 			} else {
@@ -71,12 +74,7 @@ trait QBSetColumnsValuesTrait
 				$value              = ':' . $param_key;
 			}
 
-			$columns[$column] = TypeUtils::runEnforceQueryExpressionValueType(
-				$table_name,
-				$column,
-				$value,
-				$this->db
-			);
+			$columns[$column_full_name] = TypeUtils::runCastExpressionForQuery($col, $value, $this->db);
 		}
 
 		$this->bindArray($params);

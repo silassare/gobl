@@ -139,9 +139,24 @@ abstract class Type implements TypeInterface
 		return $this->setOption('default', $default);
 	}
 
-	public function enforceQueryExpressionValueType(string $expression, RDBMSInterface $rdbms): string
+	public function castExpressionForQuery(string $expression, RDBMSInterface $rdbms): string
 	{
 		return $expression;
+	}
+
+	public function castValueForFilter(mixed $value, Operator $operator, RDBMSInterface $rdbms): float|int|string|null
+	{
+		// Default: return scalar values unchanged.
+		// Types whose DB representation differs from PHP (date, bool, numeric) override this.
+		if (null === $value || \is_int($value) || \is_float($value) || \is_string($value)) {
+			return $value;
+		}
+
+		if (\is_bool($value)) {
+			return $value ? 1 : 0;
+		}
+
+		return (string) $value;
 	}
 
 	public function queryBuilderApplyFilter(ORMTableQuery $qb, Column $column, Operator $operator, array $args): void
@@ -396,9 +411,14 @@ abstract class Type implements TypeInterface
 		return true;
 	}
 
-	public function shouldEnforceQueryExpressionValueType(RDBMSInterface $rdbms): bool
+	public function shouldCastExpressionForQuery(RDBMSInterface $rdbms): bool
 	{
 		return false;
+	}
+
+	public function shouldCastValueForFilter(Operator $operator, RDBMSInterface $rdbms): bool
+	{
+		return true;
 	}
 
 	public function toArray(): array
