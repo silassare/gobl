@@ -1,0 +1,1468 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$id": "https://gobl.silassare.com/schema.json",
+	"title": "Gobl Schema",
+	"type": "object",
+	"description": "A Gobl schema is an object where each key is a table name. Pass it to $db->loadSchema() or $db->ns()->schema(). Table names must match: ^[a-z]([a-z0-9_]*[a-z0-9])?$ - lowercase letters, digits, underscores; starts and ends with a letter or digit. Example: { \"users\": { \"columns\": { \"id\": { \"type\": \"bigint\", \"auto_increment\": true } } } }",
+	"propertyNames": {
+		"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+		"description": "Table name - lowercase letters, digits, underscores; starts and ends with a letter or digit. (Table::NAME_PATTERN)"
+	},
+	"additionalProperties": {
+		"$ref": "#/definitions/table"
+	},
+	"definitions": {
+		"table": {
+			"type": "object",
+			"description": "A single table definition. Only 'columns' is required; all other keys are optional. Example: { \"plural_name\": \"users\", \"singular_name\": \"user\", \"column_prefix\": \"user\", \"columns\": { \"id\": { \"type\": \"bigint\", \"auto_increment\": true, \"unsigned\": true } }, \"constraints\": [{ \"type\": \"primary_key\", \"columns\": [\"id\"] }] }",
+			"required": [
+				"columns"
+			],
+			"additionalProperties": false,
+			"properties": {
+				"plural_name": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "Plural name used for ORM class naming (e.g. 'users' -> generates 'UsersController', 'UsersQuery', 'UsersResults', 'UsersCrud'). Must match Table::NAME_PATTERN: lowercase letters, digits, underscores; starts/ends with letter or digit."
+				},
+				"singular_name": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "Singular name used for ORM entity class naming (e.g. 'user' -> generates 'User' entity class). Must match Table::NAME_PATTERN."
+				},
+				"column_prefix": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "Prefix prepended to every column's SQL name (e.g. 'user' + column 'id' = SQL column 'user_id'). Must match Column::PREFIX_PATTERN: lowercase letters, digits, underscores."
+				},
+				"prefix": {
+					"type": "string",
+					"pattern": "^[a-zA-Z]([a-zA-Z0-9_]*[a-zA-Z0-9])?$",
+					"description": "Override the database-level table prefix for this table only (overrides DbConfig::db_table_prefix). Must match Table::PREFIX_PATTERN: letters, digits, underscores (mixed case allowed)."
+				},
+				"namespace": {
+					"type": "string",
+					"pattern": "^[a-zA-Z_][a-zA-Z0-9_]*(\\\\[a-zA-Z_][a-zA-Z0-9_]*)*$",
+					"description": "PHP namespace for the generated ORM classes. Overrides the namespace passed to $db->ns() for this specific table.",
+					"examples": [
+						"App\\Models",
+						"My\\App\\Entities"
+					]
+				},
+				"diff_key": {
+					"type": "string",
+					"description": "Stable identifier used by the Diff engine when comparing two schema versions. Defaults to the table name. Set this to preserve diff continuity when renaming a table."
+				},
+				"morph_type": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "Identifier used for polymorphic relations. When a morph link targets this table, the child row's 'type' column is set to this value. Defaults to the table name. Must match Table::NAME_PATTERN."
+				},
+				"charset": {
+					"type": "string",
+					"description": "Character set override for this table (MySQL e.g. 'utf8mb4')."
+				},
+				"collate": {
+					"type": "string",
+					"description": "Collation override for this table (MySQL e.g. 'utf8mb4_unicode_ci')."
+				},
+				"private": {
+					"type": "boolean",
+					"description": "When true, all columns in this table are treated as private by default (equivalent to setting 'private: true' on every column).",
+					"default": false
+				},
+				"meta": {
+					"type": "object",
+					"description": "Arbitrary key-value metadata attached to the table. Available inside Blate templates and code generators. Any JSON value is accepted.",
+					"additionalProperties": true
+				},
+				"columns": {
+					"type": "object",
+					"description": "Map of column short name -> column definition. The short name (without the column_prefix) must match Column::NAME_PATTERN: ^[a-z]([a-z0-9_]*[a-z0-9])?$. The full SQL column name is column_prefix + '_' + short_name.",
+					"propertyNames": {
+						"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+						"description": "Column short name - lowercase letters, digits, underscores; starts and ends with a letter or digit."
+					},
+					"additionalProperties": {
+						"$ref": "#/definitions/column"
+					}
+				},
+				"constraints": {
+					"type": "array",
+					"description": "List of table-level constraints: primary_key, unique_key, foreign_key. Processed after all tables are loaded so cross-table FK references can be resolved.",
+					"items": {
+						"$ref": "#/definitions/constraint"
+					}
+				},
+				"relations": {
+					"type": "object",
+					"description": "Map of relation name -> relation definition. Relations are processed last (after constraints). For simple FK-based relations, just set 'type' and 'target' - the link columns are auto-detected from the foreign key constraint.",
+					"propertyNames": {
+						"pattern": "^[a-zA-Z]([a-zA-Z0-9_-]*[a-zA-Z0-9])?$",
+						"description": "Relation name - letters, digits, underscores, hyphens; starts and ends with letter or digit. Must not be a reserved ORM name (save, new, table, crud, qb, ctrl, results, etc.)."
+					},
+					"additionalProperties": {
+						"$ref": "#/definitions/relation"
+					}
+				},
+				"indexes": {
+					"type": "array",
+					"description": "List of indexes for this table. Distinct from constraints - indexes improve query performance but do not enforce uniqueness (unless combined with a unique_key constraint).",
+					"items": {
+						"$ref": "#/definitions/index"
+					}
+				}
+			}
+		},
+		"column": {
+			"description": "A column definition. Either a shorthand reference string ('ref:table.col' or 'cp:table.col') or a full options object. The allowed properties depend on the 'type' value.",
+			"oneOf": [
+				{
+					"type": "string",
+					"pattern": "^(ref|cp):[a-z]([a-z0-9_]*[a-z0-9])?\\.([a-z]([a-z0-9_]*[a-z0-9])?)$",
+					"description": "'ref:table.column' inherits the target column's type options at schema-loading time. auto_increment is stripped - use this for foreign key columns. 'cp:table.column' also inherits type options but preserves auto_increment. Both create independent columns; extra options can be merged using the array form: { \"type\": \"ref:users.id\", \"nullable\": true }. diff_key is always stripped from both.",
+					"examples": [
+						"ref:users.id",
+						"cp:products.price"
+					]
+				},
+				{
+					"$ref": "#/definitions/columnBigint"
+				},
+				{
+					"$ref": "#/definitions/columnInt"
+				},
+				{
+					"$ref": "#/definitions/columnFloat"
+				},
+				{
+					"$ref": "#/definitions/columnDecimal"
+				},
+				{
+					"$ref": "#/definitions/columnBool"
+				},
+				{
+					"$ref": "#/definitions/columnString"
+				},
+				{
+					"$ref": "#/definitions/columnEnum"
+				},
+				{
+					"$ref": "#/definitions/columnDate"
+				},
+				{
+					"$ref": "#/definitions/columnMap"
+				},
+				{
+					"$ref": "#/definitions/columnList"
+				},
+				{
+					"$ref": "#/definitions/columnJson"
+				},
+				{
+					"type": "object",
+					"required": [
+						"type"
+					],
+					"additionalProperties": true,
+					"description": "Custom column type registered via TypeUtils::addTypeProvider(). The 'type' value must match a custom type name registered at runtime. All properties are allowed since the schema cannot know the custom type's option set.",
+					"properties": {
+						"type": {
+							"type": "string",
+							"not": {
+								"enum": [
+									"bigint",
+									"int",
+									"float",
+									"decimal",
+									"bool",
+									"string",
+									"enum",
+									"date",
+									"map",
+									"list",
+									"json"
+								]
+							},
+							"description": "Custom type name (not one of the built-in types). Must be registered via TypeUtils::addTypeProvider() before schema loading."
+						}
+					}
+				}
+			]
+		},
+		"columnBigint": {
+			"type": "object",
+			"required": [
+				"type"
+			],
+			"additionalProperties": false,
+			"description": "64-bit signed integer column (BIGINT). Typical use: primary keys ('auto_increment: true, unsigned: true'), large counters, foreign keys. Stored as BIGINT in MySQL/PostgreSQL and INTEGER in SQLite.",
+			"properties": {
+				"type": {
+					"const": "bigint",
+					"type": "string",
+					"description": "Column type: bigint."
+				},
+				"unsigned": {
+					"type": "boolean",
+					"description": "Disallow negative values. Accepted range becomes 0 to +max.",
+					"default": false
+				},
+				"auto_increment": {
+					"type": "boolean",
+					"description": "Auto-increment the value on INSERT. Typically used on the primary key column. Only one column per table may use auto_increment.",
+					"default": false
+				},
+				"min": {
+					"description": "Minimum allowed value (inclusive). Pass as a string to preserve 64-bit precision (e.g. '9007199254740993').",
+					"oneOf": [
+						{
+							"type": "number"
+						},
+						{
+							"type": "string"
+						}
+					]
+				},
+				"max": {
+					"description": "Maximum allowed value (inclusive). Pass as a string for 64-bit precision.",
+					"oneOf": [
+						{
+							"type": "number"
+						},
+						{
+							"type": "string"
+						}
+					]
+				},
+				"nullable": {
+					"type": "boolean",
+					"description": "Whether the column accepts NULL. When false (default), NULL values are rejected during validation. Alias: 'null'.",
+					"default": false
+				},
+				"null": {
+					"type": "boolean",
+					"description": "Alias for 'nullable'.",
+					"default": false
+				},
+				"default": {
+					"description": "Default value applied when no value is provided on INSERT. For bool use 1/0. For date use a Unix timestamp integer or ISO 8601 string."
+				},
+				"prefix": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "Override the table-level column_prefix for this specific column only. Must match Column::PREFIX_PATTERN."
+				},
+				"diff_key": {
+					"type": "string",
+					"description": "Stable identifier used by the Diff engine when comparing two schema versions. Defaults to the column name. Set to preserve diff continuity when renaming a column."
+				},
+				"private": {
+					"type": "boolean",
+					"description": "Mark the column as private. Excluded from ORM outputs by default and triggers BeforePrivateColumnWrite CRUD events on write.",
+					"default": false
+				},
+				"sensitive": {
+					"type": "boolean",
+					"description": "Mark the column as sensitive (e.g. passwords, tokens). Triggers BeforeSensitiveColumnWrite CRUD events. Real value replaced by sensitive_redacted_value in logs.",
+					"default": false
+				},
+				"sensitive_redacted_value": {
+					"description": "Replacement value shown in logs/serialization when redacting this sensitive column. Defaults to null."
+				},
+				"meta": {
+					"type": "object",
+					"description": "Arbitrary key-value metadata for Blate templates and code generators. Any JSON value is accepted.",
+					"additionalProperties": true
+				},
+				"validator:pre": {
+					"type": "string",
+					"description": "FQCN of a TypeValidatorInterface implementation to run BEFORE built-in type validation. Useful for input normalization."
+				},
+				"validator:post": {
+					"type": "string",
+					"description": "FQCN of a TypeValidatorInterface implementation to run AFTER built-in type validation. Useful for cross-field business rules."
+				}
+			}
+		},
+		"columnInt": {
+			"type": "object",
+			"required": [
+				"type"
+			],
+			"additionalProperties": false,
+			"description": "32-bit signed integer column (INT). Use bigint for primary keys that might exceed 2^31. Stored as INT in MySQL/PostgreSQL and INTEGER in SQLite.",
+			"properties": {
+				"type": {
+					"const": "int",
+					"type": "string",
+					"description": "Column type: int."
+				},
+				"unsigned": {
+					"type": "boolean",
+					"description": "Disallow negative values. Accepted range becomes 0 to +max.",
+					"default": false
+				},
+				"auto_increment": {
+					"type": "boolean",
+					"description": "Auto-increment the value on INSERT. Typically used on the primary key column. Only one column per table may use auto_increment.",
+					"default": false
+				},
+				"min": {
+					"type": "number",
+					"description": "Minimum allowed integer value (inclusive)."
+				},
+				"max": {
+					"type": "number",
+					"description": "Maximum allowed integer value (inclusive)."
+				},
+				"nullable": {
+					"type": "boolean",
+					"description": "Whether the column accepts NULL. When false (default), NULL values are rejected during validation. Alias: 'null'.",
+					"default": false
+				},
+				"null": {
+					"type": "boolean",
+					"description": "Alias for 'nullable'.",
+					"default": false
+				},
+				"default": {
+					"description": "Default value applied when no value is provided on INSERT. For bool use 1/0. For date use a Unix timestamp integer or ISO 8601 string."
+				},
+				"prefix": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "Override the table-level column_prefix for this specific column only. Must match Column::PREFIX_PATTERN."
+				},
+				"diff_key": {
+					"type": "string",
+					"description": "Stable identifier used by the Diff engine when comparing two schema versions. Defaults to the column name. Set to preserve diff continuity when renaming a column."
+				},
+				"private": {
+					"type": "boolean",
+					"description": "Mark the column as private. Excluded from ORM outputs by default and triggers BeforePrivateColumnWrite CRUD events on write.",
+					"default": false
+				},
+				"sensitive": {
+					"type": "boolean",
+					"description": "Mark the column as sensitive (e.g. passwords, tokens). Triggers BeforeSensitiveColumnWrite CRUD events. Real value replaced by sensitive_redacted_value in logs.",
+					"default": false
+				},
+				"sensitive_redacted_value": {
+					"description": "Replacement value shown in logs/serialization when redacting this sensitive column. Defaults to null."
+				},
+				"meta": {
+					"type": "object",
+					"description": "Arbitrary key-value metadata for Blate templates and code generators. Any JSON value is accepted.",
+					"additionalProperties": true
+				},
+				"validator:pre": {
+					"type": "string",
+					"description": "FQCN of a TypeValidatorInterface implementation to run BEFORE built-in type validation. Useful for input normalization."
+				},
+				"validator:post": {
+					"type": "string",
+					"description": "FQCN of a TypeValidatorInterface implementation to run AFTER built-in type validation. Useful for cross-field business rules."
+				}
+			}
+		},
+		"columnFloat": {
+			"type": "object",
+			"required": [
+				"type"
+			],
+			"additionalProperties": false,
+			"description": "IEEE 754 double-precision floating-point column (DOUBLE / FLOAT8). For monetary amounts use 'decimal' instead. Stored as DOUBLE in MySQL and FLOAT8 in PostgreSQL/SQLite.",
+			"properties": {
+				"type": {
+					"const": "float",
+					"type": "string",
+					"description": "Column type: float."
+				},
+				"unsigned": {
+					"type": "boolean",
+					"description": "Disallow negative values. Accepted range becomes 0 to +max.",
+					"default": false
+				},
+				"min": {
+					"type": "number",
+					"description": "Minimum allowed value (inclusive)."
+				},
+				"max": {
+					"type": "number",
+					"description": "Maximum allowed value (inclusive)."
+				},
+				"mantissa": {
+					"type": "integer",
+					"minimum": 0,
+					"description": "Number of decimal places for SQL schema generation hint (FLOAT(n)). Does not affect PHP validation."
+				},
+				"nullable": {
+					"type": "boolean",
+					"description": "Whether the column accepts NULL. When false (default), NULL values are rejected during validation. Alias: 'null'.",
+					"default": false
+				},
+				"null": {
+					"type": "boolean",
+					"description": "Alias for 'nullable'.",
+					"default": false
+				},
+				"default": {
+					"description": "Default value applied when no value is provided on INSERT. For bool use 1/0. For date use a Unix timestamp integer or ISO 8601 string."
+				},
+				"prefix": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "Override the table-level column_prefix for this specific column only. Must match Column::PREFIX_PATTERN."
+				},
+				"diff_key": {
+					"type": "string",
+					"description": "Stable identifier used by the Diff engine when comparing two schema versions. Defaults to the column name. Set to preserve diff continuity when renaming a column."
+				},
+				"private": {
+					"type": "boolean",
+					"description": "Mark the column as private. Excluded from ORM outputs by default and triggers BeforePrivateColumnWrite CRUD events on write.",
+					"default": false
+				},
+				"sensitive": {
+					"type": "boolean",
+					"description": "Mark the column as sensitive (e.g. passwords, tokens). Triggers BeforeSensitiveColumnWrite CRUD events. Real value replaced by sensitive_redacted_value in logs.",
+					"default": false
+				},
+				"sensitive_redacted_value": {
+					"description": "Replacement value shown in logs/serialization when redacting this sensitive column. Defaults to null."
+				},
+				"meta": {
+					"type": "object",
+					"description": "Arbitrary key-value metadata for Blate templates and code generators. Any JSON value is accepted.",
+					"additionalProperties": true
+				},
+				"validator:pre": {
+					"type": "string",
+					"description": "FQCN of a TypeValidatorInterface implementation to run BEFORE built-in type validation. Useful for input normalization."
+				},
+				"validator:post": {
+					"type": "string",
+					"description": "FQCN of a TypeValidatorInterface implementation to run AFTER built-in type validation. Useful for cross-field business rules."
+				}
+			}
+		},
+		"columnDecimal": {
+			"type": "object",
+			"required": [
+				"type"
+			],
+			"additionalProperties": false,
+			"description": "Fixed-point decimal column (DECIMAL(p, s)). Use for monetary amounts and other values requiring exact decimal representation. Stored as DECIMAL(p,s) in MySQL/PostgreSQL and NUMERIC(p,s) in SQLite.",
+			"properties": {
+				"type": {
+					"const": "decimal",
+					"type": "string",
+					"description": "Column type: decimal."
+				},
+				"unsigned": {
+					"type": "boolean",
+					"description": "Disallow negative values. Accepted range becomes 0 to +max.",
+					"default": false
+				},
+				"min": {
+					"description": "Minimum allowed value (inclusive). Pass as a string to preserve 64-bit precision (e.g. '9007199254740993').",
+					"oneOf": [
+						{
+							"type": "number"
+						},
+						{
+							"type": "string"
+						}
+					]
+				},
+				"max": {
+					"description": "Maximum allowed value (inclusive). Pass as a string for 64-bit precision.",
+					"oneOf": [
+						{
+							"type": "number"
+						},
+						{
+							"type": "string"
+						}
+					]
+				},
+				"precision": {
+					"type": "integer",
+					"minimum": 1,
+					"description": "Total number of significant digits (e.g. 10 for DECIMAL(10,2)). Required with 'scale'."
+				},
+				"scale": {
+					"type": "integer",
+					"minimum": 0,
+					"description": "Number of digits after the decimal point (must be <= precision). Example: precision=10, scale=2 gives DECIMAL(10,2)."
+				},
+				"nullable": {
+					"type": "boolean",
+					"description": "Whether the column accepts NULL. When false (default), NULL values are rejected during validation. Alias: 'null'.",
+					"default": false
+				},
+				"null": {
+					"type": "boolean",
+					"description": "Alias for 'nullable'.",
+					"default": false
+				},
+				"default": {
+					"description": "Default value applied when no value is provided on INSERT. For bool use 1/0. For date use a Unix timestamp integer or ISO 8601 string."
+				},
+				"prefix": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "Override the table-level column_prefix for this specific column only. Must match Column::PREFIX_PATTERN."
+				},
+				"diff_key": {
+					"type": "string",
+					"description": "Stable identifier used by the Diff engine when comparing two schema versions. Defaults to the column name. Set to preserve diff continuity when renaming a column."
+				},
+				"private": {
+					"type": "boolean",
+					"description": "Mark the column as private. Excluded from ORM outputs by default and triggers BeforePrivateColumnWrite CRUD events on write.",
+					"default": false
+				},
+				"sensitive": {
+					"type": "boolean",
+					"description": "Mark the column as sensitive (e.g. passwords, tokens). Triggers BeforeSensitiveColumnWrite CRUD events. Real value replaced by sensitive_redacted_value in logs.",
+					"default": false
+				},
+				"sensitive_redacted_value": {
+					"description": "Replacement value shown in logs/serialization when redacting this sensitive column. Defaults to null."
+				},
+				"meta": {
+					"type": "object",
+					"description": "Arbitrary key-value metadata for Blate templates and code generators. Any JSON value is accepted.",
+					"additionalProperties": true
+				},
+				"validator:pre": {
+					"type": "string",
+					"description": "FQCN of a TypeValidatorInterface implementation to run BEFORE built-in type validation. Useful for input normalization."
+				},
+				"validator:post": {
+					"type": "string",
+					"description": "FQCN of a TypeValidatorInterface implementation to run AFTER built-in type validation. Useful for cross-field business rules."
+				}
+			}
+		},
+		"columnBool": {
+			"type": "object",
+			"required": [
+				"type"
+			],
+			"additionalProperties": false,
+			"description": "Boolean column stored as TINYINT(1) (MySQL), BOOLEAN (PostgreSQL), or INTEGER (SQLite). PHP true/false are stored as 1/0.",
+			"properties": {
+				"type": {
+					"const": "bool",
+					"type": "string",
+					"description": "Column type: bool."
+				},
+				"strict": {
+					"type": "boolean",
+					"description": "When true (default), only true/false/1/0 are accepted. When false, also accepts 'yes'/'no', 'on'/'off', 'y'/'n', etc.",
+					"default": true
+				},
+				"nullable": {
+					"type": "boolean",
+					"description": "Whether the column accepts NULL. When false (default), NULL values are rejected during validation. Alias: 'null'.",
+					"default": false
+				},
+				"null": {
+					"type": "boolean",
+					"description": "Alias for 'nullable'.",
+					"default": false
+				},
+				"default": {
+					"description": "Default value applied when no value is provided on INSERT. For bool use 1/0. For date use a Unix timestamp integer or ISO 8601 string."
+				},
+				"prefix": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "Override the table-level column_prefix for this specific column only. Must match Column::PREFIX_PATTERN."
+				},
+				"diff_key": {
+					"type": "string",
+					"description": "Stable identifier used by the Diff engine when comparing two schema versions. Defaults to the column name. Set to preserve diff continuity when renaming a column."
+				},
+				"private": {
+					"type": "boolean",
+					"description": "Mark the column as private. Excluded from ORM outputs by default and triggers BeforePrivateColumnWrite CRUD events on write.",
+					"default": false
+				},
+				"sensitive": {
+					"type": "boolean",
+					"description": "Mark the column as sensitive (e.g. passwords, tokens). Triggers BeforeSensitiveColumnWrite CRUD events. Real value replaced by sensitive_redacted_value in logs.",
+					"default": false
+				},
+				"sensitive_redacted_value": {
+					"description": "Replacement value shown in logs/serialization when redacting this sensitive column. Defaults to null."
+				},
+				"meta": {
+					"type": "object",
+					"description": "Arbitrary key-value metadata for Blate templates and code generators. Any JSON value is accepted.",
+					"additionalProperties": true
+				},
+				"validator:pre": {
+					"type": "string",
+					"description": "FQCN of a TypeValidatorInterface implementation to run BEFORE built-in type validation. Useful for input normalization."
+				},
+				"validator:post": {
+					"type": "string",
+					"description": "FQCN of a TypeValidatorInterface implementation to run AFTER built-in type validation. Useful for cross-field business rules."
+				}
+			}
+		},
+		"columnString": {
+			"type": "object",
+			"required": [
+				"type"
+			],
+			"additionalProperties": false,
+			"description": "Variable-length string column (VARCHAR/TEXT). Use 'max' to set the length. Add 'medium: true' or 'long: true' for larger content. Stored as VARCHAR(max) in MySQL (TEXT when max > 255 or unset) and TEXT in PostgreSQL/SQLite.",
+			"properties": {
+				"type": {
+					"const": "string",
+					"type": "string",
+					"description": "Column type: string."
+				},
+				"min": {
+					"type": "integer",
+					"minimum": 0,
+					"description": "Minimum character length (inclusive). Default: 0."
+				},
+				"max": {
+					"type": "integer",
+					"minimum": 1,
+					"description": "Maximum character length (inclusive). Maps to VARCHAR(max) in MySQL. Default: unlimited (TEXT)."
+				},
+				"pattern": {
+					"type": "string",
+					"description": "PHP PCRE regex pattern the value must fully match (include delimiters, e.g. '/^[a-z]+$/i'). Validation uses preg_match()."
+				},
+				"one_of": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"minItems": 1,
+					"description": "Restrict the value to one of these exact strings. Useful for small enum-like string columns without a PHP BackedEnum class."
+				},
+				"truncate": {
+					"type": "boolean",
+					"description": "Silently truncate the value to 'max' characters instead of raising a validation error.",
+					"default": false
+				},
+				"multiline": {
+					"type": "boolean",
+					"description": "Allow newline characters (\\n, \\r) in the value. When false (default), newlines cause a validation error.",
+					"default": false
+				},
+				"trim": {
+					"type": "boolean",
+					"description": "Trim leading/trailing whitespace before validation and storage.",
+					"default": false
+				},
+				"medium": {
+					"type": "boolean",
+					"description": "Hint to use MEDIUMTEXT storage in MySQL (up to ~16 MB). Has no effect on PostgreSQL/SQLite or on PHP validation.",
+					"default": false
+				},
+				"long": {
+					"type": "boolean",
+					"description": "Hint to use LONGTEXT storage in MySQL (up to ~4 GB). Has no effect on PostgreSQL/SQLite or on PHP validation.",
+					"default": false
+				},
+				"nullable": {
+					"type": "boolean",
+					"description": "Whether the column accepts NULL. When false (default), NULL values are rejected during validation. Alias: 'null'.",
+					"default": false
+				},
+				"null": {
+					"type": "boolean",
+					"description": "Alias for 'nullable'.",
+					"default": false
+				},
+				"default": {
+					"description": "Default value applied when no value is provided on INSERT. For bool use 1/0. For date use a Unix timestamp integer or ISO 8601 string."
+				},
+				"prefix": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "Override the table-level column_prefix for this specific column only. Must match Column::PREFIX_PATTERN."
+				},
+				"diff_key": {
+					"type": "string",
+					"description": "Stable identifier used by the Diff engine when comparing two schema versions. Defaults to the column name. Set to preserve diff continuity when renaming a column."
+				},
+				"private": {
+					"type": "boolean",
+					"description": "Mark the column as private. Excluded from ORM outputs by default and triggers BeforePrivateColumnWrite CRUD events on write.",
+					"default": false
+				},
+				"sensitive": {
+					"type": "boolean",
+					"description": "Mark the column as sensitive (e.g. passwords, tokens). Triggers BeforeSensitiveColumnWrite CRUD events. Real value replaced by sensitive_redacted_value in logs.",
+					"default": false
+				},
+				"sensitive_redacted_value": {
+					"description": "Replacement value shown in logs/serialization when redacting this sensitive column. Defaults to null."
+				},
+				"meta": {
+					"type": "object",
+					"description": "Arbitrary key-value metadata for Blate templates and code generators. Any JSON value is accepted.",
+					"additionalProperties": true
+				},
+				"validator:pre": {
+					"type": "string",
+					"description": "FQCN of a TypeValidatorInterface implementation to run BEFORE built-in type validation. Useful for input normalization."
+				},
+				"validator:post": {
+					"type": "string",
+					"description": "FQCN of a TypeValidatorInterface implementation to run AFTER built-in type validation. Useful for cross-field business rules."
+				}
+			}
+		},
+		"columnEnum": {
+			"type": "object",
+			"required": [
+				"type"
+			],
+			"additionalProperties": false,
+			"description": "Enum column backed by a PHP BackedEnum (string or int backing). The column stores the enum's backing value. On read, the stored value is passed to YourEnum::from() to return a typed enum instance. Required: 'enum_class'.",
+			"properties": {
+				"type": {
+					"const": "enum",
+					"type": "string",
+					"description": "Column type: enum."
+				},
+				"enum_class": {
+					"type": "string",
+					"description": "FQCN of a PHP BackedEnum subclass. The enum cases define the allowed values. Example: 'App\\\\Enums\\\\UserStatus'.",
+					"examples": [
+						"App\\Enums\\UserStatus",
+						"App\\Enums\\OrderState"
+					]
+				},
+				"nullable": {
+					"type": "boolean",
+					"description": "Whether the column accepts NULL. When false (default), NULL values are rejected during validation. Alias: 'null'.",
+					"default": false
+				},
+				"null": {
+					"type": "boolean",
+					"description": "Alias for 'nullable'.",
+					"default": false
+				},
+				"default": {
+					"description": "Default value applied when no value is provided on INSERT. For bool use 1/0. For date use a Unix timestamp integer or ISO 8601 string."
+				},
+				"prefix": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "Override the table-level column_prefix for this specific column only. Must match Column::PREFIX_PATTERN."
+				},
+				"diff_key": {
+					"type": "string",
+					"description": "Stable identifier used by the Diff engine when comparing two schema versions. Defaults to the column name. Set to preserve diff continuity when renaming a column."
+				},
+				"private": {
+					"type": "boolean",
+					"description": "Mark the column as private. Excluded from ORM outputs by default and triggers BeforePrivateColumnWrite CRUD events on write.",
+					"default": false
+				},
+				"sensitive": {
+					"type": "boolean",
+					"description": "Mark the column as sensitive (e.g. passwords, tokens). Triggers BeforeSensitiveColumnWrite CRUD events. Real value replaced by sensitive_redacted_value in logs.",
+					"default": false
+				},
+				"sensitive_redacted_value": {
+					"description": "Replacement value shown in logs/serialization when redacting this sensitive column. Defaults to null."
+				},
+				"meta": {
+					"type": "object",
+					"description": "Arbitrary key-value metadata for Blate templates and code generators. Any JSON value is accepted.",
+					"additionalProperties": true
+				},
+				"validator:pre": {
+					"type": "string",
+					"description": "FQCN of a TypeValidatorInterface implementation to run BEFORE built-in type validation. Useful for input normalization."
+				},
+				"validator:post": {
+					"type": "string",
+					"description": "FQCN of a TypeValidatorInterface implementation to run AFTER built-in type validation. Useful for cross-field business rules."
+				}
+			}
+		},
+		"columnDate": {
+			"type": "object",
+			"required": [
+				"type"
+			],
+			"additionalProperties": false,
+			"description": "Date/time column stored as BIGINT (Unix timestamp seconds) or DECIMAL(20,6) (microseconds). Input and output use PHP date() format. Automatic populate on INSERT/UPDATE is supported via 'auto: true'.",
+			"properties": {
+				"type": {
+					"const": "date",
+					"type": "string",
+					"description": "Column type: date."
+				},
+				"auto": {
+					"type": "boolean",
+					"description": "Automatically set to the current timestamp on INSERT. Columns named 'updated_at' are also updated on every UPDATE.",
+					"default": false
+				},
+				"format": {
+					"type": "string",
+					"description": "PHP date() format for input/output conversion. Use 'timestamp' (default, Unix integer seconds) or any PHP date format (e.g. 'Y-m-d H:i:s', 'Y-m-d', DATE_ATOM).",
+					"examples": [
+						"timestamp",
+						"Y-m-d H:i:s",
+						"Y-m-d",
+						"c"
+					]
+				},
+				"precision": {
+					"type": "string",
+					"const": "microseconds",
+					"description": "Set to 'microseconds' to store sub-second precision as DECIMAL(20,6) instead of BIGINT. Enables storing fractional seconds."
+				},
+				"min": {
+					"description": "Minimum allowed date/time value (inclusive). Accepts a Unix timestamp integer or a date string in the column's format.",
+					"oneOf": [
+						{
+							"type": "number"
+						},
+						{
+							"type": "string"
+						}
+					]
+				},
+				"max": {
+					"description": "Maximum allowed date/time value (inclusive). Accepts a Unix timestamp integer or a date string in the column's format.",
+					"oneOf": [
+						{
+							"type": "number"
+						},
+						{
+							"type": "string"
+						}
+					]
+				},
+				"nullable": {
+					"type": "boolean",
+					"description": "Whether the column accepts NULL. When false (default), NULL values are rejected during validation. Alias: 'null'.",
+					"default": false
+				},
+				"null": {
+					"type": "boolean",
+					"description": "Alias for 'nullable'.",
+					"default": false
+				},
+				"default": {
+					"description": "Default value applied when no value is provided on INSERT. For bool use 1/0. For date use a Unix timestamp integer or ISO 8601 string."
+				},
+				"prefix": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "Override the table-level column_prefix for this specific column only. Must match Column::PREFIX_PATTERN."
+				},
+				"diff_key": {
+					"type": "string",
+					"description": "Stable identifier used by the Diff engine when comparing two schema versions. Defaults to the column name. Set to preserve diff continuity when renaming a column."
+				},
+				"private": {
+					"type": "boolean",
+					"description": "Mark the column as private. Excluded from ORM outputs by default and triggers BeforePrivateColumnWrite CRUD events on write.",
+					"default": false
+				},
+				"sensitive": {
+					"type": "boolean",
+					"description": "Mark the column as sensitive (e.g. passwords, tokens). Triggers BeforeSensitiveColumnWrite CRUD events. Real value replaced by sensitive_redacted_value in logs.",
+					"default": false
+				},
+				"sensitive_redacted_value": {
+					"description": "Replacement value shown in logs/serialization when redacting this sensitive column. Defaults to null."
+				},
+				"meta": {
+					"type": "object",
+					"description": "Arbitrary key-value metadata for Blate templates and code generators. Any JSON value is accepted.",
+					"additionalProperties": true
+				},
+				"validator:pre": {
+					"type": "string",
+					"description": "FQCN of a TypeValidatorInterface implementation to run BEFORE built-in type validation. Useful for input normalization."
+				},
+				"validator:post": {
+					"type": "string",
+					"description": "FQCN of a TypeValidatorInterface implementation to run AFTER built-in type validation. Useful for cross-field business rules."
+				}
+			}
+		},
+		"columnMap": {
+			"type": "object",
+			"required": [
+				"type"
+			],
+			"additionalProperties": false,
+			"description": "JSON object column (key-value map). Stored as TEXT or native JSON. Use 'native_json: true' to enable JSON path operators (contains, has_key) in filters. Maps to PHP associative arrays on read.",
+			"properties": {
+				"type": {
+					"const": "map",
+					"type": "string",
+					"description": "Column type: map."
+				},
+				"native_json": {
+					"type": "boolean",
+					"description": "Use the database's native JSON column type (MySQL JSON, PostgreSQL JSONB) instead of TEXT. Enables JSON path operators (contains, has_key) in filters.",
+					"default": false
+				},
+				"big": {
+					"type": "boolean",
+					"description": "When native_json is false, use MEDIUMTEXT (MySQL) or TEXT (PostgreSQL/SQLite) for larger JSON documents.",
+					"default": false
+				},
+				"nullable": {
+					"type": "boolean",
+					"description": "Whether the column accepts NULL. When false (default), NULL values are rejected during validation. Alias: 'null'.",
+					"default": false
+				},
+				"null": {
+					"type": "boolean",
+					"description": "Alias for 'nullable'.",
+					"default": false
+				},
+				"default": {
+					"description": "Default value applied when no value is provided on INSERT. For bool use 1/0. For date use a Unix timestamp integer or ISO 8601 string."
+				},
+				"prefix": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "Override the table-level column_prefix for this specific column only. Must match Column::PREFIX_PATTERN."
+				},
+				"diff_key": {
+					"type": "string",
+					"description": "Stable identifier used by the Diff engine when comparing two schema versions. Defaults to the column name. Set to preserve diff continuity when renaming a column."
+				},
+				"private": {
+					"type": "boolean",
+					"description": "Mark the column as private. Excluded from ORM outputs by default and triggers BeforePrivateColumnWrite CRUD events on write.",
+					"default": false
+				},
+				"sensitive": {
+					"type": "boolean",
+					"description": "Mark the column as sensitive (e.g. passwords, tokens). Triggers BeforeSensitiveColumnWrite CRUD events. Real value replaced by sensitive_redacted_value in logs.",
+					"default": false
+				},
+				"sensitive_redacted_value": {
+					"description": "Replacement value shown in logs/serialization when redacting this sensitive column. Defaults to null."
+				},
+				"meta": {
+					"type": "object",
+					"description": "Arbitrary key-value metadata for Blate templates and code generators. Any JSON value is accepted.",
+					"additionalProperties": true
+				},
+				"validator:pre": {
+					"type": "string",
+					"description": "FQCN of a TypeValidatorInterface implementation to run BEFORE built-in type validation. Useful for input normalization."
+				},
+				"validator:post": {
+					"type": "string",
+					"description": "FQCN of a TypeValidatorInterface implementation to run AFTER built-in type validation. Useful for cross-field business rules."
+				}
+			}
+		},
+		"columnList": {
+			"type": "object",
+			"required": [
+				"type"
+			],
+			"additionalProperties": false,
+			"description": "JSON array column (ordered list). Stored as TEXT or native JSON. Use 'native_json: true' to enable JSON path operators in filters. Use 'list_of' for typed code generation.",
+			"properties": {
+				"type": {
+					"const": "list",
+					"type": "string",
+					"description": "Column type: list."
+				},
+				"native_json": {
+					"type": "boolean",
+					"description": "Use the database's native JSON column type (MySQL JSON, PostgreSQL JSONB) instead of TEXT. Enables JSON path operators (contains, has_key) in filters.",
+					"default": false
+				},
+				"big": {
+					"type": "boolean",
+					"description": "When native_json is false, use MEDIUMTEXT (MySQL) or TEXT (PostgreSQL/SQLite) for larger JSON documents.",
+					"default": false
+				},
+				"list_of": {
+					"type": "string",
+					"description": "Element type hint for code generation and optional runtime revival. Use an ORMUniversalType value ('string', 'int', 'bigint', 'float', 'bool') for metadata only, or a FQCN implementing JsonOfInterface for typed revival (each element is passed through ClassName::revive() on read).",
+					"examples": [
+						"string",
+						"int",
+						"App\\Data\\Tag"
+					]
+				},
+				"nullable": {
+					"type": "boolean",
+					"description": "Whether the column accepts NULL. When false (default), NULL values are rejected during validation. Alias: 'null'.",
+					"default": false
+				},
+				"null": {
+					"type": "boolean",
+					"description": "Alias for 'nullable'.",
+					"default": false
+				},
+				"default": {
+					"description": "Default value applied when no value is provided on INSERT. For bool use 1/0. For date use a Unix timestamp integer or ISO 8601 string."
+				},
+				"prefix": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "Override the table-level column_prefix for this specific column only. Must match Column::PREFIX_PATTERN."
+				},
+				"diff_key": {
+					"type": "string",
+					"description": "Stable identifier used by the Diff engine when comparing two schema versions. Defaults to the column name. Set to preserve diff continuity when renaming a column."
+				},
+				"private": {
+					"type": "boolean",
+					"description": "Mark the column as private. Excluded from ORM outputs by default and triggers BeforePrivateColumnWrite CRUD events on write.",
+					"default": false
+				},
+				"sensitive": {
+					"type": "boolean",
+					"description": "Mark the column as sensitive (e.g. passwords, tokens). Triggers BeforeSensitiveColumnWrite CRUD events. Real value replaced by sensitive_redacted_value in logs.",
+					"default": false
+				},
+				"sensitive_redacted_value": {
+					"description": "Replacement value shown in logs/serialization when redacting this sensitive column. Defaults to null."
+				},
+				"meta": {
+					"type": "object",
+					"description": "Arbitrary key-value metadata for Blate templates and code generators. Any JSON value is accepted.",
+					"additionalProperties": true
+				},
+				"validator:pre": {
+					"type": "string",
+					"description": "FQCN of a TypeValidatorInterface implementation to run BEFORE built-in type validation. Useful for input normalization."
+				},
+				"validator:post": {
+					"type": "string",
+					"description": "FQCN of a TypeValidatorInterface implementation to run AFTER built-in type validation. Useful for cross-field business rules."
+				}
+			}
+		},
+		"columnJson": {
+			"type": "object",
+			"required": [
+				"type"
+			],
+			"additionalProperties": false,
+			"description": "Raw JSON document column (object or array root). Stored as TEXT or native JSON. Use 'native_json: true' for JSON path operators. Use 'json_of' for typed PHP objects. Use 'json_data_type' to restrict to array or object root.",
+			"properties": {
+				"type": {
+					"const": "json",
+					"type": "string",
+					"description": "Column type: json."
+				},
+				"native_json": {
+					"type": "boolean",
+					"description": "Use the database's native JSON column type (MySQL JSON, PostgreSQL JSONB) instead of TEXT. Enables JSON path operators (contains, has_key) in filters.",
+					"default": false
+				},
+				"big": {
+					"type": "boolean",
+					"description": "When native_json is false, use MEDIUMTEXT (MySQL) or TEXT (PostgreSQL/SQLite) for larger JSON documents.",
+					"default": false
+				},
+				"json_of": {
+					"type": "string",
+					"description": "FQCN of a class implementing JsonOfInterface. On read, stored JSON is decoded and passed to ClassName::revive(). On write, instances are JSON-encoded. Enables typed ORM getters.",
+					"examples": [
+						"App\\Data\\UserProfile"
+					]
+				},
+				"json_data_type": {
+					"type": "string",
+					"enum": [
+						"any",
+						"array",
+						"object"
+					],
+					"description": "Restricts the kind of JSON root document. 'any' (default): object or array. 'array': only a JSON array. 'object': only a JSON object. Ignored when json_of is set.",
+					"default": "any"
+				},
+				"nullable": {
+					"type": "boolean",
+					"description": "Whether the column accepts NULL. When false (default), NULL values are rejected during validation. Alias: 'null'.",
+					"default": false
+				},
+				"null": {
+					"type": "boolean",
+					"description": "Alias for 'nullable'.",
+					"default": false
+				},
+				"default": {
+					"description": "Default value applied when no value is provided on INSERT. For bool use 1/0. For date use a Unix timestamp integer or ISO 8601 string."
+				},
+				"prefix": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "Override the table-level column_prefix for this specific column only. Must match Column::PREFIX_PATTERN."
+				},
+				"diff_key": {
+					"type": "string",
+					"description": "Stable identifier used by the Diff engine when comparing two schema versions. Defaults to the column name. Set to preserve diff continuity when renaming a column."
+				},
+				"private": {
+					"type": "boolean",
+					"description": "Mark the column as private. Excluded from ORM outputs by default and triggers BeforePrivateColumnWrite CRUD events on write.",
+					"default": false
+				},
+				"sensitive": {
+					"type": "boolean",
+					"description": "Mark the column as sensitive (e.g. passwords, tokens). Triggers BeforeSensitiveColumnWrite CRUD events. Real value replaced by sensitive_redacted_value in logs.",
+					"default": false
+				},
+				"sensitive_redacted_value": {
+					"description": "Replacement value shown in logs/serialization when redacting this sensitive column. Defaults to null."
+				},
+				"meta": {
+					"type": "object",
+					"description": "Arbitrary key-value metadata for Blate templates and code generators. Any JSON value is accepted.",
+					"additionalProperties": true
+				},
+				"validator:pre": {
+					"type": "string",
+					"description": "FQCN of a TypeValidatorInterface implementation to run BEFORE built-in type validation. Useful for input normalization."
+				},
+				"validator:post": {
+					"type": "string",
+					"description": "FQCN of a TypeValidatorInterface implementation to run AFTER built-in type validation. Useful for cross-field business rules."
+				}
+			}
+		},
+		"constraint": {
+			"type": "object",
+			"description": "A table-level constraint. The 'type' and 'columns' properties are always required. For 'foreign_key', 'reference' is also required.",
+			"required": [
+				"type",
+				"columns"
+			],
+			"additionalProperties": false,
+			"properties": {
+				"type": {
+					"type": "string",
+					"enum": [
+						"primary_key",
+						"unique_key",
+						"foreign_key"
+					],
+					"description": "primary_key: designates the PK column(s). Only one primary_key per table. unique_key: enforces uniqueness across the listed columns. foreign_key: adds a FK constraint referencing another table's PK or UK."
+				},
+				"columns": {
+					"description": "primary_key / unique_key: array of column short names. foreign_key: object mapping { localColumn: referencedColumn }. Column names are short names (without the column_prefix).",
+					"oneOf": [
+						{
+							"type": "array",
+							"items": {
+								"type": "string",
+								"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$"
+							},
+							"minItems": 1,
+							"description": "Array of column short names (primary_key / unique_key)."
+						},
+						{
+							"type": "object",
+							"propertyNames": {
+								"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$"
+							},
+							"additionalProperties": {
+								"type": "string",
+								"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$"
+							},
+							"minProperties": 1,
+							"description": "{ localColumn: referencedColumn } mapping (foreign_key). Both keys and values are short column names."
+						}
+					]
+				},
+				"reference": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "foreign_key: name of the referenced table (must already be defined in the schema). Must match Table::NAME_PATTERN."
+				},
+				"update": {
+					"type": "string",
+					"enum": [
+						"cascade",
+						"set_null",
+						"set_default",
+						"restrict",
+						"none"
+					],
+					"description": "foreign_key: ON UPDATE referential action. 'cascade': propagate updates. 'set_null': set FK to NULL. 'set_default': set FK to its DEFAULT. 'restrict': reject the parent update. 'none': no action (database default)."
+				},
+				"delete": {
+					"type": "string",
+					"enum": [
+						"cascade",
+						"set_null",
+						"set_default",
+						"restrict",
+						"none"
+					],
+					"description": "foreign_key: ON DELETE referential action. 'cascade': delete child rows. 'set_null': set FK to NULL. 'set_default': set FK to its DEFAULT. 'restrict': reject the parent delete. 'none': no action (database default)."
+				},
+				"name": {
+					"type": "string",
+					"pattern": "^[a-zA-Z]([a-zA-Z0-9_]*[a-zA-Z0-9])?$",
+					"maxLength": 64,
+					"description": "foreign_key: optional explicit constraint name (max 64 chars). Auto-generated from table/column names when omitted."
+				}
+			},
+			"if": {
+				"properties": {
+					"type": {
+						"const": "foreign_key"
+					}
+				}
+			},
+			"then": {
+				"required": [
+					"reference"
+				]
+			}
+		},
+		"relation": {
+			"type": "object",
+			"description": "A named relation from this table to a target table. For simple FK-based relations (one-to-many, many-to-one), omit 'link' - Gobl auto-detects the join columns from the foreign key constraint. Use 'link' for polymorphic (morph), pivot (through), or custom (join) cases.",
+			"required": [
+				"type",
+				"target"
+			],
+			"additionalProperties": false,
+			"properties": {
+				"type": {
+					"type": "string",
+					"enum": [
+						"one-to-one",
+						"one-to-many",
+						"many-to-one",
+						"many-to-many"
+					],
+					"description": "Cardinality of the relation. one-to-one: single result from target. one-to-many: list from target (host is parent). many-to-one: single result from target (host has FK). many-to-many: list via pivot table (requires link.type='through')."
+				},
+				"target": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "Short name of the target table. Must be defined in the same schema. Must match Table::NAME_PATTERN."
+				},
+				"link": {
+					"$ref": "#/definitions/relationLink",
+					"description": "Explicit link configuration. Omit to auto-detect from foreign key constraints. Required for morph, through, and join link types."
+				},
+				"columns": {
+					"description": "Deprecated: use 'link: { type: \"columns\", columns: {...} }' instead. Direct column mapping: { localColumn: targetColumn }.",
+					"type": "object",
+					"propertyNames": {
+						"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$"
+					},
+					"additionalProperties": {
+						"type": "string",
+						"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$"
+					}
+				}
+			}
+		},
+		"relationLink": {
+			"type": "object",
+			"required": [
+				"type"
+			],
+			"additionalProperties": true,
+			"description": "Describes how the host table and target table are joined. The 'type' property selects the strategy; other properties depend on the type.",
+			"properties": {
+				"type": {
+					"type": "string",
+					"enum": [
+						"columns",
+						"morph",
+						"through",
+						"join"
+					],
+					"description": "'columns': link via explicit or auto-detected FK columns (default for most relations). 'morph': polymorphic link via {prefix}_id / {prefix}_type columns. 'through': many-to-many via a pivot table. 'join': multi-step custom join across intermediate tables."
+				},
+				"columns": {
+					"type": "object",
+					"description": "columns link: explicit { localColumn: targetColumn } mapping. Omit to auto-detect from FK constraints. Example: { \"user_id\": \"id\" } links this table's 'user_id' column to the target's 'id' column.",
+					"propertyNames": {
+						"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$"
+					},
+					"additionalProperties": {
+						"type": "string",
+						"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$"
+					}
+				},
+				"filters": {
+					"type": "array",
+					"description": "Extra filter conditions applied to the join query, in addition to the key column constraints. Accepts the same filter formats as Filters::fromArray()."
+				},
+				"prefix": {
+					"type": "string",
+					"description": "morph link: naming prefix for the morph columns. If 'prefix' is 'taggable', the child table is expected to have columns 'taggable_id' and 'taggable_type'. Required unless both 'child_key_column' and 'child_type_column' are provided."
+				},
+				"parent_type": {
+					"type": "string",
+					"description": "morph link: value stored in the child's type column to identify the parent table. Defaults to the parent table's morph_type (which defaults to the table name)."
+				},
+				"parent_key_column": {
+					"type": "string",
+					"description": "morph link: short name of the column in the parent table used as the key (usually the primary key). Auto-detected from the parent's primary key constraint when omitted."
+				},
+				"child_key_column": {
+					"type": "string",
+					"description": "morph link: short name of the column in the child table that holds the parent's key value (e.g. 'taggable_id'). Required when 'prefix' is not set."
+				},
+				"child_type_column": {
+					"type": "string",
+					"description": "morph link: short name of the column in the child table that holds the parent's type string (e.g. 'taggable_type'). Required when 'prefix' is not set."
+				},
+				"pivot_table": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "through link: name of the pivot/join table. Must be defined in the same schema. The pivot table must have FK columns to both the host and target tables."
+				},
+				"host_to_pivot": {
+					"type": "object",
+					"description": "through link: optional explicit link configuration from the host table to the pivot table. Omit to auto-detect from FK constraints.",
+					"additionalProperties": true,
+					"properties": {
+						"type": {
+							"type": "string",
+							"enum": [
+								"columns",
+								"morph"
+							],
+							"description": "Link type for the host-to-pivot leg."
+						},
+						"columns": {
+							"type": "object",
+							"description": "{ localColumn: pivotColumn } mapping.",
+							"propertyNames": {
+								"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$"
+							},
+							"additionalProperties": {
+								"type": "string",
+								"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$"
+							}
+						}
+					}
+				},
+				"pivot_to_target": {
+					"type": "object",
+					"description": "through link: optional explicit link configuration from the pivot table to the target table. Omit to auto-detect from FK constraints.",
+					"additionalProperties": true,
+					"properties": {
+						"type": {
+							"type": "string",
+							"enum": [
+								"columns",
+								"morph"
+							],
+							"description": "Link type for the pivot-to-target leg."
+						},
+						"columns": {
+							"type": "object",
+							"description": "{ pivotColumn: targetColumn } mapping.",
+							"propertyNames": {
+								"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$"
+							},
+							"additionalProperties": {
+								"type": "string",
+								"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$"
+							}
+						}
+					}
+				},
+				"steps": {
+					"type": "array",
+					"description": "join link: ordered list of join steps. Each step joins to an intermediate table. The final step lands on the target table (auto-linked if omitted from steps).",
+					"items": {
+						"type": "object",
+						"required": [
+							"join"
+						],
+						"additionalProperties": false,
+						"properties": {
+							"join": {
+								"type": "string",
+								"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+								"description": "Name of the table to join to in this step."
+							},
+							"link": {
+								"type": "object",
+								"description": "Link configuration for this step (type + columns). Defaults to 'columns' with auto-detection.",
+								"additionalProperties": true,
+								"properties": {
+									"type": {
+										"type": "string",
+										"enum": [
+											"columns",
+											"morph"
+										]
+									},
+									"columns": {
+										"type": "object",
+										"propertyNames": {
+											"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$"
+										},
+										"additionalProperties": {
+											"type": "string"
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"index": {
+			"type": "object",
+			"description": "A table index definition. Indexes speed up queries but do not enforce uniqueness (use a unique_key constraint for that). Supported index types vary by driver.",
+			"required": [
+				"columns"
+			],
+			"additionalProperties": false,
+			"properties": {
+				"columns": {
+					"type": "array",
+					"description": "Short column names to include in the index. Order matters for composite B-Tree indexes. Each item must match Column::NAME_PATTERN.",
+					"items": {
+						"type": "string",
+						"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$"
+					},
+					"minItems": 1
+				},
+				"type": {
+					"type": "string",
+					"enum": [
+						"BTREE",
+						"HASH",
+						"MYSQL_FULLTEXT",
+						"MYSQL_SPATIAL",
+						"PGSQL_GIN",
+						"PGSQL_GIST",
+						"PGSQL_BRIN",
+						"PGSQL_SPGIST"
+					],
+					"description": "Index type. Defaults to BTREE (supported by all drivers). HASH: equality-only (MySQL MEMORY/NDB, PostgreSQL). MYSQL_FULLTEXT: full-text search (MySQL/MariaDB). MYSQL_SPATIAL: geometric data (MySQL). PGSQL_GIN: arrays, JSONB, tsvector (PostgreSQL). PGSQL_GIST: geometry, ranges (PostgreSQL). PGSQL_BRIN: large append-only tables (PostgreSQL). PGSQL_SPGIST: space-partitioned data (PostgreSQL)."
+				}
+			}
+		}
+	}
+}

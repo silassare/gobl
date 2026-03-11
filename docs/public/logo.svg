@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Database cylinder -->
+  <ellipse cx="32" cy="14" rx="22" ry="8" fill="#3d6bce" opacity=".9"/>
+  <rect x="10" y="14" width="44" height="30" fill="#3d6bce" opacity=".75"/>
+  <ellipse cx="32" cy="44" rx="22" ry="8" fill="#3d6bce"/>
+  <!-- Middle divider line -->
+  <line x1="10" y1="29" x2="54" y2="29" stroke="white" stroke-width="1.5" opacity=".35"/>
+  <!-- Highlight arc on top ellipse -->
+  <ellipse cx="24" cy="12" rx="7" ry="2.5" fill="white" opacity=".25" transform="rotate(-10 24 12)"/>
+</svg>
