@@ -258,7 +258,7 @@ abstract class Db implements RDBMSInterface
 	 * a `$schema` key is prepended so JSON editors can validate and auto-complete the file:
 	 *
 	 * ```php
-	 * Gobl::setDefaultSchemaUrl('https://gobl.example.com/schema.json');
+	 * Gobl::setDefaultSchemaUrl('https://raw.githubusercontent.com/silassare/gobl/main/docs/public/schema.json');
 	 *
 	 * // export
 	 * file_put_contents('schema.json', $db->toSchemaJson('App\Db'));

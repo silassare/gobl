@@ -51,7 +51,7 @@ final class SchemaFileTest extends BaseTestCase
 		$this->temp_files = [];
 
 		// reset the global default schema URL after each test
-		Gobl::setDefaultSchemaUrl(null);
+		Gobl::setDefaultSchemaUrl('https://raw.githubusercontent.com/silassare/gobl/main/docs/public/schema.json');
 	}
 
 	// -------------------------------------------------------------------------
@@ -232,6 +232,8 @@ final class SchemaFileTest extends BaseTestCase
 
 	public function testToSchemaJsonOmitsSchemaUrlWhenNotSet(): void
 	{
+		Gobl::setDefaultSchemaUrl(null);
+
 		$db = self::getNewDbInstance();
 		$db->ns(self::TEST_DB_NAMESPACE)->schema(self::minimalSchema());
 
@@ -263,7 +265,10 @@ final class SchemaFileTest extends BaseTestCase
 
 	public function testSetAndGetDefaultSchemaUrl(): void
 	{
-		self::assertNull(Gobl::getDefaultSchemaUrl());
+		self::assertSame(
+			'https://raw.githubusercontent.com/silassare/gobl/main/docs/public/schema.json',
+			Gobl::getDefaultSchemaUrl()
+		);
 
 		$url = 'https://gobl.example.com/schema.json';
 		Gobl::setDefaultSchemaUrl($url);

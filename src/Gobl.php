@@ -39,7 +39,7 @@ class Gobl
 	/**
 	 * @var null|string
 	 */
-	private static ?string $default_schema_url = null;
+	private static ?string $default_schema_url = 'https://raw.githubusercontent.com/silassare/gobl/main/docs/public/schema.json';
 
 	/**
 	 * Returns the default JSON Schema URL embedded in exported schema files.
@@ -61,7 +61,7 @@ class Gobl
 	 * Example (pointing to the hosted Gobl JSON Schema):
 	 *
 	 * ```php
-	 * Gobl::setDefaultSchemaUrl('https://gobl.example.com/schema.json');
+	 * Gobl::setDefaultSchemaUrl('https://raw.githubusercontent.com/silassare/gobl/main/docs/public/schema.json');
 	 * ```
 	 *
 	 * @param null|string $url the URL of the JSON Schema document, or null to clear
