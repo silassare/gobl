@@ -36,6 +36,7 @@ use Gobl\DBAL\Relations\RelationType;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
 use Gobl\DBAL\Types\Utils\Map;
 use Gobl\DBAL\Types\Utils\TypeUtils;
+use Gobl\Gobl;
 use InvalidArgumentException;
 use PDO;
 use PHPUtils\Traits\LockTrait;
@@ -227,6 +228,60 @@ abstract class Db implements RDBMSInterface
 		}
 
 		return $this->tables;
+	}
+
+	/**
+	 * Exports the registered tables as a plain array compatible with {@see loadSchema()}.
+	 *
+	 * The returned array is keyed by table name. Use {@see toSchemaJson()} to produce
+	 * a JSON string that includes the `$schema` URL for IDE validation.
+	 *
+	 * @param null|string $namespace when provided, only exports tables in that namespace
+	 *
+	 * @return array<string, array>
+	 */
+	public function toSchemaArray(?string $namespace = null): array
+	{
+		$result = [];
+
+		foreach ($this->getTables($namespace) as $name => $table) {
+			$result[$name] = $table->toArray();
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Exports the registered tables as a formatted JSON string.
+	 *
+	 * When a default schema URL has been configured via {@see Gobl::setDefaultSchemaUrl()},
+	 * a `$schema` key is prepended so JSON editors can validate and auto-complete the file:
+	 *
+	 * ```php
+	 * Gobl::setDefaultSchemaUrl('https://gobl.example.com/schema.json');
+	 *
+	 * // export
+	 * file_put_contents('schema.json', $db->toSchemaJson('App\Db'));
+	 *
+	 * // import
+	 * $db->ns('App\Db')->schemaFile('schema.json');
+	 * ```
+	 *
+	 * @param null|string $namespace when provided, only exports tables in that namespace
+	 * @param int         $flags     flags forwarded to {@see json_encode()} (default: JSON_PRETTY_PRINT)
+	 *
+	 * @return string
+	 */
+	public function toSchemaJson(?string $namespace = null, int $flags = \JSON_PRETTY_PRINT): string
+	{
+		$data = $this->toSchemaArray($namespace);
+		$url  = Gobl::getDefaultSchemaUrl();
+
+		if (null !== $url) {
+			$data = ['$schema' => $url] + $data;
+		}
+
+		return \json_encode($data, $flags) ?: '{}';
 	}
 
 	/**

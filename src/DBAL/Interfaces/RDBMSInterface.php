@@ -76,6 +76,25 @@ interface RDBMSInterface extends LockInterface
 	public function loadSchema(array $schema, ?string $desired_namespace = null): static;
 
 	/**
+	 * Exports the registered tables as a plain array compatible with {@see loadSchema()}.
+	 *
+	 * @param null|string $namespace when provided, only exports tables in that namespace
+	 *
+	 * @return array<string, array>
+	 */
+	public function toSchemaArray(?string $namespace = null): array;
+
+	/**
+	 * Exports the registered tables as a formatted JSON string.
+	 *
+	 * @param null|string $namespace when provided, only exports tables in that namespace
+	 * @param int         $flags     flags forwarded to json_encode() (default: JSON_PRETTY_PRINT)
+	 *
+	 * @return string
+	 */
+	public function toSchemaJson(?string $namespace = null, int $flags = \JSON_PRETTY_PRINT): string;
+
+	/**
 	 * Returns db namespace builder for a given namespace.
 	 *
 	 * @param string $namespace

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Gobl;
 
 use Blate\Blate;
+use Gobl\DBAL\Db;
 use Gobl\Exceptions\GoblRuntimeException;
 use InvalidArgumentException;
 use PHPUtils\Exceptions\RuntimeException;
@@ -34,6 +35,41 @@ class Gobl
 	 * @var array<string, string>
 	 */
 	private static array $templates = [];
+
+	/**
+	 * @var null|string
+	 */
+	private static ?string $default_schema_url = null;
+
+	/**
+	 * Returns the default JSON Schema URL embedded in exported schema files.
+	 *
+	 * @return null|string
+	 */
+	public static function getDefaultSchemaUrl(): ?string
+	{
+		return self::$default_schema_url;
+	}
+
+	/**
+	 * Sets the default JSON Schema URL to embed in exported schema files.
+	 *
+	 * When set, {@see Db::toSchemaJson()} will include a `$schema`
+	 * key pointing to this URL, enabling IDE validation and auto-complete.
+	 * Pass `null` to clear a previously set URL.
+	 *
+	 * Example (pointing to the hosted Gobl JSON Schema):
+	 *
+	 * ```php
+	 * Gobl::setDefaultSchemaUrl('https://gobl.example.com/schema.json');
+	 * ```
+	 *
+	 * @param null|string $url the URL of the JSON Schema document, or null to clear
+	 */
+	public static function setDefaultSchemaUrl(?string $url): void
+	{
+		self::$default_schema_url = $url;
+	}
 
 	/**
 	 * Returns default output directory path.

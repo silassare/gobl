@@ -18,6 +18,7 @@ use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Table;
 use Gobl\ORM\ORM;
+use InvalidArgumentException;
 
 /**
  * Class NamespaceBuilder.
@@ -100,6 +101,59 @@ final class NamespaceBuilder
 		$this->rdbms->loadSchema($schema, $this->namespace);
 
 		return $this;
+	}
+
+	/**
+	 * Loads a schema from a file into this namespace.
+	 *
+	 * Supported formats:
+	 * - `.json` - JSON object whose structure matches {@see RDBMSInterface::loadSchema()}
+	 * - `.php`  - PHP file that returns an array with the same structure
+	 *
+	 * @param string $path absolute path to the schema file
+	 *
+	 * @return $this
+	 *
+	 * @throws DBALException            on JSON decode error or when the file does not return an array
+	 * @throws InvalidArgumentException on unsupported file extension or missing file
+	 */
+	public function schemaFile(string $path): self
+	{
+		if (!\is_file($path)) {
+			throw new InvalidArgumentException(
+				\sprintf('Schema file not found: "%s".', $path)
+			);
+		}
+
+		$ext = \strtolower(\pathinfo($path, \PATHINFO_EXTENSION));
+
+		if ('json' === $ext) {
+			$contents = \file_get_contents($path);
+			$schema   = \json_decode($contents, true);
+
+			if (\JSON_ERROR_NONE !== \json_last_error()) {
+				throw new DBALException(
+					\sprintf('Failed to parse JSON schema file "%s": %s.', $path, \json_last_error_msg())
+				);
+			}
+		} elseif ('php' === $ext) {
+			$schema = require $path;
+		} else {
+			throw new InvalidArgumentException(
+				\sprintf('Unsupported schema file extension "%s" in "%s". Supported: json, php.', $ext, $path)
+			);
+		}
+
+		if (!\is_array($schema)) {
+			throw new DBALException(
+				\sprintf('Schema file "%s" must return an array, got: %s.', $path, \get_debug_type($schema))
+			);
+		}
+
+		// strip the JSON $schema key used for IDE validation - it is not a table definition
+		unset($schema['$schema']);
+
+		return $this->schema($schema);
 	}
 
 	/**
