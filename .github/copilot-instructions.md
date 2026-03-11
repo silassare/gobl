@@ -199,6 +199,95 @@ Migration files are anonymous classes implementing `MigrationInterface` with `ge
 | Generate PHP API docs            | `make docs-api`             |
 | Build docs site                  | `make docs-build`           |
 
+## Documentation Guidelines
+
+The docs live in `docs/` and use [VitePress](https://vitepress.dev/). The JSON schema for IDE
+auto-complete/validation is at `docs/public/schema.json`.
+
+### Where things live
+
+| Path                          | Purpose                                                          |
+| ----------------------------- | ---------------------------------------------------------------- |
+| `docs/.vitepress/config.ts`   | Site config, nav, sidebar (source of truth for page order)       |
+| `docs/guide/*.md`             | All narrative / guide pages                                      |
+| `docs/index.md`               | Site home page                                                   |
+| `docs/public/schema.json`     | JSON Schema for IDE integration and the in-browser schema editor |
+| `docs/.vitepress/components/` | Vue components used in guide pages (e.g. `SchemaEditor`)         |
+| `docs/.vitepress/theme/`      | Theme overrides                                                  |
+
+### Documentation rules
+
+1. **No hallucination.** Every code example, method name, option key, and class name must be
+   verified against the source code before writing. If you are unsure, search the source.
+
+2. **Use real examples from tests.** The schemas in `tests/assets/schemas.php` (`clients`,
+   `accounts`, `transactions`, `currencies`) are the canonical reference. The fluent-builder
+   examples in `tests/BaseTestCase.php::getSampleDB()` are the canonical fluent examples.
+
+3. **Accurate method names.** Generated entity getter names follow `CSGeneratorORM::propertyGetterName()`:
+    - Columns starting with `is_` or ending with `ed` -> `is{Name}()` (e.g., `isDeleted()`)
+    - All others -> `get{Name}()` (e.g., `getUserName()`)
+    - Setters are always `set{Name}()` (e.g., `setUserName()`)
+    - Magic property access also works: `$entity->user_name` (full column name)
+
+4. **Accurate generated file names.** `ORMClassKind::getClassName()` drives file names:
+    - ENTITY: `{SingularName}` -> `User.php`
+    - BASE_ENTITY: `{SingularName}Base` -> `UserBase.php`
+    - CONTROLLER: `{PluralName}Controller` -> `UsersController.php`
+    - BASE_CONTROLLER: `{PluralName}ControllerBase` -> `UsersControllerBase.php`
+    - QUERY: `{PluralName}Query` -> `UsersQuery.php`
+    - BASE_QUERY: `{PluralName}QueryBase` -> `UsersQueryBase.php`
+    - RESULTS: `{PluralName}Results` -> `UsersResults.php`
+    - BASE_RESULTS: `{PluralName}ResultsBase` -> `UsersResultsBase.php`
+    - CRUD: `{PluralName}Crud` -> `UsersCrud.php`
+    - BASE_CRUD: `{PluralName}CrudBase` -> `UsersCrudBase.php`
+    - All `Base*` files go into `Base/` subdirectory; all others are in the output root.
+
+5. **CRUD event API.** The docs must show the `*Crud` class pattern, not `EventManager::listen()`:
+
+    ```php
+    $crud = UsersCrud::new();
+    $crud->onBeforeCreate(function (BeforeCreate $action): bool { ... });
+    ```
+
+6. **Filter methods.** The fluent filter helpers are: `eq`, `neq`, `lt`, `lte`, `gt`, `gte`,
+   `like`, `notLike`, `isNull`, `isNotNull`, `in`, `notIn`, `isTrue`, `isFalse`,
+   `contains`, `containsAtPath`, `hasKey`. There is no `jsonContains` method.
+
+7. **Relation schema format.** In the PHP array schema, relations are simple:
+
+    ```php
+    'relations' => [
+        'client' => ['type' => 'many-to-one', 'target' => 'clients'],
+        'accounts' => ['type' => 'one-to-many', 'target' => 'accounts'],
+    ]
+    ```
+
+    Column mapping is usually auto-detected from FK constraints. The `link` key is used only
+    when the default detection is insufficient (morph, through, custom join).
+
+8. **schema.json accuracy.** The JSON Schema at `docs/public/schema.json` must stay in sync
+   with all column options, constraint types, index types, and relation link types defined in
+   the source. `IndexType` enum values (`BTREE`, `HASH`, `MYSQL_FULLTEXT`, `MYSQL_SPATIAL`,
+   `PGSQL_GIN`, `PGSQL_GIST`, `PGSQL_BRIN`, `PGSQL_SPGIST`) are the only valid index types.
+
+9. **AI-agent usability.** The docs should help AI agents / code editors discover features:
+    - The schema.json `description` fields must be precise and give enough context to generate
+      valid schema definitions without reading PHP source.
+    - Each guide page should open with a one-paragraph conceptual summary.
+    - Code examples should be self-contained and runnable with minimal setup.
+    - The `schema-editor.md` page should explain how to use the JSON schema in VS Code / Cursor
+      / Zed via `$schema` reference and the `json.schemas` setting.
+
+10. **Good learning curve.** Pages are ordered from easy to hard:
+    Introduction -> DBAL -> ORM -> CRUD events -> Drivers. Within pages, show simple cases
+    first, advanced options last. Cross-link liberally: column-types <-> schema, crud-events
+    <-> controllers, etc.
+
+11. **Comparison with popular ORMs.** Where helpful, add a callout or note box showing how a
+    Gobl concept maps to a familiar ORM (Eloquent, Doctrine, Prisma). Keep these concise and
+    accurate — never claim feature parity unless it exists.
+
 Live DB tests require `.env.test` (see `.env.test.example`). `./run_test` cleans `tests/tmp/` before each run. SQLite tests use `:memory:` by default.
 
 ## Code Style Conventions
