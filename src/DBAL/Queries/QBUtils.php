@@ -92,8 +92,8 @@ class QBUtils
 		$a    = '';
 
 		do {
-			$r = ($x % $len);
-			$n = ($x - $r) / $len;
+			$r = (int) ($x % $len);
+			$n = (int) (($x - $r) / $len);
 			$x = $n - 1;
 			$a = $list[$r] . $a;
 		} while ($n);

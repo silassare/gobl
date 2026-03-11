@@ -233,13 +233,8 @@ class TypeInt extends Type implements BaseTypeInterface
 			return;
 		}
 
-		$value += 0;
-
-		if (!\is_int($value)) {
-			$subject->reject($this->msg('invalid_int_type'), $debug);
-
-			return;
-		}
+		// coerce the value to a integer
+		$value = (int) $value;
 
 		if (0 > $value && $this->isUnsigned()) {
 			$subject->reject($this->msg('invalid_unsigned_int_type'), $debug);

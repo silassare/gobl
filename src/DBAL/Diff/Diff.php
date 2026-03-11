@@ -191,7 +191,7 @@ DIFF_SQL;
 		$m_get_schema->addChild(\sprintf('return %s;', \var_export($tables, true)))
 			->comment('@inheritDoc');
 
-		return $file->addChild('return ' . $class . ';');
+		return $file->addChild('return ' . (string) $class . ';');
 	}
 
 	/**

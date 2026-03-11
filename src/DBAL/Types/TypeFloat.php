@@ -253,15 +253,8 @@ class TypeFloat extends Type implements BaseTypeInterface
 			return;
 		}
 
-		// coerce the value to a number
-		$value += 0;
-
-		/** @psalm-suppress TypeDoesNotContainType */
-		if (!\is_float($value) && !\is_int($value)) {
-			$subject->reject($this->msg('invalid_float_type'), $debug);
-
-			return;
-		}
+		// coerce the value to a float
+		$value = (float) $value;
 
 		if (0 > $value && $this->isUnsigned()) {
 			$subject->reject($this->msg('invalid_unsigned_float_type'), $debug);
@@ -285,6 +278,6 @@ class TypeFloat extends Type implements BaseTypeInterface
 			return;
 		}
 
-		$subject->accept((float) $value);
+		$subject->accept($value);
 	}
 }
