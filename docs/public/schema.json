@@ -1,6 +1,6 @@
 {
 	"$schema": "http://json-schema.org/draft-07/schema#",
-	"$id": "https://gobl.silassare.com/schema.json",
+	"$id": "https://raw.githubusercontent.com/silassare/gobl/main/docs/public/schema.json",
 	"title": "Gobl Schema",
 	"type": "object",
 	"description": "A Gobl schema is an object where each key is a table name. Pass it to $db->loadSchema() or $db->ns()->schema(). Table names must match: ^[a-z]([a-z0-9_]*[a-z0-9])?$ - lowercase letters, digits, underscores; starts and ends with a letter or digit. Example: { \"users\": { \"columns\": { \"id\": { \"type\": \"bigint\", \"auto_increment\": true } } } }",
@@ -15,9 +15,7 @@
 		"table": {
 			"type": "object",
 			"description": "A single table definition. Only 'columns' is required; all other keys are optional. Example: { \"plural_name\": \"users\", \"singular_name\": \"user\", \"column_prefix\": \"user\", \"columns\": { \"id\": { \"type\": \"bigint\", \"auto_increment\": true, \"unsigned\": true } }, \"constraints\": [{ \"type\": \"primary_key\", \"columns\": [\"id\"] }] }",
-			"required": [
-				"columns"
-			],
+			"required": ["columns"],
 			"additionalProperties": false,
 			"properties": {
 				"plural_name": {
@@ -44,10 +42,7 @@
 					"type": "string",
 					"pattern": "^[a-zA-Z_][a-zA-Z0-9_]*(\\\\[a-zA-Z_][a-zA-Z0-9_]*)*$",
 					"description": "PHP namespace for the generated ORM classes. Overrides the namespace passed to $db->ns() for this specific table.",
-					"examples": [
-						"App\\Models",
-						"My\\App\\Entities"
-					]
+					"examples": ["App\\Models", "My\\App\\Entities"]
 				},
 				"diff_key": {
 					"type": "string",
@@ -121,10 +116,7 @@
 					"type": "string",
 					"pattern": "^(ref|cp):[a-z]([a-z0-9_]*[a-z0-9])?\\.([a-z]([a-z0-9_]*[a-z0-9])?)$",
 					"description": "'ref:table.column' inherits the target column's type options at schema-loading time. auto_increment is stripped - use this for foreign key columns. 'cp:table.column' also inherits type options but preserves auto_increment. Both create independent columns; extra options can be merged using the array form: { \"type\": \"ref:users.id\", \"nullable\": true }. diff_key is always stripped from both.",
-					"examples": [
-						"ref:users.id",
-						"cp:products.price"
-					]
+					"examples": ["ref:users.id", "cp:products.price"]
 				},
 				{
 					"$ref": "#/definitions/columnBigint"
@@ -161,9 +153,7 @@
 				},
 				{
 					"type": "object",
-					"required": [
-						"type"
-					],
+					"required": ["type"],
 					"additionalProperties": true,
 					"description": "Custom column type registered via TypeUtils::addTypeProvider(). The 'type' value must match a custom type name registered at runtime. All properties are allowed since the schema cannot know the custom type's option set.",
 					"properties": {
@@ -192,9 +182,7 @@
 		},
 		"columnBigint": {
 			"type": "object",
-			"required": [
-				"type"
-			],
+			"required": ["type"],
 			"additionalProperties": false,
 			"description": "64-bit signed integer column (BIGINT). Typical use: primary keys ('auto_increment: true, unsigned: true'), large counters, foreign keys. Stored as BIGINT in MySQL/PostgreSQL and INTEGER in SQLite.",
 			"properties": {
@@ -287,9 +275,7 @@
 		},
 		"columnInt": {
 			"type": "object",
-			"required": [
-				"type"
-			],
+			"required": ["type"],
 			"additionalProperties": false,
 			"description": "32-bit signed integer column (INT). Use bigint for primary keys that might exceed 2^31. Stored as INT in MySQL/PostgreSQL and INTEGER in SQLite.",
 			"properties": {
@@ -368,9 +354,7 @@
 		},
 		"columnFloat": {
 			"type": "object",
-			"required": [
-				"type"
-			],
+			"required": ["type"],
 			"additionalProperties": false,
 			"description": "IEEE 754 double-precision floating-point column (DOUBLE / FLOAT8). For monetary amounts use 'decimal' instead. Stored as DOUBLE in MySQL and FLOAT8 in PostgreSQL/SQLite.",
 			"properties": {
@@ -449,9 +433,7 @@
 		},
 		"columnDecimal": {
 			"type": "object",
-			"required": [
-				"type"
-			],
+			"required": ["type"],
 			"additionalProperties": false,
 			"description": "Fixed-point decimal column (DECIMAL(p, s)). Use for monetary amounts and other values requiring exact decimal representation. Stored as DECIMAL(p,s) in MySQL/PostgreSQL and NUMERIC(p,s) in SQLite.",
 			"properties": {
@@ -549,9 +531,7 @@
 		},
 		"columnBool": {
 			"type": "object",
-			"required": [
-				"type"
-			],
+			"required": ["type"],
 			"additionalProperties": false,
 			"description": "Boolean column stored as TINYINT(1) (MySQL), BOOLEAN (PostgreSQL), or INTEGER (SQLite). PHP true/false are stored as 1/0.",
 			"properties": {
@@ -617,9 +597,7 @@
 		},
 		"columnString": {
 			"type": "object",
-			"required": [
-				"type"
-			],
+			"required": ["type"],
 			"additionalProperties": false,
 			"description": "Variable-length string column (VARCHAR/TEXT). Use 'max' to set the length. Add 'medium: true' or 'long: true' for larger content. Stored as VARCHAR(max) in MySQL (TEXT when max > 255 or unset) and TEXT in PostgreSQL/SQLite.",
 			"properties": {
@@ -727,9 +705,7 @@
 		},
 		"columnEnum": {
 			"type": "object",
-			"required": [
-				"type"
-			],
+			"required": ["type"],
 			"additionalProperties": false,
 			"description": "Enum column backed by a PHP BackedEnum (string or int backing). The column stores the enum's backing value. On read, the stored value is passed to YourEnum::from() to return a typed enum instance. Required: 'enum_class'.",
 			"properties": {
@@ -798,9 +774,7 @@
 		},
 		"columnDate": {
 			"type": "object",
-			"required": [
-				"type"
-			],
+			"required": ["type"],
 			"additionalProperties": false,
 			"description": "Date/time column stored as BIGINT (Unix timestamp seconds) or DECIMAL(20,6) (microseconds). Input and output use PHP date() format. Automatic populate on INSERT/UPDATE is supported via 'auto: true'.",
 			"properties": {
@@ -817,12 +791,7 @@
 				"format": {
 					"type": "string",
 					"description": "PHP date() format for input/output conversion. Use 'timestamp' (default, Unix integer seconds) or any PHP date format (e.g. 'Y-m-d H:i:s', 'Y-m-d', DATE_ATOM).",
-					"examples": [
-						"timestamp",
-						"Y-m-d H:i:s",
-						"Y-m-d",
-						"c"
-					]
+					"examples": ["timestamp", "Y-m-d H:i:s", "Y-m-d", "c"]
 				},
 				"precision": {
 					"type": "string",
@@ -903,9 +872,7 @@
 		},
 		"columnMap": {
 			"type": "object",
-			"required": [
-				"type"
-			],
+			"required": ["type"],
 			"additionalProperties": false,
 			"description": "JSON object column (key-value map). Stored as TEXT or native JSON. Use 'native_json: true' to enable JSON path operators (contains, has_key) in filters. Maps to PHP associative arrays on read.",
 			"properties": {
@@ -976,9 +943,7 @@
 		},
 		"columnList": {
 			"type": "object",
-			"required": [
-				"type"
-			],
+			"required": ["type"],
 			"additionalProperties": false,
 			"description": "JSON array column (ordered list). Stored as TEXT or native JSON. Use 'native_json: true' to enable JSON path operators in filters. Use 'list_of' for typed code generation.",
 			"properties": {
@@ -1000,11 +965,7 @@
 				"list_of": {
 					"type": "string",
 					"description": "Element type hint for code generation and optional runtime revival. Use an ORMUniversalType value ('string', 'int', 'bigint', 'float', 'bool') for metadata only, or a FQCN implementing JsonOfInterface for typed revival (each element is passed through ClassName::revive() on read).",
-					"examples": [
-						"string",
-						"int",
-						"App\\Data\\Tag"
-					]
+					"examples": ["string", "int", "App\\Data\\Tag"]
 				},
 				"nullable": {
 					"type": "boolean",
@@ -1058,9 +1019,7 @@
 		},
 		"columnJson": {
 			"type": "object",
-			"required": [
-				"type"
-			],
+			"required": ["type"],
 			"additionalProperties": false,
 			"description": "Raw JSON document column (object or array root). Stored as TEXT or native JSON. Use 'native_json: true' for JSON path operators. Use 'json_of' for typed PHP objects. Use 'json_data_type' to restrict to array or object root.",
 			"properties": {
@@ -1082,17 +1041,11 @@
 				"json_of": {
 					"type": "string",
 					"description": "FQCN of a class implementing JsonOfInterface. On read, stored JSON is decoded and passed to ClassName::revive(). On write, instances are JSON-encoded. Enables typed ORM getters.",
-					"examples": [
-						"App\\Data\\UserProfile"
-					]
+					"examples": ["App\\Data\\UserProfile"]
 				},
 				"json_data_type": {
 					"type": "string",
-					"enum": [
-						"any",
-						"array",
-						"object"
-					],
+					"enum": ["any", "array", "object"],
 					"description": "Restricts the kind of JSON root document. 'any' (default): object or array. 'array': only a JSON array. 'object': only a JSON object. Ignored when json_of is set.",
 					"default": "any"
 				},
@@ -1149,19 +1102,12 @@
 		"constraint": {
 			"type": "object",
 			"description": "A table-level constraint. The 'type' and 'columns' properties are always required. For 'foreign_key', 'reference' is also required.",
-			"required": [
-				"type",
-				"columns"
-			],
+			"required": ["type", "columns"],
 			"additionalProperties": false,
 			"properties": {
 				"type": {
 					"type": "string",
-					"enum": [
-						"primary_key",
-						"unique_key",
-						"foreign_key"
-					],
+					"enum": ["primary_key", "unique_key", "foreign_key"],
 					"description": "primary_key: designates the PK column(s). Only one primary_key per table. unique_key: enforces uniqueness across the listed columns. foreign_key: adds a FK constraint referencing another table's PK or UK."
 				},
 				"columns": {
@@ -1232,18 +1178,13 @@
 				}
 			},
 			"then": {
-				"required": [
-					"reference"
-				]
+				"required": ["reference"]
 			}
 		},
 		"relation": {
 			"type": "object",
 			"description": "A named relation from this table to a target table. For simple FK-based relations (one-to-many, many-to-one), omit 'link' - Gobl auto-detects the join columns from the foreign key constraint. Use 'link' for polymorphic (morph), pivot (through), or custom (join) cases.",
-			"required": [
-				"type",
-				"target"
-			],
+			"required": ["type", "target"],
 			"additionalProperties": false,
 			"properties": {
 				"type": {
@@ -1280,20 +1221,13 @@
 		},
 		"relationLink": {
 			"type": "object",
-			"required": [
-				"type"
-			],
+			"required": ["type"],
 			"additionalProperties": true,
 			"description": "Describes how the host table and target table are joined. The 'type' property selects the strategy; other properties depend on the type.",
 			"properties": {
 				"type": {
 					"type": "string",
-					"enum": [
-						"columns",
-						"morph",
-						"through",
-						"join"
-					],
+					"enum": ["columns", "morph", "through", "join"],
 					"description": "'columns': link via explicit or auto-detected FK columns (default for most relations). 'morph': polymorphic link via {prefix}_id / {prefix}_type columns. 'through': many-to-many via a pivot table. 'join': multi-step custom join across intermediate tables."
 				},
 				"columns": {
@@ -1343,10 +1277,7 @@
 					"properties": {
 						"type": {
 							"type": "string",
-							"enum": [
-								"columns",
-								"morph"
-							],
+							"enum": ["columns", "morph"],
 							"description": "Link type for the host-to-pivot leg."
 						},
 						"columns": {
@@ -1369,10 +1300,7 @@
 					"properties": {
 						"type": {
 							"type": "string",
-							"enum": [
-								"columns",
-								"morph"
-							],
+							"enum": ["columns", "morph"],
 							"description": "Link type for the pivot-to-target leg."
 						},
 						"columns": {
@@ -1393,9 +1321,7 @@
 					"description": "join link: ordered list of join steps. Each step joins to an intermediate table. The final step lands on the target table (auto-linked if omitted from steps).",
 					"items": {
 						"type": "object",
-						"required": [
-							"join"
-						],
+						"required": ["join"],
 						"additionalProperties": false,
 						"properties": {
 							"join": {
@@ -1410,10 +1336,7 @@
 								"properties": {
 									"type": {
 										"type": "string",
-										"enum": [
-											"columns",
-											"morph"
-										]
+										"enum": ["columns", "morph"]
 									},
 									"columns": {
 										"type": "object",
@@ -1434,9 +1357,7 @@
 		"index": {
 			"type": "object",
 			"description": "A table index definition. Indexes speed up queries but do not enforce uniqueness (use a unique_key constraint for that). Supported index types vary by driver.",
-			"required": [
-				"columns"
-			],
+			"required": ["columns"],
 			"additionalProperties": false,
 			"properties": {
 				"columns": {

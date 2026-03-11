@@ -149,7 +149,7 @@ application bootstrap:
 ```php
 use Gobl\Gobl;
 
-Gobl::setDefaultSchemaUrl('https://silassare.github.io/gobl/schema.json');
+Gobl::setDefaultSchemaUrl('https://raw.githubusercontent.com/silassare/gobl/main/docs/public/schema.json');
 ```
 
 Then export with `toSchemaJson()` to produce a file that includes the `$schema` key:

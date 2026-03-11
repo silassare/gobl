@@ -21,7 +21,7 @@ full auto-complete and validation in VS Code:
 
 ```json
 {
-	"$schema": "https://gobl.silassare.com/schema.json",
+	"$schema": "https://raw.githubusercontent.com/silassare/gobl/main/docs/public/schema.json",
 	"users": {
 		"singular_name": "user",
 		"columns": {
@@ -39,7 +39,7 @@ Or configure VS Code globally by adding to `.vscode/settings.json`:
 	"json.schemas": [
 		{
 			"fileMatch": ["**/schema/*.json", "**/tables/*.json"],
-			"url": "https://gobl.silassare.com/schema.json"
+			"url": "https://raw.githubusercontent.com/silassare/gobl/main/docs/public/schema.json"
 		}
 	]
 }
@@ -63,7 +63,7 @@ and [Schema Definition](./schema.md).
 | Section        | Keys                                                                                                                                      |
 | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | **Table**      | `singular_name`, `plural_name`, `column_prefix`, `prefix`, `namespace`, `charset`, `collate`, `private`, `meta`, `morph_type`, `diff_key` |
-| **Column**     | `type`, `nullable`, `auto_increment`, `default`, `prefix`, `private`, `sensitive`, `meta`, ... + type-specific options                      |
+| **Column**     | `type`, `nullable`, `auto_increment`, `default`, `prefix`, `private`, `sensitive`, `meta`, ... + type-specific options                    |
 | **Constraint** | `type` (`primary_key` / `unique_key` / `foreign_key`), `columns`, `reference`, `update`, `delete`                                         |
 | **Relation**   | `type` (`one-to-one` / `one-to-many` / `many-to-one` / `many-to-many`), `target`, `link`                                                  |
-| **Index**      | `columns`, `type` (`BTREE`, `HASH`, `MYSQL_FULLTEXT`, `PGSQL_GIN`, ...)                                                                     |
+| **Index**      | `columns`, `type` (`BTREE`, `HASH`, `MYSQL_FULLTEXT`, `PGSQL_GIN`, ...)                                                                   |

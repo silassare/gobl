@@ -25,15 +25,15 @@ composer require silassare/gobl
 
 ## Documentation
 
-Full documentation at **https://gobl.silassare.com/guide/**
+Full documentation on GitHub:
 
-- [Quick Start](https://gobl.silassare.com/guide/quick-start)
-- [Schema Definition](https://gobl.silassare.com/guide/schema)
-- [Column Types](https://gobl.silassare.com/guide/column-types)
-- [Query Builder](https://gobl.silassare.com/guide/query-builder)
-- [Filters](https://gobl.silassare.com/guide/filters)
-- [ORM & Code Generation](https://gobl.silassare.com/guide/orm)
-- [CRUD Events](https://gobl.silassare.com/guide/crud-events)
+- [Quick Start](https://github.com/silassare/gobl/blob/main/docs/guide/quick-start.md)
+- [Schema Definition](https://github.com/silassare/gobl/blob/main/docs/guide/schema.md)
+- [Column Types](https://github.com/silassare/gobl/blob/main/docs/guide/column-types.md)
+- [Query Builder](https://github.com/silassare/gobl/blob/main/docs/guide/query-builder.md)
+- [Filters](https://github.com/silassare/gobl/blob/main/docs/guide/filters.md)
+- [ORM & Code Generation](https://github.com/silassare/gobl/blob/main/docs/guide/orm.md)
+- [CRUD Events](https://github.com/silassare/gobl/blob/main/docs/guide/crud-events.md)
 
 ## Quick example
 
