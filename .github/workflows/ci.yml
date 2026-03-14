@@ -95,9 +95,9 @@ jobs:
               run: ./vendor/bin/phpunit --no-coverage
 
             - name: Check code style
-              if: matrix.php == '8.3'
+              if: matrix.php == '8.4'
               run: vendor/bin/php-cs-fixer fix --dry-run --diff
 
             - name: Run Psalm static analysis
-              if: matrix.php == '8.3'
+              if: matrix.php == '8.4'
               run: ./vendor/bin/psalm --no-progress
