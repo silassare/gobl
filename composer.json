@@ -27,8 +27,10 @@
 	"homepage": "https://github.com/silassare/gobl#readme",
 	"archive": {
 		"exclude": [
-			"/tests/",
+			"tests/",
+			"docs/",
 			".github/",
+			".vscode/",
 			".env.test.example",
 			".env.test",
 			"phpunit.xml.dist",
