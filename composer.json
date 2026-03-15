@@ -24,6 +24,11 @@
 		"phpunit/phpunit": "^9.5.9",
 		"vimeo/psalm": "^6.0"
 	},
+	"suggest": {
+		"ext-pdo_mysql": "Required to use the MySQL driver.",
+		"ext-sqlite3": "Required to use the SQLite driver.",
+		"ext-pdo_pgsql": "Required to use the PostgreSQL driver."
+	},
 	"homepage": "https://github.com/silassare/gobl#readme",
 	"archive": {
 		"exclude": [
