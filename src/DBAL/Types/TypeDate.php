@@ -20,6 +20,7 @@ use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
 use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
+use Override;
 
 /**
  * Class TypeDate.
@@ -47,6 +48,7 @@ class TypeDate extends Type
 		parent::__construct(self::chooseBaseType());
 	}
 
+	#[Override]
 	public static function getInstance(array $options): static
 	{
 		return (new self())->configure($options);
@@ -57,6 +59,7 @@ class TypeDate extends Type
 	 *
 	 * @throws TypesException
 	 */
+	#[Override]
 	public function configure(array $options): static
 	{
 		if (isset($options['precision']) && 'microseconds' === $options['precision']) {
@@ -183,6 +186,7 @@ class TypeDate extends Type
 		return $this;
 	}
 
+	#[Override]
 	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?string
 	{
 		if (null === $value) {
@@ -205,6 +209,7 @@ class TypeDate extends Type
 		return $value;
 	}
 
+	#[Override]
 	public function default(mixed $default): static
 	{
 		$this->base_type->default($default);
@@ -212,6 +217,7 @@ class TypeDate extends Type
 		return parent::default($default);
 	}
 
+	#[Override]
 	public function getName(): string
 	{
 		return self::NAME;
@@ -222,6 +228,7 @@ class TypeDate extends Type
 	 *
 	 * @throws TypesInvalidValueException
 	 */
+	#[Override]
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
 	{
 		return $this->validate($value)->getCleanValue();
@@ -245,6 +252,7 @@ class TypeDate extends Type
 		return 'microseconds' === $this->getOption('precision');
 	}
 
+	#[Override]
 	public function getDefault(): ?string
 	{
 		$default = parent::getDefault();
@@ -260,11 +268,13 @@ class TypeDate extends Type
 		return null;
 	}
 
+	#[Override]
 	public function castValueForFilter(mixed $value, Operator $operator, RDBMSInterface $rdbms): float|int|string|null
 	{
 		return $this->phpToDb($value, $rdbms);
 	}
 
+	#[Override]
 	public function shouldEnforceDefaultValue(RDBMSInterface $rdbms): bool
 	{
 		return false;
@@ -275,6 +285,7 @@ class TypeDate extends Type
 	 *
 	 * @throws TypesInvalidValueException
 	 */
+	#[Override]
 	protected function runValidation(ValidationSubjectInterface $subject): void
 	{
 		$value = $subject->getUnsafeValue();

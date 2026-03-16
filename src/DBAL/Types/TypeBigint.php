@@ -20,6 +20,7 @@ use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
 use Gobl\ORM\ORMTypeHint;
 use Gobl\ORM\ORMUniversalType;
+use Override;
 
 /**
  * Class TypeBigint.
@@ -140,6 +141,7 @@ class TypeBigint extends BaseType
 		return (bool) $this->getOption('unsigned', false);
 	}
 
+	#[Override]
 	public static function getInstance(array $options): static
 	{
 		return (new self())->configure($options);
@@ -150,6 +152,7 @@ class TypeBigint extends BaseType
 	 *
 	 * @throws TypesException
 	 */
+	#[Override]
 	public function configure(array $options): static
 	{
 		if (isset($options['min'])) {
@@ -167,26 +170,31 @@ class TypeBigint extends BaseType
 		return parent::configure($options);
 	}
 
+	#[Override]
 	public function getName(): string
 	{
 		return self::NAME;
 	}
 
+	#[Override]
 	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?string
 	{
 		return null === $value ? null : (string) $value;
 	}
 
+	#[Override]
 	public function getEmptyValueOfType(): ?int
 	{
 		return $this->isNullable() ? null : 0;
 	}
 
+	#[Override]
 	public function getReadTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::bigint();
 	}
 
+	#[Override]
 	public function getWriteTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::bigint()
@@ -198,11 +206,13 @@ class TypeBigint extends BaseType
 	 *
 	 * @throws TypesException
 	 */
+	#[Override]
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
 	{
 		return $this->validate($value)->getCleanValue();
 	}
 
+	#[Override]
 	public function castValueForFilter(mixed $value, Operator $operator, RDBMSInterface $rdbms): float|int|string|null
 	{
 		return $this->phpToDb($value, $rdbms);
@@ -213,6 +223,7 @@ class TypeBigint extends BaseType
 	 *
 	 * @throws TypesInvalidValueException
 	 */
+	#[Override]
 	protected function runValidation(ValidationSubjectInterface $subject): void
 	{
 		$value = $subject->getUnsafeValue();

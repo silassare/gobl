@@ -31,6 +31,7 @@ use Gobl\DBAL\Traits\MetadataTrait;
 use Gobl\Exceptions\GoblRuntimeException;
 use InvalidArgumentException;
 use OLIUP\CG\PHPNamespace;
+use Override;
 use PHPUtils\Interfaces\ArrayCapableInterface;
 use PHPUtils\Interfaces\LockInterface;
 use PHPUtils\Traits\ArrayCapableTrait;
@@ -409,6 +410,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 	 *
 	 * @return $this
 	 */
+	#[Override]
 	public function lock(): static
 	{
 		if (!$this->locked) {
@@ -1748,6 +1750,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 		return $row;
 	}
 
+	#[Override]
 	public function toArray(): array
 	{
 		$options = [
@@ -1814,6 +1817,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 		return $options;
 	}
 
+	#[Override]
 	public function getDiffKey(): string
 	{
 		if (empty($this->diff_key)) {
@@ -1823,6 +1827,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 		return $this->diff_key;
 	}
 
+	#[Override]
 	public function setDiffKey(string $diff_key): self
 	{
 		$this->assertNotLocked();

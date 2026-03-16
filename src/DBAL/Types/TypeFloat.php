@@ -20,6 +20,7 @@ use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
 use Gobl\ORM\ORMTypeHint;
 use Gobl\ORM\ORMUniversalType;
+use Override;
 
 /**
  * Class TypeFloat.
@@ -138,6 +139,7 @@ class TypeFloat extends BaseType
 		return (bool) $this->getOption('unsigned', false);
 	}
 
+	#[Override]
 	public static function getInstance(array $options): static
 	{
 		return (new self())->configure($options);
@@ -148,6 +150,7 @@ class TypeFloat extends BaseType
 	 *
 	 * @throws TypesException
 	 */
+	#[Override]
 	public function configure(array $options): static
 	{
 		if (isset($options['min'])) {
@@ -189,26 +192,31 @@ class TypeFloat extends BaseType
 		return $this->setOption('mantissa', $mantissa);
 	}
 
+	#[Override]
 	public function getName(): string
 	{
 		return self::NAME;
 	}
 
+	#[Override]
 	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?float
 	{
 		return null === $value ? null : (float) $value;
 	}
 
+	#[Override]
 	public function getEmptyValueOfType(): ?float
 	{
 		return $this->isNullable() ? null : 0.0;
 	}
 
+	#[Override]
 	public function getReadTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::float();
 	}
 
+	#[Override]
 	public function getWriteTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::float()
@@ -220,11 +228,13 @@ class TypeFloat extends BaseType
 	 *
 	 * @throws TypesInvalidValueException
 	 */
+	#[Override]
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?float
 	{
 		return $this->validate($value)->getCleanValue();
 	}
 
+	#[Override]
 	public function castValueForFilter(mixed $value, Operator $operator, RDBMSInterface $rdbms): float|int|string|null
 	{
 		return $this->phpToDb($value, $rdbms);
@@ -235,6 +245,7 @@ class TypeFloat extends BaseType
 	 *
 	 * @throws TypesInvalidValueException
 	 */
+	#[Override]
 	protected function runValidation(ValidationSubjectInterface $subject): void
 	{
 		$value = $subject->getUnsafeValue();

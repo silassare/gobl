@@ -16,6 +16,7 @@ namespace Gobl\DBAL\Diff\Actions;
 use Gobl\DBAL\Diff\DiffAction;
 use Gobl\DBAL\Diff\DiffActionType;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
+use Override;
 
 /**
  * Class DBCollateChanged.
@@ -43,6 +44,7 @@ final class DBCollateChanged extends DiffAction
 		return $this->db;
 	}
 
+	#[Override]
 	public function toArray(): array
 	{
 		return [

@@ -15,6 +15,7 @@ namespace Gobl\DBAL\Constraints;
 
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Table;
+use Override;
 
 /**
  * Class PrimaryKey.
@@ -81,8 +82,10 @@ final class PrimaryKey extends Constraint
 		return $this->columns;
 	}
 
+	#[Override]
 	public function assertIsValid(): void {}
 
+	#[Override]
 	public function toArray(): array
 	{
 		$columns = [];

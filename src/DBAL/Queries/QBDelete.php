@@ -21,6 +21,7 @@ use Gobl\DBAL\Queries\Traits\QBJoinsTrait;
 use Gobl\DBAL\Queries\Traits\QBLimitTrait;
 use Gobl\DBAL\Queries\Traits\QBOrderByTrait;
 use Gobl\DBAL\Queries\Traits\QBWhereTrait;
+use Override;
 use PDOStatement;
 
 /**
@@ -53,6 +54,7 @@ class QBDelete implements QBInterface
 		$this->disable_duplicate_from = true;
 	}
 
+	#[Override]
 	public function getType(): QBType
 	{
 		return QBType::DELETE;
@@ -63,6 +65,7 @@ class QBDelete implements QBInterface
 	 *
 	 * @return int
 	 */
+	#[Override]
 	public function execute(): int
 	{
 		$sql    = $this->getSqlQuery();

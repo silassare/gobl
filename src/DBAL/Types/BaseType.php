@@ -15,6 +15,7 @@ namespace Gobl\DBAL\Types;
 
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
+use Override;
 
 /**
  * Class BaseType.
@@ -28,11 +29,13 @@ use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
  */
 abstract class BaseType extends Type implements BaseTypeInterface
 {
+	#[Override]
 	public function shouldCastExpressionForQuery(RDBMSInterface $rdbms): bool
 	{
 		return false;
 	}
 
+	#[Override]
 	public function castExpressionForQuery(string $expression, RDBMSInterface $rdbms): string
 	{
 		return $expression;

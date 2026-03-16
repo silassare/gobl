@@ -15,6 +15,7 @@ namespace Gobl\DBAL\Constraints;
 
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Table;
+use Override;
 
 /**
  * Class UniqueKey.
@@ -63,8 +64,10 @@ final class UniqueKey extends Constraint
 		return $this->columns;
 	}
 
+	#[Override]
 	public function assertIsValid(): void {}
 
+	#[Override]
 	public function toArray(): array
 	{
 		$columns = [];

@@ -25,6 +25,7 @@ use Gobl\ORM\ORMTypeHint;
 use Gobl\ORM\ORMUniversalType;
 use JsonException;
 use OLIUP\CG\PHPType;
+use Override;
 
 /**
  * Class TypeMap.
@@ -50,6 +51,7 @@ class TypeMap extends Type
 		parent::__construct($base);
 	}
 
+	#[Override]
 	public static function getInstance(array $options): static
 	{
 		return (new self())->configure($options);
@@ -60,6 +62,7 @@ class TypeMap extends Type
 	 *
 	 * @throws JsonException
 	 */
+	#[Override]
 	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?Map
 	{
 		if (null === $value || '' === $value) {
@@ -75,11 +78,13 @@ class TypeMap extends Type
 		return new Map($v);
 	}
 
+	#[Override]
 	public function getEmptyValueOfType(): ?Map
 	{
 		return $this->isNullable() ? null : new Map();
 	}
 
+	#[Override]
 	public function getName(): string
 	{
 		return self::NAME;
@@ -115,6 +120,7 @@ class TypeMap extends Type
 		return $this->setOption('big', $big);
 	}
 
+	#[Override]
 	public function configure(array $options): static
 	{
 		if (isset($options['native_json'])) {
@@ -136,6 +142,7 @@ class TypeMap extends Type
 	 * CONTAINS and HAS_KEY including their path-aware variants) are handled
 	 * correctly by TypeJSON's path-aware implementation.
 	 */
+	#[Override]
 	public function queryBuilderApplyFilter(ORMTableQuery $qb, Column $column, Operator $operator, array $args): void
 	{
 		$this->safelyCallOnBaseType(__FUNCTION__, [$qb, $column, $operator, $args]);
@@ -144,6 +151,7 @@ class TypeMap extends Type
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getReadTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::map();
@@ -155,6 +163,7 @@ class TypeMap extends Type
 	 * Accepts {@see Map}, array, or {@see JsonPatch}.
 	 * A {@see JsonPatch} instance is coerced to a {@see Map} inside {@see validate()}.
 	 */
+	#[Override]
 	public function getWriteTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::map()
@@ -169,6 +178,7 @@ class TypeMap extends Type
 	 * @throws JsonException
 	 * @throws TypesInvalidValueException
 	 */
+	#[Override]
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
 	{
 		$value = $this->validate($value)->getCleanValue();
@@ -185,6 +195,7 @@ class TypeMap extends Type
 	 *
 	 * @throws TypesInvalidValueException
 	 */
+	#[Override]
 	public function getDefault(): ?Map
 	{
 		$default = parent::getDefault();
@@ -201,6 +212,7 @@ class TypeMap extends Type
 	 *
 	 * @throws TypesInvalidValueException
 	 */
+	#[Override]
 	protected function runValidation(ValidationSubjectInterface $subject): void
 	{
 		$value = $subject->getUnsafeValue();

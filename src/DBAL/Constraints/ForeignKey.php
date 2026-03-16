@@ -15,6 +15,7 @@ namespace Gobl\DBAL\Constraints;
 
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Table;
+use Override;
 
 /**
  * Class ForeignKey.
@@ -280,6 +281,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @throws DBALException
 	 */
+	#[Override]
 	public function assertIsValid(): void
 	{
 		// necessary when whe have
@@ -342,6 +344,7 @@ final class ForeignKey extends Constraint
 		return \array_values($this->columns_map);
 	}
 
+	#[Override]
 	public function toArray(): array
 	{
 		$columns = [];

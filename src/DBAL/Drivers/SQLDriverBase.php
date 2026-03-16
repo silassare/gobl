@@ -22,6 +22,7 @@ use Gobl\DBAL\Drivers\SQLite\SQLite;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Queries\QBUtils;
 use Gobl\Gobl;
+use Override;
 use PDOException;
 use PDOStatement;
 
@@ -41,11 +42,13 @@ abstract class SQLDriverBase extends Db
 	 */
 	protected function __construct(protected DbConfig $config) {}
 
+	#[Override]
 	public function getConfig(): DbConfig
 	{
 		return $this->config;
 	}
 
+	#[Override]
 	public function runInTransaction(Closure $callable): mixed
 	{
 		$failed  = true;
@@ -71,6 +74,7 @@ abstract class SQLDriverBase extends Db
 	 *
 	 * @throws DBALException
 	 */
+	#[Override]
 	public function beginTransaction(): bool
 	{
 		$con = $this->getConnection();
@@ -95,6 +99,7 @@ abstract class SQLDriverBase extends Db
 	 *
 	 * @throws DBALException
 	 */
+	#[Override]
 	public function commit(): bool
 	{
 		if ($this->transaction_counter > 0) {
@@ -122,6 +127,7 @@ abstract class SQLDriverBase extends Db
 	 *
 	 * @throws DBALException
 	 */
+	#[Override]
 	public function rollBack(): bool
 	{
 		if ($this->transaction_counter > 0) {
@@ -144,6 +150,7 @@ abstract class SQLDriverBase extends Db
 	 *
 	 * @throws DBALException
 	 */
+	#[Override]
 	public function execute(
 		$sql,
 		?array $params = null,
@@ -222,6 +229,7 @@ abstract class SQLDriverBase extends Db
 	 *
 	 * @throws Exception
 	 */
+	#[Override]
 	public function executeMulti($sql): PDOStatement
 	{
 		$db_type = $this->getType();
@@ -255,6 +263,7 @@ abstract class SQLDriverBase extends Db
 	 *
 	 * @throws DBALException
 	 */
+	#[Override]
 	public function select($sql, ?array $params = null, array $params_types = []): PDOStatement
 	{
 		return $this->execute($sql, $params, $params_types);
@@ -265,6 +274,7 @@ abstract class SQLDriverBase extends Db
 	 *
 	 * @throws DBALException
 	 */
+	#[Override]
 	public function delete($sql, ?array $params = null, array $params_types = []): int
 	{
 		return $this->query($sql, $params, $params_types);
@@ -275,6 +285,7 @@ abstract class SQLDriverBase extends Db
 	 *
 	 * @throws DBALException
 	 */
+	#[Override]
 	public function insert($sql, ?array $params = null, array $params_types = []): false|string
 	{
 		// To be able to get the last inserted id
@@ -299,6 +310,7 @@ abstract class SQLDriverBase extends Db
 	 *
 	 * @throws DBALException
 	 */
+	#[Override]
 	public function update($sql, ?array $params = null, array $params_types = []): int
 	{
 		return $this->query($sql, $params, $params_types);

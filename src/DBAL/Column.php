@@ -22,6 +22,7 @@ use Gobl\DBAL\Types\TypeString;
 use Gobl\DBAL\Types\Utils\TypeUtils;
 use Gobl\Gobl;
 use InvalidArgumentException;
+use Override;
 use PHPUtils\Interfaces\ArrayCapableInterface;
 use PHPUtils\Traits\ArrayCapableTrait;
 use PHPUtils\Traits\LockTrait;
@@ -502,6 +503,7 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 		return $this;
 	}
 
+	#[Override]
 	public function toArray(): array
 	{
 		$options = [
@@ -534,6 +536,7 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 		return $options;
 	}
 
+	#[Override]
 	public function getDiffKey(): string
 	{
 		if (empty($this->diff_key)) {
@@ -544,6 +547,7 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 		return $this->diff_key;
 	}
 
+	#[Override]
 	public function setDiffKey(string $diff_key): self
 	{
 		$this->assertNotLocked();

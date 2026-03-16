@@ -30,6 +30,7 @@ use Gobl\DBAL\Queries\QBUpdate;
 use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\Utils\JsonPath;
 use Gobl\Gobl;
+use Override;
 
 /**
  * Class SQLiteQueryGenerator.
@@ -58,6 +59,7 @@ class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 		}
 	}
 
+	#[Override]
 	public function wrapDatabaseDefinitionQuery(string $query): string
 	{
 		return $query;
@@ -70,6 +72,7 @@ class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 	 * This override builds all constraints (FOREIGN KEY, UNIQUE) inline inside each
 	 * CREATE TABLE statement rather than as separate ALTER TABLE... ADD statements.
 	 */
+	#[Override]
 	public function buildDatabase(?string $namespace = null): string
 	{
 		$tables             = $this->db->getTables($namespace);
@@ -138,6 +141,7 @@ class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 		]);
 	}
 
+	#[Override]
 	public function quoteIdentifier(string $name): string
 	{
 		return '"' . \str_replace('"', '""', $name) . '"';
@@ -149,6 +153,7 @@ class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 	 * SQLite JSON path extraction: json_extract returns the value without surrounding quotes,
 	 * so no UNQUOTE wrapper is needed.
 	 */
+	#[Override]
 	public function getJsonPathExtractionExpression(JsonPath $json_path): string
 	{
 		$col_fqn  =  $this->getJsonPathColumnFQN($json_path);
@@ -162,6 +167,7 @@ class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 	 *
 	 * SQLite does not support JSON containment checks equivalent to `JSON_CONTAINS` or `@>`.
 	 */
+	#[Override]
 	public function getJsonContainsExpression(string $left, string $right): string
 	{
 		throw new DBALRuntimeException(
@@ -175,21 +181,25 @@ class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 	 *
 	 * SQLite key existence via json_extract: `json_extract(col, '$.' || key) IS NOT NULL`
 	 */
+	#[Override]
 	public function getJsonHasKeyExpression(string $col_sql_expression, string $key_expression): string
 	{
 		return 'json_extract(' . $col_sql_expression . ', \'$.\'||' . $key_expression . ') IS NOT NULL';
 	}
 
+	#[Override]
 	protected function dbQueryTemplate(): string
 	{
 		return 'sqlite_db';
 	}
 
+	#[Override]
 	protected function createTableQueryTemplate(): string
 	{
 		return 'sqlite_create_table';
 	}
 
+	#[Override]
 	protected function getStringColumnDefinition(Column $column): string
 	{
 		$column_name = $column->getFullName();
@@ -221,6 +231,7 @@ class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 	 * SQLite has no JSON containment function equivalent to MySQL's JSON_CONTAINS or PostgreSQL's @>.
 	 * Use JSON path equality filters as a workaround if applicable to your use case.
 	 */
+	#[Override]
 	protected function operatorFilterToExpression(Filter $filter): string
 	{
 		if (Operator::CONTAINS === $filter->getOperator()) {
@@ -237,6 +248,7 @@ class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 	 * {@inheritDoc}
 	 * SQLite uses INTEGER (0/1) for boolean.
 	 */
+	#[Override]
 	protected function getBoolColumnDefinition(Column $column): string
 	{
 		$column_name = $column->getFullName();
@@ -251,6 +263,7 @@ class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 	 * {@inheritDoc}
 	 * SQLite uses INTEGER for all integer types.
 	 */
+	#[Override]
 	protected function getIntColumnDefinition(Column $column): string
 	{
 		$column_name = $column->getFullName();
@@ -274,6 +287,7 @@ class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 	 * {@inheritDoc}
 	 * SQLite uses INTEGER for bigint as well.
 	 */
+	#[Override]
 	protected function getBigintColumnDefinition(Column $column): string
 	{
 		$column_name = $column->getFullName();
@@ -298,6 +312,7 @@ class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 	 * SQLite requires AUTOINCREMENT to be declared inline with PRIMARY KEY.
 	 * When a single-column PK uses auto-increment, skip the separate CONSTRAINT clause.
 	 */
+	#[Override]
 	protected function getTablePrimaryKeysDefinitionString(Table $table, bool $alter): string
 	{
 		$pk = $table->getPrimaryKeyConstraint();
@@ -326,6 +341,7 @@ class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 	 *
 	 * @throws DBALException
 	 */
+	#[Override]
 	protected function getFloatColumnDefinition(Column $column): string
 	{
 		$this->checkFloatColumn($column);
@@ -345,6 +361,7 @@ class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 	 *
 	 * @throws DBALException
 	 */
+	#[Override]
 	protected function getDecimalColumnDefinition(Column $column): string
 	{
 		$this->checkDecimalColumn($column);
@@ -373,6 +390,7 @@ class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 		return \implode(' ', $sql);
 	}
 
+	#[Override]
 	protected function getIndexSQL(Index $index): string
 	{
 		$table_name   = $index->getHostTable()->getFullName();
@@ -396,6 +414,7 @@ class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 	 * When LIMIT is absent the standard base-class implementation is used.
 	 * ORDER BY without LIMIT still throws via the (inherited) guard.
 	 */
+	#[Override]
 	protected function getUpdateQuery(QBUpdate $qb): string
 	{
 		$max = $qb->getOptionsLimitMax();
@@ -450,6 +469,7 @@ class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 	 *
 	 * ORDER BY without LIMIT still throws via the guard.
 	 */
+	#[Override]
 	protected function getDeleteQuery(QBDelete $qb): string
 	{
 		$from_map = $qb->getOptionsFrom();
@@ -516,6 +536,7 @@ class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 	 * Note: RIGHT JOINs nested inside sub-join chains (i.e. not directly off a FROM
 	 * table) are not emulated on older SQLite and will throw via {@see getJoinQueryFor}.
 	 */
+	#[Override]
 	protected function getFromQuery(QBDelete|QBSelect $qb): string
 	{
 		if ($this->supportsNativeRightJoin()) {
@@ -598,6 +619,7 @@ class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 	 * at `$table_alias` is walked for any RIGHT JOIN, since the base class's
 	 * `buildJoinSql` is private and cannot be overridden to intercept sub-level joins.
 	 */
+	#[Override]
 	protected function getJoinQueryFor(QBDelete|QBSelect $qb, string $table_alias): string
 	{
 		if (!$this->supportsNativeRightJoin()) {
@@ -612,6 +634,7 @@ class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 	 *
 	 * SQLite uses `INSERT OR IGNORE INTO` for conflict-ignore mode.
 	 */
+	#[Override]
 	protected function getInsertKeyword(QBInsert $qb): string
 	{
 		if ('ignore' === ($qb->getOptionsOnConflict()['action'] ?? null)) {
@@ -629,6 +652,7 @@ class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 	 *   - update: `ON CONFLICT (cols) DO UPDATE SET col = EXCLUDED.col [, ...]`
 	 *             Conflict columns are required; throws if omitted.
 	 */
+	#[Override]
 	protected function getOnConflictClause(QBInsert $qb): string
 	{
 		$conflict = $qb->getOptionsOnConflict();
@@ -666,6 +690,7 @@ class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 	 *
 	 * SQLite supports RETURNING since version 3.35.0 (March 2021) on INSERT, UPDATE, and DELETE.
 	 */
+	#[Override]
 	protected function getReturningClause(QBDelete|QBInsert|QBUpdate $qb): string
 	{
 		$opts = $qb->getOptionsReturning();

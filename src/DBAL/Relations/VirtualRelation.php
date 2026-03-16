@@ -21,6 +21,7 @@ use Gobl\ORM\ORM;
 use Gobl\ORM\ORMEntity;
 use InvalidArgumentException;
 use JsonSerializable;
+use Override;
 
 /**
  * Class VirtualRelation.
@@ -76,16 +77,19 @@ abstract class VirtualRelation implements VirtualRelationInterface
 		$this->paginated  = $paginated;
 	}
 
+	#[Override]
 	public function isPaginated(): bool
 	{
 		return $this->paginated;
 	}
 
+	#[Override]
 	public function getName(): string
 	{
 		return $this->name;
 	}
 
+	#[Override]
 	public function getHostTable(): Table
 	{
 		return $this->host_table;

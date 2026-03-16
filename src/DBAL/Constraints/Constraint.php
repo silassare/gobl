@@ -16,6 +16,7 @@ namespace Gobl\DBAL\Constraints;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Table;
 use InvalidArgumentException;
+use Override;
 use PHPUtils\Interfaces\ArrayCapableInterface;
 use PHPUtils\Interfaces\LockInterface;
 use PHPUtils\Traits\ArrayCapableTrait;
@@ -123,6 +124,7 @@ abstract class Constraint implements ArrayCapableInterface, LockInterface
 	 *
 	 * @return $this
 	 */
+	#[Override]
 	public function lock(): static
 	{
 		if (!$this->locked) {
@@ -144,6 +146,7 @@ abstract class Constraint implements ArrayCapableInterface, LockInterface
 	 *
 	 * @throws DBALException
 	 */
+	#[Override]
 	public function assertNotLocked(): void
 	{
 		if ($this->locked) {

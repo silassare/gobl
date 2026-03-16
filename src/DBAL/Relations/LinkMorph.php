@@ -19,6 +19,7 @@ use Gobl\DBAL\Queries\QBExpression;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Table;
 use Gobl\ORM\ORMEntity;
+use Override;
 
 /**
  * Class LinkMorph.
@@ -232,6 +233,7 @@ final class LinkMorph extends Link
 	 * Returns `false` when `host_is_parent = false` (child cannot resolve the parent from itself)
 	 * or when the parent-key column value on the entity is `null`.
 	 */
+	#[Override]
 	public function fillRelation(ORMEntity $host_entity, array &$target_data = []): bool
 	{
 		if ($this->host_is_parent) {
@@ -267,6 +269,7 @@ final class LinkMorph extends Link
 	 *
 	 * Returns `false` when an entity is provided but the relevant key column value is `null`.
 	 */
+	#[Override]
 	public function runLinkTypeApplyLogic(QBSelect $target_qb, ?ORMEntity $host_entity = null): bool
 	{
 		$filters = $target_qb->filters();
@@ -342,6 +345,7 @@ final class LinkMorph extends Link
 		return true;
 	}
 
+	#[Override]
 	public function toArray(): array
 	{
 		return [

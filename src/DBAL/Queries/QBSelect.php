@@ -24,6 +24,7 @@ use Gobl\DBAL\Queries\Traits\QBLimitTrait;
 use Gobl\DBAL\Queries\Traits\QBOrderByTrait;
 use Gobl\DBAL\Queries\Traits\QBWhereTrait;
 use Gobl\DBAL\Table;
+use Override;
 use PDOStatement;
 
 /**
@@ -49,6 +50,7 @@ class QBSelect implements QBInterface
 	 */
 	public function __construct(protected RDBMSInterface $db) {}
 
+	#[Override]
 	public function getType(): QBType
 	{
 		return QBType::SELECT;
@@ -109,6 +111,7 @@ class QBSelect implements QBInterface
 	 *
 	 * @return PDOStatement
 	 */
+	#[Override]
 	public function execute(): PDOStatement
 	{
 		$sql    = $this->getSqlQuery();

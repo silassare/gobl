@@ -20,6 +20,7 @@ use Gobl\DBAL\Queries\Traits\QBSetColumnsValuesTrait;
 use Gobl\DBAL\Table;
 use InvalidArgumentException;
 use LogicException;
+use Override;
 use PDOStatement;
 use PHPUtils\Str;
 
@@ -71,6 +72,7 @@ final class QBInsert implements QBInterface
 	 *
 	 * @return false|string
 	 */
+	#[Override]
 	public function execute(): false|string
 	{
 		$sql    = $this->getSqlQuery();
@@ -80,6 +82,7 @@ final class QBInsert implements QBInterface
 		return $this->db->insert($sql, $values, $types);
 	}
 
+	#[Override]
 	public function getType(): QBType
 	{
 		return QBType::INSERT;

@@ -31,6 +31,7 @@ use Gobl\DBAL\Table;
 use Gobl\ORM\Exceptions\ORMQueryException;
 use Gobl\ORM\Exceptions\ORMRuntimeException;
 use Gobl\ORM\Utils\ORMClassKind;
+use Override;
 use PHPUtils\Str;
 use Throwable;
 
@@ -143,6 +144,7 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 *
 	 * @throws ORMQueryException
 	 */
+	#[Override]
 	public function assertFilterAllowed(Filter $filter, ?QBInterface $qb = null): void
 	{
 		try {

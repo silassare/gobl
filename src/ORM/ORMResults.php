@@ -21,6 +21,7 @@ use Gobl\DBAL\Table;
 use Gobl\ORM\Exceptions\ORMRuntimeException;
 use Gobl\ORM\Utils\ORMClassKind;
 use Iterator;
+use Override;
 use PDO;
 use PDOStatement;
 
@@ -234,6 +235,7 @@ abstract class ORMResults implements Countable, Iterator
 	 *
 	 * @return null|TEntity
 	 */
+	#[Override]
 	public function current(): ?ORMEntity
 	{
 		return $this->current;
@@ -244,6 +246,7 @@ abstract class ORMResults implements Countable, Iterator
 	 *
 	 * @return int scalar on success, or null on failure
 	 */
+	#[Override]
 	public function key(): int
 	{
 		return $this->index;
@@ -252,6 +255,7 @@ abstract class ORMResults implements Countable, Iterator
 	/**
 	 * Move forward to next element.
 	 */
+	#[Override]
 	public function next(): void
 	{
 		$this->current = $this->fetchClass();
@@ -269,6 +273,7 @@ abstract class ORMResults implements Countable, Iterator
 	 * `ORMRuntimeException`. Use `fetchAllClass()` or `lazy()` if you need to iterate
 	 * the same results more than once.
 	 */
+	#[Override]
 	public function rewind(): void
 	{
 		// not supported
@@ -286,6 +291,7 @@ abstract class ORMResults implements Countable, Iterator
 	 *
 	 * @return bool returns true on success or false on failure
 	 */
+	#[Override]
 	public function valid(): bool
 	{
 		return (bool) $this->current;
@@ -301,6 +307,7 @@ abstract class ORMResults implements Countable, Iterator
 	 *
 	 * @return int the custom count as an integer
 	 */
+	#[Override]
 	public function count(): int
 	{
 		if (null === $this->limited_count_cache) {

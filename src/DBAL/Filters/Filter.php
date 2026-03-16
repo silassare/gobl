@@ -18,6 +18,7 @@ use Gobl\DBAL\Filters\Operands\FilterLeftOperand;
 use Gobl\DBAL\Filters\Operands\FilterRightOperand;
 use Gobl\DBAL\Operator;
 use InvalidArgumentException;
+use Override;
 use PHPUtils\Traits\ArrayCapableTrait;
 
 /**
@@ -120,6 +121,7 @@ final class Filter implements FilterInterface
 		return $this->operator;
 	}
 
+	#[Override]
 	public function toArray(): array
 	{
 		$out = [$this->left, $this->operator];

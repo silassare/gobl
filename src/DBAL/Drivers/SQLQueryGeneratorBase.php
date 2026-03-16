@@ -68,6 +68,7 @@ use Gobl\DBAL\Types\TypeJSON;
 use Gobl\DBAL\Types\TypeString;
 use Gobl\DBAL\Types\Utils\JsonPath;
 use Gobl\Gobl;
+use Override;
 use PHPUtils\Str;
 
 use const GOBL_VERSION;
@@ -103,6 +104,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 *
 	 * @throws DBALException
 	 */
+	#[Override]
 	public function buildDiffActionQuery(DiffAction $action): string
 	{
 		switch ($action->getType()) {
@@ -233,11 +235,13 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		return $query;
 	}
 
+	#[Override]
 	public function buildTotalRowCountQuery(QBSelect $qb): string
 	{
 		return 'SELECT COUNT(1) FROM (' . $this->buildQuery($qb) . ') AS ' . QBUtils::newAlias();
 	}
 
+	#[Override]
 	public function buildQuery(QBInterface $qb): string
 	{
 		$type = $qb->getType();
@@ -267,6 +271,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 *
 	 * @return string
 	 */
+	#[Override]
 	public function filterToExpression(FilterInterface|Filters $filter): string
 	{
 		if ($filter instanceof Filters) {
@@ -307,6 +312,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 *
 	 * @throws DBALException
 	 */
+	#[Override]
 	public function hasSameColumnTypeDefinition(Column $a, Column $b): bool
 	{
 		return $this->getColumnDefinitionString($a) === $this->getColumnDefinitionString($b);
@@ -317,6 +323,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 *
 	 * @throws DBALException
 	 */
+	#[Override]
 	public function buildDatabase(?string $namespace = null): string
 	{
 		// checks all foreign key constraints
@@ -361,6 +368,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		]);
 	}
 
+	#[Override]
 	public function getJsonPathExtractionExpression(JsonPath $json_path): string
 	{
 		$col_fqn  =  $this->getJsonPathColumnFQN($json_path);
@@ -374,6 +382,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 *
 	 * Default implementation: MySQL-compatible `JSON_CONTAINS(left, right)`.
 	 */
+	#[Override]
 	public function getJsonContainsExpression(string $left, string $right): string
 	{
 		return 'JSON_CONTAINS(' . $left . ', ' . $right . ')';
@@ -384,6 +393,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 *
 	 * Default implementation: MySQL-compatible `JSON_CONTAINS_PATH(col, 'one', CONCAT('$.', key))`.
 	 */
+	#[Override]
 	public function getJsonHasKeyExpression(string $col_sql_expression, string $key_expression): string
 	{
 		return 'JSON_CONTAINS_PATH(' . $col_sql_expression . ', \'one\', CONCAT(\'$.\',' . $key_expression . '))';
@@ -396,6 +406,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 *
 	 * @return string
 	 */
+	#[Override]
 	public function quoteIdentifier(string $name): string
 	{
 		return '`' . $name . '`';
@@ -408,6 +419,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 * MySQL (`NO_BACKSLASH_ESCAPES`-safe), PostgreSQL, and SQLite.
 	 * No database connection is required.
 	 */
+	#[Override]
 	public function quoteLiteral(string $value): string
 	{
 		return "'" . \str_replace("'", "''", $value) . "'";

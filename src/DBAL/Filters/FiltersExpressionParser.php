@@ -18,6 +18,7 @@ use Gobl\DBAL\Filters\Interfaces\FilterInterface;
 use Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Queries\Interfaces\QBInterface;
+use Override;
 use PHPUtils\Traits\ArrayCapableTrait;
 
 /**
@@ -82,6 +83,7 @@ final class FiltersExpressionParser implements FilterInterface
 		private bool $strict = true
 	) {}
 
+	#[Override]
 	public function toArray(): array
 	{
 		return [

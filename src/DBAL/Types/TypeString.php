@@ -18,6 +18,7 @@ use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
 use Gobl\ORM\ORMTypeHint;
+use Override;
 
 /**
  * Class TypeString.
@@ -67,6 +68,7 @@ class TypeString extends BaseType
 		parent::__construct($this);
 	}
 
+	#[Override]
 	public static function getInstance(array $options): static
 	{
 		return (new self())->configure($options);
@@ -146,6 +148,7 @@ class TypeString extends BaseType
 		return $this->setOption('one_of', \array_unique($list));
 	}
 
+	#[Override]
 	public function getName(): string
 	{
 		return self::NAME;
@@ -156,6 +159,7 @@ class TypeString extends BaseType
 	 *
 	 * @throws TypesException
 	 */
+	#[Override]
 	public function configure(array $options): static
 	{
 		if (isset($options['min'])) {
@@ -197,21 +201,25 @@ class TypeString extends BaseType
 		return parent::configure($options);
 	}
 
+	#[Override]
 	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?string
 	{
 		return null === $value ? null : (string) $value;
 	}
 
+	#[Override]
 	public function getEmptyValueOfType(): ?string
 	{
 		return $this->isNullable() ? null : '';
 	}
 
+	#[Override]
 	public function getReadTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::string();
 	}
 
+	#[Override]
 	public function getWriteTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::string();
@@ -222,6 +230,7 @@ class TypeString extends BaseType
 	 *
 	 * @throws TypesInvalidValueException
 	 */
+	#[Override]
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
 	{
 		return $this->validate($value)->getCleanValue();
@@ -320,6 +329,7 @@ class TypeString extends BaseType
 	 *
 	 * @throws TypesInvalidValueException
 	 */
+	#[Override]
 	protected function runValidation(ValidationSubjectInterface $subject): void
 	{
 		$value = $subject->getUnsafeValue();

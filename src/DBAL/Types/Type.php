@@ -30,6 +30,7 @@ use Gobl\DBAL\Types\Validation\ValidationSubject;
 use Gobl\ORM\ORMTableQuery;
 use Gobl\ORM\ORMTypeHint;
 use OLIUP\CG\PHPMethod;
+use Override;
 use PHPUtils\Traits\ArrayCapableTrait;
 use PHPUtils\Traits\LockTrait;
 use Throwable;
@@ -80,11 +81,13 @@ abstract class Type implements TypeInterface
 		$this->base_type = TypeUtils::buildTypeOrFail($this->base_type->toArray());
 	}
 
+	#[Override]
 	public function assertFilterAllowed(Filter $filter): void
 	{
 		$this->safelyCallOnBaseType(__FUNCTION__, [$filter]);
 	}
 
+	#[Override]
 	public function autoIncrement(bool $auto_increment = true): static
 	{
 		// important as it will be used by the base type
@@ -93,6 +96,7 @@ abstract class Type implements TypeInterface
 		return $this->setOption('auto_increment', $auto_increment);
 	}
 
+	#[Override]
 	public function configure(array $options): static
 	{
 		$nullable = $options['nullable'] ?? $options['null'] ?? null;
@@ -119,16 +123,19 @@ abstract class Type implements TypeInterface
 		return $this;
 	}
 
+	#[Override]
 	public function dbQueryDefault(RDBMSInterface $rdbms): ?string
 	{
 		return null;
 	}
 
+	#[Override]
 	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): mixed
 	{
 		return $this->safelyCallOnBaseType(__FUNCTION__, [$value, $rdbms]);
 	}
 
+	#[Override]
 	public function default(mixed $default): static
 	{
 		// we don't call the base type here
@@ -139,6 +146,7 @@ abstract class Type implements TypeInterface
 		return $this->setOption('default', $default);
 	}
 
+	#[Override]
 	public function castValueForFilter(mixed $value, Operator $operator, RDBMSInterface $rdbms): float|int|string|null
 	{
 		// Default: return scalar values unchanged.
@@ -154,6 +162,7 @@ abstract class Type implements TypeInterface
 		return (string) $value;
 	}
 
+	#[Override]
 	public function queryBuilderApplyFilter(ORMTableQuery $qb, Column $column, Operator $operator, array $args): void
 	{
 		$value = $args[0] ?? null;
@@ -161,11 +170,13 @@ abstract class Type implements TypeInterface
 		$qb->filterBy($column->getFullName(), $operator, $value);
 	}
 
+	#[Override]
 	public function queryBuilderEnhanceFilterMethod(Table $table, Column $column, Operator $operator, PHPMethod $method): void
 	{
 		$this->safelyCallOnBaseType(__FUNCTION__, [$table, $column, $operator, $method]);
 	}
 
+	#[Override]
 	public function getAllowedFilterOperators(): array
 	{
 		$operators = $this->safelyCallOnBaseType(__FUNCTION__, []) ?? Operator::cases();
@@ -193,51 +204,61 @@ abstract class Type implements TypeInterface
 		return $operators;
 	}
 
+	#[Override]
 	public function getBaseType(): BaseTypeInterface
 	{
 		return $this->base_type;
 	}
 
+	#[Override]
 	public function getDefault(): mixed
 	{
 		return $this->getOption('default');
 	}
 
+	#[Override]
 	public function getEmptyValueOfType(): mixed
 	{
 		return $this->safelyCallOnBaseType(__FUNCTION__, []);
 	}
 
+	#[Override]
 	final public function getOption(string $key, mixed $default = null): mixed
 	{
 		return $this->options[$key] ?? $default;
 	}
 
+	#[Override]
 	public function getReadTypeHint(): ORMTypeHint
 	{
 		return $this->safelyCallOnBaseType(__FUNCTION__, []);
 	}
 
+	#[Override]
 	public function getWriteTypeHint(): ORMTypeHint
 	{
 		return $this->safelyCallOnBaseType(__FUNCTION__, []);
 	}
 
+	#[Override]
 	public function hasDefault(): bool
 	{
 		return null !== $this->getDefault();
 	}
 
+	#[Override]
 	public function isAutoIncremented(): bool
 	{
 		return (bool) $this->getOption('auto_increment', false);
 	}
 
+	#[Override]
 	public function isNullable(): bool
 	{
 		return (bool) $this->getOption('nullable', false);
 	}
 
+	#[Override]
 	public function lock(): static
 	{
 		if ($this->locked) {
@@ -261,6 +282,7 @@ abstract class Type implements TypeInterface
 		return $this;
 	}
 
+	#[Override]
 	public function nullable(bool $nullable = true): static
 	{
 		// important as it will be used by the base type
@@ -269,6 +291,7 @@ abstract class Type implements TypeInterface
 		return $this->setOption('nullable', $nullable);
 	}
 
+	#[Override]
 	final public function applyValidation(ValidationSubjectInterface $subject): bool
 	{
 		// Pre-validator: skip when already terminal
@@ -299,11 +322,13 @@ abstract class Type implements TypeInterface
 		return $subject->isValid();
 	}
 
+	#[Override]
 	public function createValidationSubject(mixed $value, string $reference = '', string $referenceDebug = ''): ValidationSubjectInterface
 	{
 		return new ValidationSubject($value, $reference, $referenceDebug);
 	}
 
+	#[Override]
 	public function validate(mixed $value, string $reference = '', string $referenceDebug = ''): ValidationSubjectInterface
 	{
 		if ($value instanceof ValidationSubjectInterface) {
@@ -387,11 +412,13 @@ abstract class Type implements TypeInterface
 		return $this;
 	}
 
+	#[Override]
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): float|int|string|null
 	{
 		return $this->safelyCallOnBaseType(__FUNCTION__, [$value, $rdbms]);
 	}
 
+	#[Override]
 	final public function setOption(string $key, mixed $value): static
 	{
 		$this->assertNotLocked();
@@ -401,16 +428,19 @@ abstract class Type implements TypeInterface
 		return $this;
 	}
 
+	#[Override]
 	public function shouldEnforceDefaultValue(RDBMSInterface $rdbms): bool
 	{
 		return true;
 	}
 
+	#[Override]
 	public function shouldCastValueForFilter(Operator $operator, RDBMSInterface $rdbms): bool
 	{
 		return true;
 	}
 
+	#[Override]
 	public function toArray(): array
 	{
 		$opt         = $this->options;

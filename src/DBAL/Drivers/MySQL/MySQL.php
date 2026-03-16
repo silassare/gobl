@@ -15,6 +15,7 @@ namespace Gobl\DBAL\Drivers\MySQL;
 
 use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Drivers\SQLDriverBase;
+use Override;
 use PDO;
 
 /**
@@ -24,21 +25,25 @@ class MySQL extends SQLDriverBase
 {
 	public const NAME = 'mysql';
 
+	#[Override]
 	public function getGenerator(): MySQLQueryGenerator
 	{
 		return new MySQLQueryGenerator($this, $this->config);
 	}
 
+	#[Override]
 	public function getType(): string
 	{
 		return self::NAME;
 	}
 
+	#[Override]
 	public static function new(DbConfig $config): static
 	{
 		return new self($config);
 	}
 
+	#[Override]
 	protected function connect(): PDO
 	{
 		$host     = $this->config->getDbHost();

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Gobl\DBAL;
 
 use Gobl\DBAL\Interfaces\RDBMSInterface;
+use Override;
 use PDO;
 use PHPUtils\Interfaces\ArrayCapableInterface;
 use PHPUtils\Traits\ArrayCapableTrait;
@@ -150,6 +151,7 @@ final class DbConfig implements ArrayCapableInterface
 		return $config;
 	}
 
+	#[Override]
 	public function toArray(): array
 	{
 		return $this->config;

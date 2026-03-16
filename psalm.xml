@@ -15,7 +15,6 @@
 		</ignoreFiles>
 	</projectFiles>
 	<issueHandlers>
-		<MissingOverrideAttribute errorLevel="suppress"/>
 		<!-- Public API methods not called within the library itself (consumed externally) -->
 		<PossiblyUnusedMethod errorLevel="suppress"/>
 		<!-- Fluent builder methods whose return values are chained by callers externally -->

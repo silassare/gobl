@@ -26,6 +26,7 @@ use Gobl\DBAL\Types\TypeJSON;
 use Gobl\DBAL\Types\TypeList;
 use Gobl\DBAL\Types\TypeMap;
 use Gobl\DBAL\Types\TypeString;
+use Override;
 
 /**
  * Class TypeProviderDefault.
@@ -54,6 +55,7 @@ class TypeProviderDefault implements TypeProviderInterface
 		TypeEnum::NAME    => TypeEnum::class,
 	];
 
+	#[Override]
 	public function getTypeInstance(string $name, array $options): ?TypeInterface
 	{
 		if (isset(self::$types[$name])) {
@@ -66,6 +68,7 @@ class TypeProviderDefault implements TypeProviderInterface
 		return null;
 	}
 
+	#[Override]
 	public function hasType(string $name): bool
 	{
 		return isset(self::$types[$name]);

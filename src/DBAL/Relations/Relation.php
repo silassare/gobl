@@ -24,6 +24,7 @@ use Gobl\Gobl;
 use Gobl\ORM\ORMEntity;
 use Gobl\ORM\ORMEntityRelationController;
 use InvalidArgumentException;
+use Override;
 use PHPUtils\Interfaces\ArrayCapableInterface;
 use PHPUtils\Str;
 use PHPUtils\Traits\ArrayCapableTrait;
@@ -168,11 +169,13 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface
 		return $this->link;
 	}
 
+	#[Override]
 	public function isPaginated(): bool
 	{
 		return $this->type->isMultiple();
 	}
 
+	#[Override]
 	public function getHostTable(): Table
 	{
 		return $this->link->getHostTable();
@@ -198,6 +201,7 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface
 		return Str::toGetterName($this->getName());
 	}
 
+	#[Override]
 	public function getName(): string
 	{
 		return $this->name;
@@ -209,6 +213,7 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface
 	 * Delegates entirely to the target table's `isPrivate()` state.
 	 * A relation to a private table is itself considered private.
 	 */
+	#[Override]
 	public function isPrivate(): bool
 	{
 		return $this->getTargetTable()->isPrivate();
@@ -224,6 +229,7 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface
 		return $this->link->getTargetTable();
 	}
 
+	#[Override]
 	public function toArray(): array
 	{
 		$options['type']   = $this->type->value;
@@ -234,6 +240,7 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface
 		return $options;
 	}
 
+	#[Override]
 	public function getController(): RelationControllerInterface
 	{
 		return new ORMEntityRelationController($this);

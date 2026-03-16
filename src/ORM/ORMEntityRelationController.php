@@ -20,6 +20,7 @@ use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Table;
 use Gobl\Exceptions\GoblException;
 use Gobl\ORM\Exceptions\ORMException;
+use Override;
 use Throwable;
 
 /**
@@ -44,6 +45,7 @@ class ORMEntityRelationController implements RelationControllerInterface
 		$this->table      = $table;
 	}
 
+	#[Override]
 	public function getRelativesStoreTable(): Table
 	{
 		return $this->table;
@@ -54,6 +56,7 @@ class ORMEntityRelationController implements RelationControllerInterface
 	 *
 	 * @throws GoblException
 	 */
+	#[Override]
 	public function get(ORMEntity $host_entity, ORMRequest $request): ?ORMEntity
 	{
 		$order_by = $request->getOrderBy();
@@ -67,6 +70,7 @@ class ORMEntityRelationController implements RelationControllerInterface
 	 *
 	 * @throws GoblException
 	 */
+	#[Override]
 	public function list(ORMEntity $host_entity, ORMRequest $request, ?int &$total = null): array
 	{
 		$max      = $request->getMax();
@@ -91,6 +95,7 @@ class ORMEntityRelationController implements RelationControllerInterface
 	 * @throws DBALException
 	 * @throws GoblException
 	 */
+	#[Override]
 	public function create(ORMEntity $host_entity, array $payload): mixed
 	{
 		ORMTableQuery::assertCanManageRelatives($this->table, $this->relation, $host_entity);
@@ -111,6 +116,7 @@ class ORMEntityRelationController implements RelationControllerInterface
 	 * @throws ORMException
 	 * @throws CRUDException
 	 */
+	#[Override]
 	public function link(ORMEntity $parent_entity, ORMEntity $child_entity, bool $auto_save = true): static
 	{
 		$link = $this->relation->getLink();
@@ -135,6 +141,7 @@ class ORMEntityRelationController implements RelationControllerInterface
 	 * @throws ORMException
 	 * @throws GoblException
 	 */
+	#[Override]
 	public function update(ORMEntity $host_entity, array $payload): ORMEntity
 	{
 		$target = $this->identify($host_entity, $payload)->hydrate($payload);
@@ -150,6 +157,7 @@ class ORMEntityRelationController implements RelationControllerInterface
 	 * @throws ORMException
 	 * @throws GoblException
 	 */
+	#[Override]
 	public function delete(ORMEntity $host_entity, array $payload): ORMEntity
 	{
 		return $this->identify($host_entity, $payload)->selfDelete();

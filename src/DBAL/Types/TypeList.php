@@ -26,6 +26,7 @@ use Gobl\ORM\ORMUniversalType;
 use InvalidArgumentException;
 use JsonException;
 use OLIUP\CG\PHPType;
+use Override;
 
 /**
  * Class TypeList.
@@ -51,6 +52,7 @@ class TypeList extends Type
 		parent::__construct($base);
 	}
 
+	#[Override]
 	public static function getInstance(array $options): static
 	{
 		return (new self())->configure($options);
@@ -61,6 +63,7 @@ class TypeList extends Type
 	 *
 	 * When `list_of` is set to a {@see JsonOfInterface} class, each element is revived.
 	 */
+	#[Override]
 	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?array
 	{
 		if (null === $value || '' === $value) {
@@ -77,11 +80,13 @@ class TypeList extends Type
 		return $list;
 	}
 
+	#[Override]
 	public function getEmptyValueOfType(): ?array
 	{
 		return $this->isNullable() ? null : [];
 	}
 
+	#[Override]
 	public function getName(): string
 	{
 		return self::NAME;
@@ -185,6 +190,7 @@ class TypeList extends Type
 		return null;
 	}
 
+	#[Override]
 	public function configure(array $options): static
 	{
 		if (isset($options['list_of'])) {
@@ -218,6 +224,7 @@ class TypeList extends Type
 	 * CONTAINS and HAS_KEY including their path-aware variants) are handled
 	 * correctly by TypeJSON's path-aware implementation.
 	 */
+	#[Override]
 	public function queryBuilderApplyFilter(ORMTableQuery $qb, Column $column, Operator $operator, array $args): void
 	{
 		$this->safelyCallOnBaseType(__FUNCTION__, [$qb, $column, $operator, $args]);
@@ -229,6 +236,7 @@ class TypeList extends Type
 	 * The read type hint is `list<Of>` where `Of` is either the class name set via `list_of` (for revival)
 	 * or the universal type set via `list_of` (for hint-only metadata), or `mixed` if neither is set.
 	 */
+	#[Override]
 	public function getReadTypeHint(): ORMTypeHint
 	{
 		$class = $this->getListOfClass();
@@ -250,6 +258,7 @@ class TypeList extends Type
 	 * a JsonPatch for convenient construction and mutation of list values.
 	 * The element type hint is the same as for the read type hint.
 	 */
+	#[Override]
 	public function getWriteTypeHint(): ORMTypeHint
 	{
 		$class = $this->getListOfClass();
@@ -270,6 +279,7 @@ class TypeList extends Type
 	 * @throws JsonException
 	 * @throws TypesInvalidValueException
 	 */
+	#[Override]
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
 	{
 		$value = $this->validate($value)->getCleanValue();
@@ -290,6 +300,7 @@ class TypeList extends Type
 	 * @throws JsonException
 	 * @throws TypesInvalidValueException
 	 */
+	#[Override]
 	protected function runValidation(ValidationSubjectInterface $subject): void
 	{
 		$value = $subject->getUnsafeValue();

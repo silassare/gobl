@@ -43,6 +43,7 @@ use OLIUP\CG\PHPFile;
 use OLIUP\CG\PHPMethod;
 use OLIUP\CG\PHPNamespace;
 use OLIUP\CG\PHPType;
+use Override;
 use PHPUtils\Str;
 
 /**
@@ -92,6 +93,7 @@ Time: {$date}";
 	 *
 	 * @throws Exception
 	 */
+	#[Override]
 	public function generate(array $tables, ?string $path = null, string $header = ''): static
 	{
 		$fs        = self::outputDirFS($path);
@@ -125,6 +127,7 @@ Time: {$date}";
 	/**
 	 * Converts an {@see ORMTypeHint} to a PHP type hint string.
 	 */
+	#[Override]
 	public function toTypeHintString(ORMTypeHint $type_hint): string
 	{
 		if ($php_type = $type_hint->getPHPType()) {

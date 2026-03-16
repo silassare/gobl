@@ -25,6 +25,7 @@ use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
 use Gobl\Exceptions\GoblException;
 use Gobl\ORM\Exceptions\ORMException;
 use Gobl\ORM\Exceptions\ORMRuntimeException;
+use Override;
 use PHPUtils\Interfaces\ArrayCapableInterface;
 use PHPUtils\Traits\ArrayCapableTrait;
 
@@ -343,6 +344,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 		return $this->_oeb_is_new;
 	}
 
+	#[Override]
 	public function toArray(bool $hide_sensitive_data = true): array
 	{
 		$row = $this->toRow();

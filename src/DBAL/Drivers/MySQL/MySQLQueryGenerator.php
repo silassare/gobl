@@ -33,6 +33,7 @@ use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Queries\QBUpdate;
 use Gobl\DBAL\Types\TypeJSON;
 use Gobl\Gobl;
+use Override;
 
 /**
  * Class MySQLQueryGenerator.
@@ -63,6 +64,7 @@ class MySQLQueryGenerator extends SQLQueryGeneratorBase
 		}
 	}
 
+	#[Override]
 	public function wrapDatabaseDefinitionQuery(string $query): string
 	{
 		$charset = $this->config->getDbCharset();
@@ -97,6 +99,7 @@ SQL;
 	 *
 	 * @throws DBALException
 	 */
+	#[Override]
 	protected function getForeignKeySQL(ForeignKey $fk, bool $alter): string
 	{
 		$update_action = $fk->getUpdateAction();
@@ -116,6 +119,7 @@ SQL;
 		return parent::getForeignKeySQL($fk, $alter);
 	}
 
+	#[Override]
 	protected function getLimitQuery(QBDelete|QBSelect|QBUpdate $qb): string
 	{
 		$ignore_offset = $qb instanceof QBUpdate || $qb instanceof QBDelete;
@@ -134,6 +138,7 @@ SQL;
 		return $sql;
 	}
 
+	#[Override]
 	protected function getPrimaryKeyConstraintDeletedString(PrimaryKeyConstraintDeleted $action): string
 	{
 		$table_name = $action->getConstraint()
@@ -143,6 +148,7 @@ SQL;
 		return 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' DROP PRIMARY KEY;';
 	}
 
+	#[Override]
 	protected function getForeignKeyConstraintDeletedString(ForeignKeyConstraintDeleted $action): string
 	{
 		$constraint = $action->getConstraint();
@@ -154,6 +160,7 @@ SQL;
 		return 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' DROP FOREIGN KEY ' . $constraint_name . ';';
 	}
 
+	#[Override]
 	protected function getUniqueKeyConstraintDeletedString(UniqueKeyConstraintDeleted $action): string
 	{
 		$constraint = $action->getConstraint();
@@ -170,6 +177,7 @@ SQL;
 	 *
 	 * MySQL uses: DROP INDEX name ON table_name;
 	 */
+	#[Override]
 	protected function getIndexDeletedString(IndexDeleted $action): string
 	{
 		$index      = $action->getIndex();
@@ -184,6 +192,7 @@ SQL;
 	 *
 	 * MySQL: FULLTEXT/SPATIAL go before INDEX keyword; BTREE/HASH use USING clause.
 	 */
+	#[Override]
 	protected function getIndexSQL(Index $index): string
 	{
 		$table_name   = $index->getHostTable()->getFullName();
@@ -224,6 +233,7 @@ SQL;
 	 *   2. PDO::ATTR_SERVER_VERSION from the live connection
 	 *   3. Conservative fallback (assume < 8.0.13) when no version is available
 	 */
+	#[Override]
 	protected function getJSONColumnDefinition(Column $column): string
 	{
 		/** @var TypeJSON $base */
@@ -252,6 +262,7 @@ SQL;
 	 * MySQL 8.0.13+ requires JSON column defaults to use the expression syntax:
 	 * `DEFAULT ('{"foo":"bar"}')` instead of `DEFAULT '{"foo":"bar"}'`.
 	 */
+	#[Override]
 	protected function formatDefaultChunk(Column $column, string $quoted_default): string
 	{
 		$base_type = $column->getType()->getBaseType();
@@ -268,6 +279,7 @@ SQL;
 	 *
 	 * MySQL uses `INSERT IGNORE INTO` for conflict-ignore mode.
 	 */
+	#[Override]
 	protected function getInsertKeyword(QBInsert $qb): string
 	{
 		if ('ignore' === ($qb->getOptionsOnConflict()['action'] ?? null)) {
@@ -283,6 +295,7 @@ SQL;
 	 * MySQL: appends `ON DUPLICATE KEY UPDATE col = VALUES(col) [, ...]`
 	 * Conflict columns are ignored; MySQL resolves conflicts via its unique/PK indexes automatically.
 	 */
+	#[Override]
 	protected function getOnConflictClause(QBInsert $qb): string
 	{
 		$conflict = $qb->getOptionsOnConflict();
@@ -309,6 +322,7 @@ SQL;
 	/**
 	 * @throws DBALException
 	 */
+	#[Override]
 	protected function getColumnTypeChangedString(ColumnTypeChanged $action): string
 	{
 		$new_column        = $action->getNewColumn();
@@ -318,11 +332,13 @@ SQL;
 		return 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' CHANGE ' . $this->quoteIdentifier($new_column->getFullName()) . ' ' . $column_definition . ';';
 	}
 
+	#[Override]
 	protected function dbQueryTemplate(): string
 	{
 		return 'mysql_db';
 	}
 
+	#[Override]
 	protected function createTableQueryTemplate(): string
 	{
 		return 'mysql_create_table';

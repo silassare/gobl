@@ -16,6 +16,7 @@ namespace Gobl\DBAL\Filters\Operands;
 use Gobl\DBAL\Filters\FilterFieldNotation;
 use Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface;
 use Gobl\DBAL\Queries\Interfaces\QBInterface;
+use Override;
 
 /**
  * Class FilterLeftOperand.
@@ -40,6 +41,7 @@ class FilterLeftOperand extends FilterOperand
 	 *
 	 * @return string
 	 */
+	#[Override]
 	public function getValueAsDefined(): string
 	{
 		// we know this is a string because the constructor enforces it,
@@ -53,6 +55,7 @@ class FilterLeftOperand extends FilterOperand
 	 * Left operands are always developer-supplied column references,
 	 * so string auto-resolution as field notation is safe and desired.
 	 */
+	#[Override]
 	protected function shouldResolveFieldNotation(): bool
 	{
 		return true;

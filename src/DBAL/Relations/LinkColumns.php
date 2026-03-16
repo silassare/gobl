@@ -21,6 +21,7 @@ use Gobl\DBAL\Queries\QBExpression;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Table;
 use Gobl\ORM\ORMEntity;
+use Override;
 
 /**
  * Class LinkColumns.
@@ -99,6 +100,7 @@ final class LinkColumns extends Link
 	 * Returns `false` (leaving `$target_data` unchanged) as soon as any mapped host column
 	 * value is `null`, because a null FK value makes the relation unsatisfiable.
 	 */
+	#[Override]
 	public function fillRelation(ORMEntity $host_entity, array &$target_data = []): bool
 	{
 		foreach ($this->columns_mapping as $host_column => $target_column) {
@@ -126,6 +128,7 @@ final class LinkColumns extends Link
 	 * - **Join mode** (`$host_entity === null`): adds an `INNER JOIN` to the target QB joining
 	 *   the target table to the host table with the mapped columns as the ON condition.
 	 */
+	#[Override]
 	public function runLinkTypeApplyLogic(QBSelect $target_qb, ?ORMEntity $host_entity = null): bool
 	{
 		if ($host_entity) {
@@ -174,6 +177,7 @@ final class LinkColumns extends Link
 		return true;
 	}
 
+	#[Override]
 	public function toArray(): array
 	{
 		return [

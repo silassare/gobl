@@ -43,6 +43,7 @@ use OLIUP\CG\PHPClass;
 use OLIUP\CG\PHPComment;
 use OLIUP\CG\PHPFile;
 use OLIUP\CG\PHPType;
+use Override;
 
 /**
  * Class Diff.
@@ -242,46 +243,55 @@ DIFF_SQL;
 				private readonly array $schema,
 			) {}
 
+			#[Override]
 			public function getVersion(): int
 			{
 				return $this->version;
 			}
 
+			#[Override]
 			public function getLabel(): string
 			{
 				return $this->label;
 			}
 
+			#[Override]
 			public function getTimestamp(): int
 			{
 				return $this->timestamp;
 			}
 
+			#[Override]
 			public function getSchema(): array
 			{
 				return $this->schema;
 			}
 
+			#[Override]
 			public function getConfigs(): array
 			{
 				return $this->configs;
 			}
 
+			#[Override]
 			public function up(): string
 			{
 				return $this->up_sql;
 			}
 
+			#[Override]
 			public function down(): string
 			{
 				return $this->down_sql;
 			}
 
+			#[Override]
 			public function beforeRun(MigrationMode $mode, string $query): bool|string
 			{
 				return true;
 			}
 
+			#[Override]
 			public function afterRun(MigrationMode $mode): void {}
 		};
 	}

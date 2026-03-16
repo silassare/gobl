@@ -16,6 +16,7 @@ namespace Gobl\DBAL\Diff\Actions;
 use Gobl\DBAL\Diff\DiffAction;
 use Gobl\DBAL\Diff\DiffActionType;
 use Gobl\DBAL\Indexes\Index;
+use Override;
 
 /**
  * Class IndexDeleted.
@@ -35,6 +36,7 @@ final class IndexDeleted extends DiffAction
 		return $this->index;
 	}
 
+	#[Override]
 	public function toArray(): array
 	{
 		return [

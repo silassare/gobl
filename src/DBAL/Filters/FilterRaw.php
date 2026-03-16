@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Filters;
 
 use Gobl\DBAL\Filters\Interfaces\FilterInterface;
+use Override;
 use PHPUtils\Traits\ArrayCapableTrait;
 
 /**
@@ -42,6 +43,7 @@ final class FilterRaw implements FilterInterface
 		return $this->filter_query_string;
 	}
 
+	#[Override]
 	public function toArray(): array
 	{
 		return [

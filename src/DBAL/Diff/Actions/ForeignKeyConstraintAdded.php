@@ -16,6 +16,7 @@ namespace Gobl\DBAL\Diff\Actions;
 use Gobl\DBAL\Constraints\ForeignKey;
 use Gobl\DBAL\Diff\DiffAction;
 use Gobl\DBAL\Diff\DiffActionType;
+use Override;
 
 /**
  * Class ForeignKeyConstraintAdded.
@@ -35,6 +36,7 @@ final class ForeignKeyConstraintAdded extends DiffAction
 		return $this->constraint;
 	}
 
+	#[Override]
 	public function toArray(): array
 	{
 		return [

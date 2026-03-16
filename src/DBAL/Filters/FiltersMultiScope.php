@@ -17,6 +17,7 @@ use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface;
 use Gobl\DBAL\Queries\Interfaces\QBInterface;
 use Gobl\DBAL\Table;
+use Override;
 
 /**
  * Class FiltersMultiScope.
@@ -70,6 +71,7 @@ class FiltersMultiScope implements FiltersScopeInterface
 	 * @throws DBALRuntimeException when the column is found but blocked by private/sensitive
 	 *                              rules, or when a bare column name is not found in any registered table
 	 */
+	#[Override]
 	public function assertFilterAllowed(Filter $filter, ?QBInterface $qb = null): void
 	{
 		// left operand should be a resolved column
@@ -105,6 +107,7 @@ class FiltersMultiScope implements FiltersScopeInterface
 		]);
 	}
 
+	#[Override]
 	public function tryResolveFieldNotation(FilterFieldNotation $fn, QBInterface $qb): void
 	{
 		foreach ($this->entries as $entry) {
@@ -121,6 +124,7 @@ class FiltersMultiScope implements FiltersScopeInterface
 	 *
 	 * A scope is allowed if at least one registered scope allows it.
 	 */
+	#[Override]
 	public function shouldAllowFiltersScope(FiltersScopeInterface $scope): bool
 	{
 		foreach ($this->entries as $entry) {

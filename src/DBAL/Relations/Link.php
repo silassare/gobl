@@ -22,6 +22,7 @@ use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Relations\Interfaces\LinkInterface;
 use Gobl\DBAL\Table;
 use Gobl\ORM\ORMEntity;
+use Override;
 use PHPUtils\Traits\ArrayCapableTrait;
 
 /**
@@ -48,16 +49,19 @@ abstract class Link implements LinkInterface
 		protected readonly array $options,
 	) {}
 
+	#[Override]
 	public function getHostTable(): Table
 	{
 		return $this->host_table;
 	}
 
+	#[Override]
 	public function getTargetTable(): Table
 	{
 		return $this->target_table;
 	}
 
+	#[Override]
 	public function getType(): LinkType
 	{
 		return $this->type;
@@ -77,6 +81,7 @@ abstract class Link implements LinkInterface
 	 *
 	 * Returns `false` when the link cannot be applied (e.g., a required entity column is null).
 	 */
+	#[Override]
 	final public function apply(QBSelect $target_qb, ?ORMEntity $host_entity = null): bool
 	{
 		if ($this->runLinkTypeApplyLogic($target_qb, $host_entity)) {

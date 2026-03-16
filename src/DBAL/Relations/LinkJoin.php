@@ -20,6 +20,7 @@ use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Relations\Interfaces\LinkInterface;
 use Gobl\DBAL\Table;
 use Gobl\ORM\ORMEntity;
+use Override;
 use Throwable;
 
 /**
@@ -130,6 +131,7 @@ final class LinkJoin extends Link
 	 * Always returns `false` - multi-step join links span several intermediate tables,
 	 * so a single host entity cannot deterministically populate target data.
 	 */
+	#[Override]
 	public function fillRelation(ORMEntity $host_entity, array &$target_data = []): bool
 	{
 		return false;
@@ -144,6 +146,7 @@ final class LinkJoin extends Link
 	 *
 	 * Returns `false` as soon as any step's `apply()` returns `false`.
 	 */
+	#[Override]
 	public function runLinkTypeApplyLogic(QBSelect $target_qb, ?ORMEntity $host_entity = null): bool
 	{
 		$host_to_first_pivot = true;
@@ -159,6 +162,7 @@ final class LinkJoin extends Link
 		return true;
 	}
 
+	#[Override]
 	public function toArray(): array
 	{
 		return [

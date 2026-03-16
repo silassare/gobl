@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Filters;
 
 use Gobl\DBAL\Filters\Interfaces\FilterInterface;
+use Override;
 use PHPUtils\Traits\ArrayCapableTrait;
 
 /**
@@ -123,6 +124,7 @@ final class FilterGroup implements FilterInterface
 		return $this;
 	}
 
+	#[Override]
 	public function toArray(): array
 	{
 		return $this->getFilters();

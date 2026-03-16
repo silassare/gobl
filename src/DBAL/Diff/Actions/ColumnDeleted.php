@@ -17,6 +17,7 @@ use Gobl\DBAL\Column;
 use Gobl\DBAL\Diff\DiffAction;
 use Gobl\DBAL\Diff\DiffActionType;
 use Gobl\DBAL\Table;
+use Override;
 
 /**
  * Class ColumnDeleted.
@@ -44,6 +45,7 @@ final class ColumnDeleted extends DiffAction
 		return $this->column;
 	}
 
+	#[Override]
 	public function toArray(): array
 	{
 		return [

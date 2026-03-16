@@ -19,6 +19,7 @@ use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Relations\Interfaces\LinkInterface;
 use Gobl\DBAL\Table;
 use Gobl\ORM\ORMEntity;
+use Override;
 
 /**
  * Class LinkThrough.
@@ -150,6 +151,7 @@ final class LinkThrough extends Link
 	 * Always returns `false` - pivot-table links span two hops, so a single
 	 * host entity cannot populate the target data without a database round-trip.
 	 */
+	#[Override]
 	public function fillRelation(ORMEntity $host_entity, array &$target_data = []): bool
 	{
 		return false;
@@ -166,6 +168,7 @@ final class LinkThrough extends Link
 	 * This ordering ensures the JOIN clauses are emitted in the correct inside-out sequence
 	 * required by the SQL generator.
 	 */
+	#[Override]
 	public function runLinkTypeApplyLogic(QBSelect $target_qb, ?ORMEntity $host_entity = null): bool
 	{
 		if ($this->pivot_to_target_link->apply($target_qb)) {
@@ -175,6 +178,7 @@ final class LinkThrough extends Link
 		return false;
 	}
 
+	#[Override]
 	public function toArray(): array
 	{
 		return [

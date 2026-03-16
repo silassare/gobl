@@ -16,6 +16,7 @@ namespace Gobl\DBAL\Types\Validation;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
 use LogicException;
+use Override;
 use PHPUtils\FuncUtils;
 use Throwable;
 
@@ -65,21 +66,25 @@ class ValidationSubject implements ValidationSubjectInterface
 		$this->locked = false;
 	}
 
+	#[Override]
 	public function getReference(): string
 	{
 		return $this->reference;
 	}
 
+	#[Override]
 	public function getReferenceDebug(): string
 	{
 		return $this->referenceDebug;
 	}
 
+	#[Override]
 	public function getUnsafeValue(): mixed
 	{
 		return $this->unsafeValue;
 	}
 
+	#[Override]
 	public function setUnsafeValue(mixed $value): void
 	{
 		$this->assertNotLocked();
@@ -90,6 +95,7 @@ class ValidationSubject implements ValidationSubjectInterface
 		}
 	}
 
+	#[Override]
 	public function reject(string|Throwable $reason, ?array $debug = null): void
 	{
 		$this->assertNotLocked();
@@ -107,6 +113,7 @@ class ValidationSubject implements ValidationSubjectInterface
 		}
 	}
 
+	#[Override]
 	public function next(mixed $value): void
 	{
 		$this->assertNotLocked();
@@ -126,6 +133,7 @@ class ValidationSubject implements ValidationSubjectInterface
 		};
 	}
 
+	#[Override]
 	public function accept(mixed $value): void
 	{
 		$this->assertNotLocked();
@@ -134,26 +142,31 @@ class ValidationSubject implements ValidationSubjectInterface
 		$this->status     = ValidationStatus::ACCEPTED;
 	}
 
+	#[Override]
 	public function getStatus(): ValidationStatus
 	{
 		return $this->status;
 	}
 
+	#[Override]
 	public function isValid(): bool
 	{
 		return ValidationStatus::ACCEPTED === $this->status;
 	}
 
+	#[Override]
 	public function isTerminal(): bool
 	{
 		return ValidationStatus::ACCEPTED === $this->status || ValidationStatus::REJECTED === $this->status;
 	}
 
+	#[Override]
 	public function getRejectionException(): ?Throwable
 	{
 		return $this->rejectionException;
 	}
 
+	#[Override]
 	public function getCleanValue(): mixed
 	{
 		if (!$this->isValid()) {
@@ -168,6 +181,7 @@ class ValidationSubject implements ValidationSubjectInterface
 		return $this->cleanValue;
 	}
 
+	#[Override]
 	public function lock(): void
 	{
 		if (!$this->isValid()) {

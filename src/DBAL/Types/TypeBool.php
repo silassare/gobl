@@ -18,6 +18,7 @@ use Gobl\DBAL\Operator;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
 use Gobl\ORM\ORMTypeHint;
+use Override;
 
 /**
  * Class TypeBool.
@@ -73,16 +74,19 @@ class TypeBool extends BaseType
 		return $this->setOption('strict', $strict);
 	}
 
+	#[Override]
 	public static function getInstance(array $options): static
 	{
 		return (new self())->configure($options);
 	}
 
+	#[Override]
 	public function getName(): string
 	{
 		return self::NAME;
 	}
 
+	#[Override]
 	public function configure(array $options): static
 	{
 		if (isset($options['strict'])) {
@@ -92,16 +96,19 @@ class TypeBool extends BaseType
 		return parent::configure($options);
 	}
 
+	#[Override]
 	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?bool
 	{
 		return null === $value ? null : (bool) $value;
 	}
 
+	#[Override]
 	public function default(mixed $default): static
 	{
 		return parent::default((int) ((bool) $default));
 	}
 
+	#[Override]
 	public function getAllowedFilterOperators(): array
 	{
 		$operators = [
@@ -119,16 +126,19 @@ class TypeBool extends BaseType
 		return $operators;
 	}
 
+	#[Override]
 	public function getEmptyValueOfType(): ?bool
 	{
 		return $this->isNullable() ? null : false;
 	}
 
+	#[Override]
 	public function getReadTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::bool();
 	}
 
+	#[Override]
 	public function getWriteTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::bool();
@@ -139,6 +149,7 @@ class TypeBool extends BaseType
 	 *
 	 * @throws TypesInvalidValueException
 	 */
+	#[Override]
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?int
 	{
 		$value = $this->validate($value)->getCleanValue();
@@ -150,6 +161,7 @@ class TypeBool extends BaseType
 		return $value ? 1 : 0;
 	}
 
+	#[Override]
 	public function castValueForFilter(mixed $value, Operator $operator, RDBMSInterface $rdbms): float|int|string|null
 	{
 		return $this->phpToDb($value, $rdbms);
@@ -170,6 +182,7 @@ class TypeBool extends BaseType
 	 *
 	 * @throws TypesInvalidValueException
 	 */
+	#[Override]
 	protected function runValidation(ValidationSubjectInterface $subject): void
 	{
 		$value = $subject->getUnsafeValue();

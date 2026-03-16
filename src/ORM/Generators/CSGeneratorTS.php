@@ -17,6 +17,7 @@ use Exception;
 use Gobl\Gobl;
 use Gobl\ORM\ORMTypeHint;
 use Gobl\ORM\ORMUniversalType;
+use Override;
 
 /**
  * Class CSGeneratorTS.
@@ -33,6 +34,7 @@ class CSGeneratorTS extends CSGenerator
 	 *
 	 * @throws Exception
 	 */
+	#[Override]
 	public function generate(array $tables, ?string $path = null, string $header = ''): static
 	{
 		if (!self::$templates_registered) {
@@ -100,6 +102,7 @@ class CSGeneratorTS extends CSGenerator
 		return $this;
 	}
 
+	#[Override]
 	public function toTypeHintString(ORMTypeHint $type_hint): string
 	{
 		$types    = $type_hint->getUniversalTypes();

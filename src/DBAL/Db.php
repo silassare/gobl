@@ -38,6 +38,7 @@ use Gobl\DBAL\Types\Utils\Map;
 use Gobl\DBAL\Types\Utils\TypeUtils;
 use Gobl\Gobl;
 use InvalidArgumentException;
+use Override;
 use PDO;
 use PHPUtils\Traits\LockTrait;
 use Throwable;
@@ -147,6 +148,7 @@ abstract class Db implements RDBMSInterface
 	 *
 	 * @throws DBALException
 	 */
+	#[Override]
 	public function getConnection(): PDO
 	{
 		if (null === $this->db_connection) {
@@ -172,6 +174,7 @@ abstract class Db implements RDBMSInterface
 	 *
 	 * @throws DBALException
 	 */
+	#[Override]
 	public function lock(): static
 	{
 		if (!$this->locked) {
@@ -211,6 +214,7 @@ abstract class Db implements RDBMSInterface
 		return $this;
 	}
 
+	#[Override]
 	public function getTables(?string $namespace = null): array
 	{
 		if (null !== $namespace) {
@@ -240,6 +244,7 @@ abstract class Db implements RDBMSInterface
 	 *
 	 * @return array<string, array>
 	 */
+	#[Override]
 	public function toSchemaArray(?string $namespace = null): array
 	{
 		$result = [];
@@ -272,6 +277,7 @@ abstract class Db implements RDBMSInterface
 	 *
 	 * @return string
 	 */
+	#[Override]
 	public function toSchemaJson(?string $namespace = null, int $flags = \JSON_PRETTY_PRINT): string
 	{
 		$data = $this->toSchemaArray($namespace);
@@ -298,6 +304,7 @@ abstract class Db implements RDBMSInterface
 	 *
 	 * @throws DBALException
 	 */
+	#[Override]
 	public function loadSchema(array $schema, ?string $desired_namespace = null): static
 	{
 		$tables_prefix = $this->getConfig()
@@ -876,6 +883,7 @@ abstract class Db implements RDBMSInterface
 		return null;
 	}
 
+	#[Override]
 	public function getTable(string $name): ?Table
 	{
 		if ($this->hasTable($name)) {
@@ -889,6 +897,7 @@ abstract class Db implements RDBMSInterface
 		return null;
 	}
 
+	#[Override]
 	public function getTableByMorphType(string $morph_type): ?Table
 	{
 		if (isset($this->morph_types[$morph_type])) {
@@ -898,6 +907,7 @@ abstract class Db implements RDBMSInterface
 		return null;
 	}
 
+	#[Override]
 	public function hasTable(string $name): bool
 	{
 		return isset($this->tables[$name]) || isset($this->tbl_full_name_map[$name]);
@@ -932,6 +942,7 @@ abstract class Db implements RDBMSInterface
 	 *
 	 * @throws DBALException
 	 */
+	#[Override]
 	public function addTable(Table $table): static
 	{
 		$this->assertNotLocked();
@@ -977,6 +988,7 @@ abstract class Db implements RDBMSInterface
 		return $this;
 	}
 
+	#[Override]
 	public function getTableOrFail(string $name): Table
 	{
 		$this->assertHasTable($name);
@@ -988,6 +1000,7 @@ abstract class Db implements RDBMSInterface
 		return $this->tables[$name];
 	}
 
+	#[Override]
 	public function assertHasTable(string $name): void
 	{
 		if (!$this->hasTable($name)) {
@@ -995,11 +1008,13 @@ abstract class Db implements RDBMSInterface
 		}
 	}
 
+	#[Override]
 	public function ns(string $namespace): NamespaceBuilder
 	{
 		return $this->namespace($namespace);
 	}
 
+	#[Override]
 	public function namespace(string $namespace): NamespaceBuilder
 	{
 		if (!isset($this->namespaces[$namespace])) {
@@ -1014,6 +1029,7 @@ abstract class Db implements RDBMSInterface
 	 *
 	 * @throws DBALException
 	 */
+	#[Override]
 	public function resolveColumn(string $reference, string $used_in_table_name): array
 	{
 		return $this->resolveColumnInternal($reference, $used_in_table_name);

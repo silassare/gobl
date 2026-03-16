@@ -18,6 +18,7 @@ use Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface;
 use Gobl\DBAL\Queries\Interfaces\QBInterface;
 use Gobl\DBAL\Queries\QBUtils;
 use Gobl\DBAL\Table;
+use Override;
 
 /**
  * Class FiltersTableScope.
@@ -52,6 +53,7 @@ class FiltersTableScope implements FiltersScopeInterface
 	 *
 	 * @throws DBALRuntimeException
 	 */
+	#[Override]
 	public function assertFilterAllowed(Filter $filter, ?QBInterface $qb = null): void
 	{
 		// left operand should be a resolved column
@@ -75,6 +77,7 @@ class FiltersTableScope implements FiltersScopeInterface
 		$column->getType()->assertFilterAllowed($filter);
 	}
 
+	#[Override]
 	public function tryResolveFieldNotation(FilterFieldNotation $fn, QBInterface $qb): void
 	{
 		$name = $fn->getColumnName() ?? $fn->getField();
@@ -91,6 +94,7 @@ class FiltersTableScope implements FiltersScopeInterface
 	 * This means a `FiltersTableScope` will accept filters from another `FiltersTableScope`
 	 * (regardless of which table it references) but will reject any other scope type.
 	 */
+	#[Override]
 	public function shouldAllowFiltersScope(FiltersScopeInterface $scope): bool
 	{
 		return \is_a($scope, static::class);

@@ -29,6 +29,7 @@ use InvalidArgumentException;
 use JsonSerializable;
 use OLIUP\CG\PHPMethod;
 use OLIUP\CG\PHPType;
+use Override;
 
 /**
  * Class TypeJSON.
@@ -94,11 +95,13 @@ class TypeJSON extends BaseType
 		parent::__construct($this);
 	}
 
+	#[Override]
 	public static function getInstance(array $options): static
 	{
 		return (new self())->configure($options);
 	}
 
+	#[Override]
 	public function getName(): string
 	{
 		return self::NAME;
@@ -223,6 +226,7 @@ class TypeJSON extends BaseType
 		return $this->getOption('native_json', false);
 	}
 
+	#[Override]
 	public function configure(array $options): static
 	{
 		if (isset($options['json_of'])) {
@@ -256,6 +260,7 @@ class TypeJSON extends BaseType
 	 *  - Otherwise, decodes and returns the PHP value directly: JSON objects/arrays become
 	 *    PHP arrays; JSON scalars (numbers, booleans, strings) become their PHP equivalents.
 	 */
+	#[Override]
 	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): mixed
 	{
 		if (null === $value) {
@@ -281,6 +286,7 @@ class TypeJSON extends BaseType
 	 *
 	 * @throws TypesInvalidValueException
 	 */
+	#[Override]
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): ?string
 	{
 		$value = $this->validate($value)->getCleanValue();
@@ -313,6 +319,7 @@ class TypeJSON extends BaseType
 	 *   All operators run through path-based JSON extraction (via `queryBuilderApplyFilter`)
 	 *   except `CONTAINS` and `HAS_KEY`, which operate on the whole column without a path.
 	 */
+	#[Override]
 	public function getAllowedFilterOperators(): array
 	{
 		$operators = [
@@ -336,6 +343,7 @@ class TypeJSON extends BaseType
 		return $operators;
 	}
 
+	#[Override]
 	public function queryBuilderApplyFilter(ORMTableQuery $qb, Column $column, Operator $operator, array $args): void
 	{
 		// TEXT-stored JSON: standard filter on the raw string column
@@ -414,6 +422,7 @@ class TypeJSON extends BaseType
 	 *
 	 * For TEXT-stored JSON, no enhancement is performed.
 	 */
+	#[Override]
 	public function queryBuilderEnhanceFilterMethod(Table $table, Column $column, Operator $operator, PHPMethod $method): void
 	{
 		if (!$this->isNativeJson()) {
@@ -469,6 +478,7 @@ class TypeJSON extends BaseType
 		$method->newArgument('path')->setType('string');
 	}
 
+	#[Override]
 	public function getEmptyValueOfType(): mixed
 	{
 		return $this->isNullable() ? null : 'null';
@@ -481,6 +491,7 @@ class TypeJSON extends BaseType
 	 * - When `json_of` is an {@see ORMUniversalType}, returns a hint for that universal type.
 	 * - Otherwise returns an UNKNOWN hint (decoded value shape is not statically known).
 	 */
+	#[Override]
 	public function getReadTypeHint(): ORMTypeHint
 	{
 		$json_of_class = $this->getJsonOfClass();
@@ -504,6 +515,7 @@ class TypeJSON extends BaseType
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getWriteTypeHint(): ORMTypeHint
 	{
 		return $this->getReadTypeHint();
@@ -545,6 +557,7 @@ class TypeJSON extends BaseType
 	 *
 	 * @throws TypesInvalidValueException
 	 */
+	#[Override]
 	protected function runValidation(ValidationSubjectInterface $subject): void
 	{
 		$value = $subject->getUnsafeValue();

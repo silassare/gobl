@@ -21,6 +21,7 @@ use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
 use Gobl\ORM\ORMTypeHint;
 use OLIUP\CG\PHPEnum;
 use OLIUP\CG\PHPType;
+use Override;
 use Throwable;
 
 /**
@@ -81,6 +82,7 @@ class TypeEnum extends Type
 		return $this->setOption(self::OPTION_ENUM_CLASS, $enum_class);
 	}
 
+	#[Override]
 	public static function getInstance(array $options): static
 	{
 		return (new self())->configure($options);
@@ -91,6 +93,7 @@ class TypeEnum extends Type
 	 *
 	 * @throws TypesException
 	 */
+	#[Override]
 	public function configure(array $options): static
 	{
 		if (isset($options[self::OPTION_ENUM_CLASS])) {
@@ -105,6 +108,7 @@ class TypeEnum extends Type
 	 *
 	 * @throws Throwable
 	 */
+	#[Override]
 	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): ?BackedEnum
 	{
 		if (null === $value) {
@@ -114,11 +118,13 @@ class TypeEnum extends Type
 		return $this->toEnumValue($value);
 	}
 
+	#[Override]
 	public function getEmptyValueOfType(): ?BackedEnum
 	{
 		return null;
 	}
 
+	#[Override]
 	public function getName(): string
 	{
 		return self::NAME;
@@ -129,6 +135,7 @@ class TypeEnum extends Type
 	 *
 	 * @throws TypesException
 	 */
+	#[Override]
 	public function getReadTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::string()
@@ -140,6 +147,7 @@ class TypeEnum extends Type
 	 *
 	 * @throws TypesException
 	 */
+	#[Override]
 	public function getWriteTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::string()
@@ -152,6 +160,7 @@ class TypeEnum extends Type
 	 * @throws TypesInvalidValueException
 	 * @throws TypesException
 	 */
+	#[Override]
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): int|string|null
 	{
 		return $this->validate($value)->getCleanValue()?->value;
@@ -182,6 +191,7 @@ class TypeEnum extends Type
 	 * @throws TypesInvalidValueException
 	 * @throws TypesException
 	 */
+	#[Override]
 	protected function runValidation(ValidationSubjectInterface $subject): void
 	{
 		$value = $subject->getUnsafeValue();

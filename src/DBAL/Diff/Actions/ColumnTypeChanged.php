@@ -17,6 +17,7 @@ use Gobl\DBAL\Column;
 use Gobl\DBAL\Diff\DiffAction;
 use Gobl\DBAL\Diff\DiffActionType;
 use Gobl\DBAL\Table;
+use Override;
 
 /**
  * Class ColumnTypeChanged.
@@ -52,6 +53,7 @@ final class ColumnTypeChanged extends DiffAction
 		return $this->new_column;
 	}
 
+	#[Override]
 	public function toArray(): array
 	{
 		return [

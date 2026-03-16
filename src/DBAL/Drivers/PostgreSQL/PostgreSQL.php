@@ -15,6 +15,7 @@ namespace Gobl\DBAL\Drivers\PostgreSQL;
 
 use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Drivers\SQLDriverBase;
+use Override;
 use PDO;
 use PDOException;
 
@@ -25,16 +26,19 @@ class PostgreSQL extends SQLDriverBase
 {
 	public const NAME = 'postgresql';
 
+	#[Override]
 	public function getGenerator(): PostgreSQLQueryGenerator
 	{
 		return new PostgreSQLQueryGenerator($this, $this->config);
 	}
 
+	#[Override]
 	public function getType(): string
 	{
 		return self::NAME;
 	}
 
+	#[Override]
 	public static function new(DbConfig $config): static
 	{
 		return new self($config);
@@ -48,6 +52,7 @@ class PostgreSQL extends SQLDriverBase
 	 * primary key is not a SERIAL / auto-increment column). In that case we return
 	 * false gracefully instead of propagating the exception.
 	 */
+	#[Override]
 	public function insert($sql, ?array $params = null, array $params_types = []): false|string
 	{
 		$stmt = $this->execute($sql, $params, $params_types);
@@ -64,6 +69,7 @@ class PostgreSQL extends SQLDriverBase
 		return $last_id;
 	}
 
+	#[Override]
 	protected function connect(): PDO
 	{
 		$host     = $this->config->getDbHost();

@@ -21,6 +21,7 @@ use Gobl\DBAL\Queries\Traits\QBOrderByTrait;
 use Gobl\DBAL\Queries\Traits\QBSetColumnsValuesTrait;
 use Gobl\DBAL\Queries\Traits\QBWhereTrait;
 use LogicException;
+use Override;
 use PDOStatement;
 use PHPUtils\Str;
 
@@ -64,6 +65,7 @@ final class QBUpdate implements QBInterface
 	 *
 	 * @return int
 	 */
+	#[Override]
 	public function execute(): int
 	{
 		$sql    = $this->getSqlQuery();
@@ -73,6 +75,7 @@ final class QBUpdate implements QBInterface
 		return $this->db->update($sql, $values, $types);
 	}
 
+	#[Override]
 	public function getType(): QBType
 	{
 		return QBType::UPDATE;

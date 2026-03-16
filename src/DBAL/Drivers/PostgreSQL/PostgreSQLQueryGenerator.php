@@ -35,6 +35,7 @@ use Gobl\DBAL\Types\TypeJSON;
 use Gobl\DBAL\Types\TypeString;
 use Gobl\DBAL\Types\Utils\JsonPath;
 use Gobl\Gobl;
+use Override;
 use RuntimeException;
 
 /**
@@ -64,11 +65,13 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		}
 	}
 
+	#[Override]
 	public function wrapDatabaseDefinitionQuery(string $query): string
 	{
 		return $query;
 	}
 
+	#[Override]
 	public function quoteIdentifier(string $name): string
 	{
 		return '"' . \str_replace('"', '""', $name) . '"';
@@ -81,6 +84,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	 *   - single-level: col->>'key'
 	 *   - multi-level:  col#>>'{key1,key2}'
 	 */
+	#[Override]
 	public function getJsonPathExtractionExpression(JsonPath $json_path): string
 	{
 		$col_expr      =  $this->getJsonPathColumnFQN($json_path);
@@ -100,6 +104,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	 *
 	 * PostgreSQL JSON containment: `left @> right::jsonb`
 	 */
+	#[Override]
 	public function getJsonContainsExpression(string $left, string $right): string
 	{
 		return $left . ' @> ' . $right . '::jsonb';
@@ -117,11 +122,13 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	 * - Single-segment: `'tag'`  -> `'$.tag'::jsonpath`   -> checks top-level key `tag`
 	 * - Multi-segment:  `'user.role'` -> `'$.user.role'::jsonpath` -> checks nested key
 	 */
+	#[Override]
 	public function getJsonHasKeyExpression(string $col_sql_expression, string $key_expression): string
 	{
 		return 'jsonb_path_exists(' . $col_sql_expression . ", ('$.' || " . $key_expression . ')::jsonpath)';
 	}
 
+	#[Override]
 	protected function getJsonPathSegmentsAsString(JsonPath $json_path): string
 	{
 		$path_segments = $json_path->getPathSegments();
@@ -146,16 +153,19 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		}, $path_segments));
 	}
 
+	#[Override]
 	protected function dbQueryTemplate(): string
 	{
 		return 'postgresql_db';
 	}
 
+	#[Override]
 	protected function createTableQueryTemplate(): string
 	{
 		return 'postgresql_create_table';
 	}
 
+	#[Override]
 	protected function getStringColumnDefinition(Column $column): string
 	{
 		$column_name = $column->getFullName();
@@ -181,6 +191,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		return \implode(' ', $sql);
 	}
 
+	#[Override]
 	protected function getBoolColumnDefinition(Column $column): string
 	{
 		$column_name = $column->getFullName();
@@ -191,6 +202,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		return \implode(' ', $sql);
 	}
 
+	#[Override]
 	protected function getIntColumnDefinition(Column $column): string
 	{
 		$column_name = $column->getFullName();
@@ -218,6 +230,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		return \implode(' ', $sql);
 	}
 
+	#[Override]
 	protected function getBigintColumnDefinition(Column $column): string
 	{
 		$column_name = $column->getFullName();
@@ -242,6 +255,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	 *
 	 * @throws DBALException
 	 */
+	#[Override]
 	protected function getFloatColumnDefinition(Column $column): string
 	{
 		$this->checkFloatColumn($column);
@@ -268,6 +282,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	 *
 	 * @throws DBALException
 	 */
+	#[Override]
 	protected function getDecimalColumnDefinition(Column $column): string
 	{
 		$type = $column->getType()
@@ -301,6 +316,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	 * PostgreSQL supports native JSONB (binary JSON, preferred) and JSON column types.
 	 * When native_json is enabled, JSONB is used for efficient storage and indexing.
 	 */
+	#[Override]
 	protected function getJSONColumnDefinition(Column $column): string
 	{
 		/** @var TypeJSON $base */
@@ -323,6 +339,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	 *
 	 * Delegates CONTAINS to `getJsonContainsExpression` for the `@>` syntax.
 	 */
+	#[Override]
 	protected function operatorFilterToExpression(Filter $filter): string
 	{
 		if (Operator::CONTAINS === $filter->getOperator()) {
@@ -344,6 +361,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	 * When converting TEXT/VARCHAR or TEXT-stored JSON to JSONB, a
 	 * USING to_jsonb(col::text) clause is appended automatically.
 	 */
+	#[Override]
 	protected function getColumnTypeChangedString(ColumnTypeChanged $action): string
 	{
 		$new_column        = $action->getNewColumn();
@@ -371,21 +389,25 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		return $sql . ';';
 	}
 
+	#[Override]
 	protected function getDBCharsetChangeString(DBCharsetChanged $action): string
 	{
 		throw new RuntimeException('PostgreSQL does not support changing database charset via query.');
 	}
 
+	#[Override]
 	protected function getDBCollateChangeString(DBCollateChanged $action): string
 	{
 		throw new RuntimeException('PostgreSQL does not support changing database collate via query.');
 	}
 
+	#[Override]
 	protected function getTableCharsetChangeString(TableCharsetChanged $action): string
 	{
 		throw new RuntimeException('PostgreSQL does not support changing table charset via query.');
 	}
 
+	#[Override]
 	protected function getTableCollateChangeString(TableCollateChanged $action): string
 	{
 		throw new RuntimeException('PostgreSQL does not support changing table collate via query.');
@@ -397,6 +419,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	 * PostgreSQL uses: CREATE INDEX name ON table [USING method] (cols);
 	 * MYSQL_* index types are silently ignored.
 	 */
+	#[Override]
 	protected function getIndexSQL(Index $index): string
 	{
 		$table_name   = $index->getHostTable()->getFullName();
@@ -438,6 +461,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	 * When LIMIT is absent the standard base-class implementation is used.
 	 * ORDER BY without LIMIT still throws via the (inherited) guard.
 	 */
+	#[Override]
 	protected function getUpdateQuery(QBUpdate $qb): string
 	{
 		$max = $qb->getOptionsLimitMax();
@@ -492,6 +516,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	 *     SELECT ctid FROM t WHERE ... [ORDER BY ...] LIMIT n
 	 *   )
 	 */
+	#[Override]
 	protected function getDeleteQuery(QBDelete $qb): string
 	{
 		$where    = $this->getWhereQuery($qb);
@@ -570,6 +595,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	 *   - ignore: `ON CONFLICT DO NOTHING`
 	 *   - update: `ON CONFLICT [(cols)] DO UPDATE SET col = EXCLUDED.col [, ...]`
 	 */
+	#[Override]
 	protected function getOnConflictClause(QBInsert $qb): string
 	{
 		$conflict = $qb->getOptionsOnConflict();
@@ -607,6 +633,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	 *
 	 * PostgreSQL fully supports the RETURNING clause on INSERT, UPDATE, and DELETE.
 	 */
+	#[Override]
 	protected function getReturningClause(QBDelete|QBInsert|QBUpdate $qb): string
 	{
 		$opts = $qb->getOptionsReturning();
