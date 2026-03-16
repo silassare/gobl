@@ -153,18 +153,6 @@ final class ORMTypeHint
 	}
 
 	/**
-	 * Creates mixed type hint instance.
-	 *
-	 * @deprecated use {@see self::any()} instead
-	 *
-	 * @return self
-	 */
-	public static function mixed(): self
-	{
-		return self::any();
-	}
-
-	/**
 	 * Creates any type hint instance (permissive, disables type checking).
 	 *
 	 * @return self
