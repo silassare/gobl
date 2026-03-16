@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/oliup-io/code-generator.git",
-                "reference": "95793fb13a913be922d1cd12da1e1e3c57df907b"
+                "reference": "d87d02514cdaf47f6e445ecbd05893f67fea0b28"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/oliup-io/code-generator/zipball/95793fb13a913be922d1cd12da1e1e3c57df907b",
-                "reference": "95793fb13a913be922d1cd12da1e1e3c57df907b",
+                "url": "https://api.github.com/repos/oliup-io/code-generator/zipball/d87d02514cdaf47f6e445ecbd05893f67fea0b28",
+                "reference": "d87d02514cdaf47f6e445ecbd05893f67fea0b28",
                 "shasum": ""
             },
             "require": {
@@ -66,7 +66,7 @@
                 "source": "https://github.com/oliup-io/code-generator/tree/main",
                 "issues": "https://github.com/oliup-io/code-generator/issues"
             },
-            "time": "2026-03-14T14:13:44+00:00"
+            "time": "2026-03-16T10:56:07+00:00"
         },
         {
             "name": "psr/http-message",
@@ -127,12 +127,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/silassare/blate.git",
-                "reference": "88958a163e7fcdd143ef77be6ecfe5942436d859"
+                "reference": "4c4bf821323b4eeaa2fb4266e933d45fb6fe2b3a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/silassare/blate/zipball/88958a163e7fcdd143ef77be6ecfe5942436d859",
-                "reference": "88958a163e7fcdd143ef77be6ecfe5942436d859",
+                "url": "https://api.github.com/repos/silassare/blate/zipball/4c4bf821323b4eeaa2fb4266e933d45fb6fe2b3a",
+                "reference": "4c4bf821323b4eeaa2fb4266e933d45fb6fe2b3a",
                 "shasum": ""
             },
             "require": {
@@ -193,7 +193,7 @@
                 "source": "https://github.com/silassare/blate/tree/main",
                 "issues": "https://github.com/silassare/blate/issues"
             },
-            "time": "2026-03-14T17:48:35+00:00"
+            "time": "2026-03-16T10:58:34+00:00"
         },
         {
             "name": "silassare/php-utils",
@@ -201,12 +201,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/silassare/php-utils.git",
-                "reference": "ee660d67baf99cf1964ccafdd26104f801e6df03"
+                "reference": "2cc6c7868926b23cea66aa46c3cc0b583eb45d5e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/silassare/php-utils/zipball/ee660d67baf99cf1964ccafdd26104f801e6df03",
-                "reference": "ee660d67baf99cf1964ccafdd26104f801e6df03",
+                "url": "https://api.github.com/repos/silassare/php-utils/zipball/2cc6c7868926b23cea66aa46c3cc0b583eb45d5e",
+                "reference": "2cc6c7868926b23cea66aa46c3cc0b583eb45d5e",
                 "shasum": ""
             },
             "require": {
@@ -258,7 +258,7 @@
                 "source": "https://github.com/silassare/php-utils/tree/main",
                 "issues": "https://github.com/silassare/php-utils/issues"
             },
-            "time": "2026-03-14T13:42:53+00:00"
+            "time": "2026-03-16T10:53:20+00:00"
         }
     ],
     "packages-dev": [
@@ -2031,20 +2031,20 @@
         },
         {
             "name": "league/uri",
-            "version": "7.8.0",
+            "version": "7.8.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thephpleague/uri.git",
-                "reference": "4436c6ec8d458e4244448b069cc572d088230b76"
+                "reference": "08cf38e3924d4f56238125547b5720496fac8fd4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thephpleague/uri/zipball/4436c6ec8d458e4244448b069cc572d088230b76",
-                "reference": "4436c6ec8d458e4244448b069cc572d088230b76",
+                "url": "https://api.github.com/repos/thephpleague/uri/zipball/08cf38e3924d4f56238125547b5720496fac8fd4",
+                "reference": "08cf38e3924d4f56238125547b5720496fac8fd4",
                 "shasum": ""
             },
             "require": {
-                "league/uri-interfaces": "^7.8",
+                "league/uri-interfaces": "^7.8.1",
                 "php": "^8.1",
                 "psr/http-factory": "^1"
             },
@@ -2117,7 +2117,7 @@
                 "docs": "https://uri.thephpleague.com",
                 "forum": "https://thephpleague.slack.com",
                 "issues": "https://github.com/thephpleague/uri-src/issues",
-                "source": "https://github.com/thephpleague/uri/tree/7.8.0"
+                "source": "https://github.com/thephpleague/uri/tree/7.8.1"
             },
             "funding": [
                 {
@@ -2125,20 +2125,20 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-01-14T17:24:56+00:00"
+            "time": "2026-03-15T20:22:25+00:00"
         },
         {
             "name": "league/uri-interfaces",
-            "version": "7.8.0",
+            "version": "7.8.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thephpleague/uri-interfaces.git",
-                "reference": "c5c5cd056110fc8afaba29fa6b72a43ced42acd4"
+                "reference": "85d5c77c5d6d3af6c54db4a78246364908f3c928"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thephpleague/uri-interfaces/zipball/c5c5cd056110fc8afaba29fa6b72a43ced42acd4",
-                "reference": "c5c5cd056110fc8afaba29fa6b72a43ced42acd4",
+                "url": "https://api.github.com/repos/thephpleague/uri-interfaces/zipball/85d5c77c5d6d3af6c54db4a78246364908f3c928",
+                "reference": "85d5c77c5d6d3af6c54db4a78246364908f3c928",
                 "shasum": ""
             },
             "require": {
@@ -2201,7 +2201,7 @@
                 "docs": "https://uri.thephpleague.com",
                 "forum": "https://thephpleague.slack.com",
                 "issues": "https://github.com/thephpleague/uri-src/issues",
-                "source": "https://github.com/thephpleague/uri-interfaces/tree/7.8.0"
+                "source": "https://github.com/thephpleague/uri-interfaces/tree/7.8.1"
             },
             "funding": [
                 {
@@ -2209,7 +2209,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-01-15T06:54:53+00:00"
+            "time": "2026-03-08T20:05:35+00:00"
         },
         {
             "name": "myclabs/deep-copy",
