@@ -22,6 +22,7 @@
 		<PossiblyUnusedReturnValue errorLevel="suppress"/>
 		<!-- Public API classes and properties used externally, not within the library -->
 		<UnusedClass errorLevel="suppress"/>
+		<PossiblyUnusedParam errorLevel="suppress"/>
 		<PossiblyUnusedProperty errorLevel="suppress"/>
 		<!-- Initial null assignments for typed variables are a valid pattern; suppress false positives -->
 		<UnusedVariable errorLevel="suppress"/>
