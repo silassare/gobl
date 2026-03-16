@@ -64,4 +64,10 @@ final class TypeBoolTest extends BaseTestCase
 		$t = (new TypeBool())->default(true);
 		self::assertTrue($t->validate(null)->getCleanValue());
 	}
+
+	public function testBoolNullThrowsWithoutNullableOrDefault(): void
+	{
+		$this->expectException(TypesInvalidValueException::class);
+		(new TypeBool())->validate(null)->getCleanValue();
+	}
 }

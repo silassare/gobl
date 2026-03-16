@@ -182,6 +182,66 @@ final class DiffSnapshotTest extends BaseTestCase
 	}
 
 	/**
+	 * A string column changes to a native JSON column.
+	 *
+	 * PostgreSQL must emit a USING to_jsonb(col::text) clause because it cannot
+	 * implicitly cast TEXT/VARCHAR to JSONB. MySQL uses its native JSON type.
+	 * SQLite does not distinguish column types, so it produces no changes.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testColumnTypeChangedStringToNativeJson(string $driver): void
+	{
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
+			$ns->table('docs', static function (TableBuilder $t) {
+				$t->columnPrefix('doc');
+				$t->id();
+				$t->string('payload')->max(65535);   // text-like string
+			});
+		});
+
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
+			$ns->table('docs', static function (TableBuilder $t) {
+				$t->columnPrefix('doc');
+				$t->id();
+				$t->json('payload')->nativeJson();   // string => native JSON (JSONB on PostgreSQL)
+			});
+		});
+
+		$this->assertDiffSnapshot($driver, 'column_type_changed_string_to_native_json', $from, $to);
+	}
+
+	/**
+	 * A TEXT-stored JSON column (native_json=false) changes to a native JSON column.
+	 *
+	 * PostgreSQL must emit a USING to_jsonb(col::text) clause because TEXT-stored JSON
+	 * cannot be implicitly cast to JSONB. MySQL switches to its native JSON column type.
+	 * SQLite produces no changes because it does not enforce column types.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testColumnTypeChangedNonNativeJsonToNativeJson(string $driver): void
+	{
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
+			$ns->table('docs', static function (TableBuilder $t) {
+				$t->columnPrefix('doc');
+				$t->id();
+				$t->json('payload');   // TEXT-stored JSON (native_json=false)
+			});
+		});
+
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
+			$ns->table('docs', static function (TableBuilder $t) {
+				$t->columnPrefix('doc');
+				$t->id();
+				$t->json('payload')->nativeJson();   // TEXT-JSON => native JSON (JSONB on PostgreSQL)
+			});
+		});
+
+		$this->assertDiffSnapshot($driver, 'column_type_changed_non_native_json_to_native_json', $from, $to);
+	}
+
+	/**
 	 * A column gains a default value it did not have before.
 	 *
 	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers

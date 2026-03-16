@@ -182,7 +182,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		-- column type changed
 		ALTER TABLE "gObL_clients" ALTER COLUMN "client_id" bigserial;
 		-- column type changed
-		ALTER TABLE "gObL_clients" ALTER COLUMN "client_data" jsonb NOT NULL DEFAULT '{}';
+		ALTER TABLE "gObL_clients" ALTER COLUMN "client_data" jsonb NOT NULL DEFAULT '{}' USING to_jsonb("client_data"::text);
 		-- column type changed
 		ALTER TABLE "gObL_clients" ALTER COLUMN "client_updated_at" bigint NOT NULL;
 		-- column type changed
@@ -190,7 +190,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		-- column type changed
 		ALTER TABLE "gObL_accounts" ALTER COLUMN "account_client_id" bigint NOT NULL;
 		-- column type changed
-		ALTER TABLE "gObL_accounts" ALTER COLUMN "account_data" jsonb NOT NULL DEFAULT '{}';
+		ALTER TABLE "gObL_accounts" ALTER COLUMN "account_data" jsonb NOT NULL DEFAULT '{}' USING to_jsonb("account_data"::text);
 		-- column type changed
 		ALTER TABLE "gObL_accounts" ALTER COLUMN "account_updated_at" bigint NOT NULL;
 		-- column type changed
@@ -200,7 +200,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		-- column type changed
 		ALTER TABLE "gObL_currencies" ALTER COLUMN "ccy_symbol" varchar(6) NOT NULL;
 		-- column type changed
-		ALTER TABLE "gObL_currencies" ALTER COLUMN "ccy_data" jsonb NOT NULL DEFAULT '{}';
+		ALTER TABLE "gObL_currencies" ALTER COLUMN "ccy_data" jsonb NOT NULL DEFAULT '{}' USING to_jsonb("ccy_data"::text);
 		-- column type changed
 		ALTER TABLE "gObL_currencies" ALTER COLUMN "ccy_created_at" bigint NOT NULL;
 		-- column type changed

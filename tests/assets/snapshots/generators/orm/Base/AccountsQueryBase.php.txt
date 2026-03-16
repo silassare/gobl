@@ -18,8 +18,8 @@ use Gobl\Tests\Db\AccountsQuery;
  * @method static whereIdIsGte(string|int $value) Filters rows with `gte` condition on column `accounts.id`.
  * @method static whereIdIsLike(string $value) Filters rows with `like` condition on column `accounts.id`.
  * @method static whereIdIsNotLike(string $value) Filters rows with `not_like` condition on column `accounts.id`.
- * @method static whereIdIsIn(array $value) Filters rows with `in` condition on column `accounts.id`.
- * @method static whereIdIsNotIn(array $value) Filters rows with `not_in` condition on column `accounts.id`.
+ * @method static whereIdIsIn(list<mixed> $value) Filters rows with `in` condition on column `accounts.id`.
+ * @method static whereIdIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `accounts.id`.
  * @method static whereClientIdIs(string|int $value) Filters rows with `eq` condition on column `accounts.client_id`.
  * @method static whereClientIdIsNot(string|int $value) Filters rows with `neq` condition on column `accounts.client_id`.
  * @method static whereClientIdIsLt(string|int $value) Filters rows with `lt` condition on column `accounts.client_id`.
@@ -28,8 +28,8 @@ use Gobl\Tests\Db\AccountsQuery;
  * @method static whereClientIdIsGte(string|int $value) Filters rows with `gte` condition on column `accounts.client_id`.
  * @method static whereClientIdIsLike(string $value) Filters rows with `like` condition on column `accounts.client_id`.
  * @method static whereClientIdIsNotLike(string $value) Filters rows with `not_like` condition on column `accounts.client_id`.
- * @method static whereClientIdIsIn(array $value) Filters rows with `in` condition on column `accounts.client_id`.
- * @method static whereClientIdIsNotIn(array $value) Filters rows with `not_in` condition on column `accounts.client_id`.
+ * @method static whereClientIdIsIn(list<mixed> $value) Filters rows with `in` condition on column `accounts.client_id`.
+ * @method static whereClientIdIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `accounts.client_id`.
  * @method static whereLabelIs(string $value) Filters rows with `eq` condition on column `accounts.label`.
  * @method static whereLabelIsNot(string $value) Filters rows with `neq` condition on column `accounts.label`.
  * @method static whereLabelIsLt(string $value) Filters rows with `lt` condition on column `accounts.label`.
@@ -38,8 +38,8 @@ use Gobl\Tests\Db\AccountsQuery;
  * @method static whereLabelIsGte(string $value) Filters rows with `gte` condition on column `accounts.label`.
  * @method static whereLabelIsLike(string $value) Filters rows with `like` condition on column `accounts.label`.
  * @method static whereLabelIsNotLike(string $value) Filters rows with `not_like` condition on column `accounts.label`.
- * @method static whereLabelIsIn(array $value) Filters rows with `in` condition on column `accounts.label`.
- * @method static whereLabelIsNotIn(array $value) Filters rows with `not_in` condition on column `accounts.label`.
+ * @method static whereLabelIsIn(list<mixed> $value) Filters rows with `in` condition on column `accounts.label`.
+ * @method static whereLabelIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `accounts.label`.
  * @method static whereBalanceIs(string|float|int $value) Filters rows with `eq` condition on column `accounts.balance`.
  * @method static whereBalanceIsNot(string|float|int $value) Filters rows with `neq` condition on column `accounts.balance`.
  * @method static whereBalanceIsLt(string|float|int $value) Filters rows with `lt` condition on column `accounts.balance`.
@@ -48,8 +48,8 @@ use Gobl\Tests\Db\AccountsQuery;
  * @method static whereBalanceIsGte(string|float|int $value) Filters rows with `gte` condition on column `accounts.balance`.
  * @method static whereBalanceIsLike(string $value) Filters rows with `like` condition on column `accounts.balance`.
  * @method static whereBalanceIsNotLike(string $value) Filters rows with `not_like` condition on column `accounts.balance`.
- * @method static whereBalanceIsIn(array $value) Filters rows with `in` condition on column `accounts.balance`.
- * @method static whereBalanceIsNotIn(array $value) Filters rows with `not_in` condition on column `accounts.balance`.
+ * @method static whereBalanceIsIn(list<mixed> $value) Filters rows with `in` condition on column `accounts.balance`.
+ * @method static whereBalanceIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `accounts.balance`.
  * @method static whereCurrencyCodeIs(string $value) Filters rows with `eq` condition on column `accounts.currency_code`.
  * @method static whereCurrencyCodeIsNot(string $value) Filters rows with `neq` condition on column `accounts.currency_code`.
  * @method static whereCurrencyCodeIsLt(string $value) Filters rows with `lt` condition on column `accounts.currency_code`.
@@ -58,8 +58,8 @@ use Gobl\Tests\Db\AccountsQuery;
  * @method static whereCurrencyCodeIsGte(string $value) Filters rows with `gte` condition on column `accounts.currency_code`.
  * @method static whereCurrencyCodeIsLike(string $value) Filters rows with `like` condition on column `accounts.currency_code`.
  * @method static whereCurrencyCodeIsNotLike(string $value) Filters rows with `not_like` condition on column `accounts.currency_code`.
- * @method static whereCurrencyCodeIsIn(array $value) Filters rows with `in` condition on column `accounts.currency_code`.
- * @method static whereCurrencyCodeIsNotIn(array $value) Filters rows with `not_in` condition on column `accounts.currency_code`.
+ * @method static whereCurrencyCodeIsIn(list<mixed> $value) Filters rows with `in` condition on column `accounts.currency_code`.
+ * @method static whereCurrencyCodeIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `accounts.currency_code`.
  * @method static whereDataIs(null|string|int|float $value, string $path) Filters rows where $value equals the extracted value of `accounts.data` at dot-notation $path.
  * @method static whereDataIsNot(null|string|int|float $value, string $path) Filters rows where $value does not equal the extracted value of `accounts.data` at dot-notation $path.
  * @method static whereDataIsLike(string $value, string $path) Filters rows where $value matches the extracted value of `accounts.data` at dot-notation $path using LIKE.
@@ -74,8 +74,8 @@ use Gobl\Tests\Db\AccountsQuery;
  * @method static whereCreatedAtIsGte(string|int $value) Filters rows with `gte` condition on column `accounts.created_at`.
  * @method static whereCreatedAtIsLike(string $value) Filters rows with `like` condition on column `accounts.created_at`.
  * @method static whereCreatedAtIsNotLike(string $value) Filters rows with `not_like` condition on column `accounts.created_at`.
- * @method static whereCreatedAtIsIn(array $value) Filters rows with `in` condition on column `accounts.created_at`.
- * @method static whereCreatedAtIsNotIn(array $value) Filters rows with `not_in` condition on column `accounts.created_at`.
+ * @method static whereCreatedAtIsIn(list<mixed> $value) Filters rows with `in` condition on column `accounts.created_at`.
+ * @method static whereCreatedAtIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `accounts.created_at`.
  * @method static whereUpdatedAtIs(string|int $value) Filters rows with `eq` condition on column `accounts.updated_at`.
  * @method static whereUpdatedAtIsNot(string|int $value) Filters rows with `neq` condition on column `accounts.updated_at`.
  * @method static whereUpdatedAtIsLt(string|int $value) Filters rows with `lt` condition on column `accounts.updated_at`.
@@ -84,8 +84,8 @@ use Gobl\Tests\Db\AccountsQuery;
  * @method static whereUpdatedAtIsGte(string|int $value) Filters rows with `gte` condition on column `accounts.updated_at`.
  * @method static whereUpdatedAtIsLike(string $value) Filters rows with `like` condition on column `accounts.updated_at`.
  * @method static whereUpdatedAtIsNotLike(string $value) Filters rows with `not_like` condition on column `accounts.updated_at`.
- * @method static whereUpdatedAtIsIn(array $value) Filters rows with `in` condition on column `accounts.updated_at`.
- * @method static whereUpdatedAtIsNotIn(array $value) Filters rows with `not_in` condition on column `accounts.updated_at`.
+ * @method static whereUpdatedAtIsIn(list<mixed> $value) Filters rows with `in` condition on column `accounts.updated_at`.
+ * @method static whereUpdatedAtIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `accounts.updated_at`.
  * @method static whereValidIs(bool $value) Filters rows with `eq` condition on column `accounts.valid`.
  * @method static whereValidIsNot(bool $value) Filters rows with `neq` condition on column `accounts.valid`.
  * @method static whereValidIsFalse() Filters rows with `is_false` condition on column `accounts.valid`.

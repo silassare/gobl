@@ -19,6 +19,7 @@ use Gobl\DBAL\Types\TypeJSON;
 use Gobl\DBAL\Types\TypeList;
 use Gobl\DBAL\Types\TypeMap;
 use Gobl\DBAL\Types\Utils\Map;
+use Gobl\ORM\ORMUniversalType;
 use Gobl\Tests\BaseTestCase;
 use JsonSerializable;
 use PHPUtils\Exceptions\RuntimeException as PHPUtilsRuntimeException;
@@ -65,18 +66,15 @@ final class TypeJSONTest extends BaseTestCase
 		self::assertNull($result);
 	}
 
-	// TypeJSON only accepts arrays and objects; any string (even valid JSON) is rejected,
-	// because TypeJSON is the *base* type used by TypeMap/TypeList for DB encoding.
-	public function testValidateRejectsJsonString(): void
+	// TypeJSON accepts any JSON-serialisable value including strings.
+	public function testValidateAcceptsJsonString(): void
 	{
-		$this->expectException(TypesInvalidValueException::class);
-		(new TypeJSON())->validate('{"foo":"bar"}')->getCleanValue();
+		self::assertSame('foo', (new TypeJSON())->validate('foo')->getCleanValue());
 	}
 
-	public function testValidateRejectsJsonArrayString(): void
+	public function testValidateAcceptsJsonArrayString(): void
 	{
-		$this->expectException(TypesInvalidValueException::class);
-		(new TypeJSON())->validate('[1,2,3]')->getCleanValue();
+		self::assertSame('[1,2,3]', (new TypeJSON())->validate('[1,2,3]')->getCleanValue());
 	}
 
 	// =========================================================================
@@ -89,10 +87,9 @@ final class TypeJSONTest extends BaseTestCase
 		(new TypeJSON())->validate(null)->getCleanValue();
 	}
 
-	public function testValidateRejectsPlainString(): void
+	public function testValidateAcceptsPlainString(): void
 	{
-		$this->expectException(TypesInvalidValueException::class);
-		(new TypeJSON())->validate('not-json')->getCleanValue();
+		self::assertSame('not-json', (new TypeJSON())->validate('not-json')->getCleanValue());
 	}
 
 	// =========================================================================
@@ -212,9 +209,18 @@ final class TypeJSONTest extends BaseTestCase
 		self::assertTrue(true);
 	}
 
+	public function testScalarDefaultPassesOnLock(): void
+	{
+		// scalars are now valid for TypeJSON when json_of is not set
+		$t = (new TypeJSON())->default('a scalar string');
+		$t->lock(); // must not throw
+		self::assertTrue(true);
+	}
+
 	public function testInvalidDefaultThrowsOnLock(): void
 	{
-		$t = (new TypeJSON())->default('this is a scalar string'); // scalars are rejected by TypeJSON
+		// json_of=LIST requires a sequential array; a string default must fail
+		$t = (new TypeJSON())->jsonOf(ORMUniversalType::LIST)->default('not an array');
 
 		$this->expectException(DBALRuntimeException::class);
 		$this->expectExceptionMessage('Default value for type "json" failed validation.');
@@ -222,75 +228,57 @@ final class TypeJSONTest extends BaseTestCase
 	}
 
 	// =========================================================================
-	// TypeJSON::jsonDataType - 'any' / 'array' / 'object'
+	// ORMUniversalType-based shape enforcement via json_of
 	// =========================================================================
 
-	public function testJsonDataTypeAnyAcceptsAssocArray(): void
+	public function testJsonOfListAcceptsIndexedArray(): void
 	{
-		$t = (new TypeJSON())->jsonDataType('any');
-		self::assertSame(['a' => 1], $t->validate(['a' => 1])->getCleanValue());
-	}
-
-	public function testJsonDataTypeAnyAcceptsIndexedArray(): void
-	{
-		$t = (new TypeJSON())->jsonDataType('any');
+		$t = (new TypeJSON())->jsonOf(ORMUniversalType::LIST);
 		self::assertSame([1, 2, 3], $t->validate([1, 2, 3])->getCleanValue());
 	}
 
-	public function testJsonDataTypeArrayAcceptsIndexedArray(): void
+	public function testJsonOfListAcceptsEmptyArray(): void
 	{
-		$t = (new TypeJSON())->jsonDataType('array');
-		self::assertSame([1, 2, 3], $t->validate([1, 2, 3])->getCleanValue());
-	}
-
-	public function testJsonDataTypeArrayAcceptsEmptyArray(): void
-	{
-		$t = (new TypeJSON())->jsonDataType('array');
+		$t = (new TypeJSON())->jsonOf(ORMUniversalType::LIST);
 		self::assertSame([], $t->validate([])->getCleanValue());
 	}
 
-	public function testJsonDataTypeArrayRejectsAssocArray(): void
+	public function testJsonOfListRejectsAssocArray(): void
 	{
-		$t = (new TypeJSON())->jsonDataType('array');
+		$t = (new TypeJSON())->jsonOf(ORMUniversalType::LIST);
 		$this->expectException(TypesInvalidValueException::class);
 		$t->validate(['a' => 1])->getCleanValue();
 	}
 
-	public function testJsonDataTypeObjectAcceptsAssocArray(): void
+	public function testJsonOfMapAcceptsAssocArray(): void
 	{
-		$t = (new TypeJSON())->jsonDataType('object');
+		$t = (new TypeJSON())->jsonOf(ORMUniversalType::MAP);
 		self::assertSame(['a' => 1], $t->validate(['a' => 1])->getCleanValue());
 	}
 
-	public function testJsonDataTypeObjectRejectsIndexedArray(): void
+	public function testJsonOfMapAcceptsIndexedArray(): void
 	{
-		$t = (new TypeJSON())->jsonDataType('object');
-		$this->expectException(TypesInvalidValueException::class);
-		$t->validate([1, 2, 3])->getCleanValue();
+		// ORMUniversalType::MAP::isValidValue accepts any PHP array (indexed or associative)
+		$t = (new TypeJSON())->jsonOf(ORMUniversalType::MAP);
+		self::assertSame([1, 2, 3], $t->validate([1, 2, 3])->getCleanValue());
 	}
 
-	public function testJsonDataTypeObjectRejectsEmptyArray(): void
+	public function testJsonOfMapAcceptsEmptyArray(): void
 	{
-		// empty array is a list (array_is_list([]) = true), so 'object' rejects it
-		$t = (new TypeJSON())->jsonDataType('object');
-		$this->expectException(TypesInvalidValueException::class);
-		$t->validate([])->getCleanValue();
+		$t = (new TypeJSON())->jsonOf(ORMUniversalType::MAP);
+		self::assertSame([], $t->validate([])->getCleanValue());
 	}
 
-	public function testGetJsonDataTypeDefaultsToAny(): void
+	public function testJsonOfAnyUniversalTypeAcceptsBothShapes(): void
 	{
-		self::assertSame('any', (new TypeJSON())->getJsonDataType());
+		// ORMUniversalType cases other than LIST/MAP impose no shape restriction
+		$t = (new TypeJSON())->jsonOf(ORMUniversalType::ANY);
+		self::assertSame(['a' => 1], $t->validate(['a' => 1])->getCleanValue());
+		self::assertSame([1, 2, 3], $t->validate([1, 2, 3])->getCleanValue());
 	}
 
-	public function testGetJsonDataTypeReturnsSetValue(): void
-	{
-		self::assertSame('array', (new TypeJSON())->jsonDataType('array')->getJsonDataType());
-		self::assertSame('object', (new TypeJSON())->jsonDataType('object')->getJsonDataType());
-	}
-
-	// TypeList uses json_data_type='array' internally on its base TypeJSON --
-	// validate sequential arrays and reject assoc (via the TypeList layer).
-	public function testTypeListBaseHasJsonDataTypeArray(): void
+	// TypeList uses ORMUniversalType::LIST on its base TypeJSON -- accepts sequential arrays.
+	public function testTypeListBaseUsesUniversalTypeList(): void
 	{
 		$list = new TypeList();
 		// TypeList accepts indexed arrays
@@ -300,9 +288,9 @@ final class TypeJSONTest extends BaseTestCase
 		$list->validate(new stdClass())->getCleanValue();
 	}
 
-	// TypeMap wraps any array (assoc or indexed) in a Map instance.
-	// The json_data_type='object' on its base TypeJSON is for schema reflection only.
-	public function testTypeMapBaseHasJsonDataTypeObject(): void
+	// TypeMap uses ORMUniversalType::MAP on its base TypeJSON for schema reflection only;
+	// TypeMap's own runValidation wraps any array in Map without shape restriction.
+	public function testTypeMapBaseUsesUniversalTypeMap(): void
 	{
 		$map = new TypeMap();
 		// TypeMap accepts assoc arrays and wraps them in Map

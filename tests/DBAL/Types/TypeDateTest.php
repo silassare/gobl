@@ -61,6 +61,12 @@ final class TypeDateTest extends BaseTestCase
 		self::assertNull($t->validate(null)->getCleanValue());
 	}
 
+	public function testDateNullThrowsWithoutNullableOrDefault(): void
+	{
+		$this->expectException(TypesInvalidValueException::class);
+		(new TypeDate())->validate(null)->getCleanValue();
+	}
+
 	public function testDateEmptyNullableReturnsNull(): void
 	{
 		$t = (new TypeDate())->nullable();

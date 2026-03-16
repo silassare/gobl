@@ -60,6 +60,12 @@ final class TypeBigintTest extends BaseTestCase
 		self::assertSame('100', $t->validate(null)->getCleanValue());
 	}
 
+	public function testBigintNullThrowsWithoutNullableOrDefault(): void
+	{
+		$this->expectException(TypesInvalidValueException::class);
+		(new TypeBigint())->validate(null)->getCleanValue();
+	}
+
 	public function testBigintAutoIncrementNullReturnsNull(): void
 	{
 		$t = (new TypeBigint())->autoIncrement();

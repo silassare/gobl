@@ -129,13 +129,38 @@ final class JsonOfInterfaceTest extends BaseTestCase
 	/**
 	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
-	public function testTypeJSONWithoutJsonOfDbToPhpReturnsString(string $driver): void
+	public function testTypeJSONWithoutJsonOfDbToPhpDecodesJsonObject(string $driver): void
 	{
 		$db     = self::getNewDbInstance($driver);
 		$type   = new TypeJSON();
 		$result = $type->dbToPhp('{"a":1}', $db);
 
-		self::assertSame('{"a":1}', $result);
+		self::assertSame(['a' => 1], $result);
+	}
+
+	/**
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testTypeJSONWithoutJsonOfDbToPhpDecodesJsonArray(string $driver): void
+	{
+		$db     = self::getNewDbInstance($driver);
+		$type   = new TypeJSON();
+		$result = $type->dbToPhp('[1,2,3]', $db);
+
+		self::assertSame([1, 2, 3], $result);
+	}
+
+	/**
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testTypeJSONWithoutJsonOfDbToPhpDecodesScalar(string $driver): void
+	{
+		$db     = self::getNewDbInstance($driver);
+		$type   = new TypeJSON();
+
+		self::assertSame(42, $type->dbToPhp('42', $db));
+		self::assertTrue($type->dbToPhp('true', $db));
+		self::assertSame('hello', $type->dbToPhp('"hello"', $db));
 	}
 
 	/**
@@ -153,11 +178,53 @@ final class JsonOfInterfaceTest extends BaseTestCase
 	{
 		$type = TypeJSON::getInstance(['json_of' => SampleJsonOf::class]);
 		self::assertSame(SampleJsonOf::class, $type->getJsonOf());
+		self::assertSame(SampleJsonOf::class, $type->getJsonOfClass());
 	}
 
 	public function testTypeJSONJsonOfGetterWithoutOption(): void
 	{
 		self::assertNull((new TypeJSON())->getJsonOf());
+		self::assertNull((new TypeJSON())->getJsonOfClass());
+	}
+
+	public function testTypeJSONJsonOfWithORMUniversalTypeStoresValue(): void
+	{
+		$type = (new TypeJSON())->jsonOf(ORMUniversalType::MAP);
+		self::assertSame(ORMUniversalType::MAP->value, $type->getJsonOf());
+		self::assertNull($type->getJsonOfClass());
+	}
+
+	/**
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testTypeJSONJsonOfWithORMUniversalTypeDecodesWithoutRevival(string $driver): void
+	{
+		$db     = self::getNewDbInstance($driver);
+		$type   = (new TypeJSON())->jsonOf(ORMUniversalType::MAP);
+		$result = $type->dbToPhp('{"k":"v"}', $db);
+
+		self::assertSame(['k' => 'v'], $result);
+	}
+
+	public function testTypeJSONJsonOfORMUniversalTypeConfigureOption(): void
+	{
+		$type = TypeJSON::getInstance(['json_of' => 'MAP']);
+		self::assertSame(ORMUniversalType::MAP->value, $type->getJsonOf());
+		self::assertNull($type->getJsonOfClass());
+	}
+
+	public function testTypeJSONReadTypeHintWithORMUniversalType(): void
+	{
+		$hint  = (new TypeJSON())->jsonOf(ORMUniversalType::MAP)->getReadTypeHint();
+		$types = $hint->getUniversalTypes();
+		self::assertContains(ORMUniversalType::MAP, $types);
+	}
+
+	public function testTypeJSONReadTypeHintWithoutJsonOfIsUnknown(): void
+	{
+		$hint  = (new TypeJSON())->getReadTypeHint();
+		$types = $hint->getUniversalTypes();
+		self::assertContains(ORMUniversalType::UNKNOWN, $types);
 	}
 
 	public function testTypeJSONJsonOfInvalidClassThrows(): void
@@ -183,6 +250,20 @@ final class JsonOfInterfaceTest extends BaseTestCase
 
 		self::assertNotNull($php);
 		self::assertStringContainsString('SampleJsonOf', (string) $php);
+	}
+
+	public function testTypeJSONWriteTypeHintWithORMUniversalType(): void
+	{
+		$hint  = (new TypeJSON())->jsonOf(ORMUniversalType::MAP)->getWriteTypeHint();
+		$types = $hint->getUniversalTypes();
+		self::assertContains(ORMUniversalType::MAP, $types);
+	}
+
+	public function testTypeJSONWriteTypeHintWithoutJsonOfIsUnknown(): void
+	{
+		$hint  = (new TypeJSON())->getWriteTypeHint();
+		$types = $hint->getUniversalTypes();
+		self::assertContains(ORMUniversalType::UNKNOWN, $types);
 	}
 
 	// =========================================================================
@@ -267,7 +348,7 @@ final class JsonOfInterfaceTest extends BaseTestCase
 	{
 		$type = TypeList::getInstance(['list_of' => 'STRING']);
 		self::assertNull($type->getListOfClass());
-		self::assertSame(ORMUniversalType::STRING, $type->getReadTypeHint()->getListOf());
+		self::assertSame(ORMUniversalType::STRING, $type->getReadTypeHint()->getListOfUniversalType());
 	}
 
 	// =========================================================================

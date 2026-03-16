@@ -67,6 +67,12 @@ final class TypeDecimalTest extends BaseTestCase
 		self::assertSame('0.00', $t->validate(null)->getCleanValue());
 	}
 
+	public function testDecimalNullThrowsWithoutNullableOrDefault(): void
+	{
+		$this->expectException(TypesInvalidValueException::class);
+		(new TypeDecimal())->validate(null)->getCleanValue();
+	}
+
 	public function testDecimalMinConstraint(): void
 	{
 		$t = (new TypeDecimal())->min('10');

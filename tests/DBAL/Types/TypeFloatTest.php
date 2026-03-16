@@ -60,6 +60,12 @@ final class TypeFloatTest extends BaseTestCase
 		self::assertNull($t->validate(null)->getCleanValue());
 	}
 
+	public function testFloatNullThrowsWithoutNullableOrDefault(): void
+	{
+		$this->expectException(TypesInvalidValueException::class);
+		(new TypeFloat())->validate(null)->getCleanValue();
+	}
+
 	public function testFloatMinConstraint(): void
 	{
 		$t = (new TypeFloat())->min(1.0);

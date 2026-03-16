@@ -51,6 +51,12 @@ final class TypeStringTest extends BaseTestCase
 		self::assertSame('N/A', $t->validate(null)->getCleanValue());
 	}
 
+	public function testStringNullThrowsWithoutNullableOrDefault(): void
+	{
+		$this->expectException(TypesInvalidValueException::class);
+		(new TypeString())->validate(null)->getCleanValue();
+	}
+
 	public function testStringEmptyFallsBackToDefault(): void
 	{
 		$t = (new TypeString())->default('fallback');

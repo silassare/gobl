@@ -18,8 +18,8 @@ use Gobl\Tests\Db\CurrenciesQuery;
  * @method static whereCodeIsGte(string $value) Filters rows with `gte` condition on column `currencies.code`.
  * @method static whereCodeIsLike(string $value) Filters rows with `like` condition on column `currencies.code`.
  * @method static whereCodeIsNotLike(string $value) Filters rows with `not_like` condition on column `currencies.code`.
- * @method static whereCodeIsIn(array $value) Filters rows with `in` condition on column `currencies.code`.
- * @method static whereCodeIsNotIn(array $value) Filters rows with `not_in` condition on column `currencies.code`.
+ * @method static whereCodeIsIn(list<mixed> $value) Filters rows with `in` condition on column `currencies.code`.
+ * @method static whereCodeIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `currencies.code`.
  * @method static whereNameIs(string $value) Filters rows with `eq` condition on column `currencies.name`.
  * @method static whereNameIsNot(string $value) Filters rows with `neq` condition on column `currencies.name`.
  * @method static whereNameIsLt(string $value) Filters rows with `lt` condition on column `currencies.name`.
@@ -28,8 +28,8 @@ use Gobl\Tests\Db\CurrenciesQuery;
  * @method static whereNameIsGte(string $value) Filters rows with `gte` condition on column `currencies.name`.
  * @method static whereNameIsLike(string $value) Filters rows with `like` condition on column `currencies.name`.
  * @method static whereNameIsNotLike(string $value) Filters rows with `not_like` condition on column `currencies.name`.
- * @method static whereNameIsIn(array $value) Filters rows with `in` condition on column `currencies.name`.
- * @method static whereNameIsNotIn(array $value) Filters rows with `not_in` condition on column `currencies.name`.
+ * @method static whereNameIsIn(list<mixed> $value) Filters rows with `in` condition on column `currencies.name`.
+ * @method static whereNameIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `currencies.name`.
  * @method static whereSymbolIs(string $value) Filters rows with `eq` condition on column `currencies.symbol`.
  * @method static whereSymbolIsNot(string $value) Filters rows with `neq` condition on column `currencies.symbol`.
  * @method static whereSymbolIsLt(string $value) Filters rows with `lt` condition on column `currencies.symbol`.
@@ -38,8 +38,8 @@ use Gobl\Tests\Db\CurrenciesQuery;
  * @method static whereSymbolIsGte(string $value) Filters rows with `gte` condition on column `currencies.symbol`.
  * @method static whereSymbolIsLike(string $value) Filters rows with `like` condition on column `currencies.symbol`.
  * @method static whereSymbolIsNotLike(string $value) Filters rows with `not_like` condition on column `currencies.symbol`.
- * @method static whereSymbolIsIn(array $value) Filters rows with `in` condition on column `currencies.symbol`.
- * @method static whereSymbolIsNotIn(array $value) Filters rows with `not_in` condition on column `currencies.symbol`.
+ * @method static whereSymbolIsIn(list<mixed> $value) Filters rows with `in` condition on column `currencies.symbol`.
+ * @method static whereSymbolIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `currencies.symbol`.
  * @method static whereDataIs(null|string|int|float $value, string $path) Filters rows where $value equals the extracted value of `currencies.data` at dot-notation $path.
  * @method static whereDataIsNot(null|string|int|float $value, string $path) Filters rows where $value does not equal the extracted value of `currencies.data` at dot-notation $path.
  * @method static whereDataIsLike(string $value, string $path) Filters rows where $value matches the extracted value of `currencies.data` at dot-notation $path using LIKE.
@@ -54,8 +54,8 @@ use Gobl\Tests\Db\CurrenciesQuery;
  * @method static whereCreatedAtIsGte(string|int $value) Filters rows with `gte` condition on column `currencies.created_at`.
  * @method static whereCreatedAtIsLike(string $value) Filters rows with `like` condition on column `currencies.created_at`.
  * @method static whereCreatedAtIsNotLike(string $value) Filters rows with `not_like` condition on column `currencies.created_at`.
- * @method static whereCreatedAtIsIn(array $value) Filters rows with `in` condition on column `currencies.created_at`.
- * @method static whereCreatedAtIsNotIn(array $value) Filters rows with `not_in` condition on column `currencies.created_at`.
+ * @method static whereCreatedAtIsIn(list<mixed> $value) Filters rows with `in` condition on column `currencies.created_at`.
+ * @method static whereCreatedAtIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `currencies.created_at`.
  * @method static whereUpdatedAtIs(string|int $value) Filters rows with `eq` condition on column `currencies.updated_at`.
  * @method static whereUpdatedAtIsNot(string|int $value) Filters rows with `neq` condition on column `currencies.updated_at`.
  * @method static whereUpdatedAtIsLt(string|int $value) Filters rows with `lt` condition on column `currencies.updated_at`.
@@ -64,8 +64,8 @@ use Gobl\Tests\Db\CurrenciesQuery;
  * @method static whereUpdatedAtIsGte(string|int $value) Filters rows with `gte` condition on column `currencies.updated_at`.
  * @method static whereUpdatedAtIsLike(string $value) Filters rows with `like` condition on column `currencies.updated_at`.
  * @method static whereUpdatedAtIsNotLike(string $value) Filters rows with `not_like` condition on column `currencies.updated_at`.
- * @method static whereUpdatedAtIsIn(array $value) Filters rows with `in` condition on column `currencies.updated_at`.
- * @method static whereUpdatedAtIsNotIn(array $value) Filters rows with `not_in` condition on column `currencies.updated_at`.
+ * @method static whereUpdatedAtIsIn(list<mixed> $value) Filters rows with `in` condition on column `currencies.updated_at`.
+ * @method static whereUpdatedAtIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `currencies.updated_at`.
  * @method static whereValidIs(bool $value) Filters rows with `eq` condition on column `currencies.valid`.
  * @method static whereValidIsNot(bool $value) Filters rows with `neq` condition on column `currencies.valid`.
  * @method static whereValidIsFalse() Filters rows with `is_false` condition on column `currencies.valid`.

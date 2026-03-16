@@ -43,12 +43,12 @@ final class TypeListTest extends BaseTestCase
 		self::assertSame([], $t->validate([])->getCleanValue());
 	}
 
-	public function testValidateNormalizesAssocToList(): void
+	public function testValidateRejectsAssocArray(): void
 	{
-		// assoc arrays are re-indexed with array_values
-		$t      = new TypeList();
-		$result = $t->validate(['x' => 1, 'y' => 2])->getCleanValue();
-		self::assertSame([1, 2], $result);
+		// TypeList strictly requires a sequential (indexed) array; assoc arrays are rejected
+		$t = new TypeList();
+		$this->expectException(TypesInvalidValueException::class);
+		$t->validate(['x' => 1, 'y' => 2])->getCleanValue();
 	}
 
 	public function testValidateAcceptsNestedArray(): void
