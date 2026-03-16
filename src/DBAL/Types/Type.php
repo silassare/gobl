@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Types;
 
+use BackedEnum;
 use Gobl\DBAL\Column;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Filters\Filter;
@@ -447,6 +448,24 @@ abstract class Type implements TypeInterface
 		$opt['type'] = $this->getName();
 
 		return $opt;
+	}
+
+	#[Override]
+	public function hash(mixed $v): string
+	{
+		if (null === $v) {
+			return '';
+		}
+
+		if ($v instanceof BackedEnum) {
+			return (string) $v->value;
+		}
+
+		if (\is_scalar($v)) {
+			return (string) $v;
+		}
+
+		return (string) \json_encode($v);
 	}
 
 	/**

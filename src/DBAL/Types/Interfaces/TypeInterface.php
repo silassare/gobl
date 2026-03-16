@@ -327,4 +327,21 @@ interface TypeInterface extends ArrayCapableInterface, LockInterface
 	 * @return $this
 	 */
 	public function configure(array $options): static;
+
+	/**
+	 * Returns a string hash of a clean column value for dirty-state comparison.
+	 *
+	 * The default implementation handles:
+	 * - null          -> empty string
+	 * - scalar        -> (string) cast
+	 * - BackedEnum    -> (string) cast of the backing scalar value
+	 * - everything else (array, JsonSerializable object, ...) -> json_encode
+	 *
+	 * Override only when the default serialization is insufficient for your type.
+	 *
+	 * @param TClean $v a clean value produced by this type's validate()
+	 *
+	 * @return string
+	 */
+	public function hash(mixed $v): string;
 }

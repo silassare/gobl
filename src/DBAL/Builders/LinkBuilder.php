@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Builders;
 
 use Gobl\DBAL\Relations\LinkType;
+use Override;
 use PHPUtils\Interfaces\ArrayCapableInterface;
 use PHPUtils\Traits\ArrayCapableTrait;
 
@@ -218,7 +219,7 @@ class LinkBuilder implements ArrayCapableInterface
 	 *
 	 * @return array
 	 */
-	#[\Override]
+	#[Override]
 	public function toArray(): array
 	{
 		return $this->options;

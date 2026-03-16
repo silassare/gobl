@@ -53,9 +53,6 @@ abstract class ORMEntity implements ArrayCapableInterface
 	/** @var bool */
 	private bool $_oeb_is_new;
 
-	/** @var bool */
-	private bool $_oeb_is_saved;
-
 	/**
 	 * To enable/disable strict mode.
 	 *
@@ -69,19 +66,29 @@ abstract class ORMEntity implements ArrayCapableInterface
 	/** @var array */
 	private array $_oeb_row = [];
 
-	/** @var array */
-	private array $_oeb_row_saved = [];
+	/**
+	 * Set of column full names populated by PDO from a DB row.
+	 * Solely used to distinguish PDO mode from user-mode writes in `__set`.
+	 *
+	 * @var array<string, true>
+	 */
+	private array $_oeb_from_db = [];
 
 	/**
-	 * Columns written in user-mode since the last save.
-	 * Keyed by full column name, value is always true.
-	 *
-	 * Avoids object identity comparison pitfalls: objects cannot be reliably
-	 * compared with `===` (same pointer after in-place mutation looks unchanged).
+	 * Columns dirtied since the last save. Keyed by full column name, value is always true.
 	 *
 	 * @var array<string, true>
 	 */
 	private array $_oeb_dirty = [];
+
+	/**
+	 * Hash snapshots frozen at the last save (or PDO load), keyed by full column name.
+	 * Baseline for dirty detection; captures content before any in-place mutation
+	 * of mutable values (e.g. Map) can change what `_oeb_row` points to.
+	 *
+	 * @var array<string, string>
+	 */
+	private array $_oeb_saved_hashes = [];
 
 	/** @var array<string, ValidationSubjectInterface> */
 	private array $_oeb_subjects = [];
@@ -105,7 +112,6 @@ abstract class ORMEntity implements ArrayCapableInterface
 		$this->_oeb_table    = $this->_oeb_db->getTableOrFail($table_name);
 		$columns             = $this->_oeb_table->getColumns();
 		$this->_oeb_is_new   = $is_new;
-		$this->_oeb_is_saved = !$is_new;
 		$this->_oeb_strict   = $strict;
 
 		if ($this->_oeb_is_new) {
@@ -122,7 +128,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 */
 	public function __destruct()
 	{
-		unset($this->_oeb_db, $this->_oeb_table, $this->_oeb_row, $this->_oeb_row_saved, $this->_oeb_dirty);
+		unset($this->_oeb_db, $this->_oeb_table, $this->_oeb_row, $this->_oeb_from_db, $this->_oeb_dirty, $this->_oeb_saved_hashes);
 	}
 
 	/**
@@ -203,12 +209,11 @@ abstract class ORMEntity implements ArrayCapableInterface
 	/**
 	 * Magic setter for column value.
 	 *
-	 * Operates in two modes:
-	 * - **User mode** (entity is new, or the column already exists in `_oeb_row_saved`):
-	 *   validates the value via `doValidation()`, marks the entity as unsaved if the value changed.
-	 * - **Hydration mode** (PDO is filling a freshly fetched entity, i.e. the column is not yet
-	 *   in `_oeb_row_saved`): converts via `Type::dbToPhp()` and simultaneously populates both
-	 *   `_oeb_row` and `_oeb_row_saved`, so the entity is considered clean/saved immediately.
+	 * Two modes:
+	 * - **User mode** (entity is new, or column is in `_oeb_from_db`): validates via
+	 *   `doValidation()`, compares hash against `_oeb_saved_hashes`, marks dirty if changed.
+	 * - **PDO mode** (column not yet in `_oeb_from_db`): converts via `Type::dbToPhp()`,
+	 *   records a hash snapshot, marks the column as DB-sourced.
 	 *
 	 * @param string $name  the column full name or name
 	 * @param mixed  $value the column value
@@ -221,22 +226,26 @@ abstract class ORMEntity implements ArrayCapableInterface
 			$column    = $this->_oeb_table->getColumnOrFail($name);
 			$full_name = $column->getFullName();
 
-			// false when we are being hydrated by PDO
-			if (\array_key_exists($full_name, $this->_oeb_row_saved) || $this->isNew()) {
-				// For objects we cannot use `===` to detect changes: same instance after
-				// in-place mutation is still the same pointer. Always re-validate and mark
-				// dirty when an object is assigned. For scalars/arrays keep the cheaper
-				// identity check to skip a no-op re-assignment.
-				if (\is_object($value) || !\array_key_exists($full_name, $this->_oeb_row) || $this->_oeb_row[$full_name] !== $value) {
-					$this->_oeb_row[$full_name]   = $this->doValidation($full_name, $value);
+			// false when PDO is populating the entity from a DB row
+			if (\array_key_exists($full_name, $this->_oeb_from_db) || $this->isNew()) {
+				$type       = $column->getType();
+				$clean      = $this->doValidation($full_name, $value);
+				$clean_hash = $type->hash($clean);
+
+				if (
+					!\array_key_exists($full_name, $this->_oeb_row)
+					|| !\array_key_exists($full_name, $this->_oeb_saved_hashes)
+					|| $this->_oeb_saved_hashes[$full_name] !== $clean_hash
+				) {
+					$this->_oeb_row[$full_name]   = $clean;
 					$this->_oeb_dirty[$full_name] = true;
-					$this->_oeb_is_saved          = false;
 				}
-			} else { // we are being hydrated by PDO
-				$type                             = $column->getType();
-				$value                            = $type->dbToPhp($value, $this->_oeb_db);
-				$this->_oeb_row[$full_name]       = $value;
-				$this->_oeb_row_saved[$full_name] = $value;
+			} else { // PDO is populating the entity from a DB row
+				$type                                = $column->getType();
+				$value                               = $type->dbToPhp($value, $this->_oeb_db);
+				$this->_oeb_row[$full_name]          = $value;
+				$this->_oeb_from_db[$full_name]      = true;
+				$this->_oeb_saved_hashes[$full_name] = $type->hash($value);
 			}
 		} else {
 			$error = \sprintf('Column "%s" not defined in table "%s".', $name, $this->_oeb_table->getName());
@@ -301,41 +310,8 @@ abstract class ORMEntity implements ArrayCapableInterface
 	abstract public static function crud(): ORMEntityCRUD;
 
 	/**
-	 * To check if this entity is new.
-	 *
-	 * ```php
-	 * <?php
-	 *
-	 * $n = new Entity();
-	 *
-	 * $n->isSaved(); // false
-	 * $n->isNew(); // true
-	 *
-	 * $n->name = "Toto";
-	 *
-	 * $n->isSaved(); // false
-	 * $n->isNew(); // true
-	 *
-	 * $n->save(); // will save the entity into the database
-	 *
-	 * $n->isSaved(); // true
-	 * $n->isNew(); // false
-	 *
-	 * $s = new Entity(false);
-	 *
-	 * $s->isSaved(); // true
-	 * $s->isNew(); // false
-	 *
-	 * $s->name = "Franck";
-	 *
-	 * $s->isSaved(); // true
-	 * $s->isNew(); // false
-	 *
-	 * $s->name = "Jack";
-	 *
-	 * $s->isSaved(); // false
-	 * $s->isNew(); // false
-	 * ```
+	 * Returns true for entities not yet persisted to the DB.
+	 * Becomes false after the first successful `save()`.
 	 *
 	 * @return bool
 	 */
@@ -394,7 +370,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 			return true;
 		}
 
-		if (!empty($this->_oeb_row_saved) && !$this->isSaved()) {
+		if (!empty($this->_oeb_from_db) && !$this->isSaved()) {
 			$to_update = [];
 
 			foreach ($this->_oeb_dirty as $column_name => $_) {
@@ -423,27 +399,28 @@ abstract class ORMEntity implements ArrayCapableInterface
 	/**
 	 * Returns whether the entity has been persisted to the database.
 	 *
-	 * When `$set_as_saved` is `true`, marks the entity as persisted:
-	 * - merges `_oeb_row` into `_oeb_row_saved` (updating the snapshot of the DB state),
-	 * - clears the `isNew` flag,
-	 * - sets `_oeb_is_saved` to `true`.
+	 * When `$set_as_saved` is `true`:
+	 * - snapshots hashes of all current columns into `_oeb_saved_hashes`,
+	 * - marks them in `_oeb_from_db`,
+	 * - clears `_oeb_dirty` and the `isNew` flag.
 	 *
-	 * This is called automatically by `ORMController::persistItem()` after a successful INSERT or UPDATE.
-	 *
-	 * @param bool $set_as_saved if true the entity will be considered as saved
+	 * @param bool $set_as_saved mark the entity as persisted
 	 *
 	 * @return bool
 	 */
 	public function isSaved(bool $set_as_saved = false): bool
 	{
 		if ($set_as_saved) {
-			$this->_oeb_row_saved = \array_replace($this->_oeb_row_saved, $this->_oeb_row);
-			$this->_oeb_dirty     = [];
-			$this->_oeb_is_new    = false;
-			$this->_oeb_is_saved  = true;
+			foreach ($this->_oeb_row as $full_name => $v) {
+				$this->_oeb_saved_hashes[$full_name] = $this->_oeb_table->getColumnOrFail($full_name)->getType()->hash($v);
+				$this->_oeb_from_db[$full_name]      = true;
+			}
+
+			$this->_oeb_dirty  = [];
+			$this->_oeb_is_new = false;
 		}
 
-		return $this->_oeb_is_saved;
+		return empty($this->_oeb_dirty) && !$this->_oeb_is_new;
 	}
 
 	/**
@@ -588,7 +565,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 			throw new TypesInvalidValueException('Validation failed.', [
 				'field'       => $column->getName(),
 				'_table_name' => $this->_oeb_table->getName(),
-			]);
+			], $ex);
 		}
 
 		return $subject->getCleanValue();
