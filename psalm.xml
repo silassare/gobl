@@ -27,6 +27,6 @@
 		<UnusedVariable errorLevel="suppress"/>
 	</issueHandlers>
 	<stubs>
-		<file name="stubs/Override.phpstub"/>
+		<file name="psalm-stubs/Override.phpstub"/>
 	</stubs>
 </psalm>
