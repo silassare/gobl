@@ -110,13 +110,13 @@ class CSGeneratorTS extends CSGenerator
 				// list_of_class: TS can't import foreign PHP classes, fall back to unknown[].
 				$element    = null !== $type_hint->getListOfClass()
 					? 'unknown'
-					: $this->toUniversalTypeString($type_hint->getListOf());
+					: $this->toTSType($type_hint->getListOfUniversalType());
 				$ts_types[] = $element . '[]';
 
 				continue;
 			}
 
-			$ts_types[] = $this->toUniversalTypeString($type);
+			$ts_types[] = $this->toTSType($type);
 		}
 
 		return \implode('|', $ts_types);
@@ -125,7 +125,7 @@ class CSGeneratorTS extends CSGenerator
 	/**
 	 * Maps a single ORMUniversalType to its TypeScript string representation.
 	 */
-	private function toUniversalTypeString(ORMUniversalType $type): string
+	private function toTSType(ORMUniversalType $type): string
 	{
 		return match ($type) {
 			ORMUniversalType::LIST                                                        => 'unknown[]',

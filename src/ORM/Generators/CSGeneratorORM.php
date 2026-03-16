@@ -21,6 +21,8 @@ use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Relations\VirtualRelation;
 use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\TypeJSON;
+use Gobl\DBAL\Types\TypeList;
+use Gobl\DBAL\Types\TypeMap;
 use Gobl\DBAL\Types\Utils\JsonPatch;
 use Gobl\DBAL\Types\Utils\Map;
 use Gobl\Exceptions\GoblException;
@@ -120,6 +122,9 @@ Time: {$date}";
 		return $this;
 	}
 
+	/**
+	 * Converts an {@see ORMTypeHint} to a PHP type hint string.
+	 */
 	public function toTypeHintString(ORMTypeHint $type_hint): string
 	{
 		if ($php_type = $type_hint->getPHPType()) {
@@ -130,22 +135,18 @@ Time: {$date}";
 		$php_types = [];
 
 		foreach ($types as $type) {
-			if (ORMUniversalType::LIST === $type && null !== ($list_class = $type_hint->getListOfClass())) {
-				$php_types[] = '\\' . $list_class . '[]';
+			if (ORMUniversalType::LIST === $type) {
+				$list_class = $type_hint->getListOfClass();
+				$sub_type   = null !== $list_class
+					? '\\' . $list_class
+					: ($type_hint->getListOfUniversalType())->toPHPType();
+
+				$php_types[] = 'list<' . $sub_type . '>';
 
 				continue;
 			}
 
-			$php_types[] = match ($type) {
-				ORMUniversalType::LIST              => 'array',
-				ORMUniversalType::MAP               => '\\' . Map::class,
-				ORMUniversalType::DECIMAL, ORMUniversalType::STRING, ORMUniversalType::BIGINT => 'string',
-				ORMUniversalType::BOOL              => 'bool',
-				ORMUniversalType::FLOAT             => 'float',
-				ORMUniversalType::INT               => 'int',
-				ORMUniversalType::NULL              => 'null',
-				ORMUniversalType::ANY, ORMUniversalType::UNKNOWN => 'mixed',
-			};
+			$php_types[] = $type->toPHPType();
 		}
 
 		return \implode('|', $php_types);
@@ -430,7 +431,7 @@ return $this;',
 			// For JSON-based columns (TypeJSON, TypeMap, TypeList) generate
 			// patchColumnName(), setColumnNameKey(), and removeColumnNameKey().
 			if ($type->getBaseType() instanceof TypeJSON) {
-				$this->addJsonPatchMethods($class, $table, $column);
+				$this->addJsonPatchMethods($class, $column);
 			}
 		}
 
@@ -470,34 +471,47 @@ return $this;',
 	/**
 	 * Adds patchColumnName(), setColumnNameKey(), and removeColumnNameKey() methods
 	 * for JSON-based columns (TypeJSON, TypeMap, TypeList).
+	 *
+	 * Because JsonPatch expect array/Map we add patch methods only for:
+	 *  - TypeMap
+	 *  - TypeJSON if json_of is defined and equal to universal type: map or list
+	 *  - TypeList if list_of is defined and equal to universal type: map or list
+	 *
+	 * When we have list of scalar, we support patch at index only.
 	 */
-	private function addJsonPatchMethods(PHPClass $class, Table $table, Column $column): void
+	private function addJsonPatchMethods(PHPClass $class, Column $column): void
 	{
-		$column_name       = $column->getName();
-		$type              = $column->getType();
+		$column_name = $column->getName();
+		$type        = $column->getType();
+		$value_type  = 'array|float|int|string|\JsonSerializable|null';
+
+		if ($type instanceof TypeList) {
+			$of =  $type->getListOfUniversalType();
+
+			if (null === $of || !\in_array($of, [ORMUniversalType::MAP, ORMUniversalType::LIST], true)) {
+				return;
+			}
+		} elseif ($type instanceof TypeJSON) {
+			$of =  $type->getJsonOfUniversalType();
+
+			if (!\in_array($of, [ORMUniversalType::MAP, ORMUniversalType::LIST], true)) {
+				return;
+			}
+		}
+
 		$getter_name       = self::propertyGetterName($column_name);
 		$setter_name       = 'set' . Str::toClassName($column_name);
 		$patch_method      = 'patch' . Str::toClassName($column_name);
 		$set_key_method    = 'set' . Str::toClassName($column_name) . 'Key';
 		$remove_key_method = 'remove' . Str::toClassName($column_name) . 'Key';
 		$json_patch_type   = '\\' . JsonPatch::class;
-		$value_type        = 'array|float|int|string|\JsonSerializable|null';
-
-		// For plain TypeJSON the getter returns a JSON string; decode first.
-		// For TypeMap / TypeList the getter returns the native value; wrap directly.
-		if ($type instanceof TypeJSON && $type->getBaseType() === $type) {
-			$patch_body = '$data = $this->' . $getter_name . '();' . "\n\t\t"
-				. 'return new ' . $json_patch_type . '(null === $data ? [] : (\json_decode($data, true) ?? []));';
-		} else {
-			$patch_body = 'return new ' . $json_patch_type . '($this->' . $getter_name . '() ?? []);';
-		}
 
 		// patchColumnName(): seeds a JsonPatch from the current column value.
 		$class->newMethod($patch_method)
 			->public()
 			->setComment('Seeds a ' . $json_patch_type . ' from the current `' . $column_name . '` value.')
 			->setReturnType($json_patch_type)
-			->addChild($patch_body);
+			->addChild('return new ' . $json_patch_type . '($this->' . $getter_name . '() ?? []);');
 
 		// setColumnNameKey(): one-liner set at a dot-notation path.
 		$sk = $class->newMethod($set_key_method)

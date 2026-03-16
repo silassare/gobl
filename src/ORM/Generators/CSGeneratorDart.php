@@ -118,13 +118,13 @@ class CSGeneratorDart extends CSGenerator
 				// list_of_class: Dart can't import foreign PHP classes, fall back to List<dynamic>.
 				$element      = null !== $type_hint->getListOfClass()
 					? 'dynamic'
-					: $this->toUniversalTypeString($type_hint->getListOf());
+					: $this->toDartType($type_hint->getListOfUniversalType());
 				$dart_types[] = 'List<' . $element . '>';
 
 				continue;
 			}
 
-			$dart_types[] = $this->toUniversalTypeString($type);
+			$dart_types[] = $this->toDartType($type);
 		}
 
 		return \implode('|', $dart_types);
@@ -133,7 +133,7 @@ class CSGeneratorDart extends CSGenerator
 	/**
 	 * Maps a single ORMUniversalType to its Dart string representation.
 	 */
-	private function toUniversalTypeString(ORMUniversalType $type): string
+	private function toDartType(ORMUniversalType $type): string
 	{
 		return match ($type) {
 			ORMUniversalType::LIST                                                        => 'List<dynamic>',

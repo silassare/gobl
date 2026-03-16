@@ -29,7 +29,7 @@ final class ORMTypeHint
 	private array $universal_types = [];
 
 	/** Element type when this hint carries LIST - defaults to UNKNOWN. */
-	private ORMUniversalType $list_of = ORMUniversalType::UNKNOWN;
+	private ORMUniversalType $list_of_u_type = ORMUniversalType::UNKNOWN;
 
 	/** Revival class for typed list elements (implements JsonOfInterface). */
 	private ?string $list_of_class = null;
@@ -116,8 +116,8 @@ final class ORMTypeHint
 	 */
 	public static function list(?ORMUniversalType $of = null): self
 	{
-		$hint          = new self(ORMUniversalType::LIST);
-		$hint->list_of = $of ?? ORMUniversalType::UNKNOWN;
+		$hint                 = new self(ORMUniversalType::LIST);
+		$hint->list_of_u_type = $of ?? ORMUniversalType::UNKNOWN;
 
 		return $hint;
 	}
@@ -215,13 +215,13 @@ final class ORMTypeHint
 	}
 
 	/**
-	 * Gets the element type for LIST hints.
+	 * Gets the universal type for the list element when this hint carries LIST.
 	 *
 	 * @return ORMUniversalType
 	 */
-	public function getListOf(): ORMUniversalType
+	public function getListOfUniversalType(): ORMUniversalType
 	{
-		return $this->list_of;
+		return $this->list_of_u_type;
 	}
 
 	/**

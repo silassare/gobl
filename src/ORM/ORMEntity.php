@@ -71,6 +71,17 @@ abstract class ORMEntity implements ArrayCapableInterface
 	/** @var array */
 	private array $_oeb_row_saved = [];
 
+	/**
+	 * Columns written in user-mode since the last save.
+	 * Keyed by full column name, value is always true.
+	 *
+	 * Avoids object identity comparison pitfalls: objects cannot be reliably
+	 * compared with `===` (same pointer after in-place mutation looks unchanged).
+	 *
+	 * @var array<string, true>
+	 */
+	private array $_oeb_dirty = [];
+
 	/** @var array<string, ValidationSubjectInterface> */
 	private array $_oeb_subjects = [];
 
@@ -110,7 +121,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 */
 	public function __destruct()
 	{
-		unset($this->_oeb_db, $this->_oeb_table, $this->_oeb_row, $this->_oeb_row_saved);
+		unset($this->_oeb_db, $this->_oeb_table, $this->_oeb_row, $this->_oeb_row_saved, $this->_oeb_dirty);
 	}
 
 	/**
@@ -211,9 +222,14 @@ abstract class ORMEntity implements ArrayCapableInterface
 
 			// false when we are being hydrated by PDO
 			if (\array_key_exists($full_name, $this->_oeb_row_saved) || $this->isNew()) {
-				if (!\array_key_exists($full_name, $this->_oeb_row) || $this->_oeb_row[$full_name] !== $value) {
-					$this->_oeb_row[$full_name] = $this->doValidation($full_name, $value);
-					$this->_oeb_is_saved        = false;
+				// For objects we cannot use `===` to detect changes: same instance after
+				// in-place mutation is still the same pointer. Always re-validate and mark
+				// dirty when an object is assigned. For scalars/arrays keep the cheaper
+				// identity check to skip a no-op re-assignment.
+				if (\is_object($value) || !\array_key_exists($full_name, $this->_oeb_row) || $this->_oeb_row[$full_name] !== $value) {
+					$this->_oeb_row[$full_name]   = $this->doValidation($full_name, $value);
+					$this->_oeb_dirty[$full_name] = true;
+					$this->_oeb_is_saved          = false;
 				}
 			} else { // we are being hydrated by PDO
 				$type                             = $column->getType();
@@ -379,12 +395,8 @@ abstract class ORMEntity implements ArrayCapableInterface
 		if (!empty($this->_oeb_row_saved) && !$this->isSaved()) {
 			$to_update = [];
 
-			foreach ($this->_oeb_row as $column_name => $value) {
-				if ($this->_oeb_row_saved[$column_name] === $value) {
-					continue;
-				}
-
-				$to_update[$column_name] = $value;
+			foreach ($this->_oeb_dirty as $column_name => $_) {
+				$to_update[$column_name] = $this->_oeb_row[$column_name];
 			}
 
 			if (!empty($to_update)) {
@@ -424,6 +436,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 	{
 		if ($set_as_saved) {
 			$this->_oeb_row_saved = \array_replace($this->_oeb_row_saved, $this->_oeb_row);
+			$this->_oeb_dirty     = [];
 			$this->_oeb_is_new    = false;
 			$this->_oeb_is_saved  = true;
 		}
