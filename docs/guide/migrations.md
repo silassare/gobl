@@ -115,11 +115,68 @@ $status = $runner->status();
 
 `MigrationRunner` auto-creates `_gobl_migrations` on first use:
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `version` | INTEGER PK | The version number returned by `getVersion()` |
-| `label` | VARCHAR(255) | The label returned by `getLabel()` |
-| `applied_at` | INTEGER | Unix timestamp of when the migration was applied |
+| Column       | Type         | Description                                      |
+| ------------ | ------------ | ------------------------------------------------ |
+| `version`    | INTEGER PK   | The version number returned by `getVersion()`    |
+| `label`      | VARCHAR(255) | The label returned by `getLabel()`               |
+| `applied_at` | INTEGER      | Unix timestamp of when the migration was applied |
+
+---
+
+## Schema Diff engine
+
+`Diff` compares two `RDBMSInterface` instances (old vs. new schema state) and
+produces the minimal ALTER/ADD/DROP SQL needed to bring the old schema up to
+the new one. Pass the result to `generateMigrationFile()` to get a ready-to-use
+anonymous-class migration file.
+
+```php
+use Gobl\DBAL\Diff\Diff;
+
+$old_db = /* existing DB instance, locked */;
+$new_db = /* updated DB instance, locked */;
+
+$diff = new Diff($old_db, $new_db);
+
+if ($diff->hasChanges()) {
+    // Write the generated migration PHP file to disk.
+    file_put_contents('migrations/0002_auto.php', (string) $diff->generateMigrationFile(2));
+}
+```
+
+The generated file is a PHP file returning an anonymous `MigrationInterface`
+class with `up()` and `down()` SQL strings. It can be passed directly to
+`MigrationRunner::addFromFile()`.
+
+### Driver-specific ALTER COLUMN behaviour
+
+Each driver emits the ALTER syntax that is correct for that RDBMS:
+
+| Driver     | Column-type change SQL                                     |
+| ---------- | ---------------------------------------------------------- |
+| MySQL      | `ALTER TABLE t CHANGE col col new_type ...`                |
+| PostgreSQL | `ALTER TABLE t ALTER COLUMN col new_type ...`              |
+| SQLite     | SQLite ignores column-type differences (no-op in the diff) |
+
+#### PostgreSQL: automatic USING clause for JSON casts
+
+PostgreSQL cannot implicitly cast `TEXT`/`VARCHAR` or a TEXT-stored JSON column
+to `JSONB`. When the diff detects that a column is changing _to_ a native JSON
+type (`native_json: true`) from a plain string or text-stored JSON type, Gobl
+automatically appends the required `USING` expression:
+
+```sql
+-- string/text column -> native JSONB
+ALTER TABLE "docs" ALTER COLUMN "doc_payload" jsonb NOT NULL
+    USING to_jsonb("doc_payload"::text);
+
+-- TEXT-stored JSON (native_json=false) -> native JSONB
+ALTER TABLE "docs" ALTER COLUMN "doc_payload" jsonb NOT NULL
+    USING to_jsonb("doc_payload"::text);
+```
+
+The reverse direction (native JSONB -> text/string) does not require a USING
+clause and is emitted as a plain `ALTER COLUMN` statement.
 
 ---
 

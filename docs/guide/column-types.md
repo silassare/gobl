@@ -207,7 +207,6 @@ Returns `array` in PHP.
 | `native_json` | `bool`   | `false`  | Use native `JSON` column type. Also enables `JSON_CONTAINS` filter.                                                                                                           |
 | `big`         | `bool`   | `false`  | Hint: use `MEDIUMTEXT` in MySQL when `native_json=false`                                                                                                                      |
 | `list_of`     | `string` | _(none)_ | FQCN implementing `JsonOfInterface` - each element is revived via `::revive()` on read. Or an `ORMUniversalType` enum name (e.g. `'STRING'`) for TS/Dart code-gen type hints. |
-| `json_of`     | `string` | _(none)_ | Same as `list_of` but stored under the `json_of` key (inherited from `TypeJSON` base)                                                                                         |
 
 ```php
 'user_tags' => ['type' => 'list', 'default' => [], 'nullable' => true]
@@ -218,18 +217,20 @@ Returns `array` in PHP.
 
 ## `json`
 
-Stores any JSON-serialisable value (array or object). Base type for `map` and `list`.
+Stores any JSON-serialisable PHP value (scalars, arrays, objects). Base type for `map` and `list`.
+`phpToDb()` runs `json_encode()` and `dbToPhp()` runs `json_decode()`, so the decoded PHP value is returned on read.
+When `json_of` is set, shape or type constraints are applied (see option table).
 
-| Option           | Type     | Default  | Description                                                                                                                                          |
-| ---------------- | -------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `native_json`    | `bool`   | `false`  | Use native `JSON` column type                                                                                                                        |
-| `big`            | `bool`   | `false`  | Hint: use `MEDIUMTEXT` in MySQL                                                                                                                      |
-| `json_of`        | `string` | _(none)_ | FQCN implementing `JsonOfInterface` - decoded value is revived via `MyClass::revive($decoded)` on read                                               |
-| `json_data_type` | `string` | `'any'`  | Restrict the root JSON structure: `'any'` (object or array), `'array'` (sequential list), `'object'` (key-value map). Ignored when `json_of` is set. |
+| Option        | Type     | Default  | Description                                                                                                                                                                                                                                                                                     |
+| ------------- | -------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `native_json` | `bool`   | `false`  | Use native `JSON` column type                                                                                                                                                                                                                                                                   |
+| `big`         | `bool`   | `false`  | Hint: use `MEDIUMTEXT` in MySQL                                                                                                                                                                                                                                                                 |
+| `json_of`     | `string` | _(none)_ | FQCN implementing `JsonOfInterface` - decoded value is revived via `MyClass::revive($decoded)` on read. Or an `ORMUniversalType` enum name (e.g. `'MAP'`, `'LIST'`) for shape enforcement + code-generation hint: `LIST` accepts only sequential arrays, `MAP` only associative arrays/objects. |
 
 ```php
 'raw_payload' => ['type' => 'json', 'nullable' => true]
 'event'       => ['type' => 'json', 'json_of' => MyEvent::class]  // revived as MyEvent on read
+'meta'        => ['type' => 'json', 'json_of' => 'MAP']           // decoded array, MAP hint in TS/Dart
 ```
 
 ---
