@@ -196,22 +196,4 @@ final class FilterFieldNotationTest extends BaseTestCase
 		$this->expectException(InvalidArgumentException::class);
 		new FilterFieldNotation('');
 	}
-
-	// -------------------------------------------------------------------
-	// parsePath (deprecated but still callable)
-	// -------------------------------------------------------------------
-
-	public function testParsePathSimple(): void
-	{
-		$segments = FilterFieldNotation::parsePath('foo.bar.baz');
-
-		self::assertSame(['foo', 'bar', 'baz'], $segments);
-	}
-
-	public function testParsePathMixed(): void
-	{
-		$segments = FilterFieldNotation::parsePath("foo[0]['bar.baz']");
-
-		self::assertSame(['foo', '0', 'bar.baz'], $segments);
-	}
 }

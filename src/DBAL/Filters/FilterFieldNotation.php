@@ -138,20 +138,6 @@ final class FilterFieldNotation
 	}
 
 	/**
-	 * Parse a JSON path string into an array of segments using JS-like notation.
-	 *
-	 * @deprecated use {@see DotPath::parse()} instead
-	 *
-	 * @return array<int,string> The parsed path segments
-	 *
-	 * @throws InvalidArgumentException if the path is empty, has empty/invalid segments, or is malformed
-	 */
-	public static function parsePath(string $path): array
-	{
-		return DotPath::parse($path)->getSegments();
-	}
-
-	/**
 	 * Get the original field name as provided in the filter operand string (before resolution).
 	 */
 	public function getField(): string
