@@ -16,16 +16,15 @@ namespace Gobl\DBAL\Types;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
-use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
 use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
 use Gobl\ORM\ORMTypeHint;
 
 /**
  * Class TypeBool.
  *
- * @extends Type<mixed, null|bool>
+ * @extends BaseType<mixed, null|bool>
  */
-class TypeBool extends Type implements BaseTypeInterface
+class TypeBool extends BaseType
 {
 	public const NAME = 'bool';
 
@@ -183,6 +182,11 @@ class TypeBool extends Type implements BaseTypeInterface
 
 			if (null === $value && $this->isNullable()) {
 				$subject->accept(null);
+
+				return;
+			}
+			if (null === $value) {
+				$subject->reject($this->msg('invalid_bool_type'), $debug);
 
 				return;
 			}

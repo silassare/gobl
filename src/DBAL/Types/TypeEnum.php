@@ -197,6 +197,11 @@ class TypeEnum extends Type
 
 				return;
 			}
+			if (null === $value) {
+				$subject->reject($this->msg('invalid_enum_value_type'), $debug);
+
+				return;
+			}
 		}
 
 		$enum_cls = $this->getEnumClass();

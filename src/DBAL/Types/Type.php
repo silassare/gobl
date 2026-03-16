@@ -139,11 +139,6 @@ abstract class Type implements TypeInterface
 		return $this->setOption('default', $default);
 	}
 
-	public function castExpressionForQuery(string $expression, RDBMSInterface $rdbms): string
-	{
-		return $expression;
-	}
-
 	public function castValueForFilter(mixed $value, Operator $operator, RDBMSInterface $rdbms): float|int|string|null
 	{
 		// Default: return scalar values unchanged.
@@ -409,11 +404,6 @@ abstract class Type implements TypeInterface
 	public function shouldEnforceDefaultValue(RDBMSInterface $rdbms): bool
 	{
 		return true;
-	}
-
-	public function shouldCastExpressionForQuery(RDBMSInterface $rdbms): bool
-	{
-		return false;
 	}
 
 	public function shouldCastValueForFilter(Operator $operator, RDBMSInterface $rdbms): bool

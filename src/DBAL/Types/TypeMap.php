@@ -22,13 +22,14 @@ use Gobl\DBAL\Types\Utils\JsonPatch;
 use Gobl\DBAL\Types\Utils\Map;
 use Gobl\ORM\ORMTableQuery;
 use Gobl\ORM\ORMTypeHint;
+use Gobl\ORM\ORMUniversalType;
 use JsonException;
 use OLIUP\CG\PHPType;
 
 /**
  * Class TypeMap.
  *
- * @extends Type<mixed, null|array<string, mixed>>
+ * @extends Type<mixed, null|Map>
  */
 class TypeMap extends Type
 {
@@ -44,7 +45,7 @@ class TypeMap extends Type
 		!empty($message) && $this->msg('invalid_map_type', $message);
 
 		$base = new TypeJSON();
-		$base->jsonDataType('object'); // enforce JSON object semantics on the base type for schema reflection
+		$base->jsonOf(ORMUniversalType::MAP); // enforce JSON object semantics on the base type for schema reflection
 
 		parent::__construct($base);
 	}
@@ -140,6 +141,9 @@ class TypeMap extends Type
 		$this->safelyCallOnBaseType(__FUNCTION__, [$qb, $column, $operator, $args]);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public function getReadTypeHint(): ORMTypeHint
 	{
 		return ORMTypeHint::map();
@@ -153,10 +157,10 @@ class TypeMap extends Type
 	 */
 	public function getWriteTypeHint(): ORMTypeHint
 	{
-		$hint = ORMTypeHint::map();
-		$hint->setPHPType(new PHPType('\\' . Map::class, 'array', '\\' . JsonPatch::class));
-
-		return $hint;
+		return ORMTypeHint::map()
+			->setPHPType(
+				new PHPType('\\' . Map::class, 'array', '\\' . JsonPatch::class)
+			);
 	}
 
 	/**
@@ -217,6 +221,11 @@ class TypeMap extends Type
 
 				return;
 			}
+			if (null === $value) {
+				$subject->reject($this->msg('invalid_map_type'), $debug);
+
+				return;
+			}
 		}
 
 		try {
@@ -246,15 +255,14 @@ class TypeMap extends Type
 	 */
 	private function ensureMap(mixed $value): Map
 	{
-		$is_map = $value instanceof Map;
-		if (!$is_map && !\is_array($value)) {
+		if ($value instanceof Map) {
+			return $value;
+		}
+
+		if (!\is_array($value)) {
 			throw new TypesInvalidValueException($this->msg('invalid_map_type'), [
 				'value' => $value,
 			]);
-		}
-
-		if ($is_map) {
-			return $value;
 		}
 
 		return new Map($value);

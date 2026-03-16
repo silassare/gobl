@@ -17,7 +17,6 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
-use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
 use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
 use Gobl\ORM\ORMTypeHint;
 use Gobl\ORM\ORMUniversalType;
@@ -25,14 +24,14 @@ use Gobl\ORM\ORMUniversalType;
 /**
  * Class TypeDecimal.
  *
- * @extends Type<mixed, null|string>
+ * @extends BaseType<mixed, null|string>
  */
-class TypeDecimal extends Type implements BaseTypeInterface
+class TypeDecimal extends BaseType
 {
 	public const NAME = 'decimal';
 
 	/**
-	 * TypeFloat constructor.
+	 * TypeDecimal constructor.
 	 *
 	 * @param null|string $min      the minimum decimal value
 	 * @param null|string $max      the maximum decimal value
@@ -271,6 +270,11 @@ class TypeDecimal extends Type implements BaseTypeInterface
 
 			if (null === $value && $this->isNullable()) {
 				$subject->accept(null);
+
+				return;
+			}
+			if (null === $value) {
+				$subject->reject($this->msg('invalid_decimal_type'), $debug);
 
 				return;
 			}

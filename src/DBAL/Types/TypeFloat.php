@@ -17,7 +17,6 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
-use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
 use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
 use Gobl\ORM\ORMTypeHint;
 use Gobl\ORM\ORMUniversalType;
@@ -25,9 +24,9 @@ use Gobl\ORM\ORMUniversalType;
 /**
  * Class TypeFloat.
  *
- * @extends Type<mixed, null|float>
+ * @extends BaseType<mixed, null|float>
  */
-class TypeFloat extends Type implements BaseTypeInterface
+class TypeFloat extends BaseType
 {
 	public const NAME = 'float';
 
@@ -248,6 +247,11 @@ class TypeFloat extends Type implements BaseTypeInterface
 
 			if (null === $value && $this->isNullable()) {
 				$subject->accept(null);
+
+				return;
+			}
+			if (null === $value) {
+				$subject->reject($this->msg('invalid_float_type'), $debug);
 
 				return;
 			}

@@ -297,6 +297,11 @@ class TypeDate extends Type
 
 				return;
 			}
+			if (null === $value) {
+				$subject->reject($this->msg('invalid_date_type'), $debug);
+
+				return;
+			}
 		}
 
 		$value = self::toTimestamp($value);

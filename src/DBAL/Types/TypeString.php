@@ -16,16 +16,15 @@ namespace Gobl\DBAL\Types;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
-use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
 use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
 use Gobl\ORM\ORMTypeHint;
 
 /**
  * Class TypeString.
  *
- * @extends Type<mixed, null|string>
+ * @extends BaseType<mixed, null|string>
  */
-class TypeString extends Type implements BaseTypeInterface
+class TypeString extends BaseType
 {
 	public const NAME = 'string';
 
@@ -339,6 +338,12 @@ class TypeString extends Type implements BaseTypeInterface
 				$value = $def;
 			} elseif ($this->isNullable()) {
 				$subject->accept(null);
+
+				return;
+			} elseif (null === $value) {
+				// null with no default and not nullable: reject explicitly
+				// (empty string '' falls through to further validation)
+				$subject->reject($this->msg('invalid_string_type'), $debug);
 
 				return;
 			}

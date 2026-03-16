@@ -46,7 +46,7 @@ class TypeList extends Type
 		!empty($message) && $this->msg('invalid_list_type', $message);
 
 		$base = new TypeJSON();
-		$base->jsonDataType('array'); // enforce JSON array semantics on the base type for schema reflection
+		$base->jsonOf(ORMUniversalType::LIST); // enforce JSON array semantics on the base type for schema reflection
 
 		parent::__construct($base);
 	}
@@ -169,12 +169,28 @@ class TypeList extends Type
 		return null;
 	}
 
+	/**
+	 * Returns the universal type hint set via `listOf()`, or null if none (or if it is a revival class).
+	 *
+	 * @return null|ORMUniversalType
+	 */
+	public function getListOfUniversalType(): ?ORMUniversalType
+	{
+		$v = $this->getOption('list_of');
+
+		if (\is_string($v) && !\is_a($v, JsonOfInterface::class, true)) {
+			return ORMUniversalType::tryFrom($v);
+		}
+
+		return null;
+	}
+
 	public function configure(array $options): static
 	{
 		if (isset($options['list_of'])) {
 			$raw = (string) $options['list_of'];
-			// Try as a universal type first, then as a class name.
-			$of = ORMUniversalType::tryFrom($raw);
+			// Try as a universal type first (case-insensitive), then as a class name.
+			$of = ORMUniversalType::tryFrom(\strtoupper($raw));
 
 			if ($of) {
 				$this->listOf($of);
@@ -207,47 +223,45 @@ class TypeList extends Type
 		$this->safelyCallOnBaseType(__FUNCTION__, [$qb, $column, $operator, $args]);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * The read type hint is `list<Of>` where `Of` is either the class name set via `list_of` (for revival)
+	 * or the universal type set via `list_of` (for hint-only metadata), or `mixed` if neither is set.
+	 */
 	public function getReadTypeHint(): ORMTypeHint
 	{
 		$class = $this->getListOfClass();
 
 		if (null !== $class) {
-			$hint = ORMTypeHint::list();
-			$hint->setListOfClass($class);
-
-			return $hint;
+			return ORMTypeHint::list()->setListOfClass($class);
 		}
 
-		$of = ORMUniversalType::tryFrom((string) ($this->getOption('list_of') ?? ''));
+		$of = $this->getListOfUniversalType();
 
-		return ORMTypeHint::list($of);
+		return ORMTypeHint::list($of)->setPHPType(new PHPType('list<' . ($of ? ($of)->toPHPType() : 'mixed') . '>', '\\' . JsonPatch::class));
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * Accepts array or {@see JsonPatch}.
-	 * A {@see JsonPatch} instance is coerced to its underlying array inside {@see validate()}.
-	 * When `list_of` is a {@see JsonOfInterface} class, also accepts instances of that class
-	 * as individual elements.
+	 * The write type hint is more permissive than the read type hint:
+	 * it accepts either a list or associative array for ease of use, as well as
+	 * a JsonPatch for convenient construction and mutation of list values.
+	 * The element type hint is the same as for the read type hint.
 	 */
 	public function getWriteTypeHint(): ORMTypeHint
 	{
 		$class = $this->getListOfClass();
 
 		if (null !== $class) {
-			$hint = ORMTypeHint::list();
-			$hint->setListOfClass($class);
-			$hint->setPHPType(new PHPType('array', '\\' . JsonPatch::class));
-
-			return $hint;
+			return ORMTypeHint::list()->setListOfClass($class)
+				->setPHPType(new PHPType($class, 'array<\\' . $class . '>', '\\' . JsonPatch::class));
 		}
 
-		$of   = ORMUniversalType::tryFrom((string) ($this->getOption('list_of') ?? ''));
-		$hint = ORMTypeHint::list($of);
-		$hint->setPHPType(new PHPType('array', '\\' . JsonPatch::class));
+		$of = $this->getListOfUniversalType();
 
-		return $hint;
+		return ORMTypeHint::list($of)->setPHPType(new PHPType('array<' . ($of ? ($of)->toPHPType() : 'mixed') . '>', '\\' . JsonPatch::class));
 	}
 
 	/**
@@ -298,7 +312,7 @@ class TypeList extends Type
 			}
 		}
 
-		if (!\is_array($value)) {
+		if (!\is_array($value) || !\array_is_list($value)) {
 			$subject->reject($this->msg('invalid_list_type'), $debug);
 
 			return;
@@ -309,22 +323,53 @@ class TypeList extends Type
 		if (null !== $class) {
 			// Revive array elements that aren't already the right type.
 			try {
-				$value = \array_values(\array_map(static function (mixed $item) use ($class, $debug): mixed {
+				/** @var array<int, mixed> $list */
+				$list = [];
+
+				foreach ($value as $k => $item) {
 					if (\is_array($item)) {
-						return $class::revive($item);
+						$list[] = $class::revive($item);
+
+						continue;
 					}
 
 					if ($item instanceof $class) {
-						return $item;
+						$list[] = $item;
+
+						continue;
 					}
 
-					throw new TypesInvalidValueException('Invalid list element type.', $debug);
-				}, $value));
+					throw new TypesInvalidValueException('Invalid list element type.', [
+						'element'       => $item,
+						'index'         => $k,
+						'expected_type' => $class,
+					] + $debug);
+				}
+
+				$value = $list;
 			} catch (TypesInvalidValueException $e) {
 				$subject->reject($e);
 
 				return;
 			}
+		}
+
+		$of_u_type = $this->getListOfUniversalType();
+
+		if (null !== $of_u_type) {
+			foreach ($value as $index => $item) {
+				if (!$of_u_type->isValidValue($item)) {
+					$subject->reject($this->msg('invalid_list_of_type'), $debug + [
+						'element'       => $item,
+						'index'         => $index,
+						'expected_type' => $of_u_type->value,
+					]);
+
+					return;
+				}
+			}
+
+			$value = \array_values($value);
 		}
 
 		try {

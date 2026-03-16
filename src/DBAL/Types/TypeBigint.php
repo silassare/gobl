@@ -17,7 +17,6 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
-use Gobl\DBAL\Types\Interfaces\BaseTypeInterface;
 use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
 use Gobl\ORM\ORMTypeHint;
 use Gobl\ORM\ORMUniversalType;
@@ -25,9 +24,9 @@ use Gobl\ORM\ORMUniversalType;
 /**
  * Class TypeBigint.
  *
- * @extends Type<mixed, null|string>
+ * @extends BaseType<mixed, null|string>
  */
-class TypeBigint extends Type implements BaseTypeInterface
+class TypeBigint extends BaseType
 {
 	public const BIGINT_REG          = '~[-+]?(?:[1-9]\d*|0)~';
 	public const BIGINT_UNSIGNED_REG = '~[+]?(?:[1-9]\d*|0)~';
@@ -232,6 +231,11 @@ class TypeBigint extends Type implements BaseTypeInterface
 
 			if (null === $value && $this->isNullable()) {
 				$subject->accept(null);
+
+				return;
+			}
+			if (null === $value) {
+				$subject->reject($this->msg('invalid_bigint_type'), $debug);
 
 				return;
 			}

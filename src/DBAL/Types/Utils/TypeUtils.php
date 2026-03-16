@@ -198,8 +198,8 @@ class TypeUtils
 	/**
 	 * Wraps a single SQL placeholder in a DB-level cast when the column type requires it.
 	 *
-	 * Delegates to {@see TypeInterface::castExpressionForQuery()}
-	 * after checking {@see TypeInterface::shouldCastExpressionForQuery()}.
+	 * Delegates to {@see BaseTypeInterface::castExpressionForQuery()}
+	 * after checking {@see BaseTypeInterface::shouldCastExpressionForQuery()}.
 	 * The caller is responsible for looping over arrays.
 	 *
 	 * @param Column         $column     the resolved column whose type drives the cast
@@ -213,10 +213,10 @@ class TypeUtils
 		string $expression,
 		RDBMSInterface $rdbms
 	): string {
-		$type = $column->getType();
+		$base = $column->getType()->getBaseType();
 
-		if ($type->shouldCastExpressionForQuery($rdbms)) {
-			return $type->castExpressionForQuery($expression, $rdbms);
+		if ($base->shouldCastExpressionForQuery($rdbms)) {
+			return $base->castExpressionForQuery($expression, $rdbms);
 		}
 
 		return $expression;
