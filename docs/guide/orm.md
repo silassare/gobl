@@ -77,20 +77,43 @@ $client->save();
 
 ### Save state
 
-The entity tracks whether it has unsaved local changes via `isSaved()`:
+The entity tracks unsaved changes via `isSaved()` and `isNew()`:
 
 ```php
 $client = Client::ctrl()->getItem([...]);
-$client->isSaved();           // true - freshly loaded from DB
+$client->isNew();             // false - loaded from DB
+$client->isSaved();           // true  - no pending changes
 
 $client->setFirstName('Bob');
 $client->isSaved();           // false - has unsaved changes
 
 $client->save();
-$client->isSaved();           // true - changes persisted
+$client->isSaved();           // true  - changes persisted
+
+// A brand-new entity (not yet persisted)
+$new = Client::new();
+$new->isNew();                // true
+$new->isSaved();              // false
+
+$new->save();                 // INSERT
+$new->isNew();                // false
+$new->isSaved();              // true
 
 // Self-delete
 $client->selfDelete();        // calls deleteOneItem internally
+```
+
+Dirty detection compares a frozen **hash snapshot** (taken at load / last save) with
+the hash of the newly assigned value. This correctly detects changes even for
+mutable values such as `Map` — mutating a `Map` in place and re-assigning the same
+instance is treated as a change when the content differs:
+
+```php
+/** @var Map $data */
+$data = $client->client_data;  // e.g. ['role' => 'admin']
+$data->set('role', 'editor');  // mutate in place
+$client->client_data = $data;  // re-assign: detected as dirty
+$client->isSaved();            // false
 ```
 
 ---

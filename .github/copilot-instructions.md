@@ -112,6 +112,19 @@ $account->account_label = 'x';  // write
 $account->save();               // persist
 ```
 
+**Dirty tracking**: `__set` computes `Type::hash()` of the new (validated) value and
+compares it against a frozen snapshot taken at the last save or PDO load
+(`_oeb_saved_hashes`). A column is marked dirty only when the hashes differ.
+This handles mutable values (e.g. `Map`) correctly: mutating a `Map` in place and
+re-assigning it is detected because the hash reflects current content, not object identity.
+
+**`isSaved(bool $set_as_saved = false): bool`** — returns `true` when no columns are
+dirty and the entity is not new. Calling `isSaved(true)` snapshots all current hashes,
+clears the dirty set, and unsets the `isNew` flag.
+
+**`isNew(): bool`** — `true` for entities created with `new()` that have not yet been
+persisted; `false` for entities loaded from the DB or after the first successful `save()`.
+
 Name collision rules for subclasses:
 
 - Internal `ORMEntity` properties use `_oeb_*` prefix
@@ -346,7 +359,7 @@ Live DB tests require `.env.test` (see `.env.test.example`). `./run_test` cleans
 | [src/DBAL/Types/Interfaces/BaseTypeInterface.php](../src/DBAL/Types/Interfaces/BaseTypeInterface.php) | Extends `TypeInterface`: `shouldCastExpressionForQuery()`, `castExpressionForQuery()`          |
 | [src/DBAL/Types/Utils/TypeUtils.php](../src/DBAL/Types/Utils/TypeUtils.php)                           | `addTypeProvider()`, type resolution, `runCastValueForFilter()`, `runCastExpressionForQuery()` |
 | [src/ORM/ORM.php](../src/ORM/ORM.php)                                                                 | Namespace registry, `declareNamespace()`                                                       |
-| [src/ORM/ORMEntity.php](../src/ORM/ORMEntity.php)                                                     | Entity base, magic column access, `save()`, dirty tracking                                     |
+| [src/ORM/ORMEntity.php](../src/ORM/ORMEntity.php)                                                     | Entity base, magic column access, `save()`, `isSaved()`, `isNew()`, hash-based dirty tracking  |
 | [src/ORM/ORMController.php](../src/ORM/ORMController.php)                                             | `addItem()`, `updateOneItem()`, `deleteOneItem()`, `getItem()`, `getAllItems()`                |
 | [src/ORM/ORMEntityCRUD.php](../src/ORM/ORMEntityCRUD.php)                                             | Consumer event subscription base (extends `CRUDEventProducer`)                                 |
 | [src/ORM/Generators/CSGeneratorORM.php](../src/ORM/Generators/CSGeneratorORM.php)                     | PHP ORM class generator                                                                        |
