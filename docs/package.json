@@ -3,7 +3,7 @@
 	"private": true,
 	"version": "1.0.0",
 	"type": "module",
-	"description": "Documentation for Gobl – PHP DBAL & ORM",
+	"description": "Documentation for Gobl - PHP DBAL & ORM",
 	"scripts": {
 		"dev": "vitepress dev",
 		"build": "vitepress build",
