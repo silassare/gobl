@@ -1,4 +1,0 @@
-<?php
-
-#[\Attribute(\Attribute::TARGET_METHOD | \Attribute::TARGET_FUNCTION)]
-final class Override {}

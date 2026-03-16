@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Collections;
 
 use Gobl\ORM\ORMRequest;
-use Override;
 
 /**
  * Class CollectionFactory.
@@ -46,7 +45,7 @@ class CollectionFactory extends Collection
 		unset($this->factory);
 	}
 
-	#[Override]
+	#[\Override]
 	public function getItems(ORMRequest $request, ?int &$total_records = null): array
 	{
 		return ($this->factory)($request, $total_records);
