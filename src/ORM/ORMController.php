@@ -107,7 +107,7 @@ abstract class ORMController
 	/**
 	 * Returns new instance.
 	 *
-	 * @return static<TEntity, TQuery, TResults>
+	 * @return static
 	 */
 	abstract public static function new(): static;
 

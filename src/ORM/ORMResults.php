@@ -107,7 +107,7 @@ abstract class ORMResults implements Countable, Iterator
 	 *
 	 * @param QBSelect $query the select query builder instance
 	 *
-	 * @return static<TEntity>
+	 * @return static
 	 */
 	abstract public static function new(QBSelect $query): static;
 

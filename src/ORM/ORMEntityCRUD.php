@@ -27,7 +27,7 @@ abstract class ORMEntityCRUD extends CRUDEventProducer
 	/**
 	 * Returns new instance.
 	 *
-	 * @return static<TEntity>
+	 * @return static
 	 */
 	abstract public static function new(): static;
 }

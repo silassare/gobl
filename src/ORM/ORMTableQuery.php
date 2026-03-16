@@ -252,7 +252,7 @@ abstract class ORMTableQuery extends FiltersTableScope
 	/**
 	 * Returns new instance.
 	 *
-	 * @return static<TEntity>
+	 * @return static
 	 */
 	abstract public static function new(): static;
 
@@ -447,6 +447,7 @@ abstract class ORMTableQuery extends FiltersTableScope
 		/** @var ORMResults<TEntity> $class_name */
 		$class_name = ORMClassKind::RESULTS->getClassFQN($this->table);
 
+		/** @var ORMResults<TEntity> */
 		return $class_name::new($qb);
 	}
 
