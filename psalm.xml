@@ -26,4 +26,7 @@
 		<!-- Initial null assignments for typed variables are a valid pattern; suppress false positives -->
 		<UnusedVariable errorLevel="suppress"/>
 	</issueHandlers>
+	<stubs>
+		<file name="stubs/Override.phpstub"/>
+	</stubs>
 </psalm>
