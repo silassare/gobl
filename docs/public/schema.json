@@ -964,8 +964,17 @@
 				},
 				"list_of": {
 					"type": "string",
-					"description": "Element type hint for code generation and optional runtime revival. Use an ORMUniversalType value ('string', 'int', 'bigint', 'float', 'bool') for metadata only, or a FQCN implementing JsonOfInterface for typed revival (each element is passed through ClassName::revive() on read).",
-					"examples": ["string", "int", "App\\Data\\Tag"]
+					"description": "Element type hint for code generation and optional runtime revival. Use an ORMUniversalType value (case-insensitive: 'string', 'int', 'bigint', 'float', 'bool', 'decimal', 'map') for metadata only, or a FQCN implementing JsonOfInterface for typed revival (each element is passed through ClassName::revive() on read).",
+					"examples": [
+						"string",
+						"int",
+						"bigint",
+						"float",
+						"bool",
+						"decimal",
+						"map",
+						"App\\Data\\Tag"
+					]
 				},
 				"nullable": {
 					"type": "boolean",
@@ -1021,7 +1030,7 @@
 			"type": "object",
 			"required": ["type"],
 			"additionalProperties": false,
-			"description": "Raw JSON document column (object or array root). Stored as TEXT or native JSON. Use 'native_json: true' for JSON path operators. Use 'json_of' for typed PHP objects. Use 'json_data_type' to restrict to array or object root.",
+			"description": "Raw JSON document column (object or array root). Stored as TEXT or native JSON. Use 'native_json: true' for JSON path operators. Use 'json_of' for typed PHP objects or ORMUniversalType shape enforcement.",
 			"properties": {
 				"type": {
 					"const": "json",
@@ -1040,14 +1049,8 @@
 				},
 				"json_of": {
 					"type": "string",
-					"description": "FQCN of a class implementing JsonOfInterface. On read, stored JSON is decoded and passed to ClassName::revive(). On write, instances are JSON-encoded. Enables typed ORM getters.",
-					"examples": ["App\\Data\\UserProfile"]
-				},
-				"json_data_type": {
-					"type": "string",
-					"enum": ["any", "array", "object"],
-					"description": "Restricts the kind of JSON root document. 'any' (default): object or array. 'array': only a JSON array. 'object': only a JSON object. Ignored when json_of is set.",
-					"default": "any"
+					"description": "FQCN of a class implementing JsonOfInterface (decoded JSON is revived via ClassName::revive()), or an ORMUniversalType enum name (case-insensitive) for shape enforcement and code-generation hint: 'list' accepts only sequential arrays, 'map' accepts only associative arrays/objects. Other ORMUniversalType values (e.g. 'any') impose no shape restriction.",
+					"examples": ["App\\Data\\UserProfile", "list", "map"]
 				},
 				"nullable": {
 					"type": "boolean",
