@@ -24,5 +24,5 @@ gobl.test.log.txt
 /docs/.vitepress/dist
 /docs/.vitepress/cache
 /docs/node_modules
-/docs/api
+/docs/public/api
 /.phpdoc/cache

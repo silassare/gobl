@@ -1,4 +1,10 @@
+import { readFileSync } from "fs";
+import { resolve } from "path";
 import { defineConfig } from "vitepress";
+
+const goblVersion = readFileSync(resolve(__dirname, "../../VERSION"), "utf-8")
+	.trim()
+	.replace(/^gobl\s+/i, "");
 
 // ─── Shared sidebar used by multiple packages in the framework ──────────────
 // To reuse: import { goblSidebar } from '../../gobl/docs/.vitepress/config'
@@ -43,7 +49,14 @@ export const sidebar = [
 	},
 	{
 		text: "API Reference",
-		items: [{ text: "Auto-generated", link: "/api/" }],
+		items: [
+			{
+				text: "Auto-generated",
+				link: "/api/",
+				target: "_blank",
+				rel: "noreferrer",
+			},
+		],
 	},
 ];
 
@@ -68,10 +81,10 @@ export default defineConfig({
 		// ── Top nav ──────────────────────────────────────────────────────────────
 		nav: [
 			{ text: "Guide", link: "/guide/", activeMatch: "/guide/" },
-			{ text: "API", link: "/api/", activeMatch: "/api/" },
+			{ text: "API", link: "/api/", target: "_blank", rel: "noreferrer" },
 			{ text: "Changelog", link: "/changelog" },
 			{
-				text: "v2.0.0",
+				text: goblVersion,
 				items: [
 					{
 						text: "Release notes",
