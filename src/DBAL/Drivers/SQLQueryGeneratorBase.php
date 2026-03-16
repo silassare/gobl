@@ -1366,14 +1366,13 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 * @param ColumnTypeChanged $action
 	 *
 	 * @return string
-	 *
-	 * @throws DBALException
 	 */
 	protected function getColumnTypeChangedString(ColumnTypeChanged $action): string
 	{
-		$column_definition = $this->getColumnDefinitionString($action->getNewColumn());
-		$table_name        = $action->getTable()
-			->getFullName();
+		$new_column = $action->getNewColumn();
+		$table_name = $action->getTable()->getFullName();
+
+		$column_definition = $this->getColumnDefinitionString($new_column);
 
 		return 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' ALTER COLUMN ' . $column_definition . ';';
 	}

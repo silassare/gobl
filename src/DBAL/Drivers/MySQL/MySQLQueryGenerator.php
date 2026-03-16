@@ -312,9 +312,8 @@ SQL;
 	protected function getColumnTypeChangedString(ColumnTypeChanged $action): string
 	{
 		$new_column        = $action->getNewColumn();
+		$table_name        = $action->getTable()->getFullName();
 		$column_definition = $this->getColumnDefinitionString($new_column);
-		$table_name        = $action->getTable()
-			->getFullName();
 
 		return 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' CHANGE ' . $this->quoteIdentifier($new_column->getFullName()) . ' ' . $column_definition . ';';
 	}

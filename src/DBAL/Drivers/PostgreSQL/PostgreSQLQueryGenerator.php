@@ -15,6 +15,7 @@ namespace Gobl\DBAL\Drivers\PostgreSQL;
 
 use Gobl\DBAL\Column;
 use Gobl\DBAL\DbConfig;
+use Gobl\DBAL\Diff\Actions\ColumnTypeChanged;
 use Gobl\DBAL\Diff\Actions\DBCharsetChanged;
 use Gobl\DBAL\Diff\Actions\DBCollateChanged;
 use Gobl\DBAL\Diff\Actions\TableCharsetChanged;
@@ -31,6 +32,7 @@ use Gobl\DBAL\Queries\QBDelete;
 use Gobl\DBAL\Queries\QBInsert;
 use Gobl\DBAL\Queries\QBUpdate;
 use Gobl\DBAL\Types\TypeJSON;
+use Gobl\DBAL\Types\TypeString;
 use Gobl\DBAL\Types\Utils\JsonPath;
 use Gobl\Gobl;
 use RuntimeException;
@@ -331,6 +333,42 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		}
 
 		return parent::operatorFilterToExpression($filter);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * PostgreSQL ALTER COLUMN TYPE syntax:
+	 *   ALTER TABLE t ALTER COLUMN col TYPE new_type [USING expr];
+	 *
+	 * When converting TEXT/VARCHAR or TEXT-stored JSON to JSONB, a
+	 * USING to_jsonb(col::text) clause is appended automatically.
+	 */
+	protected function getColumnTypeChangedString(ColumnTypeChanged $action): string
+	{
+		$new_column        = $action->getNewColumn();
+		$old_column        = $action->getOldColumn();
+		$table_name        = $action->getTable()->getFullName();
+		$new_base          = $new_column->getType()->getBaseType();
+		$old_base          = $old_column->getType()->getBaseType();
+		$col_quoted        = $this->quoteIdentifier($new_column->getFullName());
+		$column_definition = $this->getColumnDefinitionString($new_column);
+		$sql               = 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' ALTER COLUMN ' . $column_definition;
+
+		// PostgreSQL cannot implicitly cast TEXT/VARCHAR or TEXT-stored JSON to JSONB;
+		// emit a USING to_jsonb(col::text) clause in that case.
+		if (
+			$new_base instanceof TypeJSON
+			&& $new_base->isNativeJson()
+			&& (
+				$old_base instanceof TypeString
+				|| ($old_base instanceof TypeJSON && !$old_base->isNativeJson())
+			)
+		) {
+			$sql .= ' USING to_jsonb(' . $col_quoted . '::text)';
+		}
+
+		return $sql . ';';
 	}
 
 	protected function getDBCharsetChangeString(DBCharsetChanged $action): string
