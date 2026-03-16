@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Gobl\Tests\ORM;
 
 use Gobl\DBAL\Drivers\MySQL\MySQL;
+use Gobl\DBAL\Types\Utils\Map;
 use Gobl\ORM\Exceptions\ORMRuntimeException;
 use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\ORM\ORM;
@@ -281,5 +282,148 @@ final class ORMEntityTest extends BaseTestCase
 		self::assertSame('USD', (string) $entity->code);
 		self::assertSame('US Dollar', (string) $entity->name);
 		self::assertSame('$', (string) $entity->symbol);
+	}
+
+	// -------------------------------------------------------------------------
+	// Tests: dirty tracking via hash
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Re-assigning the same scalar value must not mark the column dirty.
+	 */
+	public function testScalarReassignmentDoesNotMarkDirty(): void
+	{
+		$table  = ORM::getDatabase(self::TEST_DB_NAMESPACE)->getTableOrFail('clients');
+		$entity = ORM::entity($table, false); // fetched entity: starts clean (is_new=false, no dirty)
+
+		// Simulate a hydrated row so user-mode writes are enabled for this column
+		$entity->client_first_name = 'Alice'; // PDO mode: fills _oeb_from_db + _oeb_saved_hashes
+		$entity->isSaved(true);               // mark clean
+
+		self::assertTrue($entity->isSaved());
+
+		// Re-assign the exact same value
+		$entity->client_first_name = 'Alice';
+
+		self::assertTrue($entity->isSaved(), 'Re-assigning the same scalar must not mark dirty');
+	}
+
+	/**
+	 * Assigning a different scalar value marks the column dirty.
+	 */
+	public function testScalarChangeMarksDirty(): void
+	{
+		$table  = ORM::getDatabase(self::TEST_DB_NAMESPACE)->getTableOrFail('clients');
+		$entity = ORM::entity($table, false);
+
+		$entity->client_first_name = 'Alice';
+		$entity->isSaved(true);
+
+		$entity->client_first_name = 'Bob';
+
+		self::assertFalse($entity->isSaved(), 'Changing a scalar must mark the entity dirty');
+	}
+
+	/**
+	 * Re-assigning a Map with equal content must not mark the column dirty.
+	 */
+	public function testMapReassignmentWithSameContentDoesNotMarkDirty(): void
+	{
+		$table  = ORM::getDatabase(self::TEST_DB_NAMESPACE)->getTableOrFail('clients');
+		$entity = ORM::entity($table); // new entity: all writes go through user-mode
+
+		$data                = ['role' => 'admin'];
+		$entity->client_data = $data;
+		$entity->isSaved(true); // mark clean (clears dirty + new flag)
+
+		// Assign a brand-new Map with equal content
+		$entity->client_data = new Map($data);
+
+		self::assertTrue($entity->isSaved(), 'Map with same content must not mark dirty');
+	}
+
+	/**
+	 * Assigning a Map with different content marks the column dirty.
+	 */
+	public function testMapReassignmentWithDifferentContentMarksDirty(): void
+	{
+		$table  = ORM::getDatabase(self::TEST_DB_NAMESPACE)->getTableOrFail('clients');
+		$entity = ORM::entity($table);
+
+		$data                = ['role' => 'admin'];
+		$entity->client_data = $data;
+		$entity->isSaved(true);
+
+		$newData             = ['role' => 'editor'];
+		$entity->client_data = new Map($newData);
+
+		self::assertFalse($entity->isSaved(), 'Map with different content must mark dirty');
+	}
+
+	/**
+	 * Mutating the stored Map instance in place and then re-assigning it must
+	 * be detected as a change because hash() re-serializes the current content.
+	 */
+	public function testMapInPlaceMutationDetectedOnReassign(): void
+	{
+		$table  = ORM::getDatabase(self::TEST_DB_NAMESPACE)->getTableOrFail('clients');
+		$entity = ORM::entity($table);
+
+		$data                = ['role' => 'admin'];
+		$entity->client_data = $data;
+		$entity->isSaved(true);
+
+		/** @var Map $stored */
+		$stored = $entity->client_data;
+		$stored->set('role', 'editor'); // mutate in place
+
+		// Reassign the (now mutated) same instance
+		$entity->client_data = $stored;
+
+		self::assertFalse($entity->isSaved(), 'In-place Map mutation followed by re-assign must mark dirty');
+	}
+
+	/**
+	 * isSaved(true) clears the dirty set and the new flag; subsequent reads return true.
+	 */
+	public function testSetAsSavedClearsDirtyAndNewFlag(): void
+	{
+		$table  = ORM::getDatabase(self::TEST_DB_NAMESPACE)->getTableOrFail('clients');
+		$entity = ORM::entity($table);
+
+		self::assertTrue($entity->isNew());
+		self::assertFalse($entity->isSaved());
+
+		$entity->isSaved(true);
+
+		self::assertFalse($entity->isNew());
+		self::assertTrue($entity->isSaved());
+	}
+
+	/**
+	 * A fetched entity (is_new=false, no dirty columns) reports isSaved() === true.
+	 * After a write it becomes dirty; after isSaved(true) it is clean again.
+	 */
+	public function testIsSavedLifecycle(): void
+	{
+		$table  = ORM::getDatabase(self::TEST_DB_NAMESPACE)->getTableOrFail('clients');
+		$entity = ORM::entity($table, false);
+
+		self::assertTrue($entity->isSaved(), 'Fetched entity starts as saved');
+
+		// For a freshly created is_new=false entity, _oeb_from_db is empty so __set
+		// uses PDO mode. Force the first write through PDO mode then mark it clean.
+		$entity->client_first_name = 'Init';
+		$entity->isSaved(true);
+
+		self::assertTrue($entity->isSaved());
+
+		$entity->client_first_name = 'Changed';
+
+		self::assertFalse($entity->isSaved(), 'Entity must be dirty after write');
+
+		$entity->isSaved(true);
+
+		self::assertTrue($entity->isSaved(), 'Entity must be clean after isSaved(true)');
 	}
 }
