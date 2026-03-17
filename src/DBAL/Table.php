@@ -1826,7 +1826,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 	}
 
 	#[Override]
-	public function setDiffKey(string $diff_key): self
+	public function setDiffKey(string $diff_key): static
 	{
 		$this->assertNotLocked();
 
