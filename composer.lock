@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/oliup-io/code-generator.git",
-                "reference": "44a3ab7a01cd5d137eff7227b15a1ece8ee29791"
+                "reference": "a2c1841132ef54c5f755aaed7773a9ffee28f269"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/oliup-io/code-generator/zipball/44a3ab7a01cd5d137eff7227b15a1ece8ee29791",
-                "reference": "44a3ab7a01cd5d137eff7227b15a1ece8ee29791",
+                "url": "https://api.github.com/repos/oliup-io/code-generator/zipball/a2c1841132ef54c5f755aaed7773a9ffee28f269",
+                "reference": "a2c1841132ef54c5f755aaed7773a9ffee28f269",
                 "shasum": ""
             },
             "require": {
@@ -66,7 +66,7 @@
                 "source": "https://github.com/oliup-io/code-generator/tree/main",
                 "issues": "https://github.com/oliup-io/code-generator/issues"
             },
-            "time": "2026-03-17T11:32:52+00:00"
+            "time": "2026-03-17T18:43:39+00:00"
         },
         {
             "name": "psr/http-message",
@@ -127,12 +127,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/silassare/blate.git",
-                "reference": "2481d3c29a8ababd47cac970b1535510fe9bfb69"
+                "reference": "91d3430462a95f48505b0fb1534a9061339766e9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/silassare/blate/zipball/2481d3c29a8ababd47cac970b1535510fe9bfb69",
-                "reference": "2481d3c29a8ababd47cac970b1535510fe9bfb69",
+                "url": "https://api.github.com/repos/silassare/blate/zipball/91d3430462a95f48505b0fb1534a9061339766e9",
+                "reference": "91d3430462a95f48505b0fb1534a9061339766e9",
                 "shasum": ""
             },
             "require": {
@@ -142,7 +142,7 @@
             },
             "require-dev": {
                 "oliup/oliup-cs-php": "dev-main",
-                "phpunit/phpunit": "^9.5.9",
+                "phpunit/phpunit": "^9.5.26",
                 "roave/security-advisories": "dev-latest",
                 "vimeo/psalm": "^6.0"
             },
@@ -193,7 +193,7 @@
                 "source": "https://github.com/silassare/blate/tree/main",
                 "issues": "https://github.com/silassare/blate/issues"
             },
-            "time": "2026-03-17T09:17:44+00:00"
+            "time": "2026-03-17T18:53:58+00:00"
         },
         {
             "name": "silassare/php-utils",
@@ -201,12 +201,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/silassare/php-utils.git",
-                "reference": "3e11717654fb295980c1f5521c2d45ef4943a5c4"
+                "reference": "f21a92df4a5f7b819d15cb2cb7c62ca6cdf5639a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/silassare/php-utils/zipball/3e11717654fb295980c1f5521c2d45ef4943a5c4",
-                "reference": "3e11717654fb295980c1f5521c2d45ef4943a5c4",
+                "url": "https://api.github.com/repos/silassare/php-utils/zipball/f21a92df4a5f7b819d15cb2cb7c62ca6cdf5639a",
+                "reference": "f21a92df4a5f7b819d15cb2cb7c62ca6cdf5639a",
                 "shasum": ""
             },
             "require": {
@@ -258,7 +258,7 @@
                 "source": "https://github.com/silassare/php-utils/tree/main",
                 "issues": "https://github.com/silassare/php-utils/issues"
             },
-            "time": "2026-03-17T10:35:17+00:00"
+            "time": "2026-03-17T18:41:52+00:00"
         }
     ],
     "packages-dev": [
@@ -2386,19 +2386,19 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/oliup-io/oliup-cs-php.git",
-                "reference": "11165f144ad3ae0840b705f17cd3284a8b032e72"
+                "reference": "6ff4feb6aa0420b0cbf13e688b88772c65466019"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/oliup-io/oliup-cs-php/zipball/11165f144ad3ae0840b705f17cd3284a8b032e72",
-                "reference": "11165f144ad3ae0840b705f17cd3284a8b032e72",
+                "url": "https://api.github.com/repos/oliup-io/oliup-cs-php/zipball/6ff4feb6aa0420b0cbf13e688b88772c65466019",
+                "reference": "6ff4feb6aa0420b0cbf13e688b88772c65466019",
                 "shasum": ""
             },
             "require": {
-                "friendsofphp/php-cs-fixer": ">=3.94",
-                "php": ">=7.2.0",
-                "phpcompatibility/php-compatibility": ">=9.3",
-                "squizlabs/php_codesniffer": ">=3.13"
+                "friendsofphp/php-cs-fixer": "^3.94",
+                "php": ">=8.1",
+                "phpcompatibility/php-compatibility": "^10.0@alpha",
+                "squizlabs/php_codesniffer": "^4.0"
             },
             "require-dev": {
                 "roave/security-advisories": "dev-latest"
@@ -2408,6 +2408,11 @@
                 "bin/oliup-cs"
             ],
             "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "1.x-dev"
+                }
+            },
             "autoload": {
                 "psr-4": {
                     "OLIUP\\CS\\": "src"
@@ -2432,10 +2437,10 @@
                 "static analysis"
             ],
             "support": {
-                "source": "https://github.com/oliup-io/oliup-cs-php/tree/v1.0.3",
+                "source": "https://github.com/oliup-io/oliup-cs-php/tree/main",
                 "issues": "https://github.com/oliup-io/oliup-cs-php/issues"
             },
-            "time": "2026-03-08T08:39:49+00:00"
+            "time": "2026-03-17T18:28:54+00:00"
         },
         {
             "name": "phar-io/manifest",
@@ -4203,12 +4208,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "9d2f66a6887edf398a0521016e9daded99937763"
+                "reference": "7dc4159ecc83b1fbc5387558960cc1b2010c8272"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/9d2f66a6887edf398a0521016e9daded99937763",
-                "reference": "9d2f66a6887edf398a0521016e9daded99937763",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/7dc4159ecc83b1fbc5387558960cc1b2010c8272",
+                "reference": "7dc4159ecc83b1fbc5387558960cc1b2010c8272",
                 "shasum": ""
             },
             "conflict": {
@@ -4325,7 +4330,7 @@
                 "ckeditor/ckeditor": "<4.25",
                 "clickstorm/cs-seo": ">=6,<6.8|>=7,<7.5|>=8,<8.4|>=9,<9.3",
                 "co-stack/fal_sftp": "<0.2.6",
-                "cockpit-hq/cockpit": "<2.11.4",
+                "cockpit-hq/cockpit": "<2.13.5",
                 "code16/sharp": "<9.11.1",
                 "codeception/codeception": "<3.1.3|>=4,<4.1.22",
                 "codeigniter/framework": "<3.1.10",
@@ -5229,7 +5234,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-03-16T22:12:26+00:00"
+            "time": "2026-03-17T17:25:24+00:00"
         },
         {
             "name": "sebastian/cli-parser",
