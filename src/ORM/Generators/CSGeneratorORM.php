@@ -22,9 +22,7 @@ use Gobl\DBAL\Relations\VirtualRelation;
 use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\TypeJSON;
 use Gobl\DBAL\Types\TypeList;
-use Gobl\DBAL\Types\TypeMap;
 use Gobl\DBAL\Types\Utils\JsonPatch;
-use Gobl\DBAL\Types\Utils\Map;
 use Gobl\Exceptions\GoblException;
 use Gobl\Gobl;
 use Gobl\ORM\Events\ORMTableFilesGenerated;
@@ -38,6 +36,7 @@ use Gobl\ORM\ORMTableQuery;
 use Gobl\ORM\ORMTypeHint;
 use Gobl\ORM\ORMUniversalType;
 use Gobl\ORM\Utils\ORMClassKind;
+use OLIUP\CG\PHPArgument;
 use OLIUP\CG\PHPClass;
 use OLIUP\CG\PHPFile;
 use OLIUP\CG\PHPMethod;
@@ -162,7 +161,7 @@ Time: {$date}";
 			ORMClassKind::CRUD,
 			ORMClassKind::CONTROLLER,
 			ORMClassKind::RESULTS,
-			ORMClassKind::QUERY           => $this->getExtendsOf($table, $kind),
+			ORMClassKind::QUERY           => $this->getExtendsOfBaseClass($table, $kind),
 			ORMClassKind::BASE_ENTITY     => $this->getBaseEntity($table),
 			ORMClassKind::BASE_CRUD       => $this->getBaseCRUD($table),
 			ORMClassKind::BASE_QUERY      => $this->getBaseQuery($table),
@@ -179,7 +178,7 @@ Time: {$date}";
 		return $file;
 	}
 
-	private function getExtendsOf(Table $table, ORMClassKind $kind): PHPFile
+	private function getExtendsOfBaseClass(Table $table, ORMClassKind $kind): PHPFile
 	{
 		$db_ns           = $table->getNamespace();
 		$class_name      = $kind->getClassName($table);
@@ -241,23 +240,22 @@ Time: {$date}";
 			->public()
 			->addChild(
 				Str::interpolate(
-					'parent::__construct(
-	self::TABLE_NAMESPACE,
-	self::TABLE_NAME,
-	$is_new,
-	$strict
-);
-',
+					'parent::__construct(' . \PHP_EOL
+						. '	self::TABLE_NAMESPACE,' . \PHP_EOL
+						. '	self::TABLE_NAME,' . \PHP_EOL
+						. '	$is_new,' . \PHP_EOL
+						. '	$strict' . \PHP_EOL
+						. ');',
 					$inject
 				)
 			);
 		$construct->setComment(
 			Str::interpolate(
-				'{class_name} constructor.
-
-@param bool $is_new true for new entity false for entity fetched
-                     from the database, default is true
-@param bool $strict Enable/disable strict mode',
+				'{class_name} constructor.' . \PHP_EOL
+					. \PHP_EOL
+					. '@param bool $is_new true for new entity false for entity fetched from the database, default is true'
+					. \PHP_EOL
+					. '@param bool $strict Enable/disable strict mode',
 				$inject
 			)
 		);
@@ -269,67 +267,63 @@ Time: {$date}";
 			->setType('bool')
 			->setValue(true);
 
-		$create_instance = $class->newMethod('new')
-			->static()
-			->public()
-			->addChild(
-				Str::interpolate(
-					'return new {class_name_sub}($is_new, $strict);',
-					$inject
-				)
-			)
-			->setReturnType('static');
-
-		$create_instance->addArgument($construct->getArgument('is_new'));
-		$create_instance->addArgument($construct->getArgument('strict'));
-
-		$create_instance->comment(
-			Str::interpolate(
-				'{@inheritDoc}
-
-@return static',
-				$inject
-			)
-		);
-
+		/**
+		 * @var array<string, array{comment: string, return: string, body: string, args?: PHPArgument[]}> $static_helpers
+		 */
 		$static_helpers = [
+			'new' => [
+				'comment' => '{@inheritDoc}'
+					. \PHP_EOL
+					. \PHP_EOL
+					. '@return static',
+				'return' => 'static',
+				'body'   => 'return new {class_name_sub}($is_new, $strict);',
+				'args'   => [$construct->getArgument('is_new'), $construct->getArgument('strict')],
+			],
 			'crud' => [
-				'comment' => '{@inheritDoc}
-
-@return \{db_namespace}\{crud_class_name}',
+				'comment' => '{@inheritDoc}'
+					. \PHP_EOL
+					. \PHP_EOL
+					. '@return \{db_namespace}\{crud_class_name}',
 				'return' => '\{db_namespace}\{crud_class_name}',
 				'body'   => 'return \{db_namespace}\{crud_class_name}::new();',
 			],
 			'ctrl' => [
-				'comment' => '{@inheritDoc}
-
-@return \{db_namespace}\{ctrl_class_name}',
+				'comment' => '{@inheritDoc}'
+					. \PHP_EOL
+					. \PHP_EOL
+					. '@return \{db_namespace}\{ctrl_class_name}',
 				'return' => '\{db_namespace}\{ctrl_class_name}',
 				'body'   => 'return \{db_namespace}\{ctrl_class_name}::new();',
 			],
 			'qb' => [
-				'comment' => '{@inheritDoc}
-
-@return \{db_namespace}\{qb_class_name}',
+				'comment' => '{@inheritDoc}'
+					. \PHP_EOL
+					. \PHP_EOL
+					. '@return \{db_namespace}\{qb_class_name}',
 				'return' => '\{db_namespace}\{qb_class_name}',
 				'body'   => 'return \{db_namespace}\{qb_class_name}::new();',
 			],
 			'results' => [
-				'comment' => '{@inheritDoc}
-
-@return \{db_namespace}\{results_class_name}',
+				'comment' => '{@inheritDoc}'
+					. \PHP_EOL
+					. \PHP_EOL
+					. '@return \{db_namespace}\{results_class_name}',
 				'return' => '\{db_namespace}\{results_class_name}',
 				'body'   => 'return \{db_namespace}\{results_class_name}::new($query);',
 				'args'   => [
-					'query' => '\\' . QBSelect::class,
+					new PHPArgument('query', '\\' . QBSelect::class),
 				],
 			],
 			'table' => [
-				'comment' => '{@inheritDoc}',
+				'comment' => '{@inheritDoc}'
+					. \PHP_EOL
+					. \PHP_EOL
+					. '@return \\' . Table::class,
 				'return'  => '\\' . Table::class,
-				'body'    => 'return \\' . Str::callableName(
-					[ORM::class, 'table']
-				) . '(static::TABLE_NAMESPACE, static::TABLE_NAME);',
+				'body'    => 'return \\'
+					. Str::callableName([ORM::class, 'table'])
+					. '(static::TABLE_NAMESPACE, static::TABLE_NAME);',
 			],
 		];
 
@@ -359,10 +353,11 @@ Time: {$date}";
 
 			$args = $helper_opt['args'] ?? [];
 
-			foreach ($args as $arg_name => $arg_type) {
-				$helper_method->newArgument($arg_name)
-					->setType($arg_type);
+			foreach ($args as $arg) {
+				$helper_method->addArgument($arg);
 			}
+
+			$helper_method->newAttribute('\\' . Override::class);
 		}
 
 		$class->newConstant('TABLE_NAME', $table->getName())
@@ -396,9 +391,10 @@ Time: {$date}";
 				->public()
 				->setComment(
 					Str::interpolate(
-						'Getter for column `{table_name}.{column_name}`.
-
-@return {read_type_hint}',
+						'Getter for column `{table_name}.{column_name}`.'
+							. \PHP_EOL
+							. \PHP_EOL
+							. '@return {read_type_hint}',
 						$col_inject
 					)
 				)
@@ -410,19 +406,22 @@ Time: {$date}";
 				->public()
 				->setComment(
 					Str::interpolate(
-						'Setter for column `{table_name}.{column_name}`.
-
-@param {write_type_hint} ${column_name}
-
-@return static',
+						'Setter for column `{table_name}.{column_name}`.'
+							. \PHP_EOL
+							. \PHP_EOL
+							. '@param {write_type_hint} ${column_name}'
+							. \PHP_EOL
+							. \PHP_EOL
+							. '@return static',
 						$col_inject
 					)
 				)
 				->setContent(
 					Str::interpolate(
-						'$this->{column_name} = ${column_name};
-
-return $this;',
+						'$this->{column_name} = ${column_name};'
+							. \PHP_EOL
+							. \PHP_EOL
+							. 'return $this;',
 						$col_inject
 					)
 				);
@@ -554,16 +553,16 @@ return $this;',
 
 		if ($relation_type->isMultiple()) {
 			$comment .= Str::interpolate(
-				'
-
-@param array    $filters  the row filters
-@param null|int $max      maximum row to retrieve
-@param int      $offset   first row offset
-@param array    $order_by order by rules
-@param null|int $total    total number of items that match the filters
-
-@throws \\' . GoblException::class . '
-@return {target_entity_class_fqn}[]',
+				\PHP_EOL
+					. \PHP_EOL
+					. '@param array    $filters  the row filters' . \PHP_EOL
+					. '@param null|int $max      maximum row to retrieve' . \PHP_EOL
+					. '@param int      $offset   first row offset' . \PHP_EOL
+					. '@param array    $order_by order by rules' . \PHP_EOL
+					. '@param null|int $total    total number of items that match the filters' . \PHP_EOL
+					. \PHP_EOL
+					. '@throws \\' . GoblException::class . \PHP_EOL
+					. '@return {target_entity_class_fqn}[]',
 				$rel_inject
 			);
 
@@ -588,33 +587,33 @@ return $this;',
 
 			$m->addChild(
 				Str::interpolate(
-					'return {target_entity_class_fqn}::ctrl()->getAllRelatives(
-	$this,
-	static::table()->getRelation(\'{relation_name}\'),
-	$filters,
-	$max,
-	$offset,
-	$order_by,
-	$total
-);',
+					'return {target_entity_class_fqn}::ctrl()->getAllRelatives(' . \PHP_EOL
+						. '	$this,' . \PHP_EOL
+						. '	static::table()->getRelation(\'{relation_name}\'),' . \PHP_EOL
+						. '	$filters,' . \PHP_EOL
+						. '	$max,' . \PHP_EOL
+						. '	$offset,' . \PHP_EOL
+						. '	$order_by,' . \PHP_EOL
+						. '	$total' . \PHP_EOL
+						. ');',
 					$rel_inject
 				)
 			);
 		} else {
 			$comment .= Str::interpolate(
-				'
-
-@throws \\' . GoblException::class . '
-@return ?{target_entity_class_fqn}',
+				\PHP_EOL
+					. \PHP_EOL
+					. '@throws \\' . GoblException::class . \PHP_EOL
+					. '@return ?{target_entity_class_fqn}',
 				$rel_inject
 			);
 			$m->setReturnType(new PHPType('null', $rel_inject['target_entity_class_fqn']));
 			$m->addChild(
 				Str::interpolate(
-					'return {target_entity_class_fqn}::ctrl()->getRelative(
-	$this,
-	static::table()->getRelation(\'{relation_name}\')
-);',
+					'return {target_entity_class_fqn}::ctrl()->getRelative(' . \PHP_EOL
+						. '	$this,' . \PHP_EOL
+						. '	static::table()->getRelation(\'{relation_name}\')' . \PHP_EOL
+						. ');',
 					$rel_inject
 				)
 			);
@@ -644,12 +643,12 @@ return $this;',
 
 		if ($is_multiple) {
 			$comment .= Str::interpolate(
-				'
-
-@param {target_entity_class_fqn} $entry
-@param bool $auto_save should the modified entity be saved automatically?
-
-@return static',
+				\PHP_EOL
+					. \PHP_EOL
+					. '@param {target_entity_class_fqn} $entry the entry to add to the relation' . \PHP_EOL
+					. '@param bool $auto_save should the modified entity be saved automatically?' . \PHP_EOL
+					. \PHP_EOL
+					. '@return static',
 				$rel_inject
 			);
 
@@ -663,19 +662,20 @@ return $this;',
 
 			$m->addChild(
 				Str::interpolate(
-					'static::table()->getRelation(\'{relation_name}\')->getController()->link($this, $entry, $auto_save);
-return $this;',
+					'static::table()->getRelation(\'{relation_name}\')->getController()->link($this, $entry, $auto_save);'
+						. \PHP_EOL
+						. 'return $this;',
 					$rel_inject
 				)
 			);
 		} else {
 			$comment .= Str::interpolate(
-				'
-
-@param {target_entity_class_fqn} ${relation_name}
-@param bool $auto_save should the modified entity be saved automatically?
-
-@return static',
+				\PHP_EOL
+					. \PHP_EOL
+					. '@param {target_entity_class_fqn} ${relation_name} the entry to set for the relation' . \PHP_EOL
+					. '@param bool $auto_save should the modified entity be saved automatically?' . \PHP_EOL
+					. \PHP_EOL
+					. '@return static',
 				$rel_inject
 			);
 
@@ -689,9 +689,10 @@ return $this;',
 
 			$m->addChild(
 				Str::interpolate(
-					'static::table()->getRelation(\'{relation_name}\')->getController()->link(${relation_name}, $this, $auto_save);
-
-return $this;',
+					'static::table()->getRelation(\'{relation_name}\')->getController()->link(${relation_name}, $this, $auto_save);'
+						. \PHP_EOL
+						. \PHP_EOL
+						. 'return $this;',
 					$rel_inject
 				)
 			);
@@ -728,11 +729,11 @@ return $this;',
 
 		if ($paginated) {
 			$comment .= Str::interpolate(
-				'
-
-@param null|{request_class_fqn} $request the request object
-
-@return array<{read_type_hint}>',
+				\PHP_EOL
+					. \PHP_EOL
+					. ' @param null|{request_class_fqn} $request the request object' . \PHP_EOL
+					. \PHP_EOL
+					. '@return array<{read_type_hint}>',
 				$rel_inject
 			);
 
@@ -743,29 +744,29 @@ return $this;',
 
 			$m->addChild(
 				Str::interpolate(
-					'
-$request =  $request ?? new {request_class_fqn}();
-
-return static::table()->getVirtualRelation(\'{relation_name}\')->getController()->list($this, $request, $total);',
+					\PHP_EOL
+						. '$request =  $request ?? new {request_class_fqn}();' . \PHP_EOL
+						. \PHP_EOL
+						. 'return static::table()->getVirtualRelation(\'{relation_name}\')->getController()->list($this, $request, $total);',
 					$rel_inject
 				)
 			);
 		} else {
 			$comment .= Str::interpolate(
-				'
-
-@param null|{request_class_fqn} $request the request object
-
-@return {read_type_hint}',
+				\PHP_EOL
+					. \PHP_EOL
+					. '@param null|{request_class_fqn} $request the request object' . \PHP_EOL
+					. \PHP_EOL
+					. '@return {read_type_hint}',
 				$rel_inject
 			);
 			$m->setReturnType($read_type_hint);
 			$m->addChild(
 				Str::interpolate(
-					'
-$request =  $request ?? new {request_class_fqn}();
-
-return static::table()->getVirtualRelation(\'{relation_name}\')->getController()->get($this, $request);',
+					\PHP_EOL
+						. '$request =  $request ?? new {request_class_fqn}();' . \PHP_EOL
+						. \PHP_EOL
+						. 'return static::table()->getVirtualRelation(\'{relation_name}\')->getController()->get($this, $request);',
 					$rel_inject
 				)
 			);
@@ -798,10 +799,10 @@ return static::table()->getVirtualRelation(\'{relation_name}\')->getController()
 		$class->extends(ORMEntityCRUD::class)
 			->comment(
 				Str::interpolate(
-					'Class {class_name}.
-
-@extends \\' . ORMEntityCRUD::class . '<\{db_namespace}\{entity_class_name}>
-',
+					'Class {class_name}.'
+						. \PHP_EOL
+						. \PHP_EOL
+						. '@extends \\' . ORMEntityCRUD::class . '<\{db_namespace}\{entity_class_name}>' . \PHP_EOL,
 					$inject
 				)
 			);
@@ -810,11 +811,10 @@ return static::table()->getVirtualRelation(\'{relation_name}\')->getController()
 			->public()
 			->addChild(
 				Str::interpolate(
-					'parent::__construct(
-	\{db_namespace}\{entity_class_name}::TABLE_NAMESPACE,
-	\{db_namespace}\{entity_class_name}::TABLE_NAME
-);
-',
+					'parent::__construct(' . \PHP_EOL
+						. '	\{db_namespace}\{entity_class_name}::TABLE_NAMESPACE,' . \PHP_EOL
+						. '	\{db_namespace}\{entity_class_name}::TABLE_NAME' . \PHP_EOL
+						. ');',
 					$inject
 				)
 			);
@@ -824,13 +824,15 @@ return static::table()->getVirtualRelation(\'{relation_name}\')->getController()
 		$class->newMethod('new')
 			->static()
 			->public()
+			->addAttribute('\\' . Override::class)
 			->addChild(Str::interpolate('return new {class_name_sub}();', $inject))
 			->setReturnType('static')
 			->comment(
 				Str::interpolate(
-					'{@inheritDoc}
-
-@return static',
+					'{@inheritDoc}'
+						. \PHP_EOL
+						. \PHP_EOL
+						. '@return static',
 					$inject
 				)
 			);
@@ -874,11 +876,10 @@ return static::table()->getVirtualRelation(\'{relation_name}\')->getController()
 			->public()
 			->addChild(
 				Str::interpolate(
-					'parent::__construct(
-	\{db_namespace}\{entity_class_name}::TABLE_NAMESPACE,
-	\{db_namespace}\{entity_class_name}::TABLE_NAME
-);
-',
+					'parent::__construct(' . \PHP_EOL
+						. '	\{db_namespace}\{entity_class_name}::TABLE_NAMESPACE,' . \PHP_EOL
+						. '	\{db_namespace}\{entity_class_name}::TABLE_NAME' . \PHP_EOL
+						. ');',
 					$inject
 				)
 			);
@@ -888,13 +889,15 @@ return static::table()->getVirtualRelation(\'{relation_name}\')->getController()
 		$class->newMethod('new')
 			->static()
 			->public()
+			->addAttribute('\\' . Override::class)
 			->addChild(Str::interpolate('return new {class_name_sub}();', $inject))
 			->setReturnType('static')
 			->comment(
 				Str::interpolate(
-					'{@inheritDoc}
-
-@return static',
+					'{@inheritDoc}'
+						. \PHP_EOL
+						. \PHP_EOL
+						. '@return static',
 					$inject
 				)
 			);
@@ -994,9 +997,10 @@ return static::table()->getVirtualRelation(\'{relation_name}\')->getController()
 			->abstract()
 			->setComment(
 				Str::interpolate(
-					'Class {class_name}.
-
-@extends \\' . ORMResults::class . '<\{db_namespace}\{entity_class_name}>',
+					'Class {class_name}.'
+						. \PHP_EOL
+						. \PHP_EOL
+						. '@extends \\' . ORMResults::class . '<\{db_namespace}\{entity_class_name}>',
 					$inject
 				)
 			);
@@ -1005,12 +1009,11 @@ return static::table()->getVirtualRelation(\'{relation_name}\')->getController()
 			->public()
 			->addChild(
 				Str::interpolate(
-					'parent::__construct(
-	\{db_namespace}\{entity_class_name}::TABLE_NAMESPACE,
-	\{db_namespace}\{entity_class_name}::TABLE_NAME,
-	$query
-);
-',
+					'parent::__construct(' . \PHP_EOL
+						. '	\{db_namespace}\{entity_class_name}::TABLE_NAMESPACE,' . \PHP_EOL
+						. '	\{db_namespace}\{entity_class_name}::TABLE_NAME,' . \PHP_EOL
+						. '	$query' . \PHP_EOL
+						. ');',
 					$inject
 				)
 			);
@@ -1022,6 +1025,7 @@ return static::table()->getVirtualRelation(\'{relation_name}\')->getController()
 		$create_instance = $class->newMethod('new')
 			->static()
 			->public()
+			->addAttribute('\\' . Override::class)
 			->addChild(
 				Str::interpolate('return new {class_name_sub}($query);', $inject)
 			)
@@ -1030,9 +1034,10 @@ return static::table()->getVirtualRelation(\'{relation_name}\')->getController()
 			->setType('\\' . (QBSelect::class));
 		$create_instance->comment(
 			Str::interpolate(
-				'{@inheritDoc}
-
-@return static',
+				'{@inheritDoc}'
+					. \PHP_EOL
+					. \PHP_EOL
+					. '@return static',
 				$inject
 			)
 		);
@@ -1071,10 +1076,11 @@ return static::table()->getVirtualRelation(\'{relation_name}\')->getController()
 			->abstract()
 			->setComment(
 				Str::interpolate(
-					'Class {class_name}.
-
-@extends \\' . ORMController::class . '<\{db_namespace}\{entity_class_name}, \{db_namespace}\{query_class_name}, \{db_namespace}\{results_class_name}>
-',
+					'Class {class_name}.'
+						. \PHP_EOL
+						. \PHP_EOL
+						. '@extends \\' . ORMController::class . '<\{db_namespace}\{entity_class_name}, \{db_namespace}\{query_class_name}, \{db_namespace}\{results_class_name}>'
+						. \PHP_EOL,
 					$inject
 				)
 			);
@@ -1083,11 +1089,10 @@ return static::table()->getVirtualRelation(\'{relation_name}\')->getController()
 			->public()
 			->addChild(
 				Str::interpolate(
-					'parent::__construct(
-	\{db_namespace}\{entity_class_name}::TABLE_NAMESPACE,
-	\{db_namespace}\{entity_class_name}::TABLE_NAME
-);
-',
+					'parent::__construct(' . \PHP_EOL
+						. '	\{db_namespace}\{entity_class_name}::TABLE_NAMESPACE,' . \PHP_EOL
+						. '	\{db_namespace}\{entity_class_name}::TABLE_NAME' . \PHP_EOL
+						. ');',
 					$inject
 				)
 			)
@@ -1098,11 +1103,13 @@ return static::table()->getVirtualRelation(\'{relation_name}\')->getController()
 			->public()
 			->addChild(Str::interpolate('return new {class_name_sub}();', $inject))
 			->setReturnType('static')
+			->addAttribute('\\' . Override::class)
 			->comment(
 				Str::interpolate(
-					'{@inheritDoc}
-
-@return static',
+					'{@inheritDoc}'
+						. \PHP_EOL
+						. \PHP_EOL
+						. '@return static',
 					$inject
 				)
 			);

@@ -104,17 +104,21 @@ class Diff
 
 		$m_get_version = $class->newMethod('getVersion')
 			->public()
+			->addAttribute('\\' . Override::class)
 			->setReturnType('int');
 		$m_get_label = $class->newMethod('getLabel')
 			->public()
+			->addAttribute('\\' . Override::class)
 			->setReturnType('string');
 
 		$m_get_timestamp = $class->newMethod('getTimestamp')
 			->public()
+			->addAttribute('\\' . Override::class)
 			->setReturnType('int');
 
 		$m_before_run = $class->newMethod('beforeRun')
 			->public()
+			->addAttribute('\\' . Override::class)
 			->setReturnType(new PHPType('bool', 'string'))
 			->addChild(
 				PHPComment::inline('TODO: implement your custom logic here')
@@ -123,6 +127,7 @@ class Diff
 
 		$m_after_run = $class->newMethod('afterRun')
 			->public()
+			->addAttribute('\\' . Override::class)
 			->setReturnType('void')
 			->addChild(
 				PHPComment::inline('TODO: implement your custom logic here')
@@ -137,10 +142,12 @@ class Diff
 
 		$time = \time();
 
-		$m_get_label->addChild(\sprintf('return <<<DIFF_LABEL
-%s
-DIFF_LABEL;
-', $label))
+		$m_get_label->addChild(
+			\PHP_EOL
+				. 'return <<<DIFF_LABEL' . \PHP_EOL
+				. $label . \PHP_EOL
+				. 'DIFF_LABEL;'
+		)
 			->comment('@inheritDoc');
 
 		$file->comment('Generated on: ' . \date('jS F Y, g:i:s a', $time));
@@ -153,23 +160,28 @@ DIFF_LABEL;
 
 		$m_up = $class->newMethod('up')
 			->public()
+			->addAttribute('\\' . Override::class)
 			->setReturnType('string');
 
-		$m_up->addChild(\sprintf('return <<<DIFF_SQL
-%s
-DIFF_SQL;
-', $up_sql))
+		$m_up->addChild(
+			\PHP_EOL
+				. 'return <<<DIFF_SQL' . \PHP_EOL
+				. $up_sql . \PHP_EOL
+				. 'DIFF_SQL;',
+		)
 			->comment('@inheritDoc');
 
 		$m_down = $class->newMethod('down')
 			->public()
+			->addAttribute('\\' . Override::class)
 			->setReturnType('string');
 
-		$m_down->addChild(\sprintf('
-return <<<DIFF_SQL
-%s
-DIFF_SQL;
-', $down_sql))
+		$m_down->addChild(
+			\PHP_EOL
+				. 'return <<<DIFF_SQL' . \PHP_EOL
+				. $down_sql . \PHP_EOL
+				. 'DIFF_SQL;',
+		)
 			->comment('@inheritDoc');
 
 		$tables = [];
@@ -180,6 +192,7 @@ DIFF_SQL;
 
 		$m_get_configs = $class->newMethod('getConfigs')
 			->public()
+			->addAttribute('\\' . Override::class)
 			->setReturnType('array');
 
 		$m_get_configs->addChild(\sprintf('return %s;', \var_export($this->db_to->getConfig()
@@ -187,6 +200,7 @@ DIFF_SQL;
 
 		$m_get_schema = $class->newMethod('getSchema')
 			->public()
+			->addAttribute('\\' . Override::class)
 			->setReturnType('array');
 
 		$m_get_schema->addChild(\sprintf('return %s;', \var_export($tables, true)))

@@ -548,7 +548,7 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	}
 
 	#[Override]
-	public function setDiffKey(string $diff_key): self
+	public function setDiffKey(string $diff_key): static
 	{
 		$this->assertNotLocked();
 
