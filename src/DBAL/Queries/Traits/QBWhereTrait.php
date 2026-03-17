@@ -31,7 +31,7 @@ trait QBWhereTrait
 	 *
 	 * @param callable|FilterInterface|Filters|string $condition
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function where(callable|FilterInterface|Filters|string $condition): static
 	{
@@ -43,7 +43,7 @@ trait QBWhereTrait
 	 *
 	 * @param callable|FilterInterface|Filters|string $condition
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function andWhere(callable|FilterInterface|Filters|string $condition): static
 	{
@@ -55,7 +55,7 @@ trait QBWhereTrait
 	 *
 	 * @param callable|FilterInterface|Filters|string $condition
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function orWhere(callable|FilterInterface|Filters|string $condition): static
 	{
@@ -79,7 +79,7 @@ trait QBWhereTrait
 	 * @param bool                                    $is_and
 	 * @param callable|FilterInterface|Filters|string $condition
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	private function ensureWhere(bool $is_and, callable|FilterInterface|Filters|string $condition): static
 	{

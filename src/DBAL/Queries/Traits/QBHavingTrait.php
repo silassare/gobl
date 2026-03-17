@@ -39,7 +39,7 @@ trait QBHavingTrait
 	 *
 	 * @param null|Filters|string $condition the HAVING condition, or `null` to clear
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function having(Filters|string|null $condition): static
 	{

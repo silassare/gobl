@@ -94,9 +94,9 @@ final class QBInsert implements QBInterface
 	 * @param string|Table $table
 	 * @param bool         $auto_prefix
 	 *
-	 * @return $this
+	 * @return static
 	 */
-	public function into(string|Table $table, bool $auto_prefix = true): self
+	public function into(string|Table $table, bool $auto_prefix = true): static
 	{
 		$table_name = $this->resolveTable($table)
 			?->getFullName() ?? $table;
@@ -117,9 +117,9 @@ final class QBInsert implements QBInterface
 	 *
 	 * @param array<int, array<string, mixed>>|array<string, mixed> $values single row map or list of row maps for multi insert
 	 *
-	 * @return $this
+	 * @return static
 	 */
-	public function values(array $values): self
+	public function values(array $values): static
 	{
 		$key = \array_keys($values)[0];
 
@@ -146,12 +146,12 @@ final class QBInsert implements QBInterface
 	 *
 	 * @param array<string, mixed> $value column -> value map for a single row
 	 *
-	 * @return $this
+	 * @return static
 	 *
 	 * @throws InvalidArgumentException when the column set differs from previous rows
 	 * @throws LogicException           when `into()` has not been called first
 	 */
-	public function singleValue(array $value): self
+	public function singleValue(array $value): static
 	{
 		if (!isset($this->options_table)) {
 			throw new LogicException(\sprintf('You must call "%s" method first', Str::callableName([$this, 'into'])));
@@ -195,7 +195,7 @@ final class QBInsert implements QBInterface
 	 * - PostgreSQL: appends `ON CONFLICT DO NOTHING`
 	 * - SQLite:     emits `INSERT OR IGNORE INTO ...`
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function ignoreOnConflict(): static
 	{
@@ -215,7 +215,7 @@ final class QBInsert implements QBInterface
 	 * - PostgreSQL: appends `ON CONFLICT (cols) DO UPDATE SET col = EXCLUDED.col ...`
 	 * - SQLite:     appends `ON CONFLICT (cols) DO UPDATE SET col = EXCLUDED.col ...` (requires SQLite >= 3.24.0)
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function doUpdateOnConflict(array $conflict_columns = [], array $update_columns = []): static
 	{
@@ -245,7 +245,7 @@ final class QBInsert implements QBInterface
 	 *
 	 * @param string|string[] $columns Column names, or `'*'` for all columns. Defaults to `['*']`.
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function returning(array|string $columns = ['*']): static
 	{

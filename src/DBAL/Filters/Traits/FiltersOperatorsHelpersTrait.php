@@ -33,7 +33,7 @@ trait FiltersOperatorsHelpersTrait
 	 * @param string                                           $left
 	 * @param null|bool|float|int|QBExpression|QBSelect|string $right
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function eq(string $left, bool|float|int|QBExpression|QBSelect|string|null $right): static
 	{
@@ -52,7 +52,7 @@ trait FiltersOperatorsHelpersTrait
 	 * @param string                                           $left
 	 * @param null|bool|float|int|QBExpression|QBSelect|string $right
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function neq(string $left, bool|float|int|QBExpression|QBSelect|string|null $right): static
 	{
@@ -69,7 +69,7 @@ trait FiltersOperatorsHelpersTrait
 	 * @param string $left
 	 * @param string $right
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function like(string $left, string $right): static
 	{
@@ -82,7 +82,7 @@ trait FiltersOperatorsHelpersTrait
 	 * @param string $left
 	 * @param string $right
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function notLike(string $left, string $right): static
 	{
@@ -95,7 +95,7 @@ trait FiltersOperatorsHelpersTrait
 	 * @param string                                 $left
 	 * @param float|int|QBExpression|QBSelect|string $right
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function lt(string $left, float|int|QBExpression|QBSelect|string $right): static
 	{
@@ -108,7 +108,7 @@ trait FiltersOperatorsHelpersTrait
 	 * @param string                                 $left
 	 * @param float|int|QBExpression|QBSelect|string $right
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function lte(string $left, float|int|QBExpression|QBSelect|string $right): static
 	{
@@ -121,7 +121,7 @@ trait FiltersOperatorsHelpersTrait
 	 * @param string                                 $left
 	 * @param float|int|QBExpression|QBSelect|string $right
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function gt(string $left, float|int|QBExpression|QBSelect|string $right): static
 	{
@@ -134,7 +134,7 @@ trait FiltersOperatorsHelpersTrait
 	 * @param string                                 $left
 	 * @param float|int|QBExpression|QBSelect|string $right
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function gte(string $left, float|int|QBExpression|QBSelect|string $right): static
 	{
@@ -146,7 +146,7 @@ trait FiltersOperatorsHelpersTrait
 	 *
 	 * @param string $left
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function isNull(string $left): static
 	{
@@ -158,7 +158,7 @@ trait FiltersOperatorsHelpersTrait
 	 *
 	 * @param string $left
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function isNotNull(string $left): static
 	{
@@ -171,7 +171,7 @@ trait FiltersOperatorsHelpersTrait
 	 * @param string                      $left
 	 * @param array|QBExpression|QBSelect $right
 	 *
-	 * @return $this
+	 * @return static
 	 *
 	 * @throws DBALException
 	 */
@@ -194,7 +194,7 @@ trait FiltersOperatorsHelpersTrait
 	 * @param string                      $left
 	 * @param array|QBExpression|QBSelect $right
 	 *
-	 * @return $this
+	 * @return static
 	 *
 	 * @throws DBALException
 	 */
@@ -216,7 +216,7 @@ trait FiltersOperatorsHelpersTrait
 	 *
 	 * @param string $left
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function isTrue(string $left): static
 	{
@@ -228,7 +228,7 @@ trait FiltersOperatorsHelpersTrait
 	 *
 	 * @param string $left
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function isFalse(string $left): static
 	{
@@ -251,7 +251,7 @@ trait FiltersOperatorsHelpersTrait
 	 * @param string                                       $left  Column or JSON expression (e.g. `t.data`)
 	 * @param null|array|float|int|JsonSerializable|string $right Value to check containment of
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function contains(string $left, array|float|int|JsonSerializable|string|null $right): static
 	{
@@ -272,7 +272,7 @@ trait FiltersOperatorsHelpersTrait
 	 * @param string                                       $left_with_path Column+path in `table.column#path.to.key` notation (e.g. `accounts.data#user.tags`)
 	 * @param null|array|float|int|JsonSerializable|string $value          Value to check containment of; arrays and \JsonSerializable are auto-serialized to JSON
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function containsAtPath(string $left_with_path, array|float|int|JsonSerializable|string|null $value): static
 	{
@@ -295,7 +295,7 @@ trait FiltersOperatorsHelpersTrait
 	 * @param string $left The column or JSON expression (e.g. `t.data`)
 	 * @param string $key  The top-level key name to check
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function hasKey(string $left, string $key): static
 	{

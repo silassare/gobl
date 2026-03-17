@@ -82,7 +82,7 @@ class QBDelete implements QBInterface
 	 *
 	 * @param string|string[] $columns Column names, or `'*'` for all columns. Defaults to `['*']`.
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function returning(array|string $columns = ['*']): static
 	{

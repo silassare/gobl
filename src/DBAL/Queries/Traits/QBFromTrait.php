@@ -54,7 +54,7 @@ trait QBFromTrait
 	 * $this->from(['users', 'articles' => 'a', 'another_table']);
 	 * ```
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function from(array|QBSelect|string|Table $table, ?string $alias = null): static
 	{

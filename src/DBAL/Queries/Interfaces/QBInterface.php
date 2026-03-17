@@ -99,7 +99,7 @@ interface QBInterface
 	 * @param array $params The params to bind
 	 * @param array $types  The params types
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function bindArray(array $params, array $types = []): static;
 
@@ -110,7 +110,7 @@ interface QBInterface
 	 * @param mixed    $value The param value
 	 * @param null|int $type  Any \PDO::PARAM_* constants
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function bindNamed(string $name, mixed $value, ?int $type = null): static;
 
@@ -121,7 +121,7 @@ interface QBInterface
 	 * @param mixed    $value  The param value
 	 * @param null|int $type   Any \PDO::PARAM_* constants
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function bindPositional(int $offset, mixed $value, ?int $type = null): static;
 
@@ -161,7 +161,7 @@ interface QBInterface
 	 *
 	 * @param self $qb the source query builder whose parameters are merged in
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function bindMergeFrom(self $qb): static;
 
@@ -180,7 +180,7 @@ interface QBInterface
 	 * @param string|Table $table the target table (name, full name, or `Table` instance)
 	 * @param string       $alias an alias that was already declared for this table
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function setMainAlias(string|Table $table, string $alias): static;
 
@@ -274,7 +274,7 @@ interface QBInterface
 	 * @param bool         $main  when `true`, also marks this alias as the main alias
 	 *                            for the table (equivalent to calling {@see setMainAlias()} afterwards)
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function alias(string|Table $table, string $alias, bool $main = false): static;
 }

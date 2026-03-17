@@ -59,7 +59,7 @@ interface RDBMSInterface extends LockInterface
 	 *
 	 * @param Table $table The table to add
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function addTable(Table $table): static;
 
@@ -71,7 +71,7 @@ interface RDBMSInterface extends LockInterface
 	 * @param array<string, array|Table> $schema            The schema definition
 	 * @param null|string                $desired_namespace The desired namespace
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function loadSchema(array $schema, ?string $desired_namespace = null): static;
 

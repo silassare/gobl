@@ -471,7 +471,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 *
 	 * @param array $row map column name to column value
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function hydrate(array $row): static
 	{

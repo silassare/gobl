@@ -38,7 +38,7 @@ trait QBGroupByTrait
 	 *
 	 * @param array $group_by list of SQL GROUP BY expressions
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function groupBy(array $group_by): static
 	{

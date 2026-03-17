@@ -159,7 +159,7 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 *
 	 * Soft deleted rows are excluded by default.
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function excludeSoftDeletedRows(): static
 	{
@@ -173,7 +173,7 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 *
 	 * @param array|callable|static ...$filters
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function and(array|callable|self ...$filters): static
 	{
@@ -194,7 +194,7 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 *
 	 * @param array|callable|static ...$filters
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function where(array|callable|self ...$filters): static
 	{
@@ -263,7 +263,7 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 *
 	 * @param array|callable|static ...$filters
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function or(array|callable|self ...$filters): static
 	{
@@ -275,7 +275,7 @@ abstract class ORMTableQuery extends FiltersTableScope
 	/**
 	 * Resets this instance filters.
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function reset(): static
 	{
@@ -557,7 +557,7 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 *
 	 * Soft deleted rows are excluded by default.
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function includeSoftDeletedRows(): static
 	{
@@ -574,7 +574,7 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 * @param mixed       $value    the filter value
 	 * @param null|string $at_path  optional JSON path for JSON column filters
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function filterBy(string $column, Operator $operator, mixed $value = null, ?string $at_path = null): static
 	{

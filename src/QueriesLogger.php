@@ -19,7 +19,7 @@ use Gobl\Exceptions\GoblRuntimeException;
 /**
  * Class QueriesLogger.
  */
-class QueriesLogger
+final class QueriesLogger
 {
 	/**
 	 * @var array<int, array{
@@ -40,7 +40,7 @@ class QueriesLogger
 	/**
 	 * QueriesLogger constructor.
 	 */
-	protected function __construct() {}
+	private function __construct() {}
 
 	/**
 	 * Creates a new instance of {@see QueriesLogger}.
@@ -57,9 +57,9 @@ class QueriesLogger
 	 *
 	 * @param bool $enabled
 	 *
-	 * @return $this
+	 * @return static
 	 */
-	public function enable(bool $enabled = true): self
+	public function enable(bool $enabled = true): static
 	{
 		$this->reset();
 		$this->enabled = $enabled;
@@ -98,6 +98,8 @@ class QueriesLogger
 
 	/**
 	 * Resets the logger.
+	 *
+	 * @return static
 	 */
 	public function reset(): static
 	{
@@ -138,7 +140,7 @@ class QueriesLogger
 	 * @param int                        $index
 	 * @param 'end'|'executed'|'fetched' $step
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	private function update(int $index, string $step = 'end'): static
 	{

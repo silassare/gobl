@@ -53,7 +53,7 @@ trait QBLimitTrait
 	 * @param null|int $max    maximum number of rows to return; `null` leaves the current limit unchanged
 	 * @param int      $offset zero-based offset of the first row to return
 	 *
-	 * @return $this
+	 * @return static
 	 *
 	 * @throws DBALRuntimeException when `$max <= 0` or `$offset < 0`
 	 */

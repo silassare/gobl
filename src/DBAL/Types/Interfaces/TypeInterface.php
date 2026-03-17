@@ -62,7 +62,7 @@ interface TypeInterface extends ArrayCapableInterface, LockInterface
 	 *
 	 * @param bool $nullable
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function nullable(bool $nullable = true): static;
 
@@ -87,7 +87,7 @@ interface TypeInterface extends ArrayCapableInterface, LockInterface
 	 *
 	 * @param bool $auto_increment
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function autoIncrement(bool $auto_increment = true): static;
 
@@ -117,7 +117,7 @@ interface TypeInterface extends ArrayCapableInterface, LockInterface
 	 *
 	 * @param mixed $default the value to use as default
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function default(mixed $default): static;
 
@@ -287,7 +287,7 @@ interface TypeInterface extends ArrayCapableInterface, LockInterface
 	 * @param string $key
 	 * @param mixed  $value
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function setOption(string $key, mixed $value): static;
 
@@ -324,7 +324,7 @@ interface TypeInterface extends ArrayCapableInterface, LockInterface
 	 *
 	 * @param array $options
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function configure(array $options): static;
 

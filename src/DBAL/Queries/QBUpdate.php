@@ -92,9 +92,9 @@ final class QBUpdate implements QBInterface
 	 * @param string      $table table name or full name
 	 * @param null|string $alias optional alias for the table in the generated SQL
 	 *
-	 * @return $this
+	 * @return static
 	 */
-	public function update(string $table, ?string $alias = null): self
+	public function update(string $table, ?string $alias = null): static
 	{
 		$this->options_table = $this->resolveTable($table)
 			?->getFullName() ?? $table;
@@ -144,7 +144,7 @@ final class QBUpdate implements QBInterface
 	 *
 	 * @param string|string[] $columns Column names, or `'*'` for all columns. Defaults to `['*']`.
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function returning(array|string $columns = ['*']): static
 	{
@@ -195,11 +195,11 @@ final class QBUpdate implements QBInterface
 	 * @param bool  $auto_prefix when `true`, column names are automatically prefixed with
 	 *                           the table's column prefix before binding
 	 *
-	 * @return $this
+	 * @return static
 	 *
 	 * @throws LogicException when `update()` has not been called first
 	 */
-	public function set(array $values, bool $auto_prefix = true): self
+	public function set(array $values, bool $auto_prefix = true): static
 	{
 		if (!isset($this->options_table)) {
 			throw new LogicException(\sprintf('You must call "%s" method first', Str::callableName([$this, 'update'])));

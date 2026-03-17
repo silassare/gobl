@@ -151,7 +151,7 @@ final class Filters
 	 * @param QBInterface                $qb      the query builder this filter is attached to
 	 * @param null|FiltersScopeInterface $scope   optional scope for column access control
 	 *
-	 * @return static
+	 * @return self
 	 */
 	public static function fromArray(array $filters, QBInterface $qb, ?FiltersScopeInterface $scope = null): self
 	{
@@ -317,7 +317,7 @@ final class Filters
 	 * $filters->or($sub);
 	 * ```
 	 *
-	 * @return $this
+	 * @return self
 	 */
 	public function subGroup(): self
 	{
@@ -348,7 +348,7 @@ final class Filters
 	 *
 	 * @param array|callable|self ...$filters
 	 *
-	 * @return $this
+	 * @return self
 	 */
 	public function and(array|callable|self ...$filters): self
 	{
@@ -373,7 +373,7 @@ final class Filters
 	 *
 	 * @param array|callable|Filters ...$filters
 	 *
-	 * @return $this
+	 * @return self
 	 */
 	public function where(array|callable|self ...$filters): self
 	{
@@ -455,7 +455,7 @@ final class Filters
 	 *
 	 * @param array|callable|self ...$filters
 	 *
-	 * @return $this
+	 * @return self
 	 */
 	public function or(array|callable|self ...$filters): self
 	{
@@ -480,7 +480,7 @@ final class Filters
 	 *                                             arrays and `\JsonSerializable` are auto-serialized to JSON for `CONTAINS`;
 	 *                                             arrays are also valid for `IN` and `NOT_IN`
 	 *
-	 * @return $this
+	 * @return self
 	 */
 	public function add(
 		Operator $operator,

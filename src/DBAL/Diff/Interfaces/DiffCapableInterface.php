@@ -30,7 +30,7 @@ interface DiffCapableInterface
 	 *
 	 * @param string $diff_key
 	 *
-	 * @return $this
+	 * @return static
 	 */
-	public function setDiffKey(string $diff_key): self;
+	public function setDiffKey(string $diff_key): static;
 }

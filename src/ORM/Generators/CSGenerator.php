@@ -355,7 +355,7 @@ abstract class CSGenerator
 	 * @param null|string $path   the destination folder path
 	 * @param string      $header the source header to use
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	abstract public function generate(array $tables, ?string $path = null, string $header = ''): static;
 

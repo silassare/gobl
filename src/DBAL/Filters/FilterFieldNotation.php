@@ -105,7 +105,7 @@ final class FilterFieldNotation
 	 *
 	 * @return static
 	 */
-	public static function fromString(string $notation, ?QBInterface $qb = null, ?FiltersScopeInterface $scope = null)
+	public static function fromString(string $notation, ?QBInterface $qb = null, ?FiltersScopeInterface $scope = null): static
 	{
 		$field          = \trim($notation);
 		$hashPos        = \strpos($field, '#');

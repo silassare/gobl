@@ -133,7 +133,7 @@ class QBSelect implements QBInterface
 	 *                                               prefixed with the resolved table alias;
 	 *                                               when `false`, the raw table name is used as prefix
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function select(string|Table|null $table_name_or_alias = null, array $columns = [], bool $auto_prefix = true): static
 	{

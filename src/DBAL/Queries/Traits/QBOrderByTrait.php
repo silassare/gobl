@@ -57,7 +57,7 @@ trait QBOrderByTrait
 	 *
 	 * @param array $order_by
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function orderBy(array $order_by): static
 	{

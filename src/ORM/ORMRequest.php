@@ -249,7 +249,7 @@ class ORMRequest
 	 *
 	 * @param string $name
 	 *
-	 * @return $this
+	 * @return static
 	 *
 	 * @throws ORMQueryException
 	 */
@@ -275,7 +275,7 @@ class ORMRequest
 	 *
 	 * @param array $filters
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function ensureOnlyFilters(array $filters): static
 	{
@@ -294,7 +294,7 @@ class ORMRequest
 	 *
 	 * @param string $name
 	 *
-	 * @return $this
+	 * @return static
 	 *
 	 * @throws ORMQueryException
 	 */
@@ -330,7 +330,7 @@ class ORMRequest
 	 * @param string $name
 	 * @param mixed  $value
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function setFormField(string $name, mixed $value): static
 	{
@@ -344,7 +344,7 @@ class ORMRequest
 	 *
 	 * @param string $name
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function removeFormField(string $name): static
 	{
@@ -366,7 +366,7 @@ class ORMRequest
 	/**
 	 * Sets request max items count.
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function setMax(?int $max = null): static
 	{
@@ -388,7 +388,7 @@ class ORMRequest
 	/**
 	 * Sets request page.
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function setPage(?int $page = null): static
 	{
