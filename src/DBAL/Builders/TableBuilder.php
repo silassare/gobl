@@ -80,7 +80,7 @@ final class TableBuilder
 	 *
 	 * @throws DBALRuntimeException when the factory throws
 	 */
-	public function factory(callable $factory): self
+	public function factory(callable $factory): static
 	{
 		try {
 			// run the factory
@@ -111,7 +111,7 @@ final class TableBuilder
 	 *
 	 * @return $this
 	 */
-	public function plural(string $plural_name): self
+	public function plural(string $plural_name): static
 	{
 		$this->table->setPluralName($plural_name);
 
@@ -125,7 +125,7 @@ final class TableBuilder
 	 *
 	 * @return $this
 	 */
-	public function morphType(string $type): self
+	public function morphType(string $type): static
 	{
 		$this->table->setMorphType($type);
 
@@ -139,7 +139,7 @@ final class TableBuilder
 	 *
 	 * @return $this
 	 */
-	public function singular(string $singular_name): self
+	public function singular(string $singular_name): static
 	{
 		$this->table->setSingularName($singular_name);
 
@@ -153,7 +153,7 @@ final class TableBuilder
 	 *
 	 * @return $this
 	 */
-	public function columnPrefix(string $prefix): self
+	public function columnPrefix(string $prefix): static
 	{
 		$this->table->setColumnPrefix($prefix);
 
@@ -355,7 +355,7 @@ final class TableBuilder
 	 *
 	 * @return $this
 	 */
-	public function collectFk(callable $factory): self
+	public function collectFk(callable $factory): static
 	{
 		$this->fk_factories[] = $factory;
 
@@ -418,7 +418,7 @@ final class TableBuilder
 	 *
 	 * @throws DBALException
 	 */
-	public function timestamps(?string $format = null): self
+	public function timestamps(?string $format = null): static
 	{
 		$c = $this->timestamp('created_at')
 			->auto();
@@ -461,7 +461,7 @@ final class TableBuilder
 	 *
 	 * @throws DBALException
 	 */
-	public function softDeletable(): self
+	public function softDeletable(): static
 	{
 		$this->bool(Table::COLUMN_SOFT_DELETED)
 			->default(false);
@@ -498,7 +498,7 @@ final class TableBuilder
 	 *
 	 * @throws DBALException
 	 */
-	public function id(string $column_name = 'id'): self
+	public function id(string $column_name = 'id'): static
 	{
 		$this->bigint($column_name)
 			->unsigned()
@@ -542,6 +542,8 @@ final class TableBuilder
 	/**
 	 * Adds polymorphic columns.
 	 *
+	 * @return $this
+	 *
 	 * @throws DBALException
 	 * @throws TypesException
 	 */
@@ -550,7 +552,7 @@ final class TableBuilder
 		array|TypeInterface|null $id_column_type = null,
 		array|TypeInterface|null $type_column_type = null,
 		bool $nullable = false
-	): self {
+	): static {
 		$id_column_name   = "{$prefix}_id";
 		$type_column_name = "{$prefix}_type";
 
@@ -727,9 +729,11 @@ final class TableBuilder
 	/**
 	 * Adds relations to the table.
 	 *
+	 * @return $this
+	 *
 	 * @throws DBALException
 	 */
-	public function relations(Relation|RelationBuilder ...$relations): self
+	public function relations(Relation|RelationBuilder ...$relations): static
 	{
 		foreach ($relations as $relation) {
 			if ($relation instanceof RelationBuilder) {
@@ -751,7 +755,7 @@ final class TableBuilder
 	 *
 	 * @return $this
 	 */
-	public function collectIndex(callable $factory): self
+	public function collectIndex(callable $factory): static
 	{
 		$this->indexes_factories[] = $factory;
 
@@ -767,7 +771,7 @@ final class TableBuilder
 	 *
 	 * @return $this
 	 */
-	public function collectRelation(callable $factory): self
+	public function collectRelation(callable $factory): static
 	{
 		$this->relations_factories[] = $factory;
 
@@ -787,7 +791,7 @@ final class TableBuilder
 	 *
 	 * @internal this method should be called only by the RDBMS namespace builder
 	 */
-	public function packConstraints(): self
+	public function packConstraints(): static
 	{
 		// we collect foreign keys before indexes because
 		// indexes may need to reference foreign keys
@@ -822,7 +826,7 @@ final class TableBuilder
 	 *
 	 * @internal this method should be called only by the RDBMS namespace builder
 	 */
-	public function packRelations(): self
+	public function packRelations(): static
 	{
 		// collect relations
 		foreach ($this->relations_factories as $factory) {
@@ -846,7 +850,7 @@ final class TableBuilder
 	 *
 	 * @return $this
 	 */
-	public function meta(array|Map|string $key, mixed $value = null): self
+	public function meta(array|Map|string $key, mixed $value = null): static
 	{
 		$this->table->setMeta($key, $value);
 

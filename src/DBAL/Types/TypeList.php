@@ -55,7 +55,7 @@ class TypeList extends Type
 	#[Override]
 	public static function getInstance(array $options): static
 	{
-		return (new self())->configure($options);
+		return (new static())->configure($options);
 	}
 
 	/**

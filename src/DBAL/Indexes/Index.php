@@ -148,7 +148,7 @@ final class Index implements ArrayCapableInterface, LockInterface
 	 *
 	 * @throws DBALException
 	 */
-	public function addColumn(string $name): self
+	public function addColumn(string $name): static
 	{
 		$this->assertNotLocked();
 

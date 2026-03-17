@@ -177,7 +177,7 @@ final class RelationBuilder
 	 *
 	 * @return $this
 	 */
-	public function from(string|Table $table): self
+	public function from(string|Table $table): static
 	{
 		if ($table instanceof Table) {
 			$this->target_table = $table;

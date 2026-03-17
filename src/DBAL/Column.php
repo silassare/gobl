@@ -161,7 +161,7 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	 *
 	 * @return $this
 	 */
-	public function setTypeFromOptions(array $options): self
+	public function setTypeFromOptions(array $options): static
 	{
 		$this->assertNotLocked();
 
@@ -198,7 +198,7 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	 *
 	 * @return $this
 	 */
-	public function setName(string $name): self
+	public function setName(string $name): static
 	{
 		$this->assertNotLocked();
 		$this->assertNameNotLocked();
@@ -238,7 +238,7 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	 *
 	 * @return $this
 	 */
-	public function lockName(): self
+	public function lockName(): static
 	{
 		$this->locked_name = true;
 
@@ -259,7 +259,7 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	 *
 	 * @throws DBALRuntimeException when already locked to a different table
 	 */
-	public function lock(Table $table): self
+	public function lock(Table $table): static
 	{
 		if (!$this->locked || !$this->table) {
 			$this->assertIsValid();
@@ -323,12 +323,12 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	 * @param bool               $copy      When `true` (and `$reference` is a `Column` instance),
 	 *                                      stores the reference as `cp:` (independent copy)
 	 *
-	 * @return Column
+	 * @return $this
 	 *
 	 * @throws InvalidArgumentException when the string format is invalid or the column instance
 	 *                                  has not yet been added to a table
 	 */
-	public function setReference(self|string|null $reference, bool $copy = false): self
+	public function setReference(self|string|null $reference, bool $copy = false): static
 	{
 		$this->assertNotLocked();
 
@@ -392,7 +392,7 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	 *
 	 * @return $this
 	 */
-	public function setPrivate(bool $private = true): self
+	public function setPrivate(bool $private = true): static
 	{
 		$this->assertNotLocked();
 
@@ -419,7 +419,7 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	 *
 	 * @return $this
 	 */
-	public function setSensitive(bool $sensitive = true, mixed $redacted_value = null): self
+	public function setSensitive(bool $sensitive = true, mixed $redacted_value = null): static
 	{
 		$this->assertNotLocked();
 
@@ -456,7 +456,7 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	 *
 	 * @return $this
 	 */
-	public function setType(TypeInterface $type): self
+	public function setType(TypeInterface $type): static
 	{
 		$this->assertNotLocked();
 
@@ -482,7 +482,7 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	 *
 	 * @return $this
 	 */
-	public function setPrefix(string $prefix): self
+	public function setPrefix(string $prefix): static
 	{
 		$this->assertNotLocked();
 		$this->assertNameNotLocked();

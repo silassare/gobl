@@ -73,7 +73,7 @@ final class JoinBuilder
 	 *
 	 * @return $this
 	 */
-	public function to(string|Table $table_to_join, ?string $alias = null): self
+	public function to(string|Table $table_to_join, ?string $alias = null): static
 	{
 		$this->table_to_join = $this->qb->resolveTable($table_to_join)
 			?->getFullName() ?? $table_to_join;
@@ -94,7 +94,7 @@ final class JoinBuilder
 	 *
 	 * @return $this
 	 */
-	public function on(Filters|string $condition): self
+	public function on(Filters|string $condition): static
 	{
 		$this->condition = $condition;
 

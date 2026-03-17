@@ -49,7 +49,7 @@ class FiltersMultiScope implements FiltersScopeInterface
 	 * @param Table                 $table The table
 	 * @param null|string           $alias An optional alias used as alternative key to reference the scope (e.g. a table alias used in the query builder)
 	 */
-	public function push(FiltersScopeInterface $scope, Table $table, ?string $alias = null): self
+	public function push(FiltersScopeInterface $scope, Table $table, ?string $alias = null): static
 	{
 		$entry = [
 			'table' => $table,

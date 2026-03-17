@@ -58,7 +58,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @throws DBALException
 	 */
-	public function addColumn(string $host_column_name, string $reference_column_name): self
+	public function addColumn(string $host_column_name, string $reference_column_name): static
 	{
 		$this->assertNotLocked();
 
@@ -107,7 +107,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @throws DBALException
 	 */
-	public function onUpdateCascade(): self
+	public function onUpdateCascade(): static
 	{
 		return $this->onUpdate(ForeignKeyAction::CASCADE);
 	}
@@ -121,7 +121,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @throws DBALException
 	 */
-	public function onUpdate(ForeignKeyAction $action): self
+	public function onUpdate(ForeignKeyAction $action): static
 	{
 		$this->assertNotLocked();
 
@@ -137,7 +137,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @throws DBALException
 	 */
-	public function onUpdateSetNull(): self
+	public function onUpdateSetNull(): static
 	{
 		return $this->onUpdate(ForeignKeyAction::SET_NULL);
 	}
@@ -149,7 +149,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @throws DBALException
 	 */
-	public function onUpdateSetDefault(): self
+	public function onUpdateSetDefault(): static
 	{
 		return $this->onUpdate(ForeignKeyAction::SET_DEFAULT);
 	}
@@ -161,7 +161,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @throws DBALException
 	 */
-	public function onUpdateRestrict(): self
+	public function onUpdateRestrict(): static
 	{
 		return $this->onUpdate(ForeignKeyAction::RESTRICT);
 	}
@@ -173,7 +173,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @throws DBALException
 	 */
-	public function onUpdateNoAction(): self
+	public function onUpdateNoAction(): static
 	{
 		return $this->onUpdate(ForeignKeyAction::NO_ACTION);
 	}
@@ -185,7 +185,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @throws DBALException
 	 */
-	public function onDeleteCascade(): self
+	public function onDeleteCascade(): static
 	{
 		return $this->onDelete(ForeignKeyAction::CASCADE);
 	}
@@ -199,7 +199,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @throws DBALException
 	 */
-	public function onDelete(ForeignKeyAction $action): self
+	public function onDelete(ForeignKeyAction $action): static
 	{
 		$this->assertNotLocked();
 
@@ -215,7 +215,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @throws DBALException
 	 */
-	public function onDeleteSetNull(): self
+	public function onDeleteSetNull(): static
 	{
 		return $this->onDelete(ForeignKeyAction::SET_NULL);
 	}
@@ -227,7 +227,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @throws DBALException
 	 */
-	public function onDeleteSetDefault(): self
+	public function onDeleteSetDefault(): static
 	{
 		return $this->onDelete(ForeignKeyAction::SET_DEFAULT);
 	}
@@ -239,7 +239,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @throws DBALException
 	 */
-	public function onDeleteRestrict(): self
+	public function onDeleteRestrict(): static
 	{
 		return $this->onDelete(ForeignKeyAction::RESTRICT);
 	}
@@ -251,7 +251,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @throws DBALException
 	 */
-	public function onDeleteNoAction(): self
+	public function onDeleteNoAction(): static
 	{
 		return $this->onDelete(ForeignKeyAction::NO_ACTION);
 	}

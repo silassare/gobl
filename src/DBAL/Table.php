@@ -264,7 +264,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 	 *
 	 * @return $this
 	 */
-	public function setName(string $name): self
+	public function setName(string $name): static
 	{
 		$this->assertNotLocked();
 		$this->assertNameNotLocked();
@@ -285,7 +285,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 	 *
 	 * @return $this
 	 */
-	public function setMorphType(string $value): self
+	public function setMorphType(string $value): static
 	{
 		$this->assertNotLocked();
 
@@ -317,7 +317,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 	 *
 	 * @return $this
 	 */
-	public function addMorph(string $name, Column $morph_type_column, Column $morph_id_column): self
+	public function addMorph(string $name, Column $morph_type_column, Column $morph_id_column): static
 	{
 		$this->assertNotLocked();
 
@@ -500,7 +500,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 	 *
 	 * @return $this
 	 */
-	public function setPluralName(string $plural_name): self
+	public function setPluralName(string $plural_name): static
 	{
 		$this->assertNotLocked();
 
@@ -539,7 +539,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 	 *
 	 * @return $this
 	 */
-	public function setSingularName(string $singular_name): self
+	public function setSingularName(string $singular_name): static
 	{
 		$this->assertNotLocked();
 
@@ -581,7 +581,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 	 *
 	 * @return $this
 	 */
-	public function setColumnPrefix(string $column_prefix, bool $override = false): self
+	public function setColumnPrefix(string $column_prefix, bool $override = false): static
 	{
 		$this->assertNotLocked();
 
@@ -632,9 +632,9 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 	 *
 	 * @param null|string $collate
 	 *
-	 * @return Table
+	 * @return $this
 	 */
-	public function setCollate(?string $collate): self
+	public function setCollate(?string $collate): static
 	{
 		$this->collate = empty($collate) ? null : $collate;
 
@@ -656,9 +656,9 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 	 *
 	 * @param null|string $charset
 	 *
-	 * @return Table
+	 * @return $this
 	 */
-	public function setCharset(?string $charset): self
+	public function setCharset(?string $charset): static
 	{
 		$this->charset = empty($charset) ? null : $charset;
 
@@ -682,7 +682,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 	 *
 	 * @return $this
 	 */
-	public function setNamespace(string $namespace): self
+	public function setNamespace(string $namespace): static
 	{
 		$this->assertNotLocked();
 
@@ -749,7 +749,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 	 *
 	 * @return $this
 	 */
-	public function setPrivate(bool $private = true): self
+	public function setPrivate(bool $private = true): static
 	{
 		$this->assertNotLocked();
 
@@ -855,11 +855,11 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 	 *
 	 * @param Relation $relation
 	 *
-	 * @return Table
+	 * @return $this
 	 *
 	 * @throws DBALException
 	 */
-	public function addRelation(Relation $relation): self
+	public function addRelation(Relation $relation): static
 	{
 		$this->assertNotLocked();
 		$this->assertCanAddRelation($relation);
@@ -949,11 +949,11 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 	 *
 	 * @param VirtualRelation $virtual_relation
 	 *
-	 * @return Table
+	 * @return $this
 	 *
 	 * @throws DBALException
 	 */
-	public function addVirtualRelation(VirtualRelation $virtual_relation): self
+	public function addVirtualRelation(VirtualRelation $virtual_relation): static
 	{
 		$this->assertCanAddVirtualRelation($virtual_relation);
 
@@ -968,11 +968,11 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 	 *
 	 * @param Collection $collection
 	 *
-	 * @return Table
+	 * @return $this
 	 *
 	 * @throws DBALException
 	 */
-	public function addCollection(Collection $collection): self
+	public function addCollection(Collection $collection): static
 	{
 		$this->assertCanAddCollection($collection);
 
@@ -1108,7 +1108,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 	 *
 	 * @throws DBALException
 	 */
-	public function addColumn(Column $column): self
+	public function addColumn(Column $column): static
 	{
 		$this->assertNotLocked();
 		$this->assertCanAddColumn($column);
@@ -1149,7 +1149,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 	 *
 	 * @return $this
 	 */
-	public function setPrefix(string $prefix): self
+	public function setPrefix(string $prefix): static
 	{
 		$this->assertNotLocked();
 		$this->assertNameNotLocked();
@@ -1175,7 +1175,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 	 *
 	 * @return $this
 	 */
-	public function lockName(): self
+	public function lockName(): static
 	{
 		$this->locked_name = true;
 

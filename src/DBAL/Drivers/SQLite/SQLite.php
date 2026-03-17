@@ -40,7 +40,7 @@ class SQLite extends SQLDriverBase
 	#[Override]
 	public static function new(DbConfig $config): static
 	{
-		return new self($config);
+		return new static($config);
 	}
 
 	#[Override]

@@ -52,9 +52,9 @@ final class ORMTypeHint
 	 *
 	 * @param ORMUniversalType ...$types
 	 *
-	 * @return static
+	 * @return $this
 	 */
-	public function addUniversalTypes(ORMUniversalType ...$types): self
+	public function addUniversalTypes(ORMUniversalType ...$types): static
 	{
 		if (!empty($types)) {
 			foreach ($types as $type) {
@@ -217,9 +217,9 @@ final class ORMTypeHint
 	 *
 	 * @param class-string<JsonOfInterface> $class
 	 *
-	 * @return static
+	 * @return $this
 	 */
-	public function setListOfClass(string $class): self
+	public function setListOfClass(string $class): static
 	{
 		$this->list_of_class = $class;
 
@@ -252,9 +252,9 @@ final class ORMTypeHint
 	 *
 	 * @param null|PHPType $php_type
 	 *
-	 * @return static
+	 * @return $this
 	 */
-	public function setPHPType(?PHPType $php_type): self
+	public function setPHPType(?PHPType $php_type): static
 	{
 		$this->php_type = $php_type;
 
@@ -274,9 +274,9 @@ final class ORMTypeHint
 	/**
 	 * Sets as nullable.
 	 *
-	 * @return static
+	 * @return $this
 	 */
-	public function nullable(): self
+	public function nullable(): static
 	{
 		$this->php_type?->nullable();
 

@@ -44,7 +44,7 @@ final class UniqueKey extends Constraint
 	 *
 	 * @throws DBALException
 	 */
-	public function addColumn(string $name): self
+	public function addColumn(string $name): static
 	{
 		$this->assertNotLocked();
 

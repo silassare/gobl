@@ -96,7 +96,7 @@ final class NamespaceBuilder
 	 *
 	 * @return $this
 	 */
-	public function schema(array $schema): self
+	public function schema(array $schema): static
 	{
 		$this->rdbms->loadSchema($schema, $this->namespace);
 
@@ -117,7 +117,7 @@ final class NamespaceBuilder
 	 * @throws DBALException            on JSON decode error or when the file does not return an array
 	 * @throws InvalidArgumentException on unsupported file extension or missing file
 	 */
-	public function schemaFile(string $path): self
+	public function schemaFile(string $path): static
 	{
 		if (!\is_file($path)) {
 			throw new InvalidArgumentException(
@@ -169,7 +169,7 @@ final class NamespaceBuilder
 	 *
 	 * @throws DBALException
 	 */
-	public function enableORM(string $out_dir): self
+	public function enableORM(string $out_dir): static
 	{
 		$this->pack();
 		ORM::declareNamespace($this->namespace, $this->rdbms, $out_dir);

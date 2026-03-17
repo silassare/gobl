@@ -82,7 +82,7 @@ final class FilterGroup implements FilterInterface
 	 *
 	 * @return $this
 	 */
-	public function push(FilterInterface|Filters|string $filter): self
+	public function push(FilterInterface|Filters|string $filter): static
 	{
 		// if the given filter is an object we add it as is to the group
 		// to be able to keep track of future modification on the filter
@@ -111,7 +111,7 @@ final class FilterGroup implements FilterInterface
 	 *
 	 * @return $this
 	 */
-	public function ensureChainingCondition(bool $is_and): self
+	public function ensureChainingCondition(bool $is_and): static
 	{
 		if ($this->is_and !== $is_and) {
 			$group          = new self($this->is_and);
