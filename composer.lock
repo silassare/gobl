@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/oliup-io/code-generator.git",
-                "reference": "d87d02514cdaf47f6e445ecbd05893f67fea0b28"
+                "reference": "44a3ab7a01cd5d137eff7227b15a1ece8ee29791"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/oliup-io/code-generator/zipball/d87d02514cdaf47f6e445ecbd05893f67fea0b28",
-                "reference": "d87d02514cdaf47f6e445ecbd05893f67fea0b28",
+                "url": "https://api.github.com/repos/oliup-io/code-generator/zipball/44a3ab7a01cd5d137eff7227b15a1ece8ee29791",
+                "reference": "44a3ab7a01cd5d137eff7227b15a1ece8ee29791",
                 "shasum": ""
             },
             "require": {
@@ -66,7 +66,7 @@
                 "source": "https://github.com/oliup-io/code-generator/tree/main",
                 "issues": "https://github.com/oliup-io/code-generator/issues"
             },
-            "time": "2026-03-16T10:56:07+00:00"
+            "time": "2026-03-17T11:32:52+00:00"
         },
         {
             "name": "psr/http-message",
@@ -127,12 +127,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/silassare/blate.git",
-                "reference": "4c4bf821323b4eeaa2fb4266e933d45fb6fe2b3a"
+                "reference": "2481d3c29a8ababd47cac970b1535510fe9bfb69"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/silassare/blate/zipball/4c4bf821323b4eeaa2fb4266e933d45fb6fe2b3a",
-                "reference": "4c4bf821323b4eeaa2fb4266e933d45fb6fe2b3a",
+                "url": "https://api.github.com/repos/silassare/blate/zipball/2481d3c29a8ababd47cac970b1535510fe9bfb69",
+                "reference": "2481d3c29a8ababd47cac970b1535510fe9bfb69",
                 "shasum": ""
             },
             "require": {
@@ -193,7 +193,7 @@
                 "source": "https://github.com/silassare/blate/tree/main",
                 "issues": "https://github.com/silassare/blate/issues"
             },
-            "time": "2026-03-16T10:58:34+00:00"
+            "time": "2026-03-17T09:17:44+00:00"
         },
         {
             "name": "silassare/php-utils",
@@ -201,12 +201,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/silassare/php-utils.git",
-                "reference": "2cc6c7868926b23cea66aa46c3cc0b583eb45d5e"
+                "reference": "3e11717654fb295980c1f5521c2d45ef4943a5c4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/silassare/php-utils/zipball/2cc6c7868926b23cea66aa46c3cc0b583eb45d5e",
-                "reference": "2cc6c7868926b23cea66aa46c3cc0b583eb45d5e",
+                "url": "https://api.github.com/repos/silassare/php-utils/zipball/3e11717654fb295980c1f5521c2d45ef4943a5c4",
+                "reference": "3e11717654fb295980c1f5521c2d45ef4943a5c4",
                 "shasum": ""
             },
             "require": {
@@ -258,7 +258,7 @@
                 "source": "https://github.com/silassare/php-utils/tree/main",
                 "issues": "https://github.com/silassare/php-utils/issues"
             },
-            "time": "2026-03-16T10:53:20+00:00"
+            "time": "2026-03-17T10:35:17+00:00"
         }
     ],
     "packages-dev": [
@@ -4203,18 +4203,18 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "0d2dce39eb2bce812e8c71a73be98b0f5d78f489"
+                "reference": "9d2f66a6887edf398a0521016e9daded99937763"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/0d2dce39eb2bce812e8c71a73be98b0f5d78f489",
-                "reference": "0d2dce39eb2bce812e8c71a73be98b0f5d78f489",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/9d2f66a6887edf398a0521016e9daded99937763",
+                "reference": "9d2f66a6887edf398a0521016e9daded99937763",
                 "shasum": ""
             },
             "conflict": {
                 "3f/pygmentize": "<1.2",
                 "adaptcms/adaptcms": "<=1.3",
-                "admidio/admidio": "<5.0.6",
+                "admidio/admidio": "<=5.0.6",
                 "adodb/adodb-php": "<=5.22.9",
                 "aheinze/cockpit": "<2.2",
                 "aimeos/ai-admin-graphql": ">=2022.04.1,<2022.10.10|>=2023.04.1,<2023.10.6|>=2024.04.1,<2024.07.2",
@@ -4351,10 +4351,14 @@
                 "cosenary/instagram": "<=2.3",
                 "couleurcitron/tarteaucitron-wp": "<0.3",
                 "cpsit/typo3-mailqueue": "<0.4.3|>=0.5,<0.5.1",
-                "craftcms/cms": "<=4.17.3|>=5,<=5.9.8",
+                "craftcms/aws-s3": ">=2.0.2,<=2.2.4",
+                "craftcms/azure-blob": ">=2.0.0.0-beta1,<=2.1",
+                "craftcms/cms": "<=4.17.5|>=5,<=5.9.11",
                 "craftcms/commerce": ">=4,<4.11|>=5,<5.6",
                 "craftcms/composer": ">=4.0.0.0-RC1-dev,<=4.10|>=5.0.0.0-RC1-dev,<=5.5.1",
                 "craftcms/craft": ">=3.5,<=4.16.17|>=5.0.0.0-RC1-dev,<=5.8.21",
+                "craftcms/google-cloud": ">=2.0.0.0-beta1,<=2.2",
+                "craftcms/webhooks": ">=3,<3.2",
                 "croogo/croogo": "<=4.0.7",
                 "cuyz/valinor": "<0.12",
                 "czim/file-handling": "<1.5|>=2,<2.3",
@@ -4924,7 +4928,7 @@
                 "simplesamlphp/simplesamlphp-module-openid": "<1",
                 "simplesamlphp/simplesamlphp-module-openidprovider": "<0.9",
                 "simplesamlphp/xml-common": "<1.20",
-                "simplesamlphp/xml-security": "<2.3.1",
+                "simplesamlphp/xml-security": "<1.13.9|>=2,<2.3.1",
                 "simplito/elliptic-php": "<1.0.6",
                 "sitegeist/fluid-components": "<3.5",
                 "sjbr/sr-feuser-register": "<2.6.2|>=5.1,<12.5",
@@ -5225,7 +5229,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-03-13T21:11:59+00:00"
+            "time": "2026-03-16T22:12:26+00:00"
         },
         {
             "name": "sebastian/cli-parser",
@@ -7857,16 +7861,16 @@
         },
         {
             "name": "vimeo/psalm",
-            "version": "6.15.1",
+            "version": "6.16.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/vimeo/psalm.git",
-                "reference": "28dc127af1b5aecd52314f6f645bafc10d0e11f9"
+                "reference": "7cf3e8b988edd75e0766963b0b9e671b220f5785"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vimeo/psalm/zipball/28dc127af1b5aecd52314f6f645bafc10d0e11f9",
-                "reference": "28dc127af1b5aecd52314f6f645bafc10d0e11f9",
+                "url": "https://api.github.com/repos/vimeo/psalm/zipball/7cf3e8b988edd75e0766963b0b9e671b220f5785",
+                "reference": "7cf3e8b988edd75e0766963b0b9e671b220f5785",
                 "shasum": ""
             },
             "require": {
@@ -7971,7 +7975,7 @@
                 "issues": "https://github.com/vimeo/psalm/issues",
                 "source": "https://github.com/vimeo/psalm"
             },
-            "time": "2026-02-07T19:27:16+00:00"
+            "time": "2026-03-17T11:15:56+00:00"
         },
         {
             "name": "webmozart/assert",
