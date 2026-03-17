@@ -67,7 +67,7 @@ class CRUDEventProducer
 	 *
 	 * @param CRUDEventListenerInterface $listener
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function listen(CRUDEventListenerInterface $listener): static
 	{

@@ -80,7 +80,7 @@ class TypeString extends BaseType
 	 * @param int         $min
 	 * @param null|string $message
 	 *
-	 * @return $this
+	 * @return static
 	 *
 	 * @throws TypesException
 	 */
@@ -99,7 +99,7 @@ class TypeString extends BaseType
 	 * @param int         $max
 	 * @param null|string $message
 	 *
-	 * @return $this
+	 * @return static
 	 *
 	 * @throws TypesException
 	 */
@@ -118,7 +118,7 @@ class TypeString extends BaseType
 	 * @param string      $pattern
 	 * @param null|string $message
 	 *
-	 * @return $this
+	 * @return static
 	 *
 	 * @throws TypesException
 	 */
@@ -139,7 +139,7 @@ class TypeString extends BaseType
 	 * @param string[]    $list
 	 * @param null|string $message
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function oneOf(array $list, ?string $message = null): static
 	{
@@ -241,7 +241,7 @@ class TypeString extends BaseType
 	 *
 	 * @param bool $truncate
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function truncate(bool $truncate = true): static
 	{
@@ -253,7 +253,7 @@ class TypeString extends BaseType
 	 *
 	 * @param bool $multiline
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function multiline(bool $multiline = true): static
 	{
@@ -268,7 +268,7 @@ class TypeString extends BaseType
 	 *
 	 * @param bool $medium
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function medium(bool $medium = true): static
 	{
@@ -283,7 +283,7 @@ class TypeString extends BaseType
 	 *
 	 * @param bool $long
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function long(bool $long = true): static
 	{
@@ -295,7 +295,7 @@ class TypeString extends BaseType
 	 *
 	 * @param bool $trim
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function trim(bool $trim = true): static
 	{
@@ -317,7 +317,7 @@ class TypeString extends BaseType
 	 *
 	 * @param bool $one_line
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function oneLine(bool $one_line = true): static
 	{

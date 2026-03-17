@@ -407,8 +407,6 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 	 * Locking cascades to all registered columns, the PK constraint,
 	 * all unique-key constraints, all foreign-key constraints, and all indexes,
 	 * transitioning each into an immutable state.
-	 *
-	 * @return $this
 	 */
 	#[Override]
 	public function lock(): static

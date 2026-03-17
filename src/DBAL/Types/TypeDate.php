@@ -88,7 +88,7 @@ class TypeDate extends Type
 	/**
 	 * Sets the date precision to microseconds.
 	 *
-	 * @return $this
+	 * @return static
 	 *
 	 * @throws TypesException
 	 */
@@ -105,7 +105,7 @@ class TypeDate extends Type
 	 * @param int|string  $min
 	 * @param null|string $message
 	 *
-	 * @return $this
+	 * @return static
 	 *
 	 * @throws TypesException
 	 */
@@ -131,7 +131,7 @@ class TypeDate extends Type
 	 * @param int|string  $max
 	 * @param null|string $message
 	 *
-	 * @return $this
+	 * @return static
 	 *
 	 * @throws TypesException
 	 */
@@ -160,7 +160,7 @@ class TypeDate extends Type
 	 *
 	 * @param bool $auto
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function auto(bool $auto = true): static
 	{
@@ -177,7 +177,7 @@ class TypeDate extends Type
 	 *
 	 * @param string $format
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function format(string $format): static
 	{

@@ -84,7 +84,7 @@ final class Filter implements FilterInterface
 	 *
 	 * @param string $left_for_query
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function setLeftOperandForQuery(string $left_for_query): static
 	{
@@ -98,7 +98,7 @@ final class Filter implements FilterInterface
 	 *
 	 * @param null|string $right_for_query
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function setRightOperandForQuery(?string $right_for_query): static
 	{

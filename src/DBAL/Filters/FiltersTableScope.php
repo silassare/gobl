@@ -105,7 +105,7 @@ class FiltersTableScope implements FiltersScopeInterface
 	 *
 	 * @param bool $allow
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function allowPrivateColumnInFilters(bool $allow = true): static
 	{
@@ -119,7 +119,7 @@ class FiltersTableScope implements FiltersScopeInterface
 	 *
 	 * @param bool $allow
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function allowSensitiveColumnInFilters(bool $allow = true): static
 	{

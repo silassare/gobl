@@ -69,7 +69,7 @@ class TypeInt extends BaseType
 	 * @param int         $min
 	 * @param null|string $message
 	 *
-	 * @return $this
+	 * @return static
 	 *
 	 * @throws TypesException
 	 */
@@ -94,7 +94,7 @@ class TypeInt extends BaseType
 	 * @param int         $max
 	 * @param null|string $message
 	 *
-	 * @return $this
+	 * @return static
 	 *
 	 * @throws TypesException
 	 */
@@ -119,7 +119,7 @@ class TypeInt extends BaseType
 	 * @param bool        $unsigned
 	 * @param null|string $message
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function unsigned(bool $unsigned = true, ?string $message = null): static
 	{

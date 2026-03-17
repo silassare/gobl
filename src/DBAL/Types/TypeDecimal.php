@@ -70,7 +70,7 @@ class TypeDecimal extends BaseType
 	 * @param float|string $min
 	 * @param null|string  $message
 	 *
-	 * @return $this
+	 * @return static
 	 *
 	 * @throws TypesException
 	 */
@@ -97,7 +97,7 @@ class TypeDecimal extends BaseType
 	 * @param float|string $max
 	 * @param null|string  $message
 	 *
-	 * @return $this
+	 * @return static
 	 *
 	 * @throws TypesException
 	 */
@@ -124,7 +124,7 @@ class TypeDecimal extends BaseType
 	 * @param bool        $unsigned
 	 * @param null|string $message
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function unsigned(bool $unsigned = true, ?string $message = null): static
 	{
@@ -186,7 +186,7 @@ class TypeDecimal extends BaseType
 	 * @param int      $precision the number of digits before the fixed point
 	 * @param null|int $scale     the number of digits following the fixed point
 	 *
-	 * @return $this
+	 * @return static
 	 *
 	 * @throws TypesException
 	 */

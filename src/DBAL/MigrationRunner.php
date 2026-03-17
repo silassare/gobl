@@ -47,7 +47,7 @@ class MigrationRunner
 	 *
 	 * @param MigrationInterface ...$migrations
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function add(MigrationInterface ...$migrations): static
 	{
@@ -67,7 +67,7 @@ class MigrationRunner
 	 *
 	 * @param string ...$paths Absolute paths to migration PHP files
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function addFromFile(string ...$paths): static
 	{

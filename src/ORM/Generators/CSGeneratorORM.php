@@ -649,7 +649,7 @@ return $this;',
 @param {target_entity_class_fqn} $entry
 @param bool $auto_save should the modified entity be saved automatically?
 
-@return $this',
+@return static',
 				$rel_inject
 			);
 
@@ -675,7 +675,7 @@ return $this;',
 @param {target_entity_class_fqn} ${relation_name}
 @param bool $auto_save should the modified entity be saved automatically?
 
-@return $this',
+@return static',
 				$rel_inject
 			);
 

@@ -354,7 +354,7 @@ abstract class Type implements TypeInterface
 	 *
 	 * @param string|TypeValidatorInterface $validator a validator instance or its FQCN
 	 *
-	 * @return $this
+	 * @return static
 	 *
 	 * @throws TypesException when a FQCN is given that does not implement TypeValidatorInterface
 	 */
@@ -386,7 +386,7 @@ abstract class Type implements TypeInterface
 	 *
 	 * @param string|TypeValidatorInterface $validator a validator instance or its FQCN
 	 *
-	 * @return $this
+	 * @return static
 	 *
 	 * @throws TypesException when a FQCN is given that does not implement TypeValidatorInterface
 	 */

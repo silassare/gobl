@@ -95,7 +95,7 @@ class TypeMap extends Type
 	 *
 	 * @param bool $native_json
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function nativeJson(bool $native_json = true): static
 	{

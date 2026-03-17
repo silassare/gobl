@@ -23,7 +23,7 @@ trait HasFormEditable
 	 *
 	 * @param array $form
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function setForm(array $form): static
 	{
@@ -38,7 +38,7 @@ trait HasFormEditable
 	 * @param string $field
 	 * @param mixed  $value
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function setField(string $field, mixed $value): static
 	{

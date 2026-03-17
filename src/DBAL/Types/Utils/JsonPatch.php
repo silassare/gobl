@@ -86,7 +86,7 @@ final class JsonPatch
 	 * @param string                                       $path  dot-notation path (e.g. `'user.name'`, `'tags.0'`)
 	 * @param null|array|float|int|JsonSerializable|string $value the value to store
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function set(string $path, array|float|int|JsonSerializable|string|null $value): static
 	{
@@ -103,7 +103,7 @@ final class JsonPatch
 	 *
 	 * @param string $path dot-notation path (e.g. `'temp'`, `'meta.cache_key'`)
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function remove(string $path): static
 	{

@@ -122,7 +122,7 @@ abstract class Constraint implements ArrayCapableInterface, LockInterface
 	/**
 	 * Locks this constraints to prevent further changes.
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	#[Override]
 	public function lock(): static

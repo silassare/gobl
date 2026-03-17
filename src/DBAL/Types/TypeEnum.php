@@ -61,7 +61,7 @@ class TypeEnum extends Type
 	 * @param class-string<BackedEnum> $enum_class
 	 * @param null|string              $message
 	 *
-	 * @return $this
+	 * @return static
 	 *
 	 * @throws TypesException
 	 */

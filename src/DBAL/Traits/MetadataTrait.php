@@ -42,7 +42,7 @@ trait MetadataTrait
 	 * @param array|Map|string $key   the meta key or the meta data/map
 	 * @param null|mixed       $value the meta value
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function setMeta(array|Map|string $key, mixed $value = null): static
 	{

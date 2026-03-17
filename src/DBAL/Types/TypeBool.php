@@ -67,7 +67,7 @@ class TypeBool extends BaseType
 	 *
 	 * @param bool $strict
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function strict(bool $strict = true): static
 	{

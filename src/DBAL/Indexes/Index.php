@@ -109,7 +109,7 @@ final class Index implements ArrayCapableInterface, LockInterface
 	/**
 	 * Locks this index to prevent further changes.
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	#[Override]
 	public function lock(): static
@@ -144,7 +144,7 @@ final class Index implements ArrayCapableInterface, LockInterface
 	 *
 	 * @param string $name the column name
 	 *
-	 * @return $this
+	 * @return static
 	 *
 	 * @throws DBALException
 	 */

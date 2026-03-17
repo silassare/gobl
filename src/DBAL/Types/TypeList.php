@@ -97,7 +97,7 @@ class TypeList extends Type
 	 *
 	 * @param bool $native_json
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function nativeJson(bool $native_json = true): static
 	{
@@ -136,7 +136,7 @@ class TypeList extends Type
 	 *
 	 * @param class-string<JsonOfInterface>|ORMUniversalType $of Element type or revival class
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function listOf(ORMUniversalType|string $of): static
 	{

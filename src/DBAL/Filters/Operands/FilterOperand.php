@@ -93,7 +93,7 @@ abstract class FilterOperand
 	 *
 	 * @param null|array|bool|float|int|string $normalized the normalized operand value
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function setValueNormalized(array|bool|float|int|string|null $normalized): static
 	{

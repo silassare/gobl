@@ -39,7 +39,7 @@ interface TypeInterface extends ArrayCapableInterface, LockInterface
 	 *
 	 * @param array $options the options
 	 *
-	 * @return $this
+	 * @return static
 	 *
 	 * @throws TypesException when options is invalid
 	 */

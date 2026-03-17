@@ -66,7 +66,7 @@ class TypeFloat extends BaseType
 	 * @param float       $min
 	 * @param null|string $message
 	 *
-	 * @return $this
+	 * @return static
 	 *
 	 * @throws TypesException
 	 */
@@ -93,7 +93,7 @@ class TypeFloat extends BaseType
 	 * @param float       $max
 	 * @param null|string $message
 	 *
-	 * @return $this
+	 * @return static
 	 *
 	 * @throws TypesException
 	 */
@@ -120,7 +120,7 @@ class TypeFloat extends BaseType
 	 * @param bool        $unsigned
 	 * @param null|string $message
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function unsigned(bool $unsigned = true, ?string $message = null): static
 	{
@@ -177,7 +177,7 @@ class TypeFloat extends BaseType
 	 *
 	 * @param int $mantissa the mantissa
 	 *
-	 * @return $this
+	 * @return static
 	 *
 	 * @throws TypesException
 	 */

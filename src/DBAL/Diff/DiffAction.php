@@ -46,7 +46,7 @@ abstract class DiffAction implements ArrayCapableInterface
 	 *
 	 * @param string $reason
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function setReason(string $reason): static
 	{

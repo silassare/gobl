@@ -122,7 +122,7 @@ class TypeJSON extends BaseType
 	 *
 	 * @param class-string<JsonOfInterface>|ORMUniversalType $class revival class or universal type hint
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function jsonOf(ORMUniversalType|string $class): static
 	{
@@ -197,7 +197,7 @@ class TypeJSON extends BaseType
 	 *
 	 * @param bool $native_json
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function nativeJson(bool $native_json = true): static
 	{
@@ -211,7 +211,7 @@ class TypeJSON extends BaseType
 	 *
 	 * @param bool $big
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function big(bool $big = true): static
 	{

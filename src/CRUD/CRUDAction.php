@@ -54,7 +54,7 @@ class CRUDAction extends CRUDEvent
 	 *
 	 * @param string $message
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function setErrorMessage(string $message): static
 	{
@@ -78,7 +78,7 @@ class CRUDAction extends CRUDEvent
 	 *
 	 * @param string $message
 	 *
-	 * @return $this
+	 * @return static
 	 */
 	public function setSuccessMessage(string $message): static
 	{
