@@ -42,8 +42,7 @@ abstract class TransactionBase extends \Gobl\ORM\ORMEntity
 	/**
 	 * TransactionBase constructor.
 	 * 
-	 * @param bool $is_new true for new entity false for entity fetched
-	 *                      from the database, default is true
+	 * @param bool $is_new true for new entity false for entity fetched from the database, default is true
 	 * @param bool $strict Enable/disable strict mode
 	 */
 	public function __construct(bool $is_new = true, bool $strict = true)
@@ -54,7 +53,6 @@ abstract class TransactionBase extends \Gobl\ORM\ORMEntity
 			$is_new,
 			$strict
 		);
-
 	}
 
 	/**
@@ -62,6 +60,7 @@ abstract class TransactionBase extends \Gobl\ORM\ORMEntity
 	 * 
 	 * @return static
 	 */
+	#[\Override]
 	public static function new(bool $is_new = true, bool $strict = true): static
 	{
 		return new Transaction($is_new, $strict);
@@ -72,6 +71,7 @@ abstract class TransactionBase extends \Gobl\ORM\ORMEntity
 	 * 
 	 * @return \Gobl\Tests\Db\TransactionsCrud
 	 */
+	#[\Override]
 	public static function crud(): \Gobl\Tests\Db\TransactionsCrud
 	{
 		return \Gobl\Tests\Db\TransactionsCrud::new();
@@ -82,6 +82,7 @@ abstract class TransactionBase extends \Gobl\ORM\ORMEntity
 	 * 
 	 * @return \Gobl\Tests\Db\TransactionsController
 	 */
+	#[\Override]
 	public static function ctrl(): \Gobl\Tests\Db\TransactionsController
 	{
 		return \Gobl\Tests\Db\TransactionsController::new();
@@ -92,6 +93,7 @@ abstract class TransactionBase extends \Gobl\ORM\ORMEntity
 	 * 
 	 * @return \Gobl\Tests\Db\TransactionsQuery
 	 */
+	#[\Override]
 	public static function qb(): \Gobl\Tests\Db\TransactionsQuery
 	{
 		return \Gobl\Tests\Db\TransactionsQuery::new();
@@ -102,6 +104,7 @@ abstract class TransactionBase extends \Gobl\ORM\ORMEntity
 	 * 
 	 * @return \Gobl\Tests\Db\TransactionsResults
 	 */
+	#[\Override]
 	public static function results(\Gobl\DBAL\Queries\QBSelect $query): \Gobl\Tests\Db\TransactionsResults
 	{
 		return \Gobl\Tests\Db\TransactionsResults::new($query);
@@ -109,7 +112,10 @@ abstract class TransactionBase extends \Gobl\ORM\ORMEntity
 
 	/**
 	 * {@inheritDoc}
+	 * 
+	 * @return \Gobl\DBAL\Table
 	 */
+	#[\Override]
 	public static function table(): \Gobl\DBAL\Table
 	{
 		return \Gobl\ORM\ORM::table(static::TABLE_NAMESPACE, static::TABLE_NAME);
@@ -468,10 +474,10 @@ abstract class TransactionBase extends \Gobl\ORM\ORMEntity
 	/**
 	 * Create `ManyToOne` relationship between `transactions` and `accounts`.
 	 * 
-	 * @param \Gobl\Tests\Db\Account $account
+	 * @param \Gobl\Tests\Db\Account $account the entry to set for the relation
 	 * @param bool $auto_save should the modified entity be saved automatically?
 	 * 
-	 * @return $this
+	 * @return static
 	 */
 	public function setAccount(\Gobl\Tests\Db\Account $account, bool $auto_save = true): static
 	{

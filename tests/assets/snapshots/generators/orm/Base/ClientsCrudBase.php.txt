@@ -22,7 +22,6 @@ class ClientsCrudBase extends \Gobl\ORM\ORMEntityCRUD
 			\Gobl\Tests\Db\Client::TABLE_NAMESPACE,
 			\Gobl\Tests\Db\Client::TABLE_NAME
 		);
-
 	}
 
 	/**
@@ -30,6 +29,7 @@ class ClientsCrudBase extends \Gobl\ORM\ORMEntityCRUD
 	 * 
 	 * @return static
 	 */
+	#[\Override]
 	public static function new(): static
 	{
 		return new ClientsCrud();

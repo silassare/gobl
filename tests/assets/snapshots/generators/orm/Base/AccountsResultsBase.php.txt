@@ -22,7 +22,6 @@ abstract class AccountsResultsBase extends \Gobl\ORM\ORMResults
 			\Gobl\Tests\Db\Account::TABLE_NAME,
 			$query
 		);
-
 	}
 
 	/**
@@ -30,6 +29,7 @@ abstract class AccountsResultsBase extends \Gobl\ORM\ORMResults
 	 * 
 	 * @return static
 	 */
+	#[\Override]
 	public static function new(\Gobl\DBAL\Queries\QBSelect $query): static
 	{
 		return new AccountsResults($query);

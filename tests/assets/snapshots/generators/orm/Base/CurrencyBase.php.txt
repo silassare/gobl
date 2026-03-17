@@ -30,8 +30,7 @@ abstract class CurrencyBase extends \Gobl\ORM\ORMEntity
 	/**
 	 * CurrencyBase constructor.
 	 * 
-	 * @param bool $is_new true for new entity false for entity fetched
-	 *                      from the database, default is true
+	 * @param bool $is_new true for new entity false for entity fetched from the database, default is true
 	 * @param bool $strict Enable/disable strict mode
 	 */
 	public function __construct(bool $is_new = true, bool $strict = true)
@@ -42,7 +41,6 @@ abstract class CurrencyBase extends \Gobl\ORM\ORMEntity
 			$is_new,
 			$strict
 		);
-
 	}
 
 	/**
@@ -50,6 +48,7 @@ abstract class CurrencyBase extends \Gobl\ORM\ORMEntity
 	 * 
 	 * @return static
 	 */
+	#[\Override]
 	public static function new(bool $is_new = true, bool $strict = true): static
 	{
 		return new Currency($is_new, $strict);
@@ -60,6 +59,7 @@ abstract class CurrencyBase extends \Gobl\ORM\ORMEntity
 	 * 
 	 * @return \Gobl\Tests\Db\CurrenciesCrud
 	 */
+	#[\Override]
 	public static function crud(): \Gobl\Tests\Db\CurrenciesCrud
 	{
 		return \Gobl\Tests\Db\CurrenciesCrud::new();
@@ -70,6 +70,7 @@ abstract class CurrencyBase extends \Gobl\ORM\ORMEntity
 	 * 
 	 * @return \Gobl\Tests\Db\CurrenciesController
 	 */
+	#[\Override]
 	public static function ctrl(): \Gobl\Tests\Db\CurrenciesController
 	{
 		return \Gobl\Tests\Db\CurrenciesController::new();
@@ -80,6 +81,7 @@ abstract class CurrencyBase extends \Gobl\ORM\ORMEntity
 	 * 
 	 * @return \Gobl\Tests\Db\CurrenciesQuery
 	 */
+	#[\Override]
 	public static function qb(): \Gobl\Tests\Db\CurrenciesQuery
 	{
 		return \Gobl\Tests\Db\CurrenciesQuery::new();
@@ -90,6 +92,7 @@ abstract class CurrencyBase extends \Gobl\ORM\ORMEntity
 	 * 
 	 * @return \Gobl\Tests\Db\CurrenciesResults
 	 */
+	#[\Override]
 	public static function results(\Gobl\DBAL\Queries\QBSelect $query): \Gobl\Tests\Db\CurrenciesResults
 	{
 		return \Gobl\Tests\Db\CurrenciesResults::new($query);
@@ -97,7 +100,10 @@ abstract class CurrencyBase extends \Gobl\ORM\ORMEntity
 
 	/**
 	 * {@inheritDoc}
+	 * 
+	 * @return \Gobl\DBAL\Table
 	 */
+	#[\Override]
 	public static function table(): \Gobl\DBAL\Table
 	{
 		return \Gobl\ORM\ORM::table(static::TABLE_NAMESPACE, static::TABLE_NAME);

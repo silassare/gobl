@@ -22,7 +22,6 @@ abstract class CurrenciesControllerBase extends \Gobl\ORM\ORMController
 			\Gobl\Tests\Db\Currency::TABLE_NAMESPACE,
 			\Gobl\Tests\Db\Currency::TABLE_NAME
 		);
-
 	}
 
 	/**
@@ -30,6 +29,7 @@ abstract class CurrenciesControllerBase extends \Gobl\ORM\ORMController
 	 * 
 	 * @return static
 	 */
+	#[\Override]
 	public static function new(): static
 	{
 		return new CurrenciesController();

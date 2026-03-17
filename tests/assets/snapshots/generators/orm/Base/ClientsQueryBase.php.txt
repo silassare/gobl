@@ -102,7 +102,6 @@ abstract class ClientsQueryBase extends \Gobl\ORM\ORMTableQuery
 			\Gobl\Tests\Db\Client::TABLE_NAMESPACE,
 			\Gobl\Tests\Db\Client::TABLE_NAME
 		);
-
 	}
 
 	/**
@@ -110,6 +109,7 @@ abstract class ClientsQueryBase extends \Gobl\ORM\ORMTableQuery
 	 * 
 	 * @return static
 	 */
+	#[\Override]
 	public static function new(): static
 	{
 		return new ClientsQuery();

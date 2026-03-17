@@ -34,8 +34,7 @@ abstract class ClientBase extends \Gobl\ORM\ORMEntity
 	/**
 	 * ClientBase constructor.
 	 * 
-	 * @param bool $is_new true for new entity false for entity fetched
-	 *                      from the database, default is true
+	 * @param bool $is_new true for new entity false for entity fetched from the database, default is true
 	 * @param bool $strict Enable/disable strict mode
 	 */
 	public function __construct(bool $is_new = true, bool $strict = true)
@@ -46,7 +45,6 @@ abstract class ClientBase extends \Gobl\ORM\ORMEntity
 			$is_new,
 			$strict
 		);
-
 	}
 
 	/**
@@ -54,6 +52,7 @@ abstract class ClientBase extends \Gobl\ORM\ORMEntity
 	 * 
 	 * @return static
 	 */
+	#[\Override]
 	public static function new(bool $is_new = true, bool $strict = true): static
 	{
 		return new Client($is_new, $strict);
@@ -64,6 +63,7 @@ abstract class ClientBase extends \Gobl\ORM\ORMEntity
 	 * 
 	 * @return \Gobl\Tests\Db\ClientsCrud
 	 */
+	#[\Override]
 	public static function crud(): \Gobl\Tests\Db\ClientsCrud
 	{
 		return \Gobl\Tests\Db\ClientsCrud::new();
@@ -74,6 +74,7 @@ abstract class ClientBase extends \Gobl\ORM\ORMEntity
 	 * 
 	 * @return \Gobl\Tests\Db\ClientsController
 	 */
+	#[\Override]
 	public static function ctrl(): \Gobl\Tests\Db\ClientsController
 	{
 		return \Gobl\Tests\Db\ClientsController::new();
@@ -84,6 +85,7 @@ abstract class ClientBase extends \Gobl\ORM\ORMEntity
 	 * 
 	 * @return \Gobl\Tests\Db\ClientsQuery
 	 */
+	#[\Override]
 	public static function qb(): \Gobl\Tests\Db\ClientsQuery
 	{
 		return \Gobl\Tests\Db\ClientsQuery::new();
@@ -94,6 +96,7 @@ abstract class ClientBase extends \Gobl\ORM\ORMEntity
 	 * 
 	 * @return \Gobl\Tests\Db\ClientsResults
 	 */
+	#[\Override]
 	public static function results(\Gobl\DBAL\Queries\QBSelect $query): \Gobl\Tests\Db\ClientsResults
 	{
 		return \Gobl\Tests\Db\ClientsResults::new($query);
@@ -101,7 +104,10 @@ abstract class ClientBase extends \Gobl\ORM\ORMEntity
 
 	/**
 	 * {@inheritDoc}
+	 * 
+	 * @return \Gobl\DBAL\Table
 	 */
+	#[\Override]
 	public static function table(): \Gobl\DBAL\Table
 	{
 		return \Gobl\ORM\ORM::table(static::TABLE_NAMESPACE, static::TABLE_NAME);
@@ -377,10 +383,10 @@ abstract class ClientBase extends \Gobl\ORM\ORMEntity
 	/**
 	 * Create `OneToMany` relationship between `clients` and `accounts`.
 	 * 
-	 * @param \Gobl\Tests\Db\Account $entry
+	 * @param \Gobl\Tests\Db\Account $entry the entry to add to the relation
 	 * @param bool $auto_save should the modified entity be saved automatically?
 	 * 
-	 * @return $this
+	 * @return static
 	 */
 	public function addAccountsEntry(\Gobl\Tests\Db\Account $entry, bool $auto_save = true): static
 	{

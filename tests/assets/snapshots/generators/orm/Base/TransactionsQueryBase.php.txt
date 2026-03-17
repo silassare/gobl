@@ -142,7 +142,6 @@ abstract class TransactionsQueryBase extends \Gobl\ORM\ORMTableQuery
 			\Gobl\Tests\Db\Transaction::TABLE_NAMESPACE,
 			\Gobl\Tests\Db\Transaction::TABLE_NAME
 		);
-
 	}
 
 	/**
@@ -150,6 +149,7 @@ abstract class TransactionsQueryBase extends \Gobl\ORM\ORMTableQuery
 	 * 
 	 * @return static
 	 */
+	#[\Override]
 	public static function new(): static
 	{
 		return new TransactionsQuery();

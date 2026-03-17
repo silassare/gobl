@@ -22,7 +22,6 @@ abstract class ClientsControllerBase extends \Gobl\ORM\ORMController
 			\Gobl\Tests\Db\Client::TABLE_NAMESPACE,
 			\Gobl\Tests\Db\Client::TABLE_NAME
 		);
-
 	}
 
 	/**
@@ -30,6 +29,7 @@ abstract class ClientsControllerBase extends \Gobl\ORM\ORMController
 	 * 
 	 * @return static
 	 */
+	#[\Override]
 	public static function new(): static
 	{
 		return new ClientsController();

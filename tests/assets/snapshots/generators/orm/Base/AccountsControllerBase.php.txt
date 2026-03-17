@@ -22,7 +22,6 @@ abstract class AccountsControllerBase extends \Gobl\ORM\ORMController
 			\Gobl\Tests\Db\Account::TABLE_NAMESPACE,
 			\Gobl\Tests\Db\Account::TABLE_NAME
 		);
-
 	}
 
 	/**
@@ -30,6 +29,7 @@ abstract class AccountsControllerBase extends \Gobl\ORM\ORMController
 	 * 
 	 * @return static
 	 */
+	#[\Override]
 	public static function new(): static
 	{
 		return new AccountsController();

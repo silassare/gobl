@@ -22,7 +22,6 @@ class TransactionsCrudBase extends \Gobl\ORM\ORMEntityCRUD
 			\Gobl\Tests\Db\Transaction::TABLE_NAMESPACE,
 			\Gobl\Tests\Db\Transaction::TABLE_NAME
 		);
-
 	}
 
 	/**
@@ -30,6 +29,7 @@ class TransactionsCrudBase extends \Gobl\ORM\ORMEntityCRUD
 	 * 
 	 * @return static
 	 */
+	#[\Override]
 	public static function new(): static
 	{
 		return new TransactionsCrud();

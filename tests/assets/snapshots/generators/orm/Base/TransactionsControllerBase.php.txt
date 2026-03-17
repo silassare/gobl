@@ -22,7 +22,6 @@ abstract class TransactionsControllerBase extends \Gobl\ORM\ORMController
 			\Gobl\Tests\Db\Transaction::TABLE_NAMESPACE,
 			\Gobl\Tests\Db\Transaction::TABLE_NAME
 		);
-
 	}
 
 	/**
@@ -30,6 +29,7 @@ abstract class TransactionsControllerBase extends \Gobl\ORM\ORMController
 	 * 
 	 * @return static
 	 */
+	#[\Override]
 	public static function new(): static
 	{
 		return new TransactionsController();

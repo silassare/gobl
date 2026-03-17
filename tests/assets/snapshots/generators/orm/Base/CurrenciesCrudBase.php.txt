@@ -22,7 +22,6 @@ class CurrenciesCrudBase extends \Gobl\ORM\ORMEntityCRUD
 			\Gobl\Tests\Db\Currency::TABLE_NAMESPACE,
 			\Gobl\Tests\Db\Currency::TABLE_NAME
 		);
-
 	}
 
 	/**
@@ -30,6 +29,7 @@ class CurrenciesCrudBase extends \Gobl\ORM\ORMEntityCRUD
 	 * 
 	 * @return static
 	 */
+	#[\Override]
 	public static function new(): static
 	{
 		return new CurrenciesCrud();

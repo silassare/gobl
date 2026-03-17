@@ -9,6 +9,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 	/**
 	 * @inheritDoc
 	 */
+	#[\Override]
 	public function getVersion(): int
 	{
 		return 1;
@@ -17,17 +18,19 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 	/**
 	 * @inheritDoc
 	 */
+	#[\Override]
 	public function getLabel(): string
 	{
+		
 		return <<<DIFF_LABEL
 		Auto generated.
 		DIFF_LABEL;
-
 	}
 
 	/**
 	 * @inheritDoc
 	 */
+	#[\Override]
 	public function getTimestamp(): int
 	{
 		return 0;
@@ -36,6 +39,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 	/**
 	 * @inheritDoc
 	 */
+	#[\Override]
 	public function beforeRun(\Gobl\DBAL\MigrationMode $mode, string $query): bool|string
 	{
 		// TODO: implement your custom logic here
@@ -45,6 +49,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 	/**
 	 * @inheritDoc
 	 */
+	#[\Override]
 	public function afterRun(\Gobl\DBAL\MigrationMode $mode): void
 	{
 		// TODO: implement your custom logic here
@@ -53,8 +58,10 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 	/**
 	 * @inheritDoc
 	 */
+	#[\Override]
 	public function up(): string
 	{
+		
 		return <<<DIFF_SQL
 		-- constraints column mapping changed.
 		ALTER TABLE "gObL_accounts" DROP CONSTRAINT fk_accounts_currencies;
@@ -124,12 +131,12 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		-- constraints column mapping changed.
 		ALTER TABLE "gObL_accounts" ADD CONSTRAINT fk_accounts_currencies FOREIGN KEY ("account_currency_code") REFERENCES "gObL_currencies" ("currency_code") ON UPDATE NO ACTION ON DELETE NO ACTION;
 		DIFF_SQL;
-
 	}
 
 	/**
 	 * @inheritDoc
 	 */
+	#[\Override]
 	public function down(): string
 	{
 		
@@ -211,9 +218,9 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		-- table "gObL_transactions" was added.
 		ALTER TABLE "gObL_transactions" ADD CONSTRAINT fk_transactions_accounts FOREIGN KEY ("transaction_account_id") REFERENCES "gObL_accounts" ("account_id") ON UPDATE NO ACTION ON DELETE NO ACTION;
 		DIFF_SQL;
-
 	}
 
+	#[\Override]
 	public function getConfigs(): array
 	{
 		return array (
@@ -232,6 +239,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 	/**
 	 * @inheritDoc
 	 */
+	#[\Override]
 	public function getSchema(): array
 	{
 		return array (
