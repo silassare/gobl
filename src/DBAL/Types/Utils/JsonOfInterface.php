@@ -22,7 +22,7 @@ use JsonSerializable;
  * and need to be revived from their decoded representation on read.
  *
  * Contract:
- *  - {@see self::revive()} receives the decoded JSON payload (typically an array) and
+ *  - {@see self::revive()} receives the decoded JSON payload `json_decode($json, true)` and
  *    must return an instance of the implementing class.
  *  - {@see JsonSerializable::jsonSerialize()} must produce a value that round-trips
  *    through `json_encode` -> `json_decode` -> `revive()` correctly.
@@ -53,7 +53,7 @@ interface JsonOfInterface extends JsonSerializable
 	/**
 	 * Revives an instance from a decoded JSON payload.
 	 *
-	 * @param mixed $payload the decoded JSON value (typically an array from `json_decode($json, true)`)
+	 * @param mixed $payload the decoded JSON value `json_decode($json, true)`
 	 *
 	 * @return static
 	 */
