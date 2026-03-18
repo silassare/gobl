@@ -31,6 +31,7 @@ use Gobl\DBAL\Operator;
 use Gobl\DBAL\Queries\QBDelete;
 use Gobl\DBAL\Queries\QBInsert;
 use Gobl\DBAL\Queries\QBUpdate;
+use Gobl\DBAL\Types\TypeBigint;
 use Gobl\DBAL\Types\TypeJson;
 use Gobl\DBAL\Types\TypeString;
 use Gobl\DBAL\Types\Utils\JsonPath;
@@ -355,26 +356,37 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	/**
 	 * {@inheritDoc}
 	 *
-	 * PostgreSQL ALTER COLUMN TYPE syntax:
+	 * PostgreSQL requires separate sub-commands for each aspect of a column change:
 	 *   ALTER TABLE t ALTER COLUMN col TYPE new_type [USING expr];
+	 *   ALTER TABLE t ALTER COLUMN col SET NOT NULL | DROP NOT NULL;
+	 *   ALTER TABLE t ALTER COLUMN col SET DEFAULT val | DROP DEFAULT;
+	 *
+	 * Each sub-command is emitted only when the relevant aspect actually changed
+	 * (type, nullability, or default).  The sub-commands are joined with newlines.
 	 *
 	 * When converting TEXT/VARCHAR or TEXT-stored JSON to JSONB, a
-	 * USING to_jsonb(col::text) clause is appended automatically.
+	 * USING to_jsonb(col::text) clause is appended to the TYPE sub-command.
 	 */
 	#[Override]
 	protected function getColumnTypeChangedString(ColumnTypeChanged $action): string
 	{
-		$new_column        = $action->getNewColumn();
-		$old_column        = $action->getOldColumn();
-		$table_name        = $action->getTable()->getFullName();
-		$new_base          = $new_column->getType()->getBaseType();
-		$old_base          = $old_column->getType()->getBaseType();
-		$col_quoted        = $this->quoteIdentifier($new_column->getFullName());
-		$column_definition = $this->getColumnDefinitionString($new_column);
-		$sql               = 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' ALTER COLUMN ' . $column_definition;
+		$new_column = $action->getNewColumn();
+		$old_column = $action->getOldColumn();
+		$table_name = $action->getTable()->getFullName();
+		$new_base   = $new_column->getType()->getBaseType();
+		$old_base   = $old_column->getType()->getBaseType();
+		$t_quoted   = $this->quoteIdentifier($table_name);
+		$col_quoted = $this->quoteIdentifier($new_column->getFullName());
+		$statements = [];
+
+		// 1. TYPE sub-command
+		$type_expr = $this->extractPostgresTypeExpression($new_column);
+		$type_sql  = 'ALTER TABLE ' . $t_quoted . ' ALTER COLUMN ' . $col_quoted . ' TYPE ' . $type_expr;
 
 		// PostgreSQL cannot implicitly cast TEXT/VARCHAR or TEXT-stored JSON to JSONB;
-		// emit a USING to_jsonb(col::text) clause in that case.
+		// use a direct ::jsonb cast to parse the stored text as JSON.
+		// This preserves the JSON structure (object stays object, array stays array)
+		// and validates the content (throws if the stored text is not valid JSON).
 		if (
 			$new_base instanceof TypeJson
 			&& $new_base->isNativeJson()
@@ -383,10 +395,34 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 				|| ($old_base instanceof TypeJson && !$old_base->isNativeJson())
 			)
 		) {
-			$sql .= ' USING to_jsonb(' . $col_quoted . '::text)';
+			$type_sql .= ' USING ' . $col_quoted . '::jsonb';
 		}
 
-		return $sql . ';';
+		$statements[] = $type_sql . ';';
+
+		// 2. Nullability sub-command (only when it changed)
+		$old_nullable = $old_base->isNullable();
+		$new_nullable = $new_base->isNullable();
+
+		if ($old_nullable !== $new_nullable) {
+			$statements[] = $new_nullable
+				? 'ALTER TABLE ' . $t_quoted . ' ALTER COLUMN ' . $col_quoted . ' DROP NOT NULL;'
+				: 'ALTER TABLE ' . $t_quoted . ' ALTER COLUMN ' . $col_quoted . ' SET NOT NULL;';
+		}
+
+		// 3. DEFAULT sub-command (only when it changed)
+		$old_default = $this->getColumnDefaultChunk($old_column);
+		$new_default = $this->getColumnDefaultChunk($new_column);
+
+		if ($new_default !== $old_default) {
+			if (null !== $new_default) {
+				$statements[] = 'ALTER TABLE ' . $t_quoted . ' ALTER COLUMN ' . $col_quoted . ' SET ' . $new_default . ';';
+			} else {
+				$statements[] = 'ALTER TABLE ' . $t_quoted . ' ALTER COLUMN ' . $col_quoted . ' DROP DEFAULT;';
+			}
+		}
+
+		return \implode("\n", $statements);
 	}
 
 	#[Override]
@@ -645,6 +681,72 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		$columns = empty($opts['columns']) ? ['*'] : $opts['columns'];
 
 		return ' RETURNING ' . \implode(', ', $columns);
+	}
+
+	/**
+	 * Extracts the SQL type expression for use in a PostgreSQL ALTER COLUMN TYPE clause.
+	 *
+	 * Strips the quoted column name and all constraints (NOT NULL, NULL, DEFAULT) from
+	 * the full column definition string.  For auto-incremented columns (serial / bigserial),
+	 * the underlying integer type (integer / bigint) is returned because serial and bigserial
+	 * are pseudo-types not accepted by the TYPE clause in ALTER COLUMN.
+	 *
+	 * @param Column $column
+	 *
+	 * @return string e.g. 'bigint', 'varchar(20)', 'jsonb', 'boolean', 'integer'
+	 */
+	private function extractPostgresTypeExpression(Column $column): string
+	{
+		$base = $column->getType()->getBaseType();
+
+		// serial/bigserial are pseudo-types; ALTER COLUMN TYPE requires real type names.
+		if ($base->isAutoIncremented()) {
+			return TypeBigint::NAME === $base->getName() ? 'bigint' : 'integer';
+		}
+
+		$full_def   = $this->getColumnDefinitionString($column);
+		$col_quoted = $this->quoteIdentifier($column->getFullName());
+		$prefix     = $col_quoted . ' ';
+
+		$rest = \str_starts_with($full_def, $prefix)
+			? \substr($full_def, \strlen($prefix))
+			: $full_def;
+
+		// Type expression ends just before the first constraint keyword.
+		// PostgreSQL type names never contain these patterns as substrings.
+		foreach ([' NOT NULL', ' NULL', ' DEFAULT'] as $marker) {
+			$pos = \strpos($rest, $marker);
+
+			if (false !== $pos) {
+				return \substr($rest, 0, $pos);
+			}
+		}
+
+		return $rest;
+	}
+
+	/**
+	 * Returns the DEFAULT clause fragment for a column, or null if there is none.
+	 *
+	 * Delegates to defaultAndNullChunks() and picks the first part starting with
+	 * "DEFAULT ".  Returns null when there is no default for the column.
+	 *
+	 * @param Column $column
+	 *
+	 * @return null|string e.g. "DEFAULT '{}'" or "DEFAULT NULL" or null
+	 */
+	private function getColumnDefaultChunk(Column $column): ?string
+	{
+		$parts = [];
+		$this->defaultAndNullChunks($column, $parts);
+
+		foreach ($parts as $part) {
+			if (\str_starts_with((string) $part, 'DEFAULT ')) {
+				return (string) $part;
+			}
+		}
+
+		return null;
 	}
 
 	/**
