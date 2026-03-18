@@ -62,7 +62,7 @@ $db->ns('App\Db')->table('users', function (TableBuilder $t) {
 });
 ```
 
-`TableBuilder` fluent column methods: `id()`, `int()`, `bigint()`, `string()`, `bool()`, `float()`, `decimal()`, `date()`, `enum()`, `json()`, `list()`, `map()`, `timestamp()`, `timestamps()`, `softDeletable()`, `morph()`, `foreign()`, `sameAs()`, `unique()`, `primary()`, `index()`.
+`TableBuilder` fluent column methods: `id()`, `int()`, `bigint()`, `string()`, `bool()`, `float()`, `decimal()`, `date()`, `enum()`, `json()`, `jsonOf()`, `list()`, `listOf()`, `map()`, `mapOf()`, `timestamp()`, `timestamps()`, `softDeletable()`, `morph()`, `foreign()`, `sameAs()`, `unique()`, `primary()`, `index()`.
 Relation methods: `hasMany()`, `hasOne()`, `belongsTo()`, `belongsToMany()`.
 
 Rules:
@@ -73,6 +73,7 @@ Rules:
 - Column/relation names forbidden: `save`, `saved`, `is_saved`, `new`, `is_new`, `table`, `crud`, `qb`, `ctrl`, `results`
 - Supported types (SQL standard only, no vendor-specific): `bigint`, `int`, `bool`, `string`, `decimal`, `float`, `date`, `enum`, `json`, `list`, `map`
 - `json`, `list`, and `map` columns use native JSON storage by default (`native_json=true`): MySQL JSON / PostgreSQL JSONB. Use `->nativeJson(false)` or `'native_json' => false` in the array schema to opt out and store as TEXT.
+- `json` supports `json_of` option / `->jsonOf($class)` for revival of a single value; `list` supports `list_of` / `->listOf($class)` for per-element revival; `map` supports `map_of` / `->mapOf($class)` for per-value revival. All three accept either a FQCN implementing `JsonOfInterface` (runtime revival) or an `ORMUniversalType` enum name (hint-only, no revival).
 
 ## ORM Namespace Registration and Generation
 

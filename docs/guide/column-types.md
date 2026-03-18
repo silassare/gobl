@@ -185,10 +185,11 @@ Returns a formatted string or raw timestamp in PHP.
 
 Stores an associative array (JSON object) in the database. Returns a `Map` wrapper in PHP.
 
-| Option        | Type   | Default | Description                                                                                                               |
-| ------------- | ------ | ------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `native_json` | `bool` | `true`  | Use the native `JSON` column type (MySQL >= 5.7, PostgreSQL). Enables JSON path operators (contains, has_key) in filters. |
-| `big`         | `bool` | `false` | When `native_json=false`: use `MEDIUMTEXT` in MySQL for larger JSON documents.                                            |
+| Option        | Type     | Default  | Description                                                                                                                                                                     |
+| ------------- | -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `native_json` | `bool`   | `true`   | Use the native `JSON` column type (MySQL >= 5.7, PostgreSQL). Enables JSON path operators (contains, has_key) in filters.                                                       |
+| `big`         | `bool`   | `false`  | When `native_json=false`: use `MEDIUMTEXT` in MySQL for larger JSON documents.                                                                                                  |
+| `map_of`      | `string` | _(none)_ | FQCN implementing `JsonOfInterface` - each map value is revived via `::revive()` on read. Or an `ORMUniversalType` enum name (e.g. `'STRING'`) for code-gen value type hints. |
 
 > **Fluent builder default:** `$t->map('col')` uses `native_json=true` by default.
 > Use `$t->map('col', false)` or `->nativeJson(false)` to opt out and store as TEXT.
@@ -198,7 +199,29 @@ Stores an associative array (JSON object) in the database. Returns a `Map` wrapp
 ```php
 'user_meta'     => ['type' => 'map', 'default' => [], 'nullable' => true]
 'user_settings' => ['type' => 'map', 'native_json' => true]
+'user_scores'   => ['type' => 'map', 'map_of' => MyScore::class]  // values revived as MyScore
+'user_ratings'  => ['type' => 'map', 'map_of' => 'INT']           // int values, typed in PHP/TS/Dart
 ```
+
+```php
+// Fluent builder shorthand
+$t->map('settings');                               // native JSON, no value type constraint
+$t->mapOf('scores', MyScore::class);               // native JSON, values typed as MyScore
+$t->mapOf('ratings', ORMUniversalType::INT);       // native JSON, int values -> array<string,int> / Record<string,number> / Map<String,num>
+$t->map('scores')->mapOf(ORMUniversalType::INT);   // same, long form
+```
+
+The `map_of` universal type propagates to all three code generators:
+
+| `map_of` value       | PHP                      | TypeScript                | Dart                    |
+| -------------------- | ------------------------ | ------------------------- | ----------------------- |
+| _(none)_             | `array<string,mixed>`    | `Record<string, unknown>` | `Map<String, dynamic>`  |
+| `'STRING'`           | `array<string,string>`   | `Record<string, string>`  | `Map<String, String>`   |
+| `'INT'`              | `array<string,int>`      | `Record<string, number>`  | `Map<String, num>`      |
+| `'BOOL'`             | `array<string,bool>`     | `Record<string, boolean>` | `Map<String, bool>`     |
+| `MyClass::class`     | `array<string,\MyClass>` | `Record<string, unknown>` | `Map<String, dynamic>`  |
+
+````
 
 ---
 
@@ -221,6 +244,13 @@ Returns `array` in PHP.
 ```php
 'user_tags' => ['type' => 'list', 'default' => [], 'nullable' => true]
 'items'     => ['type' => 'list', 'list_of' => MyItem::class]  // elements revived as MyItem
+````
+
+```php
+// Fluent builder shorthand
+$t->list('tags');                                  // native JSON, no element type constraint
+$t->listOf('items', MyItem::class);                // native JSON, elements typed as MyItem
+$t->list('ids')->listOf(ORMUniversalType::BIGINT);  // native JSON, elements type-hinted as bigint
 ```
 
 ---

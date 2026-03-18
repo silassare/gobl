@@ -23,33 +23,13 @@ extension=pdo_mysql
 ```
 
 ```ini [PostgreSQL]
+; php.ini
 extension=pdo_pgsql
 ```
 
 ```ini [SQLite]
+; php.ini
 extension=pdo_sqlite
-```
-
-:::
-
-## Optional: phpDocumentor (API reference)
-
-To generate the auto-linked API reference locally:
-
-```bash
-composer require --dev phpdocumentor/phpdocumentor
-```
-
-Then run:
-
-```bash
-vendor/bin/phpdoc run           # outputs to docs/api/
-```
-
-Or use the provided shortcut:
-
-```bash
-make docs-api
 ```
 
 ## Project structure after install
@@ -62,7 +42,3 @@ your-project/
 └── src/
     └── Db/             <- generated entity classes will go here
 ```
-
-## Next step
-
--> [Quick Start](/guide/quick-start)
