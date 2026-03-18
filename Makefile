@@ -22,7 +22,7 @@ docs-api: $(PHPDOC_PHAR)
 	php $(PHPDOC_PHAR) run --config phpdoc.xml
 
 ## Build complete docs site (API ref + VitePress static output)
-docs-build: docs-api
+docs-build: cs-fix lint docs-api
 	@echo "Building VitePress site..."
 	cd docs && pnpm run build
 
@@ -60,7 +60,11 @@ cs:
 
 ## Fix code style automatically
 cs-fix:
-	vendor/bin/php-cs-fixer fix
+	vendor/bin/oliup-cs fix
+
+## Lint with Psalm (static analysis) without using cache
+lint:
+	vendor/bin/psalm --no-cache
 
 # = Help
 
