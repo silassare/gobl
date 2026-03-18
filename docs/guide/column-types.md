@@ -185,10 +185,15 @@ Returns a formatted string or raw timestamp in PHP.
 
 Stores an associative array (JSON object) in the database. Returns a `Map` wrapper in PHP.
 
-| Option        | Type   | Default | Description                                                                                        |
-| ------------- | ------ | ------- | -------------------------------------------------------------------------------------------------- |
-| `native_json` | `bool` | `false` | Use the native `JSON` column type (MySQL >= 5.7, PostgreSQL). Also enables `JSON_CONTAINS` filter. |
-| `big`         | `bool` | `false` | Hint: use `MEDIUMTEXT` in MySQL when `native_json=false`                                           |
+| Option        | Type   | Default | Description                                                                                                               |
+| ------------- | ------ | ------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `native_json` | `bool` | `true`  | Use the native `JSON` column type (MySQL >= 5.7, PostgreSQL). Enables JSON path operators (contains, has_key) in filters. |
+| `big`         | `bool` | `false` | When `native_json=false`: use `MEDIUMTEXT` in MySQL for larger JSON documents.                                            |
+
+> **Fluent builder default:** `$t->map('col')` uses `native_json=true` by default.
+> Use `$t->map('col', false)` or `->nativeJson(false)` to opt out and store as TEXT.
+>
+> **Array schema default:** `native_json` defaults to `true` as well. Use `'native_json' => false` to opt out.
 
 ```php
 'user_meta'     => ['type' => 'map', 'default' => [], 'nullable' => true]
@@ -204,9 +209,14 @@ Returns `array` in PHP.
 
 | Option        | Type     | Default  | Description                                                                                                                                                                   |
 | ------------- | -------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `native_json` | `bool`   | `false`  | Use native `JSON` column type. Also enables `JSON_CONTAINS` filter.                                                                                                           |
-| `big`         | `bool`   | `false`  | Hint: use `MEDIUMTEXT` in MySQL when `native_json=false`                                                                                                                      |
+| `native_json` | `bool`   | `true`   | Use native `JSON` column type (MySQL >= 5.7, PostgreSQL). Enables JSON path operators (contains, has_key) in filters.                                                         |
+| `big`         | `bool`   | `false`  | When `native_json=false`: use `MEDIUMTEXT` in MySQL for larger JSON documents.                                                                                                |
 | `list_of`     | `string` | _(none)_ | FQCN implementing `JsonOfInterface` - each element is revived via `::revive()` on read. Or an `ORMUniversalType` enum name (e.g. `'STRING'`) for TS/Dart code-gen type hints. |
+
+> **Fluent builder default:** `$t->list('col')` uses `native_json=true` by default.
+> Use `$t->list('col', false)` or `->nativeJson(false)` to opt out and store as TEXT.
+>
+> **Array schema default:** `native_json` defaults to `true` as well. Use `'native_json' => false` to opt out.
 
 ```php
 'user_tags' => ['type' => 'list', 'default' => [], 'nullable' => true]
@@ -223,9 +233,14 @@ When `json_of` is set, shape or type constraints are applied (see option table).
 
 | Option        | Type     | Default  | Description                                                                                                                                                                                                                                                                                     |
 | ------------- | -------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `native_json` | `bool`   | `false`  | Use native `JSON` column type                                                                                                                                                                                                                                                                   |
-| `big`         | `bool`   | `false`  | Hint: use `MEDIUMTEXT` in MySQL                                                                                                                                                                                                                                                                 |
+| `native_json` | `bool`   | `true`   | Use native `JSON` column type (MySQL >= 5.7, PostgreSQL). Enables JSON path operators in filters.                                                                                                                                                                                               |
+| `big`         | `bool`   | `false`  | When `native_json=false`: use `MEDIUMTEXT` in MySQL for larger JSON documents.                                                                                                                                                                                                                  |
 | `json_of`     | `string` | _(none)_ | FQCN implementing `JsonOfInterface` - decoded value is revived via `MyClass::revive($decoded)` on read. Or an `ORMUniversalType` enum name (e.g. `'MAP'`, `'LIST'`) for shape enforcement + code-generation hint: `LIST` accepts only sequential arrays, `MAP` only associative arrays/objects. |
+
+> **Fluent builder default:** `$t->json('col')` uses `native_json=true` by default.
+> Use `$t->json('col', false)` or `->nativeJson(false)` to opt out and store as TEXT.
+>
+> **Array schema default:** `native_json` defaults to `true` as well. Use `'native_json' => false` to opt out.
 
 ```php
 'raw_payload' => ['type' => 'json', 'nullable' => true]

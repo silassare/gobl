@@ -72,6 +72,7 @@ Rules:
 - `ref:table.column` inherits type (shared instance); `cp:table.column` copies/clones the type independently
 - Column/relation names forbidden: `save`, `saved`, `is_saved`, `new`, `is_new`, `table`, `crud`, `qb`, `ctrl`, `results`
 - Supported types (SQL standard only, no vendor-specific): `bigint`, `int`, `bool`, `string`, `decimal`, `float`, `date`, `enum`, `json`, `list`, `map`
+- `json`, `list`, and `map` columns use native JSON storage by default (`native_json=true`): MySQL JSON / PostgreSQL JSONB. Use `->nativeJson(false)` or `'native_json' => false` in the array schema to opt out and store as TEXT.
 
 ## ORM Namespace Registration and Generation
 
@@ -383,3 +384,14 @@ Live DB tests require `.env.test` (see `.env.test.example`). `./run_test` cleans
 - `ForeignKeyAction` enum values are **lowercase** (e.g., `ForeignKeyAction::CASCADE->value === 'cascade'`).
 - `Constraint::assertNotLocked()` throws `DBALException` (overrides the `LockTrait` default). `Table` and other `LockTrait` users throw `PHPUtils\Exceptions\RuntimeException`.
 - `Index::addColumn()` for a nonexistent column throws `DBALRuntimeException` (via `Table::getColumnOrFail()`), not `DBALException`.
+
+## Live DB Test Pattern
+
+Tests that require a real database connection MUST follow the `ORMLiveTestCase` pattern:
+
+- **Abstract base class** (e.g. `NativeJsonMigrationTestCase`) contains all test methods, shared static `$db` / `$setupFailed` properties, `setUpBeforeClass()`, `tearDownAfterClass()`, and `setUp()`.
+- `setUpBeforeClass()`: call `static::getNewDbInstance(static::getDriverName())`, catch `Throwable`, set `$setupFailed = true` on failure.
+- `setUp()`: call `self::markTestSkipped(...)` when `$setupFailed || null === static::$db`.
+- **Concrete final subclasses** (one per driver) only implement `getDriverName(): string`, e.g. `NativeJsonMigrationMySQLTest`, `NativeJsonMigrationPostgreSQLTest`.
+- Reference implementation: [tests/ORM/LiveDB/ORMLiveTestCase.php](../tests/ORM/LiveDB/ORMLiveTestCase.php) and [tests/ORM/LiveDB/ORMMySQLLiveTest.php](../tests/ORM/LiveDB/ORMMySQLLiveTest.php).
+- **Do NOT** use `@dataProvider` with `driversForNativeJson()` or hand-roll per-test teardown loops over all drivers. Use one class per driver.

@@ -874,7 +874,7 @@
 			"type": "object",
 			"required": ["type"],
 			"additionalProperties": false,
-			"description": "JSON object column (key-value map). Stored as TEXT or native JSON. Use 'native_json: true' to enable JSON path operators (contains, has_key) in filters. Maps to PHP associative arrays on read.",
+			"description": "JSON object column (key-value map). Stored as native JSON by default (MySQL JSON, PostgreSQL JSONB). Set native_json: false to store as TEXT instead. Enables JSON path operators (contains, has_key) in filters. Maps to PHP associative arrays on read.",
 			"properties": {
 				"type": {
 					"const": "map",
@@ -883,8 +883,8 @@
 				},
 				"native_json": {
 					"type": "boolean",
-					"description": "Use the database's native JSON column type (MySQL JSON, PostgreSQL JSONB) instead of TEXT. Enables JSON path operators (contains, has_key) in filters.",
-					"default": false
+					"description": "Use the database's native JSON column type (MySQL JSON, PostgreSQL JSONB) instead of TEXT. Default: true. Set to false to store as TEXT (e.g. for backward-compatibility or when migrating existing TEXT columns).",
+					"default": true
 				},
 				"big": {
 					"type": "boolean",
@@ -945,7 +945,7 @@
 			"type": "object",
 			"required": ["type"],
 			"additionalProperties": false,
-			"description": "JSON array column (ordered list). Stored as TEXT or native JSON. Use 'native_json: true' to enable JSON path operators in filters. Use 'list_of' for typed code generation.",
+			"description": "JSON array column (ordered list). Stored as native JSON by default (MySQL JSON, PostgreSQL JSONB). Set native_json: false to store as TEXT instead. Enables JSON path operators in filters. Use 'list_of' for typed code generation.",
 			"properties": {
 				"type": {
 					"const": "list",
@@ -954,8 +954,8 @@
 				},
 				"native_json": {
 					"type": "boolean",
-					"description": "Use the database's native JSON column type (MySQL JSON, PostgreSQL JSONB) instead of TEXT. Enables JSON path operators (contains, has_key) in filters.",
-					"default": false
+					"description": "Use the database's native JSON column type (MySQL JSON, PostgreSQL JSONB) instead of TEXT. Default: true. Set to false to store as TEXT (e.g. for backward-compatibility or when migrating existing TEXT columns).",
+					"default": true
 				},
 				"big": {
 					"type": "boolean",
@@ -1030,7 +1030,7 @@
 			"type": "object",
 			"required": ["type"],
 			"additionalProperties": false,
-			"description": "Raw JSON document column (object or array root). Stored as TEXT or native JSON. Use 'native_json: true' for JSON path operators. Use 'json_of' for typed PHP objects or ORMUniversalType shape enforcement.",
+			"description": "Raw JSON document column (object or array root). Stored as native JSON by default (MySQL JSON, PostgreSQL JSONB). Set native_json: false to store as TEXT instead. Use 'json_of' for typed PHP objects or ORMUniversalType shape enforcement.",
 			"properties": {
 				"type": {
 					"const": "json",
@@ -1039,8 +1039,8 @@
 				},
 				"native_json": {
 					"type": "boolean",
-					"description": "Use the database's native JSON column type (MySQL JSON, PostgreSQL JSONB) instead of TEXT. Enables JSON path operators (contains, has_key) in filters.",
-					"default": false
+					"description": "Use the database's native JSON column type (MySQL JSON, PostgreSQL JSONB) instead of TEXT. Default: true. Set to false to store as TEXT (e.g. for backward-compatibility or when migrating existing TEXT columns).",
+					"default": true
 				},
 				"big": {
 					"type": "boolean",
