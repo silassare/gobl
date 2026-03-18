@@ -91,7 +91,9 @@ class TypeMap extends Type
 	}
 
 	/**
-	 * Enable native JSON column type in supporting RDBMS (MySQL >= 5.7, PostgreSQL).
+	 * Enable or disable the native JSON column type in supporting RDBMS (MySQL >= 5.7, PostgreSQL).
+	 *
+	 * Native JSON is the default. Pass `false` to opt out and store as TEXT.
 	 *
 	 * @param bool $native_json
 	 *
@@ -137,10 +139,10 @@ class TypeMap extends Type
 	/**
 	 * {@inheritDoc}
 	 *
-	 * Delegates to the base type (TypeJSON) so that JSON path operators
+	 * Delegates to the base type (TypeJson) so that JSON path operators
 	 * (EQ, NEQ, LIKE, NOT_LIKE with a path string as first arg, plus
 	 * CONTAINS and HAS_KEY including their path-aware variants) are handled
-	 * correctly by TypeJSON's path-aware implementation.
+	 * correctly by TypeJson's path-aware implementation.
 	 */
 	#[Override]
 	public function queryBuilderApplyFilter(ORMTableQuery $qb, Column $column, Operator $operator, array $args): void

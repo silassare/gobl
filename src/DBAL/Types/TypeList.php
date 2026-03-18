@@ -93,7 +93,9 @@ class TypeList extends Type
 	}
 
 	/**
-	 * Enable native JSON column type in supporting RDBMS (MySQL >= 5.7, PostgreSQL).
+	 * Enable or disable the native JSON column type in supporting RDBMS (MySQL >= 5.7, PostgreSQL).
+	 *
+	 * Native JSON is the default. Pass `false` to opt out and store as TEXT.
 	 *
 	 * @param bool $native_json
 	 *

@@ -190,10 +190,11 @@ class TypeJson extends BaseType
 	}
 
 	/**
-	 * Enable native JSON column type in supporting RDBMS (MySQL >= 5.7, PostgreSQL).
+	 * Enable or disable the native JSON column type in supporting RDBMS (MySQL >= 5.7, PostgreSQL).
 	 *
-	 * When disabled (the default) the column is stored as TEXT, which is compatible
-	 * with every RDBMS and maintains backward-compatibility with existing schemas.
+	 * Native JSON is the default. Pass `false` to opt out and store as TEXT,
+	 * which is compatible with every RDBMS and useful when migrating existing TEXT columns
+	 * to native JSON in a controlled migration step.
 	 *
 	 * @param bool $native_json
 	 *
@@ -219,11 +220,11 @@ class TypeJson extends BaseType
 	}
 
 	/**
-	 * Returns whether the column is configured to use the native JSON type (when supported by the RDBMS).
+	 * Returns whether the column is configured to use the native JSON type.
 	 */
 	public function isNativeJson(): bool
 	{
-		return $this->getOption('native_json', false);
+		return $this->getOption('native_json', true);
 	}
 
 	#[Override]
