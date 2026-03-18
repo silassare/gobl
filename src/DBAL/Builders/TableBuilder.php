@@ -318,6 +318,25 @@ final class TableBuilder
 	}
 
 	/**
+	 * Creates a new column of type map that is expected to hold values of a specific type/class.
+	 *
+	 * Shorthand for `$t->map('col')->mapOf($of)`.
+	 *
+	 * @param string                                         $column_name
+	 * @param class-string<JsonOfInterface>|ORMUniversalType $of
+	 * @param bool                                           $native      Whether to use a native JSON column type (MySQL >= 5.7, PostgreSQL)
+	 *                                                                    or a TEXT column with JSON serialization. (default: true)
+	 *
+	 * @return TypeMap
+	 *
+	 * @throws DBALException
+	 */
+	public function mapOf(string $column_name, ORMUniversalType|string $of, bool $native = true): TypeMap
+	{
+		return $this->map($column_name, $native)->mapOf($of);
+	}
+
+	/**
 	 * Creates a new column of type json.
 	 *
 	 * @param string $column_name

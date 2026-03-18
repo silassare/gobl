@@ -16,8 +16,10 @@ namespace Gobl\Tests\DBAL\Types\Utils;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\TypeJson;
 use Gobl\DBAL\Types\TypeList;
+use Gobl\DBAL\Types\TypeMap;
 use Gobl\DBAL\Types\Utils\JsonOfInterface;
 use Gobl\DBAL\Types\Utils\JsonPatch;
+use Gobl\DBAL\Types\Utils\Map;
 use Gobl\ORM\ORMUniversalType;
 use Gobl\Tests\BaseTestCase;
 use Gobl\Tests\Fixtures\SampleJsonOf;
@@ -367,5 +369,127 @@ final class JsonOfInterfaceTest extends BaseTestCase
 		self::assertInstanceOf(SampleJsonOf::class, $arr['item']);
 		self::assertSame('PatchTest', $arr['item']->name);
 		self::assertSame(77, $arr['item']->score);
+	}
+
+	// =========================================================================
+	// TypeMap with map_of class
+	// =========================================================================
+
+	public function testTypeMapMapOfClassValidatesValues(): void
+	{
+		$type   = (new TypeMap())->mapOf(SampleJsonOf::class);
+		$result = $type->validate([
+			'a' => ['name' => 'Alice', 'score' => 1],
+			'b' => ['name' => 'Bob', 'score' => 2],
+		])->getCleanValue();
+
+		self::assertInstanceOf(Map::class, $result);
+		self::assertInstanceOf(SampleJsonOf::class, $result->get('a'));
+		self::assertSame('Alice', $result->get('a')->name);
+		self::assertInstanceOf(SampleJsonOf::class, $result->get('b'));
+		self::assertSame('Bob', $result->get('b')->name);
+	}
+
+	public function testTypeMapMapOfClassAcceptsInstances(): void
+	{
+		$type   = (new TypeMap())->mapOf(SampleJsonOf::class);
+		$result = $type->validate(['x' => new SampleJsonOf('X', 9)])->getCleanValue();
+
+		self::assertInstanceOf(SampleJsonOf::class, $result->get('x'));
+		self::assertSame('X', $result->get('x')->name);
+	}
+
+	public function testTypeMapMapOfClassRejectsWrongValue(): void
+	{
+		$type = (new TypeMap())->mapOf(SampleJsonOf::class);
+
+		$this->expectException(TypesInvalidValueException::class);
+		$type->validate(['key' => 'not-an-array-or-instance'])->getCleanValue();
+	}
+
+	/**
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testTypeMapMapOfClassDbToPhpRevivesValues(string $driver): void
+	{
+		$db     = self::getNewDbInstance($driver);
+		$type   = (new TypeMap())->mapOf(SampleJsonOf::class);
+		$result = $type->dbToPhp('{"p":{"name":"P","score":3},"q":{"name":"Q","score":4}}', $db);
+
+		self::assertInstanceOf(Map::class, $result);
+		self::assertInstanceOf(SampleJsonOf::class, $result->get('p'));
+		self::assertSame('P', $result->get('p')->name);
+		self::assertInstanceOf(SampleJsonOf::class, $result->get('q'));
+		self::assertSame('Q', $result->get('q')->name);
+	}
+
+	/**
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testTypeMapMapOfClassPhpToDbRoundtrip(string $driver): void
+	{
+		$db    = self::getNewDbInstance($driver);
+		$type  = (new TypeMap())->mapOf(SampleJsonOf::class);
+		$input = [
+			'first'  => ['name' => 'Foo', 'score' => 10],
+			'second' => ['name' => 'Bar', 'score' => 20],
+		];
+
+		$encoded = $type->phpToDb($input, $db);
+		$result  = $type->dbToPhp($encoded, $db);
+
+		self::assertInstanceOf(Map::class, $result);
+		self::assertInstanceOf(SampleJsonOf::class, $result->get('first'));
+		self::assertSame('Foo', $result->get('first')->name);
+		self::assertInstanceOf(SampleJsonOf::class, $result->get('second'));
+		self::assertSame('Bar', $result->get('second')->name);
+	}
+
+	public function testTypeMapMapOfClassConfigureOption(): void
+	{
+		$type = TypeMap::getInstance(['map_of' => SampleJsonOf::class]);
+		self::assertSame(SampleJsonOf::class, $type->getMapOfClass());
+	}
+
+	public function testTypeMapMapOfClassGetterWithoutOption(): void
+	{
+		self::assertNull((new TypeMap())->getMapOfClass());
+	}
+
+	public function testTypeMapMapOfClassInvalidClassThrows(): void
+	{
+		$this->expectException(InvalidArgumentException::class);
+		$this->expectExceptionMessage('must implement');
+		(new TypeMap())->mapOf(stdClass::class);
+	}
+
+	public function testTypeMapMapOfClassReadTypeHint(): void
+	{
+		$hint = (new TypeMap())->mapOf(SampleJsonOf::class)->getReadTypeHint();
+		self::assertSame(SampleJsonOf::class, $hint->getMapOfClass());
+	}
+
+	public function testTypeMapMapOfUniversalTypeConfigureOption(): void
+	{
+		$type = TypeMap::getInstance(['map_of' => 'STRING']);
+		self::assertNull($type->getMapOfClass());
+		self::assertSame(ORMUniversalType::STRING, $type->getMapOfUniversalType());
+	}
+
+	public function testTypeMapMapOfUniversalTypeValidatesValues(): void
+	{
+		$type   = (new TypeMap())->mapOf(ORMUniversalType::STRING);
+		$result = $type->validate(['a' => 'hello', 'b' => 'world'])->getCleanValue();
+
+		self::assertInstanceOf(Map::class, $result);
+		self::assertSame('hello', $result->get('a'));
+	}
+
+	public function testTypeMapMapOfUniversalTypeRejectsWrongValue(): void
+	{
+		$type = (new TypeMap())->mapOf(ORMUniversalType::STRING);
+
+		$this->expectException(TypesInvalidValueException::class);
+		$type->validate(['a' => 42])->getCleanValue();
 	}
 }

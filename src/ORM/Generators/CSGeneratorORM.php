@@ -148,6 +148,17 @@ Time: {$date}";
 				continue;
 			}
 
+			if (ORMUniversalType::MAP === $type) {
+				$map_class = $type_hint->getMapOfClass();
+				$sub_type  = null !== $map_class
+					? '\\' . $map_class
+					: ($type_hint->getMapOfUniversalType())->toPHPType();
+
+				$php_types[] = 'array<string,' . $sub_type . '>';
+
+				continue;
+			}
+
 			$php_types[] = $type->toPHPType();
 		}
 

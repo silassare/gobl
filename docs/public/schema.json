@@ -874,7 +874,7 @@
 			"type": "object",
 			"required": ["type"],
 			"additionalProperties": false,
-			"description": "JSON object column (key-value map). Stored as native JSON by default (MySQL JSON, PostgreSQL JSONB). Set native_json: false to store as TEXT instead. Enables JSON path operators (contains, has_key) in filters. Maps to PHP associative arrays on read.",
+			"description": "JSON object column (key-value map). Stored as native JSON by default (MySQL JSON, PostgreSQL JSONB). Set native_json: false to store as TEXT instead. Enables JSON path operators (contains, has_key) in filters. Use 'map_of' for typed code generation and runtime revival of values.",
 			"properties": {
 				"type": {
 					"const": "map",
@@ -890,6 +890,20 @@
 					"type": "boolean",
 					"description": "When native_json is false, use MEDIUMTEXT (MySQL) or TEXT (PostgreSQL/SQLite) for larger JSON documents.",
 					"default": false
+				},
+				"map_of": {
+					"type": "string",
+					"description": "Value type hint for code generation and optional runtime revival. Use an ORMUniversalType value (case-insensitive: 'string', 'int', 'bigint', 'float', 'bool', 'decimal', 'list') for metadata only, or a FQCN implementing JsonOfInterface for typed revival (each map value is passed through ClassName::revive() on read).",
+					"examples": [
+						"string",
+						"int",
+						"bigint",
+						"float",
+						"bool",
+						"decimal",
+						"list",
+						"App\\Data\\Item"
+					]
 				},
 				"nullable": {
 					"type": "boolean",

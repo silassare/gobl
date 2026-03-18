@@ -119,6 +119,17 @@ class CSGeneratorTS extends CSGenerator
 				continue;
 			}
 
+			if (ORMUniversalType::MAP === $type) {
+				// map_of_class: TS can't import foreign PHP classes, fall back to Record<string, unknown>.
+				$element    = null !== $type_hint->getMapOfClass()
+					? 'unknown'
+					: $this->toTSType($type_hint->getMapOfUniversalType());
+
+				$ts_types[] = 'Record<string, ' . $element . '>';
+
+				continue;
+			}
+
 			$ts_types[] = $this->toTSType($type);
 		}
 

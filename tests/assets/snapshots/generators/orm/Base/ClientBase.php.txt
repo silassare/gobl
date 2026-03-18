@@ -13,7 +13,7 @@ use Gobl\Tests\Db\Client;
  * @property string $last_name Getter for column `clients.last_name`.
  * @property string $given_name Getter for column `clients.given_name`.
  * @property string $gender Getter for column `clients.gender`.
- * @property \Gobl\DBAL\Types\Utils\Map $data Getter for column `clients.data`.
+ * @property \Gobl\DBAL\Types\Utils\Map|array<string,mixed>|\Gobl\DBAL\Types\Utils\JsonPatch $data Getter for column `clients.data`.
  * @property string $created_at Getter for column `clients.created_at`.
  * @property string $updated_at Getter for column `clients.updated_at`.
  * @property bool $valid Getter for column `clients.valid`.
@@ -236,9 +236,9 @@ abstract class ClientBase extends \Gobl\ORM\ORMEntity
 	/**
 	 * Getter for column `clients.data`.
 	 * 
-	 * @return \Gobl\DBAL\Types\Utils\Map
+	 * @return \Gobl\DBAL\Types\Utils\Map|array<string,mixed>|\Gobl\DBAL\Types\Utils\JsonPatch
 	 */
-	public function getData(): \Gobl\DBAL\Types\Utils\Map
+	public function getData(): \Gobl\DBAL\Types\Utils\Map|array<string,mixed>|\Gobl\DBAL\Types\Utils\JsonPatch
 	{
 		return $this->data;
 	}
@@ -246,11 +246,11 @@ abstract class ClientBase extends \Gobl\ORM\ORMEntity
 	/**
 	 * Setter for column `clients.data`.
 	 * 
-	 * @param \Gobl\DBAL\Types\Utils\Map|array|\Gobl\DBAL\Types\Utils\JsonPatch $data
+	 * @param \Gobl\DBAL\Types\Utils\Map|array<string,mixed>|\Gobl\DBAL\Types\Utils\JsonPatch $data
 	 * 
 	 * @return static
 	 */
-	public function setData(\Gobl\DBAL\Types\Utils\Map|array|\Gobl\DBAL\Types\Utils\JsonPatch $data): static
+	public function setData(\Gobl\DBAL\Types\Utils\Map|array<string,mixed>|\Gobl\DBAL\Types\Utils\JsonPatch $data): static
 	{
 		$this->data = $data;
 

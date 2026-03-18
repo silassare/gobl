@@ -18,11 +18,13 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
+use Gobl\DBAL\Types\Utils\JsonOfInterface;
 use Gobl\DBAL\Types\Utils\JsonPatch;
 use Gobl\DBAL\Types\Utils\Map;
 use Gobl\ORM\ORMTableQuery;
 use Gobl\ORM\ORMTypeHint;
 use Gobl\ORM\ORMUniversalType;
+use InvalidArgumentException;
 use JsonException;
 use OLIUP\CG\PHPType;
 use Override;
@@ -60,6 +62,8 @@ class TypeMap extends Type
 	/**
 	 * {@inheritDoc}
 	 *
+	 * When `map_of` is a {@see JsonOfInterface} class, each map value is revived.
+	 *
 	 * @throws JsonException
 	 */
 	#[Override]
@@ -73,6 +77,12 @@ class TypeMap extends Type
 
 		if (!\is_array($v)) {
 			$v = [];
+		}
+
+		$class = $this->getMapOfClass();
+
+		if (null !== $class) {
+			$v = \array_map(static fn (mixed $item) => $class::revive($item), $v);
 		}
 
 		return new Map($v);
@@ -122,9 +132,89 @@ class TypeMap extends Type
 		return $this->setOption('big', $big);
 	}
 
+	/**
+	 * Sets the value type of the map for code generation type hints and runtime revival.
+	 *
+	 * Accepts either:
+	 *  - a scalar {@see ORMUniversalType} case (e.g. STRING, INT, BIGINT, FLOAT, BOOL) for
+	 *    hint-only metadata (no runtime coercion);
+	 *  - a FQCN implementing {@see JsonOfInterface} for typed revival: each value of the
+	 *    stored JSON object is passed through `ClassName::revive($value)` on read, and
+	 *    instances are JSON-encoded on write.
+	 *
+	 * Defaults to no type constraint when not set.
+	 *
+	 * @param class-string<JsonOfInterface>|ORMUniversalType $of Value type or revival class
+	 *
+	 * @return static
+	 */
+	public function mapOf(ORMUniversalType|string $of): static
+	{
+		if (\is_string($of)) {
+			if (!\is_a($of, JsonOfInterface::class, true)) {
+				throw new InvalidArgumentException(
+					\sprintf(
+						'map_of class "%s" must implement %s.',
+						$of,
+						JsonOfInterface::class
+					)
+				);
+			}
+
+			return $this->setOption('map_of', $of);
+		}
+
+		return $this->setOption('map_of', $of->value);
+	}
+
+	/**
+	 * Returns the revival class name set via `map_of`, or null if none (or if it is a universal type).
+	 *
+	 * @return null|class-string<JsonOfInterface>
+	 */
+	public function getMapOfClass(): ?string
+	{
+		$v = $this->getOption('map_of');
+
+		if (\is_string($v) && \is_a($v, JsonOfInterface::class, true)) {
+			/** @var class-string<JsonOfInterface> $v */
+			return $v;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the universal type hint set via `mapOf()`, or null if none (or if it is a revival class).
+	 *
+	 * @return null|ORMUniversalType
+	 */
+	public function getMapOfUniversalType(): ?ORMUniversalType
+	{
+		$v = $this->getOption('map_of');
+
+		if (\is_string($v) && !\is_a($v, JsonOfInterface::class, true)) {
+			return ORMUniversalType::tryFrom($v);
+		}
+
+		return null;
+	}
+
 	#[Override]
 	public function configure(array $options): static
 	{
+		if (isset($options['map_of'])) {
+			$raw = (string) $options['map_of'];
+			// Try as a universal type first (case-insensitive), then as a class name.
+			$of = ORMUniversalType::tryFrom(\strtoupper($raw));
+
+			if ($of) {
+				$this->mapOf($of);
+			} elseif (\is_a($raw, JsonOfInterface::class, true)) {
+				$this->mapOf($raw);
+			}
+		}
+
 		if (isset($options['native_json'])) {
 			$this->nativeJson((bool) $options['native_json']);
 		}
@@ -156,7 +246,15 @@ class TypeMap extends Type
 	#[Override]
 	public function getReadTypeHint(): ORMTypeHint
 	{
-		return ORMTypeHint::map();
+		$class = $this->getMapOfClass();
+
+		if (null !== $class) {
+			return ORMTypeHint::map()->setMapOfClass($class);
+		}
+
+		$of = $this->getMapOfUniversalType();
+
+		return ORMTypeHint::map($of)->setPHPType(new PHPType('\\' . Map::class, 'array<string,' . ($of && ORMUniversalType::UNKNOWN !== $of ? $of->toPHPType() : 'mixed') . '>', '\\' . JsonPatch::class));
 	}
 
 	/**
@@ -164,13 +262,26 @@ class TypeMap extends Type
 	 *
 	 * Accepts {@see Map}, array, or {@see JsonPatch}.
 	 * A {@see JsonPatch} instance is coerced to a {@see Map} inside {@see validate()}.
+	 * When `map_of` is set with a revival class, values in the array must be instances of
+	 * that class or plain arrays that can be passed through `ClassName::revive()`.
 	 */
 	#[Override]
 	public function getWriteTypeHint(): ORMTypeHint
 	{
-		return ORMTypeHint::map()
+		$class = $this->getMapOfClass();
+
+		if (null !== $class) {
+			return ORMTypeHint::map()->setMapOfClass($class)
+				->setPHPType(
+					new PHPType('\\' . Map::class, 'array<string,\\' . $class . '>', '\\' . JsonPatch::class)
+				);
+		}
+
+		$of = $this->getMapOfUniversalType();
+
+		return ORMTypeHint::map($of)
 			->setPHPType(
-				new PHPType('\\' . Map::class, 'array', '\\' . JsonPatch::class)
+				new PHPType('\\' . Map::class, 'array<string,' . ($of && ORMUniversalType::UNKNOWN !== $of ? $of->toPHPType() : 'mixed') . '>', '\\' . JsonPatch::class)
 			);
 	}
 
@@ -212,6 +323,9 @@ class TypeMap extends Type
 	/**
 	 * {@inheritDoc}
 	 *
+	 * When `map_of` is a {@see JsonOfInterface} class, each map value that is an array
+	 * is revived via `ClassName::revive($value)` before JSON-encoding.
+	 *
 	 * @throws TypesInvalidValueException
 	 */
 	#[Override]
@@ -239,6 +353,60 @@ class TypeMap extends Type
 				$subject->reject($this->msg('invalid_map_type'), $debug);
 
 				return;
+			}
+		}
+
+		$map_class = $this->getMapOfClass();
+
+		if (null !== $map_class && ($value instanceof Map || \is_array($value))) {
+			$raw = $value instanceof Map ? $value->getData() : $value;
+
+			try {
+				$revived = [];
+
+				foreach ($raw as $key => $item) {
+					if (\is_array($item)) {
+						$revived[(string) $key] = $map_class::revive($item);
+
+						continue;
+					}
+
+					if ($item instanceof $map_class) {
+						$revived[(string) $key] = $item;
+
+						continue;
+					}
+
+					throw new TypesInvalidValueException('Invalid map value type.', [
+						'value_item'    => $item,
+						'key'           => $key,
+						'expected_type' => $map_class,
+					] + $debug);
+				}
+
+				$value = $revived;
+			} catch (TypesInvalidValueException $e) {
+				$subject->reject($e);
+
+				return;
+			}
+		}
+
+		$of_u_type = $this->getMapOfUniversalType();
+
+		if (null !== $of_u_type && ($value instanceof Map || \is_array($value))) {
+			$raw = $value instanceof Map ? $value->getData() : $value;
+
+			foreach ($raw as $key => $item) {
+				if (!$of_u_type->isValidValue($item)) {
+					$subject->reject($this->msg('invalid_map_of_type'), $debug + [
+						'value_item'    => $item,
+						'key'           => $key,
+						'expected_type' => $of_u_type->value,
+					]);
+
+					return;
+				}
 			}
 		}
 

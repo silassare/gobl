@@ -127,6 +127,16 @@ class CSGeneratorDart extends CSGenerator
 				continue;
 			}
 
+			if (ORMUniversalType::MAP === $type) {
+				// map_of_class: Dart can't import foreign PHP classes, fall back to Map<String, dynamic>.
+				$element      = null !== $type_hint->getMapOfClass()
+					? 'dynamic'
+					: $this->toDartType($type_hint->getMapOfUniversalType());
+				$dart_types[] = 'Map<String, ' . $element . '>';
+
+				continue;
+			}
+
 			$dart_types[] = $this->toDartType($type);
 		}
 

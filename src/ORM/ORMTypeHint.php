@@ -34,6 +34,12 @@ final class ORMTypeHint
 	/** Revival class for typed list elements (implements JsonOfInterface). */
 	private ?string $list_of_class = null;
 
+	/** Revival class for typed map values (implements JsonOfInterface). */
+	private ?string $map_of_class = null;
+
+	/** Value type when this hint carries MAP - defaults to UNKNOWN. */
+	private ORMUniversalType $map_of_u_type = ORMUniversalType::UNKNOWN;
+
 	private ?PHPType $php_type = null;
 
 	/**
@@ -195,11 +201,16 @@ final class ORMTypeHint
 	/**
 	 * Creates map type hint instance.
 	 *
+	 * @param null|ORMUniversalType $of value type for the map (defaults to UNKNOWN)
+	 *
 	 * @return self
 	 */
-	public static function map(): self
+	public static function map(?ORMUniversalType $of = null): self
 	{
-		return new self(ORMUniversalType::MAP);
+		$hint                = new self(ORMUniversalType::MAP);
+		$hint->map_of_u_type = $of ?? ORMUniversalType::UNKNOWN;
+
+		return $hint;
 	}
 
 	/**
@@ -210,6 +221,16 @@ final class ORMTypeHint
 	public function getListOfUniversalType(): ORMUniversalType
 	{
 		return $this->list_of_u_type;
+	}
+
+	/**
+	 * Gets the universal type for the map value when this hint carries MAP.
+	 *
+	 * @return ORMUniversalType
+	 */
+	public function getMapOfUniversalType(): ORMUniversalType
+	{
+		return $this->map_of_u_type;
 	}
 
 	/**
@@ -235,6 +256,31 @@ final class ORMTypeHint
 	{
 		/** @var null|class-string<JsonOfInterface> $v */
 		return $this->list_of_class;
+	}
+
+	/**
+	 * Sets the revival class for typed MAP value hints.
+	 *
+	 * @param class-string<JsonOfInterface> $class
+	 *
+	 * @return $this
+	 */
+	public function setMapOfClass(string $class): static
+	{
+		$this->map_of_class = $class;
+
+		return $this;
+	}
+
+	/**
+	 * Gets the revival class for MAP value hints, or null if not set.
+	 *
+	 * @return null|class-string<JsonOfInterface>
+	 */
+	public function getMapOfClass(): ?string
+	{
+		/** @var null|class-string<JsonOfInterface> $v */
+		return $this->map_of_class;
 	}
 
 	/**
