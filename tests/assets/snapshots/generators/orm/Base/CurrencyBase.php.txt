@@ -11,7 +11,7 @@ use Gobl\Tests\Db\Currency;
  * @property string $code Getter for column `currencies.code`.
  * @property string $name Getter for column `currencies.name`.
  * @property string $symbol Getter for column `currencies.symbol`.
- * @property \Gobl\DBAL\Types\Utils\Map|array<string,mixed>|\Gobl\DBAL\Types\Utils\JsonPatch $data Getter for column `currencies.data`.
+ * @property \Gobl\DBAL\Types\Utils\Map|array|\Gobl\DBAL\Types\Utils\JsonPatch $data Getter for column `currencies.data`.
  * @property string $created_at Getter for column `currencies.created_at`.
  * @property string $updated_at Getter for column `currencies.updated_at`.
  * @property bool $valid Getter for column `currencies.valid`.
@@ -184,9 +184,9 @@ abstract class CurrencyBase extends \Gobl\ORM\ORMEntity
 	/**
 	 * Getter for column `currencies.data`.
 	 * 
-	 * @return \Gobl\DBAL\Types\Utils\Map|array<string,mixed>|\Gobl\DBAL\Types\Utils\JsonPatch
+	 * @return \Gobl\DBAL\Types\Utils\Map|array|\Gobl\DBAL\Types\Utils\JsonPatch
 	 */
-	public function getData(): \Gobl\DBAL\Types\Utils\Map|array<string,mixed>|\Gobl\DBAL\Types\Utils\JsonPatch
+	public function getData(): \Gobl\DBAL\Types\Utils\Map|array|\Gobl\DBAL\Types\Utils\JsonPatch
 	{
 		return $this->data;
 	}
@@ -194,11 +194,11 @@ abstract class CurrencyBase extends \Gobl\ORM\ORMEntity
 	/**
 	 * Setter for column `currencies.data`.
 	 * 
-	 * @param \Gobl\DBAL\Types\Utils\Map|array<string,mixed>|\Gobl\DBAL\Types\Utils\JsonPatch $data
+	 * @param \Gobl\DBAL\Types\Utils\Map|array|\Gobl\DBAL\Types\Utils\JsonPatch $data
 	 * 
 	 * @return static
 	 */
-	public function setData(\Gobl\DBAL\Types\Utils\Map|array<string,mixed>|\Gobl\DBAL\Types\Utils\JsonPatch $data): static
+	public function setData(\Gobl\DBAL\Types\Utils\Map|array|\Gobl\DBAL\Types\Utils\JsonPatch $data): static
 	{
 		$this->data = $data;
 
