@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/oliup-io/code-generator.git",
-                "reference": "a2c1841132ef54c5f755aaed7773a9ffee28f269"
+                "reference": "a0107a9071bb94d98c9993095d3eebb9923b394f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/oliup-io/code-generator/zipball/a2c1841132ef54c5f755aaed7773a9ffee28f269",
-                "reference": "a2c1841132ef54c5f755aaed7773a9ffee28f269",
+                "url": "https://api.github.com/repos/oliup-io/code-generator/zipball/a0107a9071bb94d98c9993095d3eebb9923b394f",
+                "reference": "a0107a9071bb94d98c9993095d3eebb9923b394f",
                 "shasum": ""
             },
             "require": {
@@ -66,7 +66,7 @@
                 "source": "https://github.com/oliup-io/code-generator/tree/main",
                 "issues": "https://github.com/oliup-io/code-generator/issues"
             },
-            "time": "2026-03-17T18:43:39+00:00"
+            "time": "2026-03-18T11:16:30+00:00"
         },
         {
             "name": "psr/http-message",
@@ -4208,12 +4208,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "7dc4159ecc83b1fbc5387558960cc1b2010c8272"
+                "reference": "115725b8a164450a2b24e0dee71bd5f0c5329fb4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/7dc4159ecc83b1fbc5387558960cc1b2010c8272",
-                "reference": "7dc4159ecc83b1fbc5387558960cc1b2010c8272",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/115725b8a164450a2b24e0dee71bd5f0c5329fb4",
+                "reference": "115725b8a164450a2b24e0dee71bd5f0c5329fb4",
                 "shasum": ""
             },
             "conflict": {
@@ -4261,6 +4261,7 @@
                 "athlon1600/php-proxy": "<=5.1",
                 "athlon1600/php-proxy-app": "<=3",
                 "athlon1600/youtube-downloader": "<=4",
+                "aureuserp/aureuserp": "<1.3.0.0-beta1",
                 "austintoddj/canvas": "<=3.4.2",
                 "auth0/auth0-php": ">=3.3,<8.18",
                 "auth0/login": "<7.20",
@@ -5136,7 +5137,7 @@
                 "wpcloud/wp-stateless": "<3.2",
                 "wpglobus/wpglobus": "<=1.9.6",
                 "wpmetabox/meta-box": "<5.11.2",
-                "wwbn/avideo": "<25",
+                "wwbn/avideo": "<=25",
                 "xataface/xataface": "<3",
                 "xpressengine/xpressengine": "<3.0.15",
                 "yab/quarx": "<2.4.5",
@@ -5234,7 +5235,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-03-17T17:25:24+00:00"
+            "time": "2026-03-17T20:14:21+00:00"
         },
         {
             "name": "sebastian/cli-parser",
