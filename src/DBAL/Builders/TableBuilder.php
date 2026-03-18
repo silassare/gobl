@@ -39,7 +39,9 @@ use Gobl\DBAL\Types\TypeJson;
 use Gobl\DBAL\Types\TypeList;
 use Gobl\DBAL\Types\TypeMap;
 use Gobl\DBAL\Types\TypeString;
+use Gobl\DBAL\Types\Utils\JsonOfInterface;
 use Gobl\DBAL\Types\Utils\Map;
+use Gobl\ORM\ORMUniversalType;
 use Throwable;
 
 /**
@@ -279,6 +281,25 @@ final class TableBuilder
 	}
 
 	/**
+	 * Creates a new column of type list that is expected to hold values of a specific type/class.
+	 *
+	 * Shorthand for `$t->list('col')->listOf($of)`.
+	 *
+	 * @param string                                         $column_name
+	 * @param class-string<JsonOfInterface>|ORMUniversalType $of
+	 * @param bool                                           $native      Whether to use a native JSON column type (MySQL >= 5.7, PostgreSQL)
+	 *                                                                    or a TEXT column with JSON serialization. (default: true)
+	 *
+	 * @return TypeList
+	 *
+	 * @throws DBALException
+	 */
+	public function listOf(string $column_name, ORMUniversalType|string $of, bool $native = true): TypeList
+	{
+		return $this->list($column_name, $native)->listOf($of);
+	}
+
+	/**
 	 * Creates a new column of type map.
 	 *
 	 * @param string $column_name
@@ -312,6 +333,25 @@ final class TableBuilder
 		$this->column($column_name, $type = new TypeJson());
 
 		return $type->nativeJson($native);
+	}
+
+	/**
+	 * Creates a new column of type json that is expected to hold values of a specific type/class.
+	 *
+	 * Shortcut for `$t->json('col')->jsonOf($of)`.
+	 *
+	 * @param string                                         $column_name
+	 * @param class-string<JsonOfInterface>|ORMUniversalType $of
+	 * @param bool                                           $native      Whether to use a native JSON column type (MySQL >= 5.7, PostgreSQL)
+	 *                                                                    or a TEXT column with JSON serialization. (default: true)
+	 *
+	 * @return TypeJson
+	 *
+	 * @throws DBALException
+	 */
+	public function jsonOf(string $column_name, ORMUniversalType|string $of, bool $native = true): TypeJson
+	{
+		return $this->json($column_name, $native)->jsonOf($of);
 	}
 
 	/**
