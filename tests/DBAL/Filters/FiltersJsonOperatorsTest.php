@@ -19,7 +19,7 @@ use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Filters\Filters;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Table;
-use Gobl\DBAL\Types\TypeJSON;
+use Gobl\DBAL\Types\TypeJson;
 use Gobl\Tests\BaseTestCase;
 use Gobl\Tests\DBAL\Types\Utils\JsonPathTest;
 use JsonSerializable;
@@ -28,17 +28,17 @@ use OLIUP\CG\PHPMethod;
 /**
  * Class FiltersJsonOperatorsTest.
  *
- * Unit tests for JSON-aware Filters/TypeJSON operations:
+ * Unit tests for JSON-aware Filters/TypeJson operations:
  * - Filters::add() CONTAINS right-operand auto-serialization (int, float, array, JsonSerializable)
  * - Filters::add() rejection of array/JsonSerializable on non-CONTAINS operators
  * - FiltersOperatorsHelpersTrait::contains() broadened signature
- * - TypeJSON::getAllowedFilterOperators() with native_json=true vs false
- * - TypeJSON::queryBuilderEnhanceFilterMethod() arg order: ($value, $path) for non-unary,
+ * - TypeJson::getAllowedFilterOperators() with native_json=true vs false
+ * - TypeJson::queryBuilderEnhanceFilterMethod() arg order: ($value, $path) for non-unary,
  *   ($path) for unary and HAS_KEY
  *
  * @covers \Gobl\DBAL\Filters\Filters
  * @covers \Gobl\DBAL\Filters\Traits\FiltersOperatorsHelpersTrait
- * @covers \Gobl\DBAL\Types\TypeJSON
+ * @covers \Gobl\DBAL\Types\TypeJson
  *
  * @internal
  */
@@ -195,13 +195,13 @@ final class FiltersJsonOperatorsTest extends BaseTestCase
 	}
 
 	// =========================================================================
-	// TypeJSON::getAllowedFilterOperators - native_json=true vs false
+	// TypeJson::getAllowedFilterOperators - native_json=true vs false
 	// =========================================================================
 
 	/** native_json=true: CONTAINS and HAS_KEY are included; EQ/LIKE also present. */
 	public function testNativeJsonTrueAllowedOperatorsIncludeJsonOps(): void
 	{
-		$type = (new TypeJSON())->nativeJson();
+		$type = new TypeJson();
 		$ops  = $type->getAllowedFilterOperators();
 
 		self::assertContains(Operator::CONTAINS, $ops, 'CONTAINS must be allowed when native_json=true');
@@ -210,10 +210,10 @@ final class FiltersJsonOperatorsTest extends BaseTestCase
 		self::assertContains(Operator::LIKE, $ops, 'LIKE must be allowed');
 	}
 
-	/** native_json=false (default): CONTAINS and HAS_KEY are excluded; EQ/LIKE still present. */
+	/** native_json=false (explicit opt-out): CONTAINS and HAS_KEY are excluded; EQ/LIKE still present. */
 	public function testNativeJsonFalseAllowedOperatorsExcludeJsonOps(): void
 	{
-		$type = new TypeJSON(); // native_json defaults to false
+		$type = (new TypeJson())->nativeJson(false); // explicit opt-out
 		$ops  = $type->getAllowedFilterOperators();
 
 		self::assertNotContains(Operator::CONTAINS, $ops, 'CONTAINS must not be allowed when native_json=false');
@@ -225,8 +225,8 @@ final class FiltersJsonOperatorsTest extends BaseTestCase
 	/** IS_NULL / IS_NOT_NULL only appear when the type is nullable. */
 	public function testNullableJsonTypeAllowsNullChecks(): void
 	{
-		$nullable     = (new TypeJSON())->nativeJson()->nullable();
-		$non_nullable = (new TypeJSON())->nativeJson();
+		$nullable     = (new TypeJson())->nullable();
+		$non_nullable = new TypeJson();
 
 		self::assertContains(Operator::IS_NULL, $nullable->getAllowedFilterOperators());
 		self::assertContains(Operator::IS_NOT_NULL, $nullable->getAllowedFilterOperators());
@@ -235,13 +235,13 @@ final class FiltersJsonOperatorsTest extends BaseTestCase
 	}
 
 	// =========================================================================
-	// TypeJSON::queryBuilderEnhanceFilterMethod - arg order
+	// TypeJson::queryBuilderEnhanceFilterMethod - arg order
 	// =========================================================================
 
 	/** native_json=false: enhance does nothing - no arguments are added to the method. */
 	public function testEnhanceNativeJsonFalseDoesNothing(): void
 	{
-		$type   = new TypeJSON(); // native_json=false
+		$type   = (new TypeJson())->nativeJson(false); // explicit opt-out
 		$method = new PHPMethod('testMethod');
 		$type->queryBuilderEnhanceFilterMethod($this->makeTable(), $this->makeDataColumn(), Operator::EQ, $method);
 
@@ -251,7 +251,7 @@ final class FiltersJsonOperatorsTest extends BaseTestCase
 	/** CONTAINS: ($value, $path=null) - value comes first, path is optional. */
 	public function testEnhanceContainsValueFirstPathSecondOptional(): void
 	{
-		$type   = (new TypeJSON())->nativeJson();
+		$type   = new TypeJson();
 		$method = new PHPMethod('testMethod');
 		$type->queryBuilderEnhanceFilterMethod($this->makeTable(), $this->makeDataColumn(), Operator::CONTAINS, $method);
 
@@ -266,7 +266,7 @@ final class FiltersJsonOperatorsTest extends BaseTestCase
 	/** EQ (non-unary): ($value, $path) - value first, then path. */
 	public function testEnhanceEqValueFirstPathSecond(): void
 	{
-		$type   = (new TypeJSON())->nativeJson();
+		$type   = new TypeJson();
 		$method = new PHPMethod('testMethod');
 		$type->queryBuilderEnhanceFilterMethod($this->makeTable(), $this->makeDataColumn(), Operator::EQ, $method);
 
@@ -279,7 +279,7 @@ final class FiltersJsonOperatorsTest extends BaseTestCase
 	/** NEQ (non-unary): ($value, $path) - value first, then path. */
 	public function testEnhanceNeqValueFirstPathSecond(): void
 	{
-		$type   = (new TypeJSON())->nativeJson();
+		$type   = new TypeJson();
 		$method = new PHPMethod('testMethod');
 		$type->queryBuilderEnhanceFilterMethod($this->makeTable(), $this->makeDataColumn(), Operator::NEQ, $method);
 
@@ -292,7 +292,7 @@ final class FiltersJsonOperatorsTest extends BaseTestCase
 	/** LIKE (non-unary): ($value: string, $path) - value first with string type. */
 	public function testEnhanceLikeValueFirstHasStringType(): void
 	{
-		$type   = (new TypeJSON())->nativeJson();
+		$type   = new TypeJson();
 		$method = new PHPMethod('testMethod');
 		$type->queryBuilderEnhanceFilterMethod($this->makeTable(), $this->makeDataColumn(), Operator::LIKE, $method);
 
@@ -306,7 +306,7 @@ final class FiltersJsonOperatorsTest extends BaseTestCase
 	/** NOT_LIKE (non-unary): ($value: string, $path) - value first with string type. */
 	public function testEnhanceNotLikeValueFirstHasStringType(): void
 	{
-		$type   = (new TypeJSON())->nativeJson();
+		$type   = new TypeJson();
 		$method = new PHPMethod('testMethod');
 		$type->queryBuilderEnhanceFilterMethod($this->makeTable(), $this->makeDataColumn(), Operator::NOT_LIKE, $method);
 
@@ -320,7 +320,7 @@ final class FiltersJsonOperatorsTest extends BaseTestCase
 	/** IS_NULL (unary): only ($path) - no value arg. */
 	public function testEnhanceIsNullOnlyPath(): void
 	{
-		$type   = (new TypeJSON())->nativeJson();
+		$type   = new TypeJson();
 		$method = new PHPMethod('testMethod');
 		$type->queryBuilderEnhanceFilterMethod($this->makeTable(), $this->makeDataColumn(), Operator::IS_NULL, $method);
 
@@ -332,7 +332,7 @@ final class FiltersJsonOperatorsTest extends BaseTestCase
 	/** IS_NOT_NULL (unary): only ($path) - no value arg. */
 	public function testEnhanceIsNotNullOnlyPath(): void
 	{
-		$type   = (new TypeJSON())->nativeJson();
+		$type   = new TypeJson();
 		$method = new PHPMethod('testMethod');
 		$type->queryBuilderEnhanceFilterMethod($this->makeTable(), $this->makeDataColumn(), Operator::IS_NOT_NULL, $method);
 
@@ -344,7 +344,7 @@ final class FiltersJsonOperatorsTest extends BaseTestCase
 	/** HAS_KEY (single path arg): only ($path). */
 	public function testEnhanceHasKeyOnlyPath(): void
 	{
-		$type   = (new TypeJSON())->nativeJson();
+		$type   = new TypeJson();
 		$method = new PHPMethod('testMethod');
 		$type->queryBuilderEnhanceFilterMethod($this->makeTable(), $this->makeDataColumn(), Operator::HAS_KEY, $method);
 

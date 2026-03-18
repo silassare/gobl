@@ -10,12 +10,12 @@
 DROP TABLE IF EXISTS "gObL_t" CASCADE;
 CREATE TABLE "gObL_t" (
 "t_id" bigserial,
-"t_data" text NOT NULL,
-"t_optional_extras" text NULL,
-"t_data_big" text NOT NULL,
-"t_list_big" text NOT NULL,
-"t_tags" text NOT NULL,
-"t_optional_items" text NULL,
+"t_data" jsonb NOT NULL DEFAULT '{}',
+"t_optional_extras" jsonb NULL DEFAULT NULL,
+"t_data_big" jsonb NOT NULL,
+"t_list_big" jsonb NOT NULL,
+"t_tags" jsonb NOT NULL DEFAULT '[]',
+"t_optional_items" jsonb NULL DEFAULT NULL,
 
 --
 -- Primary key constraints definition for table "gObL_t"

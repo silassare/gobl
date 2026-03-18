@@ -30,33 +30,35 @@ ALTER TABLE "gObL_currencies" RENAME COLUMN "ccy_updated_at" TO "currency_update
 -- column prefix changed from "ccy" to "currency"
 ALTER TABLE "gObL_currencies" RENAME COLUMN "ccy_valid" TO "currency_valid";
 -- column type changed
-ALTER TABLE "gObL_clients" ALTER COLUMN "client_id" serial;
+ALTER TABLE "gObL_clients" ALTER COLUMN "client_id" TYPE integer;
 -- column type changed
-ALTER TABLE "gObL_clients" ALTER COLUMN "client_data" text NOT NULL;
+ALTER TABLE "gObL_clients" ALTER COLUMN "client_updated_at" TYPE bigint;
+ALTER TABLE "gObL_clients" ALTER COLUMN "client_updated_at" DROP NOT NULL;
+ALTER TABLE "gObL_clients" ALTER COLUMN "client_updated_at" SET DEFAULT NULL;
 -- column type changed
-ALTER TABLE "gObL_clients" ALTER COLUMN "client_updated_at" bigint NULL DEFAULT NULL;
+ALTER TABLE "gObL_accounts" ALTER COLUMN "account_id" TYPE integer;
 -- column type changed
-ALTER TABLE "gObL_accounts" ALTER COLUMN "account_id" serial;
+ALTER TABLE "gObL_accounts" ALTER COLUMN "account_client_id" TYPE integer;
 -- column type changed
-ALTER TABLE "gObL_accounts" ALTER COLUMN "account_client_id" integer NOT NULL;
+ALTER TABLE "gObL_accounts" ALTER COLUMN "account_updated_at" TYPE bigint;
+ALTER TABLE "gObL_accounts" ALTER COLUMN "account_updated_at" DROP NOT NULL;
+ALTER TABLE "gObL_accounts" ALTER COLUMN "account_updated_at" SET DEFAULT NULL;
 -- column type changed
-ALTER TABLE "gObL_accounts" ALTER COLUMN "account_data" text NOT NULL;
+ALTER TABLE "gObL_currencies" ALTER COLUMN "currency_code" TYPE varchar(30);
 -- column type changed
-ALTER TABLE "gObL_accounts" ALTER COLUMN "account_updated_at" bigint NULL DEFAULT NULL;
+ALTER TABLE "gObL_currencies" ALTER COLUMN "currency_name" TYPE varchar(60);
 -- column type changed
-ALTER TABLE "gObL_currencies" ALTER COLUMN "currency_code" varchar(30) NOT NULL;
+ALTER TABLE "gObL_currencies" ALTER COLUMN "currency_symbol" TYPE varchar(6);
 -- column type changed
-ALTER TABLE "gObL_currencies" ALTER COLUMN "currency_name" varchar(60) NOT NULL;
+ALTER TABLE "gObL_currencies" ALTER COLUMN "currency_data" TYPE jsonb;
 -- column type changed
-ALTER TABLE "gObL_currencies" ALTER COLUMN "currency_symbol" varchar(6) NOT NULL;
+ALTER TABLE "gObL_currencies" ALTER COLUMN "currency_created_at" TYPE bigint;
 -- column type changed
-ALTER TABLE "gObL_currencies" ALTER COLUMN "currency_data" text NOT NULL;
+ALTER TABLE "gObL_currencies" ALTER COLUMN "currency_updated_at" TYPE bigint;
+ALTER TABLE "gObL_currencies" ALTER COLUMN "currency_updated_at" DROP NOT NULL;
+ALTER TABLE "gObL_currencies" ALTER COLUMN "currency_updated_at" SET DEFAULT NULL;
 -- column type changed
-ALTER TABLE "gObL_currencies" ALTER COLUMN "currency_created_at" bigint NOT NULL;
--- column type changed
-ALTER TABLE "gObL_currencies" ALTER COLUMN "currency_updated_at" bigint NULL DEFAULT NULL;
--- column type changed
-ALTER TABLE "gObL_currencies" ALTER COLUMN "currency_valid" boolean NOT NULL DEFAULT '1';
+ALTER TABLE "gObL_currencies" ALTER COLUMN "currency_valid" TYPE boolean;
 -- column added
 ALTER TABLE "gObL_clients" ADD "client_name" varchar(60) NOT NULL;
 -- table added
@@ -66,7 +68,7 @@ ALTER TABLE "gObL_clients" ADD "client_name" varchar(60) NOT NULL;
 DROP TABLE IF EXISTS "gObL_orders" CASCADE;
 CREATE TABLE "gObL_orders" (
 "order_id" serial,
-"order_data" text NOT NULL,
+"order_data" jsonb NOT NULL DEFAULT '{}',
 "order_created_at" bigint NOT NULL,
 "order_updated_at" bigint NULL DEFAULT NULL,
 "order_valid" boolean NOT NULL DEFAULT '1',
@@ -114,33 +116,35 @@ ALTER TABLE "gObL_currencies" RENAME COLUMN "currency_updated_at" TO "ccy_update
 -- column prefix changed from "currency" to "ccy"
 ALTER TABLE "gObL_currencies" RENAME COLUMN "currency_valid" TO "ccy_valid";
 -- column type changed
-ALTER TABLE "gObL_clients" ALTER COLUMN "client_id" bigserial;
+ALTER TABLE "gObL_clients" ALTER COLUMN "client_id" TYPE bigint;
 -- column type changed
-ALTER TABLE "gObL_clients" ALTER COLUMN "client_data" jsonb NOT NULL DEFAULT '{}' USING to_jsonb("client_data"::text);
+ALTER TABLE "gObL_clients" ALTER COLUMN "client_updated_at" TYPE bigint;
+ALTER TABLE "gObL_clients" ALTER COLUMN "client_updated_at" SET NOT NULL;
+ALTER TABLE "gObL_clients" ALTER COLUMN "client_updated_at" DROP DEFAULT;
 -- column type changed
-ALTER TABLE "gObL_clients" ALTER COLUMN "client_updated_at" bigint NOT NULL;
+ALTER TABLE "gObL_accounts" ALTER COLUMN "account_id" TYPE bigint;
 -- column type changed
-ALTER TABLE "gObL_accounts" ALTER COLUMN "account_id" bigserial;
+ALTER TABLE "gObL_accounts" ALTER COLUMN "account_client_id" TYPE bigint;
 -- column type changed
-ALTER TABLE "gObL_accounts" ALTER COLUMN "account_client_id" bigint NOT NULL;
+ALTER TABLE "gObL_accounts" ALTER COLUMN "account_updated_at" TYPE bigint;
+ALTER TABLE "gObL_accounts" ALTER COLUMN "account_updated_at" SET NOT NULL;
+ALTER TABLE "gObL_accounts" ALTER COLUMN "account_updated_at" DROP DEFAULT;
 -- column type changed
-ALTER TABLE "gObL_accounts" ALTER COLUMN "account_data" jsonb NOT NULL DEFAULT '{}' USING to_jsonb("account_data"::text);
+ALTER TABLE "gObL_currencies" ALTER COLUMN "ccy_code" TYPE varchar(30);
 -- column type changed
-ALTER TABLE "gObL_accounts" ALTER COLUMN "account_updated_at" bigint NOT NULL;
+ALTER TABLE "gObL_currencies" ALTER COLUMN "ccy_name" TYPE varchar(60);
 -- column type changed
-ALTER TABLE "gObL_currencies" ALTER COLUMN "ccy_code" varchar(30) NOT NULL;
+ALTER TABLE "gObL_currencies" ALTER COLUMN "ccy_symbol" TYPE varchar(6);
 -- column type changed
-ALTER TABLE "gObL_currencies" ALTER COLUMN "ccy_name" varchar(60) NOT NULL;
+ALTER TABLE "gObL_currencies" ALTER COLUMN "ccy_data" TYPE jsonb;
 -- column type changed
-ALTER TABLE "gObL_currencies" ALTER COLUMN "ccy_symbol" varchar(6) NOT NULL;
+ALTER TABLE "gObL_currencies" ALTER COLUMN "ccy_created_at" TYPE bigint;
 -- column type changed
-ALTER TABLE "gObL_currencies" ALTER COLUMN "ccy_data" jsonb NOT NULL DEFAULT '{}' USING to_jsonb("ccy_data"::text);
+ALTER TABLE "gObL_currencies" ALTER COLUMN "ccy_updated_at" TYPE bigint;
+ALTER TABLE "gObL_currencies" ALTER COLUMN "ccy_updated_at" SET NOT NULL;
+ALTER TABLE "gObL_currencies" ALTER COLUMN "ccy_updated_at" DROP DEFAULT;
 -- column type changed
-ALTER TABLE "gObL_currencies" ALTER COLUMN "ccy_created_at" bigint NOT NULL;
--- column type changed
-ALTER TABLE "gObL_currencies" ALTER COLUMN "ccy_updated_at" bigint NOT NULL;
--- column type changed
-ALTER TABLE "gObL_currencies" ALTER COLUMN "ccy_valid" boolean NOT NULL DEFAULT '1';
+ALTER TABLE "gObL_currencies" ALTER COLUMN "ccy_valid" TYPE boolean;
 -- column added
 ALTER TABLE "gObL_clients" ADD "client_first_name" varchar(60) NOT NULL;
 -- column added

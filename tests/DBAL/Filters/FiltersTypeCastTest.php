@@ -423,7 +423,7 @@ final class FiltersTypeCastTest extends BaseTestCase
 	// =========================================================================
 
 	/**
-	 * CONTAINS right-operand goes through TypeJSON::serializeJsonValue(), NOT phpToFilterValue.
+	 * CONTAINS right-operand goes through TypeJson::serializeJsonValue(), NOT phpToFilterValue.
 	 * Strings are passed through as-is (they are assumed to be pre-serialized JSON fragments;
 	 * use '"hello"' if the target is the JSON string "hello").
 	 */
@@ -433,7 +433,7 @@ final class FiltersTypeCastTest extends BaseTestCase
 		$db->ns('ContainsTest')->table('t', static function (TableBuilder $t) {
 			$t->columnPrefix('tc');
 			$t->id();
-			$t->map('data')->nativeJson();
+			$t->map('data');
 		});
 		$db->lock();
 
@@ -441,7 +441,7 @@ final class FiltersTypeCastTest extends BaseTestCase
 		$qb->from('t', 'x');
 
 		$filters = new Filters($qb);
-		// 'hello' is a plain string: TypeJSON::serializeJsonValue passes strings through unchanged.
+		// 'hello' is a plain string: TypeJson::serializeJsonValue passes strings through unchanged.
 		// If you want to match the JSON string "hello", pass '"hello"' (with quotes).
 		$filters->contains('tc_data', 'hello');
 

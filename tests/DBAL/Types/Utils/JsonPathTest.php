@@ -330,7 +330,7 @@ final class JsonPathTest extends BaseTestCase
 		$db->ns('GoblPathErr1')->table('t_err', static function (TableBuilder $t) {
 			$t->columnPrefix('te');
 			$t->id();
-			$t->map('data'); // no nativeJson()
+			$t->map('data')->nativeJson(false); // explicitly non-native JSON
 		});
 		$db->lock();
 
@@ -376,7 +376,7 @@ final class JsonPathTest extends BaseTestCase
 		$db->ns('GoblFiltersTest')->table('t_data', static function (TableBuilder $t) {
 			$t->columnPrefix('td');
 			$t->id();
-			$t->map('data')->nativeJson();
+			$t->map('data');
 		});
 		$db->lock();
 
@@ -408,7 +408,7 @@ final class JsonPathTest extends BaseTestCase
 		$db->ns($ns)->table('t_data', static function (TableBuilder $t) {
 			$t->columnPrefix('td');
 			$t->id();
-			$t->map('data')->nativeJson();
+			$t->map('data');
 		});
 		$db->lock();
 

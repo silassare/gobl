@@ -107,15 +107,11 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		-- column type changed
 		ALTER TABLE `gObL_clients` CHANGE `client_id` `client_id` int(11) unsigned NOT NULL AUTO_INCREMENT;
 		-- column type changed
-		ALTER TABLE `gObL_clients` CHANGE `client_data` `client_data` text NOT NULL;
-		-- column type changed
 		ALTER TABLE `gObL_clients` CHANGE `client_updated_at` `client_updated_at` bigint(20) NULL DEFAULT NULL;
 		-- column type changed
 		ALTER TABLE `gObL_accounts` CHANGE `account_id` `account_id` int(11) unsigned NOT NULL AUTO_INCREMENT;
 		-- column type changed
 		ALTER TABLE `gObL_accounts` CHANGE `account_client_id` `account_client_id` int(11) unsigned NOT NULL;
-		-- column type changed
-		ALTER TABLE `gObL_accounts` CHANGE `account_data` `account_data` text NOT NULL;
 		-- column type changed
 		ALTER TABLE `gObL_accounts` CHANGE `account_updated_at` `account_updated_at` bigint(20) NULL DEFAULT NULL;
 		-- column type changed
@@ -125,7 +121,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		-- column type changed
 		ALTER TABLE `gObL_currencies` CHANGE `currency_symbol` `currency_symbol` varchar(6) NOT NULL;
 		-- column type changed
-		ALTER TABLE `gObL_currencies` CHANGE `currency_data` `currency_data` text NOT NULL;
+		ALTER TABLE `gObL_currencies` CHANGE `currency_data` `currency_data` json NOT NULL DEFAULT ('{}');
 		-- column type changed
 		ALTER TABLE `gObL_currencies` CHANGE `currency_created_at` `currency_created_at` bigint(20) NOT NULL;
 		-- column type changed
@@ -141,7 +137,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		DROP TABLE IF EXISTS `gObL_orders`;
 		CREATE TABLE `gObL_orders` (
 		`order_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-		`order_data` text NOT NULL,
+		`order_data` json NOT NULL DEFAULT ('{}'),
 		`order_created_at` bigint(20) NOT NULL,
 		`order_updated_at` bigint(20) NULL DEFAULT NULL,
 		`order_valid` tinyint(1) NOT NULL DEFAULT '1',
@@ -220,15 +216,11 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		-- column type changed
 		ALTER TABLE `gObL_clients` CHANGE `client_id` `client_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT;
 		-- column type changed
-		ALTER TABLE `gObL_clients` CHANGE `client_data` `client_data` json NOT NULL DEFAULT ('{}');
-		-- column type changed
 		ALTER TABLE `gObL_clients` CHANGE `client_updated_at` `client_updated_at` bigint(20) NOT NULL;
 		-- column type changed
 		ALTER TABLE `gObL_accounts` CHANGE `account_id` `account_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT;
 		-- column type changed
 		ALTER TABLE `gObL_accounts` CHANGE `account_client_id` `account_client_id` bigint(20) unsigned NOT NULL;
-		-- column type changed
-		ALTER TABLE `gObL_accounts` CHANGE `account_data` `account_data` json NOT NULL DEFAULT ('{}');
 		-- column type changed
 		ALTER TABLE `gObL_accounts` CHANGE `account_updated_at` `account_updated_at` bigint(20) NOT NULL;
 		-- column type changed

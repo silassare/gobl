@@ -204,7 +204,7 @@ final class DiffSnapshotTest extends BaseTestCase
 			$ns->table('docs', static function (TableBuilder $t) {
 				$t->columnPrefix('doc');
 				$t->id();
-				$t->json('payload')->nativeJson();   // string => native JSON (JSONB on PostgreSQL)
+				$t->json('payload');   // string => native JSON (JSONB on PostgreSQL, default)
 			});
 		});
 
@@ -226,7 +226,7 @@ final class DiffSnapshotTest extends BaseTestCase
 			$ns->table('docs', static function (TableBuilder $t) {
 				$t->columnPrefix('doc');
 				$t->id();
-				$t->json('payload');   // TEXT-stored JSON (native_json=false)
+				$t->json('payload')->nativeJson(false);   // explicitly TEXT-stored JSON (native_json=false)
 			});
 		});
 
@@ -234,7 +234,7 @@ final class DiffSnapshotTest extends BaseTestCase
 			$ns->table('docs', static function (TableBuilder $t) {
 				$t->columnPrefix('doc');
 				$t->id();
-				$t->json('payload')->nativeJson();   // TEXT-JSON => native JSON (JSONB on PostgreSQL)
+				$t->json('payload');   // TEXT-JSON => native JSON (JSONB on PostgreSQL)
 			});
 		});
 

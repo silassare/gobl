@@ -196,7 +196,7 @@ final class FilterOperandTest extends BaseTestCase
 			$t->id();
 			$t->string('code_a');
 			$t->string('code_b');
-			$t->map('meta')->nativeJson();
+			$t->map('meta');
 		});
 		$db->lock();
 

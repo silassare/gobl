@@ -21,12 +21,12 @@
 DROP TABLE IF EXISTS `gObL_t`;
 CREATE TABLE `gObL_t` (
 `t_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-`t_data` text NOT NULL,
-`t_optional_extras` text NULL,
-`t_data_big` mediumtext NOT NULL,
-`t_list_big` mediumtext NOT NULL,
-`t_tags` text NOT NULL,
-`t_optional_items` text NULL,
+`t_data` json NOT NULL DEFAULT ('{}'),
+`t_optional_extras` json NULL DEFAULT NULL,
+`t_data_big` json NOT NULL,
+`t_list_big` json NOT NULL,
+`t_tags` json NOT NULL DEFAULT ('[]'),
+`t_optional_items` json NULL DEFAULT NULL,
 
 --
 -- Primary key constraints definition for table `gObL_t`
