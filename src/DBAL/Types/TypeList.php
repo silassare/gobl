@@ -249,7 +249,9 @@ class TypeList extends Type
 
 		$of = $this->getListOfUniversalType();
 
-		return ORMTypeHint::list($of)->setPHPType(new PHPType('list<' . ($of ? ($of)->toPHPType() : 'mixed') . '>', '\\' . JsonPatch::class));
+		$element = ($of ? ($of)->toPHPType() : 'mixed');
+
+		return ORMTypeHint::list($of)->setPHPType(new PHPType('list<' . $element . '>'));
 	}
 
 	/**
@@ -267,12 +269,14 @@ class TypeList extends Type
 
 		if (null !== $class) {
 			return ORMTypeHint::list()->setListOfClass($class)
-				->setPHPType(new PHPType($class, 'array<\\' . $class . '>', '\\' . JsonPatch::class));
+				->setPHPType(new PHPType($class, '\\' . $class . '[]', '\\' . JsonPatch::class));
 		}
 
 		$of = $this->getListOfUniversalType();
 
-		return ORMTypeHint::list($of)->setPHPType(new PHPType('array<' . ($of ? ($of)->toPHPType() : 'mixed') . '>', '\\' . JsonPatch::class));
+		$element = ($of ? ($of)->toPHPType() : 'mixed');
+
+		return ORMTypeHint::list($of)->setPHPType(new PHPType($element . '[]', '\\' . JsonPatch::class));
 	}
 
 	/**

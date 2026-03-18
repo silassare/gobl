@@ -254,7 +254,9 @@ class TypeMap extends Type
 
 		$of = $this->getMapOfUniversalType();
 
-		return ORMTypeHint::map($of)->setPHPType(new PHPType('\\' . Map::class, 'array<string,' . ($of && ORMUniversalType::UNKNOWN !== $of ? $of->toPHPType() : 'mixed') . '>', '\\' . JsonPatch::class));
+		$element = ($of && ORMUniversalType::UNKNOWN !== $of ? $of->toPHPType() : 'mixed');
+
+		return ORMTypeHint::map($of)->setPHPType(new PHPType('\\' . Map::class . '<' . $element . '>'));
 	}
 
 	/**
@@ -273,15 +275,17 @@ class TypeMap extends Type
 		if (null !== $class) {
 			return ORMTypeHint::map()->setMapOfClass($class)
 				->setPHPType(
-					new PHPType('\\' . Map::class, 'array<string,\\' . $class . '>', '\\' . JsonPatch::class)
+					new PHPType('\\' . Map::class . '<\\' . $class . '>', 'array<string,\\' . $class . '>', '\\' . JsonPatch::class)
 				);
 		}
 
 		$of = $this->getMapOfUniversalType();
 
+		$element = ($of && ORMUniversalType::UNKNOWN !== $of ? $of->toPHPType() : 'mixed');
+
 		return ORMTypeHint::map($of)
 			->setPHPType(
-				new PHPType('\\' . Map::class, 'array<string,' . ($of && ORMUniversalType::UNKNOWN !== $of ? $of->toPHPType() : 'mixed') . '>', '\\' . JsonPatch::class)
+				new PHPType('\\' . Map::class . '<' . $element . '>', 'array<string,' . $element . '>', '\\' . JsonPatch::class)
 			);
 	}
 

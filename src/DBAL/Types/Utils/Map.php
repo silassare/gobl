@@ -13,14 +13,21 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Types\Utils;
 
+use ArrayAccess;
+use IteratorAggregate;
 use PHPUtils\Store\Store;
 
 /**
  * Class Map.
  *
- * @extends Store<array>
+ * @template TOf of mixed
+ *
+ * @extends Store<array<string, TOf>>
+ *
+ * @implements ArrayAccess<string, TOf>
+ * @implements IteratorAggregate<string, TOf>
  */
-class Map extends Store
+class Map extends Store implements ArrayAccess, IteratorAggregate
 {
 	/**
 	 * Map constructor.

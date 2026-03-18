@@ -74,12 +74,15 @@ enum ORMUniversalType: string
 
 	/**
 	 * Converts this universal type to a string representing the corresponding PHP type.
+	 *
+	 * The optional `$of` parameter is used for collection types (LIST, MAP) to specify the element type.
+	 * It is ignored for scalar types.
 	 */
-	public function toPHPType(): string
+	public function toPHPType(string $of = 'mixed'): string
 	{
 		return match ($this) {
-			ORMUniversalType::LIST              => 'list<mixed>',
-			ORMUniversalType::MAP               => '\\' . Map::class,
+			ORMUniversalType::LIST              => 'list<' . $of . '>',
+			ORMUniversalType::MAP               => '\\' . Map::class . '<' . $of . '>',
 			ORMUniversalType::DECIMAL, ORMUniversalType::STRING, ORMUniversalType::BIGINT => 'string',
 			ORMUniversalType::BOOL              => 'bool',
 			ORMUniversalType::FLOAT             => 'float',

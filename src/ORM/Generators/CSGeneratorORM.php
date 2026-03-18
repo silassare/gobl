@@ -23,6 +23,7 @@ use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\TypeJson;
 use Gobl\DBAL\Types\TypeList;
 use Gobl\DBAL\Types\Utils\JsonPatch;
+use Gobl\DBAL\Types\Utils\Map;
 use Gobl\Exceptions\GoblException;
 use Gobl\Gobl;
 use Gobl\ORM\Events\ORMTableFilesGenerated;
@@ -41,6 +42,7 @@ use OLIUP\CG\PHPClass;
 use OLIUP\CG\PHPFile;
 use OLIUP\CG\PHPMethod;
 use OLIUP\CG\PHPNamespace;
+use OLIUP\CG\PHPPrinter;
 use OLIUP\CG\PHPType;
 use Override;
 use PHPUtils\Str;
@@ -130,7 +132,7 @@ Time: {$date}";
 	public function toTypeHintString(ORMTypeHint $type_hint): string
 	{
 		if ($php_type = $type_hint->getPHPType()) {
-			return (string) $php_type;
+			return $this->preserveGenerics($php_type, true);
 		}
 
 		$types     = $type_hint->getUniversalTypes();
@@ -141,7 +143,7 @@ Time: {$date}";
 				$list_class = $type_hint->getListOfClass();
 				$sub_type   = null !== $list_class
 					? '\\' . $list_class
-					: ($type_hint->getListOfUniversalType())->toPHPType();
+					: $this->preserveGenerics($type_hint->getListOfUniversalType()->toPHPType(), true);
 
 				$php_types[] = 'list<' . $sub_type . '>';
 
@@ -152,9 +154,9 @@ Time: {$date}";
 				$map_class = $type_hint->getMapOfClass();
 				$sub_type  = null !== $map_class
 					? '\\' . $map_class
-					: ($type_hint->getMapOfUniversalType())->toPHPType();
+					: $this->preserveGenerics($type_hint->getMapOfUniversalType()->toPHPType(), true);
 
-				$php_types[] = 'array<string,' . $sub_type . '>';
+				$php_types[] = '\\' . Map::class . '<' . $sub_type . '>';
 
 				continue;
 			}
@@ -162,7 +164,15 @@ Time: {$date}";
 			$php_types[] = $type->toPHPType();
 		}
 
-		return \implode('|', $php_types);
+		return $this->preserveGenerics(new PHPType(\implode('|', $php_types)), true);
+	}
+
+	private function preserveGenerics(PHPType|string $type, bool $with_generics = false): string
+	{
+		$type    = $type instanceof PHPType ? $type : new PHPType($type);
+		$printer = new PHPPrinter();
+
+		return $printer->printType($type, ['with_generics' => $with_generics]);
 	}
 
 	private function getClassFile(Table $table, ORMClassKind $kind): PHPFile
