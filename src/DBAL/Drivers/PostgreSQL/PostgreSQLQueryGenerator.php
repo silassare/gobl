@@ -31,7 +31,7 @@ use Gobl\DBAL\Operator;
 use Gobl\DBAL\Queries\QBDelete;
 use Gobl\DBAL\Queries\QBInsert;
 use Gobl\DBAL\Queries\QBUpdate;
-use Gobl\DBAL\Types\TypeJSON;
+use Gobl\DBAL\Types\TypeJson;
 use Gobl\DBAL\Types\TypeString;
 use Gobl\DBAL\Types\Utils\JsonPath;
 use Gobl\Gobl;
@@ -319,7 +319,7 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	#[Override]
 	protected function getJSONColumnDefinition(Column $column): string
 	{
-		/** @var TypeJSON $base */
+		/** @var TypeJson $base */
 		$base = $column->getType()->getBaseType();
 
 		if (!$base->isNativeJson()) {
@@ -376,11 +376,11 @@ class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		// PostgreSQL cannot implicitly cast TEXT/VARCHAR or TEXT-stored JSON to JSONB;
 		// emit a USING to_jsonb(col::text) clause in that case.
 		if (
-			$new_base instanceof TypeJSON
+			$new_base instanceof TypeJson
 			&& $new_base->isNativeJson()
 			&& (
 				$old_base instanceof TypeString
-				|| ($old_base instanceof TypeJSON && !$old_base->isNativeJson())
+				|| ($old_base instanceof TypeJson && !$old_base->isNativeJson())
 			)
 		) {
 			$sql .= ' USING to_jsonb(' . $col_quoted . '::text)';

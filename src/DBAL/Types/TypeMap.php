@@ -45,7 +45,7 @@ class TypeMap extends Type
 	{
 		!empty($message) && $this->msg('invalid_map_type', $message);
 
-		$base = new TypeJSON();
+		$base = new TypeJson();
 		$base->jsonOf(ORMUniversalType::MAP); // enforce JSON object semantics on the base type for schema reflection
 
 		parent::__construct($base);
@@ -99,7 +99,7 @@ class TypeMap extends Type
 	 */
 	public function nativeJson(bool $native_json = true): static
 	{
-		/** @var TypeJSON $bt */
+		/** @var TypeJson $bt */
 		$bt = $this->base_type;
 
 		$bt->nativeJson($native_json);
@@ -112,7 +112,7 @@ class TypeMap extends Type
 	 */
 	public function big(bool $big = true): static
 	{
-		/** @var TypeJSON $bt */
+		/** @var TypeJson $bt */
 		$bt = $this->base_type;
 
 		$bt->big($big);

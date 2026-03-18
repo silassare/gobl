@@ -32,7 +32,7 @@ use OLIUP\CG\PHPType;
 use Override;
 
 /**
- * Class TypeJSON.
+ * Class TypeJson.
  *
  * @extends BaseType<mixed, mixed>
  *
@@ -47,7 +47,7 @@ use Override;
  *
  * ## json_of option
  *
- * When `json_of` is a FQCN implementing {@see JsonOfInterface}, TypeJSON:
+ * When `json_of` is a FQCN implementing {@see JsonOfInterface}, TypeJson:
  *  - accepts instances of that class directly in `validate()` (they are JSON-encoded);
  *  - accepts plain arrays and passes them through `ClassName::revive($decoded)` to
  *    produce the typed object before re-encoding;
@@ -63,8 +63,8 @@ use Override;
  *
  * Usage as a standalone column type:
  * ```php
- * $t->column('data', (new TypeJSON())->nativeJson());
- * $t->column('meta', (new TypeJSON())->jsonOf(MyMeta::class));
+ * $t->column('data', (new TypeJson())->nativeJson());
+ * $t->column('meta', (new TypeJson())->jsonOf(MyMeta::class));
  * ```
  *
  * Usage via the builder shorthand (when added to TableBuilder):
@@ -73,18 +73,18 @@ use Override;
  * $t->json('meta')->jsonOf(MyMeta::class);
  * ```
  *
- * TypeMap/TypeList automatically use TypeJSON as their base; to enable the native
+ * TypeMap/TypeList automatically use TypeJson as their base; to enable the native
  * JSON column type for those columns:
  * ```php
  * $t->map('meta')->nativeJson();
  * ```
  */
-class TypeJSON extends BaseType
+class TypeJson extends BaseType
 {
 	public const NAME = 'json';
 
 	/**
-	 * TypeJSON constructor.
+	 * TypeJson constructor.
 	 *
 	 * @param null|string $message custom error message
 	 */

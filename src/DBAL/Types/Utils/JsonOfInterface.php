@@ -27,7 +27,7 @@ use JsonSerializable;
  *  - {@see JsonSerializable::jsonSerialize()} must produce a value that round-trips
  *    through `json_encode` -> `json_decode` -> `revive()` correctly.
  *
- * Usage with TypeJSON:
+ * Usage with TypeJson:
  * ```php
  * // schema (array syntax)
  * 'meta' => ['type' => 'json', 'json_of' => MyMeta::class]

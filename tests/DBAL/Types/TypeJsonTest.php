@@ -15,7 +15,7 @@ namespace Gobl\Tests\DBAL\Types;
 
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
-use Gobl\DBAL\Types\TypeJSON;
+use Gobl\DBAL\Types\TypeJson;
 use Gobl\DBAL\Types\TypeList;
 use Gobl\DBAL\Types\TypeMap;
 use Gobl\DBAL\Types\Utils\Map;
@@ -26,125 +26,125 @@ use PHPUtils\Exceptions\RuntimeException as PHPUtilsRuntimeException;
 use stdClass;
 
 /**
- * Class TypeJSONTest.
+ * Class TypeJsonTest.
  *
- * @covers \Gobl\DBAL\Types\TypeJSON
+ * @covers \Gobl\DBAL\Types\TypeJson
  *
  * @internal
  */
-final class TypeJSONTest extends BaseTestCase
+final class TypeJsonTest extends BaseTestCase
 {
 	// =========================================================================
-	// TypeJSON::validate - happy paths
+	// TypeJson::validate - happy paths
 	// =========================================================================
 
 	public function testValidateAcceptsAssocArray(): void
 	{
-		$t      = new TypeJSON();
+		$t      = new TypeJson();
 		$result = $t->validate(['name' => 'John', 'age' => 30])->getCleanValue();
 		self::assertSame(['name' => 'John', 'age' => 30], $result);
 	}
 
 	public function testValidateAcceptsIndexedArray(): void
 	{
-		$t      = new TypeJSON();
+		$t      = new TypeJson();
 		$result = $t->validate([1, 2, 3])->getCleanValue();
 		self::assertSame([1, 2, 3], $result);
 	}
 
 	public function testValidateAcceptsEmptyArray(): void
 	{
-		$t      = new TypeJSON();
+		$t      = new TypeJson();
 		$result = $t->validate([])->getCleanValue();
 		self::assertSame([], $result);
 	}
 
 	public function testValidateAcceptsNull(): void
 	{
-		$t      = (new TypeJSON())->nullable();
+		$t      = (new TypeJson())->nullable();
 		$result = $t->validate(null)->getCleanValue();
 		self::assertNull($result);
 	}
 
-	// TypeJSON accepts any JSON-serialisable value including strings.
+	// TypeJson accepts any JSON-serialisable value including strings.
 	public function testValidateAcceptsJsonString(): void
 	{
-		self::assertSame('foo', (new TypeJSON())->validate('foo')->getCleanValue());
+		self::assertSame('foo', (new TypeJson())->validate('foo')->getCleanValue());
 	}
 
 	public function testValidateAcceptsJsonArrayString(): void
 	{
-		self::assertSame('[1,2,3]', (new TypeJSON())->validate('[1,2,3]')->getCleanValue());
+		self::assertSame('[1,2,3]', (new TypeJson())->validate('[1,2,3]')->getCleanValue());
 	}
 
 	// =========================================================================
-	// TypeJSON::validate - rejection / error paths
+	// TypeJson::validate - rejection / error paths
 	// =========================================================================
 
 	public function testValidateRejectsNullWhenNotNullable(): void
 	{
 		$this->expectException(TypesInvalidValueException::class);
-		(new TypeJSON())->validate(null)->getCleanValue();
+		(new TypeJson())->validate(null)->getCleanValue();
 	}
 
 	public function testValidateAcceptsPlainString(): void
 	{
-		self::assertSame('not-json', (new TypeJSON())->validate('not-json')->getCleanValue());
+		self::assertSame('not-json', (new TypeJson())->validate('not-json')->getCleanValue());
 	}
 
 	// =========================================================================
-	// TypeJSON::validate - default value
+	// TypeJson::validate - default value
 	// =========================================================================
 
 	public function testValidateUsesDefaultWhenNull(): void
 	{
-		$t      = (new TypeJSON())->default(['key' => 'val']);
+		$t      = (new TypeJson())->default(['key' => 'val']);
 		$result = $t->validate(null)->getCleanValue();
 		self::assertSame(['key' => 'val'], $result);
 	}
 
 	// =========================================================================
-	// TypeJSON::serializeJsonValue - static helper
+	// TypeJson::serializeJsonValue - static helper
 	// =========================================================================
 
 	/** null passes through unchanged. */
 	public function testSerializeJsonValueNull(): void
 	{
-		self::assertNull(TypeJSON::serializeJsonValue(null));
+		self::assertNull(TypeJson::serializeJsonValue(null));
 	}
 
 	/** string passes through unchanged (assumed pre-encoded). */
 	public function testSerializeJsonValueStringPassthrough(): void
 	{
-		self::assertSame('"hello"', TypeJSON::serializeJsonValue('"hello"'));
-		self::assertSame('{"role":"admin"}', TypeJSON::serializeJsonValue('{"role":"admin"}'));
+		self::assertSame('"hello"', TypeJson::serializeJsonValue('"hello"'));
+		self::assertSame('{"role":"admin"}', TypeJson::serializeJsonValue('{"role":"admin"}'));
 	}
 
 	/** int is JSON-encoded to a numeric string. */
 	public function testSerializeJsonValueInt(): void
 	{
-		self::assertSame('42', TypeJSON::serializeJsonValue(42));
-		self::assertSame('-1', TypeJSON::serializeJsonValue(-1));
+		self::assertSame('42', TypeJson::serializeJsonValue(42));
+		self::assertSame('-1', TypeJson::serializeJsonValue(-1));
 	}
 
 	/** float is JSON-encoded to a numeric string. */
 	public function testSerializeJsonValueFloat(): void
 	{
-		self::assertSame('3.14', TypeJSON::serializeJsonValue(3.14));
+		self::assertSame('3.14', TypeJson::serializeJsonValue(3.14));
 	}
 
 	/** bool true/false are JSON-encoded. */
 	public function testSerializeJsonValueBool(): void
 	{
-		self::assertSame('true', TypeJSON::serializeJsonValue(true));
-		self::assertSame('false', TypeJSON::serializeJsonValue(false));
+		self::assertSame('true', TypeJson::serializeJsonValue(true));
+		self::assertSame('false', TypeJson::serializeJsonValue(false));
 	}
 
 	/** array is JSON-encoded. */
 	public function testSerializeJsonValueArray(): void
 	{
-		self::assertSame('["a","b"]', TypeJSON::serializeJsonValue(['a', 'b']));
-		self::assertSame('{"role":"admin"}', TypeJSON::serializeJsonValue(['role' => 'admin']));
+		self::assertSame('["a","b"]', TypeJson::serializeJsonValue(['a', 'b']));
+		self::assertSame('{"role":"admin"}', TypeJson::serializeJsonValue(['role' => 'admin']));
 	}
 
 	/** JsonSerializable is JSON-encoded. */
@@ -156,16 +156,16 @@ final class TypeJSONTest extends BaseTestCase
 				return ['x' => true];
 			}
 		};
-		self::assertSame('{"x":true}', TypeJSON::serializeJsonValue($obj));
+		self::assertSame('{"x":true}', TypeJson::serializeJsonValue($obj));
 	}
 
 	// =========================================================================
-	// TypeJSON lock / assertNotLocked / default validation
+	// TypeJson lock / assertNotLocked / default validation
 	// =========================================================================
 
 	public function testLockPreventsSetOption(): void
 	{
-		$t = (new TypeJSON())->lock();
+		$t = (new TypeJson())->lock();
 
 		$this->expectException(PHPUtilsRuntimeException::class);
 		$this->expectExceptionMessage('cannot be modified');
@@ -174,7 +174,7 @@ final class TypeJSONTest extends BaseTestCase
 
 	public function testLockIsIdempotent(): void
 	{
-		$t = new TypeJSON();
+		$t = new TypeJson();
 		$t->lock();
 		$t->lock(); // second call must not throw
 		self::assertTrue(true);
@@ -182,7 +182,7 @@ final class TypeJSONTest extends BaseTestCase
 
 	public function testAssertNotLockedThrowsWhenLocked(): void
 	{
-		$t = (new TypeJSON())->lock();
+		$t = (new TypeJson())->lock();
 
 		$this->expectException(PHPUtilsRuntimeException::class);
 		$t->assertNotLocked();
@@ -190,13 +190,13 @@ final class TypeJSONTest extends BaseTestCase
 
 	public function testAssertNotLockedPassesWhenUnlocked(): void
 	{
-		(new TypeJSON())->assertNotLocked(); // must not throw
+		(new TypeJson())->assertNotLocked(); // must not throw
 		self::assertTrue(true);
 	}
 
 	public function testCloneResetsLock(): void
 	{
-		$original = (new TypeJSON())->lock();
+		$original = (new TypeJson())->lock();
 		$cloned   = clone $original;
 		$cloned->assertNotLocked(); // must not throw
 		self::assertTrue(true);
@@ -204,15 +204,15 @@ final class TypeJSONTest extends BaseTestCase
 
 	public function testValidDefaultPassesOnLock(): void
 	{
-		$t = (new TypeJSON())->default(['ok' => true]);
+		$t = (new TypeJson())->default(['ok' => true]);
 		$t->lock(); // must not throw
 		self::assertTrue(true);
 	}
 
 	public function testScalarDefaultPassesOnLock(): void
 	{
-		// scalars are now valid for TypeJSON when json_of is not set
-		$t = (new TypeJSON())->default('a scalar string');
+		// scalars are now valid for TypeJson when json_of is not set
+		$t = (new TypeJson())->default('a scalar string');
 		$t->lock(); // must not throw
 		self::assertTrue(true);
 	}
@@ -220,7 +220,7 @@ final class TypeJSONTest extends BaseTestCase
 	public function testInvalidDefaultThrowsOnLock(): void
 	{
 		// json_of=LIST requires a sequential array; a string default must fail
-		$t = (new TypeJSON())->jsonOf(ORMUniversalType::LIST)->default('not an array');
+		$t = (new TypeJson())->jsonOf(ORMUniversalType::LIST)->default('not an array');
 
 		$this->expectException(DBALRuntimeException::class);
 		$this->expectExceptionMessage('Default value for type "json" failed validation.');
@@ -233,51 +233,51 @@ final class TypeJSONTest extends BaseTestCase
 
 	public function testJsonOfListAcceptsIndexedArray(): void
 	{
-		$t = (new TypeJSON())->jsonOf(ORMUniversalType::LIST);
+		$t = (new TypeJson())->jsonOf(ORMUniversalType::LIST);
 		self::assertSame([1, 2, 3], $t->validate([1, 2, 3])->getCleanValue());
 	}
 
 	public function testJsonOfListAcceptsEmptyArray(): void
 	{
-		$t = (new TypeJSON())->jsonOf(ORMUniversalType::LIST);
+		$t = (new TypeJson())->jsonOf(ORMUniversalType::LIST);
 		self::assertSame([], $t->validate([])->getCleanValue());
 	}
 
 	public function testJsonOfListRejectsAssocArray(): void
 	{
-		$t = (new TypeJSON())->jsonOf(ORMUniversalType::LIST);
+		$t = (new TypeJson())->jsonOf(ORMUniversalType::LIST);
 		$this->expectException(TypesInvalidValueException::class);
 		$t->validate(['a' => 1])->getCleanValue();
 	}
 
 	public function testJsonOfMapAcceptsAssocArray(): void
 	{
-		$t = (new TypeJSON())->jsonOf(ORMUniversalType::MAP);
+		$t = (new TypeJson())->jsonOf(ORMUniversalType::MAP);
 		self::assertSame(['a' => 1], $t->validate(['a' => 1])->getCleanValue());
 	}
 
 	public function testJsonOfMapAcceptsIndexedArray(): void
 	{
 		// ORMUniversalType::MAP::isValidValue accepts any PHP array (indexed or associative)
-		$t = (new TypeJSON())->jsonOf(ORMUniversalType::MAP);
+		$t = (new TypeJson())->jsonOf(ORMUniversalType::MAP);
 		self::assertSame([1, 2, 3], $t->validate([1, 2, 3])->getCleanValue());
 	}
 
 	public function testJsonOfMapAcceptsEmptyArray(): void
 	{
-		$t = (new TypeJSON())->jsonOf(ORMUniversalType::MAP);
+		$t = (new TypeJson())->jsonOf(ORMUniversalType::MAP);
 		self::assertSame([], $t->validate([])->getCleanValue());
 	}
 
 	public function testJsonOfAnyUniversalTypeAcceptsBothShapes(): void
 	{
 		// ORMUniversalType cases other than LIST/MAP impose no shape restriction
-		$t = (new TypeJSON())->jsonOf(ORMUniversalType::ANY);
+		$t = (new TypeJson())->jsonOf(ORMUniversalType::ANY);
 		self::assertSame(['a' => 1], $t->validate(['a' => 1])->getCleanValue());
 		self::assertSame([1, 2, 3], $t->validate([1, 2, 3])->getCleanValue());
 	}
 
-	// TypeList uses ORMUniversalType::LIST on its base TypeJSON -- accepts sequential arrays.
+	// TypeList uses ORMUniversalType::LIST on its base TypeJson -- accepts sequential arrays.
 	public function testTypeListBaseUsesUniversalTypeList(): void
 	{
 		$list = new TypeList();
@@ -288,7 +288,7 @@ final class TypeJSONTest extends BaseTestCase
 		$list->validate(new stdClass())->getCleanValue();
 	}
 
-	// TypeMap uses ORMUniversalType::MAP on its base TypeJSON for schema reflection only;
+	// TypeMap uses ORMUniversalType::MAP on its base TypeJson for schema reflection only;
 	// TypeMap's own runValidation wraps any array in Map without shape restriction.
 	public function testTypeMapBaseUsesUniversalTypeMap(): void
 	{

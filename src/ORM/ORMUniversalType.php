@@ -49,7 +49,7 @@ enum ORMUniversalType: string
 	/**
 	 * Safe unknown - value exists but its shape is not known.
 	 * Maps to: PHP `mixed`, TS `unknown`, Dart `dynamic`.
-	 * Use as the default `list_of` element type and for TypeJSON write hints.
+	 * Use as the default `list_of` element type and for TypeJson write hints.
 	 */
 	case UNKNOWN = 'UNKNOWN';
 

@@ -20,7 +20,7 @@ use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Relations\VirtualRelation;
 use Gobl\DBAL\Table;
-use Gobl\DBAL\Types\TypeJSON;
+use Gobl\DBAL\Types\TypeJson;
 use Gobl\DBAL\Types\TypeList;
 use Gobl\DBAL\Types\Utils\JsonPatch;
 use Gobl\Exceptions\GoblException;
@@ -430,9 +430,9 @@ Time: {$date}";
 				->newArgument($column_name)
 				->setType($col_inject['write_type_hint']);
 
-			// For JSON-based columns (TypeJSON, TypeMap, TypeList) generate
+			// For JSON-based columns (TypeJson, TypeMap, TypeList) generate
 			// patchColumnName(), setColumnNameKey(), and removeColumnNameKey().
-			if ($type->getBaseType() instanceof TypeJSON) {
+			if ($type->getBaseType() instanceof TypeJson) {
 				$this->addJsonPatchMethods($class, $column);
 			}
 		}
@@ -472,11 +472,11 @@ Time: {$date}";
 
 	/**
 	 * Adds patchColumnName(), setColumnNameKey(), and removeColumnNameKey() methods
-	 * for JSON-based columns (TypeJSON, TypeMap, TypeList).
+	 * for JSON-based columns (TypeJson, TypeMap, TypeList).
 	 *
 	 * Because JsonPatch expect array/Map we add patch methods only for:
 	 *  - TypeMap
-	 *  - TypeJSON if json_of is defined and equal to universal type: map or list
+	 *  - TypeJson if json_of is defined and equal to universal type: map or list
 	 *  - TypeList if list_of is defined and equal to universal type: map or list
 	 *
 	 * When we have list of scalar, we support patch at index only.
@@ -493,7 +493,7 @@ Time: {$date}";
 			if (null === $of || !\in_array($of, [ORMUniversalType::MAP, ORMUniversalType::LIST], true)) {
 				return;
 			}
-		} elseif ($type instanceof TypeJSON) {
+		} elseif ($type instanceof TypeJson) {
 			$of =  $type->getJsonOfUniversalType();
 
 			if (!\in_array($of, [ORMUniversalType::MAP, ORMUniversalType::LIST], true)) {
@@ -914,7 +914,7 @@ Time: {$date}";
 				];
 
 				// Let the type customize the method signature before we build the @method tag.
-				// Types may prepend a $path arg (e.g. TypeJSON for native JSON columns).
+				// Types may prepend a $path arg (e.g. TypeJson for native JSON columns).
 				$php_method = new PHPMethod($method_name);
 
 				// comment may be enhanced by the type

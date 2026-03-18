@@ -202,7 +202,7 @@ interface TypeInterface extends ArrayCapableInterface, LockInterface
 	 * 0/1 integers).
 	 *
 	 * The default implementation in {@see Type} returns scalar values unchanged, which is
-	 * correct for string-stored types (TypeString, TypeEnum, TypeJSON, etc.).
+	 * correct for string-stored types (TypeString, TypeEnum, TypeJson, etc.).
 	 * Types that store a different representation (TypeDate, TypeBool, TypeInt, TypeFloat,
 	 * TypeBigint, TypeDecimal) override this and delegate to {@see phpToDb()}.
 	 *

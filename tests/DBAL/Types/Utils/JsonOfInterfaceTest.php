@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Gobl\Tests\DBAL\Types\Utils;
 
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
-use Gobl\DBAL\Types\TypeJSON;
+use Gobl\DBAL\Types\TypeJson;
 use Gobl\DBAL\Types\TypeList;
 use Gobl\DBAL\Types\Utils\JsonOfInterface;
 use Gobl\DBAL\Types\Utils\JsonPatch;
@@ -72,12 +72,12 @@ final class JsonOfInterfaceTest extends BaseTestCase
 	}
 
 	// =========================================================================
-	// TypeJSON with json_of
+	// TypeJson with json_of
 	// =========================================================================
 
-	public function testTypeJSONJsonOfValidatesInstance(): void
+	public function testTypeJsonJsonOfValidatesInstance(): void
 	{
-		$type   = (new TypeJSON())->jsonOf(SampleJsonOf::class);
+		$type   = (new TypeJson())->jsonOf(SampleJsonOf::class);
 		$obj    = new SampleJsonOf('Alice', 5);
 		$result = $type->validate($obj)->getCleanValue();
 
@@ -86,9 +86,9 @@ final class JsonOfInterfaceTest extends BaseTestCase
 		self::assertSame(5, $result->score);
 	}
 
-	public function testTypeJSONJsonOfRevivesArray(): void
+	public function testTypeJsonJsonOfRevivesArray(): void
 	{
-		$type   = (new TypeJSON())->jsonOf(SampleJsonOf::class);
+		$type   = (new TypeJson())->jsonOf(SampleJsonOf::class);
 		$result = $type->validate(['name' => 'Bob', 'score' => 99])->getCleanValue();
 
 		self::assertInstanceOf(SampleJsonOf::class, $result);
@@ -96,17 +96,17 @@ final class JsonOfInterfaceTest extends BaseTestCase
 		self::assertSame(99, $result->score);
 	}
 
-	public function testTypeJSONJsonOfRejectsWrongInstance(): void
+	public function testTypeJsonJsonOfRejectsWrongInstance(): void
 	{
-		$type = (new TypeJSON())->jsonOf(SampleJsonOf::class);
+		$type = (new TypeJson())->jsonOf(SampleJsonOf::class);
 
 		$this->expectException(TypesInvalidValueException::class);
 		$type->validate(new stdClass())->getCleanValue();
 	}
 
-	public function testTypeJSONJsonOfRejectsScalar(): void
+	public function testTypeJsonJsonOfRejectsScalar(): void
 	{
-		$type = (new TypeJSON())->jsonOf(SampleJsonOf::class);
+		$type = (new TypeJson())->jsonOf(SampleJsonOf::class);
 
 		$this->expectException(TypesInvalidValueException::class);
 		$type->validate('not-an-object')->getCleanValue();
@@ -115,10 +115,10 @@ final class JsonOfInterfaceTest extends BaseTestCase
 	/**
 	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
-	public function testTypeJSONJsonOfDbToPhp(string $driver): void
+	public function testTypeJsonJsonOfDbToPhp(string $driver): void
 	{
 		$db     = self::getNewDbInstance($driver);
-		$type   = (new TypeJSON())->jsonOf(SampleJsonOf::class);
+		$type   = (new TypeJson())->jsonOf(SampleJsonOf::class);
 		$result = $type->dbToPhp('{"name":"Charlie","score":7}', $db);
 
 		self::assertInstanceOf(SampleJsonOf::class, $result);
@@ -129,10 +129,10 @@ final class JsonOfInterfaceTest extends BaseTestCase
 	/**
 	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
-	public function testTypeJSONWithoutJsonOfDbToPhpDecodesJsonObject(string $driver): void
+	public function testTypeJsonWithoutJsonOfDbToPhpDecodesJsonObject(string $driver): void
 	{
 		$db     = self::getNewDbInstance($driver);
-		$type   = new TypeJSON();
+		$type   = new TypeJson();
 		$result = $type->dbToPhp('{"a":1}', $db);
 
 		self::assertSame(['a' => 1], $result);
@@ -141,10 +141,10 @@ final class JsonOfInterfaceTest extends BaseTestCase
 	/**
 	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
-	public function testTypeJSONWithoutJsonOfDbToPhpDecodesJsonArray(string $driver): void
+	public function testTypeJsonWithoutJsonOfDbToPhpDecodesJsonArray(string $driver): void
 	{
 		$db     = self::getNewDbInstance($driver);
-		$type   = new TypeJSON();
+		$type   = new TypeJson();
 		$result = $type->dbToPhp('[1,2,3]', $db);
 
 		self::assertSame([1, 2, 3], $result);
@@ -153,10 +153,10 @@ final class JsonOfInterfaceTest extends BaseTestCase
 	/**
 	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
-	public function testTypeJSONWithoutJsonOfDbToPhpDecodesScalar(string $driver): void
+	public function testTypeJsonWithoutJsonOfDbToPhpDecodesScalar(string $driver): void
 	{
 		$db     = self::getNewDbInstance($driver);
-		$type   = new TypeJSON();
+		$type   = new TypeJson();
 
 		self::assertSame(42, $type->dbToPhp('42', $db));
 		self::assertTrue($type->dbToPhp('true', $db));
@@ -166,30 +166,30 @@ final class JsonOfInterfaceTest extends BaseTestCase
 	/**
 	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
-	public function testTypeJSONJsonOfNullDbToPhp(string $driver): void
+	public function testTypeJsonJsonOfNullDbToPhp(string $driver): void
 	{
 		$db   = self::getNewDbInstance($driver);
-		$type = (new TypeJSON())->jsonOf(SampleJsonOf::class)->nullable();
+		$type = (new TypeJson())->jsonOf(SampleJsonOf::class)->nullable();
 
 		self::assertNull($type->dbToPhp(null, $db));
 	}
 
-	public function testTypeJSONJsonOfConfigureOption(): void
+	public function testTypeJsonJsonOfConfigureOption(): void
 	{
-		$type = TypeJSON::getInstance(['json_of' => SampleJsonOf::class]);
+		$type = TypeJson::getInstance(['json_of' => SampleJsonOf::class]);
 		self::assertSame(SampleJsonOf::class, $type->getJsonOf());
 		self::assertSame(SampleJsonOf::class, $type->getJsonOfClass());
 	}
 
-	public function testTypeJSONJsonOfGetterWithoutOption(): void
+	public function testTypeJsonJsonOfGetterWithoutOption(): void
 	{
-		self::assertNull((new TypeJSON())->getJsonOf());
-		self::assertNull((new TypeJSON())->getJsonOfClass());
+		self::assertNull((new TypeJson())->getJsonOf());
+		self::assertNull((new TypeJson())->getJsonOfClass());
 	}
 
-	public function testTypeJSONJsonOfWithORMUniversalTypeStoresValue(): void
+	public function testTypeJsonJsonOfWithORMUniversalTypeStoresValue(): void
 	{
-		$type = (new TypeJSON())->jsonOf(ORMUniversalType::MAP);
+		$type = (new TypeJson())->jsonOf(ORMUniversalType::MAP);
 		self::assertSame(ORMUniversalType::MAP->value, $type->getJsonOf());
 		self::assertNull($type->getJsonOfClass());
 	}
@@ -197,71 +197,71 @@ final class JsonOfInterfaceTest extends BaseTestCase
 	/**
 	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
-	public function testTypeJSONJsonOfWithORMUniversalTypeDecodesWithoutRevival(string $driver): void
+	public function testTypeJsonJsonOfWithORMUniversalTypeDecodesWithoutRevival(string $driver): void
 	{
 		$db     = self::getNewDbInstance($driver);
-		$type   = (new TypeJSON())->jsonOf(ORMUniversalType::MAP);
+		$type   = (new TypeJson())->jsonOf(ORMUniversalType::MAP);
 		$result = $type->dbToPhp('{"k":"v"}', $db);
 
 		self::assertSame(['k' => 'v'], $result);
 	}
 
-	public function testTypeJSONJsonOfORMUniversalTypeConfigureOption(): void
+	public function testTypeJsonJsonOfORMUniversalTypeConfigureOption(): void
 	{
-		$type = TypeJSON::getInstance(['json_of' => 'MAP']);
+		$type = TypeJson::getInstance(['json_of' => 'MAP']);
 		self::assertSame(ORMUniversalType::MAP->value, $type->getJsonOf());
 		self::assertNull($type->getJsonOfClass());
 	}
 
-	public function testTypeJSONReadTypeHintWithORMUniversalType(): void
+	public function testTypeJsonReadTypeHintWithORMUniversalType(): void
 	{
-		$hint  = (new TypeJSON())->jsonOf(ORMUniversalType::MAP)->getReadTypeHint();
+		$hint  = (new TypeJson())->jsonOf(ORMUniversalType::MAP)->getReadTypeHint();
 		$types = $hint->getUniversalTypes();
 		self::assertContains(ORMUniversalType::MAP, $types);
 	}
 
-	public function testTypeJSONReadTypeHintWithoutJsonOfIsUnknown(): void
+	public function testTypeJsonReadTypeHintWithoutJsonOfIsUnknown(): void
 	{
-		$hint  = (new TypeJSON())->getReadTypeHint();
+		$hint  = (new TypeJson())->getReadTypeHint();
 		$types = $hint->getUniversalTypes();
 		self::assertContains(ORMUniversalType::UNKNOWN, $types);
 	}
 
-	public function testTypeJSONJsonOfInvalidClassThrows(): void
+	public function testTypeJsonJsonOfInvalidClassThrows(): void
 	{
 		$this->expectException(InvalidArgumentException::class);
 		$this->expectExceptionMessage('must implement');
-		(new TypeJSON())->jsonOf(stdClass::class);
+		(new TypeJson())->jsonOf(stdClass::class);
 	}
 
-	public function testTypeJSONReadTypeHintWithJsonOf(): void
+	public function testTypeJsonReadTypeHintWithJsonOf(): void
 	{
-		$hint = (new TypeJSON())->jsonOf(SampleJsonOf::class)->getReadTypeHint();
+		$hint = (new TypeJson())->jsonOf(SampleJsonOf::class)->getReadTypeHint();
 		$php  = $hint->getPHPType();
 
 		self::assertNotNull($php);
 		self::assertStringContainsString('SampleJsonOf', (string) $php);
 	}
 
-	public function testTypeJSONWriteTypeHintWithJsonOf(): void
+	public function testTypeJsonWriteTypeHintWithJsonOf(): void
 	{
-		$hint = (new TypeJSON())->jsonOf(SampleJsonOf::class)->getWriteTypeHint();
+		$hint = (new TypeJson())->jsonOf(SampleJsonOf::class)->getWriteTypeHint();
 		$php  = $hint->getPHPType();
 
 		self::assertNotNull($php);
 		self::assertStringContainsString('SampleJsonOf', (string) $php);
 	}
 
-	public function testTypeJSONWriteTypeHintWithORMUniversalType(): void
+	public function testTypeJsonWriteTypeHintWithORMUniversalType(): void
 	{
-		$hint  = (new TypeJSON())->jsonOf(ORMUniversalType::MAP)->getWriteTypeHint();
+		$hint  = (new TypeJson())->jsonOf(ORMUniversalType::MAP)->getWriteTypeHint();
 		$types = $hint->getUniversalTypes();
 		self::assertContains(ORMUniversalType::MAP, $types);
 	}
 
-	public function testTypeJSONWriteTypeHintWithoutJsonOfIsUnknown(): void
+	public function testTypeJsonWriteTypeHintWithoutJsonOfIsUnknown(): void
 	{
-		$hint  = (new TypeJSON())->getWriteTypeHint();
+		$hint  = (new TypeJson())->getWriteTypeHint();
 		$types = $hint->getUniversalTypes();
 		self::assertContains(ORMUniversalType::UNKNOWN, $types);
 	}

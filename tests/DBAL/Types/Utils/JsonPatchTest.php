@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\DBAL\Types\Utils;
 
-use Gobl\DBAL\Types\TypeJSON;
+use Gobl\DBAL\Types\TypeJson;
 use Gobl\DBAL\Types\TypeList;
 use Gobl\DBAL\Types\TypeMap;
 use Gobl\DBAL\Types\Utils\JsonPatch;
@@ -290,13 +290,13 @@ final class JsonPatchTest extends BaseTestCase
 	}
 
 	// =========================================================================
-	// Type coercion: TypeJSON, TypeMap, TypeList accept JsonPatch in validate()
+	// Type coercion: TypeJson, TypeMap, TypeList accept JsonPatch in validate()
 	// =========================================================================
 
-	public function testTypeJSONAcceptsJsonPatch(): void
+	public function testTypeJsonAcceptsJsonPatch(): void
 	{
 		$patch  = (new JsonPatch())->set('name', 'Bob')->set('age', 25);
-		$type   = new TypeJSON();
+		$type   = new TypeJson();
 		$result = $type->validate($patch)->getCleanValue();
 		self::assertSame(['name' => 'Bob', 'age' => 25], $result);
 	}

@@ -31,7 +31,7 @@ use Gobl\DBAL\Queries\QBDelete;
 use Gobl\DBAL\Queries\QBInsert;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Queries\QBUpdate;
-use Gobl\DBAL\Types\TypeJSON;
+use Gobl\DBAL\Types\TypeJson;
 use Gobl\Gobl;
 use Override;
 
@@ -236,7 +236,7 @@ SQL;
 	#[Override]
 	protected function getJSONColumnDefinition(Column $column): string
 	{
-		/** @var TypeJSON $base */
+		/** @var TypeJson $base */
 		$base = $column->getType()->getBaseType();
 
 		if (!$base->isNativeJson()) {
@@ -267,7 +267,7 @@ SQL;
 	{
 		$base_type = $column->getType()->getBaseType();
 
-		if ($base_type instanceof TypeJSON && $base_type->isNativeJson()) {
+		if ($base_type instanceof TypeJson && $base_type->isNativeJson()) {
 			return 'DEFAULT (' . $quoted_default . ')';
 		}
 

@@ -21,7 +21,7 @@ use Gobl\DBAL\Filters\FilterResolvedColumn;
 use Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface;
 use Gobl\DBAL\Queries\Interfaces\QBInterface;
 use Gobl\DBAL\Queries\QBExpression;
-use Gobl\DBAL\Types\TypeJSON;
+use Gobl\DBAL\Types\TypeJson;
 use Gobl\DBAL\Types\Utils\JsonPath;
 use Throwable;
 
@@ -321,7 +321,7 @@ abstract class FilterOperand
 			$col       = $tbl->getColumnOrFail($resolved->getColumnName());
 			$base_type = $col->getType()->getBaseType();
 
-			if (!$base_type instanceof TypeJSON) {
+			if (!$base_type instanceof TypeJson) {
 				throw new DBALRuntimeException(\sprintf(
 					'JSON path filter "%s" is only allowed on JSON columns; column "%s" has base type "%s".',
 					(string) $dfn,

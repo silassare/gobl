@@ -64,7 +64,7 @@ use Gobl\DBAL\Types\TypeBool;
 use Gobl\DBAL\Types\TypeDecimal;
 use Gobl\DBAL\Types\TypeFloat;
 use Gobl\DBAL\Types\TypeInt;
-use Gobl\DBAL\Types\TypeJSON;
+use Gobl\DBAL\Types\TypeJson;
 use Gobl\DBAL\Types\TypeString;
 use Gobl\DBAL\Types\Utils\JsonPath;
 use Gobl\Gobl;
@@ -627,7 +627,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 		$sql = match ($base_type_name) {
 			TypeString::NAME  => $this->getStringColumnDefinition($column),
-			TypeJSON::NAME    => $this->getJSONColumnDefinition($column),
+			TypeJson::NAME    => $this->getJSONColumnDefinition($column),
 			TypeBool::NAME    => $this->getBoolColumnDefinition($column),
 			TypeInt::NAME     => $this->getIntColumnDefinition($column),
 			TypeBigint::NAME  => $this->getBigintColumnDefinition($column),

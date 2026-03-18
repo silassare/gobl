@@ -15,7 +15,7 @@ namespace Gobl\Tests\DBAL\Types;
 
 use Gobl\DBAL\Types\TypeBigint;
 use Gobl\DBAL\Types\TypeEnum;
-use Gobl\DBAL\Types\TypeJSON;
+use Gobl\DBAL\Types\TypeJson;
 use Gobl\DBAL\Types\TypeMap;
 use Gobl\DBAL\Types\TypeString;
 use Gobl\DBAL\Types\Utils\Map;
@@ -135,20 +135,20 @@ final class TypeHashTest extends BaseTestCase
 
 	public function testHashArrayUsesJsonEncode(): void
 	{
-		$t = new TypeJSON();
+		$t = new TypeJson();
 		self::assertSame(\json_encode(['a' => 1, 'b' => 2]), $t->hash(['a' => 1, 'b' => 2]));
 	}
 
 	public function testHashArrayOrderMatters(): void
 	{
-		$t = new TypeJSON();
+		$t = new TypeJson();
 		// Different key order -> different JSON -> different hash
 		self::assertNotSame($t->hash(['a' => 1, 'b' => 2]), $t->hash(['b' => 2, 'a' => 1]));
 	}
 
 	public function testHashSameArrayContentEquals(): void
 	{
-		$t = new TypeJSON();
+		$t = new TypeJson();
 		self::assertSame($t->hash(['x' => 'y']), $t->hash(['x' => 'y']));
 	}
 

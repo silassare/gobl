@@ -26,7 +26,7 @@ use Gobl\DBAL\Queries\QBExpression;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Queries\QBType;
 use Gobl\DBAL\Queries\QBUtils;
-use Gobl\DBAL\Types\TypeJSON;
+use Gobl\DBAL\Types\TypeJson;
 use Gobl\DBAL\Types\Utils\TypeUtils;
 use JsonSerializable;
 use PHPUtils\Str;
@@ -569,7 +569,7 @@ final class Filters
 				}
 			} elseif (Operator::CONTAINS === $operator) {
 				// CONTAINS: auto-serialize to JSON string.
-				$u_right                = TypeJSON::serializeJsonValue($u_right);
+				$u_right                = TypeJson::serializeJsonValue($u_right);
 				$try_enforce_query_type = false;
 			} elseif (Operator::HAS_KEY === $operator) {
 				// HAS_KEY right operand is a key path string, not a typed column value.

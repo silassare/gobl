@@ -46,7 +46,7 @@ class TypeList extends Type
 	{
 		!empty($message) && $this->msg('invalid_list_type', $message);
 
-		$base = new TypeJSON();
+		$base = new TypeJson();
 		$base->jsonOf(ORMUniversalType::LIST); // enforce JSON array semantics on the base type for schema reflection
 
 		parent::__construct($base);
@@ -101,7 +101,7 @@ class TypeList extends Type
 	 */
 	public function nativeJson(bool $native_json = true): static
 	{
-		/** @var TypeJSON $bt */
+		/** @var TypeJson $bt */
 		$bt = $this->base_type;
 
 		$bt->nativeJson($native_json);
@@ -114,7 +114,7 @@ class TypeList extends Type
 	 */
 	public function big(bool $big = true): static
 	{
-		/** @var TypeJSON $bt */
+		/** @var TypeJson $bt */
 		$bt = $this->base_type;
 
 		$bt->big($big);
@@ -219,10 +219,10 @@ class TypeList extends Type
 	/**
 	 * {@inheritDoc}
 	 *
-	 * Delegates to the base type {@see TypeJSON} so that JSON path operators
+	 * Delegates to the base type {@see TypeJson} so that JSON path operators
 	 * (EQ, NEQ, LIKE, NOT_LIKE with a path string as first arg, plus
 	 * CONTAINS and HAS_KEY including their path-aware variants) are handled
-	 * correctly by TypeJSON's path-aware implementation.
+	 * correctly by TypeJson's path-aware implementation.
 	 */
 	#[Override]
 	public function queryBuilderApplyFilter(ORMTableQuery $qb, Column $column, Operator $operator, array $args): void

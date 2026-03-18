@@ -35,7 +35,7 @@ use Gobl\DBAL\Types\TypeDecimal;
 use Gobl\DBAL\Types\TypeEnum;
 use Gobl\DBAL\Types\TypeFloat;
 use Gobl\DBAL\Types\TypeInt;
-use Gobl\DBAL\Types\TypeJSON;
+use Gobl\DBAL\Types\TypeJson;
 use Gobl\DBAL\Types\TypeList;
 use Gobl\DBAL\Types\TypeMap;
 use Gobl\DBAL\Types\TypeString;
@@ -264,51 +264,54 @@ final class TableBuilder
 	 * Creates a new column of type list.
 	 *
 	 * @param string $column_name
+	 * @param bool   $native      Whether to use a native JSON column type (MySQL >= 5.7, PostgreSQL)
+	 *                            or a TEXT column with JSON serialization. (default: true)
 	 *
 	 * @return TypeList
 	 *
 	 * @throws DBALException
 	 */
-	public function list(string $column_name): TypeList
+	public function list(string $column_name, bool $native = true): TypeList
 	{
 		$this->column($column_name, $type = new TypeList());
 
-		return $type;
+		return $type->nativeJson($native);
 	}
 
 	/**
 	 * Creates a new column of type map.
 	 *
 	 * @param string $column_name
+	 * @param bool   $native      Whether to use a native JSON column type (MySQL >= 5.7, PostgreSQL)
+	 *                            or a TEXT column with JSON serialization. (default: true)
 	 *
 	 * @return TypeMap
 	 *
 	 * @throws DBALException
 	 */
-	public function map(string $column_name): TypeMap
+	public function map(string $column_name, bool $native = true): TypeMap
 	{
 		$this->column($column_name, $type = new TypeMap());
 
-		return $type;
+		return $type->nativeJson($native);
 	}
 
 	/**
 	 * Creates a new column of type json.
 	 *
-	 * Use {@see TypeJSON::nativeJson()} to opt-in to a native JSON column type
-	 * (MySQL >= 5.7, PostgreSQL). Without it the column is stored as TEXT.
-	 *
 	 * @param string $column_name
+	 * @param bool   $native      Whether to use a native JSON column type (MySQL >= 5.7, PostgreSQL)
+	 *                            or a TEXT column with JSON serialization. (default: true)
 	 *
-	 * @return TypeJSON
+	 * @return TypeJson
 	 *
 	 * @throws DBALException
 	 */
-	public function json(string $column_name): TypeJSON
+	public function json(string $column_name, bool $native = true): TypeJson
 	{
-		$this->column($column_name, $type = new TypeJSON());
+		$this->column($column_name, $type = new TypeJson());
 
-		return $type;
+		return $type->nativeJson($native);
 	}
 
 	/**
