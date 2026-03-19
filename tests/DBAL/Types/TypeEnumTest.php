@@ -211,6 +211,19 @@ final class TypeEnumTest extends BaseTestCase
 		self::assertSame(TestPriority::High, $t->dbToPhp(3, $db));
 	}
 
+	/**
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testDbToPhpIntBackedFromStringReturnsEnumInstance(string $driver): void
+	{
+		// PDO returns VARCHAR columns as PHP strings even for int-backed enums.
+		// dbToPhp() must cast the string to int before calling ::from() to avoid TypeError.
+		$db = self::getNewDbInstanceWithSchema($driver);
+		$t  = new TypeEnum(TestPriority::class);
+		self::assertSame(TestPriority::High, $t->dbToPhp('3', $db));
+		self::assertSame(TestPriority::Low, $t->dbToPhp('1', $db));
+	}
+
 	// -------------------------------------------------------------------------
 	// getName / getEmptyValueOfType
 	// -------------------------------------------------------------------------
