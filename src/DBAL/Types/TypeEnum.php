@@ -35,6 +35,16 @@ class TypeEnum extends Type
 	public const OPTION_ENUM_CLASS = 'enum_class';
 
 	/**
+	 * Whether the enum is int-backed, determined from the backing type of the enum class when set.
+	 * This is used to handle the common case where int-backed enums are stored as strings in the DB,
+	 * so we can cast them to int before trying to resolve the enum value instance.
+	 *
+	 * For int-backed enums, cast the string to int before calling ::from()
+	 * so we don't get a TypeError with strict_types=1.
+	 */
+	private bool $is_int_backed = false;
+
+	/**
 	 * TypeEnum constructor.
 	 *
 	 * @param null|class-string<BackedEnum> $enum_class
@@ -79,6 +89,10 @@ class TypeEnum extends Type
 
 		!empty($message) && $this->msg('invalid_enum_value_type', $message);
 
+		/** @var array<int, BackedEnum> $cases */
+		$cases               = $enum_class::cases();
+		$this->is_int_backed = !empty($cases) && \is_int($cases[0]->value);
+
 		return $this->setOption(self::OPTION_ENUM_CLASS, $enum_class);
 	}
 
@@ -113,6 +127,10 @@ class TypeEnum extends Type
 	{
 		if (null === $value) {
 			return null;
+		}
+
+		if ($this->is_int_backed && \is_string($value)) {
+			$value = (int) $value;
 		}
 
 		return $this->toEnumValue($value);
