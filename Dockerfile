@@ -23,4 +23,4 @@ RUN composer install --prefer-dist --no-progress --no-interaction --no-scripts
 COPY . .
 
 # Write .env.test from environment variables at container start, then run tests
-CMD printenv | grep '^GOBL_TEST_' > .env.test && ./run_test
+CMD printenv | grep '^GOBL_TEST_' > .env.test && make test

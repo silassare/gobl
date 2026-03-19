@@ -1,4 +1,4 @@
-.PHONY: docs docs-dev docs-build docs-api docs-preview test test-unit test-docker test-docker-down cs cs-fix help
+.PHONY: docs docs-dev docs-build docs-api docs-preview test test-unit test-docker test-docker-down cs lint fix help
 
 # Documentation
 
@@ -38,7 +38,9 @@ docs-install:
 
 ## Run the full test suite
 test:
-	./run_test
+	rm -rf tests/tmp/
+	mkdir -p tests/tmp/output
+	vendor/bin/phpunit --testdox --do-not-cache-result
 
 ## Run only unit tests (no live DB)
 test-unit:
@@ -58,13 +60,13 @@ test-docker-down:
 cs:
 	vendor/bin/phpcs
 
-## Fix code style automatically
-cs-fix:
-	vendor/bin/oliup-cs fix
-
 ## Lint with Psalm (static analysis) without using cache
 lint:
 	vendor/bin/psalm --no-cache
+
+## Fix code style automatically
+fix: lint
+	vendor/bin/oliup-cs fix
 
 # = Help
 

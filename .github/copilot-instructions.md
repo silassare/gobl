@@ -217,17 +217,17 @@ Migration files are anonymous classes implementing `MigrationInterface` with `ge
 
 ## Developer Workflows
 
-| Task                             | Command                     |
-| -------------------------------- | --------------------------- |
-| Run full test suite              | `./run_test` or `make test` |
-| Run unit tests only (no live DB) | `make test-unit`            |
-| Run tests via Docker             | `make test-docker`          |
-| Tear down Docker test containers | `make test-docker-down`     |
-| Check code style                 | `make cs`                   |
-| Auto-fix code style              | `make cs-fix`               |
-| Docs dev server                  | `make docs-dev`             |
-| Generate PHP API docs            | `make docs-api`             |
-| Build docs site                  | `make docs-build`           |
+| Task                             | Command                 |
+| -------------------------------- | ----------------------- |
+| Run full test suite              | `make test`             |
+| Run unit tests only (no live DB) | `make test-unit`        |
+| Run tests via Docker             | `make test-docker`      |
+| Tear down Docker test containers | `make test-docker-down` |
+| Check code style                 | `make cs`               |
+| Auto-fix code style              | `make fix`              |
+| Docs dev server                  | `make docs-dev`         |
+| Generate PHP API docs            | `make docs-api`         |
+| Build docs site                  | `make docs-build`       |
 
 ## Documentation Guidelines
 
@@ -318,7 +318,7 @@ auto-complete/validation is at `docs/public/schema.json`.
 
 11. **Comparison with popular ORMs.** Where helpful, add a callout or note box showing how a Gobl concept maps to a familiar ORM (Eloquent, Doctrine, Prisma). Keep these concise and accurate, never claim feature parity unless it exists.
 
-Live DB tests require `.env.test` (see `.env.test.example`). `./run_test` cleans `tests/tmp/` before each run. SQLite tests use `:memory:` by default.
+Live DB tests require `.env.test` (see `.env.test.example`). `make test` cleans `tests/tmp/` before each run. SQLite tests use `:memory:` by default.
 
 ## Code Style Conventions
 
