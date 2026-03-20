@@ -53,6 +53,23 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	private ?string $diff_key = null;
 
 	/**
+	 * The old column name used to compute the diff key during rename migration.
+	 * Not serialized in toArray() - remove after the migration has run.
+	 *
+	 * @var null|string
+	 */
+	private ?string $old_name = null;
+
+	/**
+	 * The old column prefix used together with old_name to compute the diff key.
+	 * null means "use the current prefix" when old_name is set.
+	 * Not serialized in toArray() - remove after the migration has run.
+	 *
+	 * @var null|string
+	 */
+	private ?string $old_prefix = null;
+
+	/**
 	 * The column name.
 	 *
 	 * @var string
@@ -539,6 +556,16 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	#[Override]
 	public function getDiffKey(): string
 	{
+		if (null !== $this->old_name) {
+			// when old_name is set, derive the diff key from the old full name so the
+			// diff engine can match this column against its previous identity
+			$table_key  = $this->table ? $this->table->getDiffKey() : \uniqid('', true);
+			$old_prefix = $this->old_prefix ?? $this->prefix;
+			$old_full   = empty($old_prefix) ? $this->old_name : $old_prefix . '_' . $this->old_name;
+
+			return \md5($table_key . '/' . $old_full);
+		}
+
 		if (empty($this->diff_key)) {
 			$table_key      = $this->table ? $this->table->getDiffKey() : \uniqid('', true);
 			$this->diff_key = \md5($table_key . '/' . $this->getFullName());
@@ -557,6 +584,59 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 		}
 
 		$this->diff_key = $diff_key;
+
+		return $this;
+	}
+
+	/**
+	 * Sets the old column name used for rename-tracking across migrations.
+	 *
+	 * When set, `getDiffKey()` returns a key derived from the old full name
+	 * (`old_prefix` (or current prefix if omitted) + `_` + `old_name`), allowing
+	 * the diff engine to match this column against its previous identity.
+	 *
+	 * Remove this option from the schema once the migration has been applied.
+	 *
+	 * @param string $old_name the column short name before the rename
+	 *
+	 * @return $this
+	 */
+	public function oldName(string $old_name): static
+	{
+		$this->assertNotLocked();
+
+		if (!\preg_match(self::NAME_REG, $old_name)) {
+			throw new InvalidArgumentException(
+				\sprintf('Column old name "%s" should match: %s', $old_name, self::NAME_PATTERN)
+			);
+		}
+
+		$this->old_name = $old_name;
+
+		return $this;
+	}
+
+	/**
+	 * Sets the old column prefix used together with `oldName()` to reconstruct the previous full name.
+	 *
+	 * When omitted (null), the current column prefix is used.
+	 * Pass an empty string explicitly when the column previously had no prefix.
+	 *
+	 * @param string $old_prefix the column prefix before the rename (may be empty)
+	 *
+	 * @return $this
+	 */
+	public function oldPrefix(string $old_prefix): static
+	{
+		$this->assertNotLocked();
+
+		if (!empty($old_prefix) && !\preg_match(self::PREFIX_REG, $old_prefix)) {
+			throw new InvalidArgumentException(
+				\sprintf('Column old prefix "%s" should match: %s', $old_prefix, self::PREFIX_PATTERN)
+			);
+		}
+
+		$this->old_prefix = $old_prefix;
 
 		return $this;
 	}

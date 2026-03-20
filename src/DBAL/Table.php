@@ -72,6 +72,14 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 	private ?string $diff_key = null;
 
 	/**
+	 * The old table name used to compute the diff key during rename migration.
+	 * Not serialized in toArray() - remove after the migration has run.
+	 *
+	 * @var null|string
+	 */
+	private ?string $old_name = null;
+
+	/**
 	 * The table name.
 	 *
 	 * @var string
@@ -837,7 +845,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 	 */
 	public function getPrivateColumns(): array
 	{
-		return \array_filter($this->columns, static fn ($column) => $column->isPrivate());
+		return \array_filter($this->columns, static fn($column) => $column->isPrivate());
 	}
 
 	/**
@@ -847,7 +855,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 	 */
 	public function getSensitiveColumns(): array
 	{
-		return \array_filter($this->columns, static fn ($column) => $column->isSensitive());
+		return \array_filter($this->columns, static fn($column) => $column->isSensitive());
 	}
 
 	/**
@@ -1345,7 +1353,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 	public function getRelations(bool $include_private = true): array
 	{
 		if (!$include_private) {
-			return \array_filter($this->relations, static fn ($relation) => !$relation->isPrivate());
+			return \array_filter($this->relations, static fn($relation) => !$relation->isPrivate());
 		}
 
 		return $this->relations;
@@ -1377,7 +1385,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 	public function getVirtualRelations(bool $include_private = true): array
 	{
 		if (!$include_private) {
-			return \array_filter($this->virtual_relations, static fn ($relation) => !$relation->isPrivate());
+			return \array_filter($this->virtual_relations, static fn($relation) => !$relation->isPrivate());
 		}
 
 		return $this->virtual_relations;
@@ -1466,7 +1474,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 			foreach ($this->fk_constraints as /* $fk_name => */ $fk) {
 				if (
 					$fk->getReferenceTable()
-						->getName() !== $reference->getName()
+					->getName() !== $reference->getName()
 				) {
 					continue;
 				}
@@ -1818,6 +1826,12 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 	#[Override]
 	public function getDiffKey(): string
 	{
+		if (null !== $this->old_name) {
+			// when old_name is set, derive the diff key from the old name so the
+			// diff engine can match this table against its previous identity
+			return \md5($this->namespace . '/' . $this->old_name);
+		}
+
 		if (empty($this->diff_key)) {
 			$this->diff_key = \md5($this->namespace . '/' . $this->name);
 		}
@@ -1835,6 +1849,34 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 		}
 
 		$this->diff_key = $diff_key;
+
+		return $this;
+	}
+
+	/**
+	 * Sets the old table name used for rename-tracking across migrations.
+	 *
+	 * When set, `getDiffKey()` returns a key derived from `$old_name` instead of the
+	 * current name, allowing the diff engine to match this table against its identity
+	 * in the previous schema version.
+	 *
+	 * Remove this option from the schema once the migration has been applied.
+	 *
+	 * @param string $old_name the table name before the rename
+	 *
+	 * @return $this
+	 */
+	public function oldName(string $old_name): static
+	{
+		$this->assertNotLocked();
+
+		if (!\preg_match(self::NAME_REG, $old_name)) {
+			throw new InvalidArgumentException(
+				\sprintf('Table old name "%s" should match: %s', $old_name, self::NAME_PATTERN)
+			);
+		}
+
+		$this->old_name = $old_name;
 
 		return $this;
 	}

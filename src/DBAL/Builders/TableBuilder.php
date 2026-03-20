@@ -149,6 +149,24 @@ final class TableBuilder
 	}
 
 	/**
+	 * Sets the old table name used for rename-tracking across migrations.
+	 *
+	 * When set, the table's diff key is derived from `$old_name` so the diff engine
+	 * can detect a rename instead of a drop + create.
+	 * Remove this call from the schema once the migration has been applied.
+	 *
+	 * @param string $old_name the table name before the rename
+	 *
+	 * @return $this
+	 */
+	public function oldName(string $old_name): static
+	{
+		$this->table->oldName($old_name);
+
+		return $this;
+	}
+
+	/**
 	 * Sets the table columns prefix.
 	 *
 	 * @param string $prefix

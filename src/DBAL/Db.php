@@ -379,6 +379,10 @@ abstract class Db implements RDBMSInterface
 					$tbl->setDiffKey($table_options['diff_key']);
 				}
 
+				if (isset($table_options['old_name'])) {
+					$tbl->oldName((string) $table_options['old_name']);
+				}
+
 				if (isset($table_options['morph_type'])) {
 					$tbl->setMorphType($table_options['morph_type']);
 				}
@@ -486,6 +490,14 @@ abstract class Db implements RDBMSInterface
 
 							if (isset($col_options['diff_key'])) {
 								$col->setDiffKey($col_options['diff_key']);
+							}
+
+							if (isset($col_options['old_name'])) {
+								$col->oldName((string) $col_options['old_name']);
+							}
+
+							if (isset($col_options['old_prefix'])) {
+								$col->oldPrefix((string) $col_options['old_prefix']);
 							}
 
 							if (isset($col_options['private'])) {
@@ -932,7 +944,7 @@ abstract class Db implements RDBMSInterface
 			unset($options['auto_increment']);
 		}
 
-		unset($options['diff_key']);
+		unset($options['diff_key'], $options['old_name'], $options['old_prefix']);
 
 		return $options;
 	}
