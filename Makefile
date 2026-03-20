@@ -22,7 +22,7 @@ docs-api: $(PHPDOC_PHAR)
 	php $(PHPDOC_PHAR) run --config phpdoc.xml
 
 ## Build complete docs site (API ref + VitePress static output)
-docs-build: cs-fix lint docs-api
+docs-build: fix docs-api
 	@echo "Building VitePress site..."
 	cd docs && pnpm run build
 
