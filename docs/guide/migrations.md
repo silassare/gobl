@@ -180,6 +180,60 @@ clause and is emitted as a plain `ALTER COLUMN` statement.
 
 ---
 
+## Rename tracking
+
+By default the diff engine identifies a table by `md5(namespace/name)` and a column by
+`md5(table_key/prefix_name)`. Renaming without extra hints causes the engine to emit a
+DROP + CREATE instead of an ALTER RENAME.
+
+Set `old_name` (and optionally `old_prefix` for columns) on the **new** schema definition
+before generating the diff. These options are ephemeral: they are **not** written by
+`toArray()`. Remove them once the migration has been applied.
+
+### Fluent builder
+
+```php
+// Table rename: 'users' -> 'members'
+$db->ns('App\Db')->table('members', function (TableBuilder $t) {
+    $t->oldName('users');   // remove after migration is applied
+    $t->id();
+    $t->string('name');
+});
+
+// Column rename: 'user_email' -> 'user_email_address'
+$col = $t->string('email_address');
+$col->oldName('email');      // prefix unchanged - current prefix ('user') is reused
+
+// Column that also gained a prefix: previously 'email' (no prefix) -> 'user_email'
+$col = $t->string('email', 'user');
+$col->oldName('email');
+$col->oldPrefix('');         // explicit empty string = column had no prefix before
+```
+
+### Array schema
+
+```php
+$db->ns('App\Db')->schema([
+    'members' => [
+        'old_name'      => 'users',     // remove after migration
+        'singular_name' => 'member',
+        'plural_name'   => 'members',
+        'column_prefix' => 'member',
+        'columns' => [
+            'id'            => ['type' => 'bigint', 'auto_increment' => true],
+            'email_address' => ['type' => 'string', 'old_name' => 'email'],
+        ],
+    ],
+]);
+```
+
+::: warning One-shot option
+Leaving `old_name` across two separate rename cycles causes the diff key to stay anchored
+to the first old name. Always remove it after the migration has been run.
+:::
+
+---
+
 ## Recommended workflow
 
 1. Create a new class implementing `MigrationInterface` for each schema change.

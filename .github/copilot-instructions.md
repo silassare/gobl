@@ -215,6 +215,42 @@ $runner->run(MigrationMode::UP);
 
 Migration files are anonymous classes implementing `MigrationInterface` with `getVersion()`, `up()`, `down()`, `beforeRun()`, `afterRun()`. See `tests/tmp/output/migration_mysql_*.php` for generated examples.
 
+### Rename tracking (`oldName` / `oldPrefix`)
+
+By default the diff key for a table is `md5(namespace/name)` and for a column is `md5(table_key/prefix_name)`. Renaming without extra hints causes the engine to emit a DROP + CREATE instead of an ALTER RENAME.
+
+To teach the diff engine about a rename, set `oldName()` on the **new** schema object before the diff runs, then remove it after the migration has been applied. The option is **not** written by `toArray()`.
+
+```php
+// Table rename: 'users' -> 'members'
+$db->ns('App\Db')->table('members', function (TableBuilder $t) {
+    $t->oldName('users');   // derive diff key from old name for this migration
+    // ... column definitions ...
+});
+
+// Column rename: 'user_email' -> 'user_email_address'
+$col = $t->string('email_address');
+$col->oldName('email');      // old short name; current prefix ('user') is used automatically
+
+// Column that also changed prefix: previously 'email' (no prefix), now 'user_email'
+$col = $t->string('email', 'user');
+$col->oldName('email');
+$col->oldPrefix('');         // old prefix was empty
+```
+
+In the array schema:
+
+```php
+'members' => [
+    'old_name'   => 'users',      // remove after migration
+    'columns'    => [
+        'email_address' => ['type' => 'string', 'old_name' => 'email'],
+    ],
+]
+```
+
+**Edge case**: leaving `old_name` across two separate rename cycles causes the diff key to stay anchored to the first old name. Always remove `old_name` from the schema once the migration has been applied.
+
 ## Developer Workflows
 
 | Task                             | Command                 |

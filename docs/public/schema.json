@@ -46,7 +46,12 @@
 				},
 				"diff_key": {
 					"type": "string",
-					"description": "Stable identifier used by the Diff engine when comparing two schema versions. Defaults to the table name. Set this to preserve diff continuity when renaming a table."
+					"description": "Stable identifier used by the Diff engine. Computed from namespace + table name; written by toArray() for serialization. For rename migration, prefer old_name instead of managing this directly."
+				},
+				"old_name": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "Table name before a rename. When set, getDiffKey() derives the key from this name so the Diff engine detects a rename instead of a drop+create. Not written by toArray() - remove after the migration has been applied."
 				},
 				"morph_type": {
 					"type": "string",
@@ -115,7 +120,7 @@
 				{
 					"type": "string",
 					"pattern": "^(ref|cp):[a-z]([a-z0-9_]*[a-z0-9])?\\.([a-z]([a-z0-9_]*[a-z0-9])?)$",
-					"description": "'ref:table.column' inherits the target column's type options at schema-loading time. auto_increment is stripped - use this for foreign key columns. 'cp:table.column' also inherits type options but preserves auto_increment. Both create independent columns; extra options can be merged using the array form: { \"type\": \"ref:users.id\", \"nullable\": true }. diff_key is always stripped from both.",
+					"description": "'ref:table.column' inherits the target column's type options at schema-loading time. auto_increment is stripped - use this for foreign key columns. 'cp:table.column' also inherits type options but preserves auto_increment. Both create independent columns; extra options can be merged using the array form: { \"type\": \"ref:users.id\", \"nullable\": true }. diff_key, old_name, and old_prefix are always stripped from both.",
 					"examples": ["ref:users.id", "cp:products.price"]
 				},
 				{
@@ -243,7 +248,16 @@
 				},
 				"diff_key": {
 					"type": "string",
-					"description": "Stable identifier used by the Diff engine when comparing two schema versions. Defaults to the column name. Set to preserve diff continuity when renaming a column."
+					"description": "Stable identifier used by the Diff engine. Computed from the column's full name (prefix_name); written by toArray() for serialization. For rename migration, prefer old_name / old_prefix instead."
+				},
+				"old_name": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "Column short name before a rename. When set, getDiffKey() uses this name (combined with old_prefix or the current prefix) to derive the diff key, so the Diff engine detects a rename instead of a drop+create. Not written by toArray() - remove after the migration has been applied."
+				},
+				"old_prefix": {
+					"type": "string",
+					"description": "Column prefix before the rename. Omit to use the current prefix. Pass an empty string explicitly when the column previously had no prefix. Only meaningful alongside old_name. Not written by toArray()."
 				},
 				"private": {
 					"type": "boolean",
@@ -322,7 +336,16 @@
 				},
 				"diff_key": {
 					"type": "string",
-					"description": "Stable identifier used by the Diff engine when comparing two schema versions. Defaults to the column name. Set to preserve diff continuity when renaming a column."
+					"description": "Stable identifier used by the Diff engine. Computed from the column's full name (prefix_name); written by toArray() for serialization. For rename migration, prefer old_name / old_prefix instead."
+				},
+				"old_name": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "Column short name before a rename. When set, getDiffKey() uses this name (combined with old_prefix or the current prefix) to derive the diff key, so the Diff engine detects a rename instead of a drop+create. Not written by toArray() - remove after the migration has been applied."
+				},
+				"old_prefix": {
+					"type": "string",
+					"description": "Column prefix before the rename. Omit to use the current prefix. Pass an empty string explicitly when the column previously had no prefix. Only meaningful alongside old_name. Not written by toArray()."
 				},
 				"private": {
 					"type": "boolean",
@@ -401,7 +424,16 @@
 				},
 				"diff_key": {
 					"type": "string",
-					"description": "Stable identifier used by the Diff engine when comparing two schema versions. Defaults to the column name. Set to preserve diff continuity when renaming a column."
+					"description": "Stable identifier used by the Diff engine. Computed from the column's full name (prefix_name); written by toArray() for serialization. For rename migration, prefer old_name / old_prefix instead."
+				},
+				"old_name": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "Column short name before a rename. When set, getDiffKey() uses this name (combined with old_prefix or the current prefix) to derive the diff key, so the Diff engine detects a rename instead of a drop+create. Not written by toArray() - remove after the migration has been applied."
+				},
+				"old_prefix": {
+					"type": "string",
+					"description": "Column prefix before the rename. Omit to use the current prefix. Pass an empty string explicitly when the column previously had no prefix. Only meaningful alongside old_name. Not written by toArray()."
 				},
 				"private": {
 					"type": "boolean",
@@ -499,7 +531,16 @@
 				},
 				"diff_key": {
 					"type": "string",
-					"description": "Stable identifier used by the Diff engine when comparing two schema versions. Defaults to the column name. Set to preserve diff continuity when renaming a column."
+					"description": "Stable identifier used by the Diff engine. Computed from the column's full name (prefix_name); written by toArray() for serialization. For rename migration, prefer old_name / old_prefix instead."
+				},
+				"old_name": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "Column short name before a rename. When set, getDiffKey() uses this name (combined with old_prefix or the current prefix) to derive the diff key, so the Diff engine detects a rename instead of a drop+create. Not written by toArray() - remove after the migration has been applied."
+				},
+				"old_prefix": {
+					"type": "string",
+					"description": "Column prefix before the rename. Omit to use the current prefix. Pass an empty string explicitly when the column previously had no prefix. Only meaningful alongside old_name. Not written by toArray()."
 				},
 				"private": {
 					"type": "boolean",
@@ -565,7 +606,16 @@
 				},
 				"diff_key": {
 					"type": "string",
-					"description": "Stable identifier used by the Diff engine when comparing two schema versions. Defaults to the column name. Set to preserve diff continuity when renaming a column."
+					"description": "Stable identifier used by the Diff engine. Computed from the column's full name (prefix_name); written by toArray() for serialization. For rename migration, prefer old_name / old_prefix instead."
+				},
+				"old_name": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "Column short name before a rename. When set, getDiffKey() uses this name (combined with old_prefix or the current prefix) to derive the diff key, so the Diff engine detects a rename instead of a drop+create. Not written by toArray() - remove after the migration has been applied."
+				},
+				"old_prefix": {
+					"type": "string",
+					"description": "Column prefix before the rename. Omit to use the current prefix. Pass an empty string explicitly when the column previously had no prefix. Only meaningful alongside old_name. Not written by toArray()."
 				},
 				"private": {
 					"type": "boolean",
@@ -673,7 +723,16 @@
 				},
 				"diff_key": {
 					"type": "string",
-					"description": "Stable identifier used by the Diff engine when comparing two schema versions. Defaults to the column name. Set to preserve diff continuity when renaming a column."
+					"description": "Stable identifier used by the Diff engine. Computed from the column's full name (prefix_name); written by toArray() for serialization. For rename migration, prefer old_name / old_prefix instead."
+				},
+				"old_name": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "Column short name before a rename. When set, getDiffKey() uses this name (combined with old_prefix or the current prefix) to derive the diff key, so the Diff engine detects a rename instead of a drop+create. Not written by toArray() - remove after the migration has been applied."
+				},
+				"old_prefix": {
+					"type": "string",
+					"description": "Column prefix before the rename. Omit to use the current prefix. Pass an empty string explicitly when the column previously had no prefix. Only meaningful alongside old_name. Not written by toArray()."
 				},
 				"private": {
 					"type": "boolean",
@@ -742,7 +801,16 @@
 				},
 				"diff_key": {
 					"type": "string",
-					"description": "Stable identifier used by the Diff engine when comparing two schema versions. Defaults to the column name. Set to preserve diff continuity when renaming a column."
+					"description": "Stable identifier used by the Diff engine. Computed from the column's full name (prefix_name); written by toArray() for serialization. For rename migration, prefer old_name / old_prefix instead."
+				},
+				"old_name": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "Column short name before a rename. When set, getDiffKey() uses this name (combined with old_prefix or the current prefix) to derive the diff key, so the Diff engine detects a rename instead of a drop+create. Not written by toArray() - remove after the migration has been applied."
+				},
+				"old_prefix": {
+					"type": "string",
+					"description": "Column prefix before the rename. Omit to use the current prefix. Pass an empty string explicitly when the column previously had no prefix. Only meaningful alongside old_name. Not written by toArray()."
 				},
 				"private": {
 					"type": "boolean",
@@ -840,7 +908,16 @@
 				},
 				"diff_key": {
 					"type": "string",
-					"description": "Stable identifier used by the Diff engine when comparing two schema versions. Defaults to the column name. Set to preserve diff continuity when renaming a column."
+					"description": "Stable identifier used by the Diff engine. Computed from the column's full name (prefix_name); written by toArray() for serialization. For rename migration, prefer old_name / old_prefix instead."
+				},
+				"old_name": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "Column short name before a rename. When set, getDiffKey() uses this name (combined with old_prefix or the current prefix) to derive the diff key, so the Diff engine detects a rename instead of a drop+create. Not written by toArray() - remove after the migration has been applied."
+				},
+				"old_prefix": {
+					"type": "string",
+					"description": "Column prefix before the rename. Omit to use the current prefix. Pass an empty string explicitly when the column previously had no prefix. Only meaningful alongside old_name. Not written by toArray()."
 				},
 				"private": {
 					"type": "boolean",
@@ -925,7 +1002,16 @@
 				},
 				"diff_key": {
 					"type": "string",
-					"description": "Stable identifier used by the Diff engine when comparing two schema versions. Defaults to the column name. Set to preserve diff continuity when renaming a column."
+					"description": "Stable identifier used by the Diff engine. Computed from the column's full name (prefix_name); written by toArray() for serialization. For rename migration, prefer old_name / old_prefix instead."
+				},
+				"old_name": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "Column short name before a rename. When set, getDiffKey() uses this name (combined with old_prefix or the current prefix) to derive the diff key, so the Diff engine detects a rename instead of a drop+create. Not written by toArray() - remove after the migration has been applied."
+				},
+				"old_prefix": {
+					"type": "string",
+					"description": "Column prefix before the rename. Omit to use the current prefix. Pass an empty string explicitly when the column previously had no prefix. Only meaningful alongside old_name. Not written by toArray()."
 				},
 				"private": {
 					"type": "boolean",
@@ -1010,7 +1096,16 @@
 				},
 				"diff_key": {
 					"type": "string",
-					"description": "Stable identifier used by the Diff engine when comparing two schema versions. Defaults to the column name. Set to preserve diff continuity when renaming a column."
+					"description": "Stable identifier used by the Diff engine. Computed from the column's full name (prefix_name); written by toArray() for serialization. For rename migration, prefer old_name / old_prefix instead."
+				},
+				"old_name": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "Column short name before a rename. When set, getDiffKey() uses this name (combined with old_prefix or the current prefix) to derive the diff key, so the Diff engine detects a rename instead of a drop+create. Not written by toArray() - remove after the migration has been applied."
+				},
+				"old_prefix": {
+					"type": "string",
+					"description": "Column prefix before the rename. Omit to use the current prefix. Pass an empty string explicitly when the column previously had no prefix. Only meaningful alongside old_name. Not written by toArray()."
 				},
 				"private": {
 					"type": "boolean",
@@ -1086,7 +1181,16 @@
 				},
 				"diff_key": {
 					"type": "string",
-					"description": "Stable identifier used by the Diff engine when comparing two schema versions. Defaults to the column name. Set to preserve diff continuity when renaming a column."
+					"description": "Stable identifier used by the Diff engine. Computed from the column's full name (prefix_name); written by toArray() for serialization. For rename migration, prefer old_name / old_prefix instead."
+				},
+				"old_name": {
+					"type": "string",
+					"pattern": "^[a-z]([a-z0-9_]*[a-z0-9])?$",
+					"description": "Column short name before a rename. When set, getDiffKey() uses this name (combined with old_prefix or the current prefix) to derive the diff key, so the Diff engine detects a rename instead of a drop+create. Not written by toArray() - remove after the migration has been applied."
+				},
+				"old_prefix": {
+					"type": "string",
+					"description": "Column prefix before the rename. Omit to use the current prefix. Pass an empty string explicitly when the column previously had no prefix. Only meaningful alongside old_name. Not written by toArray()."
 				},
 				"private": {
 					"type": "boolean",
