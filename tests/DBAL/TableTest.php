@@ -267,4 +267,49 @@ final class TableTest extends BaseTestCase
 		$this->expectException(InvalidArgumentException::class);
 		new Table('_invalid');
 	}
+
+	public function testOldNameAffectsDiffKey(): void
+	{
+		$table = new Table('users_v2');
+		$table->setNamespace('App\Db');
+
+		$normal_key = $table->getDiffKey();
+
+		$table2 = new Table('users_v2');
+		$table2->setNamespace('App\Db');
+		$table2->oldName('users');
+
+		// diff key must match the old table identity, not the new name
+		$old_key = $table2->getDiffKey();
+		self::assertNotSame($normal_key, $old_key);
+
+		$expected_old_key = \md5('App\Db/users');
+		self::assertSame($expected_old_key, $old_key);
+	}
+
+	public function testOldNameInvalidNameThrows(): void
+	{
+		$table = new Table('users');
+
+		$this->expectException(InvalidArgumentException::class);
+		$this->expectExceptionMessage('Table old name "_bad" should match');
+
+		$table->oldName('_bad');
+	}
+
+	public function testOldNameNotInToArray(): void
+	{
+		$table = new Table('users_v2');
+		$table->setNamespace('App\Db');
+		$table->oldName('users');
+		$table->setPluralName('users_v2_entities');
+		$table->setSingularName('users_v2_entity');
+		$table->addColumn(new Column('name'));
+
+		$array = $table->toArray();
+
+		self::assertArrayNotHasKey('old_name', $array);
+		// diff_key in toArray() reflects the old-name-derived key
+		self::assertSame($table->getDiffKey(), $array['diff_key']);
+	}
 }

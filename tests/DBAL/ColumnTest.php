@@ -196,4 +196,91 @@ final class ColumnTest extends BaseTestCase
 
 		self::assertTrue($type->isAutoIncremented());
 	}
+
+	/**
+	 * @throws DBALException
+	 */
+	public function testOldNameAffectsDiffKey(): void
+	{
+		// Normal column: 'user_email_address'
+		$table = new Table('users');
+		$table->setNamespace('App\Db');
+		$table->setSingularName('user');
+		$table->setPluralName('users_list');
+		$table->addColumn(new Column('email_address', 'user'));
+		$table->lock();
+
+		$col_normal = $table->getColumnOrFail('email_address');
+		$normal_key = $col_normal->getDiffKey();
+
+		// Column that was renamed: previously 'user_email', now 'user_email_address'
+		$table2 = new Table('users');
+		$table2->setNamespace('App\Db');
+		$table2->setSingularName('user');
+		$table2->setPluralName('users_list');
+
+		$col_renamed = new Column('email_address', 'user');
+		$col_renamed->oldName('email');
+		$table2->addColumn($col_renamed);
+		$table2->lock();
+
+		$old_key = $col_renamed->getDiffKey();
+		self::assertNotSame($normal_key, $old_key);
+
+		// old_key must match the previous full name identity
+		$expected_old_key = \md5($table2->getDiffKey() . '/user_email');
+		self::assertSame($expected_old_key, $old_key);
+	}
+
+	/**
+	 * @throws DBALException
+	 */
+	public function testOldNameWithExplicitOldPrefix(): void
+	{
+		$table = new Table('users');
+		$table->setNamespace('App\Db');
+		$table->setSingularName('user');
+		$table->setPluralName('users_list');
+
+		// column moved from prefix-less 'email' to prefixed 'user_email'
+		$col = new Column('email', 'user');
+		$col->oldName('email');
+		$col->oldPrefix(''); // old column had no prefix
+		$table->addColumn($col);
+		$table->lock();
+
+		$expected_old_key = \md5($table->getDiffKey() . '/email');
+		self::assertSame($expected_old_key, $col->getDiffKey());
+	}
+
+	public function testOldNameInvalidNameThrows(): void
+	{
+		$column = new Column('name');
+
+		$this->expectException(InvalidArgumentException::class);
+		$this->expectExceptionMessage('Column old name "_bad" should match');
+
+		$column->oldName('_bad');
+	}
+
+	public function testOldPrefixInvalidPatternThrows(): void
+	{
+		$column = new Column('name');
+
+		$this->expectException(InvalidArgumentException::class);
+		$this->expectExceptionMessage('Column old prefix "_bad" should match');
+
+		$column->oldPrefix('_bad');
+	}
+
+	public function testOldNameNotInToArray(): void
+	{
+		$column = new Column('email', 'user');
+		$column->oldName('email_old');
+
+		$array = $column->toArray();
+
+		self::assertArrayNotHasKey('old_name', $array);
+		self::assertArrayNotHasKey('old_prefix', $array);
+	}
 }
