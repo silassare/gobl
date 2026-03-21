@@ -6,6 +6,7 @@
 PHPDOC_PHAR ?= /tmp/phpDocumentor.phar
 PHPDOC_VERSION ?= 3.7.1
 PHPDOC_URL = https://github.com/phpDocumentor/phpDocumentor/releases/download/v$(PHPDOC_VERSION)/phpDocumentor.phar
+TEST_TMP_DIR ?= tests/tmp/
 
 $(PHPDOC_PHAR):
 	@echo "Downloading phpDocumentor $(PHPDOC_VERSION)..."
@@ -38,13 +39,13 @@ docs-install:
 
 ## Run the full test suite
 test:
-	rm -rf tests/tmp/
-	mkdir -p tests/tmp/output
+	rm -rf $(TEST_TMP_DIR)
+	mkdir -p $(TEST_TMP_DIR)/output
 	vendor/bin/phpunit --testdox --do-not-cache-result
 
 ## Run only unit tests (no live DB)
 test-unit:
-	vendor/bin/phpunit --exclude-group live
+	vendor/bin/phpunit --testdox --do-not-cache-result --exclude-group live
 
 ## Run the full test suite inside Docker (requires Docker + Compose)
 test-docker:
@@ -62,14 +63,9 @@ cs:
 
 ## Lint with Psalm (static analysis) without using cache
 lint:
+	mkdir -p $(TEST_TMP_DIR)
 	vendor/bin/psalm --no-cache
 
 ## Fix code style automatically
 fix: lint
 	vendor/bin/oliup-cs fix
-
-# = Help
-
-## Print available targets
-help:
-	@grep -E '^## ' Makefile | sed 's/## //'
