@@ -6,22 +6,22 @@ Each top-level key is a **logical table name** (without prefix).
 ```php
 return [
     'table_name' => [
-        // ── identity ───────────────────────────────────────────────────
+        // = identity
         'singular_name' => 'item',       // used in generated class names
         'plural_name'   => 'items',
         'column_prefix' => 'item',       // prepended to every column name
         'namespace'     => 'app',        // optional, overrides Db::ns()
 
-        // ── columns ────────────────────────────────────────────────────
+        // = columns
         'columns' => [ /* see Column Types */ ],
 
-        // ── constraints ────────────────────────────────────────────────
+        // = constraints
         'constraints' => [ /* see below */ ],
 
-        // ── relations ──────────────────────────────────────────────────
+        // = relations
         'relations' => [ /* see Relations */ ],
 
-        // ── arbitrary metadata (used by generators / the framework) ────
+        // = arbitrary metadata (used by generators / the framework)
         'meta' => [
             'api.doc.description' => 'A short description.',
         ],

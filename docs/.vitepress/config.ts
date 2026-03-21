@@ -6,7 +6,7 @@ const goblVersion = readFileSync(resolve(__dirname, "../../VERSION"), "utf-8")
 	.trim()
 	.replace(/^gobl\s+/i, "");
 
-// ─── Shared sidebar used by multiple packages in the framework ──────────────
+// = Shared sidebar used by multiple packages in the framework
 // To reuse: import { goblSidebar } from '../../gobl/docs/.vitepress/config'
 export const sidebar = [
 	{
@@ -60,7 +60,7 @@ export const sidebar = [
 	},
 ];
 
-// ─── VitePress config ────────────────────────────────────────────────────────
+// = VitePress config
 export default defineConfig({
 	lang: "en-US",
 	title: "Gobl",
@@ -78,7 +78,7 @@ export default defineConfig({
 		logo: "/logo.svg",
 		siteTitle: "Gobl",
 
-		// ── Top nav ──────────────────────────────────────────────────────────────
+		// = Top nav
 		nav: [
 			{ text: "Guide", link: "/guide/", activeMatch: "/guide/" },
 			{ text: "API", link: "/api/", target: "_blank", rel: "noreferrer" },
@@ -98,16 +98,16 @@ export default defineConfig({
 			},
 		],
 
-		// ── Sidebar ───────────────────────────────────────────────────────────
+		// = Sidebar
 		sidebar,
 
-		// ── Editing ───────────────────────────────────────────────────────────
+		// = Editing
 		editLink: {
 			pattern: "https://github.com/silassare/gobl/edit/main/docs/:path",
 			text: "Edit this page on GitHub",
 		},
 
-		// ── Footer ────────────────────────────────────────────────────────────
+		// = Footer
 		footer: {
 			message:
 				'Released under the <a href="https://github.com/silassare/gobl/blob/main/LICENSE">MIT License</a>.',
@@ -115,17 +115,17 @@ export default defineConfig({
 				'Copyright © 2021–present <a href="https://github.com/silassare">Emile Silas Sare</a>',
 		},
 
-		// ── Social ────────────────────────────────────────────────────────────
+		// = Social
 		socialLinks: [
 			{ icon: "github", link: "https://github.com/silassare/gobl" },
 		],
 
-		// ── Search (built-in, no Algolia key needed) ──────────────────────────
+		// = Search (built-in, no Algolia key needed)
 		search: {
 			provider: "local",
 		},
 
-		// ── Outline ───────────────────────────────────────────────────────────
+		// = Outline
 		outline: { level: [2, 3], label: "On this page" },
 	},
 
