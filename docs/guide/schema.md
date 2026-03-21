@@ -7,10 +7,10 @@ Each top-level key is a **logical table name** (without prefix).
 return [
     'table_name' => [
         // = identity
-        'singular_name' => 'item',       // used in generated class names
+        'singular_name' => 'item',   // used in generated class names
         'plural_name'   => 'items',
-        'column_prefix' => 'item',       // prepended to every column name
-        'namespace'     => 'app',        // optional, overrides Db::ns()
+        'column_prefix' => 'item',   // prepended to every column name
+        'namespace'     => 'app',    // optional, overrides Db::ns()
 
         // = columns
         'columns' => [ /* see Column Types */ ],
@@ -65,7 +65,7 @@ becomes `user_id` in SQL.
     // Foreign key
     [
         'type'      => 'foreign_key',
-        'reference' => 'users',        // references the 'users' table
+        'reference' => 'users',  // references the 'users' table
         'columns'   => ['author_id' => 'id'],  // local_col => remote_col
     ],
 
@@ -170,8 +170,8 @@ Pass `null` to `setDefaultSchemaUrl()` to clear the default URL.
 which you can pass directly back to `schema()`:
 
 ```php
-$data = $db->toSchemaArray('app');         // all tables in namespace 'app'
-$data = $db->toSchemaArray();              // all tables across all namespaces
+$data = $db->toSchemaArray('app'); // all tables in namespace 'app'
+$data = $db->toSchemaArray();      // all tables across all namespaces
 ```
 
 Call `enableORM($outDir)` to also register the namespace for ORM code generation:
@@ -193,8 +193,12 @@ $db->ns('content')->schema(require 'config/content.php')->enableORM($outDir);
 
 Each namespace gets its own set of generated classes.
 
-::: warning Column prefix uniqueness
-Gobl does not enforce globally-unique prefixes, but the ORM generates class
-names from the `singular_name`. Use distinct singular names across namespaces
-to avoid class-name collisions.
+::: warning Name uniqueness within a namespace
+`Db::addTable()` enforces that table `name` and full name (name + DB prefix)
+are unique — duplicate table names throw a `DBALException`.
+
+However, `singular_name`, `plural_name`, and `column_prefix` uniqueness across
+tables within a namespace is **not** enforced. Duplicate values will cause
+class-name collisions in generated ORM code and ambiguous column look-ups.
+Ensure they are distinct manually.
 :::
