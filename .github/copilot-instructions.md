@@ -419,8 +419,9 @@ Live DB tests require `.env.test` (see `.env.test.example`). `make test` cleans 
 - `Table::addForeignKeyConstraint(?string $name, Table $ref, array $cols_map, ...)` - first arg is the constraint name (nullable), not the reference table.
 - `ForeignKey::assertIsValid()` (called during `lock()`) requires the referenced columns to be PK or UK in the reference table, ensure the reference table has a `addPrimaryKeyConstraint()` before locking.
 - `ForeignKeyAction` enum values are **lowercase** (e.g., `ForeignKeyAction::CASCADE->value === 'cascade'`).
-- `Constraint::assertNotLocked()` throws `DBALException` (overrides the `LockTrait` default). `Table` and other `LockTrait` users throw `PHPUtils\Exceptions\RuntimeException`.
 - `Index::addColumn()` for a nonexistent column throws `DBALRuntimeException` (via `Table::getColumnOrFail()`), not `DBALException`.
+- Constraint (`PrimaryKey`, `UniqueKey`, `ForeignKey`) and `Index` mutation methods (e.g., `addColumn()`, `onUpdate()`, `onDelete()`) throw `PHPUtils\Exceptions\RuntimeException` when the object is already locked.
+- `Column::lock()` throws `LogicException` — use `Column::lockWithTable(Table $table)` instead.
 
 ## Live DB Test Pattern
 

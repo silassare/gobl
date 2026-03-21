@@ -7,13 +7,29 @@ depend on the type. All types share a set of **universal options**.
 
 ## Universal options (all types)
 
-| Option           | PHP type | Default  | Description                                                                                    |
-| ---------------- | -------- | -------- | ---------------------------------------------------------------------------------------------- |
-| `nullable`       | `bool`   | `false`  | Accept `null` as a valid value                                                                 |
-| `auto_increment` | `bool`   | `false`  | Column is auto-incremented by the RDBMS                                                        |
-| `default`        | mixed    | _(none)_ | Default value used when `null` is supplied                                                     |
-| `validator:pre`  | `string` | _(none)_ | FQCN of a `TypeValidatorInterface` class; runs before the core validation                      |
-| `validator:post` | `string` | _(none)_ | FQCN of a `TypeValidatorInterface` class; runs after core validation (always, even on failure) |
+| Option           | PHP type | Default  | Description                                                                                             |
+| ---------------- | -------- | -------- | ------------------------------------------------------------------------------------------------------- |
+| `nullable`       | `bool`   | `false`  | Accept `null` as a valid value                                                                          |
+| `auto_increment` | `bool`   | `false`  | Column is auto-incremented by the RDBMS                                                                 |
+| `default`        | mixed    | _(none)_ | Default value used when `null` is supplied                                                              |
+| `meta`           | `array`  | `{}`     | Arbitrary key-value data attached to the column type (available in Blate templates and code generators) |
+| `validator:pre`  | `string` | _(none)_ | FQCN of a `TypeValidatorInterface` class; runs before the core validation                               |
+| `validator:post` | `string` | _(none)_ | FQCN of a `TypeValidatorInterface` class; runs after core validation (always, even on failure)          |
+
+Column `meta` is separate from table `meta`. It is attached to the column type and merged with
+the column's own meta at lock time. Use it to pass hints to Blate templates or your framework:
+
+```php
+// Array schema
+'email' => [
+    'type' => 'string',
+    'max'  => 255,
+    'meta' => ['label' => 'Email address', 'api.hidden' => false],
+]
+
+// Fluent builder (TableBuilder column methods return the type instance)
+$t->string('email')->setMetaKey('label', 'Email address');
+```
 
 ---
 
@@ -185,10 +201,10 @@ Returns a formatted string or raw timestamp in PHP.
 
 Stores an associative array (JSON object) in the database. Returns a `Map` wrapper in PHP.
 
-| Option        | Type     | Default  | Description                                                                                                                                                                     |
-| ------------- | -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `native_json` | `bool`   | `true`   | Use the native `JSON` column type (MySQL >= 5.7, PostgreSQL). Enables JSON path operators (contains, has_key) in filters.                                                       |
-| `big`         | `bool`   | `false`  | When `native_json=false`: use `MEDIUMTEXT` in MySQL for larger JSON documents.                                                                                                  |
+| Option        | Type     | Default  | Description                                                                                                                                                                   |
+| ------------- | -------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `native_json` | `bool`   | `true`   | Use the native `JSON` column type (MySQL >= 5.7, PostgreSQL). Enables JSON path operators (contains, has_key) in filters.                                                     |
+| `big`         | `bool`   | `false`  | When `native_json=false`: use `MEDIUMTEXT` in MySQL for larger JSON documents.                                                                                                |
 | `map_of`      | `string` | _(none)_ | FQCN implementing `JsonOfInterface` - each map value is revived via `::revive()` on read. Or an `ORMUniversalType` enum name (e.g. `'STRING'`) for code-gen value type hints. |
 
 > **Fluent builder default:** `$t->map('col')` uses `native_json=true` by default.
@@ -213,13 +229,13 @@ $t->map('scores')->mapOf(ORMUniversalType::INT);   // same, long form
 
 The `map_of` universal type propagates to all three code generators:
 
-| `map_of` value       | PHP                      | TypeScript                | Dart                    |
-| -------------------- | ------------------------ | ------------------------- | ----------------------- |
-| _(none)_             | `array<string,mixed>`    | `Record<string, unknown>` | `Map<String, dynamic>`  |
-| `'STRING'`           | `array<string,string>`   | `Record<string, string>`  | `Map<String, String>`   |
-| `'INT'`              | `array<string,int>`      | `Record<string, number>`  | `Map<String, num>`      |
-| `'BOOL'`             | `array<string,bool>`     | `Record<string, boolean>` | `Map<String, bool>`     |
-| `MyClass::class`     | `array<string,\MyClass>` | `Record<string, unknown>` | `Map<String, dynamic>`  |
+| `map_of` value   | PHP                      | TypeScript                | Dart                   |
+| ---------------- | ------------------------ | ------------------------- | ---------------------- |
+| _(none)_         | `array<string,mixed>`    | `Record<string, unknown>` | `Map<String, dynamic>` |
+| `'STRING'`       | `array<string,string>`   | `Record<string, string>`  | `Map<String, String>`  |
+| `'INT'`          | `array<string,int>`      | `Record<string, number>`  | `Map<String, num>`     |
+| `'BOOL'`         | `array<string,bool>`     | `Record<string, boolean>` | `Map<String, bool>`    |
+| `MyClass::class` | `array<string,\MyClass>` | `Record<string, unknown>` | `Map<String, dynamic>` |
 
 ````
 
@@ -286,10 +302,10 @@ When a column's type should be derived from another table's column (e.g. a
 foreign key), use `ref:table.column` or `cp:table.column`:
 
 ```php
-// ref: inherits type from users.id - auto_increment is NOT carried over
+// ref: inherits type from users.id - auto_increment and meta are NOT carried over
 'author_id' => 'ref:users.id'
 
-// cp: inherits type from users.id - auto_increment IS carried over
+// cp: inherits type from users.id - auto_increment and meta ARE carried over
 'author_id' => 'cp:users.id'
 
 // With extra overrides merged in (works with both ref: and cp:):
@@ -299,12 +315,15 @@ foreign key), use `ref:table.column` or `cp:table.column`:
 Both shorthands resolve the target column's type options at schema-loading time
 and create an independent column. The only difference is what is carried over:
 
-|                                | `ref:`            | `cp:`         |
-| ------------------------------ | ----------------- | ------------- |
-| Type (`bigint`, `string`, ...) | yes               | yes           |
-| `unsigned`, `min`, `max`, ...  | yes               | yes           |
-| `auto_increment`               | **no** (stripped) | yes           |
-| `diff_key`                     | no (stripped)     | no (stripped) |
+|                                | `ref:`            | `cp:`             |
+| ------------------------------ | ----------------- | ----------------- |
+| Type (`bigint`, `string`, ...) | yes               | yes               |
+| `unsigned`, `min`, `max`, ...  | yes               | yes               |
+| `auto_increment`               | **no** (stripped) | yes               |
+| `meta`                         | **no** (stripped) | yes               |
+| `diff_key`                     | **no** (stripped) | **no** (stripped) |
+| `old_name`                     | **no** (stripped) | **no** (stripped) |
+| `old_prefix`                   | **no** (stripped) | **no** (stripped) |
 
 Use `ref:` for foreign key columns (they should not auto-increment).
 Use `cp:` only when the target column's `auto_increment` should be preserved.
