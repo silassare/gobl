@@ -63,6 +63,7 @@ $db->ns('App\Db')->table('users', function (TableBuilder $t) {
 ```
 
 `TableBuilder` fluent column methods: `id()`, `int()`, `bigint()`, `string()`, `bool()`, `float()`, `decimal()`, `date()`, `enum()`, `json()`, `jsonOf()`, `list()`, `listOf()`, `map()`, `mapOf()`, `timestamp()`, `timestamps()`, `softDeletable()`, `morph()`, `foreign()`, `sameAs()`, `unique()`, `primary()`, `index()`.
+Accessor method: `useColumn($name)` — returns an already-defined `Column` by name (throws `DBALRuntimeException` if not found); shorthand for `getTable()->getColumnOrFail($name)`.
 Relation methods: `hasMany()`, `hasOne()`, `belongsTo()`, `belongsToMany()`.
 
 Rules:
@@ -229,11 +230,12 @@ $db->ns('App\Db')->table('members', function (TableBuilder $t) {
 });
 
 // Column rename: 'user_email' -> 'user_email_address'
-$col = $t->string('email_address');
-$col->oldName('email');      // old short name; current prefix ('user') is used automatically
+$t->string('email_address');
+$t->useColumn('email_address')->oldName('email'); // current prefix ('user') is reused
 
 // Column that also changed prefix: previously 'email' (no prefix), now 'user_email'
-$col = $t->string('email', 'user');
+$t->string('email');
+$col = $t->useColumn('email');
 $col->oldName('email');
 $col->oldPrefix('');         // old prefix was empty
 ```

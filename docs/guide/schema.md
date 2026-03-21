@@ -119,10 +119,21 @@ $db->ns('app')->table('users', function (TableBuilder $t) {
     $t->id();
     $t->string('name');
     $t->timestamps();
+    $t->meta('api.doc.description', 'A registered user account.');
 });
 ```
 
 See [Schema - Fluent builder](./schema.md) and [ORM](./orm.md) for the full API.
+
+Use `useColumn($name)` to retrieve an already-defined column by its short name,
+for example to set migration rename hints after the column has been created:
+
+```php
+$db->ns('app')->table('users', function (TableBuilder $t) {
+    $t->string('email_address');
+    $t->useColumn('email_address')->oldName('email'); // rename from 'email'
+});
+```
 
 ### 3. JSON file
 

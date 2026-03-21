@@ -201,11 +201,13 @@ $db->ns('App\Db')->table('members', function (TableBuilder $t) {
 });
 
 // Column rename: 'user_email' -> 'user_email_address'
-$col = $t->string('email_address');
-$col->oldName('email');      // prefix unchanged - current prefix ('user') is reused
+$t->string('email_address');
+$t->useColumn('email_address')->oldName('email');
+// prefix unchanged - current prefix ('user') is reused
 
 // Column that also gained a prefix: previously 'email' (no prefix) -> 'user_email'
-$col = $t->string('email', 'user');
+$t->string('email');
+$col = $t->useColumn('email');
 $col->oldName('email');
 $col->oldPrefix('');         // explicit empty string = column had no prefix before
 ```
