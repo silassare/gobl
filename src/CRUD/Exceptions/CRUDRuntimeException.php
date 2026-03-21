@@ -18,4 +18,4 @@ use Gobl\Exceptions\GoblRuntimeException;
 /**
  * Class CRUDRuntimeException.
  */
-class CRUDRuntimeException extends GoblRuntimeException {}
+final class CRUDRuntimeException extends GoblRuntimeException {}

@@ -28,7 +28,7 @@ use Override;
  * legitimately reference columns from either the link's **host** or **target** table
  * (e.g. referencing a pivot column from a `pivot_to_target` sub-link).
  */
-class FiltersMultiScope implements FiltersScopeInterface
+final class FiltersMultiScope implements FiltersScopeInterface
 {
 	/**
 	 * @var array<string, array{table: ?Table, scope: FiltersScopeInterface}>

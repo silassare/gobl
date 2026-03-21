@@ -20,7 +20,7 @@ use Gobl\DBAL\Table;
 /**
  * Class BeforeCreate.
  */
-class BeforeCreate extends CRUDAction
+final class BeforeCreate extends CRUDAction
 {
 	/**
 	 * BeforeCreate constructor.

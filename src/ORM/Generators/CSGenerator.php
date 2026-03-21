@@ -362,7 +362,7 @@ abstract class CSGenerator
 	/**
 	 * Returns a FSUtils instance for the given output directory path, or the default one if not provided.
 	 */
-	protected static function outputDirFS(?string $path = null)
+	protected static function outputDirFS(?string $path = null): FSUtils
 	{
 		$fs = new FSUtils($path ?? Gobl::getDefaultOutputDir());
 

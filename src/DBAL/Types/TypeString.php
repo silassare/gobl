@@ -25,7 +25,7 @@ use Override;
  *
  * @extends BaseType<mixed, null|string>
  */
-class TypeString extends BaseType
+final class TypeString extends BaseType
 {
 	public const NAME = 'string';
 
@@ -71,7 +71,7 @@ class TypeString extends BaseType
 	#[Override]
 	public static function getInstance(array $options): static
 	{
-		return (new static())->configure($options);
+		return (new self())->configure($options);
 	}
 
 	/**

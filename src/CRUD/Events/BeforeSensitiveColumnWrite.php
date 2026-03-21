@@ -21,7 +21,7 @@ use Gobl\DBAL\Table;
 /**
  * Class BeforeSensitiveColumnWrite.
  */
-class BeforeSensitiveColumnWrite extends CRUDAction
+final class BeforeSensitiveColumnWrite extends CRUDAction
 {
 	/**
 	 * BeforeSensitiveColumnWrite constructor.

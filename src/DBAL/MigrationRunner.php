@@ -23,7 +23,7 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
  * Tracks and applies {@see MigrationInterface} files against a live database,
  * persisting state in a `_gobl_migrations` bookkeeping table.
  */
-class MigrationRunner
+final class MigrationRunner
 {
 	/** The name of the internal bookkeeping table. */
 	public const MIGRATIONS_TABLE = '_gobl_migrations';

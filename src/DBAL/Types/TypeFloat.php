@@ -27,7 +27,7 @@ use Override;
  *
  * @extends BaseType<mixed, null|float>
  */
-class TypeFloat extends BaseType
+final class TypeFloat extends BaseType
 {
 	public const NAME = 'float';
 

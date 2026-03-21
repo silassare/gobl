@@ -50,7 +50,7 @@ use PHPUtils\Str;
 /**
  * Class CSGeneratorORM.
  */
-class CSGeneratorORM extends CSGenerator
+final class CSGeneratorORM extends CSGenerator
 {
 	private string $editable_body_comment;
 	private string $not_editable_header;

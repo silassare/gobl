@@ -20,7 +20,7 @@ use Throwable;
 /**
  * Class CRUDException.
  */
-class CRUDException extends GoblException
+final class CRUDException extends GoblException
 {
 	/**
 	 * CRUDException constructor.

@@ -22,7 +22,7 @@ use Override;
 /**
  * Class CSGeneratorDart.
  */
-class CSGeneratorDart extends CSGenerator
+final class CSGeneratorDart extends CSGenerator
 {
 	/**
 	 * @var bool

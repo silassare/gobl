@@ -21,7 +21,7 @@ use Override;
 /**
  * Class FilterLeftOperand.
  */
-class FilterLeftOperand extends FilterOperand
+final class FilterLeftOperand extends FilterOperand
 {
 	/**
 	 * FilterLeftOperand constructor.

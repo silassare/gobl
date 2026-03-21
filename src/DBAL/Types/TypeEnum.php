@@ -29,7 +29,7 @@ use Throwable;
  *
  * @extends Type<mixed, null|BackedEnum>
  */
-class TypeEnum extends Type
+final class TypeEnum extends Type
 {
 	public const NAME              = 'enum';
 	public const OPTION_ENUM_CLASS = 'enum_class';

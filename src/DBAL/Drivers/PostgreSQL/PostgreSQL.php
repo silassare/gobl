@@ -22,7 +22,7 @@ use PDOException;
 /**
  * Class PostgreSQL.
  */
-class PostgreSQL extends SQLDriverBase
+final class PostgreSQL extends SQLDriverBase
 {
 	public const NAME = 'postgresql';
 
@@ -41,7 +41,7 @@ class PostgreSQL extends SQLDriverBase
 	#[Override]
 	public static function new(DbConfig $config): static
 	{
-		return new static($config);
+		return new self($config);
 	}
 
 	/**

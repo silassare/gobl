@@ -21,7 +21,7 @@ use Gobl\DBAL\Table;
 /**
  * Class BeforePrivateColumnWrite.
  */
-class BeforePrivateColumnWrite extends CRUDAction
+final class BeforePrivateColumnWrite extends CRUDAction
 {
 	/**
 	 * BeforePrivateColumnWrite constructor.

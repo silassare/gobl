@@ -35,7 +35,7 @@ use Override;
 /**
  * Class SQLiteQueryGenerator.
  */
-class SQLiteQueryGenerator extends SQLQueryGeneratorBase
+final class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 {
 	private static bool $templates_registered = false;
 

@@ -21,7 +21,7 @@ use Gobl\DBAL\Table;
 /**
  * Class BeforeColumnUpdate.
  */
-class BeforeColumnUpdate extends CRUDAction
+final class BeforeColumnUpdate extends CRUDAction
 {
 	/**
 	 * BeforeColumnUpdate constructor.

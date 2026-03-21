@@ -42,7 +42,7 @@ use RuntimeException;
 /**
  * Class PostgreSQLQueryGenerator.
  */
-class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
+final class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 {
 	private static bool $templates_registered = false;
 

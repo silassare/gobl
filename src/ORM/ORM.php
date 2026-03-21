@@ -26,7 +26,7 @@ use Throwable;
 /**
  * Class ORM.
  */
-class ORM
+final class ORM
 {
 	/** @var array<string, array{db:RDBMSInterface, out_dir:string}> */
 	private static array $namespaces = [];

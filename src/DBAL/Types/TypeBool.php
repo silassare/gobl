@@ -25,7 +25,7 @@ use Override;
  *
  * @extends BaseType<mixed, null|bool>
  */
-class TypeBool extends BaseType
+final class TypeBool extends BaseType
 {
 	public const NAME = 'bool';
 

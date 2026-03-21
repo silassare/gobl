@@ -21,7 +21,7 @@ use Gobl\ORM\ORMTableQuery;
 /**
  * Class BeforeDeleteAllFlush.
  */
-class BeforeDeleteAllFlush extends CRUDEvent
+final class BeforeDeleteAllFlush extends CRUDEvent
 {
 	use HasFilters;
 

@@ -24,7 +24,7 @@ use Throwable;
 /**
  * Class Gobl.
  */
-class Gobl
+final class Gobl
 {
 	/**
 	 * @var string

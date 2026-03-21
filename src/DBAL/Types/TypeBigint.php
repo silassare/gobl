@@ -27,7 +27,7 @@ use Override;
  *
  * @extends BaseType<mixed, null|string>
  */
-class TypeBigint extends BaseType
+final class TypeBigint extends BaseType
 {
 	public const BIGINT_REG          = '~[-+]?(?:[1-9]\d*|0)~';
 	public const BIGINT_UNSIGNED_REG = '~[+]?(?:[1-9]\d*|0)~';

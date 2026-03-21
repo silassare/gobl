@@ -27,7 +27,7 @@ use Override;
  *
  * @extends BaseType<mixed, null|string>
  */
-class TypeDecimal extends BaseType
+final class TypeDecimal extends BaseType
 {
 	public const NAME = 'decimal';
 

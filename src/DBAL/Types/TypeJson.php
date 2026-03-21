@@ -21,7 +21,6 @@ use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
 use Gobl\DBAL\Types\Utils\JsonOfInterface;
 use Gobl\DBAL\Types\Utils\JsonPatch;
-use Gobl\ORM\ORM;
 use Gobl\ORM\ORMTableQuery;
 use Gobl\ORM\ORMTypeHint;
 use Gobl\ORM\ORMUniversalType;
@@ -79,7 +78,7 @@ use Override;
  * $t->map('meta')->nativeJson();
  * ```
  */
-class TypeJson extends BaseType
+final class TypeJson extends BaseType
 {
 	public const NAME = 'json';
 
@@ -98,7 +97,7 @@ class TypeJson extends BaseType
 	#[Override]
 	public static function getInstance(array $options): static
 	{
-		return (new static())->configure($options);
+		return (new self())->configure($options);
 	}
 
 	#[Override]

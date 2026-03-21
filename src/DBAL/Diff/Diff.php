@@ -48,7 +48,7 @@ use Override;
 /**
  * Class Diff.
  */
-class Diff
+final class Diff
 {
 	/**
 	 * Diff constructor.
@@ -56,7 +56,7 @@ class Diff
 	 * @param RDBMSInterface $db_from
 	 * @param RDBMSInterface $db_to
 	 */
-	public function __construct(protected RDBMSInterface $db_from, protected RDBMSInterface $db_to) {}
+	public function __construct(private RDBMSInterface $db_from, private RDBMSInterface $db_to) {}
 
 	/**
 	 * Diff destructor.
@@ -412,7 +412,7 @@ class Diff
 	 *
 	 * @return ForeignKeyConstraintDeleted|PrimaryKeyConstraintDeleted|UniqueKeyConstraintDeleted
 	 */
-	protected function getConstraintDeletedClassInstance(Constraint $constraint, string $reason = ''): ForeignKeyConstraintDeleted|PrimaryKeyConstraintDeleted|UniqueKeyConstraintDeleted
+	private function getConstraintDeletedClassInstance(Constraint $constraint, string $reason = ''): ForeignKeyConstraintDeleted|PrimaryKeyConstraintDeleted|UniqueKeyConstraintDeleted
 	{
 		if ($constraint instanceof PrimaryKey) {
 			$c = new PrimaryKeyConstraintDeleted($constraint);
@@ -437,7 +437,7 @@ class Diff
 	 * @param Table $to_table   the target table state
 	 * @param array $diff       the accumulator array of {@see DiffAction} objects
 	 */
-	protected function diffTable(Table $from_table, Table $to_table, array &$diff): void
+	private function diffTable(Table $from_table, Table $to_table, array &$diff): void
 	{
 		if ($from_table->getFullName() !== $to_table->getFullName()) {
 			$reason = $from_table->getPrefix() !== $to_table->getPrefix() ? \sprintf(
@@ -467,7 +467,7 @@ class Diff
 	 * @param Table $to_table
 	 * @param array $diff
 	 */
-	protected function diffTableColumns(Table $from_table, Table $to_table, array &$diff): void
+	private function diffTableColumns(Table $from_table, Table $to_table, array &$diff): void
 	{
 		$from         = $this->getColumnsKeysMap($from_table);
 		$to           = $this->getColumnsKeysMap($to_table);
@@ -499,7 +499,7 @@ class Diff
 	 * @param Column $to_column   the target column state
 	 * @param array  $diff        the accumulator array of {@see DiffAction} objects
 	 */
-	protected function diffColumn(Table $table, Column $from_column, Column $to_column, array &$diff): void
+	private function diffColumn(Table $table, Column $from_column, Column $to_column, array &$diff): void
 	{
 		if ($from_column->getFullName() !== $to_column->getFullName()) {
 			$reason = $from_column->getPrefix() !== $to_column->getPrefix() ? \sprintf(
@@ -528,7 +528,7 @@ class Diff
 	 * @param Table $to_table   the target table state
 	 * @param array $diff       the accumulator array of {@see DiffAction} objects
 	 */
-	protected function diffTablePKConstraint(Table $from_table, Table $to_table, array &$diff): void
+	private function diffTablePKConstraint(Table $from_table, Table $to_table, array &$diff): void
 	{
 		$a_pk = $from_table->getPrimaryKeyConstraint();
 		$b_pk = $to_table->getPrimaryKeyConstraint();
@@ -555,7 +555,7 @@ class Diff
 	 *
 	 * @return ForeignKeyConstraintAdded|PrimaryKeyConstraintAdded|UniqueKeyConstraintAdded
 	 */
-	protected function getConstraintAddedClassInstance(Constraint $constraint, string $reason = ''): ForeignKeyConstraintAdded|PrimaryKeyConstraintAdded|UniqueKeyConstraintAdded
+	private function getConstraintAddedClassInstance(Constraint $constraint, string $reason = ''): ForeignKeyConstraintAdded|PrimaryKeyConstraintAdded|UniqueKeyConstraintAdded
 	{
 		if ($constraint instanceof PrimaryKey) {
 			$c = new PrimaryKeyConstraintAdded($constraint, $reason);
@@ -580,7 +580,7 @@ class Diff
 	 * @param Table $to_table   the target table state
 	 * @param array $diff       the accumulator array of {@see DiffAction} objects
 	 */
-	protected function diffTableFKConstraints(Table $from_table, Table $to_table, array &$diff): void
+	private function diffTableFKConstraints(Table $from_table, Table $to_table, array &$diff): void
 	{
 		$from = $from_table->getForeignKeyConstraints();
 		$to   = $to_table->getForeignKeyConstraints();
@@ -663,7 +663,7 @@ class Diff
 	 * @param Table $to_table   the target table state
 	 * @param array $diff       the accumulator array of {@see DiffAction} objects
 	 */
-	protected function diffTableUQConstraints(Table $from_table, Table $to_table, array &$diff): void
+	private function diffTableUQConstraints(Table $from_table, Table $to_table, array &$diff): void
 	{
 		$from = $from_table->getUniqueKeyConstraints();
 		$to   = $to_table->getUniqueKeyConstraints();
@@ -703,7 +703,7 @@ class Diff
 	 * @param Table $to_table   the target table state
 	 * @param array $diff       the accumulator array of {@see DiffAction} objects
 	 */
-	protected function diffTableIndexes(Table $from_table, Table $to_table, array &$diff): void
+	private function diffTableIndexes(Table $from_table, Table $to_table, array &$diff): void
 	{
 		$from = $from_table->getIndexes();
 		$to   = $to_table->getIndexes();

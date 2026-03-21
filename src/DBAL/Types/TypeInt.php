@@ -26,7 +26,7 @@ use Override;
  *
  * @extends BaseType<mixed, null|int>
  */
-class TypeInt extends BaseType
+final class TypeInt extends BaseType
 {
 	public const INT_SIGNED_MAX   = 2147483647;
 	public const INT_SIGNED_MIN   = -2147483648;

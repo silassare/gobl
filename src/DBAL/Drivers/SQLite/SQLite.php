@@ -21,7 +21,7 @@ use PDO;
 /**
  * Class SQLite.
  */
-class SQLite extends SQLDriverBase
+final class SQLite extends SQLDriverBase
 {
 	public const NAME = 'sqlite';
 
@@ -40,7 +40,7 @@ class SQLite extends SQLDriverBase
 	#[Override]
 	public static function new(DbConfig $config): static
 	{
-		return new static($config);
+		return new self($config);
 	}
 
 	#[Override]

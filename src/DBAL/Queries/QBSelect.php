@@ -30,7 +30,7 @@ use PDOStatement;
 /**
  * Class QBSelect.
  */
-class QBSelect implements QBInterface
+final class QBSelect implements QBInterface
 {
 	use QBCommonTrait;
 	use QBFromTrait;

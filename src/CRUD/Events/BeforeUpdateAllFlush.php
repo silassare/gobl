@@ -22,7 +22,7 @@ use Gobl\ORM\ORMTableQuery;
 /**
  * Class BeforeUpdateAllFlush.
  */
-class BeforeUpdateAllFlush extends CRUDEvent
+final class BeforeUpdateAllFlush extends CRUDEvent
 {
 	use HasFilters;
 	use HasFormEditable;

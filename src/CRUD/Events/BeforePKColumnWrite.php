@@ -21,7 +21,7 @@ use Gobl\DBAL\Table;
 /**
  * Class BeforeColumnPKWrite.
  */
-class BeforePKColumnWrite extends CRUDAction
+final class BeforePKColumnWrite extends CRUDAction
 {
 	/**
 	 * BeforePKColumnWrite constructor.

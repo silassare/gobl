@@ -46,7 +46,7 @@ use Gobl\ORM\ORMTableQuery;
 /**
  * Class CRUD.
  */
-class CRUD
+final class CRUD
 {
 	private Table $table;
 	private string $event_channel;

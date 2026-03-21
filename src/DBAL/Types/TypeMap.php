@@ -34,7 +34,7 @@ use PHPUtils\Store\Map;
  *
  * @extends Type<mixed, null|Map>
  */
-class TypeMap extends Type
+final class TypeMap extends Type
 {
 	public const NAME = 'map';
 
@@ -56,7 +56,7 @@ class TypeMap extends Type
 	#[Override]
 	public static function getInstance(array $options): static
 	{
-		return (new static())->configure($options);
+		return (new self())->configure($options);
 	}
 
 	/**

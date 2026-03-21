@@ -16,14 +16,14 @@ namespace Gobl\DBAL\Queries;
 /**
  * Class QBExpression.
  */
-class QBExpression
+final class QBExpression
 {
 	/**
 	 * QBExpression constructor.
 	 *
 	 * @param string $expression
 	 */
-	public function __construct(protected string $expression) {}
+	public function __construct(private string $expression) {}
 
 	/**
 	 * Magic method __toString.

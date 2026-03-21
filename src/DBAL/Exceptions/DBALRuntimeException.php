@@ -18,4 +18,4 @@ use Gobl\Exceptions\GoblRuntimeException;
 /**
  * Class DBALRuntimeException.
  */
-class DBALRuntimeException extends GoblRuntimeException {}
+final class DBALRuntimeException extends GoblRuntimeException {}

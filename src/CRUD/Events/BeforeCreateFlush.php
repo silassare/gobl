@@ -19,7 +19,7 @@ use Gobl\CRUD\Traits\HasFormEditable;
 /**
  * Class BeforeCreateFlush.
  */
-class BeforeCreateFlush extends CRUDEvent
+final class BeforeCreateFlush extends CRUDEvent
 {
 	use HasFormEditable;
 }

@@ -24,7 +24,7 @@ use PHPUtils\Events\Event;
 /**
  * Class ORMTableFilesGenerated.
  */
-class ORMTableFilesGenerated extends Event
+final class ORMTableFilesGenerated extends Event
 {
 	/**
 	 * ORMTableFilesGenerated constructor.

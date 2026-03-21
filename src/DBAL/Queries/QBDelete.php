@@ -27,7 +27,7 @@ use PDOStatement;
 /**
  * Class QBDelete.
  */
-class QBDelete implements QBInterface
+final class QBDelete implements QBInterface
 {
 	use QBCommonTrait;
 	use QBFromTrait;

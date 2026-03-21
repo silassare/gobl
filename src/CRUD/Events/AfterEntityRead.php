@@ -20,4 +20,4 @@ namespace Gobl\CRUD\Events;
  *
  * @extends  \Gobl\CRUD\Events\EntityEvent<TEntity>
  */
-class AfterEntityRead extends EntityEvent {}
+final class AfterEntityRead extends EntityEvent {}

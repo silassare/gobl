@@ -18,10 +18,10 @@ use PDO;
 /**
  * Class QBUtils.
  */
-class QBUtils
+final class QBUtils
 {
 	/** @var int */
-	protected static int $GEN_IDENTIFIER_COUNTER = 0;
+	private static int $GEN_IDENTIFIER_COUNTER = 0;
 
 	/**
 	 * Reset the identifier generator counter.
@@ -84,7 +84,7 @@ class QBUtils
 	 *
 	 * @return string
 	 */
-	protected static function alphaId(): string
+	private static function alphaId(): string
 	{
 		$x    = self::$GEN_IDENTIFIER_COUNTER++;
 		$list = \range('a', 'z');

@@ -16,4 +16,4 @@ namespace Gobl\DBAL\Filters\Operands;
 /**
  * Class FilterRightOperand.
  */
-class FilterRightOperand extends FilterOperand {}
+final class FilterRightOperand extends FilterOperand {}

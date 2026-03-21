@@ -22,7 +22,7 @@ use Gobl\ORM\ORMTableQuery;
 /**
  * Class BeforeRead.
  */
-class BeforeRead extends CRUDAction
+final class BeforeRead extends CRUDAction
 {
 	use HasFilters;
 

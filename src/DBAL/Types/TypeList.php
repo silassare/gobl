@@ -33,7 +33,7 @@ use Override;
  *
  * @extends Type<mixed, null|list<mixed>>
  */
-class TypeList extends Type
+final class TypeList extends Type
 {
 	public const NAME = 'list';
 
@@ -55,7 +55,7 @@ class TypeList extends Type
 	#[Override]
 	public static function getInstance(array $options): static
 	{
-		return (new static())->configure($options);
+		return (new self())->configure($options);
 	}
 
 	/**

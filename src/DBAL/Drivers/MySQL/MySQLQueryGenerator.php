@@ -38,7 +38,7 @@ use Override;
 /**
  * Class MySQLQueryGenerator.
  */
-class MySQLQueryGenerator extends SQLQueryGeneratorBase
+final class MySQLQueryGenerator extends SQLQueryGeneratorBase
 {
 	protected int $decimal_precision_max      = 65;
 	protected int $decimal_scale_max          = 30;

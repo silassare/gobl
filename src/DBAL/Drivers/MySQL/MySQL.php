@@ -21,7 +21,7 @@ use PDO;
 /**
  * Class MySQL.
  */
-class MySQL extends SQLDriverBase
+final class MySQL extends SQLDriverBase
 {
 	public const NAME = 'mysql';
 
@@ -40,7 +40,7 @@ class MySQL extends SQLDriverBase
 	#[Override]
 	public static function new(DbConfig $config): static
 	{
-		return new static($config);
+		return new self($config);
 	}
 
 	#[Override]

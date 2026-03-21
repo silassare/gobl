@@ -16,4 +16,4 @@ namespace Gobl\ORM\Exceptions;
 /**
  * Class ORMQueryException.
  */
-class ORMQueryException extends ORMException {}
+final class ORMQueryException extends ORMException {}
