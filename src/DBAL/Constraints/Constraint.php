@@ -13,22 +13,23 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Constraints;
 
-use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Table;
 use InvalidArgumentException;
 use Override;
 use PHPUtils\Interfaces\ArrayCapableInterface;
-use PHPUtils\Interfaces\LockInterface;
+use PHPUtils\Lock\Interfaces\LockableInterface;
+use PHPUtils\Lock\Traits\PermanentlyLockableTrait;
 use PHPUtils\Traits\ArrayCapableTrait;
-use PHPUtils\Traits\LockTrait;
 
 /**
  * Class Constraint.
  */
-abstract class Constraint implements ArrayCapableInterface, LockInterface
+abstract class Constraint implements ArrayCapableInterface, LockableInterface
 {
 	use ArrayCapableTrait;
-	use LockTrait;
+	use PermanentlyLockableTrait {
+		PermanentlyLockableTrait::lock as private traitLock;
+	}
 
 	public const NAME_PATTERN = '[a-zA-Z](?:[a-zA-Z0-9_]*[a-zA-Z0-9])?';
 
@@ -84,6 +85,11 @@ abstract class Constraint implements ArrayCapableInterface, LockInterface
 	}
 
 	/**
+	 * Disable clone.
+	 */
+	private function __clone() {}
+
+	/**
 	 * Gets constraint name.
 	 *
 	 * @return string
@@ -127,10 +133,10 @@ abstract class Constraint implements ArrayCapableInterface, LockInterface
 	#[Override]
 	public function lock(): static
 	{
-		if (!$this->locked) {
+		if (!$this->isLocked()) {
 			$this->assertIsValid();
 
-			$this->locked = true;
+			$this->traitLock();
 		}
 
 		return $this;
@@ -140,22 +146,6 @@ abstract class Constraint implements ArrayCapableInterface, LockInterface
 	 * Asserts if this constraint is valid.
 	 */
 	abstract public function assertIsValid(): void;
-
-	/**
-	 * Asserts if this constraint is not locked.
-	 *
-	 * @throws DBALException
-	 */
-	#[Override]
-	public function assertNotLocked(): void
-	{
-		if ($this->locked) {
-			throw new DBALException(\sprintf(
-				'You should not try to edit locked constraint "%s".',
-				$this->name
-			));
-		}
-	}
 
 	/**
 	 * Gets constraint type.

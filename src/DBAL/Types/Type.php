@@ -32,8 +32,10 @@ use Gobl\ORM\ORMTableQuery;
 use Gobl\ORM\ORMTypeHint;
 use OLIUP\CG\PHPMethod;
 use Override;
+use PHPUtils\Lock\Traits\PermanentlyLockableTrait;
+use PHPUtils\Store\Map;
 use PHPUtils\Traits\ArrayCapableTrait;
-use PHPUtils\Traits\LockTrait;
+use PHPUtils\Traits\MetaCapableTrait;
 use Throwable;
 
 /**
@@ -47,7 +49,10 @@ use Throwable;
 abstract class Type implements TypeInterface
 {
 	use ArrayCapableTrait;
-	use LockTrait;
+	use MetaCapableTrait;
+	use PermanentlyLockableTrait {
+		PermanentlyLockableTrait::lock as private traitLock;
+	}
 
 	protected BaseTypeInterface $base_type;
 
@@ -78,8 +83,9 @@ abstract class Type implements TypeInterface
 	 */
 	public function __clone()
 	{
-		$this->locked    = false; // we clone because we want to edit
-		$this->base_type = TypeUtils::buildTypeOrFail($this->base_type->toArray());
+		$this->base_type     = TypeUtils::buildTypeOrFail($this->base_type->toArray());
+		$this->meta          = $this->meta ? clone $this->meta : null;
+		$this->lock_instance = $this->createLock();
 	}
 
 	#[Override]
@@ -119,6 +125,10 @@ abstract class Type implements TypeInterface
 
 		if (isset($options['validator:post'])) {
 			$this->postValidator((string) $options['validator:post']);
+		}
+
+		if (isset($options['meta']) && (\is_array($options['meta']) || $options['meta'] instanceof Map)) {
+			$this->mergeMeta($options['meta']);
 		}
 
 		return $this;
@@ -262,7 +272,7 @@ abstract class Type implements TypeInterface
 	#[Override]
 	public function lock(): static
 	{
-		if ($this->locked) {
+		if ($this->isLocked()) {
 			return $this;
 		}
 
@@ -278,7 +288,7 @@ abstract class Type implements TypeInterface
 			}
 		}
 
-		$this->locked = true;
+		$this->traitLock();
 
 		return $this;
 	}
@@ -446,6 +456,12 @@ abstract class Type implements TypeInterface
 	{
 		$opt         = $this->options;
 		$opt['type'] = $this->getName();
+
+		$meta = $this->meta?->toArray();
+
+		if (!empty($meta)) {
+			$opt['meta'] = $meta;
+		}
 
 		return $opt;
 	}

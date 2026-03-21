@@ -20,12 +20,12 @@ use Gobl\DBAL\Table;
 use Gobl\Exceptions\GoblException;
 use PDO;
 use PDOStatement;
-use PHPUtils\Interfaces\LockInterface;
+use PHPUtils\Lock\Interfaces\LockableInterface;
 
 /**
  * Interface RDBMSInterface.
  */
-interface RDBMSInterface extends LockInterface
+interface RDBMSInterface extends LockableInterface
 {
 	/**
 	 * Create instance.

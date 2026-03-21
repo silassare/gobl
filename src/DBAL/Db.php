@@ -34,13 +34,13 @@ use Gobl\DBAL\Relations\OneToOne;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Relations\RelationType;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
-use Gobl\DBAL\Types\Utils\Map;
 use Gobl\DBAL\Types\Utils\TypeUtils;
 use Gobl\Gobl;
 use InvalidArgumentException;
 use Override;
 use PDO;
-use PHPUtils\Traits\LockTrait;
+use PHPUtils\Lock\Traits\PermanentlyLockableTrait;
+use PHPUtils\Store\Map;
 use Throwable;
 
 /**
@@ -48,7 +48,10 @@ use Throwable;
  */
 abstract class Db implements RDBMSInterface
 {
-	use LockTrait;
+	use PermanentlyLockableTrait {
+		// use `protected` instead of `private` as Db is abstract and the concrete RDBMS class may want this
+		lock as protected traitLock;
+	}
 
 	public const REG_COLUMN_REF = '~^(ref|cp):(\w+)\.(\w+)$~';
 
@@ -177,8 +180,9 @@ abstract class Db implements RDBMSInterface
 	#[Override]
 	public function lock(): static
 	{
-		if (!$this->locked) {
-			$this->locked = true;
+		if (!$this->isLocked()) {
+			$this->traitLock();
+
 			foreach ($this->namespaces as $namespace) {
 				$namespace->pack();
 			}
@@ -413,7 +417,7 @@ abstract class Db implements RDBMSInterface
 				}
 
 				if (isset($table_options['meta']) && (\is_array($table_options['meta']) || $table_options['meta'] instanceof Map)) {
-					$tbl->setMeta($table_options['meta']);
+					$tbl->mergeMeta($table_options['meta']);
 				}
 
 				foreach ($columns as $column_name => $column_opt) {
@@ -513,7 +517,7 @@ abstract class Db implements RDBMSInterface
 							}
 
 							if (isset($col_options['meta']) && (\is_array($col_options['meta']) || $col_options['meta'] instanceof Map)) {
-								$col->setMeta($col_options['meta']);
+								$col->mergeMeta($col_options['meta']);
 							}
 
 							if (isset($col_options['_column_reference'])) {
@@ -928,10 +932,10 @@ abstract class Db implements RDBMSInterface
 	/**
 	 * Strips type options that should not be inherited when a column is used as a reference.
 	 *
-	 * - `auto_increment` is removed unless `$clone` is `true` (a copy column may preserve it,
+	 * - `auto_increment` and `meta` are removed unless `$clone` is `true` (a copy column may preserve it,
 	 *   but a reference column must never auto-increment independently).
-	 * - `diff_key` is always removed because it is specific to the original column definition
-	 *   and has no meaning on a derived/reference column.
+	 * - `diff_key`, `old_name`, and `old_prefix` are always removed because they are specific to the original column definition
+	 *   and have no meaning on a derived/reference column.
 	 *
 	 * @param array $options The raw column type options array to clean
 	 * @param bool  $clone   `true` when the column is a copy (`cp:`) rather than a reference (`ref:`)
@@ -941,7 +945,7 @@ abstract class Db implements RDBMSInterface
 	public static function cleanColumnTypeOptionsForReference(array $options, bool $clone): array
 	{
 		if (!$clone) {
-			unset($options['auto_increment']);
+			unset($options['auto_increment'], $options['meta']);
 		}
 
 		unset($options['diff_key'], $options['old_name'], $options['old_prefix']);

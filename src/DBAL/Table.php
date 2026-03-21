@@ -27,25 +27,28 @@ use Gobl\DBAL\Indexes\IndexType;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Relations\VirtualRelation;
-use Gobl\DBAL\Traits\MetadataTrait;
 use Gobl\Exceptions\GoblRuntimeException;
 use InvalidArgumentException;
 use OLIUP\CG\PHPNamespace;
 use Override;
 use PHPUtils\Interfaces\ArrayCapableInterface;
-use PHPUtils\Interfaces\LockInterface;
+use PHPUtils\Interfaces\MetaCapableInterface;
+use PHPUtils\Lock\Interfaces\LockableInterface;
+use PHPUtils\Lock\Traits\PermanentlyLockableTrait;
 use PHPUtils\Traits\ArrayCapableTrait;
-use PHPUtils\Traits\LockTrait;
+use PHPUtils\Traits\MetaCapableTrait;
 use Throwable;
 
 /**
  * Class Table.
  */
-final class Table implements ArrayCapableInterface, DiffCapableInterface, LockInterface
+final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCapableInterface, LockableInterface
 {
 	use ArrayCapableTrait;
-	use LockTrait;
-	use MetadataTrait;
+	use MetaCapableTrait;
+	use PermanentlyLockableTrait {
+		lock as private traitLock;
+	}
 
 	public const ALIAS_PATTERN  = '[a-zA-Z_][a-zA-Z0-9_]*';
 	public const ALIAS_REG      = '~^' . self::ALIAS_PATTERN . '$~';
@@ -253,6 +256,9 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 		return ['instance_of' => self::class, 'table_name' => $this->getName()];
 	}
 
+	/**
+	 * Disable clone.
+	 */
 	private function __clone() {}
 
 	/**
@@ -419,11 +425,11 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 	#[Override]
 	public function lock(): static
 	{
-		if (!$this->locked) {
+		if (!$this->isLocked()) {
 			$this->assertIsValid();
 
 			foreach ($this->columns as $column) {
-				$column->lock($this);
+				$column->lockWithTable($this);
 			}
 
 			$this->pk_constraint?->lock();
@@ -440,7 +446,7 @@ final class Table implements ArrayCapableInterface, DiffCapableInterface, LockIn
 				$idx->lock();
 			}
 
-			$this->locked = true;
+			$this->traitLock();
 		}
 
 		return $this;

@@ -15,27 +15,32 @@ namespace Gobl\DBAL;
 
 use Gobl\DBAL\Diff\Interfaces\DiffCapableInterface;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
-use Gobl\DBAL\Traits\MetadataTrait;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
-use Gobl\DBAL\Types\Type;
 use Gobl\DBAL\Types\TypeString;
 use Gobl\DBAL\Types\Utils\TypeUtils;
 use Gobl\Gobl;
 use InvalidArgumentException;
+use LogicException;
 use Override;
 use PHPUtils\Interfaces\ArrayCapableInterface;
+use PHPUtils\Interfaces\MetaCapableInterface;
+use PHPUtils\Lock\Interfaces\LockableInterface;
+use PHPUtils\Lock\Traits\PermanentlyLockableTrait;
+use PHPUtils\Str;
 use PHPUtils\Traits\ArrayCapableTrait;
-use PHPUtils\Traits\LockTrait;
+use PHPUtils\Traits\MetaCapableTrait;
 use Throwable;
 
 /**
  * Class Column.
  */
-final class Column implements ArrayCapableInterface, DiffCapableInterface
+final class Column implements ArrayCapableInterface, MetaCapableInterface, DiffCapableInterface, LockableInterface
 {
 	use ArrayCapableTrait;
-	use LockTrait;
-	use MetadataTrait;
+	use MetaCapableTrait;
+	use PermanentlyLockableTrait {
+		lock as private traitLock;
+	}
 
 	public const NAME_PATTERN = '[a-z](?:[a-z0-9_]*[a-z0-9])?';
 
@@ -155,10 +160,13 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	 */
 	public function __clone()
 	{
-		$this->type        = clone $this->type;
-		$this->locked      = false; // we clone because we want to edit
-		$this->locked_name = false; // we clone because we want to edit
-		$this->table       = null;
+		$this->type  = clone $this->type;
+		$this->meta  = $this->meta ? clone $this->meta : null;
+		$this->table = null;
+
+		// we clone because we want to edit
+		$this->lock_instance = $this->createLock();
+		$this->locked_name   = false;
 	}
 
 	/**
@@ -184,6 +192,7 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 
 		try {
 			$this->type = TypeUtils::buildTypeOrFail($options);
+			$this->syncWithType();
 		} catch (Throwable $t) {
 			throw new DBALRuntimeException(
 				\sprintf(
@@ -276,13 +285,17 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	 *
 	 * @throws DBALRuntimeException when already locked to a different table
 	 */
-	public function lock(Table $table): static
+	public function lockWithTable(Table $table): static
 	{
-		if (!$this->locked || !$this->table) {
+		if (!$this->isLocked() || !$this->table) {
 			$this->assertIsValid();
-			$this->locked = true;
+
 			$this->table  = $table;
+
 			$this->type->lock();
+			$this->syncWithType();
+
+			$this->traitLock();
 		} elseif ($table !== $this->table) {
 			throw new DBALRuntimeException(
 				\sprintf(
@@ -295,6 +308,20 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 		}
 
 		return $this;
+	}
+
+	/**
+	 * Locks this column without a table context.
+	 */
+	#[Override]
+	public function lock(): static
+	{
+		throw new LogicException(\sprintf(
+			'Column "%s" must be added to a table before it can be locked. Use %s to lock "%s" column with its table context.',
+			$this->name,
+			Str::callableName([$this, 'lockWithTable']),
+			$this->name
+		));
 	}
 
 	/**
@@ -479,6 +506,8 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 
 		$this->type = $type;
 
+		$this->syncWithType();
+
 		return $this;
 	}
 
@@ -523,14 +552,18 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 	#[Override]
 	public function toArray(): array
 	{
-		$options = [
-			'diff_key' => $this->getDiffKey(),
-			'type'     => $this->type->getName(),
-		];
-
-		if (!empty($this->meta)) {
-			$options['meta'] = $this->meta->toArray();
+		if (!$this->isLocked()) {
+			$this->syncWithType();
 		}
+
+		$options = (array) $this->type->toArray();
+
+		$meta = $this->getMeta()->toArray();
+
+		if (!empty($meta)) {
+			$options['meta'] = $meta;
+		}
+
 		if (!empty($this->prefix)) {
 			$options['prefix'] = $this->prefix;
 		}
@@ -544,11 +577,11 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 			$options['sensitive_redacted_value'] = $this->sensitive_redacted_value;
 		}
 
-		$options = \array_merge($options, $this->type->toArray());
-
 		if ($this->reference) {
 			$options['type'] = $this->reference;
 		}
+
+		$options['diff_key'] = $this->getDiffKey();
 
 		return $options;
 	}
@@ -653,5 +686,10 @@ final class Column implements ArrayCapableInterface, DiffCapableInterface
 		}
 
 		return $this->prefix . '_' . $this->name;
+	}
+
+	private function syncWithType(): void
+	{
+		$this->getMeta()->merge($this->type->getMeta());
 	}
 }

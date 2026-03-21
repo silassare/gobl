@@ -16,6 +16,7 @@ namespace Gobl\DBAL\Types\Interfaces;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\Validation\ValidationStatus;
 use LogicException;
+use PHPUtils\Lock\Interfaces\LockableInterface;
 use Throwable;
 
 /**
@@ -48,7 +49,7 @@ use Throwable;
  * @template TUnsafe
  * @template TClean
  */
-interface ValidationSubjectInterface
+interface ValidationSubjectInterface extends LockableInterface
 {
 	/**
 	 * Human-readable reference for error messages (e.g. the column short name).
@@ -135,14 +136,4 @@ interface ValidationSubjectInterface
 	 * @throws LogicException when the subject is not yet accepted
 	 */
 	public function getCleanValue(): mixed;
-
-	/**
-	 * Locks the subject so its state and values can no longer be mutated.
-	 *
-	 * Only accepted subjects may be locked.  A locked subject can be `clone`d; the clone
-	 * is always unlocked so its value can be changed and the pipeline re-run.
-	 *
-	 * @throws LogicException when the subject is not accepted
-	 */
-	public function lock(): void;
 }

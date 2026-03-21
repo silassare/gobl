@@ -23,7 +23,6 @@ use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\TypeJson;
 use Gobl\DBAL\Types\TypeList;
 use Gobl\DBAL\Types\Utils\JsonPatch;
-use Gobl\DBAL\Types\Utils\Map;
 use Gobl\Exceptions\GoblException;
 use Gobl\Gobl;
 use Gobl\ORM\Events\ORMTableFilesGenerated;
@@ -45,6 +44,7 @@ use OLIUP\CG\PHPNamespace;
 use OLIUP\CG\PHPPrinter;
 use OLIUP\CG\PHPType;
 use Override;
+use PHPUtils\Store\Map;
 use PHPUtils\Str;
 
 /**

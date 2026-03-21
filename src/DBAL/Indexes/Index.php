@@ -17,18 +17,21 @@ use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Table;
 use InvalidArgumentException;
 use Override;
+use PHPUtils\Exceptions\RuntimeException;
 use PHPUtils\Interfaces\ArrayCapableInterface;
-use PHPUtils\Interfaces\LockInterface;
+use PHPUtils\Lock\Interfaces\LockableInterface;
+use PHPUtils\Lock\Traits\PermanentlyLockableTrait;
 use PHPUtils\Traits\ArrayCapableTrait;
-use PHPUtils\Traits\LockTrait;
 
 /**
  * Class Index.
  */
-final class Index implements ArrayCapableInterface, LockInterface
+final class Index implements ArrayCapableInterface, LockableInterface
 {
 	use ArrayCapableTrait;
-	use LockTrait;
+	use PermanentlyLockableTrait {
+		PermanentlyLockableTrait::lock as private traitLock;
+	}
 
 	public const NAME_PATTERN = '[a-zA-Z](?:[a-zA-Z0-9_]*[a-zA-Z0-9])?';
 
@@ -87,6 +90,11 @@ final class Index implements ArrayCapableInterface, LockInterface
 	}
 
 	/**
+	 * Disable clone.
+	 */
+	private function __clone() {}
+
+	/**
 	 * Gets index name.
 	 *
 	 * @return string
@@ -114,29 +122,13 @@ final class Index implements ArrayCapableInterface, LockInterface
 	#[Override]
 	public function lock(): static
 	{
-		if (!$this->locked) {
+		if (!$this->isLocked()) {
 			$this->assertIsValid();
 
-			$this->locked = true;
+			$this->traitLock();
 		}
 
 		return $this;
-	}
-
-	/**
-	 * Asserts if this index is not locked.
-	 *
-	 * @throws DBALException
-	 */
-	#[Override]
-	public function assertNotLocked(): void
-	{
-		if ($this->locked) {
-			throw new DBALException(\sprintf(
-				'You should not try to edit locked index "%s".',
-				$this->name
-			));
-		}
 	}
 
 	/**
@@ -146,7 +138,7 @@ final class Index implements ArrayCapableInterface, LockInterface
 	 *
 	 * @return static
 	 *
-	 * @throws DBALException
+	 * @throws RuntimeException when the index is locked
 	 */
 	public function addColumn(string $name): static
 	{

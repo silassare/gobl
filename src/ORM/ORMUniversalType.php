@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\ORM;
 
-use Gobl\DBAL\Types\Utils\Map;
+use PHPUtils\Store\Map;
 
 /**
  * Enum ORMUniversalType.

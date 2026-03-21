@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Constraints;
 
-use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Table;
 use Override;
+use PHPUtils\Exceptions\RuntimeException;
 
 /**
  * Class UniqueKey.
@@ -42,7 +42,7 @@ final class UniqueKey extends Constraint
 	 *
 	 * @return $this
 	 *
-	 * @throws DBALException
+	 * @throws RuntimeException when the constraint is locked
 	 */
 	public function addColumn(string $name): static
 	{

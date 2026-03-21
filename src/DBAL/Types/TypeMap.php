@@ -20,7 +20,6 @@ use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
 use Gobl\DBAL\Types\Utils\JsonOfInterface;
 use Gobl\DBAL\Types\Utils\JsonPatch;
-use Gobl\DBAL\Types\Utils\Map;
 use Gobl\ORM\ORMTableQuery;
 use Gobl\ORM\ORMTypeHint;
 use Gobl\ORM\ORMUniversalType;
@@ -28,6 +27,7 @@ use InvalidArgumentException;
 use JsonException;
 use OLIUP\CG\PHPType;
 use Override;
+use PHPUtils\Store\Map;
 
 /**
  * Class TypeMap.

@@ -16,6 +16,7 @@ namespace Gobl\DBAL\Constraints;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Table;
 use Override;
+use PHPUtils\Exceptions\RuntimeException;
 
 /**
  * Class ForeignKey.
@@ -56,7 +57,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @return $this
 	 *
-	 * @throws DBALException
+	 * @throws RuntimeException
 	 */
 	public function addColumn(string $host_column_name, string $reference_column_name): static
 	{
@@ -105,7 +106,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @return $this
 	 *
-	 * @throws DBALException
+	 * @throws RuntimeException
 	 */
 	public function onUpdateCascade(): static
 	{
@@ -119,7 +120,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @return $this
 	 *
-	 * @throws DBALException
+	 * @throws RuntimeException
 	 */
 	public function onUpdate(ForeignKeyAction $action): static
 	{
@@ -135,7 +136,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @return $this
 	 *
-	 * @throws DBALException
+	 * @throws RuntimeException
 	 */
 	public function onUpdateSetNull(): static
 	{
@@ -147,7 +148,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @return $this
 	 *
-	 * @throws DBALException
+	 * @throws RuntimeException
 	 */
 	public function onUpdateSetDefault(): static
 	{
@@ -159,7 +160,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @return $this
 	 *
-	 * @throws DBALException
+	 * @throws RuntimeException
 	 */
 	public function onUpdateRestrict(): static
 	{
@@ -171,7 +172,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @return $this
 	 *
-	 * @throws DBALException
+	 * @throws RuntimeException
 	 */
 	public function onUpdateNoAction(): static
 	{
@@ -183,7 +184,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @return $this
 	 *
-	 * @throws DBALException
+	 * @throws RuntimeException
 	 */
 	public function onDeleteCascade(): static
 	{
@@ -197,7 +198,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @return $this
 	 *
-	 * @throws DBALException
+	 * @throws RuntimeException
 	 */
 	public function onDelete(ForeignKeyAction $action): static
 	{
@@ -213,7 +214,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @return $this
 	 *
-	 * @throws DBALException
+	 * @throws RuntimeException
 	 */
 	public function onDeleteSetNull(): static
 	{
@@ -225,7 +226,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @return $this
 	 *
-	 * @throws DBALException
+	 * @throws RuntimeException
 	 */
 	public function onDeleteSetDefault(): static
 	{
@@ -237,7 +238,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @return $this
 	 *
-	 * @throws DBALException
+	 * @throws RuntimeException
 	 */
 	public function onDeleteRestrict(): static
 	{
@@ -249,7 +250,7 @@ final class ForeignKey extends Constraint
 	 *
 	 * @return $this
 	 *
-	 * @throws DBALException
+	 * @throws RuntimeException
 	 */
 	public function onDeleteNoAction(): static
 	{
@@ -279,7 +280,7 @@ final class ForeignKey extends Constraint
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws DBALException
+	 * @throws RuntimeException
 	 */
 	#[Override]
 	public function assertIsValid(): void

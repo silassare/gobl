@@ -24,7 +24,8 @@ use Gobl\ORM\ORMTableQuery;
 use Gobl\ORM\ORMTypeHint;
 use OLIUP\CG\PHPMethod;
 use PHPUtils\Interfaces\ArrayCapableInterface;
-use PHPUtils\Interfaces\LockInterface;
+use PHPUtils\Interfaces\MetaCapableInterface;
+use PHPUtils\Lock\Interfaces\LockableInterface;
 
 /**
  * Interface TypeInterface.
@@ -32,7 +33,7 @@ use PHPUtils\Interfaces\LockInterface;
  * @template TUnsafe
  * @template TClean
  */
-interface TypeInterface extends ArrayCapableInterface, LockInterface
+interface TypeInterface extends ArrayCapableInterface, MetaCapableInterface, LockableInterface
 {
 	/**
 	 * Gets type instance based on given options.

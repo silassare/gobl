@@ -15,6 +15,7 @@ namespace Gobl\DBAL\Types\Utils;
 
 use JsonSerializable;
 use PHPUtils\DotPath;
+use PHPUtils\Store\Map;
 
 /**
  * Class JsonPatch.

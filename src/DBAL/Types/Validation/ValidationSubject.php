@@ -18,6 +18,7 @@ use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
 use LogicException;
 use Override;
 use PHPUtils\FuncUtils;
+use PHPUtils\Lock\Traits\PermanentlyLockableTrait;
 use Throwable;
 
 /**
@@ -32,14 +33,16 @@ use Throwable;
  */
 class ValidationSubject implements ValidationSubjectInterface
 {
+	use PermanentlyLockableTrait {
+		PermanentlyLockableTrait::lock as private traitLock;
+	}
+
 	private ValidationStatus $status = ValidationStatus::UNCHECKED;
 
 	/** @var null|TClean */
 	private mixed $cleanValue = null;
 
 	private ?Throwable $rejectionException = null;
-
-	private bool $locked = false;
 
 	/**
 	 * ValidationSubject constructor.
@@ -63,7 +66,7 @@ class ValidationSubject implements ValidationSubjectInterface
 	 */
 	public function __clone()
 	{
-		$this->locked = false;
+		$this->lock_instance = $this->createLock();
 	}
 
 	#[Override]
@@ -182,13 +185,15 @@ class ValidationSubject implements ValidationSubjectInterface
 	}
 
 	#[Override]
-	public function lock(): void
+	public function lock(): static
 	{
 		if (!$this->isValid()) {
 			throw new LogicException('Only accepted validation subjects can be locked.');
 		}
 
-		$this->locked = true;
+		$this->isLocked() || $this->traitLock();
+
+		return $this;
 	}
 
 	/**
@@ -199,15 +204,5 @@ class ValidationSubject implements ValidationSubjectInterface
 		$this->status             = ValidationStatus::UNCHECKED;
 		$this->cleanValue         = null;
 		$this->rejectionException = null;
-	}
-
-	/**
-	 * Throws a LogicException when the subject is locked.
-	 */
-	private function assertNotLocked(): void
-	{
-		if ($this->locked) {
-			throw new LogicException('Cannot modify a locked validation subject.');
-		}
 	}
 }

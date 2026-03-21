@@ -42,7 +42,7 @@ final class PrimaryKey extends Constraint
 	 *
 	 * @return $this
 	 *
-	 * @throws DBALException
+	 * @throws DBALException when the column is nullable
 	 */
 	public function addColumn(string $name): static
 	{
