@@ -216,6 +216,24 @@ final class TableBuilder
 	}
 
 	/**
+	 * Returns an already-defined column by name.
+	 *
+	 * Shorthand for `$t->getTable()->getColumnOrFail($name)`.
+	 * Useful when you need to modify a column after it has been created,
+	 * e.g. setting `oldName()` / `oldPrefix()` for a migration rename.
+	 *
+	 * @param string $column_name the logical (short) column name
+	 *
+	 * @return Column
+	 *
+	 * @throws DBALRuntimeException when the column does not exist
+	 */
+	public function useColumn(string $column_name): Column
+	{
+		return $this->table->getColumnOrFail($column_name);
+	}
+
+	/**
 	 * Creates a new column of type decimal.
 	 *
 	 * @param string $column_name

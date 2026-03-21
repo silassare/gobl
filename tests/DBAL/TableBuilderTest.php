@@ -13,6 +13,9 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\DBAL;
 
+use Gobl\DBAL\Builders\TableBuilder;
+use Gobl\DBAL\Column;
+use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\Tests\BaseTestCase;
 
 /**
@@ -70,5 +73,30 @@ final class TableBuilderTest extends BaseTestCase
 		], $role_user_id_column->toArray());
 
 		self::assertTrue($tbl_users->isSoftDeletable());
+	}
+
+	public function testUseColumnReturnsExistingColumn(): void
+	{
+		$db = self::getNewDbInstance();
+
+		$db->ns('App\Db')->table('users', static function (TableBuilder $t): void {
+			$t->id();
+			$t->string('email');
+			$col = $t->useColumn('email');
+			self::assertInstanceOf(Column::class, $col);
+			self::assertSame('email', $col->getName());
+		});
+	}
+
+	public function testUseColumnThrowsForUnknownColumn(): void
+	{
+		$db = self::getNewDbInstance();
+
+		$this->expectException(DBALRuntimeException::class);
+
+		$db->ns('App\Db')->table('users', static function (TableBuilder $t): void {
+			$t->id();
+			$t->useColumn('nonexistent');
+		});
 	}
 }
