@@ -18,8 +18,8 @@ use Gobl\DBAL\Types\TypeEnum;
 use Gobl\DBAL\Types\TypeJson;
 use Gobl\DBAL\Types\TypeMap;
 use Gobl\DBAL\Types\TypeString;
-use Gobl\DBAL\Types\Utils\Map;
 use Gobl\Tests\BaseTestCase;
+use PHPUtils\Store\Map;
 
 /** Fixture string-backed enum. */
 enum HashTestStatus: string

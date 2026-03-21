@@ -21,6 +21,7 @@ use Gobl\DBAL\Indexes\IndexType;
 use Gobl\DBAL\Table;
 use Gobl\Tests\BaseTestCase;
 use InvalidArgumentException;
+use PHPUtils\Exceptions\RuntimeException;
 
 /**
  * Class IndexTest.
@@ -109,7 +110,7 @@ final class IndexTest extends BaseTestCase
 		$index->addColumn('status');
 		$index->lock();
 
-		$this->expectException(DBALException::class);
+		$this->expectException(RuntimeException::class);
 		$index->addColumn('created_at');
 	}
 

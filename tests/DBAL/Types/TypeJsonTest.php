@@ -18,11 +18,11 @@ use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\TypeJson;
 use Gobl\DBAL\Types\TypeList;
 use Gobl\DBAL\Types\TypeMap;
-use Gobl\DBAL\Types\Utils\Map;
 use Gobl\ORM\ORMUniversalType;
 use Gobl\Tests\BaseTestCase;
 use JsonSerializable;
 use PHPUtils\Exceptions\RuntimeException as PHPUtilsRuntimeException;
+use PHPUtils\Store\Map;
 use stdClass;
 
 /**

@@ -21,6 +21,7 @@ use Gobl\DBAL\Types\TypeInt;
 use Gobl\DBAL\Types\TypeString;
 use Gobl\Tests\BaseTestCase;
 use InvalidArgumentException;
+use LogicException;
 
 /**
  * Class ColumnTest.
@@ -122,10 +123,23 @@ final class ColumnTest extends BaseTestCase
 
 	public function testLock(): void
 	{
+		$column = new Column('name');
+
+		$this->expectException(LogicException::class);
+		$this->expectExceptionMessage(
+			'Column "name" must be added to a table before it can be locked.'
+				. ' Use Gobl\DBAL\Column::lockWithTable to lock "name" column with its table context.'
+		);
+
+		$column->lock();
+	}
+
+	public function testLockWithTable(): void
+	{
 		$table  = new Table('users');
 		$column = new Column('name');
 
-		$column->lock($table);
+		$column->lockWithTable($table);
 
 		self::assertSame($table, $column->getTable());
 	}
@@ -282,5 +296,45 @@ final class ColumnTest extends BaseTestCase
 
 		self::assertArrayNotHasKey('old_name', $array);
 		self::assertArrayNotHasKey('old_prefix', $array);
+	}
+
+	public function testTypeMetaAppearsInColumnToArray(): void
+	{
+		$column = new Column('email');
+		$column->getType()->setMetaKey('label', 'Email Address');
+
+		$array = $column->toArray();
+
+		self::assertSame(['label' => 'Email Address'], $array['meta']);
+	}
+
+	public function testColumnMetaAppearsInToArray(): void
+	{
+		$column = new Column('email');
+		$column->setMetaKey('label', 'Email');
+
+		$array = $column->toArray();
+
+		self::assertSame(['label' => 'Email'], $array['meta']);
+	}
+
+	public function testMetaRoundTrip(): void
+	{
+		$column = new Column('email');
+		$column->setMetaKey('label', 'Email');
+
+		$array   = $column->toArray();
+		$column2 = new Column('email', null, $array);
+
+		self::assertSame(['label' => 'Email'], $column2->toArray()['meta']);
+	}
+
+	public function testNoMetaKeyWhenEmpty(): void
+	{
+		$column = new Column('email');
+
+		$array = $column->toArray();
+
+		self::assertArrayNotHasKey('meta', $array);
 	}
 }

@@ -19,12 +19,12 @@ use Gobl\DBAL\Types\TypeList;
 use Gobl\DBAL\Types\TypeMap;
 use Gobl\DBAL\Types\Utils\JsonOfInterface;
 use Gobl\DBAL\Types\Utils\JsonPatch;
-use Gobl\DBAL\Types\Utils\Map;
 use Gobl\ORM\ORMUniversalType;
 use Gobl\Tests\BaseTestCase;
 use Gobl\Tests\Fixtures\SampleJsonOf;
 use InvalidArgumentException;
 use JsonSerializable;
+use PHPUtils\Store\Map;
 use stdClass;
 
 /**

@@ -18,6 +18,7 @@ use Gobl\DBAL\Types\Validation\ValidationStatus;
 use Gobl\DBAL\Types\Validation\ValidationSubject;
 use Gobl\Tests\BaseTestCase;
 use LogicException;
+use PHPUtils\Exceptions\RuntimeException;
 
 /**
  * Class ValidationSubjectTest.
@@ -174,7 +175,7 @@ final class ValidationSubjectTest extends BaseTestCase
 		$s->accept('clean');
 		$s->lock();
 
-		$this->expectException(LogicException::class);
+		$this->expectException(RuntimeException::class);
 		$s->setUnsafeValue('other');
 	}
 
@@ -204,7 +205,7 @@ final class ValidationSubjectTest extends BaseTestCase
 		$s->accept('clean');
 		$s->lock();
 
-		$this->expectException(LogicException::class);
+		$this->expectException(RuntimeException::class);
 		$s->reject('too late');
 	}
 
@@ -214,7 +215,7 @@ final class ValidationSubjectTest extends BaseTestCase
 		$s->accept('clean');
 		$s->lock();
 
-		$this->expectException(LogicException::class);
+		$this->expectException(RuntimeException::class);
 		$s->accept('another');
 	}
 }

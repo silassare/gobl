@@ -14,12 +14,12 @@ declare(strict_types=1);
 namespace Gobl\Tests\ORM;
 
 use Gobl\DBAL\Drivers\MySQL\MySQL;
-use Gobl\DBAL\Types\Utils\Map;
 use Gobl\ORM\Exceptions\ORMRuntimeException;
 use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\ORM\ORM;
 use Gobl\ORM\ORMEntity;
 use Gobl\Tests\BaseTestCase;
+use PHPUtils\Store\Map;
 use Throwable;
 
 /**

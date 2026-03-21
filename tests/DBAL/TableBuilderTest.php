@@ -63,10 +63,10 @@ final class TableBuilderTest extends BaseTestCase
 			->toArray());
 
 		self::assertSame([
-			'diff_key' => $role_user_id_column->getDiffKey(),
 			'type'     => 'ref:users.id',
 			'unsigned' => true,
 			'nullable' => false,
+			'diff_key' => $role_user_id_column->getDiffKey(),
 		], $role_user_id_column->toArray());
 
 		self::assertTrue($tbl_users->isSoftDeletable());

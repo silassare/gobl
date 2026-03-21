@@ -17,9 +17,9 @@ use Gobl\DBAL\Types\TypeJson;
 use Gobl\DBAL\Types\TypeList;
 use Gobl\DBAL\Types\TypeMap;
 use Gobl\DBAL\Types\Utils\JsonPatch;
-use Gobl\DBAL\Types\Utils\Map;
 use Gobl\Tests\BaseTestCase;
 use InvalidArgumentException;
+use PHPUtils\Store\Map;
 
 /**
  * Class JsonPatchTest.

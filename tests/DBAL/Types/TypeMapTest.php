@@ -15,8 +15,8 @@ namespace Gobl\Tests\DBAL\Types;
 
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\TypeMap;
-use Gobl\DBAL\Types\Utils\Map;
 use Gobl\Tests\BaseTestCase;
+use PHPUtils\Store\Map;
 use stdClass;
 
 /**

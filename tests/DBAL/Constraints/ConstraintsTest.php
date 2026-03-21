@@ -21,6 +21,7 @@ use Gobl\DBAL\Constraints\UniqueKey;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Table;
 use Gobl\Tests\BaseTestCase;
+use PHPUtils\Exceptions\RuntimeException;
 
 /**
  * Class ConstraintsTest.
@@ -78,7 +79,7 @@ final class ConstraintsTest extends BaseTestCase
 		$pk->addColumn('id');
 		$pk->lock();
 
-		$this->expectException(DBALException::class);
+		$this->expectException(RuntimeException::class);
 		$pk->addColumn('email');
 	}
 
@@ -136,7 +137,7 @@ final class ConstraintsTest extends BaseTestCase
 		$uk->addColumn('email');
 		$uk->lock();
 
-		$this->expectException(DBALException::class);
+		$this->expectException(RuntimeException::class);
 		$uk->addColumn('name');
 	}
 
@@ -241,7 +242,7 @@ final class ConstraintsTest extends BaseTestCase
 		$fk->addColumn('user_id', 'id');
 		$fk->lock(); // users has PK on id, so assertIsValid passes
 
-		$this->expectException(DBALException::class);
+		$this->expectException(RuntimeException::class);
 		$fk->addColumn('user_id', 'id');
 	}
 	// -------------------------------------------------------------------
