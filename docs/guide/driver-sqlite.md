@@ -7,7 +7,6 @@ use Gobl\DBAL\Db;
 use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Drivers\SQLite\SQLite;
 
-// Note: Gobl's driver constant is 'sqlite' (two l's).
 $config = new DbConfig([
     'db_name'         => '/var/data/my_app.db',  // absolute path to .db file
     'db_table_prefix' => 'app_',                 // optional

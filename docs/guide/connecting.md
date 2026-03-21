@@ -52,11 +52,11 @@ $db = Db::newInstanceOf('mysql', $config);
 
 Supported driver name strings:
 
-| Constant           | String value   | RDBMS                                               |
-| ------------------ | -------------- | --------------------------------------------------- |
-| `MySQL::NAME`      | `'mysql'`      | MySQL / MariaDB                                     |
-| `PostgreSQL::NAME` | `'postgresql'` | PostgreSQL                                          |
-| `SQLite::NAME`     | `'sqlite'`     | SQLite (**two** `l`s - this is intentional in Gobl) |
+| Constant           | String value   | RDBMS           |
+| ------------------ | -------------- | --------------- |
+| `MySQL::NAME`      | `'mysql'`      | MySQL / MariaDB |
+| `PostgreSQL::NAME` | `'postgresql'` | PostgreSQL      |
+| `SQLite::NAME`     | `'sqlite'`     | SQLite          |
 
 The underlying PDO connection is established **lazily** on the first query.
 
@@ -107,7 +107,6 @@ use Gobl\DBAL\Db;
 use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Drivers\SQLite\SQLite;
 
-// 'sqlite' - two l's - is the driver constant used by Gobl.
 $config = new DbConfig([
     'db_name' => '/var/data/my_app.db', // absolute path, or ':memory:'
 ]);
