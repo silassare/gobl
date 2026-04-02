@@ -95,7 +95,7 @@ final class MigrationRunnerTest extends BaseTestCase
 	// ------------------------------------------------------------------
 
 	/**
-	 * @dataProvider Gobl\Tests\DBAL\MigrationRunnerTest::availableDrivers
+	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
 	 */
 	public function testMigrationsTableIsCreatedAutomatically(string $driver): void
 	{
@@ -116,7 +116,7 @@ final class MigrationRunnerTest extends BaseTestCase
 	// ------------------------------------------------------------------
 
 	/**
-	 * @dataProvider Gobl\Tests\DBAL\MigrationRunnerTest::availableDrivers
+	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
 	 */
 	public function testMigrateReturnsPendingVersions(string $driver): void
 	{
@@ -130,7 +130,7 @@ final class MigrationRunnerTest extends BaseTestCase
 	}
 
 	/**
-	 * @dataProvider Gobl\Tests\DBAL\MigrationRunnerTest::availableDrivers
+	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
 	 */
 	public function testMigrateIsIdempotent(string $driver): void
 	{
@@ -144,7 +144,7 @@ final class MigrationRunnerTest extends BaseTestCase
 	}
 
 	/**
-	 * @dataProvider Gobl\Tests\DBAL\MigrationRunnerTest::availableDrivers
+	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
 	 */
 	public function testMigrateWithTargetVersionOnlyAppliesUpToThat(string $driver): void
 	{
@@ -170,7 +170,7 @@ final class MigrationRunnerTest extends BaseTestCase
 	// ------------------------------------------------------------------
 
 	/**
-	 * @dataProvider Gobl\Tests\DBAL\MigrationRunnerTest::availableDrivers
+	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
 	 */
 	public function testRollbackRemovesLastApplied(string $driver): void
 	{
@@ -192,7 +192,7 @@ final class MigrationRunnerTest extends BaseTestCase
 	}
 
 	/**
-	 * @dataProvider Gobl\Tests\DBAL\MigrationRunnerTest::availableDrivers
+	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
 	 */
 	public function testRollbackMultipleSteps(string $driver): void
 	{
@@ -210,7 +210,7 @@ final class MigrationRunnerTest extends BaseTestCase
 	}
 
 	/**
-	 * @dataProvider Gobl\Tests\DBAL\MigrationRunnerTest::availableDrivers
+	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
 	 */
 	public function testRollbackNothingWhenNoneApplied(string $driver): void
 	{
@@ -227,7 +227,7 @@ final class MigrationRunnerTest extends BaseTestCase
 	// ------------------------------------------------------------------
 
 	/**
-	 * @dataProvider Gobl\Tests\DBAL\MigrationRunnerTest::availableDrivers
+	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
 	 */
 	public function testStatusReturnsPendingAndApplied(string $driver): void
 	{
@@ -250,7 +250,7 @@ final class MigrationRunnerTest extends BaseTestCase
 	}
 
 	/**
-	 * @dataProvider Gobl\Tests\DBAL\MigrationRunnerTest::availableDrivers
+	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
 	 */
 	public function testStatusLabelsArePersisted(string $driver): void
 	{
@@ -267,7 +267,7 @@ final class MigrationRunnerTest extends BaseTestCase
 	// ------------------------------------------------------------------
 
 	/**
-	 * @dataProvider Gobl\Tests\DBAL\MigrationRunnerTest::availableDrivers
+	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
 	 */
 	public function testBeforeRunFalseSkipsMigration(string $driver): void
 	{
@@ -326,7 +326,7 @@ final class MigrationRunnerTest extends BaseTestCase
 	}
 
 	/**
-	 * @dataProvider Gobl\Tests\DBAL\MigrationRunnerTest::availableDrivers
+	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
 	 */
 	public function testBeforeRunStringReplacesQuery(string $driver): void
 	{
@@ -393,7 +393,7 @@ final class MigrationRunnerTest extends BaseTestCase
 	// ------------------------------------------------------------------
 
 	/**
-	 * @dataProvider Gobl\Tests\DBAL\MigrationRunnerTest::availableDrivers
+	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
 	 */
 	public function testAddSortsByVersion(string $driver): void
 	{
@@ -412,7 +412,7 @@ final class MigrationRunnerTest extends BaseTestCase
 	// ------------------------------------------------------------------
 
 	/**
-	 * @dataProvider Gobl\Tests\DBAL\MigrationRunnerTest::availableDrivers
+	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
 	 */
 	public function testDiffBuildMigrationReturnsMigrationInterface(string $driver): void
 	{
@@ -437,7 +437,7 @@ final class MigrationRunnerTest extends BaseTestCase
 	}
 
 	/**
-	 * @dataProvider Gobl\Tests\DBAL\MigrationRunnerTest::availableDrivers
+	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
 	 */
 	public function testDiffMakeMigrationInstanceIsRunnable(string $driver): void
 	{
@@ -464,19 +464,34 @@ final class MigrationRunnerTest extends BaseTestCase
 	// ------------------------------------------------------------------
 
 	/**
-	 * Data provider that returns only drivers whose PDO extension is loaded.
-	 * This prevents test errors when e.g. pdo_pgsql is not installed.
+	 * Data provider that returns only drivers whose PDO extension is loaded
+	 * AND whose live-DB credentials are working.
+	 * This prevents test errors when e.g. pdo_pgsql is not installed or credentials are wrong.
 	 *
 	 * @return array<string, array{0: string, 1: class-string}>
 	 */
 	public static function availableDrivers(): array
 	{
 		return \array_filter(parent::allDrivers(), static function (array $row): bool {
-			return match ($row[0]) {
+			$driver = $row[0];
+
+			$extensionOk = match ($driver) {
 				PostgreSQL::NAME => \extension_loaded('pdo_pgsql'),
 				MySQL::NAME      => \extension_loaded('pdo_mysql'),
 				default          => true,
 			};
+
+			if (!$extensionOk) {
+				return false;
+			}
+
+			try {
+				self::getNewDbInstance($driver)->getConnection();
+			} catch (Throwable) {
+				return false;
+			}
+
+			return true;
 		});
 	}
 
