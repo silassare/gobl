@@ -62,7 +62,9 @@ abstract class NativeJsonMigrationTestCase extends BaseTestCase
 		static::$setupFailed = false;
 
 		try {
-			static::$db = static::getNewDbInstance(static::getDriverName());
+			$db = static::getNewDbInstance(static::getDriverName());
+			$db->getConnection(); // force PDO connect to catch credential errors early
+			static::$db = $db;
 		} catch (Throwable $t) {
 			static::$setupFailed = true;
 			gobl_log(\sprintf('Error building live DB for %s: %s', static::getDriverName(), $t->getMessage()));
