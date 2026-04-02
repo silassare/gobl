@@ -21,12 +21,12 @@ services:
             GOBL_TEST_MYSQL_PORT: 3306
             GOBL_TEST_MYSQL_DB: gobl_test
             GOBL_TEST_MYSQL_USER: gobl_test
-            GOBL_TEST_MYSQL_PASSWORD: g0bl@test
+            GOBL_TEST_MYSQL_PASSWORD: g0bl@Test
             GOBL_TEST_POSTGRESQL_HOST: postgres
             GOBL_TEST_POSTGRESQL_PORT: 5432
             GOBL_TEST_POSTGRESQL_DB: gobl_test
             GOBL_TEST_POSTGRESQL_USER: gobl_test
-            GOBL_TEST_POSTGRESQL_PASSWORD: g0bl@test
+            GOBL_TEST_POSTGRESQL_PASSWORD: g0bl@Test
             GOBL_TEST_SQLITE_FILE: ":memory:"
 
     # ------------------------------------------------------------------
@@ -38,7 +38,7 @@ services:
             MYSQL_ROOT_PASSWORD: root
             MYSQL_DATABASE: gobl_test
             MYSQL_USER: gobl_test
-            MYSQL_PASSWORD: g0bl@test
+            MYSQL_PASSWORD: g0bl@Test
         healthcheck:
             test: ["CMD", "mysqladmin", "ping", "--silent"]
             interval: 5s
@@ -53,7 +53,7 @@ services:
         environment:
             POSTGRES_DB: gobl_test
             POSTGRES_USER: gobl_test
-            POSTGRES_PASSWORD: g0bl@test
+            POSTGRES_PASSWORD: g0bl@Test
         healthcheck:
             test: ["CMD", "pg_isready", "-U", "gobl_test"]
             interval: 5s

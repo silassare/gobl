@@ -21,7 +21,7 @@
         <env name="GOBL_TEST_MYSQL_PORT" value="3306"/>
         <env name="GOBL_TEST_MYSQL_DB" value="gobl_test"/>
         <env name="GOBL_TEST_MYSQL_USER" value="gobl_test"/>
-        <env name="GOBL_TEST_MYSQL_PASSWORD" value="g0bl@test"/>
+        <env name="GOBL_TEST_MYSQL_PASSWORD" value="g0bl@Test"/>
         <!-- Pin the assumed MySQL server version for DDL generation (JSON DEFAULT, etc.). -->
         <env name="GOBL_TEST_MYSQL_SERVER_VERSION" value="8.0.40"/>
         <!-- PostgreSQL test database (gobl_test user / database). -->
@@ -29,7 +29,7 @@
         <env name="GOBL_TEST_POSTGRESQL_PORT" value="5432"/>
         <env name="GOBL_TEST_POSTGRESQL_DB" value="gobl_test"/>
         <env name="GOBL_TEST_POSTGRESQL_USER" value="gobl_test"/>
-        <env name="GOBL_TEST_POSTGRESQL_PASSWORD" value="g0bl@test"/>
+        <env name="GOBL_TEST_POSTGRESQL_PASSWORD" value="g0bl@Test"/>
 		<!-- SQLite test database (gobl_test file). -->
         <env name="GOBL_TEST_SQLITE_FILE" value="tests/tmp/gobl_test.sqlite"/>
     </php>
