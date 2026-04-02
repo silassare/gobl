@@ -763,11 +763,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 				$default_to_use = $d;
 				$quote_default  = false;
 			} else {
-				$default_to_use = $base_type->getDefault();
-			}
-
-			if (null === $default_to_use) {
-				$type_default = $type->getDefault();
+				$type_default = $base_type->getDefault() ?? $type->getDefault();
 
 				if (null !== $type_default) {
 					$default_to_use = $type->phpToDb($type_default, $this->db);
@@ -1106,7 +1102,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 */
 	protected function quoteCols(array $list): string
 	{
-		return \implode(' , ', \array_map(fn (string $col) => $this->quoteIdentifier($col), $list));
+		return \implode(' , ', \array_map(fn(string $col) => $this->quoteIdentifier($col), $list));
 	}
 
 	/**
