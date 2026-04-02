@@ -1102,7 +1102,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 */
 	protected function quoteCols(array $list): string
 	{
-		return \implode(' , ', \array_map(fn(string $col) => $this->quoteIdentifier($col), $list));
+		return \implode(' , ', \array_map(fn (string $col) => $this->quoteIdentifier($col), $list));
 	}
 
 	/**

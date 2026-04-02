@@ -57,7 +57,7 @@ abstract class NativeJsonMigrationTestCase extends BaseTestCase
 
 	public static function setUpBeforeClass(): void
 	{
-		parent::setUpBeforeClass(); // loads .env.test
+		parent::setUpBeforeClass();
 
 		static::$setupFailed = false;
 
@@ -65,7 +65,7 @@ abstract class NativeJsonMigrationTestCase extends BaseTestCase
 			static::$db = static::getNewDbInstance(static::getDriverName());
 		} catch (Throwable $t) {
 			static::$setupFailed = true;
-			gobl_test_log(\sprintf('Error building live DB for %s: %s', static::getDriverName(), $t->getMessage()));
+			gobl_log(\sprintf('Error building live DB for %s: %s', static::getDriverName(), $t->getMessage()));
 		}
 	}
 

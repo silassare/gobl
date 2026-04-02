@@ -40,8 +40,6 @@
 			"docs/",
 			".github/",
 			".vscode/",
-			".env.test.example",
-			".env.test",
 			"phpunit.xml.dist",
 			"phpunit.xml",
 			"psalm.xml"

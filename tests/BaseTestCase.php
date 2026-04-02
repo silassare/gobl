@@ -43,16 +43,6 @@ abstract class BaseTestCase extends TestCase
 	/** @var RDBMSInterface[] */
 	private static array $rdbms = [];
 
-	/**
-	 * Loads variables from .env.test into $_ENV if the file exists.
-	 * Called once before the test suite via setUpBeforeClass().
-	 */
-	public static function setUpBeforeClass(): void
-	{
-		parent::setUpBeforeClass();
-		self::loadDotEnvTest();
-	}
-
 	protected function tearDown(): void
 	{
 		parent::tearDown();
@@ -86,7 +76,7 @@ abstract class BaseTestCase extends TestCase
 				$db->ns(self::TEST_DB_NAMESPACE)
 					->schema(self::getTablesDefinitions());
 			} catch (Throwable $t) {
-				gobl_test_log($t);
+				gobl_log($t);
 
 				throw new GoblRuntimeException('db init failed.', null, $t);
 			}
@@ -97,7 +87,7 @@ abstract class BaseTestCase extends TestCase
 
 	/**
 	 * Returns a DbConfig instance for the given driver type, populated with connection
-	 * parameters from environment variables (or .env.test).
+	 * parameters from environment variables.
 	 *
 	 * @param string $type Driver type (MySQL, PostgreSQL, SQLite)
 	 *
@@ -467,34 +457,6 @@ abstract class BaseTestCase extends TestCase
 		\sort($result);
 
 		return $result;
-	}
-
-	protected static function loadDotEnvTest(): void
-	{
-		$envFile = \dirname(__DIR__) . \DIRECTORY_SEPARATOR . '.env.test';
-
-		if (!\file_exists($envFile)) {
-			return;
-		}
-
-		$lines = \file($envFile, \FILE_IGNORE_NEW_LINES | \FILE_SKIP_EMPTY_LINES);
-
-		foreach ($lines as $line) {
-			$line = \trim($line);
-
-			// Skip comments
-			if ('' === $line || \str_starts_with($line, '#')) {
-				continue;
-			}
-
-			if (\str_contains($line, '=')) {
-				[$key, $value]   = \explode('=', $line, 2);
-				$key             = \trim($key);
-				$value           = \trim($value, " \t\"'");
-				$_ENV[$key]      = $value;
-				$_SERVER[$key]   = $value;
-			}
-		}
 	}
 
 	protected static function env(string $key, string $default = ''): string

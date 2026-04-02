@@ -37,6 +37,10 @@ docs-install:
 
 # = Tests
 
+## Prepare databases for integration local tests (MySQL and PostgreSQL)
+prepare-test-dbs:
+	./tests/prepare_test_dbs.sh
+
 ## Run the full test suite
 test:
 	rm -rf $(TEST_TMP_DIR)

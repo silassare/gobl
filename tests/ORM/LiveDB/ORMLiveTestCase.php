@@ -60,7 +60,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 
 	public static function setUpBeforeClass(): void
 	{
-		parent::setUpBeforeClass(); // loads .env.test
+		parent::setUpBeforeClass();
 
 		static::$setupFailed = false;
 
@@ -76,14 +76,14 @@ abstract class ORMLiveTestCase extends BaseTestCase
 			$db = static::getNewDbInstance(static::getDriverName());
 		} catch (Throwable $t) {
 			static::$setupFailed = true;
-			gobl_test_log(\sprintf('Error building live DB for %s: %s', static::getDriverName(), $t->getMessage()));
+			gobl_log(\sprintf('Error building live DB for %s: %s', static::getDriverName(), $t->getMessage()));
 
 			return;
 		}
 
 		if (null === $db) {
 			static::$setupFailed = true;
-			gobl_test_log(\sprintf('Live DB not configured for %s (check env vars).', static::getDriverName()));
+			gobl_log(\sprintf('Live DB not configured for %s (check env vars).', static::getDriverName()));
 
 			return;
 		}
@@ -110,7 +110,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 			static::$db = $db;
 		} catch (Throwable $t) {
 			static::$setupFailed = true;
-			gobl_test_log(\sprintf('Error setting up live DB for %s: %s', static::getDriverName(), $t->getMessage()));
+			gobl_log(\sprintf('Error setting up live DB for %s: %s', static::getDriverName(), $t->getMessage()));
 		}
 	}
 

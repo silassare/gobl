@@ -24,7 +24,7 @@ jobs:
                     MYSQL_ROOT_PASSWORD: root
                     MYSQL_DATABASE: gobl_test
                     MYSQL_USER: gobl_test
-                    MYSQL_PASSWORD: gobl_test
+                    MYSQL_PASSWORD: g0bl@test
                 ports:
                     - 3306:3306
                 options: >-
@@ -36,7 +36,7 @@ jobs:
             postgres:
                 image: postgres:15
                 env:
-                    POSTGRES_PASSWORD: gobl_test
+                    POSTGRES_PASSWORD: g0bl@test
                     POSTGRES_DB: gobl_test
                     POSTGRES_USER: gobl_test
                 ports:
@@ -73,23 +73,6 @@ jobs:
               env:
                   COMPOSER_AUTH: '{"github-oauth":{"github.com":"${{ secrets.GH_PRIVATE_ACCESS_TOKEN }}"}}'
               run: composer install --prefer-dist --no-progress --no-interaction --ignore-platform-reqs
-
-            - name: Create .env.test
-              run: |
-                  cat > .env.test <<'EOF'
-                  GOBL_TEST_MYSQL_HOST=127.0.0.1
-                  GOBL_TEST_MYSQL_PORT=3306
-                  GOBL_TEST_MYSQL_DB=gobl_test
-                  GOBL_TEST_MYSQL_USER=gobl_test
-                  GOBL_TEST_MYSQL_PASSWORD=gobl_test
-                  GOBL_TEST_POSTGRESQL_HOST=127.0.0.1
-                  GOBL_TEST_POSTGRESQL_PORT=5432
-                  GOBL_TEST_POSTGRESQL_DB=gobl_test
-                  GOBL_TEST_POSTGRESQL_USER=gobl_test
-                  GOBL_TEST_POSTGRESQL_PASSWORD=gobl_test
-                  GOBL_TEST_SQLITE_FILE=:memory:
-                  EOF
-                  sed -i 's/^[[:space:]]*//' .env.test
 
             - name: Run PHPUnit tests
               run: ./vendor/bin/phpunit --no-coverage

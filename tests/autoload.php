@@ -25,8 +25,8 @@ require_once \dirname(__DIR__) . '/vendor/autoload.php';
 
 Blate::setCacheDir(GOBL_TEST_PROJECT_DIR);
 
-if (!\function_exists('gobl_test_log')) {
-	function gobl_test_log(mixed $value): void
+if (!\function_exists('gobl_log')) {
+	function gobl_log(mixed $value): void
 	{
 		$log_file = './gobl.test.log.txt';
 		$prev_sep = "\n========previous========\n";
@@ -68,7 +68,7 @@ if (!\function_exists('gobl_test_log')) {
 
 	function gobl_test_error_handler(int $code, string $message, string $file, int $line): mixed
 	{
-		gobl_test_log(
+		gobl_log(
 			"\n\tFile    : {$file}"
 				. "\n\tLine    : {$line}"
 				. "\n\tCode    : {$code}"
@@ -80,7 +80,7 @@ if (!\function_exists('gobl_test_log')) {
 
 	function gobl_test_exception_handler(Exception $t): void
 	{
-		gobl_test_log($t);
+		gobl_log($t);
 	}
 
 	function gobl_shutdown_function(): void

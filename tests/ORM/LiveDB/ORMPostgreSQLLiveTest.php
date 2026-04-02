@@ -19,13 +19,6 @@ use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
  * Class ORMPostgreSQLLiveTest.
  *
  * Runs the full ORM live-DB test suite against a real PostgreSQL database.
- * Set the following env vars (or .env.test) to enable this test class:
- *
- *   GOBL_TEST_POSTGRESQL_USER=<username>
- *   GOBL_TEST_POSTGRESQL_PASSWORD=<password>
- *   GOBL_TEST_POSTGRESQL_HOST=127.0.0.1   (default)
- *   GOBL_TEST_POSTGRESQL_PORT=5432        (default)
- *   GOBL_TEST_POSTGRESQL_DB=gobl_test     (default)
  *
  * @internal
  *

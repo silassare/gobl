@@ -11,9 +11,6 @@
 # phpunit
 .phpunit.result.cache
 
-# Environment variables (not committed to Git, but used in tests)
-.env.test
-
 gobl.test.log.txt
 
 

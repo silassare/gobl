@@ -19,10 +19,6 @@ use Gobl\DBAL\Drivers\SQLite\SQLite;
  * Class ORMSQLiteLiveTest.
  *
  * Runs the full ORM live-DB test suite against a real SQLite database.
- * Set the following env var (or .env.test) to enable this test class:
- *
- *   GOBL_TEST_SQLITE_FILE=:memory:   (recommended no file created on disk)
- *   GOBL_TEST_SQLITE_FILE=/path/to/test.db
  *
  * @internal
  *

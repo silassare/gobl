@@ -22,5 +22,5 @@ RUN composer install --prefer-dist --no-progress --no-interaction --no-scripts
 # Copy the rest of the source (invalidates only this layer on code change)
 COPY . .
 
-# Write .env.test from environment variables at container start, then run tests
-CMD printenv | grep '^GOBL_TEST_' > .env.test && make test
+# Run tests
+CMD make test

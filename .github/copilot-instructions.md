@@ -356,8 +356,6 @@ auto-complete/validation is at `docs/public/schema.json`.
 
 11. **Comparison with popular ORMs.** Where helpful, add a callout or note box showing how a Gobl concept maps to a familiar ORM (Eloquent, Doctrine, Prisma). Keep these concise and accurate, never claim feature parity unless it exists.
 
-Live DB tests require `.env.test` (see `.env.test.example`). `make test` cleans `tests/tmp/` before each run. SQLite tests use `:memory:` by default.
-
 ## Code Style Conventions
 
 - All PHP files must have `declare(strict_types=1);`

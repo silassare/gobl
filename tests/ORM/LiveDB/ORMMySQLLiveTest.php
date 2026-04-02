@@ -19,13 +19,6 @@ use Gobl\DBAL\Drivers\MySQL\MySQL;
  * Class ORMMySQLLiveTest.
  *
  * Runs the full ORM live-DB test suite against a real MySQL database.
- * Set the following env vars (or .env.test) to enable this test class:
- *
- *   GOBL_TEST_MYSQL_USER=<username>
- *   GOBL_TEST_MYSQL_PASSWORD=<password>
- *   GOBL_TEST_MYSQL_HOST=127.0.0.1   (default)
- *   GOBL_TEST_MYSQL_PORT=3306        (default)
- *   GOBL_TEST_MYSQL_DB=gobl_test     (default)
  *
  * @internal
  *
