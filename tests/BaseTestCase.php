@@ -97,14 +97,15 @@ abstract class BaseTestCase extends TestCase
 	{
 		$config = match ($type) {
 			MySQL::NAME   => [
-				'db_table_prefix' => 'gObL',
-				'db_name'         => self::env('GOBL_TEST_MYSQL_DB', 'gobl_test'),
-				'db_host'         => self::env('GOBL_TEST_MYSQL_HOST', '127.0.0.1'),
-				'db_port'         => (int) self::env('GOBL_TEST_MYSQL_PORT', '3306'),
-				'db_user'         => self::env('GOBL_TEST_MYSQL_USER', 'unknown'),
-				'db_pass'         => self::env('GOBL_TEST_MYSQL_PASSWORD', ''),
-				'db_charset'      => 'utf8mb4',
-				'db_collate'      => 'utf8mb4_unicode_ci',
+				'db_table_prefix'    => 'gObL',
+				'db_name'            => self::env('GOBL_TEST_MYSQL_DB', 'gobl_test'),
+				'db_host'            => self::env('GOBL_TEST_MYSQL_HOST', '127.0.0.1'),
+				'db_port'            => (int) self::env('GOBL_TEST_MYSQL_PORT', '3306'),
+				'db_user'            => self::env('GOBL_TEST_MYSQL_USER', 'unknown'),
+				'db_pass'            => self::env('GOBL_TEST_MYSQL_PASSWORD', ''),
+				'db_server_version'  => self::env('GOBL_TEST_MYSQL_SERVER_VERSION', ''),
+				'db_charset'         => 'utf8mb4',
+				'db_collate'         => 'utf8mb4_unicode_ci',
 			],
 			PostgreSQL::NAME => [
 				'db_table_prefix' => 'gObL',

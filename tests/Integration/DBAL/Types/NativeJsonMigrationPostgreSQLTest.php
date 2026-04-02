@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace Gobl\Tests\DBAL\Types;
+namespace Gobl\Tests\Integration\DBAL\Types;
 
-use Gobl\DBAL\Drivers\MySQL\MySQL;
+use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
 
 /**
- * Class NativeJsonMigrationMySQLTest.
+ * Class NativeJsonMigrationPostgreSQLTest.
  *
- * Runs the native JSON migration test suite against a real MySQL database.
+ * Runs the native JSON migration test suite against a real PostgreSQL database.
  *
  * @internal
  *
@@ -26,13 +26,13 @@ use Gobl\DBAL\Drivers\MySQL\MySQL;
  * @covers \Gobl\DBAL\MigrationRunner
  * @covers \Gobl\DBAL\Types\TypeJson
  */
-final class NativeJsonMigrationMySQLTest extends NativeJsonMigrationTestCase
+final class NativeJsonMigrationPostgreSQLTest extends NativeJsonMigrationTestCase
 {
 	/**
 	 * {@inheritDoc}
 	 */
 	protected static function getDriverName(): string
 	{
-		return MySQL::NAME;
+		return PostgreSQL::NAME;
 	}
 }

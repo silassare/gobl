@@ -302,7 +302,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		  'db_pass' => '***',
 		  'db_charset' => 'utf8mb4',
 		  'db_collate' => 'utf8mb4_unicode_ci',
-		  'db_server_version' => '',
+		  'db_server_version' => '8.0.40',
 		);
 	}
 

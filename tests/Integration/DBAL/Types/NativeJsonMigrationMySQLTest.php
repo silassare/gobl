@@ -11,24 +11,22 @@
 
 declare(strict_types=1);
 
-namespace Gobl\Tests\ORM\LiveDB;
+namespace Gobl\Tests\Integration\DBAL\Types;
 
 use Gobl\DBAL\Drivers\MySQL\MySQL;
 
 /**
- * Class ORMMySQLLiveTest.
+ * Class NativeJsonMigrationMySQLTest.
  *
- * Runs the full ORM live-DB test suite against a real MySQL database.
+ * Runs the native JSON migration test suite against a real MySQL database.
  *
  * @internal
  *
- * @covers \Gobl\ORM\ORM
- * @covers \Gobl\ORM\ORMController
- * @covers \Gobl\ORM\ORMEntity
- * @covers \Gobl\ORM\ORMResults
- * @covers \Gobl\ORM\ORMTableQuery
+ * @covers \Gobl\DBAL\Diff\Diff
+ * @covers \Gobl\DBAL\MigrationRunner
+ * @covers \Gobl\DBAL\Types\TypeJson
  */
-final class ORMMySQLLiveTest extends ORMLiveTestCase
+final class NativeJsonMigrationMySQLTest extends NativeJsonMigrationTestCase
 {
 	/**
 	 * {@inheritDoc}

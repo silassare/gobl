@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace Gobl\Tests\ORM\LiveDB;
+namespace Gobl\Tests\Integration\ORM;
 
-use Gobl\DBAL\Drivers\SQLite\SQLite;
+use Gobl\DBAL\Drivers\MySQL\MySQL;
 
 /**
- * Class ORMSQLiteLiveTest.
+ * Class ORMMySQLLiveTest.
  *
- * Runs the full ORM live-DB test suite against a real SQLite database.
+ * Runs the full ORM live-DB test suite against a real MySQL database.
  *
  * @internal
  *
@@ -28,13 +28,13 @@ use Gobl\DBAL\Drivers\SQLite\SQLite;
  * @covers \Gobl\ORM\ORMResults
  * @covers \Gobl\ORM\ORMTableQuery
  */
-final class ORMSQLiteLiveTest extends ORMLiveTestCase
+final class ORMMySQLLiveTest extends ORMLiveTestCase
 {
 	/**
 	 * {@inheritDoc}
 	 */
 	protected static function getDriverName(): string
 	{
-		return SQLite::NAME;
+		return MySQL::NAME;
 	}
 }

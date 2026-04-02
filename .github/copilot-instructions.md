@@ -425,11 +425,12 @@ auto-complete/validation is at `docs/public/schema.json`.
 
 ## Live DB Test Pattern
 
-Tests that require a real database connection MUST follow the `ORMLiveTestCase` pattern:
+Tests that require a real database connection MUST live under `tests/Integration/` and follow the `ORMLiveTestCase` pattern:
 
 - **Abstract base class** (e.g. `NativeJsonMigrationTestCase`) contains all test methods, shared static `$db` / `$setupFailed` properties, `setUpBeforeClass()`, `tearDownAfterClass()`, and `setUp()`.
 - `setUpBeforeClass()`: call `static::getNewDbInstance(static::getDriverName())`, catch `Throwable`, set `$setupFailed = true` on failure.
 - `setUp()`: call `self::markTestSkipped(...)` when `$setupFailed || null === static::$db`.
 - **Concrete final subclasses** (one per driver) only implement `getDriverName(): string`, e.g. `NativeJsonMigrationMySQLTest`, `NativeJsonMigrationPostgreSQLTest`.
-- Reference implementation: [tests/ORM/LiveDB/ORMLiveTestCase.php](../tests/ORM/LiveDB/ORMLiveTestCase.php) and [tests/ORM/LiveDB/ORMMySQLLiveTest.php](../tests/ORM/LiveDB/ORMMySQLLiveTest.php).
+- Place all integration test files under `tests/Integration/`. PHPUnit's `Unit` testsuite excludes this directory; the `Integration` testsuite covers it exclusively.
+- Reference implementation: [tests/Integration/ORM/ORMLiveTestCase.php](../tests/Integration/ORM/ORMLiveTestCase.php) and [tests/Integration/ORM/ORMMySQLLiveTest.php](../tests/Integration/ORM/ORMMySQLLiveTest.php).
 - **Do NOT** use `@dataProvider` with `driversForNativeJson()` or hand-roll per-test teardown loops over all drivers. Use one class per driver.

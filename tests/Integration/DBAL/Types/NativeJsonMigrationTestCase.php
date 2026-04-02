@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Gobl\Tests\DBAL\Types;
+namespace Gobl\Tests\Integration\DBAL\Types;
 
 use Gobl\DBAL\Builders\TableBuilder;
 use Gobl\DBAL\Diff\Diff;

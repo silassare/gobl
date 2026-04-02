@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Gobl\Tests\ORM\LiveDB;
+namespace Gobl\Tests\Integration\ORM;
 
 use Gobl\CRUD\Events\BeforeDeleteAll;
 use Gobl\CRUD\Events\BeforePKColumnWrite;

@@ -49,7 +49,7 @@ test:
 
 ## Run only unit tests (no live DB)
 test-unit:
-	vendor/bin/phpunit --testdox --do-not-cache-result --exclude-group live
+	vendor/bin/phpunit --testdox --do-not-cache-result --testsuite Unit
 
 ## Run the full test suite inside Docker (requires Docker + Compose)
 test-docker:

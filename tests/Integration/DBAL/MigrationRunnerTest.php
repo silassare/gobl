@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Gobl\Tests\DBAL;
+namespace Gobl\Tests\Integration\DBAL;
 
 use Gobl\DBAL\Builders\NamespaceBuilder;
 use Gobl\DBAL\Builders\TableBuilder;

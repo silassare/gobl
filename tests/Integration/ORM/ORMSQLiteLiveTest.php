@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace Gobl\Tests\ORM\LiveDB;
+namespace Gobl\Tests\Integration\ORM;
 
-use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
+use Gobl\DBAL\Drivers\SQLite\SQLite;
 
 /**
- * Class ORMPostgreSQLLiveTest.
+ * Class ORMSQLiteLiveTest.
  *
- * Runs the full ORM live-DB test suite against a real PostgreSQL database.
+ * Runs the full ORM live-DB test suite against a real SQLite database.
  *
  * @internal
  *
@@ -28,13 +28,13 @@ use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
  * @covers \Gobl\ORM\ORMResults
  * @covers \Gobl\ORM\ORMTableQuery
  */
-final class ORMPostgreSQLLiveTest extends ORMLiveTestCase
+final class ORMSQLiteLiveTest extends ORMLiveTestCase
 {
 	/**
 	 * {@inheritDoc}
 	 */
 	protected static function getDriverName(): string
 	{
-		return PostgreSQL::NAME;
+		return SQLite::NAME;
 	}
 }

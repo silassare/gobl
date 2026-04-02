@@ -22,6 +22,8 @@
         <env name="GOBL_TEST_MYSQL_DB" value="gobl_test"/>
         <env name="GOBL_TEST_MYSQL_USER" value="gobl_test"/>
         <env name="GOBL_TEST_MYSQL_PASSWORD" value="g0bl@test"/>
+        <!-- Pin the assumed MySQL server version for DDL generation (JSON DEFAULT, etc.). -->
+        <env name="GOBL_TEST_MYSQL_SERVER_VERSION" value="8.0.40"/>
         <!-- PostgreSQL test database (gobl_test user / database). -->
         <env name="GOBL_TEST_POSTGRESQL_HOST" value="127.0.0.1"/>
         <env name="GOBL_TEST_POSTGRESQL_PORT" value="5432"/>
@@ -32,8 +34,12 @@
         <env name="GOBL_TEST_SQLITE_FILE" value="tests/tmp/gobl_test.sqlite"/>
     </php>
     <testsuites>
-        <testsuite name="Gobl Tests Suite">
+        <testsuite name="Unit">
             <directory>tests/</directory>
+            <exclude>tests/Integration</exclude>
+        </testsuite>
+        <testsuite name="Integration">
+            <directory>tests/Integration/</directory>
         </testsuite>
     </testsuites>
 

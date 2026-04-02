@@ -11,22 +11,24 @@
 
 declare(strict_types=1);
 
-namespace Gobl\Tests\DBAL\Types;
+namespace Gobl\Tests\Integration\ORM;
 
 use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
 
 /**
- * Class NativeJsonMigrationPostgreSQLTest.
+ * Class ORMPostgreSQLLiveTest.
  *
- * Runs the native JSON migration test suite against a real PostgreSQL database.
+ * Runs the full ORM live-DB test suite against a real PostgreSQL database.
  *
  * @internal
  *
- * @covers \Gobl\DBAL\Diff\Diff
- * @covers \Gobl\DBAL\MigrationRunner
- * @covers \Gobl\DBAL\Types\TypeJson
+ * @covers \Gobl\ORM\ORM
+ * @covers \Gobl\ORM\ORMController
+ * @covers \Gobl\ORM\ORMEntity
+ * @covers \Gobl\ORM\ORMResults
+ * @covers \Gobl\ORM\ORMTableQuery
  */
-final class NativeJsonMigrationPostgreSQLTest extends NativeJsonMigrationTestCase
+final class ORMPostgreSQLLiveTest extends ORMLiveTestCase
 {
 	/**
 	 * {@inheritDoc}
