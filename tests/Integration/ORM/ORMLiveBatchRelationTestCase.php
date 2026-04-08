@@ -325,7 +325,7 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 		self::assertCount(1, $map[$bob->toIdentityKey()], 'Bob must have 1 book');
 
 		// Verify book IDs for Alice.
-		$aliceBooksIds = \array_map(static fn(ORMEntity $e) => $e->toIdentityKey(), $map[$alice->toIdentityKey()]);
+		$aliceBooksIds = \array_map(static fn (ORMEntity $e) => $e->toIdentityKey(), $map[$alice->toIdentityKey()]);
 		self::assertContains(static::$fixture['php_manual']->toIdentityKey(), $aliceBooksIds);
 		self::assertContains(static::$fixture['sql_guide']->toIdentityKey(), $aliceBooksIds);
 
@@ -522,7 +522,7 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 		// Alice has 2 direct author-genre rows: Programming and Databases.
 		self::assertCount(2, $map[$aliceKey], 'Alice must have 2 genres via author_genres pivot');
 
-		$aliceGenreIds = \array_map(static fn(ORMEntity $e) => $e->toIdentityKey(), $map[$aliceKey]);
+		$aliceGenreIds = \array_map(static fn (ORMEntity $e) => $e->toIdentityKey(), $map[$aliceKey]);
 		\sort($aliceGenreIds);
 		$expectedAlice = [
 			static::$fixture['databases']->toIdentityKey(),
@@ -649,7 +649,7 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 		$logical = ['bat_author_genres', 'bat_book_genres', 'bat_reviews', 'bat_books', 'bat_genres', 'bat_authors'];
 
 		$tables = \array_map(
-			static fn(string $name) => $db->getTableOrFail($name)->getFullName(),
+			static fn (string $name) => $db->getTableOrFail($name)->getFullName(),
 			$logical
 		);
 
