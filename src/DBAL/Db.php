@@ -850,6 +850,11 @@ abstract class Db implements RDBMSInterface
 						);
 					}
 
+					// Apply optional per-relation column projection (Feature 5).
+					if (!empty($rel_options['select']) && \is_array($rel_options['select'])) {
+						$r->setSelect($rel_options['select']);
+					}
+
 					$tbl->addRelation($r);
 				} catch (Throwable $t) {
 					throw new DBALException(

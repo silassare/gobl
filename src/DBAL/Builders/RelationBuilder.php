@@ -268,4 +268,25 @@ final class RelationBuilder
 
 		return $this->using($options);
 	}
+
+	/**
+	 * Restricts the columns selected when loading relatives via this relation.
+	 *
+	 * Calling this on the builder propagates to the underlying `Relation` instance
+	 * returned by the last `using*` / `through` call. Must be called **after**
+	 * the link has been configured (i.e. after `from()` + `using*()`).
+	 *
+	 * @param string ...$columns short column names (without prefix) to include in the SELECT
+	 *
+	 * @return Relation
+	 *
+	 * @throws DBALException
+	 */
+	public function select(string ...$columns): Relation
+	{
+		$relation = $this->getRelation();
+		$relation->setSelect(empty($columns) ? null : \array_values($columns));
+
+		return $relation;
+	}
 }

@@ -149,3 +149,150 @@ foreach ($clients as $client) {
     $list = $accounts->getAllRelatives($client, $relation);
 }
 ```
+
+---
+
+## Batch loading (avoiding N+1)
+
+When you need relatives for multiple host entities at once, use the batch
+methods. They issue a single `IN (...)` query instead of one query per host.
+
+```php
+$accounts  = Account::ctrl();
+$relation  = Client::table()->getRelation('accounts');
+
+// One-to-many: all accounts per client, keyed by toIdentityKey()
+$map = $accounts->getAllRelativesBatch($clients, $relation);
+// $map[$client->toIdentityKey()] = Account[]
+
+// Many-to-one: single relative per host, with optional pagination
+$clientsCtrl = Client::ctrl();
+$clientRel   = Account::table()->getRelation('client');
+$map = $clientsCtrl->getRelativeBatch($accounts, $clientRel, filters: [], max: null, offset: 0);
+// $map[$account->toIdentityKey()] = Client|null
+```
+
+::: info All link types support single-query batching
+Since Gobl 3.x, `LinkThrough` (pivot-table many-to-many) and `LinkJoin`
+(multi-hop) both issue a **single** query using a JOIN + `IN (...)` strategy
+with a computed `_gobl_batch_key` alias to route results back to their host
+entity. Composite FK columns are also fully supported in `LinkColumns`;
+the batch key becomes `_gobl_batch_key_0`, `_gobl_batch_key_1`, etc.
+:::
+
+---
+
+## Counting relatives
+
+```php
+$accounts = Account::ctrl();
+$relation = Client::table()->getRelation('accounts');
+
+// Single host
+$count = $accounts->countRelatives($client, $relation);
+
+// Multiple hosts in one batch query
+$map = $accounts->countRelativesBatch($clients, $relation);
+// $map[$client->toIdentityKey()] = int (0 when none)
+```
+
+---
+
+## Per-relation column projection
+
+Restrict which columns are fetched for a relation target to reduce data
+transfer over the wire.
+
+```php
+// Fluent builder: return only id + first_name for the 'client' side
+$t->belongsTo('client')
+    ->from('clients')
+    ->select('id', 'first_name');   // returns the Relation object
+```
+
+```php
+// Array schema
+'relations' => [
+    'client' => [
+        'type'   => 'many-to-one',
+        'target' => 'clients',
+        'select' => ['id', 'first_name'],
+    ],
+],
+```
+
+At runtime you can also override the projection:
+
+```php
+$relation = Account::table()->getRelation('client');
+$relation->setSelect(['id', 'first_name', 'last_name']); // narrower set
+$relation->setSelect(null);                               // back to all columns
+```
+
+**Rules:**
+
+- Column names must exist in the **target** table; unknown names are caught by
+  `Relation::assertIsValid()` (called during `lock()`) and throw `DBALRuntimeException`.
+- `setSelect()` does not validate column names at assignment time — validation only
+  runs when the relation is locked, or at query time via `resolveSelectColumns()`.
+- Private columns cannot be included in the generated SQL; they are silently filtered
+  by `ORMTableQuery::selectWithColumns()` at query time.
+- When the entire projection reduces to zero columns (all were private), Gobl falls
+  back to selecting all columns.
+
+**Partial entity awareness:**
+
+Entities loaded via a projection are marked as "partial". Accessing an
+unloaded column on a partial entity throws `ORMRuntimeException`. Use
+`isColumnLoaded()` as a guard:
+
+```php
+$client = $accounts->getRelative($account, $relation);
+
+if ($client->isColumnLoaded('client_email')) {
+    echo $client->client_email;
+}
+
+// Check whether the entity is partial at all
+if ($client->isPartial()) {
+    // only projected columns are available
+}
+```
+
+You can also create partial entities manually via the factory:
+
+```php
+$db     = ORM::getDatabase('App\Db');
+$table  = $db->getTableOrFail('clients');
+$entity = ORM::entity($table, false, true, ['client_id', 'client_first_name']);
+
+$entity->isPartial();                    // true
+$entity->isColumnLoaded('client_id');    // true
+$entity->isColumnLoaded('client_email'); // false
+```
+
+`ORM::results($table, $qb, ['client_id', 'client_first_name'])` achieves
+the same for a full result set — every entity yielded by `fetchClass()` and
+`fetchAllClass()` will be marked partial with the supplied column list.
+
+---
+
+## Virtual relation batch via `RelationControllerInterface`
+
+`ORMEntityRelationController` implements `RelationControllerInterface`,
+which now includes a `getBatch()` method for fetching all relatives for a
+list of host entities through the controller abstraction layer:
+
+```php
+use Gobl\ORM\ORMEntityRelationController;
+use Gobl\ORM\ORMRequest;
+
+$ctrl = new ORMEntityRelationController(
+    Account::table()->getRelation('client')
+);
+
+$map = $ctrl->getBatch($accounts, new ORMRequest());
+// $map[$account->toIdentityKey()] = Client[]
+```
+
+An empty host list returns `[]` without touching the database.

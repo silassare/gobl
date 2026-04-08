@@ -36,14 +36,16 @@ abstract class AccountBase extends \Gobl\ORM\ORMEntity
 	 * 
 	 * @param bool $is_new true for new entity false for entity fetched from the database, default is true
 	 * @param bool $strict Enable/disable strict mode
+	 * @param null|list<string> $partial_columns Use this to mark the entity as partially loaded with only the specified columns.
 	 */
-	public function __construct(bool $is_new = true, bool $strict = true)
+	public function __construct(bool $is_new = true, bool $strict = true, array|null $partial_columns = NULL)
 	{
 		parent::__construct(
 			self::TABLE_NAMESPACE,
 			self::TABLE_NAME,
 			$is_new,
-			$strict
+			$strict,
+			$partial_columns
 		);
 	}
 
@@ -53,9 +55,9 @@ abstract class AccountBase extends \Gobl\ORM\ORMEntity
 	 * @return static
 	 */
 	#[\Override]
-	public static function new(bool $is_new = true, bool $strict = true): static
+	public static function new(bool $is_new = true, bool $strict = true, array|null $partial_columns = NULL): static
 	{
-		return new Account($is_new, $strict);
+		return new Account($is_new, $strict, $partial_columns);
 	}
 
 	/**
@@ -97,9 +99,9 @@ abstract class AccountBase extends \Gobl\ORM\ORMEntity
 	 * @return \Gobl\Tests\Db\AccountsResults
 	 */
 	#[\Override]
-	public static function results(\Gobl\DBAL\Queries\QBSelect $query): \Gobl\Tests\Db\AccountsResults
+	public static function results(\Gobl\DBAL\Queries\QBSelect $query, array|null $partial_columns = NULL): \Gobl\Tests\Db\AccountsResults
 	{
-		return \Gobl\Tests\Db\AccountsResults::new($query);
+		return \Gobl\Tests\Db\AccountsResults::new($query, $partial_columns);
 	}
 
 	/**

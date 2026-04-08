@@ -24,6 +24,7 @@ use Gobl\DBAL\Queries\Traits\QBLimitTrait;
 use Gobl\DBAL\Queries\Traits\QBOrderByTrait;
 use Gobl\DBAL\Queries\Traits\QBWhereTrait;
 use Gobl\DBAL\Table;
+use Gobl\ORM\ORMEntity;
 use Override;
 use PDOStatement;
 
@@ -166,6 +167,41 @@ final class QBSelect implements QBInterface
 				$this->options_select[] = \is_int($key) ? $value : $key . ' as ' . $value;
 			}
 		}
+
+		return $this;
+	}
+
+	/**
+	 * Returns the SQL column alias used for a computed variable.
+	 *
+	 * The returned alias format `_gobl_{$var_name}` is intercepted by
+	 * {@see ORMEntity::__set()} during PDO hydration and stored
+	 * in the entity's computed-value bag, accessible via
+	 * {@see ORMEntity::getComputedValue()}.
+	 *
+	 * @param string $var_name logical name, without the `_gobl_` prefix
+	 *
+	 * @return string the SQL alias string, e.g. `_gobl_batch_key`
+	 */
+	public static function computedAlias(string $var_name): string
+	{
+		return '_gobl_' . $var_name;
+	}
+
+	/**
+	 * Appends `{$expression} AS _gobl_{$var_name}` to the SELECT clause.
+	 *
+	 * The value becomes accessible on hydrated entities via
+	 * {@see ORMEntity::getComputedValue()}.
+	 *
+	 * @param string $expression raw SQL expression (e.g. a fully-qualified column reference such as `_a1_.pivot_fk`)
+	 * @param string $var_name   logical name, without the `_gobl_` prefix
+	 *
+	 * @return static
+	 */
+	public function selectComputed(string $expression, string $var_name): static
+	{
+		$this->options_select[] = $expression . ' AS ' . self::computedAlias($var_name);
 
 		return $this;
 	}

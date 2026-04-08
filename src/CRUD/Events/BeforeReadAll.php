@@ -16,6 +16,8 @@ namespace Gobl\CRUD\Events;
 use Gobl\CRUD\CRUDAction;
 use Gobl\CRUD\Enums\ActionType;
 use Gobl\CRUD\Traits\HasFilters;
+use Gobl\CRUD\Traits\HasRelationContext;
+use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Table;
 use Gobl\ORM\ORMTableQuery;
 
@@ -25,17 +27,20 @@ use Gobl\ORM\ORMTableQuery;
 final class BeforeReadAll extends CRUDAction
 {
 	use HasFilters;
+	use HasRelationContext;
 
 	/**
 	 * BeforeReadAll constructor.
 	 *
 	 * @param Table         $table
 	 * @param ORMTableQuery $filters
+	 * @param null|Relation $relation
 	 */
-	public function __construct(Table $table, ORMTableQuery $filters)
+	public function __construct(Table $table, ORMTableQuery $filters, ?Relation $relation = null)
 	{
 		parent::__construct(ActionType::READ_ALL, $table);
 
-		$this->filters = $filters;
+		$this->filters  = $filters;
+		$this->relation = $relation;
 	}
 }

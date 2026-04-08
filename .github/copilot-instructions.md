@@ -128,13 +128,175 @@ clears the dirty set, and unsets the `isNew` flag.
 **`isNew(): bool`** — `true` for entities created with `new()` that have not yet been
 persisted; `false` for entities loaded from the DB or after the first successful `save()`.
 
+**`toIdentityKey(): string`** — returns a stable string key built from the entity's PK columns, joined with `:` for composite PKs. Used as the map key in all batch methods. Single-PK entities produce a plain string of the PK value. This key is internal/opaque — callers should not parse it.
+
 Name collision rules for subclasses:
 
 - Internal `ORMEntity` properties use `_oeb_*` prefix
 - Subclass properties must use a single `_` prefix (e.g., `_myProp`)
 - Custom methods must NOT start with `get` or `set` -- use `_get...` / `_set...` or a verb
 
-## CRUD Event System
+## Relation Loading: Batch, Count, and Cursor Pagination
+
+### Batch relative loading (Feature 1)
+
+`ORMController` provides batch-loading methods that issue a single query for all hosts. All link types support batching:
+
+- **`LinkColumns`** — single or composite FK: adds an `AND`-of-`IN(...)` WHERE clause directly on the target table. Composite FK uses indexed computed slots (`batch_key_0`, `batch_key_1`, ...).
+- **`LinkMorph`** — morph child or parent: adds morph-type filter + `IN(...)` on the morph key column.
+- **`LinkThrough`** (pivot many-to-many) — JOINs the target via pivot, adds `IN(...)` on the pivot host-side column, injects `_gobl_batch_key` computed slot to route results back to host.
+- **`LinkJoin`** (multi-hop) — applies intermediate hops as JOINs, then adds `IN(...)` on the first-hop column with a computed slot to route results back.
+
+```php
+// Load one relative per host (e.g. many-to-one: accounts -> client)
+$map = $ctrl->getRelativeBatch($account_entities, $relation, filters: [], max: null, offset: 0, order_by: []);
+// $map[$account->toIdentityKey()] = Client|null
+
+// Load all relatives per host (e.g. one-to-many: clients -> accounts)
+$map = $ctrl->getAllRelativesBatch($client_entities, $relation);
+// $map[$client->toIdentityKey()] = Account[]
+```
+
+The returned map is keyed by `ORMEntity::toIdentityKey()`. Empty host list returns `[]` immediately without touching the DB.
+
+### Relation count (Feature 2)
+
+```php
+// Count relatives for a single host
+$count = $ctrl->countRelatives($client_entity, $relation);
+
+// Count relatives for multiple hosts in one batch query when possible
+$map = $ctrl->countRelativesBatch($client_entities, $relation);
+// $map[$client->toIdentityKey()] = int (0 if none)
+```
+
+### Cursor-based pagination (Feature 3)
+
+`ORMTableQuery::cursorFind()` implements stable cursor pagination over a single column:
+
+```php
+$result = $query->cursorFind(
+    cursor_column: 'id',
+    cursor: null,       // null = start from the beginning
+    max: 25,
+    direction: 'asc',  // 'asc' or 'desc'
+);
+// $result = ['items' => ORMEntity[], 'next_cursor' => string|null, 'has_more' => bool]
+```
+
+Pass `$result['next_cursor']` as `$cursor` in the next call to fetch the following page.
+Throws `ORMQueryException` when `$max < 1` or `$direction` is not `'asc'`/`'desc'`.
+
+### Access-control segregation for relation reads (Feature 4)
+
+`CRUD::assertReadRelative(ORMTableQuery, Relation)` and `assertReadAllRelatives(ORMTableQuery, Relation)` are called by `ORMController::getRelative()` and `getAllRelatives()` respectively (and their batch variants). Both delegate to the unified `assertRead(filters, ?Relation)` / `assertReadAll(filters, ?Relation)` overloads.
+
+**`HasRelationContext` trait** (`Gobl\CRUD\Traits\HasRelationContext`) is mixed into `BeforeRead` and `BeforeReadAll`. It exposes:
+
+- `getRelation(): ?Relation` — `null` for direct (non-relational) reads; non-null when the read came from a relation traversal.
+
+**Updated constructor signatures:**
+
+- `BeforeRead::__construct(Table, ORMTableQuery, ?Relation = null)`
+- `BeforeReadAll::__construct(Table, ORMTableQuery, ?Relation = null)`
+
+**Updated `CRUD` method signatures:**
+
+- `assertRead(ORMTableQuery $filters, ?Relation $relation = null): BeforeRead`
+- `assertReadAll(ORMTableQuery $filters, ?Relation $relation = null): BeforeReadAll`
+
+A single `onBeforeRead` / `onBeforeReadAll` listener can distinguish direct versus relational reads by inspecting `$action->getRelation()`, eliminating the need for separate listener registrations.
+
+### Per-relation column projection (Feature 5)
+
+A relation may carry a `select` list that restricts which columns are fetched for the **target** table:
+
+```php
+// Fluent builder
+$t->belongsTo('client')->from('clients')->select('id', 'first_name');
+
+// Array schema
+'relations' => [
+    'client' => ['type' => 'many-to-one', 'target' => 'clients', 'select' => ['id', 'first_name']],
+]
+```
+
+- `Relation::getSelect(): ?array` — `null` means all columns; a string array restricts to those columns.
+- `Relation::setSelect(?array $columns): static` — override at runtime; `null` or `[]` resets to all columns. Does NOT validate column names (validation is only done in `assertIsValid()` called from `lock()`).
+- `Relation::resolveSelectColumns(): ?array` — query-time resolver: returns `null` when no projection is set; otherwise calls `getColumnOrFail()` for each name (throws `DBALRuntimeException` for unknown columns) and returns `list<string>` of full column names. Called internally by `ORMController` before building the projected query.
+- `Relation::toArray()` serializes the `select` key when non-null.
+- `RelationBuilder::select(string ...$columns): Relation` — fluent setter; returns the `Relation` object (not the builder).
+    - Calling `->select()` with zero args on the `RelationBuilder` resets the projection to `null` via `setSelect(null)`.
+
+**Security / validation hardening for projection:**
+
+- `Relation::assertIsValid()` (called during `lock()`) validates column names in `_select` against the target table; throws `DBALRuntimeException` for unknown column names.
+- `ORMTableQuery::selectWithColumns(array $columns, ?int $max, int $offset, array $order_by): QBSelect` — **public** method. Validates each column name via `$table->getColumnOrFail()`, silently filters private columns, and falls back to a full `select()` when the allowed set is empty after filtering. It calls `from()` **before** `select()` on the internal `QBSelect` so the alias is registered before column resolution. Designed for root-level column projection by framework authors (GraphQL resolvers, sparse fieldset REST APIs); also used internally by `selectRelatives()` / `selectRelativesBatch()`.
+- Entities loaded via a non-null projection are marked as partial by the 4 relation-load methods: `getRelative()`, `getAllRelatives()`, `getRelativeBatch()`, `getAllRelativesBatch()`.
+
+**Partial entity awareness on `ORMEntity`:**
+
+- `ORMEntity.__construct` accepts `?array $partial_columns = null` (type `list<string>`) as its 5th parameter. When non-empty, the constructor calls `markAsPartial($partial_columns)` automatically. Never call `markAsPartial()` afterward if already passed via constructor.
+- `markAsPartial(list<string> $partial_columns): static` — marks the entity as partial and records which full column names were loaded. Accepts short names (e.g., `'id'`) or full names (e.g., `'client_id'`); resolves to full names internally. Fluent.
+- `isPartial(): bool` — `false` by default; `true` after `markAsPartial()` or after construction with a non-empty `$partial_columns`.
+- `isColumnLoaded(string $name): bool` — always `true` for new entities or non-partial entities; for partial entities, checks `$_oeb_partial_columns` using the column's full name. Accepts short or full column names.
+- `toArray()` on a partial entity filters the output to only the projected columns (after private/sensitive handling). `toRow()` always returns the raw row without partial filtering.
+- `__get()` early guard — throws `ORMRuntimeException` when a partial entity's property access maps to a column not in `$_oeb_partial_columns`. Use `isColumnLoaded()` as a pre-check.
+
+**Factory methods for partial entities:**
+
+- `ORM::entity(Table $table, bool $is_new = true, bool $strict = true, ?array $partial_columns = null): ORMEntity` — pass a `list<string>` as `$partial_columns` to obtain an entity that is already partial without a separate `markAsPartial()` call.
+- `ORM::results(Table $table, QBSelect $qb, ?array $partial_columns = null): ORMResults` — propagates `$partial_columns` to every entity yielded by `fetchClass()` / `fetchAllClass()`.
+- Generated `EntityBase::new(bool $is_new = true, bool $strict = true, ?array $partial_columns = null): static` — same constructor-path partial creation.
+- Generated `EntityBase::results(QBSelect $query, ?array $partial_columns = null): ORMResults` — delegates to the results class with `$partial_columns` forwarded.
+- `ORMResults::new(QBSelect $query, ?array $partial_columns = null): static` — abstract; generated implementation passes both args to the concrete results constructor.
+
+```php
+// Via relation (automatic — handled by ORMController)
+$client = $accountsCtrl->getRelative($account, $relation); // relation has select=['id','first_name']
+
+// Via factory directly (manual partial)
+$db     = ORM::getDatabase('App\Db');
+$table  = $db->getTableOrFail('clients');
+$entity = ORM::entity($table, false, true, ['client_id', 'client_first_name']);
+
+$entity->isPartial();                   // true
+$entity->isColumnLoaded('client_id');   // true (was projected)
+$entity->isColumnLoaded('client_email');// false
+
+if ($entity->isColumnLoaded('client_email')) {
+    echo $entity->client_email;         // safe
+}
+$entity->client_email; // throws ORMRuntimeException - not in projection
+```
+
+### Virtual relation batch support (Feature 6)
+
+`RelationControllerInterface` now declares `getBatch(ORMEntity[], ORMRequest): array<string, TRelative[]>`.
+`ORMEntityRelationController::getBatch()` delegates to `getAllRelativesBatch()`.
+
+```php
+$ctrl = new ORMEntityRelationController($relation);
+$map  = $ctrl->getBatch($host_entities, new ORMRequest());
+```
+
+Empty host list returns `[]` immediately without DB access.
+
+### Batch link internals
+
+- `LinkInterface::applyBatch(QBSelect, ORMEntity[]): bool` — modifies `$target_qb` to select only rows related to the given host entities. Returns `false` only when all host FK values are null (empty host list already short-circuits before this is called). All four link types now return `true` when hosts are non-empty.
+- `LinkInterface::groupBatchResults(ORMEntity[], ORMEntity[]): array<string, ORMEntity[]>` — maps result entities back to host identity keys using direct column comparison (`LinkColumns`, `LinkMorph`) or the `_gobl_batch_key` computed slot (`LinkThrough`, `LinkJoin`).
+- `ORMTableQuery::selectRelativesBatch(Relation, ORMEntity[], ?int, int, array): ?QBSelect` — returns `null` only when `applyBatch()` returns false.
+- `Link::subLink(Table, Table, array, int $max_depth = 0): LinkInterface` — depth guard: throws `DBALRuntimeException` when `$max_depth === 0` and the resolved link is `LinkJoin` or `LinkThrough`. `LinkJoin` passes `max_depth: 1` to allow one level of nested composite links.
+
+**Computed value slot (`_gobl_*` alias protocol):**
+
+- `QBSelect::selectComputed(string $expression, string $var_name): static` — appends `expression AS _gobl_{var_name}` to the SELECT list.
+- `QBSelect::computedAlias(string $var_name): string` — returns `_gobl_{var_name}` for use in ORDER BY / outer queries.
+- `ORMEntity::__set` intercepts assignments whose name begins with `_gobl_` (set by PDO hydration of `_gobl_*` aliases) and stores them in `$_oeb_computed` — never validated, never dirtied, never written to DB.
+- `ORMEntity::getComputedValue(string $var_name): mixed` — reads from `$_oeb_computed`; returns `null` when absent.
+- `ORMEntity::hasComputedValue(string $var_name): bool` — returns `true` when the slot was populated during hydration.
+- The column name `computed_value` is forbidden (`Gobl::getForbiddenColumnsName()`) to prevent collision with these methods.
 
 `CRUD` (used internally by `ORMController`) dispatches events. The generated `*Crud` class (extends `ORMEntityCRUD extends CRUDEventProducer`) is the consumer-facing subscription API:
 
@@ -383,35 +545,37 @@ auto-complete/validation is at `docs/public/schema.json`.
 
 ## Key Files
 
-| File                                                                                                  | Purpose                                                                                        |
-| ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| [src/Gobl.php](../src/Gobl.php)                                                                       | Static entry point, cache/template management, forbidden name lists                            |
-| [src/bootstrap.php](../src/bootstrap.php)                                                             | Defines `GOBL_ROOT`, `GOBL_VERSION`, `GOBL_ASSETS_DIR`; registers default type provider        |
-| [src/DBAL/Db.php](../src/DBAL/Db.php)                                                                 | Abstract RDBMS base, `ns()`, `loadSchema()`, `newInstanceOf()`, column ref resolution          |
-| [src/DBAL/Builders/TableBuilder.php](../src/DBAL/Builders/TableBuilder.php)                           | Fluent schema builder API                                                                      |
-| [src/DBAL/Table.php](../src/DBAL/Table.php)                                                           | Schema table model, soft-delete constants, morph support                                       |
-| [src/DBAL/Column.php](../src/DBAL/Column.php)                                                         | Column model, private/sensitive flags, type binding                                            |
-| [src/DBAL/Types/Type.php](../src/DBAL/Types/Type.php)                                                 | Abstract base for all column types                                                             |
-| [src/DBAL/Types/BaseType.php](../src/DBAL/Types/BaseType.php)                                         | Abstract base for direct-column types; implements `BaseTypeInterface` (expression-cast hooks)  |
-| [src/DBAL/Types/Interfaces/TypeInterface.php](../src/DBAL/Types/Interfaces/TypeInterface.php)         | Type contract: `castValueForFilter()`, `shouldCastValueForFilter()`, validation hooks          |
-| [src/DBAL/Types/Interfaces/BaseTypeInterface.php](../src/DBAL/Types/Interfaces/BaseTypeInterface.php) | Extends `TypeInterface`: `shouldCastExpressionForQuery()`, `castExpressionForQuery()`          |
-| [src/DBAL/Types/Utils/TypeUtils.php](../src/DBAL/Types/Utils/TypeUtils.php)                           | `addTypeProvider()`, type resolution, `runCastValueForFilter()`, `runCastExpressionForQuery()` |
-| [src/ORM/ORM.php](../src/ORM/ORM.php)                                                                 | Namespace registry, `declareNamespace()`                                                       |
-| [src/ORM/ORMEntity.php](../src/ORM/ORMEntity.php)                                                     | Entity base, magic column access, `save()`, `isSaved()`, `isNew()`, hash-based dirty tracking  |
-| [src/ORM/ORMController.php](../src/ORM/ORMController.php)                                             | `addItem()`, `updateOneItem()`, `deleteOneItem()`, `getItem()`, `getAllItems()`                |
-| [src/ORM/ORMEntityCRUD.php](../src/ORM/ORMEntityCRUD.php)                                             | Consumer event subscription base (extends `CRUDEventProducer`)                                 |
-| [src/ORM/Generators/CSGeneratorORM.php](../src/ORM/Generators/CSGeneratorORM.php)                     | PHP ORM class generator                                                                        |
-| [src/CRUD/CRUD.php](../src/CRUD/CRUD.php)                                                             | Per-operation event dispatcher (used internally by `ORMController`)                            |
-| [src/CRUD/CRUDEventProducer.php](../src/CRUD/CRUDEventProducer.php)                                   | `listen()`, `onBefore*`, `onAfter*` subscription methods                                       |
-| [src/DBAL/Filters/FilterFieldNotation.php](../src/DBAL/Filters/FilterFieldNotation.php)               | Operand path parser: bracket/dot notation, segment serialization                               |
-| [src/DBAL/MigrationRunner.php](../src/DBAL/MigrationRunner.php)                                       | Version-based migration runner                                                                 |
-| [tests/assets/schemas.php](../tests/assets/schemas.php)                                               | Reference array schema used throughout tests                                                   |
-| [tests/BaseTestCase.php](../tests/BaseTestCase.php)                                                   | Test scaffolding: DB bootstrap, fluent builder usage, multi-driver helpers                     |
-| [tests/DBAL/TableTest.php](../tests/DBAL/TableTest.php)                                               | Table schema model tests (columns, constraints, indexes, lock, soft-delete)                    |
-| [tests/DBAL/Filters/FilterFieldNotationTest.php](../tests/DBAL/Filters/FilterFieldNotationTest.php)   | FilterFieldNotation: parse, bracket/dot segments, round-trip, resolve                          |
-| [tests/DBAL/Constraints/ConstraintsTest.php](../tests/DBAL/Constraints/ConstraintsTest.php)           | PrimaryKey, UniqueKey, ForeignKey constraint tests                                             |
-| [tests/DBAL/Indexes/IndexTest.php](../tests/DBAL/Indexes/IndexTest.php)                               | Index construction, addColumn, toArray, lock, assertIsValid                                    |
-| [tests/ORM/ORMClassKindTest.php](../tests/ORM/ORMClassKindTest.php)                                   | ORMClassKind enum: getClassName, isBaseClass, getBaseKind, getClassFQN                         |
+| File                                                                                                  | Purpose                                                                                                                                                                      |
+| ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [src/Gobl.php](../src/Gobl.php)                                                                       | Static entry point, cache/template management, forbidden name lists                                                                                                          |
+| [src/bootstrap.php](../src/bootstrap.php)                                                             | Defines `GOBL_ROOT`, `GOBL_VERSION`, `GOBL_ASSETS_DIR`; registers default type provider                                                                                      |
+| [src/DBAL/Db.php](../src/DBAL/Db.php)                                                                 | Abstract RDBMS base, `ns()`, `loadSchema()`, `newInstanceOf()`, column ref resolution                                                                                        |
+| [src/DBAL/Builders/TableBuilder.php](../src/DBAL/Builders/TableBuilder.php)                           | Fluent schema builder API                                                                                                                                                    |
+| [src/DBAL/Table.php](../src/DBAL/Table.php)                                                           | Schema table model, soft-delete constants, morph support                                                                                                                     |
+| [src/DBAL/Column.php](../src/DBAL/Column.php)                                                         | Column model, private/sensitive flags, type binding                                                                                                                          |
+| [src/DBAL/Types/Type.php](../src/DBAL/Types/Type.php)                                                 | Abstract base for all column types                                                                                                                                           |
+| [src/DBAL/Types/BaseType.php](../src/DBAL/Types/BaseType.php)                                         | Abstract base for direct-column types; implements `BaseTypeInterface` (expression-cast hooks)                                                                                |
+| [src/DBAL/Types/Interfaces/TypeInterface.php](../src/DBAL/Types/Interfaces/TypeInterface.php)         | Type contract: `castValueForFilter()`, `shouldCastValueForFilter()`, validation hooks                                                                                        |
+| [src/DBAL/Types/Interfaces/BaseTypeInterface.php](../src/DBAL/Types/Interfaces/BaseTypeInterface.php) | Extends `TypeInterface`: `shouldCastExpressionForQuery()`, `castExpressionForQuery()`                                                                                        |
+| [src/DBAL/Types/Utils/TypeUtils.php](../src/DBAL/Types/Utils/TypeUtils.php)                           | `addTypeProvider()`, type resolution, `runCastValueForFilter()`, `runCastExpressionForQuery()`                                                                               |
+| [src/ORM/ORM.php](../src/ORM/ORM.php)                                                                 | Namespace registry, `declareNamespace()`, `entity()`, `results()` factory methods                                                                                            |
+| [src/ORM/ORMEntity.php](../src/ORM/ORMEntity.php)                                                     | Entity base, magic column access, `save()`, `isSaved()`, `isNew()`, hash-based dirty tracking, `markAsPartial()`, `isPartial()`, `isColumnLoaded()`                          |
+| [src/ORM/ORMResults.php](../src/ORM/ORMResults.php)                                                   | Result iterator; `fetchClass()` and `fetchAllClass()` propagate `$partial_columns` to each constructed entity                                                                |
+| [src/ORM/ORMController.php](../src/ORM/ORMController.php)                                             | `addItem()`, `updateOneItem()`, `deleteOneItem()`, `getItem()`, `getAllItems()`, `getRelativeBatch()`, `getAllRelativesBatch()`, `countRelatives()`, `countRelativesBatch()` |
+| [src/ORM/ORMEntityRelationController.php](../src/ORM/ORMEntityRelationController.php)                 | `get()`, `list()`, `getBatch()` — delegates to ORMController relative methods                                                                                                |
+| [src/ORM/ORMEntityCRUD.php](../src/ORM/ORMEntityCRUD.php)                                             | Consumer event subscription base (extends `CRUDEventProducer`)                                                                                                               |
+| [src/ORM/Generators/CSGeneratorORM.php](../src/ORM/Generators/CSGeneratorORM.php)                     | PHP ORM class generator                                                                                                                                                      |
+| [src/CRUD/CRUD.php](../src/CRUD/CRUD.php)                                                             | Per-operation event dispatcher (used internally by `ORMController`)                                                                                                          |
+| [src/CRUD/CRUDEventProducer.php](../src/CRUD/CRUDEventProducer.php)                                   | `listen()`, `onBefore*`, `onAfter*` subscription methods                                                                                                                     |
+| [src/DBAL/Filters/FilterFieldNotation.php](../src/DBAL/Filters/FilterFieldNotation.php)               | Operand path parser: bracket/dot notation, segment serialization                                                                                                             |
+| [src/DBAL/MigrationRunner.php](../src/DBAL/MigrationRunner.php)                                       | Version-based migration runner                                                                                                                                               |
+| [tests/assets/schemas.php](../tests/assets/schemas.php)                                               | Reference array schema used throughout tests                                                                                                                                 |
+| [tests/BaseTestCase.php](../tests/BaseTestCase.php)                                                   | Test scaffolding: DB bootstrap, fluent builder usage, multi-driver helpers                                                                                                   |
+| [tests/DBAL/TableTest.php](../tests/DBAL/TableTest.php)                                               | Table schema model tests (columns, constraints, indexes, lock, soft-delete)                                                                                                  |
+| [tests/DBAL/Filters/FilterFieldNotationTest.php](../tests/DBAL/Filters/FilterFieldNotationTest.php)   | FilterFieldNotation: parse, bracket/dot segments, round-trip, resolve                                                                                                        |
+| [tests/DBAL/Constraints/ConstraintsTest.php](../tests/DBAL/Constraints/ConstraintsTest.php)           | PrimaryKey, UniqueKey, ForeignKey constraint tests                                                                                                                           |
+| [tests/DBAL/Indexes/IndexTest.php](../tests/DBAL/Indexes/IndexTest.php)                               | Index construction, addColumn, toArray, lock, assertIsValid                                                                                                                  |
+| [tests/ORM/ORMClassKindTest.php](../tests/ORM/ORMClassKindTest.php)                                   | ORMClassKind enum: getClassName, isBaseClass, getBaseKind, getClassFQN                                                                                                       |
 
 ## Test Coverage Notes
 

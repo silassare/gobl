@@ -164,6 +164,29 @@ class ORMEntityRelationController implements RelationControllerInterface
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws GoblException
+	 */
+	#[Override]
+	public function getBatch(array $host_entities, ORMRequest $request): array
+	{
+		$max      = $request->getMax();
+		$offset   = $request->getOffset();
+		$order_by = $request->getOrderBy();
+		$filters  = $request->getFilters();
+
+		return $this->controller->getAllRelativesBatch(
+			$host_entities,
+			$this->relation,
+			$filters,
+			$max,
+			$offset,
+			$order_by
+		);
+	}
+
+	/**
 	 * Identify the relative.
 	 *
 	 * @throws GoblException

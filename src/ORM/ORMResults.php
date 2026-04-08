@@ -74,12 +74,17 @@ abstract class ORMResults implements Countable, Iterator
 	/**
 	 * ORMResults constructor.
 	 *
-	 * @param string   $namespace  the table namespace
-	 * @param string   $table_name the table name
-	 * @param QBSelect $query      the select query builder instance
+	 * @param string            $namespace       the table namespace
+	 * @param string            $table_name      the table name
+	 * @param QBSelect          $query           the select query builder instance
+	 * @param null|list<string> $partial_columns use this to mark the results entities as partially loaded with only the specified columns
 	 */
-	protected function __construct(string $namespace, protected string $table_name, QBSelect $query)
-	{
+	protected function __construct(
+		string $namespace,
+		protected string $table_name,
+		QBSelect $query,
+		protected ?array $partial_columns = null
+	) {
 		$this->db           = ORM::getDatabase($namespace);
 		$this->table        = $this->db->getTable($this->table_name);
 		$this->entity_class = ORMClassKind::ENTITY->getClassFQN($this->db->getTableOrFail($table_name));
@@ -106,11 +111,12 @@ abstract class ORMResults implements Countable, Iterator
 	/**
 	 * Returns new instance.
 	 *
-	 * @param QBSelect $query the select query builder instance
+	 * @param QBSelect          $query           the select query builder instance
+	 * @param null|list<string> $partial_columns use this to mark the results entities as partially loaded with only the specified columns
 	 *
 	 * @return static
 	 */
-	abstract public static function new(QBSelect $query): static;
+	abstract public static function new(QBSelect $query, ?array $partial_columns = null): static;
 
 	/**
 	 * Lazily iterate through large result set.
@@ -148,13 +154,18 @@ abstract class ORMResults implements Countable, Iterator
 	 */
 	public function fetchClass(bool $strict = true): ?ORMEntity
 	{
-		$entity = ORM::entity($this->table, false, $strict);
+		$entity = ORM::entity($this->table, false, $strict, $this->partial_columns);
 		$stmt   = $this->getStatement();
 
 		$stmt->setFetchMode(PDO::FETCH_INTO, $entity);
 		$entity = $stmt->fetch();
 
 		if ($entity instanceof $this->entity_class) {
+			/**
+			 * @psalm-suppress UnnecessaryVarAnnotation
+			 *
+			 * @var TEntity $entity
+			 */
 			$entity->isSaved(true); // the entity is fetched from the database
 
 			return $entity;
@@ -201,7 +212,7 @@ abstract class ORMResults implements Countable, Iterator
 		$fetch_style = PDO::FETCH_CLASS | PDO::FETCH_PROPS_LATE;
 
 		return $this->getStatement()
-			->fetchAll($fetch_style, $this->entity_class, [false, $strict]);
+			->fetchAll($fetch_style, $this->entity_class, [false, $strict, $this->partial_columns]);
 	}
 
 	/**

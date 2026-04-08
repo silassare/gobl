@@ -451,7 +451,7 @@ abstract class ORMController
 			/** @var TQuery $tq */
 			$tq = ORM::query($this->table, $filters);
 
-			$this->crud->assertRead($tq);
+			$this->crud->assertReadRelative($tq, $relation);
 
 			$qb = $tq->selectRelatives($relation, $host_entity, 1, 0, $order_by);
 
@@ -459,8 +459,10 @@ abstract class ORMController
 				return null;
 			}
 
+			$partial = $relation->resolveSelectColumns();
+
 			/** @var TResults $results */
-			$results       = ORM::results($this->table, $qb);
+			$results       = ORM::results($this->table, $qb, $partial);
 			$target_entity = $results->fetchClass();
 
 			if ($target_entity) {
@@ -500,7 +502,7 @@ abstract class ORMController
 				/** @var TQuery $tq */
 				$tq = ORM::query($this->table, $filters);
 
-				$this->crud->assertReadAll($tq);
+				$this->crud->assertReadAllRelatives($tq, $relation);
 
 				$qb = $tq->selectRelatives($relation, $host_entity, $max, $offset, $order_by);
 
@@ -508,14 +510,301 @@ abstract class ORMController
 					return [];
 				}
 
+				$partial = $relation->resolveSelectColumns();
+
 				/** @var TResults $results */
-				$results = ORM::results($this->table, $qb);
+				$results = ORM::results($this->table, $qb, $partial);
 
 				$items = $results->fetchAllClass();
 
 				$total = static::lazyTotalResultsCount($results, \count($items), $max, $offset);
 
 				return $items;
+			}
+		);
+	}
+
+	/**
+	 * Loads one relative per host entity in a single batch query when possible.
+	 *
+	 * The returned map is keyed by {@see ORMEntity::toIdentityKey()} of each host. Hosts
+	 * for which no relative was found get a `null` value.
+	 *
+	 * When the link type does not support batch queries (e.g. through, join), the method
+	 * falls back to N individual queries -- one per host -- under a single CRUD assertion.
+	 *
+	 * @param ORMEntity[] $host_entities
+	 * @param Relation    $relation
+	 * @param array       $filters
+	 * @param null|int    $max
+	 * @param int         $offset
+	 * @param array       $order_by
+	 *
+	 * @return array<string, null|TEntity>
+	 *
+	 * @throws GoblException
+	 */
+	public function getRelativeBatch(
+		array $host_entities,
+		Relation $relation,
+		array $filters = [],
+		?int $max = null,
+		int $offset = 0,
+		array $order_by = []
+	): array {
+		if (empty($host_entities)) {
+			return [];
+		}
+
+		return $this->db->runInTransaction(
+			function () use ($host_entities, $relation, $filters, $max, $offset, $order_by): array {
+				/** @var TQuery $tq */
+				$tq = ORM::query($this->table, $filters);
+
+				$this->crud->assertReadAllRelatives($tq, $relation);
+
+				// Pre-fill map with null for every requested host.
+				$result  = [];
+				$partial = $relation->resolveSelectColumns();
+
+				foreach ($host_entities as $host) {
+					$result[$host->toIdentityKey()] = null;
+				}
+
+				// Attempt a single batch query.
+				$qb = $tq->selectRelativesBatch($relation, $host_entities, $max, $offset, $order_by);
+
+				if (null !== $qb) {
+					/** @var TResults $results */
+					$results  = ORM::results($this->table, $qb, $partial);
+					$entities = $results->fetchAllClass();
+
+					$groups = $relation->getLink()->groupBatchResults($host_entities, $entities);
+
+					foreach ($groups as $identity_key => $group_entities) {
+						$target_entity = $group_entities[0] ?? null;
+
+						if ($target_entity) {
+							$this->crud->dispatchEntityEvent($target_entity, EntityEventType::AFTER_READ);
+						}
+
+						$result[$identity_key] = $target_entity;
+					}
+				} else {
+					// Fallback: one query per host.
+					foreach ($host_entities as $host) {
+						/** @var TQuery $host_tq */
+						$host_tq = ORM::query($this->table, $filters);
+						$host_qb = $host_tq->selectRelatives($relation, $host, $max, $offset, $order_by);
+
+						if ($host_qb) {
+							/** @var TResults $host_results */
+							$host_results  = ORM::results($this->table, $host_qb, $partial);
+							$target_entity = $host_results->fetchClass();
+
+							if ($target_entity) {
+								$this->crud->dispatchEntityEvent($target_entity, EntityEventType::AFTER_READ);
+							}
+
+							$result[$host->toIdentityKey()] = $target_entity;
+						}
+					}
+				}
+
+				return $result;
+			}
+		);
+	}
+
+	/**
+	 * Loads all relatives per host entity in a single batch query when possible.
+	 *
+	 * The returned map is keyed by {@see ORMEntity::toIdentityKey()} of each host. Every
+	 * entry is an array of relatives (possibly empty).
+	 *
+	 * All link types (LinkColumns, LinkThrough, LinkJoin, LinkMorph) support the batch path.
+	 * The fallback path (one query per host) is used only when `applyBatch()` returns false,
+	 * which can happen for complex nested link configurations (e.g. LinkThrough whose
+	 * host-to-pivot link is itself a complex join, or a LinkJoin whose first step is
+	 * not LinkColumns/LinkMorph). In those edge cases, `$max` and `$offset` apply per host.
+	 *
+	 * @param ORMEntity[] $host_entities
+	 * @param Relation    $relation
+	 * @param array       $filters
+	 * @param null|int    $max
+	 * @param int         $offset
+	 * @param array       $order_by
+	 *
+	 * @return array<string, TEntity[]>
+	 *
+	 * @throws GoblException
+	 */
+	public function getAllRelativesBatch(
+		array $host_entities,
+		Relation $relation,
+		array $filters = [],
+		?int $max = null,
+		int $offset = 0,
+		array $order_by = []
+	): array {
+		if (empty($host_entities)) {
+			return [];
+		}
+
+		return $this->db->runInTransaction(
+			function () use ($host_entities, $relation, $filters, $max, $offset, $order_by): array {
+				/** @var TQuery $tq */
+				$tq = ORM::query($this->table, $filters);
+
+				$this->crud->assertReadAllRelatives($tq, $relation);
+
+				// Pre-fill map with empty arrays for every requested host.
+				$result  = [];
+				$partial = $relation->resolveSelectColumns();
+
+				foreach ($host_entities as $host) {
+					$result[$host->toIdentityKey()] = [];
+				}
+
+				// Attempt a single batch query.
+				$qb = $tq->selectRelativesBatch($relation, $host_entities, $max, $offset, $order_by);
+
+				if (null !== $qb) {
+					/** @var TResults $results */
+					$results  = ORM::results($this->table, $qb, $partial);
+					$entities = $results->fetchAllClass();
+
+					$groups = $relation->getLink()->groupBatchResults($host_entities, $entities);
+
+					foreach ($groups as $identity_key => $group_entities) {
+						$result[$identity_key] = $group_entities;
+					}
+				} else {
+					// Fallback: one query per host.
+					foreach ($host_entities as $host) {
+						/** @var TQuery $host_tq */
+						$host_tq  = ORM::query($this->table, $filters);
+						$host_qb  = $host_tq->selectRelatives($relation, $host, $max, $offset, $order_by);
+
+						if ($host_qb) {
+							/** @var TResults $host_results */
+							$host_results = ORM::results($this->table, $host_qb, $partial);
+							$entities     = $host_results->fetchAllClass();
+
+							$result[$host->toIdentityKey()] = $entities;
+						}
+					}
+				}
+
+				return $result;
+			}
+		);
+	}
+
+	/**
+	 * Counts the relatives of a single host entity.
+	 *
+	 * @param ORMEntity $host_entity
+	 * @param Relation  $relation
+	 * @param array     $filters
+	 *
+	 * @return int
+	 *
+	 * @throws GoblException
+	 */
+	public function countRelatives(
+		ORMEntity $host_entity,
+		Relation $relation,
+		array $filters = []
+	): int {
+		return $this->db->runInTransaction(function () use ($host_entity, $relation, $filters): int {
+			/** @var TQuery $tq */
+			$tq = ORM::query($this->table, $filters);
+
+			$this->crud->assertReadAllRelatives($tq, $relation);
+
+			$qb = $tq->selectRelatives($relation, $host_entity);
+
+			if (!$qb) {
+				return 0;
+			}
+
+			/** @var TResults $results */
+			$results = ORM::results($this->table, $qb);
+
+			return $results->totalCount();
+		});
+	}
+
+	/**
+	 * Counts relatives for multiple host entities in a single batch query when possible.
+	 *
+	 * The returned map is keyed by {@see ORMEntity::toIdentityKey()} of each host, with
+	 * the count as the value. Hosts with no relatives get a 0.
+	 *
+	 * When the link type does not support batch queries the method falls back to one
+	 * `COUNT(*)` query per host under a single CRUD assertion.
+	 *
+	 * @param ORMEntity[] $host_entities
+	 * @param Relation    $relation
+	 * @param array       $filters
+	 *
+	 * @return array<string, int>
+	 *
+	 * @throws GoblException
+	 */
+	public function countRelativesBatch(
+		array $host_entities,
+		Relation $relation,
+		array $filters = []
+	): array {
+		if (empty($host_entities)) {
+			return [];
+		}
+
+		return $this->db->runInTransaction(
+			function () use ($host_entities, $relation, $filters): array {
+				/** @var TQuery $tq */
+				$tq = ORM::query($this->table, $filters);
+
+				$this->crud->assertReadAllRelatives($tq, $relation);
+
+				// Pre-fill all hosts with 0.
+				$result = [];
+
+				foreach ($host_entities as $host) {
+					$result[$host->toIdentityKey()] = 0;
+				}
+
+				// Batch query -- load all matching rows, count per group in PHP.
+				$qb = $tq->selectRelativesBatch($relation, $host_entities);
+
+				if (null !== $qb) {
+					/** @var TResults $results */
+					$results  = ORM::results($this->table, $qb);
+					$entities = $results->fetchAllClass();
+
+					$groups = $relation->getLink()->groupBatchResults($host_entities, $entities);
+
+					foreach ($groups as $identity_key => $group_entities) {
+						$result[$identity_key] = \count($group_entities);
+					}
+				} else {
+					// Fallback: one COUNT(*) per host.
+					foreach ($host_entities as $host) {
+						/** @var TQuery $host_tq */
+						$host_tq = ORM::query($this->table, $filters);
+						$host_qb = $host_tq->selectRelatives($relation, $host);
+
+						if ($host_qb) {
+							/** @var TResults $host_results */
+							$host_results                   = ORM::results($this->table, $host_qb);
+							$result[$host->toIdentityKey()] = $host_results->totalCount();
+						}
+					}
+				}
+
+				return $result;
 			}
 		);
 	}

@@ -16,6 +16,7 @@ namespace Gobl\ORM;
 use BadMethodCallException;
 use Gobl\DBAL\Column;
 use Gobl\DBAL\Exceptions\DBALException;
+use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Filters\Filter;
 use Gobl\DBAL\Filters\Filters;
 use Gobl\DBAL\Filters\FiltersTableScope;
@@ -26,6 +27,7 @@ use Gobl\DBAL\Queries\QBDelete;
 use Gobl\DBAL\Queries\QBInsert;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Queries\QBUpdate;
+use Gobl\DBAL\Relations\Interfaces\LinkInterface;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Table;
 use Gobl\ORM\Exceptions\ORMQueryException;
@@ -485,6 +487,9 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 * Validates via `assertCanManageRelatives()` that the relation targets this query's table
 	 * and (when an entity is given) that the entity is persisted and of the correct class.
 	 *
+	 * When the relation has a column projection ({@see Relation::getSelect()} is non-null),
+	 * only those columns are included in the SELECT clause.
+	 *
 	 * Returns `null` when the link cannot be applied - e.g. a column-based link where a
 	 * required entity column value is `null`, making the relation unsatisfiable.
 	 */
@@ -497,10 +502,50 @@ abstract class ORMTableQuery extends FiltersTableScope
 	): ?QBSelect {
 		self::assertCanManageRelatives($this->table, $relation, $host_entity);
 
-		$sel = $this->select($max, $offset, $order_by);
-		$l   = $relation->getLink();
+		$select  = $relation->getSelect();
+		$sel     = empty($select) ? $this->select($max, $offset, $order_by) : $this->selectWithColumns($select, $max, $offset, $order_by);
+		$l       = $relation->getLink();
 
 		if ($l->apply($sel, $host_entity)) {
+			return $sel;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Create a {@see QBSelect} and apply the current filters and the batch relation's filters.
+	 *
+	 * Uses {@see LinkInterface::applyBatch()} to build a single
+	 * IN-clause query for all host entities at once.
+	 *
+	 * When the relation has a column projection ({@see Relation::getSelect()} is non-null),
+	 * only those columns are included in the SELECT clause.
+	 *
+	 * Returns `null` when:
+	 * - `$host_entities` is empty, or
+	 * - the link type does not support batching (applyBatch returns false).
+	 *
+	 * @param ORMEntity[] $host_entities non-empty, all from the host table
+	 */
+	public function selectRelativesBatch(
+		Relation $relation,
+		array $host_entities,
+		?int $max = null,
+		int $offset = 0,
+		array $order_by = [],
+	): ?QBSelect {
+		if (empty($host_entities)) {
+			return null;
+		}
+
+		self::assertCanManageRelatives($this->table, $relation, null);
+
+		$select = $relation->getSelect();
+		$sel    = empty($select) ? $this->select($max, $offset, $order_by) : $this->selectWithColumns($select, $max, $offset, $order_by);
+		$l      = $relation->getLink();
+
+		if ($l->applyBatch($sel, $host_entities)) {
 			return $sel;
 		}
 
@@ -585,6 +630,137 @@ abstract class ORMTableQuery extends FiltersTableScope
 		$this->filters->add($operator, $left, $value);
 
 		return $this;
+	}
+
+	/**
+	 * Executes a forward cursor-paginated query.
+	 *
+	 * Generates:
+	 *   `SELECT ... WHERE cursor_col > :cursor ORDER BY cursor_col ASC LIMIT max + 1`
+	 * (or `<` for `desc`). The extra row tells the caller whether a next page exists
+	 * without a separate COUNT query.
+	 *
+	 * The returned `next_cursor` is the opaque serialised value of `cursor_column`
+	 * on the last item; pass it as `$cursor` on the next call.
+	 *
+	 * @param string       $cursor_column short or full column name used to order and slice
+	 * @param mixed        $cursor        last seen cursor value from the previous page; null = first page
+	 * @param int          $max           page size (> 0)
+	 * @param 'asc'|'desc' $direction     sort direction
+	 *
+	 * @return array{items: ORMEntity[], next_cursor: null|string, has_more: bool}
+	 *
+	 * @throws ORMQueryException when $max < 1 or $cursor_column is not a valid column
+	 */
+	public function cursorFind(
+		string $cursor_column,
+		mixed $cursor,
+		int $max,
+		string $direction = 'asc',
+	): array {
+		if ($max < 1) {
+			throw new ORMQueryException('GOBL_ORM_CURSOR_MAX_INVALID', ['max' => $max]);
+		}
+
+		if ('asc' !== $direction && 'desc' !== $direction) {
+			throw new ORMQueryException('GOBL_ORM_CURSOR_DIRECTION_INVALID', ['direction' => $direction]);
+		}
+
+		$this->table->assertHasColumn($cursor_column);
+		$column  = $this->table->getColumnOrFail($cursor_column);
+		$col_fqn = $this->getTableAlias() . '.' . $column->getFullName();
+
+		// Build the SELECT with max + 1 rows (one extra for has_more detection).
+		$order_by = [$col_fqn => \strtoupper($direction)];
+		$sel      = $this->select($max + 1, 0, $order_by);
+
+		// Add cursor condition directly to the QBSelect so bindings land in the same QB.
+		if (null !== $cursor) {
+			$op = 'asc' === $direction ? Operator::GT : Operator::LT;
+			$sel->andWhere(
+				Filters::fromArray([[$col_fqn, $op->value, $cursor]], $sel)
+			);
+		}
+
+		/** @var class-string<ORMResults<TEntity>> $results_class */
+		$results_class = ORMClassKind::RESULTS->getClassFQN($this->table);
+		$results       = $results_class::new($sel);
+		$all           = $results->fetchAllClass();
+
+		$has_more    = \count($all) > $max;
+		$items       = $has_more ? \array_slice($all, 0, $max) : $all;
+		$last        = !empty($items) ? $items[\count($items) - 1] : null;
+		$next_cursor = null;
+
+		if ($has_more && $last) {
+			$next_cursor = (string) $last->{$column->getFullName()};
+		}
+
+		return [
+			'items'       => $items,
+			'next_cursor' => $next_cursor,
+			'has_more'    => $has_more,
+		];
+	}
+
+	/**
+	 * Creates a {@see QBSelect} restricted to the given column list.
+	 *
+	 * Restricts the SELECT clause to only the specified columns, which is useful
+	 * for field-projection scenarios such as GraphQL resolvers requesting a subset
+	 * of fields, or any caller that knows in advance which columns it needs.
+	 *
+	 * Also used internally by selectRelatives() and selectRelativesBatch() when
+	 * the relation carries a per-relation column projection.
+	 *
+	 * - Each column name is validated against the table schema;
+	 *   unknown names throw {@see DBALRuntimeException}.
+	 * - Private columns are silently excluded from the projection.
+	 * - Falls back to a full SELECT when all columns are filtered out.
+	 *
+	 * The FROM clause is registered before the SELECT clause so that the table
+	 * alias is available when QBSelect resolves column names.
+	 *
+	 * @param string[] $columns  short or full column names to include in the SELECT
+	 * @param null|int $max      maximum row to retrieve
+	 * @param int      $offset   first row offset
+	 * @param array    $order_by order by rules
+	 *
+	 * @return QBSelect
+	 */
+	public function selectWithColumns(array $columns, ?int $max = null, int $offset = 0, array $order_by = []): QBSelect
+	{
+		$table   = $this->table;
+		$allowed = [];
+
+		foreach ($columns as $name) {
+			$col = $table->getColumnOrFail($name); // throws DBALRuntimeException for unknown columns
+			if (!$col->isPrivate()) {
+				$allowed[] = $col->getFullName();
+			}
+		}
+
+		// If all columns were filtered out (e.g. all are private), fall back to a full SELECT.
+		if (empty($allowed)) {
+			return $this->select($max, $offset, $order_by);
+		}
+
+		$alias = $this->getTableAlias();
+		$sel   = new QBSelect($this->db);
+
+		// Register FROM first so the alias is declared before SELECT resolves column names.
+		$sel->from($this->table->getFullName(), $alias)
+			->select($alias, $allowed)
+			->bindMergeFrom($this->getBindingSource())
+			->where($this->getFilters());
+
+		$this->applySoftDeletedLogic($sel);
+
+		if (!empty($order_by)) {
+			$sel->orderBy($order_by);
+		}
+
+		return $sel->limit($max, $offset);
 	}
 
 	/**

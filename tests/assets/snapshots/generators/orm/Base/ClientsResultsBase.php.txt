@@ -15,12 +15,13 @@ abstract class ClientsResultsBase extends \Gobl\ORM\ORMResults
 	/**
 	 * ClientsResultsBase constructor.
 	 */
-	public function __construct(\Gobl\DBAL\Queries\QBSelect $query)
+	public function __construct(\Gobl\DBAL\Queries\QBSelect $query, array|null $partial_columns = NULL)
 	{
 		parent::__construct(
 			\Gobl\Tests\Db\Client::TABLE_NAMESPACE,
 			\Gobl\Tests\Db\Client::TABLE_NAME,
-			$query
+			$query,
+			$partial_columns
 		);
 	}
 
@@ -30,8 +31,8 @@ abstract class ClientsResultsBase extends \Gobl\ORM\ORMResults
 	 * @return static
 	 */
 	#[\Override]
-	public static function new(\Gobl\DBAL\Queries\QBSelect $query): static
+	public static function new(\Gobl\DBAL\Queries\QBSelect $query, array|null $partial_columns = NULL): static
 	{
-		return new ClientsResults($query);
+		return new ClientsResults($query, $partial_columns);
 	}
 }

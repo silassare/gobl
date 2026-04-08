@@ -26,17 +26,33 @@ use Gobl\ORM\ORMEntityRelationController;
 use InvalidArgumentException;
 use Override;
 use PHPUtils\Interfaces\ArrayCapableInterface;
+use PHPUtils\Lock\Interfaces\LockableInterface;
+use PHPUtils\Lock\Traits\PermanentlyLockableTrait;
 use PHPUtils\Str;
 use PHPUtils\Traits\ArrayCapableTrait;
+use Throwable;
 
 /**
  * Class Relation.
  *
  * @implements RelationInterface<ORMEntity,ORMEntity,array,array>
  */
-abstract class Relation implements RelationInterface, ArrayCapableInterface
+abstract class Relation implements RelationInterface, ArrayCapableInterface, LockableInterface
 {
 	use ArrayCapableTrait;
+	use PermanentlyLockableTrait {
+		PermanentlyLockableTrait::lock as private traitLock;
+	}
+
+	/**
+	 * Optional column projection applied when loading relatives.
+	 *
+	 * null means "select all columns" (current default behaviour).
+	 * A non-null array restricts the SELECT to those column names.
+	 *
+	 * @var null|string[]
+	 */
+	private ?array $_select = null;
 
 	/**
 	 * Relation constructor.
@@ -237,12 +253,112 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface
 			->getName();
 		$options['link'] = $this->link->toArray();
 
+		if (null !== $this->_select) {
+			$options['select'] = $this->_select;
+		}
+
 		return $options;
+	}
+
+	/**
+	 * Gets the optional column projection for this relation.
+	 *
+	 * null means all columns are selected (default behaviour).
+	 * A non-null array contains the column names to include in the SELECT.
+	 *
+	 * @return null|string[]
+	 */
+	public function getSelect(): ?array
+	{
+		return $this->_select;
+	}
+
+	/**
+	 * Sets the column projection for this relation.
+	 *
+	 * @param null|string[] $columns column names to select, or null to select all
+	 *
+	 * @return $this
+	 */
+	public function setSelect(?array $columns): static
+	{
+		$this->_select = $columns;
+
+		return $this;
+	}
+
+	/**
+	 * Validates the select projection and resolves it to full column names.
+	 *
+	 * Returns null when no projection is configured (all columns will be selected).
+	 * Throws {@see DBALRuntimeException} when an unknown column
+	 * name is encountered.
+	 *
+	 * @return null|list<string> resolved full column names, or null when getSelect() is null
+	 */
+	public function resolveSelectColumns(): ?array
+	{
+		if (null === $this->_select) {
+			return null;
+		}
+
+		$target  = $this->getTargetTable();
+		$list    = [];
+
+		foreach ($this->_select as $name) {
+			$col    = $target->getColumnOrFail($name);
+			$list[] = $col->getFullName();
+		}
+
+		return $list;
+	}
+
+	/**
+	 * Locks this relation to prevent further changes.
+	 *
+	 * @return static
+	 */
+	#[Override]
+	public function lock(): static
+	{
+		if (!$this->isLocked()) {
+			$this->assertIsValid();
+
+			$this->traitLock();
+		}
+
+		return $this;
 	}
 
 	#[Override]
 	public function getController(): RelationControllerInterface
 	{
 		return new ORMEntityRelationController($this);
+	}
+
+	/**
+	 * Asserts that this relation is valid.
+	 */
+	protected function assertIsValid(): void
+	{
+		if (null !== $this->_select && !empty($this->_select)) {
+			$target = $this->getTargetTable();
+
+			foreach ($this->_select as $name) {
+				try {
+					$target->assertHasColumn($name);
+				} catch (Throwable $t) {
+					throw new DBALRuntimeException(
+						\sprintf(
+							'Unknown column name "%s" in select projection of relation "%s".',
+							$name,
+							$this->name
+						),
+						null,
+						$t
+					);
+				}
+			}
+		}
 	}
 }

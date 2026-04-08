@@ -446,6 +446,10 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 				$idx->lock();
 			}
 
+			foreach ($this->relations as $relation) {
+				$relation->lock();
+			}
+
 			$this->traitLock();
 		}
 

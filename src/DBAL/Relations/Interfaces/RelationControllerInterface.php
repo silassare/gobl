@@ -102,4 +102,19 @@ interface RelationControllerInterface
 	 * @return static
 	 */
 	public function link(ORMEntity $parent_entity, ORMEntity $child_entity, bool $auto_save = true): static;
+
+	/**
+	 * Loads relatives for multiple host entities in a single batch operation when possible.
+	 *
+	 * The returned map is keyed by {@see ORMEntity::toIdentityKey()} of each host. Every
+	 * entry is an array of relatives (possibly empty). Implementations that cannot batch
+	 * MAY throw \BadMethodCallException; callers must catch it and fall back to per-host
+	 * calls.
+	 *
+	 * @param ORMEntity[] $host_entities the host entities to load relatives for
+	 * @param ORMRequest  $request       the request (filters, order_by, max, offset)
+	 *
+	 * @return array<string, TRelative[]>
+	 */
+	public function getBatch(array $host_entities, ORMRequest $request): array;
 }

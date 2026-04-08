@@ -115,36 +115,36 @@ abstract class Link implements LinkInterface
 	/**
 	 * Creates a sub-link between two tables via `Relation::createLink()`.
 	 *
-	 * When `$allow_nesting` is `false` (the default), composite link types
-	 * (`LinkJoin` and `LinkThrough`) are rejected as sub-links because they
-	 * require their own sub-links internally, which would produce unbounded
-	 * recursive join chains and malformed SQL.
+	 * The `$max_depth` parameter controls how many additional levels of composite link types
+	 * (`LinkJoin`, `LinkThrough`) are permitted within this sub-link:
 	 *
-	 * Only "simple" link types - `LinkColumns` and `LinkMorph` - are nestable:
+	 * - `0` (default): only simple link types (`LinkColumns`, `LinkMorph`) are allowed.
+	 *   Composite links throw a `DBALException`. This is the correct setting when the
+	 *   caller is itself a `LinkThrough` or `LinkJoin` creating its direct sub-links.
+	 * - `1`: one level of composite nesting is allowed. The created `LinkJoin`/`LinkThrough`
+	 *   will in turn call `subLink()` with `max_depth=0`, preventing infinite recursion.
+	 *   Use this when building steps inside a `LinkJoin` that may legitimately include a
+	 *   through-table step.
+	 *
+	 * Why simple link types are always nestable:
 	 * - `LinkColumns` maps FK columns directly and generates no extra joins.
 	 * - `LinkMorph` adds a single polymorphic constraint, also without extra joins.
-	 *
-	 * Why `LinkJoin` cannot be nested:
-	 * A `LinkJoin` is itself composed of one or more sub-links. Embedding a `LinkJoin`
-	 * as a sub-link would create a recursive structure where each level could
-	 * add arbitrary JOINs and WHERE conditions - it becomes impossible to validate
-	 * or generate deterministic SQL.
 	 *
 	 * @param Table $host_table
 	 * @param Table $target_table
 	 * @param array $options
-	 * @param bool  $allow_nesting when `true`, all link types are permitted as sub-links
+	 * @param int   $max_depth    maximum allowed composite nesting depth (0 = simple links only)
 	 *
-	 * @throws DBALException when a composite link type is used without `$allow_nesting = true`
+	 * @throws DBALException when a composite link type is used at depth 0
 	 */
-	protected function subLink(Table $host_table, Table $target_table, array $options, bool $allow_nesting = false): LinkInterface
+	protected function subLink(Table $host_table, Table $target_table, array $options, int $max_depth = 0): LinkInterface
 	{
 		$link = Relation::createLink($this->rdbms, $host_table, $target_table, $options);
 
-		if (!$allow_nesting && ($link instanceof LinkJoin || $link instanceof LinkThrough)) {
+		if (0 === $max_depth && ($link instanceof LinkJoin || $link instanceof LinkThrough)) {
 			throw new DBALException(\sprintf(
-				'Link type "%s" cannot be used as a sub-link inside "%s". '
-					. 'Only "%s" and "%s" are nestable as sub-links.',
+				'Link type "%s" cannot be used as a sub-link inside "%s" at this nesting depth. '
+					. 'Only "%s" and "%s" are allowed here.',
 				$link->getType()->value,
 				$this->type->value,
 				LinkType::COLUMNS->value,

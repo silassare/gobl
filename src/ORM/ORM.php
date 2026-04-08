@@ -178,41 +178,44 @@ final class ORM
 	/**
 	 * Returns a new entity instance for a given table.
 	 *
-	 * @param Table $table
-	 * @param bool  $is_new
-	 * @param bool  $strict
+	 * @param Table             $table           the table instance
+	 * @param bool              $is_new          true for new entity, false for entity fetched
+	 *                                           from the database, default is true
+	 * @param bool              $strict          enable/disable strict mode
+	 * @param null|list<string> $partial_columns use this to mark the entity as partially loaded with only the specified columns
 	 *
 	 * @return ORMEntity
 	 */
-	public static function entity(Table $table, bool $is_new = true, bool $strict = true): ORMEntity
+	public static function entity(Table $table, bool $is_new = true, bool $strict = true, ?array $partial_columns = null): ORMEntity
 	{
 		/** @var ORMEntity $entity_class */
 		$entity_class = ORMClassKind::ENTITY->getClassFQN($table);
 
-		return $entity_class::new($is_new, $strict);
+		return $entity_class::new($is_new, $strict, $partial_columns);
 	}
 
 	/**
 	 * Returns a new entity results instance for a given table and queries.
 	 *
-	 * @param Table    $table
-	 * @param QBSelect $qb
+	 * @param Table             $table           the table instance
+	 * @param QBSelect          $qb              the query builder instance with the query to execute for fetching results
+	 * @param null|list<string> $partial_columns use this to mark the results entities as partially loaded with only the specified columns
 	 *
 	 * @return ORMResults
 	 */
-	public static function results(Table $table, QBSelect $qb): ORMResults
+	public static function results(Table $table, QBSelect $qb, ?array $partial_columns = null): ORMResults
 	{
 		/** @var ORMResults $results_class */
 		$results_class = ORMClassKind::RESULTS->getClassFQN($table);
 
-		return $results_class::new($qb);
+		return $results_class::new($qb, $partial_columns);
 	}
 
 	/**
 	 * Returns a new table query instance for a given table and filters.
 	 *
-	 * @param Table $table
-	 * @param array $filters
+	 * @param Table $table   the table instance
+	 * @param array $filters optional filters to apply to the query, in the format accepted by `QBSelect::where()`
 	 *
 	 * @return ORMTableQuery
 	 */

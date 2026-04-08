@@ -232,18 +232,20 @@ final class Gobl
 	public static function getForbiddenColumnsName(): array
 	{
 		return [
-			'save'     => 1,
-			'saved'    => 1,
-			'is_saved' => 1,
-			'new'      => 1,
-			'is_new'   => 1,
-			'hydrate'  => 1,
+			'save'          => 1,
+			'saved'         => 1,
+			'is_saved'      => 1,
+			'new'           => 1,
+			'is_new'        => 1,
+			'hydrate'       => 1,
 			// static helpers to get some instances
-			'table'   => 1,
-			'crud'    => 1,
-			'qb'      => 1,
-			'ctrl'    => 1,
-			'results' => 1,
+			'table'          => 1,
+			'crud'           => 1,
+			'qb'             => 1,
+			'ctrl'           => 1,
+			'results'        => 1,
+			// computed value slot: would collide with getComputedValue() / hasComputedValue()
+			'computed_value' => 1,
 		];
 	}
 

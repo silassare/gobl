@@ -265,7 +265,8 @@ Time: {$date}";
 						. '	self::TABLE_NAMESPACE,' . \PHP_EOL
 						. '	self::TABLE_NAME,' . \PHP_EOL
 						. '	$is_new,' . \PHP_EOL
-						. '	$strict' . \PHP_EOL
+						. '	$strict,' . \PHP_EOL
+						. '	$partial_columns' . \PHP_EOL
 						. ');',
 					$inject
 				)
@@ -276,7 +277,8 @@ Time: {$date}";
 					. \PHP_EOL
 					. '@param bool $is_new true for new entity false for entity fetched from the database, default is true'
 					. \PHP_EOL
-					. '@param bool $strict Enable/disable strict mode',
+					. '@param bool $strict Enable/disable strict mode' . \PHP_EOL
+					. '@param null|list<string> $partial_columns Use this to mark the entity as partially loaded with only the specified columns.',
 				$inject
 			)
 		);
@@ -287,6 +289,9 @@ Time: {$date}";
 		$construct->newArgument('strict')
 			->setType('bool')
 			->setValue(true);
+		$construct->newArgument('partial_columns')
+			->setType('array|null')
+			->setValue(null);
 
 		/**
 		 * @var array<string, array{comment: string, return: string, body: string, args?: PHPArgument[]}> $static_helpers
@@ -298,8 +303,8 @@ Time: {$date}";
 					. \PHP_EOL
 					. '@return static',
 				'return' => 'static',
-				'body'   => 'return new {class_name_sub}($is_new, $strict);',
-				'args'   => [$construct->getArgument('is_new'), $construct->getArgument('strict')],
+				'body'   => 'return new {class_name_sub}($is_new, $strict, $partial_columns);',
+				'args'   => $construct->getArguments(),
 			],
 			'crud' => [
 				'comment' => '{@inheritDoc}'
@@ -331,9 +336,10 @@ Time: {$date}";
 					. \PHP_EOL
 					. '@return \{db_namespace}\{results_class_name}',
 				'return' => '\{db_namespace}\{results_class_name}',
-				'body'   => 'return \{db_namespace}\{results_class_name}::new($query);',
+				'body'   => 'return \{db_namespace}\{results_class_name}::new($query, $partial_columns);',
 				'args'   => [
 					new PHPArgument('query', '\\' . QBSelect::class),
+					$construct->getArgument('partial_columns'),
 				],
 			],
 			'table' => [
@@ -1033,7 +1039,8 @@ Time: {$date}";
 					'parent::__construct(' . \PHP_EOL
 						. '	\{db_namespace}\{entity_class_name}::TABLE_NAMESPACE,' . \PHP_EOL
 						. '	\{db_namespace}\{entity_class_name}::TABLE_NAME,' . \PHP_EOL
-						. '	$query' . \PHP_EOL
+						. '	$query,' . \PHP_EOL
+						. '	$partial_columns' . \PHP_EOL
 						. ');',
 					$inject
 				)
@@ -1041,6 +1048,9 @@ Time: {$date}";
 
 		$construct->newArgument('query')
 			->setType('\\' . (QBSelect::class));
+		$construct->newArgument('partial_columns')
+			->setType('array|null')
+			->setValue(null);
 		$construct->comment(Str::interpolate('{class_name} constructor.', $inject));
 
 		$create_instance = $class->newMethod('new')
@@ -1048,11 +1058,13 @@ Time: {$date}";
 			->public()
 			->addAttribute('\\' . Override::class)
 			->addChild(
-				Str::interpolate('return new {class_name_sub}($query);', $inject)
+				Str::interpolate('return new {class_name_sub}($query, $partial_columns);', $inject)
 			)
 			->setReturnType('static');
-		$create_instance->newArgument('query')
-			->setType('\\' . (QBSelect::class));
+
+		$create_instance->addArgument($construct->getArgument('query'));
+		$create_instance->addArgument($construct->getArgument('partial_columns'));
+
 		$create_instance->comment(
 			Str::interpolate(
 				'{@inheritDoc}'

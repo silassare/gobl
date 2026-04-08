@@ -94,25 +94,60 @@ abstract class ORMEntity implements ArrayCapableInterface
 	private array $_oeb_subjects = [];
 
 	/**
+	 * Whether this entity was loaded with a partial column projection.
+	 *
+	 * When true, accessing a column that was not in the projection throws
+	 * {@see ORMRuntimeException} instead of silently returning a default value.
+	 *
+	 * @var bool
+	 */
+	private bool $_oeb_is_partial = false;
+
+	/**
+	 * Set of full column names that were loaded in partial mode.
+	 * Only meaningful when $_oeb_is_partial is true.
+	 *
+	 * @var array<string, true>
+	 */
+	private array $_oeb_partial_columns = [];
+
+	/**
+	 * Computed values injected during PDO hydration via `_gobl_*` column aliases.
+	 *
+	 * These are ephemeral query-time values (e.g. batch routing keys, window
+	 * function results) that have no schema column. They are never validated,
+	 * never dirtied, and never written by `save()` / `toRow()`.
+	 *
+	 * @var array<string, mixed>
+	 */
+	private array $_oeb_computed = [];
+
+	/**
 	 * ORMEntity constructor.
 	 *
-	 * @param string $namespace  the table namespace
-	 * @param string $table_name the table name
-	 * @param bool   $is_new     true for new entity, false for entity fetched
-	 *                           from the database, default is true
-	 * @param bool   $strict     enable/disable strict mode
+	 * @param string            $namespace       the table namespace
+	 * @param string            $table_name      the table name
+	 * @param bool              $is_new          true for new entity, false for entity fetched
+	 *                                           from the database, default is true
+	 * @param bool              $strict          enable/disable strict mode
+	 * @param null|list<string> $partial_columns use this to mark the entity as partially loaded with only the specified columns
 	 */
 	protected function __construct(
 		string $namespace,
 		string $table_name,
 		bool $is_new,
-		bool $strict
+		bool $strict,
+		?array $partial_columns = null
 	) {
 		$this->_oeb_db       = ORM::getDatabase($namespace);
 		$this->_oeb_table    = $this->_oeb_db->getTableOrFail($table_name);
 		$columns             = $this->_oeb_table->getColumns();
 		$this->_oeb_is_new   = $is_new;
 		$this->_oeb_strict   = $strict;
+
+		if (!empty($partial_columns)) {
+			$this->markAsPartial($partial_columns);
+		}
 
 		if ($this->_oeb_is_new) {
 			foreach ($columns as $column) {
@@ -128,7 +163,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 */
 	public function __destruct()
 	{
-		unset($this->_oeb_db, $this->_oeb_table, $this->_oeb_row, $this->_oeb_from_db, $this->_oeb_dirty, $this->_oeb_saved_hashes);
+		unset($this->_oeb_db, $this->_oeb_table, $this->_oeb_row, $this->_oeb_from_db, $this->_oeb_dirty, $this->_oeb_saved_hashes, $this->_oeb_partial_columns, $this->_oeb_computed);
 	}
 
 	/**
@@ -155,6 +190,10 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 * When `$name` is not a valid column and `$strict` mode is on, throws `ORMRuntimeException`;
 	 * otherwise triggers a PHP error and returns `null`.
 	 *
+	 * For partially-loaded entities (see {@see markAsPartial()}) accessing a column that was not
+	 * included in the projection always throws `ORMRuntimeException`. Use {@see isColumnLoaded()}
+	 * to check before accessing.
+	 *
 	 * @param string $name the column full name or name
 	 *
 	 * @return null|mixed
@@ -164,8 +203,20 @@ abstract class ORMEntity implements ArrayCapableInterface
 		if ($this->_oeb_table->hasColumn($name)) {
 			$column    = $this->_oeb_table->getColumnOrFail($name);
 			$full_name = $column->getFullName();
-			$value     = $this->_oeb_row[$full_name] ?? null;
-			$type      = $column->getType();
+
+			// Partial-load guard: throw clearly when the column was not fetched.
+			if ($this->_oeb_is_partial && !isset($this->_oeb_partial_columns[$full_name])) {
+				throw new ORMRuntimeException(
+					\sprintf(
+						'Column "%s" was not included in the partial projection for table "%s". Use isColumnLoaded() to check before accessing.',
+						$name,
+						$this->_oeb_table->getName()
+					)
+				);
+			}
+
+			$value = $this->_oeb_row[$full_name] ?? null;
+			$type  = $column->getType();
 
 			if (null === $value) {
 				if ($this->isNew() && $type->isAutoIncremented()) {
@@ -209,19 +260,31 @@ abstract class ORMEntity implements ArrayCapableInterface
 	/**
 	 * Magic setter for column value.
 	 *
-	 * Two modes:
+	 * Three modes in priority order:
+	 * - **Computed mode** (name starts with `_gobl_`): stores the raw value in
+	 *   `$_oeb_computed`. No validation, no
+	 *   dirty tracking, never written by save(). Used by batch-routing queries
+	 *   (e.g. `pivot.fk AS _gobl_batch_key`) and any custom computed SELECT
+	 *   expressions added via {@see QBSelect::selectComputed()}.
 	 * - **User mode** (entity is new, or column is in `_oeb_from_db`): validates via
 	 *   `doValidation()`, compares hash against `_oeb_saved_hashes`, marks dirty if changed.
 	 * - **PDO mode** (column not yet in `_oeb_from_db`): converts via `Type::dbToPhp()`,
 	 *   records a hash snapshot, marks the column as DB-sourced.
 	 *
-	 * @param string $name  the column full name or name
+	 * @param string $name  the column full name, short name, or a `_gobl_*` computed alias
 	 * @param mixed  $value the column value
 	 *
 	 * @throws TypesInvalidValueException
 	 */
 	final public function __set(string $name, mixed $value): void
 	{
+		// computed slot: _gobl_{var_name} injected by a SELECT computed alias
+		if (\str_starts_with($name, '_gobl_')) {
+			$this->_oeb_computed[$name] = $value;
+
+			return;
+		}
+
 		if ($this->_oeb_table->hasColumn($name)) {
 			$column    = $this->_oeb_table->getColumnOrFail($name);
 			$full_name = $column->getFullName();
@@ -271,13 +334,14 @@ abstract class ORMEntity implements ArrayCapableInterface
 	/**
 	 * Returns new instance.
 	 *
-	 * @param bool $is_new true for new entity, false for entity fetched
-	 *                     from the database, default is true
-	 * @param bool $strict enable/disable strict mode
+	 * @param bool              $is_new          true for new entity, false for entity fetched
+	 *                                           from the database, default is true
+	 * @param bool              $strict          enable/disable strict mode
+	 * @param null|list<string> $partial_columns use this to mark the entity as partially loaded with only the specified columns
 	 *
 	 * @return static
 	 */
-	abstract public static function new(bool $is_new = true, bool $strict = true): static;
+	abstract public static function new(bool $is_new = true, bool $strict = true, ?array $partial_columns = null): static;
 
 	/**
 	 * Returns the table instance.
@@ -296,11 +360,12 @@ abstract class ORMEntity implements ArrayCapableInterface
 	/**
 	 * Returns the table results instance.
 	 *
-	 * @param QBSelect $query
+	 * @param QBSelect          $query           the query builder instance
+	 * @param null|list<string> $partial_columns use this to mark the results entities as partially loaded with only the specified columns
 	 *
 	 * @return ORMResults
 	 */
-	abstract public static function results(QBSelect $query): ORMResults;
+	abstract public static function results(QBSelect $query, ?array $partial_columns = null): ORMResults;
 
 	/**
 	 * Returns the table crud event producer instance.
@@ -320,11 +385,28 @@ abstract class ORMEntity implements ArrayCapableInterface
 		return $this->_oeb_is_new;
 	}
 
+	/**
+	 * Returns the entity data as an associative array keyed by full column names.
+	 *
+	 * When `$hide_sensitive_data` is true (default), private columns are removed and
+	 * sensitive columns are replaced with their redacted value.
+	 *
+	 * For partially-loaded entities (see {@see markAsPartial()}), the result is further
+	 * filtered to only the projected columns — columns that were not part of the
+	 * projection are omitted even if physically present in `$_oeb_row`.
+	 *
+	 * {@see toRow()} always returns the raw internal row without either filter.
+	 *
+	 * @param bool $hide_sensitive_data removes private columns and redacts sensitive ones when true
+	 *
+	 * @return array<string, mixed>
+	 */
 	#[Override]
 	public function toArray(bool $hide_sensitive_data = true): array
 	{
 		$row = $this->toRow();
 
+		// we first clean sensitive data and remove private data,
 		if ($hide_sensitive_data) {
 			$columns = $this->_oeb_table->getColumns();
 
@@ -337,13 +419,30 @@ abstract class ORMEntity implements ArrayCapableInterface
 			}
 		}
 
+		// then we filter by partial columns if needed
+		if ($this->_oeb_is_partial) {
+			$partial_row = [];
+			foreach ($this->_oeb_partial_columns as $key => $_) {
+				if (\array_key_exists($key, $row)) {
+					$partial_row[$key] = $row[$key];
+				}
+			}
+
+			return $partial_row;
+		}
+
 		return $row;
 	}
 
 	/**
-	 * This help us get row data.
+	 * Returns the raw internal row data keyed by full column name.
 	 *
-	 * @return array
+	 * Unlike {@see toArray()}, this method applies no filters: private columns are included,
+	 * sensitive columns are not redacted, and partial-entity projections are not applied.
+	 * Use this when you need the unfiltered row (e.g. to pass to another entity via
+	 * {@see hydrate()}).
+	 *
+	 * @return array<string, mixed>
 	 */
 	final public function toRow(): array
 	{
@@ -467,6 +566,33 @@ abstract class ORMEntity implements ArrayCapableInterface
 	}
 
 	/**
+	 * Returns a stable string key that uniquely identifies this entity.
+	 *
+	 * Uses the same primary/unique-key columns as {@see toIdentityFilters()}.
+	 * For a single-column PK the key is the column value cast to string.
+	 * For a composite PK the column values are joined with `:`.
+	 * The resulting key is opaque and must be treated as an implementation detail
+	 * (do not persist or compare across different entity types).
+	 *
+	 * @return string
+	 *
+	 * @throws ORMException
+	 */
+	public function toIdentityKey(): string
+	{
+		$filters = $this->toIdentityFilters();
+		$values  = [];
+
+		foreach ($filters as $item) {
+			if (\is_array($item)) {
+				$values[] = (string) ($item[2] ?? '');
+			}
+		}
+
+		return \implode(':', $values);
+	}
+
+	/**
 	 * Hydrate this entity with values from an array.
 	 *
 	 * @param array $row map column name to column value
@@ -483,8 +609,103 @@ abstract class ORMEntity implements ArrayCapableInterface
 	}
 
 	/**
-	 * Self delete the entity.
+	 * Marks this entity as partially loaded.
 	 *
+	 * After this call, accessing any column NOT in $partial_columns via {@see __get()} throws
+	 * {@see ORMRuntimeException}. Use {@see isColumnLoaded()} to check first.
+	 * This is to prevent:
+	 * 1) accidentally treating unloaded columns as null or default values.
+	 * 2) returning null or default values for columns that are actually non-nullable and required,
+	 *    which would be a silent data integrity issue or violate ORM Entities generated class methods contract
+	 *    (e.g. a getter that promises to return an int but returns null instead because the column was not loaded).
+	 *
+	 * @param list<string> $partial_columns set of column names that were loaded
+	 *
+	 * @return static
+	 */
+	public function markAsPartial(array $partial_columns): static
+	{
+		$list = [];
+
+		foreach ($partial_columns as $name) {
+			$full_name        = $this->_oeb_table->getColumnOrFail($name)->getFullName();
+			$list[$full_name] = true;
+		}
+
+		$this->_oeb_is_partial      = true;
+		$this->_oeb_partial_columns = $list;
+
+		return $this;
+	}
+
+	/**
+	 * Returns whether this entity was loaded with a partial column projection.
+	 *
+	 * When true, only columns returned by {@see isColumnLoaded()} are accessible
+	 * via {@see __get()}.
+	 *
+	 * @return bool
+	 */
+	public function isPartial(): bool
+	{
+		return $this->_oeb_is_partial;
+	}
+
+	/**
+	 * Returns whether a given column was included in this entity's load projection.
+	 *
+	 * Always returns true for new (not-yet-persisted) entities and for fully-loaded entities.
+	 * For partially-loaded entities returns true only when the column was part of the projection.
+	 *
+	 * @param string $name column short name or full name
+	 *
+	 * @return bool
+	 */
+	public function isColumnLoaded(string $name): bool
+	{
+		if ($this->_oeb_is_new || !$this->_oeb_is_partial) {
+			return true;
+		}
+
+		$col = $this->_oeb_table->getColumn($name);
+
+		return null !== $col && isset($this->_oeb_partial_columns[$col->getFullName()]);
+	}
+
+	/**
+	 * Returns a computed value previously injected via a `_gobl_*` SELECT alias.
+	 *
+	 * Computed values are set by the query layer (e.g. batch routing keys, window
+	 * function results) and are never written to the database. Returns `null` when
+	 * the value was not present in the result row. Use {@see hasComputedValue()} to
+	 * distinguish "not set" from a value that is genuinely `null`.
+	 *
+	 * @param string $var_name the variable name used in the SELECT alias (without the `_gobl_` prefix)
+	 *
+	 * @return mixed
+	 */
+	final public function getComputedValue(string $var_name): mixed
+	{
+		$key = '_gobl_' . $var_name;
+
+		return $this->_oeb_computed[$key] ?? null;
+	}
+
+	/**
+	 * Returns whether a computed value was set during PDO hydration.
+	 *
+	 * @param string $var_name the variable name (without the `_gobl_` prefix)
+	 *
+	 * @return bool
+	 */
+	final public function hasComputedValue(string $var_name): bool
+	{
+		$key = '_gobl_' . $var_name;
+
+		return \array_key_exists($key, $this->_oeb_computed);
+	}
+
+	/**
 	 * @param null|bool $soft
 	 *
 	 * @return static

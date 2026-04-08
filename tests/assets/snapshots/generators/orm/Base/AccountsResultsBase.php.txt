@@ -15,12 +15,13 @@ abstract class AccountsResultsBase extends \Gobl\ORM\ORMResults
 	/**
 	 * AccountsResultsBase constructor.
 	 */
-	public function __construct(\Gobl\DBAL\Queries\QBSelect $query)
+	public function __construct(\Gobl\DBAL\Queries\QBSelect $query, array|null $partial_columns = NULL)
 	{
 		parent::__construct(
 			\Gobl\Tests\Db\Account::TABLE_NAMESPACE,
 			\Gobl\Tests\Db\Account::TABLE_NAME,
-			$query
+			$query,
+			$partial_columns
 		);
 	}
 
@@ -30,8 +31,8 @@ abstract class AccountsResultsBase extends \Gobl\ORM\ORMResults
 	 * @return static
 	 */
 	#[\Override]
-	public static function new(\Gobl\DBAL\Queries\QBSelect $query): static
+	public static function new(\Gobl\DBAL\Queries\QBSelect $query, array|null $partial_columns = NULL): static
 	{
-		return new AccountsResults($query);
+		return new AccountsResults($query, $partial_columns);
 	}
 }

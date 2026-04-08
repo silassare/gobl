@@ -39,6 +39,7 @@ use Gobl\CRUD\Events\BeforeUpdateFlush;
 use Gobl\CRUD\Events\EntityEvent;
 use Gobl\CRUD\Exceptions\CRUDException;
 use Gobl\DBAL\Column;
+use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Table;
 use Gobl\ORM\ORMEntity;
 use Gobl\ORM\ORMTableQuery;
@@ -116,14 +117,15 @@ final class CRUD
 	 * Read assertion.
 	 *
 	 * @param ORMTableQuery $filters
+	 * @param null|Relation $relation optional relation context for authorizing access to related entities
 	 *
 	 * @return BeforeRead
 	 *
 	 * @throws CRUDException
 	 */
-	public function assertRead(ORMTableQuery $filters): BeforeRead
+	public function assertRead(ORMTableQuery $filters, ?Relation $relation = null): BeforeRead
 	{
-		$action = new BeforeRead($this->table, $filters);
+		$action = new BeforeRead($this->table, $filters, $relation);
 
 		if (!$this->authorize($action, true)) {
 			throw new CRUDException($action, $this->debug);
@@ -138,14 +140,15 @@ final class CRUD
 	 * Read all assertion.
 	 *
 	 * @param ORMTableQuery $filters
+	 * @param null|Relation $relation optional relation context for authorizing access to related entities
 	 *
 	 * @return BeforeReadAll
 	 *
 	 * @throws CRUDException
 	 */
-	public function assertReadAll(ORMTableQuery $filters): BeforeReadAll
+	public function assertReadAll(ORMTableQuery $filters, ?Relation $relation = null): BeforeReadAll
 	{
-		$action = new BeforeReadAll($this->table, $filters);
+		$action = new BeforeReadAll($this->table, $filters, $relation);
 
 		if (!$this->authorize($action, true)) {
 			throw new CRUDException($action, $this->debug);
@@ -154,6 +157,42 @@ final class CRUD
 		$this->message = $action->getSuccessMessage();
 
 		return $action;
+	}
+
+	/**
+	 * Read-relative assertion (single item).
+	 *
+	 * Provides a dedicated hook for authorizing access to related entities,
+	 * separate from the generic assertRead path. Delegates to assertRead.
+	 *
+	 * @param ORMTableQuery $filters
+	 * @param Relation      $relation
+	 *
+	 * @return BeforeRead
+	 *
+	 * @throws CRUDException
+	 */
+	public function assertReadRelative(ORMTableQuery $filters, Relation $relation): BeforeRead
+	{
+		return $this->assertRead($filters, $relation);
+	}
+
+	/**
+	 * Read-all-relatives assertion (list).
+	 *
+	 * Provides a dedicated hook for authorizing list access to related entities,
+	 * separate from the generic assertReadAll path. Delegates to assertReadAll.
+	 *
+	 * @param ORMTableQuery $filters
+	 * @param Relation      $relation
+	 *
+	 * @return BeforeReadAll
+	 *
+	 * @throws CRUDException
+	 */
+	public function assertReadAllRelatives(ORMTableQuery $filters, Relation $relation): BeforeReadAll
+	{
+		return $this->assertReadAll($filters, $relation);
 	}
 
 	/**
