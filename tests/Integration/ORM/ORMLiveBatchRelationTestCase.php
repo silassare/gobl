@@ -576,7 +576,10 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 	 * Per-relation select projection: entities loaded via getAllRelativesBatch with a select list
 	 * must be marked as partial.
 	 *
-	 * Uses LinkColumns (one-to-many): authors.books -> bat_books, projected to ['id', 'title'].
+	 * Uses LinkColumns (one-to-many): authors.books -> bat_books, projected to ['id', 'title', 'author_id'].
+	 *
+	 * Note: the FK column used to route results back to the host (author_id) must be included
+	 * in the projection, otherwise groupBatchResults() cannot map each book to its author.
 	 */
 	public function testRelationSelectProjectionMakesEntitiesPartialViaGetAllRelativesBatch(): void
 	{
@@ -584,7 +587,7 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 		$booksCtrl    = ORM::ctrl($db->getTableOrFail('bat_books'));
 		$authorsTable = $db->getTableOrFail('bat_authors');
 		$relation     = clone $authorsTable->getRelation('books');
-		$relation->setSelect(['id', 'title']);
+		$relation->setSelect(['id', 'title', 'author_id']);
 
 		$authors = [static::$fixture['alice']];
 
@@ -598,7 +601,8 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 			self::assertTrue($book->isPartial(), 'entity loaded with a select projection must be partial');
 			self::assertTrue($book->isColumnLoaded('id'), 'projected column "id" must be loaded');
 			self::assertTrue($book->isColumnLoaded('title'), 'projected column "title" must be loaded');
-			self::assertFalse($book->isColumnLoaded('author_id'), 'non-projected column "author_id" must not be loaded');
+			self::assertTrue($book->isColumnLoaded('author_id'), 'FK column "author_id" must be loaded (required for batch routing)');
+			self::assertFalse($book->isColumnLoaded('deleted'), 'non-projected column "deleted" must not be loaded');
 		}
 	}
 
