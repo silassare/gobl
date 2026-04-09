@@ -36,24 +36,20 @@ trait QBOrderByTrait
 	/**
 	 * Add ORDER BY clauses.
 	 *
-	 * Accepts either an array of column names (defaulting to ASC), or an associative array of column => direction pairs.
+	 * Accepts an array of columns with optional direction.
+	 * Direction can be specified as "ASC"/"DESC" string or as a boolean (true for ASC, false for DESC).
+	 * When direction is not specified (key is an integer), the column is treated as a raw ORDER BY clause (e.g. "name ASC").
 	 *
 	 * Example:
 	 * ```php
-	 * // Simple columns (default to ASC)
-	 * $qb->orderBy(['name', 'created_at']);
-	 *
-	 * // Columns with directions
 	 * $qb->orderBy([
-	 *    'name' => 'ASC',
-	 *   'created_at' => 'DESC',
+	 *    'client_last_name ASC',  // raw syntax
+	 *    'client_id DESC', // raw syntax
+	 *    'client_first_name' => 'DESC',  // column => direction syntax
+	 *    'client_email' => false, // falsy value treated as DESC
+	 *    'client_created_at' => true, // truthy value treated as ASC
 	 * ]);
-	 *
-	 * // Mixed example
-	 * $qb->orderBy([
-	 *   'name', // defaults to ASC
-	 *  'created_at' => 'DESC',
-	 * ]);
+	 * ```
 	 *
 	 * @param array $order_by
 	 *

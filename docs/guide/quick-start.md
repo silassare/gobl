@@ -164,7 +164,12 @@ $qb->from('posts')
           ->eq('post_published', true)
           ->lt('post_author_id', 100)
    )
-   ->orderBy(['post_id DESC'])
+   ->orderBy([
+	    'post_id DESC', // raw syntax
+		'post_title' => 'ASC', // column => direction syntax
+	    'post_published_at' => false, // falsy value treated as DESC
+		'post_created_at' => true, // truthy value treated as ASC
+   ])
    ->limit(10);
 
 $stmt = $db->select($qb->getSqlQuery(), $qb->getBoundValues());

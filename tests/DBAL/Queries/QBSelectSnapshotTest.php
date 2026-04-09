@@ -271,6 +271,28 @@ final class QBSelectSnapshotTest extends BaseTestCase
 		$this->assertMatchesSnapshot($driver . '/qb_select_order_by_multi', $qb->getSqlQuery(), $qb->getBoundValues());
 	}
 
+	/**
+	 * ORDER BY multiple columns with mixed directions, mixed associative and indexed syntax.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testSelectOrderByMultiMixed(string $driver): void
+	{
+		$db = self::getNewDbInstanceWithSchema($driver);
+		$qb = new QBSelect($db);
+		$qb->from('clients', 'c')
+			->select('c')
+			->orderBy([
+				'client_id DESC',  // raw syntax
+				'client_last_name ASC',  // raw syntax
+				'client_first_name' => 'DESC',  // column => direction syntax
+				'client_email' => false, // falsy value treated as DESC
+				'client_created_at' => true, // truthy value treated as ASC
+			]);
+
+		$this->assertMatchesSnapshot($driver . '/qb_select_order_by_multi_mixed', $qb->getSqlQuery(), $qb->getBoundValues());
+	}
+
 	// -------------------------------------------------------------------------
 	// GROUP BY / HAVING
 	// -------------------------------------------------------------------------
