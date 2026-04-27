@@ -80,7 +80,7 @@ $client->save();
 The entity tracks unsaved changes via `isSaved()` and `isNew()`:
 
 ```php
-$client = Client::ctrl()->getItem([...]);
+$client = Client::ctrl()->getItem(ORMOptions::makeFromFilters([...]));
 $client->isNew();             // false - loaded from DB
 $client->isSaved();           // true  - no pending changes
 
@@ -120,19 +120,33 @@ $client->isSaved();            // false
 
 ## Results collection
 
-`getAllItems()` returns an `ORMResults` iterator:
+`getAllItems()` returns an `ORMResults` iterator. You can pass an
+`ORMOptions` (or `null` for defaults) to control pagination:
 
 ```php
-$results = $userController->getAllItems($filters, max: 20, offset: 0);
+use Gobl\ORM\ORMOptions;
+
+// Paginated request
+$request = ORMOptions::makePaginated(max: 20, offset: 0, order_by: ['user_name ASC']);
+$results = $userController->getAllItems($request);
 
 foreach ($results as $user) {
-    // $user is a fully-typed entity instance
     echo $user->getName();
 }
 
 echo $results->count();       // rows in this page
-echo $results->totalCount();  // total matched rows (ignores LIMIT)
+echo $results->getTotal($request);  // total matched rows (ignores LIMIT)
 ```
+
+`ORMResults` carries metadata alongside the rows:
+
+| Method                                                     | Description                                                                                                     |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `fetchAllClass()`                                          | Returns all rows as a typed entity array                                                                        |
+| `count()`                                                  | Number of rows in this page                                                                                     |
+| `getTotal(?WithPaginationInterface $options, bool $force)` | Runs a COUNT(\*) query if needed; returns total matched rows (ignores LIMIT)                                    |
+| `groupByKey(bool)`                                         | Returns a generator that yields entities keyed by their identity key                                            |
+| `groupBy(callable, bool)`                                  | Returns a generator that yields entities grouped by a key generated from the entity using the provided callable |
 
 ---
 
@@ -143,6 +157,7 @@ table and alias pre-configured. Obtain one via `ORM::query()`:
 
 ```php
 use Gobl\ORM\ORM;
+use Gobl\ORM\ORMOptions;
 
 $table = $db->getTableOrFail('users');
 $tq    = ORM::query($table); // returns the generated UsersQuery instance
@@ -151,64 +166,76 @@ $tq->where(
     $tq->filters()
        ->eq('user_status', 'active')
        ->gte('user_created_at', '2024-01-01')
-)->orderBy(['user_name ASC'])->limit(10);
+);
 
-$results = ORM::results($table, $tq->getQBSelect());
+// find() returns ORMResults directly
+$request = ORMOptions::makePaginated(max: 10, order_by: ['user_name ASC']);
+$results = $tq->find($request);
+
 foreach ($results as $user) { /* ... */ }
+
+// select() returns a raw QBSelect (for custom composition)
+$qb = $tq->select($request);
+$results = ORM::results($table, $qb);
 ```
 
 ---
 
 ## Cursor-based pagination
 
-`ORMTableQuery::cursorFind()` provides stable cursor pagination over a
-single column, useful for large data-sets or infinite scroll:
+Use `ORMOptions::makeCursorBased()` with `ORMTableQuery::find()` for
+stable cursor pagination over large data-sets or infinite scroll:
 
 ```php
-$qb = Account::qb();
+use Gobl\ORM\ORMOptions;
 
-$page1 = $qb->cursorFind(
+$qb = Account::qb();   // generated AccountsQuery instance
+$max = 25;           // items per page
+
+$options = ORMOptions::makeCursorBased(
     cursor_column: 'id',
-    cursor: null,   // start from beginning
-    max: 25,
-    direction: 'asc',
+    max: $max,
+    cursor: null,        // null = start from the beginning
+    direction: 'ASC',
 );
-// [
-//   'items'       => Account[],
-//   'next_cursor' => string|null,
-//   'has_more'    => bool,
-// ]
 
-// Fetch the next page:
-$page2 = $qb->cursorFind('id', $page1['next_cursor'], 25, 'asc');
+$results = $qb->find($options);
+
+$data      = $results->fetchAllClassWithCursorMeta($options);
+$items = $data['items'];   // Account[]
+$nextCursor = $data['next_cursor']; // string|null
+$hasMore    = $data['has_more'];    // bool
+
+// Fetch the next page by passing the cursor back:
+$next = ORMOptions::makeCursorBased('id', $max, $nextCursor, 'ASC');
+$results2 = $qb->find($next);
 ```
 
-Pass `null` as `$cursor` to start from the first page; pass
-`$result['next_cursor']` for subsequent pages. When `has_more` is `false`
-and `next_cursor` is `null` you have reached the end.
+When `$hasMore` is `false` and `$nextCursor` is `null` you have reached
+the last page. `$options->isCursorBased()` returns `true` when a cursor-based
+request is in use.
 
 Throws `ORMQueryException` when `$max < 1` or `$direction` is not
-`'asc'`/`'desc'`.
+`'ASC'`/`'DESC'`.
 
 ---
 
 ## Column projection (field selection)
 
-`ORMTableQuery::selectWithColumns()` restricts the `SELECT` clause to a
-specific set of columns. This is the building block for GraphQL field
-selection, sparse fieldset APIs, and any caller that knows in advance
-which columns it needs:
+`ORMTableQuery::find()` accepts an optional `$restrict_to_columns` array that
+restricts the `SELECT` clause to a specific set of columns. This is the
+building block for GraphQL field selection, sparse fieldset APIs, and any
+caller that knows in advance which columns it needs:
 
 ```php
 $table = $db->getTableOrFail('clients');
 $tq    = ORM::query($table);
 
-// Returns a QBSelect limited to the two requested columns.
-$qb = $tq->selectWithColumns(['id', 'first_name'], max: 25);
+// find() with a column restriction: only 'id' and 'first_name' are fetched.
+$results = $tq->find(null, ['id', 'first_name']);
 
-// Pass the projected column list so each entity is marked partial automatically.
-$results = ORM::results($table, $qb, ['id', 'first_name']);
 foreach ($results->fetchAllClass() as $client) {
+    // Entities are automatically marked partial when fewer columns are loaded.
     // $client->isPartial() === true; accessing other columns throws ORMRuntimeException.
     echo $client->client_id;
     echo $client->client_first_name;
@@ -227,9 +254,9 @@ foreach ($results->fetchAllClass() as $client) {
 ::: tip
 When fetching relatives via a relation that has a `select` projection
 (see [Per-relation column projection](./relations.md#per-relation-column-projection)),
-`ORMController` calls `selectWithColumns()` internally and automatically
-marks the returned entities as partial. Accessing an unloaded column on a
-partial entity throws `ORMRuntimeException`.
+`ORMController` calls `find()` with the restricted column list internally and
+automatically marks the returned entities as partial. Accessing an unloaded
+column on a partial entity throws `ORMRuntimeException`.
 :::
 
 ---
@@ -245,10 +272,11 @@ being validated as a real column.
 ```php
 use Gobl\DBAL\Queries\QBSelect;
 
-$qb = $tq->select(max: 100);
+$request = ORMOptions::makePaginated(max: 100);
+$qb = $tq->select($request);
 
 // Inject a computed expression under the alias "rank"
-$qb->selectComputed('RANK() OVER (ORDER BY account_balance DESC)', 'rank');
+$qb->selectComputed('rank', 'RANK() OVER (ORDER BY account_balance DESC)');
 
 foreach ($results->fetchAllClass() as $account) {
     if ($account->hasComputedValue('rank')) {
@@ -271,7 +299,7 @@ $qb->orderBy([$alias => 'ASC']);
 | Method                                                                   | Description                                    |
 | ------------------------------------------------------------------------ | ---------------------------------------------- |
 | `QBSelect::computedAlias(string $var_name): string`                      | Returns `_gobl_{var_name}`                     |
-| `QBSelect::selectComputed(string $expression, string $var_name): static` | Appends `expr AS _gobl_var` to the SELECT list |
+| `QBSelect::selectComputed(string $var_name, string $expression): static` | Appends `expr AS _gobl_var` to the SELECT list |
 | `ORMEntity::getComputedValue(string $var_name): mixed`                   | Returns the stored value, or `null` if absent  |
 | `ORMEntity::hasComputedValue(string $var_name): bool`                    | Returns `true` when the slot was populated     |
 

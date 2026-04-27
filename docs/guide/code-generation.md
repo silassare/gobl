@@ -61,6 +61,35 @@ src/Db/
 The top-level files are created **once** and never overwritten - put
 all your custom logic there.
 
+### Generated relation getter signatures
+
+For each declared relation, `EntityBase` gets a typed getter method:
+
+- **Multiple** (one-to-many, many-to-many) — returns the typed `*Results` class:
+
+    ```php
+    // Relation 'accounts' on 'clients' table (one-to-many):
+    public function getAccounts(?\Gobl\ORM\Interfaces\ORMOptionsInterface $request = null): AccountsResults
+    ```
+
+    Pass an `ORMOptions` to paginate, sort, or apply cursor-based pagination:
+
+    ```php
+    use Gobl\ORM\ORMOptions;
+
+    $client  = Client::ctrl()->getItem(ORMOptions::makeFromFilters(['client_id' => 1]));
+    $results = $client->getAccounts(ORMOptions::makePaginated(max: 20));
+
+    foreach ($results as $account) { /* ... */ }
+    ```
+
+- **Single** (many-to-one, one-to-one) — returns the entity or `null`:
+
+    ```php
+    // Relation 'client' on 'accounts' table (many-to-one):
+    public function getClient(): ?Client
+    ```
+
 ### Re-running generation
 
 Re-run `$generator->generate(...)` whenever your schema changes.

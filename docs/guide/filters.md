@@ -110,7 +110,7 @@ Pass a callable that receives a `Filters` sub-group and **must return it**:
 $filters
     ->eq('u.user_status', 'active')
     ->or(function (Filters $g) {
-        return $g->eq('u.user_role', 'admin')
+        $g->eq('u.user_role', 'admin')
                  ->or()
                  ->eq('u.user_role', 'superadmin');
     });
@@ -121,7 +121,7 @@ $filters
 
 ```php
 $filters->and(function (Filters $g) {
-    return $g->isNotNull('u.user_email')
+    $g->isNotNull('u.user_email')
              ->like('u.user_email', '%@example.com');
 });
 ```

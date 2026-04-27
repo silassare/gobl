@@ -6,9 +6,9 @@ wraps the common CRUD operations in a single, type-safe API.
 ## Instantiation
 
 ```php
-use App\Models\UserController;
+use App\Db\UsersController;
 
-$controller = new UserController($db);
+$controller = UsersController::new();
 ```
 
 ---
@@ -38,8 +38,10 @@ id set.
 ## Read one
 
 ```php
+use Gobl\ORM\ORMOptions;
+
 // By primary key:
-$user = $controller->getItem(['user_id' => 1]);
+$user = $controller->getItem(ORMOptions::makeFromFilters(['user_id' => 1]));
 
 // Returns null if not found.
 ```
@@ -49,31 +51,43 @@ $user = $controller->getItem(['user_id' => 1]);
 ## Read many
 
 ```php
-use Gobl\DBAL\Filters\Filters;
+use Gobl\ORM\ORMOptions;
 
-$filters = (new Filters($db))
-    ->eq('user_status', 'active')
-    ->gte('user_score', 100);
-
-$results = $controller->getAllItems($filters, max: 20, offset: 0);
+$request = ORMOptions::makePaginated(max: 20, offset: 0, order_by: ['user_name ASC']);
+$results = $controller->getAllItems($request);
 
 foreach ($results as $user) {
     echo $user->getUserName();
 }
 ```
 
-`getAllItems()` returns an `ORMResults` iterator. Use `count()` to get
-the number of results in the current page.
+`getAllItems()` returns an `ORMResults` iterator. Use `count()` for the
+current page size or `getTotal()` for the total matched rows.
+
+To filter programmatically, use `ORMTableQuery` and `getAllItemsCustom()`:
+
+```php
+use App\Db\UsersQuery;
+use Gobl\ORM\ORMOptions;
+
+$tq = UsersQuery::new();
+$tq->where($tq->filters()->eq('user_status', 'active'));
+
+$request = ORMOptions::makePaginated(max: 20, offset: 0, order_by: ['user_name ASC']);
+$results = $controller->getAllItemsCustom($tq->select($request));
+```
 
 ### Custom SELECT query
 
 ```php
-$qb = User::qb();  // returns a UsersQuery (generated ORMTableQuery subclass)
-$qb->where($qb->filters()->like('user_name', 'j%'))
-   ->orderBy(['user_name ASC'])
-   ->limit(10);
+use App\Db\UsersQuery;
+use Gobl\ORM\ORMOptions;
 
-$rows = $controller->getAllItemsCustom($qb->getQBSelect());
+$tq = UsersQuery::new();
+$tq->where($tq->filters()->like('user_name', 'j%'));
+
+$request = ORMOptions::makePaginated(max: 10, order_by: ['user_name ASC']);
+$results = $controller->getAllItemsCustom($tq->select($request));
 ```
 
 ---
@@ -81,10 +95,11 @@ $rows = $controller->getAllItemsCustom($qb->getQBSelect());
 ## Update one
 
 ```php
-$updated = $controller->updateOneItem(
-    ['user_id' => 1],                    // filters (identifies the row)
-    ['user_name' => 'Jane Doe']          // new values
-);
+use Gobl\ORM\ORMOptions;
+
+$req = ORMOptions::makeFromFilters(['user_id' => 1]);
+$req->setFormData(['user_name' => 'Jane Doe']);
+$updated = $controller->updateOneItem($req);
 ```
 
 Returns the updated entity, or `null` if no row matched.
@@ -94,11 +109,12 @@ Returns the updated entity, or `null` if no row matched.
 ## Update many
 
 ```php
-$count = $controller->updateAllItems(
-    ['user_status' => 'active'],         // new values
-    $filters,                            // which rows
-    max: 100                             // optional row limit
-);
+use Gobl\ORM\ORMOptions;
+
+$req = ORMOptions::makeFromFilters(['user_role' => 'guest']);
+$req->setFormData(['user_status' => 'inactive']);
+$req->setMax(100);
+$count = $controller->updateAllItems($req);
 ```
 
 Returns the number of affected rows.
@@ -108,7 +124,9 @@ Returns the number of affected rows.
 ## Delete one
 
 ```php
-$deleted = $controller->deleteOneItem(['user_id' => 1]);
+use Gobl\ORM\ORMOptions;
+
+$deleted = $controller->deleteOneItem(ORMOptions::makeFromFilters(['user_id' => 1]));
 // Returns the deleted entity, or null.
 ```
 
@@ -117,16 +135,18 @@ $deleted = $controller->deleteOneItem(['user_id' => 1]);
 If the table has soft-delete columns (`deleted` + `deleted_at`):
 
 ```php
-$controller->deleteOneItem(['user_id' => 1], soft: true);
+$controller->deleteOneItem(ORMOptions::makeFromFilters(['user_id' => 1]), soft: true);
 ```
 
 Soft-deleted rows are excluded from results by default. To include them,
 call `includeSoftDeletedRows()` on the query before fetching:
 
 ```php
-$qb = User::qb();
-$qb->includeSoftDeletedRows();
-$controller->getAllItemsCustom($qb->getQBSelect());
+use App\Db\UsersQuery;
+
+$tq = UsersQuery::new();
+$tq->includeSoftDeletedRows();
+$controller->getAllItemsCustom($tq->select());
 ```
 
 ---
@@ -134,7 +154,11 @@ $controller->getAllItemsCustom($qb->getQBSelect());
 ## Delete many
 
 ```php
-$count = $controller->deleteAllItems($filters, max: 50);
+use Gobl\ORM\ORMOptions;
+
+$req = ORMOptions::makeFromFilters(['user_status' => 'inactive']);
+$req->setMax(50);
+$count = $controller->deleteAllItems($req);
 ```
 
 ---
@@ -146,28 +170,34 @@ The entity calls `getAllRelatives()` / `getRelative()` on the target
 controller internally.
 
 ```php
+use Gobl\ORM\ORMOptions;
+
 // one-to-many: defined as relation 'accounts' on the clients table
-$client   = Client::ctrl()->getItem(['client_id' => 1]);
-$accounts = $client->getAccounts();          // Account[]
-$accounts = $client->getAccounts(max: 20);   // paginated
+$client   = Client::ctrl()->getItem(ORMOptions::makeFromFilters(['client_id' => 1]));
+$results  = $client->getAccounts();                          // ORMResults (all)
+$results  = $client->getAccounts(ORMOptions::makePaginated(max: 20)); // paginated
+
+foreach ($results as $account) { /* ... */ }
 
 // many-to-one: defined as relation 'client' on the accounts table
-$account = Account::ctrl()->getItem(['account_id' => 5]);
+$account = Account::ctrl()->getItem(ORMOptions::makeFromFilters(['account_id' => 5]));
 $client  = $account->getClient();            // Client|null
 ```
 
 For advanced use-cases call the controller helpers directly:
 
 ```php
-use Gobl\ORM\ORM;
+use Gobl\ORM\ORMOptions;
 
 $ctrl     = Account::ctrl();
 $relation = Client::table()->getRelation('accounts');
 
-// getAllRelatives($host, $relation, $filters, $max, $offset, $order_by, &$total)
-$list = $ctrl->getAllRelatives($client, $relation, max: 50);
+// getAllRelatives returns ORMResults - pass an ORMOptions for pagination/ordering
+$request = ORMOptions::makePaginated(max: 50);
+$results = $ctrl->getAllRelatives($client, $relation, $request);
+$list    = $results->fetchAllClass();
 
-// getRelative($host, $relation, $filters, $order_by) - returns single or null
+// getRelative - returns a single entity or null
 $first = $ctrl->getRelative($client, $relation);
 ```
 
@@ -175,7 +205,7 @@ $first = $ctrl->getRelative($client, $relation);
 
 ## Request-based CRUD
 
-`ORMRequest` parses an incoming request into column values, filters,
+`ORMOptions` parses an incoming request into column values, filters,
 ordering, pagination, and relation hints. It is a higher-level helper
 for HTTP API endpoints - its exact interface is documented in the
-API reference (see `src/ORM/ORMRequest.php`).
+API reference (see `src/ORM/ORMOptions.php`).

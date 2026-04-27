@@ -129,6 +129,7 @@ overwritten - add all custom logic there.
 
 ```php
 use Gobl\ORM\ORM;
+use Gobl\ORM\ORMOptions;
 
 $ctrl = ORM::ctrl($db->getTableOrFail('users'));
 
@@ -137,17 +138,19 @@ $user = $ctrl->addItem([
     'user_name'  => 'Alice',
     'user_email' => 'alice@example.com',
 ]);
-echo $user->id;  // 1
+echo $user->user_id;  // 1  (full column name: prefix + short name)
 
 // Read
-$found = $ctrl->getItem(['user_email' => 'alice@example.com']);
-echo $found->name;  // Alice
+$found = $ctrl->getItem(ORMOptions::makeFromFilters(['user_email' => 'alice@example.com']));
+echo $found->user_name;  // Alice
 
 // Update
-$ctrl->updateOneItem(['user_id' => $user->id], ['user_name' => 'Alice B.']);
+$req = ORMOptions::makeFromFilters(['user_id' => $user->user_id]);
+$req->setFormData(['user_name' => 'Alice B.']);
+$ctrl->updateOneItem($req);
 
 // Delete
-$ctrl->deleteOneItem(['user_id' => $user->id]);
+$ctrl->deleteOneItem(ORMOptions::makeFromFilters(['user_id' => $user->user_id]));
 ```
 
 ## 5 - Raw query builder (no ORM)

@@ -25,11 +25,15 @@ A single row in table A relates to many rows in table B.
 The generated **entity** exposes a typed getter method named after the relation:
 
 ```php
-$client = Client::ctrl()->getItem(['client_id' => 1]);
+use Gobl\ORM\ORMOptions;
 
-// getAccounts() is generated on ClientBase because the relation is named 'accounts'
-$accounts = $client->getAccounts();          // returns Account[]
-$accounts = $client->getAccounts(max: 20);   // paginated
+$client = Client::ctrl()->getItem(ORMOptions::makeFromFilters(['client_id' => 1]));
+
+// getAccounts() returns ORMResults
+$results  = $client->getAccounts();
+$results  = $client->getAccounts(ORMOptions::makePaginated(max: 20));
+
+foreach ($results as $account) { /* ... */ }
 ```
 
 ---
@@ -49,15 +53,11 @@ The inverse of one-to-many - the FK lives in this table.
 ```
 
 ```php
-$account = Account::ctrl()->getItem(['account_id' => 5]);
+$account = Account::ctrl()->getItem(ORMOptions::makeFromFilters(['account_id' => 5]));
 
 // getClient() is generated on AccountBase because the relation is named 'client'
 $client = $account->getClient();  // returns Client|null
 ```
-
----
-
-## One-to-One
 
 Same FK structure as many-to-one, but with a semantically unique join.
 
@@ -93,7 +93,7 @@ link; auto-detection reads FK constraints on the pivot table.
 ```
 
 ```php
-$post = Post::ctrl()->getItem(['post_id' => 1]);
+$post = Post::ctrl()->getItem(ORMOptions::makeFromFilters(['post_id' => 1]));
 
 // getTags() is generated on PostBase because the relation is named 'tags'
 $tags = $post->getTags();
@@ -165,10 +165,10 @@ $relation  = Client::table()->getRelation('accounts');
 $map = $accounts->getAllRelativesBatch($clients, $relation);
 // $map[$client->toIdentityKey()] = Account[]
 
-// Many-to-one: single relative per host, with optional pagination
+// Many-to-one: single relative per host
 $clientsCtrl = Client::ctrl();
 $clientRel   = Account::table()->getRelation('client');
-$map = $clientsCtrl->getRelativeBatch($accounts, $clientRel, filters: [], max: null, offset: 0);
+$map = $clientsCtrl->getRelativeBatch($accounts, $clientRel);
 // $map[$account->toIdentityKey()] = Client|null
 ```
 
@@ -236,7 +236,7 @@ $relation->setSelect(null);                               // back to all columns
 - `setSelect()` does not validate column names at assignment time — validation only
   runs when the relation is locked, or at query time via `resolveSelectColumns()`.
 - Private columns cannot be included in the generated SQL; they are silently filtered
-  by `ORMTableQuery::selectWithColumns()` at query time.
+  by `ORMTableQuery::find()` at query time.
 - When the entire projection reduces to zero columns (all were private), Gobl falls
   back to selecting all columns.
 
@@ -264,16 +264,17 @@ You can also create partial entities manually via the factory:
 ```php
 $db     = ORM::getDatabase('App\Db');
 $table  = $db->getTableOrFail('clients');
-$entity = ORM::entity($table, false, true, ['client_id', 'client_first_name']);
+$entity = ORM::entity($table, false, true)->markAsPartial(['client_id', 'client_first_name']);
 
 $entity->isPartial();                    // true
 $entity->isColumnLoaded('client_id');    // true
 $entity->isColumnLoaded('client_email'); // false
 ```
 
-`ORM::results($table, $qb, ['client_id', 'client_first_name'])` achieves
+`ORM::results($table, $qb)` achieves
 the same for a full result set — every entity yielded by `fetchClass()` and
-`fetchAllClass()` will be marked partial with the supplied column list.
+`fetchAllClass()` will be automatically marked partial when the query selects
+fewer columns than the table defines.
 
 ---
 
@@ -285,13 +286,13 @@ list of host entities through the controller abstraction layer:
 
 ```php
 use Gobl\ORM\ORMEntityRelationController;
-use Gobl\ORM\ORMRequest;
+use Gobl\ORM\ORMOptions;
 
 $ctrl = new ORMEntityRelationController(
     Account::table()->getRelation('client')
 );
 
-$map = $ctrl->getBatch($accounts, new ORMRequest());
+$map = $ctrl->getBatch($accounts, new ORMOptions());
 // $map[$account->toIdentityKey()] = Client[]
 ```
 
