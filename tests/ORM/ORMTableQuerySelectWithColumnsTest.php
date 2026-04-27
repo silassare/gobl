@@ -17,8 +17,10 @@ use Gobl\DBAL\Builders\TableBuilder;
 use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Queries\QBSelect;
+use Gobl\ORM\Exceptions\ORMRuntimeException;
 use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\ORM\ORM;
+use Gobl\ORM\ORMOptions;
 use Gobl\ORM\ORMTableQuery;
 use Gobl\Tests\BaseTestCase;
 use Throwable;
@@ -26,14 +28,14 @@ use Throwable;
 /**
  * Class ORMTableQuerySelectWithColumnsTest.
  *
- * Tests for the public {@see ORMTableQuery::selectWithColumns()} method.
+ * Tests for the public {@see ORMTableQuery::select()} method with column projections.
  *
  * Only validation and SQL-structure tests are covered here; live-DB tests
  * (which actually iterate rows) live under tests/Integration/.
  *
- * @covers \Gobl\ORM\ORMTableQuery::selectWithColumns
- *
  * @internal
+ *
+ * @coversNothing
  */
 final class ORMTableQuerySelectWithColumnsTest extends BaseTestCase
 {
@@ -110,12 +112,8 @@ final class ORMTableQuerySelectWithColumnsTest extends BaseTestCase
 		}
 	}
 
-	// -------------------------------------------------------------------------
-	// Validation: unknown column
-	// -------------------------------------------------------------------------
-
 	/**
-	 * selectWithColumns() must throw DBALRuntimeException for unknown column names.
+	 * must throw DBALRuntimeException for unknown column names.
 	 */
 	public function testThrowsForUnknownColumn(): void
 	{
@@ -123,38 +121,18 @@ final class ORMTableQuerySelectWithColumnsTest extends BaseTestCase
 		$qb    = ORM::query($table);
 
 		$this->expectException(DBALRuntimeException::class);
-		$qb->selectWithColumns(['id', 'non_existent_column']);
+		$this->selectWithColumnProjections($qb, ['id', 'non_existent_column']);
 	}
 
-	// -------------------------------------------------------------------------
-	// Return value: QBSelect
-	// -------------------------------------------------------------------------
-
 	/**
-	 * selectWithColumns() must return a QBSelect instance.
-	 */
-	public function testReturnsQBSelect(): void
-	{
-		$table = ORM::getDatabase(self::TEST_DB_NAMESPACE)->getTableOrFail('clients');
-		$qb    = ORM::query($table);
-		$sel   = $qb->selectWithColumns(['id', 'first_name']);
-
-		self::assertInstanceOf(QBSelect::class, $sel);
-	}
-
-	// -------------------------------------------------------------------------
-	// SQL structure: column restriction
-	// -------------------------------------------------------------------------
-
-	/**
-	 * selectWithColumns() must restrict the SELECT to the projected full column names.
+	 * must restrict the SELECT to the projected full column names.
 	 */
 	public function testSQLContainsOnlyProjectedColumns(): void
 	{
 		$db    = ORM::getDatabase(self::TEST_DB_NAMESPACE);
 		$table = $db->getTableOrFail('clients');
 		$qb    = ORM::query($table);
-		$sel   = $qb->selectWithColumns(['id', 'first_name']);
+		$sel   = $this->selectWithColumnProjections($qb, ['id', 'first_name']);
 
 		$sql = $sel->getSqlQuery();
 
@@ -168,7 +146,7 @@ final class ORMTableQuerySelectWithColumnsTest extends BaseTestCase
 	}
 
 	/**
-	 * selectWithColumns() must accept full column names in addition to short names.
+	 * must accept full column names in addition to short names.
 	 */
 	public function testAcceptsFullColumnName(): void
 	{
@@ -177,55 +155,51 @@ final class ORMTableQuerySelectWithColumnsTest extends BaseTestCase
 		$qb    = ORM::query($table);
 
 		// 'client_id' is the full name (prefix 'client' + short 'id'); 'first_name' is short.
-		$sel = $qb->selectWithColumns(['client_id', 'first_name']);
+		$sel = $this->selectWithColumnProjections($qb, ['client_id', 'first_name']);
 		$sql = $sel->getSqlQuery();
 
 		self::assertStringContainsString('client_id', $sql);
 		self::assertStringContainsString('client_first_name', $sql);
 	}
 
-	// -------------------------------------------------------------------------
-	// Private column handling
-	// -------------------------------------------------------------------------
-
 	/**
-	 * selectWithColumns() must silently exclude private columns from the projection.
+	 * must throw ORMRuntimeException when an expected column is not allowed by restrict_to_columns.
 	 */
-	public function testSilentlyExcludesPrivateColumns(): void
+	public function testThrowsWhenExpectedColumnNotInRestrictToColumns(): void
 	{
 		$db    = ORM::getDatabase(self::TEST_DB_NAMESPACE);
-		$table = $db->getTableOrFail('widgets');
+		$table = $db->getTableOrFail('clients');
 		$qb    = ORM::query($table);
 
-		// 'internal_token' is private; it must be silently excluded.
-		$sel = $qb->selectWithColumns(['id', 'label', 'internal_token']);
-		$sql = $sel->getSqlQuery();
-
-		// 'widgets' table has no column prefix so names are bare.
-		self::assertStringContainsString('label', $sql);
-		// Private column must not appear in the projected SELECT.
-		self::assertStringNotContainsString('internal_token', $sql);
+		// 'id' is in expected columns but not in restrict_to_columns.
+		$this->expectException(ORMRuntimeException::class);
+		$this->selectWithColumnProjections($qb, ['id', 'first_name'], ['first_name']);
 	}
 
 	/**
-	 * selectWithColumns() must fall back to a full SELECT when every requested column
-	 * is private (no usable columns remain after filtering).
+	 * must fall back to a full SELECT when no columns are projected.
 	 */
-	public function testFallsBackToFullSelectWhenAllColumnsArePrivate(): void
+	public function testFallsBackToFullSelectWhenNoColumns(): void
 	{
 		$db    = ORM::getDatabase(self::TEST_DB_NAMESPACE);
 		$table = $db->getTableOrFail('widgets');
 		$qb    = ORM::query($table);
 
-		// Only the private column is passed; should fall back to a full SELECT.
-		$sel     = $qb->selectWithColumns(['internal_token']);
-		$full    = $qb->select();
-		$sqlSel  = $sel->getSqlQuery();
-		$sqlFull = $full->getSqlQuery();
+		$sel    = $this->selectWithColumnProjections($qb, []);
+		$sqlSel = $sel->getSqlQuery();
 
-		// Both must produce the same SQL: fallback = full select().
-		self::assertSame($sqlFull, $sqlSel);
+		// Fallback must select all non-private columns (alias.*).
+		self::assertStringContainsString('.*', $sqlSel);
 		// Private column must never appear.
 		self::assertStringNotContainsString('internal_token', $sqlSel);
+	}
+
+	private static function selectWithColumnProjections(ORMTableQuery $qb, array $columns, array $restrict_to_columns = []): QBSelect
+	{
+		$options = new ORMOptions();
+
+		$options->setExpectedColumns($columns);
+
+		return $qb->select($options, $restrict_to_columns);
 	}
 }

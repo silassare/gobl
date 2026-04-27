@@ -62,7 +62,9 @@ CREATE TABLE "gObL_orders" (
 
 
 
+-- unique key constraint added
 ALTER TABLE "gObL_accounts" ADD CONSTRAINT uc_gObL_accounts_f9913917ef012372103dd1a027b2cd6a UNIQUE ("account_client_id" , "account_currency_code");
+-- unique key constraint added
 ALTER TABLE "gObL_currencies" ADD CONSTRAINT uc_gObL_currencies_c13367945d5d4c91047b3b50234aa7ab UNIQUE ("currency_code");
 -- constraints column mapping changed.
 ALTER TABLE "gObL_accounts" ADD CONSTRAINT fk_accounts_currencies FOREIGN KEY ("account_currency_code") REFERENCES "gObL_currencies" ("currency_code") ON UPDATE NO ACTION ON DELETE NO ACTION;
@@ -137,6 +139,7 @@ CREATE TABLE "gObL_transactions" (
 
 
 
+-- primary key constraint added
 ALTER TABLE "gObL_currencies" ADD CONSTRAINT pk_gObL_currencies PRIMARY KEY ("ccy_code");
 -- table "gObL_transactions" was added.
 ALTER TABLE "gObL_transactions" ADD CONSTRAINT uc_gObL_transactions_b8af13ea9c8fe890c9979a1fa8dbde22 UNIQUE ("transaction_reference");

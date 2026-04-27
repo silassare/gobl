@@ -21,6 +21,7 @@ use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\ORM\ORM;
+use Gobl\ORM\ORMOptions;
 use Gobl\Tests\BaseTestCase;
 use PHPUtils\Events\Event;
 use PHPUtils\Events\EventManager;
@@ -184,7 +185,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 			'client_gender'     => 'male',
 		]);
 
-		$fetched = $ctrl->getItem(['client_id' => $created->id]);
+		$fetched = $ctrl->getItem(ORMOptions::makeFromFilters(['client_id' => $created->id]));
 
 		self::assertNotNull($fetched, 'getItem must return the inserted entity');
 		self::assertSame((string) $created->id, (string) $fetched->id);
@@ -206,10 +207,9 @@ abstract class ORMLiveTestCase extends BaseTestCase
 			'client_gender'     => 'female',
 		]);
 
-		$updated = $ctrl->updateOneItem(
-			['client_id' => $created->id],
-			['client_last_name' => 'Black']
-		);
+		$req = ORMOptions::makeFromFilters(['client_id' => $created->id]);
+		$req->setFormData(['client_last_name' => 'Black']);
+		$updated = $ctrl->updateOneItem($req);
 
 		self::assertNotNull($updated, 'updateOneItem must return the updated entity');
 		self::assertSame('Carol', (string) $updated->first_name);
@@ -230,12 +230,12 @@ abstract class ORMLiveTestCase extends BaseTestCase
 			'client_gender'     => 'male',
 		]);
 
-		$deleted = $ctrl->deleteOneItem(['client_id' => $created->id]);
+		$deleted = $ctrl->deleteOneItem(ORMOptions::makeFromFilters(['client_id' => $created->id]));
 
 		self::assertNotNull($deleted, 'deleteOneItem must return the deleted entity');
 
 		// Soft-deletable entities should not appear in default queries
-		$re_fetched = $ctrl->getItem(['client_id' => $created->id]);
+		$re_fetched = $ctrl->getItem(ORMOptions::makeFromFilters(['client_id' => $created->id]));
 		self::assertNull($re_fetched, 'Deleted entity must not be returned by getItem');
 	}
 
@@ -263,10 +263,11 @@ abstract class ORMLiveTestCase extends BaseTestCase
 			$ctrl->addItem(['client_first_name' => 'B', 'client_last_name' => $marker, 'client_given_name' => 'DB', 'client_gender' => 'unknown']);
 			$ctrl->addItem(['client_first_name' => 'C', 'client_last_name' => $marker, 'client_given_name' => 'DC', 'client_gender' => 'unknown']);
 
-			$count = $ctrl->deleteAllItems(['client_last_name' => $marker]);
+			$count = $ctrl->deleteAllItems(ORMOptions::makeFromFilters(['client_last_name' => $marker]));
 
 			self::assertSame(3, $count, 'deleteAllItems must remove exactly 3 rows');
-			self::assertEmpty($ctrl->getAllItems(['client_last_name' => $marker]), 'No matching rows must remain');
+			$getAllReq = ORMOptions::makeFromFilters(['client_last_name' => $marker]);
+			self::assertEmpty($ctrl->getAllItems($getAllReq), 'No matching rows must remain');
 		} finally {
 			$detach();
 		}
@@ -295,11 +296,18 @@ abstract class ORMLiveTestCase extends BaseTestCase
 			$ctrl->addItem(['client_first_name' => 'X', 'client_last_name' => $marker, 'client_given_name' => 'UX', 'client_gender' => 'unknown']);
 			$ctrl->addItem(['client_first_name' => 'Y', 'client_last_name' => $marker, 'client_given_name' => 'UY', 'client_gender' => 'unknown']);
 
-			$count = $ctrl->updateAllItems(['client_last_name' => $marker], ['client_last_name' => $marker . '_updated']);
+			$updateReq = ORMOptions::makeFromFilters(['client_last_name' => $marker]);
+			$updateReq->setFormData(['client_last_name' => $marker . '_updated']);
+			$count = $ctrl->updateAllItems($updateReq);
 
 			self::assertSame(2, $count, 'updateAllItems must update exactly 2 rows');
-			self::assertEmpty($ctrl->getAllItems(['client_last_name' => $marker]), 'Old marker must match nothing');
-			self::assertCount(2, $ctrl->getAllItems(['client_last_name' => $marker . '_updated']), 'Updated rows must be found');
+			$getAllOld = ORMOptions::makeFromFilters(['client_last_name' => $marker]);
+
+			self::assertEmpty($ctrl->getAllItems($getAllOld), 'Old marker must match nothing');
+			$getAllNew = ORMOptions::makeFromFilters(['client_last_name' => $marker . '_updated']);
+			$getAllNew->ignoreMax();
+			$getAllNew->setFilters(['client_last_name' => $marker . '_updated']);
+			self::assertCount(2, $ctrl->getAllItems($getAllNew), 'Updated rows must be found');
 		} finally {
 			$detach();
 		}
@@ -325,7 +333,9 @@ abstract class ORMLiveTestCase extends BaseTestCase
 			$ids[] = (string) $entity->id;
 		}
 
-		$all = $ctrl->getAllItems(['client_last_name' => 'GetAll']);
+		$allReq = ORMOptions::makeFromFilters(['client_last_name' => 'GetAll']);
+		$allReq->ignoreMax();
+		$all = $ctrl->getAllItems($allReq);
 
 		self::assertGreaterThanOrEqual(\count($suffixes), \count($all));
 
@@ -335,9 +345,9 @@ abstract class ORMLiveTestCase extends BaseTestCase
 	}
 
 	/**
-	 * ORM::query() can be used with filters in both old-style and new-style format.
+	 * ORMTableQuery: where() accepts both old-style and new-style filters.
 	 */
-	public function testTableQueryFilters(): void
+	public function testTableQueryWhereFilters(): void
 	{
 		$ctrl  = ORM::ctrl(static::$db->getTableOrFail('clients'));
 		$table = static::$db->getTableOrFail('clients');
@@ -350,20 +360,20 @@ abstract class ORMLiveTestCase extends BaseTestCase
 		]);
 
 		// Old-style filter (associative)
-		$tq1     = ORM::query($table, ['client_id' => $created->id]);
-		$entity1 = $tq1->find(1)->fetchClass();
+		$tq1     = ORM::query($table)->where(['client_id' => $created->id]);
+		$entity1 = $tq1->find(ORMOptions::makePaginated(1))->fetchClass();
 		self::assertNotNull($entity1);
 		self::assertSame((string) $created->id, (string) $entity1->id);
 
 		// New-style filter (indexed)
-		$tq2     = ORM::query($table, ['client_id', 'eq', $created->id]);
-		$entity2 = $tq2->find(1)->fetchClass();
+		$tq2     = ORM::query($table)->where(['client_id', 'eq', $created->id]);
+		$entity2 = $tq2->find(ORMOptions::makePaginated(1))->fetchClass();
 		self::assertNotNull($entity2);
 		self::assertSame((string) $created->id, (string) $entity2->id);
 	}
 
 	/**
-	 * ORMResults can be iterated and provides fetchClass(), totalCount(), etc.
+	 * ORMResults can be iterated and provides fetchClass(), getTotal(), etc.
 	 */
 	public function testORMResults(): void
 	{
@@ -383,9 +393,9 @@ abstract class ORMLiveTestCase extends BaseTestCase
 			]);
 		}
 
-		$results = ORM::query($table, ['client_last_name' => $last])->find($count);
+		$results = ORM::query($table)->where(['client_last_name' => $last])->find(null);
 
-		self::assertSame($count, $results->totalCount());
+		self::assertSame($count, $results->getTotal());
 
 		$collected = [];
 		foreach ($results as $entity) {
@@ -465,20 +475,22 @@ abstract class ORMLiveTestCase extends BaseTestCase
 			self::assertSame('T$', (string) $created->symbol);
 
 			// Read
-			$fetched = $ctrl->getItem(['ccy_code' => $code]);
+			$fetched = $ctrl->getItem(ORMOptions::makeFromFilters(['ccy_code' => $code]));
 			self::assertNotNull($fetched);
 			self::assertSame($code, (string) $fetched->code);
 
 			// Update
-			$updated = $ctrl->updateOneItem(['ccy_code' => $code], ['ccy_name' => 'Updated Currency']);
+			$updReq = ORMOptions::makeFromFilters(['ccy_code' => $code]);
+			$updReq->setFormData(['ccy_name' => 'Updated Currency']);
+			$updated = $ctrl->updateOneItem($updReq);
 			self::assertNotNull($updated);
 			self::assertSame('Updated Currency', (string) $updated->name);
 
 			// Delete
-			$deleted = $ctrl->deleteOneItem(['ccy_code' => $code]);
+			$deleted = $ctrl->deleteOneItem(ORMOptions::makeFromFilters(['ccy_code' => $code]));
 			self::assertNotNull($deleted);
 
-			$gone = $ctrl->getItem(['ccy_code' => $code]);
+			$gone = $ctrl->getItem(ORMOptions::makeFromFilters(['ccy_code' => $code]));
 			self::assertNull($gone, 'Currency must be gone after delete');
 		} finally {
 			$detach();
@@ -525,30 +537,31 @@ abstract class ORMLiveTestCase extends BaseTestCase
 		// EQ by path: whereDataIs('admin', 'user.role')
 		// Each assertion uses a fresh query instance to avoid filter accumulation.
 		// ------------------------------------------------------------------
-		$found = ORM::query($table)->whereDataIs('admin', 'user.role')->find(1)->fetchClass();
+		$max1  = ORMOptions::makePaginated(1);
+		$found = ORM::query($table)->whereDataIs('admin', 'user.role')->find($max1)->fetchClass();
 		self::assertNotNull($found, 'whereDataIs should find a row with matching path value');
 		self::assertSame($id, (string) $found->id);
 
 		// No match on wrong value
-		$notFound = ORM::query($table)->whereDataIs('nobody', 'user.role')->find(1)->fetchClass();
+		$notFound = ORM::query($table)->whereDataIs('nobody', 'user.role')->find(ORMOptions::makePaginated(1))->fetchClass();
 		self::assertNull($notFound, 'whereDataIs should return null for a non-matching value');
 
 		// ------------------------------------------------------------------
 		// HAS_KEY: whereDataHasKey('tag')
 		// ------------------------------------------------------------------
-		$foundHasKey = ORM::query($table)->whereDataHasKey('tag')->find(1)->fetchClass();
+		$foundHasKey = ORM::query($table)->whereDataHasKey('tag')->find(ORMOptions::makePaginated(1))->fetchClass();
 		self::assertNotNull($foundHasKey, 'whereDataHasKey should find a row that has the top-level key');
 
-		$notFoundHasKey = ORM::query($table)->whereDataHasKey('nonexistent_key_xyz')->find(1)->fetchClass();
+		$notFoundHasKey = ORM::query($table)->whereDataHasKey('nonexistent_key_xyz')->find(ORMOptions::makePaginated(1))->fetchClass();
 		self::assertNull($notFoundHasKey, 'whereDataHasKey should return null when key is absent');
 
 		// ------------------------------------------------------------------
 		// HAS_KEY nested path: whereDataHasKey('user.role') - multi-segment
 		// ------------------------------------------------------------------
-		$foundHasPath = ORM::query($table)->whereDataHasKey('user.role')->find(1)->fetchClass();
+		$foundHasPath = ORM::query($table)->whereDataHasKey('user.role')->find(ORMOptions::makePaginated(1))->fetchClass();
 		self::assertNotNull($foundHasPath, 'whereDataHasKey (multi-segment) should find a row with the nested key present');
 
-		$notFoundHasPath = ORM::query($table)->whereDataHasKey('user.nonexistent_xyz')->find(1)->fetchClass();
+		$notFoundHasPath = ORM::query($table)->whereDataHasKey('user.nonexistent_xyz')->find(ORMOptions::makePaginated(1))->fetchClass();
 		self::assertNull($notFoundHasPath, 'whereDataHasKey (multi-segment) should return null when nested key is absent');
 
 		// ------------------------------------------------------------------
@@ -558,7 +571,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 		// as a single segment, producing a safely quoted path like `$."meta.key"`
 		// in MySQL/SQLite syntax.
 		// ------------------------------------------------------------------
-		$foundDotted = ORM::query($table)->whereDataIs('dotted', "['meta.key']")->find(1)->fetchClass();
+		$foundDotted = ORM::query($table)->whereDataIs('dotted', "['meta.key']")->find(ORMOptions::makePaginated(1))->fetchClass();
 		self::assertNotNull(
 			$foundDotted,
 			"whereDataIs with a bracket-segment path (\"['meta.key']\") must find a row whose JSON key is literally 'meta.key'"
@@ -568,7 +581,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 		// ------------------------------------------------------------------
 		// Cleanup: delete the inserted test row
 		// ------------------------------------------------------------------
-		$ctrl->deleteOneItem(['client_id' => $id]);
+		$ctrl->deleteOneItem(ORMOptions::makeFromFilters(['client_id' => $id]));
 	}
 
 	// -------------------------------------------------------------------------

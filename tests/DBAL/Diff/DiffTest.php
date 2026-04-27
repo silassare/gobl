@@ -13,8 +13,10 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\DBAL\Diff;
 
+use Gobl\DBAL\Builders\TableBuilder;
 use Gobl\DBAL\Db;
 use Gobl\DBAL\Diff\Diff;
+use Gobl\DBAL\Diff\DiffActionType;
 use Gobl\Tests\BaseTestCase;
 
 /**
@@ -82,6 +84,94 @@ final class DiffTest extends BaseTestCase
 			$expected_content,
 			\rtrim($normalized, \PHP_EOL),
 			\sprintf('Snapshot mismatch for "%s". To regenerate, delete: %s', $snapshot_key, $expected_file)
+		);
+	}
+
+	/**
+	 * Adding a column to a composite PK must produce DROP + ADD PK actions.
+	 *
+	 * Regression test for: array_diff($a_pk->getColumns(), $b_pk->getColumns())
+	 * only detects removals -- an added PK column was silently ignored.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testPKColumnAddedIsDetected(string $driver): void
+	{
+		// from: PK on [id] only
+		$db_from = self::getNewDbInstance($driver);
+		$db_from->ns('Test')->table('items', static function (TableBuilder $t): void {
+			$t->int('id');
+			$t->int('type_id');
+			$t->primary('id');
+		});
+		$db_from->lock();
+
+		// to: PK extended to [id, type_id]
+		$db_to = self::getNewDbInstance($driver);
+		$db_to->ns('Test')->table('items', static function (TableBuilder $t): void {
+			$t->int('id');
+			$t->int('type_id');
+			$t->primary('id', 'type_id');
+		});
+		$db_to->lock();
+
+		$diff_actions = (new Diff($db_from, $db_to))->getDiff();
+
+		$types = \array_map(static fn ($a) => $a->getType(), $diff_actions);
+
+		self::assertContains(
+			DiffActionType::PRIMARY_KEY_CONSTRAINT_DELETED,
+			$types,
+			'Adding a column to the PK must emit a PrimaryKeyConstraintDeleted action.'
+		);
+		self::assertContains(
+			DiffActionType::PRIMARY_KEY_CONSTRAINT_ADDED,
+			$types,
+			'Adding a column to the PK must emit a PrimaryKeyConstraintAdded action.'
+		);
+	}
+
+	/**
+	 * Removing a column from a composite PK must produce DROP + ADD PK actions.
+	 *
+	 * This was already working (array_diff catches removals), but we keep it as a
+	 * complementary regression guard alongside testPKColumnAddedIsDetected.
+	 *
+	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
+	 */
+	public function testPKColumnRemovedIsDetected(string $driver): void
+	{
+		// from: composite PK [id, type_id]
+		$db_from = self::getNewDbInstance($driver);
+		$db_from->ns('Test')->table('items', static function (TableBuilder $t): void {
+			$t->int('id');
+			$t->int('type_id');
+			$t->primary('id', 'type_id');
+		});
+		$db_from->lock();
+
+		// to: PK reduced to [id] only
+		$db_to = self::getNewDbInstance($driver);
+		$db_to->ns('Test')->table('items', static function (TableBuilder $t): void {
+			$t->int('id');
+			$t->int('type_id');
+			$t->primary('id');
+		});
+		$db_to->lock();
+
+		$diff_actions = (new Diff($db_from, $db_to))->getDiff();
+
+		$types = \array_map(static fn ($a) => $a->getType(), $diff_actions);
+
+		self::assertContains(
+			DiffActionType::PRIMARY_KEY_CONSTRAINT_DELETED,
+			$types,
+			'Removing a column from the PK must emit a PrimaryKeyConstraintDeleted action.'
+		);
+		self::assertContains(
+			DiffActionType::PRIMARY_KEY_CONSTRAINT_ADDED,
+			$types,
+			'Removing a column from the PK must emit a PrimaryKeyConstraintAdded action.'
 		);
 	}
 

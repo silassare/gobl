@@ -14,21 +14,21 @@ declare(strict_types=1);
 namespace Gobl\Tests\ORM;
 
 use Gobl\ORM\Exceptions\ORMQueryException;
-use Gobl\ORM\ORMRequest;
+use Gobl\ORM\ORMOptions;
 use Gobl\Tests\BaseTestCase;
 
 /**
  * Class ORMRequestTest.
  *
- * Pure unit tests for ORMRequest: no database required.
+ * Pure unit tests for ORMOptions: no database required.
  * Tests cover payload parsing, pagination, filters, form data,
  * relations, order_by, collections, and scoped instances.
  *
- * @covers \Gobl\ORM\ORMRequest
+ * @covers \Gobl\ORM\ORMOptions
  *
  * @internal
  */
-final class ORMRequestTest extends BaseTestCase
+final class ORMOptionsTest extends BaseTestCase
 {
 	// -------------------------------------------------------------------------
 	// Tests: defaults
@@ -39,7 +39,7 @@ final class ORMRequestTest extends BaseTestCase
 	 */
 	public function testEmptyPayloadDefaults(): void
 	{
-		$req = new ORMRequest();
+		$req = new ORMOptions();
 
 		self::assertSame(1, $req->getPage(), 'Page starts at 1');
 		self::assertNotNull($req->getMax(), 'Max must have a default value');
@@ -60,9 +60,9 @@ final class ORMRequestTest extends BaseTestCase
 	 */
 	public function testExplicitMaxAndPage(): void
 	{
-		$req = new ORMRequest([
-			ORMRequest::MAX_PARAM  => 20,
-			ORMRequest::PAGE_PARAM => 3,
+		$req = new ORMOptions([
+			ORMOptions::MAX_PARAM  => 20,
+			ORMOptions::PAGE_PARAM => 3,
 		]);
 
 		self::assertSame(20, $req->getMax());
@@ -78,7 +78,7 @@ final class ORMRequestTest extends BaseTestCase
 	{
 		$this->expectException(ORMQueryException::class);
 
-		new ORMRequest([ORMRequest::MAX_PARAM => 0]);
+		new ORMOptions([ORMOptions::MAX_PARAM => 0]);
 	}
 
 	/**
@@ -89,7 +89,7 @@ final class ORMRequestTest extends BaseTestCase
 		$this->expectException(ORMQueryException::class);
 
 		// max_allowed defaults to 2000; passing 2001 must throw
-		new ORMRequest([ORMRequest::MAX_PARAM => 2001]);
+		new ORMOptions([ORMOptions::MAX_PARAM => 2001]);
 	}
 
 	/**
@@ -99,7 +99,7 @@ final class ORMRequestTest extends BaseTestCase
 	{
 		$this->expectException(ORMQueryException::class);
 
-		new ORMRequest([ORMRequest::PAGE_PARAM => 0]);
+		new ORMOptions([ORMOptions::PAGE_PARAM => 0]);
 	}
 
 	/**
@@ -107,7 +107,7 @@ final class ORMRequestTest extends BaseTestCase
 	 */
 	public function testSetMaxAndSetPage(): void
 	{
-		$req = new ORMRequest();
+		$req = new ORMOptions();
 
 		$req->setMax(50)->setPage(2);
 
@@ -125,19 +125,19 @@ final class ORMRequestTest extends BaseTestCase
 	 */
 	public function testFormDataFromDedicatedKey(): void
 	{
-		$req = new ORMRequest([
-			ORMRequest::FORM_DATA_PARAM => [
+		$req = new ORMOptions([
+			ORMOptions::FORM_DATA_PARAM => [
 				'email' => 'a@example.com',
 				'name'  => 'Alice',
 			],
 			// These sibling keys should NOT leak into form_data
-			ORMRequest::FILTERS_PARAM => ['id' => 1],
+			ORMOptions::FILTERS_PARAM => ['id' => 1],
 		]);
 
 		self::assertSame('a@example.com', $req->getFormField('email'));
 		self::assertSame('Alice', $req->getFormField('name'));
 		// filters key must NOT appear as form field
-		self::assertNull($req->getFormField(ORMRequest::FILTERS_PARAM));
+		self::assertNull($req->getFormField(ORMOptions::FILTERS_PARAM));
 	}
 
 	/**
@@ -145,16 +145,16 @@ final class ORMRequestTest extends BaseTestCase
 	 */
 	public function testFormDataFromRootLevel(): void
 	{
-		$req = new ORMRequest([
+		$req = new ORMOptions([
 			'email'                  => 'b@example.com',
-			ORMRequest::MAX_PARAM    => 10,  // keyword must be excluded
-			ORMRequest::PAGE_PARAM   => 1,   // keyword must be excluded
+			ORMOptions::MAX_PARAM    => 10,  // keyword must be excluded
+			ORMOptions::PAGE_PARAM   => 1,   // keyword must be excluded
 		]);
 
 		self::assertSame('b@example.com', $req->getFormField('email'));
 		// keywords must not appear in form data
-		self::assertNull($req->getFormField(ORMRequest::MAX_PARAM));
-		self::assertNull($req->getFormField(ORMRequest::PAGE_PARAM));
+		self::assertNull($req->getFormField(ORMOptions::MAX_PARAM));
+		self::assertNull($req->getFormField(ORMOptions::PAGE_PARAM));
 	}
 
 	/**
@@ -162,7 +162,7 @@ final class ORMRequestTest extends BaseTestCase
 	 */
 	public function testSetAndRemoveFormField(): void
 	{
-		$req = new ORMRequest([ORMRequest::FORM_DATA_PARAM => ['a' => 1]]);
+		$req = new ORMOptions([ORMOptions::FORM_DATA_PARAM => ['a' => 1]]);
 
 		$req->setFormField('b', 2);
 		self::assertSame(2, $req->getFormField('b'));
@@ -176,7 +176,7 @@ final class ORMRequestTest extends BaseTestCase
 	 */
 	public function testFormFieldDefault(): void
 	{
-		$req = new ORMRequest([ORMRequest::FORM_DATA_PARAM => []]);
+		$req = new ORMOptions([ORMOptions::FORM_DATA_PARAM => []]);
 
 		self::assertSame('default_value', $req->getFormField('missing', 'default_value'));
 	}
@@ -191,7 +191,7 @@ final class ORMRequestTest extends BaseTestCase
 	public function testFiltersArePreserved(): void
 	{
 		$filters = ['user_id' => 42, 'active' => true];
-		$req     = new ORMRequest([ORMRequest::FILTERS_PARAM => $filters]);
+		$req     = new ORMOptions([ORMOptions::FILTERS_PARAM => $filters]);
 
 		self::assertSame($filters, $req->getFilters());
 	}
@@ -201,7 +201,7 @@ final class ORMRequestTest extends BaseTestCase
 	 */
 	public function testEnsureOnlyFilters(): void
 	{
-		$req = new ORMRequest();
+		$req = new ORMOptions();
 		$req->ensureOnlyFilters(['tenant_id', 'eq', 7]);
 
 		// With no user filters, ensure filters are returned directly
@@ -213,7 +213,7 @@ final class ORMRequestTest extends BaseTestCase
 	 */
 	public function testEnsureOnlyFiltersWithUserFilters(): void
 	{
-		$req     = new ORMRequest([ORMRequest::FILTERS_PARAM => ['status' => 'active']]);
+		$req     = new ORMOptions([ORMOptions::FILTERS_PARAM => ['status' => 'active']]);
 		$req->ensureOnlyFilters(['tenant_id', 'eq', 99]);
 
 		$filters = $req->getFilters();
@@ -233,8 +233,8 @@ final class ORMRequestTest extends BaseTestCase
 	 */
 	public function testRelationsFromString(): void
 	{
-		$req = new ORMRequest([
-			ORMRequest::RELATIONS_PARAM => 'accounts|currency',
+		$req = new ORMOptions([
+			ORMOptions::RELATIONS_PARAM => 'accounts|currency',
 		]);
 
 		self::assertSame(['accounts', 'currency'], $req->getRequestedRelations());
@@ -245,8 +245,8 @@ final class ORMRequestTest extends BaseTestCase
 	 */
 	public function testRelationsFromArray(): void
 	{
-		$req = new ORMRequest([
-			ORMRequest::RELATIONS_PARAM => ['accounts', 'currency', 'accounts'], // duplicate
+		$req = new ORMOptions([
+			ORMOptions::RELATIONS_PARAM => ['accounts', 'currency', 'accounts'], // duplicate
 		]);
 
 		// Duplicates must be removed
@@ -260,7 +260,7 @@ final class ORMRequestTest extends BaseTestCase
 	 */
 	public function testAddRequestedRelation(): void
 	{
-		$req = new ORMRequest([ORMRequest::RELATIONS_PARAM => 'accounts']);
+		$req = new ORMOptions([ORMOptions::RELATIONS_PARAM => 'accounts']);
 		$req->addRequestedRelation('currency');
 		$req->addRequestedRelation('accounts'); // duplicate
 
@@ -277,7 +277,7 @@ final class ORMRequestTest extends BaseTestCase
 	{
 		$this->expectException(ORMQueryException::class);
 
-		new ORMRequest([ORMRequest::RELATIONS_PARAM => '!!invalid-name']);
+		new ORMOptions([ORMOptions::RELATIONS_PARAM => '!!invalid-name']);
 	}
 
 	// -------------------------------------------------------------------------
@@ -289,8 +289,8 @@ final class ORMRequestTest extends BaseTestCase
 	 */
 	public function testOrderByParsing(): void
 	{
-		$req = new ORMRequest([
-			ORMRequest::ORDER_BY_PARAM => 'name|created_at:desc',
+		$req = new ORMOptions([
+			ORMOptions::ORDER_BY_PARAM => 'name|created_at:desc',
 		]);
 
 		$ob = $req->getOrderBy();
@@ -306,7 +306,7 @@ final class ORMRequestTest extends BaseTestCase
 	 */
 	public function testEmptyOrderByString(): void
 	{
-		$req = new ORMRequest([ORMRequest::ORDER_BY_PARAM => '']);
+		$req = new ORMOptions([ORMOptions::ORDER_BY_PARAM => '']);
 
 		self::assertSame([], $req->getOrderBy());
 	}
@@ -320,7 +320,7 @@ final class ORMRequestTest extends BaseTestCase
 	 */
 	public function testCollectionParsing(): void
 	{
-		$req = new ORMRequest([ORMRequest::COLLECTION_PARAM => 'my_collection']);
+		$req = new ORMOptions([ORMOptions::COLLECTION_PARAM => 'my_collection']);
 
 		self::assertSame('my_collection', $req->getRequestedCollection());
 	}
@@ -330,7 +330,7 @@ final class ORMRequestTest extends BaseTestCase
 	 */
 	public function testEmptyCollectionIsNull(): void
 	{
-		$req = new ORMRequest([ORMRequest::COLLECTION_PARAM => '']);
+		$req = new ORMOptions([ORMOptions::COLLECTION_PARAM => '']);
 
 		self::assertNull($req->getRequestedCollection());
 	}
@@ -340,7 +340,7 @@ final class ORMRequestTest extends BaseTestCase
 	 */
 	public function testSetRequestedCollection(): void
 	{
-		$req = new ORMRequest();
+		$req = new ORMOptions();
 		$req->setRequestedCollection('other_collection');
 
 		self::assertSame('other_collection', $req->getRequestedCollection());
@@ -355,11 +355,11 @@ final class ORMRequestTest extends BaseTestCase
 	 */
 	public function testScopedInstance(): void
 	{
-		$req = new ORMRequest([
-			ORMRequest::SCOPES_PARAM => [
+		$req = new ORMOptions([
+			ORMOptions::SCOPES_PARAM => [
 				'user_scope' => [
-					ORMRequest::MAX_PARAM  => 5,
-					ORMRequest::PAGE_PARAM => 2,
+					ORMOptions::MAX_PARAM  => 5,
+					ORMOptions::PAGE_PARAM => 2,
 				],
 			],
 		]);
@@ -375,7 +375,7 @@ final class ORMRequestTest extends BaseTestCase
 	 */
 	public function testMissingScopeUsesDefaults(): void
 	{
-		$req    = new ORMRequest(['something' => 'value']);
+		$req    = new ORMOptions(['something' => 'value']);
 		$scoped = $req->createScopedInstance('nonexistent_scope');
 
 		self::assertSame(1, $scoped->getPage());
@@ -391,11 +391,11 @@ final class ORMRequestTest extends BaseTestCase
 	 */
 	public function testGetParsedRequestIncludesPage(): void
 	{
-		$req    = new ORMRequest([ORMRequest::PAGE_PARAM => 4]);
+		$req    = new ORMOptions([ORMOptions::PAGE_PARAM => 4]);
 		$parsed = $req->getParsedRequest();
 
-		self::assertArrayHasKey(ORMRequest::PAGE_PARAM, $parsed);
-		self::assertSame(4, $parsed[ORMRequest::PAGE_PARAM]);
+		self::assertArrayHasKey(ORMOptions::PAGE_PARAM, $parsed);
+		self::assertSame(4, $parsed[ORMOptions::PAGE_PARAM]);
 	}
 
 	/**
@@ -403,11 +403,11 @@ final class ORMRequestTest extends BaseTestCase
 	 */
 	public function testGetParsedRequestExplicitMax(): void
 	{
-		$req    = new ORMRequest([ORMRequest::MAX_PARAM => 15]);
+		$req    = new ORMOptions([ORMOptions::MAX_PARAM => 15]);
 		$parsed = $req->getParsedRequest();
 
-		self::assertArrayHasKey(ORMRequest::MAX_PARAM, $parsed);
-		self::assertSame(15, $parsed[ORMRequest::MAX_PARAM]);
+		self::assertArrayHasKey(ORMOptions::MAX_PARAM, $parsed);
+		self::assertSame(15, $parsed[ORMOptions::MAX_PARAM]);
 	}
 
 	/**
@@ -416,12 +416,12 @@ final class ORMRequestTest extends BaseTestCase
 	public function testCustomMaxDefaultAndAllowed(): void
 	{
 		// max_default=25, max_allowed=100
-		$req = new ORMRequest([], '', 25, 100);
+		$req = new ORMOptions([], '', 25, 100);
 
 		self::assertSame(25, $req->getMax(), 'Custom max_default must be respected');
 
 		// Exceeding max_allowed must throw
 		$this->expectException(ORMQueryException::class);
-		new ORMRequest([ORMRequest::MAX_PARAM => 101], '', 25, 100);
+		new ORMOptions([ORMOptions::MAX_PARAM => 101], '', 25, 100);
 	}
 }

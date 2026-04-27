@@ -26,7 +26,6 @@ use Gobl\DBAL\Drivers\MySQL\MySQL;
  * @covers \Gobl\DBAL\Relations\LinkJoin
  * @covers \Gobl\DBAL\Relations\LinkMorph
  * @covers \Gobl\DBAL\Relations\LinkThrough
- * @covers \Gobl\ORM\ORMController::countRelativesBatch
  * @covers \Gobl\ORM\ORMController::getAllRelativesBatch
  * @covers \Gobl\ORM\ORMController::getRelativeBatch
  */

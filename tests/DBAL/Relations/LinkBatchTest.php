@@ -16,32 +16,26 @@ namespace Gobl\Tests\DBAL\Relations;
 use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Relations\LinkColumns;
-use Gobl\DBAL\Relations\LinkThrough;
 use Gobl\Gobl;
 use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\ORM\ORM;
 use Gobl\ORM\ORMEntity;
+use Gobl\ORM\ORMTableQuery;
 use Gobl\Tests\BaseTestCase;
 use Throwable;
 
 /**
  * Class LinkBatchTest.
  *
- * Unit tests for {@see LinkColumns::applyBatch()} and
- * {@see LinkColumns::groupBatchResults()} (Feature 1).
- *
- * Also covers the full implementations in {@see LinkThrough} and the computed-value
+ * Unit tests for {@see ORMTableQuery::selectRelativesBatch()} and the computed-value
  * slot on {@see ORMEntity}.
  *
- * Uses the TEST_DB_NAMESPACE schema (clients, accounts) which has generated
- * ORM classes, so ORM::entity() can create entity instances without a live DB.
- * Assertions are made against the generated SQL string for `applyBatch`, and
- * against the grouping map for `groupBatchResults`.
+ * Uses the TEST_DB_NAMESPACE schema (clients, accounts) and the sample schema
+ * (articles, tags, taggables) which have generated ORM classes, so ORM::entity()
+ * can create entity instances without a live DB.
+ * Assertions are made against the generated SQL string.
  *
- * @covers \Gobl\DBAL\Relations\LinkColumns::applyBatch
- * @covers \Gobl\DBAL\Relations\LinkColumns::groupBatchResults
- * @covers \Gobl\DBAL\Relations\LinkThrough::applyBatch
- * @covers \Gobl\DBAL\Relations\LinkThrough::groupBatchResults
+ * @covers \Gobl\ORM\ORMTableQuery::selectRelativesBatch
  *
  * @internal
  */
@@ -160,324 +154,194 @@ final class LinkBatchTest extends BaseTestCase
 	}
 
 	// ---------------------------------------------------------------------------
-	// LinkColumns - applyBatch
+	// ORMTableQuery::selectRelativesBatch - SQL-level tests
 	// ---------------------------------------------------------------------------
 
 	/**
-	 * applyBatch() for many-to-one accounts.client (account_client_id -> client_id)
-	 * must add `client_id IN (...)` to the WHERE clause of the target query.
+	 * selectRelativesBatch() must return null when the host entity list is empty.
 	 */
-	public function testLinkColumnsApplyBatchManyToOne(): void
+	public function testSelectRelativesBatchReturnsNullForEmptyHosts(): void
 	{
 		$db       = ORM::getDatabase(self::TEST_DB_NAMESPACE);
 		$accounts = $db->getTableOrFail('accounts');
 		$clients  = $db->getTableOrFail('clients');
-		$link     = $accounts->getRelation('client')->getLink();
 
-		self::assertInstanceOf(LinkColumns::class, $link);
+		// many-to-one: accounts.client (host=accounts, target=clients)
+		$relation = $accounts->getRelation('client');
+		$qb       = ORM::query($clients);
+		self::assertNull($qb->selectRelativesBatch($relation, []));
+
+		// one-to-many: clients.accounts (host=clients, target=accounts)
+		$relation = $clients->getRelation('accounts');
+		$qb       = ORM::query($accounts);
+		self::assertNull($qb->selectRelativesBatch($relation, []));
+	}
+
+	/**
+	 * selectRelativesBatch() for many-to-one accounts.client must JOIN the host table
+	 * and add an IN clause on the host PK column.
+	 */
+	public function testSelectRelativesBatchManyToOne(): void
+	{
+		$db       = ORM::getDatabase(self::TEST_DB_NAMESPACE);
+		$accounts = $db->getTableOrFail('accounts');
+		$clients  = $db->getTableOrFail('clients');
+
+		$relation = $accounts->getRelation('client'); // host=accounts, target=clients
 
 		$acct1 = ORM::entity($accounts, false, false);
 		$acct1->hydrate(['account_id' => 1, 'account_client_id' => 10]);
+		$acct1->isSaved(true);
 
 		$acct2 = ORM::entity($accounts, false, false);
 		$acct2->hydrate(['account_id' => 2, 'account_client_id' => 20]);
+		$acct2->isSaved(true);
 
-		$qb = new QBSelect($db);
-		$qb->from($clients->getFullName(), 'c');
+		$qb  = ORM::query($clients);
+		$sel = $qb->selectRelativesBatch($relation, [$acct1, $acct2]);
 
-		$applied = $link->applyBatch($qb, [$acct1, $acct2]);
+		self::assertNotNull($sel, 'selectRelativesBatch() must return a QBSelect for a non-empty host list');
 
-		self::assertTrue($applied, 'applyBatch() must return true for a single-FK column link');
+		$sql = $sel->getSqlQuery();
 
-		$sql = $qb->getSqlQuery();
-		self::assertStringContainsString('IN', $sql, 'Generated SQL must use IN clause');
-		self::assertStringContainsString('client_id', $sql, 'Target column client_id must appear in SQL');
+		self::assertStringContainsString('IN', $sql, 'SQL must use IN clause for the host PK values');
+		self::assertStringContainsString('account_id', $sql, 'Host PK (account_id) must appear in SQL');
+		self::assertStringContainsString(
+			QBSelect::computedAlias(ORMTableQuery::BATCH_HOST_IDENTITY_KEY),
+			$sql,
+			'Computed batch routing alias must appear in SQL'
+		);
 	}
 
 	/**
-	 * applyBatch() for one-to-many clients.accounts (client_id -> account_client_id)
-	 * must add `account_client_id IN (...)` to the WHERE clause.
+	 * selectRelativesBatch() for one-to-many clients.accounts must JOIN the host table
+	 * and add an IN clause on the host PK column.
 	 */
-	public function testLinkColumnsApplyBatchOneToMany(): void
+	public function testSelectRelativesBatchOneToMany(): void
 	{
 		$db       = ORM::getDatabase(self::TEST_DB_NAMESPACE);
 		$clients  = $db->getTableOrFail('clients');
 		$accounts = $db->getTableOrFail('accounts');
-		$link     = $clients->getRelation('accounts')->getLink();
 
-		self::assertInstanceOf(LinkColumns::class, $link);
+		$relation = $clients->getRelation('accounts'); // host=clients, target=accounts
 
 		$client1 = ORM::entity($clients, false, false);
 		$client1->hydrate(['client_id' => 1]);
+		$client1->isSaved(true);
 
 		$client2 = ORM::entity($clients, false, false);
 		$client2->hydrate(['client_id' => 2]);
+		$client2->isSaved(true);
 
-		$qb = new QBSelect($db);
-		$qb->from($accounts->getFullName(), 'a');
+		$qb  = ORM::query($accounts);
+		$sel = $qb->selectRelativesBatch($relation, [$client1, $client2]);
 
-		$applied = $link->applyBatch($qb, [$client1, $client2]);
+		self::assertNotNull($sel);
 
-		self::assertTrue($applied, 'applyBatch() must return true for one-to-many link');
+		$sql = $sel->getSqlQuery();
 
-		$sql = $qb->getSqlQuery();
 		self::assertStringContainsString('IN', $sql);
-		self::assertStringContainsString('account_client_id', $sql);
+		self::assertStringContainsString('client_id', $sql, 'Host PK (client_id) must appear in SQL');
+		self::assertStringContainsString(
+			QBSelect::computedAlias(ORMTableQuery::BATCH_HOST_IDENTITY_KEY),
+			$sql
+		);
 	}
 
 	/**
-	 * applyBatch() must return false when the host entity has FK value 0 and the
-	 * column maps 0 -- this verifies we don't short-circuit on "falsy" values.
-	 * Actually, since bigint columns coerce null -> 0, the only way to get an empty
-	 * values list is an empty host array; this test just documents the FK-value
-	 * is non-null (0) and applyBatch succeeds.
+	 * A host entity with FK value 0 (coerced non-null bigint) must be handled correctly.
 	 */
-	public function testLinkColumnsApplyBatchWithZeroFKValueSucceeds(): void
+	public function testSelectRelativesBatchWithZeroFKValueSucceeds(): void
 	{
 		$db       = ORM::getDatabase(self::TEST_DB_NAMESPACE);
 		$accounts = $db->getTableOrFail('accounts');
 		$clients  = $db->getTableOrFail('clients');
-		$link     = $accounts->getRelation('client')->getLink();
 
-		// account_client_id not provided -> coerced to 0 by bigint type
+		$relation = $accounts->getRelation('client');
+
+		// account_client_id not provided -> coerced to 0 by bigint type; account_id = 1
 		$acct = ORM::entity($accounts, false, false);
 		$acct->hydrate(['account_id' => 1]);
+		$acct->isSaved(true);
 
-		$qb = new QBSelect($db);
-		$qb->from($clients->getFullName(), 'c');
+		$qb  = ORM::query($clients);
+		$sel = $qb->selectRelativesBatch($relation, [$acct]);
 
-		// 0 is treated as a valid value (not null), so applyBatch returns true
-		self::assertTrue(
-			$link->applyBatch($qb, [$acct]),
-			'applyBatch() must return true when FK value is 0 (coerced non-null bigint)'
-		);
-	}
-
-	public function testLinkColumnsApplyBatchReturnsFalseOnEmptyHostList(): void
-	{
-		$db       = ORM::getDatabase(self::TEST_DB_NAMESPACE);
-		$accounts = $db->getTableOrFail('accounts');
-		$clients  = $db->getTableOrFail('clients');
-		$link     = $accounts->getRelation('client')->getLink();
-
-		$qb = new QBSelect($db);
-		$qb->from($clients->getFullName(), 'c');
-
-		self::assertFalse(
-			$link->applyBatch($qb, []),
-			'applyBatch() must return false for an empty host entity list'
-		);
+		self::assertNotNull($sel, 'selectRelativesBatch() must succeed when FK value is 0 (coerced non-null bigint)');
 	}
 
 	// ---------------------------------------------------------------------------
-	// LinkColumns - groupBatchResults
+	// ORMTableQuery::selectRelativesBatch - LinkThrough (articles.tags via morph-through)
 	// ---------------------------------------------------------------------------
 
 	/**
-	 * For clients.accounts (one-to-many: client_id -> account_client_id)
-	 * groupBatchResults must build a map host_pk -> [account, ...].
+	 * selectRelativesBatch() must return null for an empty host entity list (LinkThrough).
 	 */
-	public function testLinkColumnsGroupBatchResultsOneToMany(): void
+	public function testSelectRelativesBatchForLinkThroughReturnsNullForEmptyHosts(): void
 	{
-		$db       = ORM::getDatabase(self::TEST_DB_NAMESPACE);
-		$clients  = $db->getTableOrFail('clients');
-		$accounts = $db->getTableOrFail('accounts');
-		$link     = $clients->getRelation('accounts')->getLink();
+		$db       = ORM::getDatabase(self::SAMPLE_NS);
+		$articles = $db->getTableOrFail('articles');
+		$tags     = $db->getTableOrFail('tags');
+		$relation = $articles->getRelation('tags'); // host=articles, target=tags
 
-		$client1 = ORM::entity($clients, false, false);
-		$client1->hydrate(['client_id' => 1]);
-		$client2 = ORM::entity($clients, false, false);
-		$client2->hydrate(['client_id' => 2]);
-
-		$acct1 = ORM::entity($accounts, false, false);
-		$acct1->hydrate(['account_id' => 10, 'account_client_id' => 1]);
-		$acct2 = ORM::entity($accounts, false, false);
-		$acct2->hydrate(['account_id' => 11, 'account_client_id' => 1]);
-		$acct3 = ORM::entity($accounts, false, false);
-		$acct3->hydrate(['account_id' => 20, 'account_client_id' => 2]);
-
-		$grouped = $link->groupBatchResults([$client1, $client2], [$acct1, $acct2, $acct3]);
-
-		self::assertArrayHasKey('1', $grouped, 'Client 1 must be in the group map');
-		self::assertArrayHasKey('2', $grouped, 'Client 2 must be in the group map');
-		self::assertCount(2, $grouped['1'], 'Client 1 must have 2 accounts');
-		self::assertCount(1, $grouped['2'], 'Client 2 must have 1 account');
+		$tq = ORM::query($tags);
+		self::assertNull($tq->selectRelativesBatch($relation, []));
 	}
 
 	/**
-	 * For accounts.client (many-to-one: account_client_id -> client_id):
-	 * multiple accounts may share the same client_id; both must map to the same result.
+	 * selectRelativesBatch() for articles.tags (LinkThrough via taggables) must JOIN the
+	 * pivot table and add an IN clause with the computed batch routing alias.
 	 */
-	public function testLinkColumnsGroupBatchResultsManyToOne(): void
-	{
-		$db       = ORM::getDatabase(self::TEST_DB_NAMESPACE);
-		$accounts = $db->getTableOrFail('accounts');
-		$clients  = $db->getTableOrFail('clients');
-		$link     = $accounts->getRelation('client')->getLink();
-
-		// Two accounts sharing the same client
-		$acct1 = ORM::entity($accounts, false, false);
-		$acct1->hydrate(['account_id' => 10, 'account_client_id' => 1]);
-		$acct2 = ORM::entity($accounts, false, false);
-		$acct2->hydrate(['account_id' => 11, 'account_client_id' => 1]);
-
-		$client1 = ORM::entity($clients, false, false);
-		$client1->hydrate(['client_id' => 1]);
-
-		$grouped = $link->groupBatchResults([$acct1, $acct2], [$client1]);
-
-		self::assertArrayHasKey('10', $grouped, 'Account 10 must be in the group map');
-		self::assertArrayHasKey('11', $grouped, 'Account 11 must be in the group map');
-		self::assertCount(1, $grouped['10'], 'Account 10 must have its client');
-		self::assertCount(1, $grouped['11'], 'Account 11 must also have its client (shared FK)');
-		self::assertSame('1', (string) $grouped['10'][0]->client_id);
-	}
-
-	public function testLinkColumnsGroupBatchResultsEmptyResultsReturnsEmptyMap(): void
-	{
-		$db      = ORM::getDatabase(self::TEST_DB_NAMESPACE);
-		$clients = $db->getTableOrFail('clients');
-		$link    = $clients->getRelation('accounts')->getLink();
-
-		$client1 = ORM::entity($clients, false, false);
-		$client1->hydrate(['client_id' => 1]);
-
-		$grouped = $link->groupBatchResults([$client1], []);
-
-		self::assertEmpty($grouped, 'No results must produce an empty map');
-	}
-
-	public function testLinkColumnsGroupBatchResultsEmptyHostsReturnsEmptyMap(): void
-	{
-		$db       = ORM::getDatabase(self::TEST_DB_NAMESPACE);
-		$accounts = $db->getTableOrFail('accounts');
-		$link     = $accounts->getRelation('client')->getLink();
-
-		$acct = ORM::entity($accounts, false, false);
-		$acct->hydrate(['account_id' => 1, 'account_client_id' => 1]);
-
-		$grouped = $link->groupBatchResults([], [$acct]);
-
-		self::assertEmpty($grouped, 'No hosts must produce an empty map');
-	}
-
-	// ---------------------------------------------------------------------------
-	// LinkThrough - applyBatch (articles.tags via morph-through)
-	// ---------------------------------------------------------------------------
-
-	/**
-	 * applyBatch() with an empty host list must return false (nothing to filter on).
-	 */
-	public function testLinkThroughApplyBatchReturnsFalseOnEmptyHostList(): void
-	{
-		$db   = ORM::getDatabase(self::SAMPLE_NS);
-		$arts = $db->getTableOrFail('articles');
-		$rel  = $arts->getRelation('tags');
-		$link = $rel->getLink();
-
-		self::assertInstanceOf(
-			LinkThrough::class,
-			$link,
-			'articles.tags via morph-through must use LinkThrough'
-		);
-
-		$tags = $db->getTableOrFail('tags');
-		$qb   = new QBSelect($db);
-		$qb->from($tags->getFullName(), 'tg');
-
-		self::assertFalse(
-			$link->applyBatch($qb, []),
-			'LinkThrough::applyBatch must return false for an empty host entity list'
-		);
-	}
-
-	/**
-	 * applyBatch() with actual host entities must return true and produce SQL containing
-	 * the pivot table join and the IN condition on the morph-key column.
-	 */
-	public function testLinkThroughApplyBatchReturnsTrueWithHosts(): void
+	public function testSelectRelativesBatchForLinkThroughWithHosts(): void
 	{
 		$db        = ORM::getDatabase(self::SAMPLE_NS);
-		$arts      = $db->getTableOrFail('articles');
+		$articles  = $db->getTableOrFail('articles');
 		$tags      = $db->getTableOrFail('tags');
 		$taggables = $db->getTableOrFail('taggables');
-		$link      = $arts->getRelation('tags')->getLink();
+		$relation  = $articles->getRelation('tags');
 
-		self::assertInstanceOf(LinkThrough::class, $link);
-
-		$art1 = ORM::entity($arts, false, false);
+		$art1 = ORM::entity($articles, false, false);
 		$art1->hydrate(['id' => 1]);
+		$art1->isSaved(true);
 
-		$art2 = ORM::entity($arts, false, false);
+		$art2 = ORM::entity($articles, false, false);
 		$art2->hydrate(['id' => 2]);
+		$art2->isSaved(true);
 
-		$qb = new QBSelect($db);
-		$qb->from($tags->getFullName(), 'tg');
+		$qb  = ORM::query($tags);
+		$sel = $qb->selectRelativesBatch($relation, [$art1, $art2]);
 
-		$applied = $link->applyBatch($qb, [$art1, $art2]);
+		self::assertNotNull($sel, 'selectRelativesBatch() must return a QBSelect for non-empty host list');
 
-		self::assertTrue($applied, 'applyBatch() must return true when host entities are provided');
+		$sql = $sel->getSqlQuery();
 
-		$sql = $qb->getSqlQuery();
-
-		// The pivot table (taggables) must be joined.
-		self::assertStringContainsString($taggables->getFullName(), $sql, 'Pivot JOIN must appear in SQL');
-		// The IN clause must appear.
+		self::assertStringContainsString($taggables->getFullName(), $sql, 'Pivot table (taggables) must appear in SQL');
 		self::assertStringContainsString('IN', $sql, 'IN clause must appear in SQL');
-		// The computed batch_key slot must be present.
-		self::assertStringContainsString(QBSelect::computedAlias('batch_key'), $sql, 'Computed batch_key alias must appear in SQL');
+		self::assertStringContainsString(
+			QBSelect::computedAlias(ORMTableQuery::BATCH_HOST_IDENTITY_KEY),
+			$sql,
+			'Computed batch routing alias must appear in SQL'
+		);
 	}
 
 	/**
-	 * groupBatchResults() for an empty result set must return an empty map.
+	 * The computed batch routing key injected by selectRelativesBatch() is readable via
+	 * getComputedValue(ORMTableQuery::BATCH_HOST_IDENTITY_KEY) after PDO hydration.
 	 */
-	public function testLinkThroughGroupBatchResultsReturnsEmptyForEmptyResults(): void
+	public function testSelectRelativesBatchRoutingKeyIsReadableViaGetComputedValue(): void
 	{
-		$db   = ORM::getDatabase(self::SAMPLE_NS);
-		$arts = $db->getTableOrFail('articles');
-		$link = $arts->getRelation('tags')->getLink();
+		$db       = ORM::getDatabase(self::TEST_DB_NAMESPACE);
+		$accounts = $db->getTableOrFail('accounts');
 
-		$art = ORM::entity($arts, false, false);
-		$art->hydrate(['id' => 1]);
+		// Simulate PDO hydration: the batch key is injected as _gobl_batch_host_identity_key.
+		$entity = ORM::entity($accounts, false, false);
+		$entity->hydrate([
+			'account_id'                                        => 10,
+			'_gobl_' . ORMTableQuery::BATCH_HOST_IDENTITY_KEY   => 5,
+		]);
 
-		self::assertSame([], $link->groupBatchResults([$art], []));
-	}
-
-	/**
-	 * groupBatchResults() must route target entities back to their host using the
-	 * `_gobl_batch_key` computed value we simulate by calling hydrate() with it.
-	 */
-	public function testLinkThroughGroupBatchResultsRoutesCorrectly(): void
-	{
-		$db   = ORM::getDatabase(self::SAMPLE_NS);
-		$arts = $db->getTableOrFail('articles');
-		$tags = $db->getTableOrFail('tags');
-		$link = $arts->getRelation('tags')->getLink();
-
-		self::assertInstanceOf(LinkThrough::class, $link);
-
-		$art1 = ORM::entity($arts, false, false);
-		$art1->hydrate(['id' => 10]);
-
-		$art2 = ORM::entity($arts, false, false);
-		$art2->hydrate(['id' => 20]);
-
-		// Simulate PDO hydration: each tag carries `_gobl_batch_key = article.id of its owner`
-		$tag1 = ORM::entity($tags, false, false);
-		$tag1->hydrate(['id' => 1, '_gobl_batch_key' => 10]);
-
-		$tag2 = ORM::entity($tags, false, false);
-		$tag2->hydrate(['id' => 2, '_gobl_batch_key' => 10]);
-
-		$tag3 = ORM::entity($tags, false, false);
-		$tag3->hydrate(['id' => 3, '_gobl_batch_key' => 20]);
-
-		$grouped = $link->groupBatchResults([$art1, $art2], [$tag1, $tag2, $tag3]);
-
-		self::assertArrayHasKey('10', $grouped, 'Article 10 must be in the map');
-		self::assertArrayHasKey('20', $grouped, 'Article 20 must be in the map');
-		self::assertCount(2, $grouped['10'], 'Article 10 must have 2 tags');
-		self::assertCount(1, $grouped['20'], 'Article 20 must have 1 tag');
+		self::assertTrue($entity->hasComputedValue(ORMTableQuery::BATCH_HOST_IDENTITY_KEY));
+		self::assertSame(5, $entity->getComputedValue(ORMTableQuery::BATCH_HOST_IDENTITY_KEY));
 	}
 
 	// ---------------------------------------------------------------------------
@@ -554,7 +418,7 @@ final class LinkBatchTest extends BaseTestCase
 
 		$qb = new QBSelect($db);
 		$qb->from('gobl_accounts', 'a');
-		$qb->selectComputed('a.account_client_id', 'routing_key');
+		$qb->selectComputed('routing_key', 'a.account_client_id');
 
 		$sql = $qb->getSqlQuery();
 
@@ -574,32 +438,27 @@ final class LinkBatchTest extends BaseTestCase
 	}
 
 	// ---------------------------------------------------------------------------
-	// LinkMorph - applyBatch (host is child: taggables.tag morph)
+	// ORMTableQuery::selectRelativesBatch - taggables.tag (LinkColumns, SAMPLE_NS)
 	// ---------------------------------------------------------------------------
 
 	/**
 	 * taggables.tag is a plain FK (tag_id -> tags.id) so it uses LinkColumns.
-	 * applyBatch on an empty host list must return false.
+	 * selectRelativesBatch() must return null for an empty host list.
 	 */
-	public function testLinkColumnsApplyBatchForTaggablesTagReturnsFalseOnEmpty(): void
+	public function testSelectRelativesBatchForTaggablesTagReturnsNullForEmptyHosts(): void
 	{
 		$db        = ORM::getDatabase(self::SAMPLE_NS);
 		$taggables = $db->getTableOrFail('taggables');
 		$tags      = $db->getTableOrFail('tags');
-		$link      = $taggables->getRelation('tag')->getLink();
+		$relation  = $taggables->getRelation('tag'); // host=taggables, target=tags
 
 		self::assertInstanceOf(
 			LinkColumns::class,
-			$link,
+			$relation->getLink(),
 			'taggables.tag (plain FK) must use LinkColumns'
 		);
 
-		$qb = new QBSelect($db);
-		$qb->from($tags->getFullName(), 'tg');
-
-		self::assertFalse(
-			$link->applyBatch($qb, []),
-			'applyBatch() must return false for empty host list'
-		);
+		$tq = ORM::query($tags);
+		self::assertNull($tq->selectRelativesBatch($relation, []));
 	}
 }

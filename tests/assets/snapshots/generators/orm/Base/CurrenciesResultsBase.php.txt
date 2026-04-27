@@ -15,13 +15,12 @@ abstract class CurrenciesResultsBase extends \Gobl\ORM\ORMResults
 	/**
 	 * CurrenciesResultsBase constructor.
 	 */
-	public function __construct(\Gobl\DBAL\Queries\QBSelect $query, array|null $partial_columns = NULL)
+	public function __construct(\Gobl\DBAL\Queries\QBSelect $query)
 	{
 		parent::__construct(
 			\Gobl\Tests\Db\Currency::TABLE_NAMESPACE,
 			\Gobl\Tests\Db\Currency::TABLE_NAME,
-			$query,
-			$partial_columns
+			$query
 		);
 	}
 
@@ -31,8 +30,8 @@ abstract class CurrenciesResultsBase extends \Gobl\ORM\ORMResults
 	 * @return static
 	 */
 	#[\Override]
-	public static function new(\Gobl\DBAL\Queries\QBSelect $query, array|null $partial_columns = NULL): static
+	public static function new(\Gobl\DBAL\Queries\QBSelect $query): static
 	{
-		return new CurrenciesResults($query, $partial_columns);
+		return new CurrenciesResults($query);
 	}
 }

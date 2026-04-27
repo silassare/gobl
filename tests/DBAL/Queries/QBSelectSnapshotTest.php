@@ -286,7 +286,7 @@ final class QBSelectSnapshotTest extends BaseTestCase
 				'client_id DESC',  // raw syntax
 				'client_last_name ASC',  // raw syntax
 				'client_first_name' => 'DESC',  // column => direction syntax
-				'client_email' => false, // falsy value treated as DESC
+				'client_email'      => false, // falsy value treated as DESC
 				'client_created_at' => true, // truthy value treated as ASC
 			]);
 

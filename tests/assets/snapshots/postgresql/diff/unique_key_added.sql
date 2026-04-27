@@ -1,4 +1,5 @@
 -- >>>>@UP>>>>
+-- unique key constraint added
 ALTER TABLE "gObL_users" ADD CONSTRAINT uc_gObL_users_0c83f57c786a0b4a39efab23731c7ebc UNIQUE ("user_email");
 
 -- >>>>@DOWN>>>>

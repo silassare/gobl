@@ -507,7 +507,7 @@ final class LinkBuilderTest extends BaseTestCase
 		// fillRelation on a THROUGH link is always false
 		self::assertFalse($relation->getLink()->fillRelation(
 			$this->createMock(ORMEntity::class),
-			$data
+			$this->createMock(ORMEntity::class),
 		));
 	}
 }

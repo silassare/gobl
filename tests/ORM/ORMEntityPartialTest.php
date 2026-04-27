@@ -224,74 +224,49 @@ final class ORMEntityPartialTest extends BaseTestCase
 	}
 
 	/**
-	 * ORM::entity() with $partial_columns must create a partial entity without calling markAsPartial() afterward.
+	 * markAsPartial() after ORM::entity() must create a partial entity with the given projection.
 	 */
-	public function testOrmEntityFactoryWithPartialColumnsCreatesPartialEntity(): void
+	public function testMarkAsPartialAfterEntityFactoryCreatesPartialEntity(): void
 	{
 		$db     = ORM::getDatabase(self::TEST_DB_NAMESPACE);
 		$table  = $db->getTableOrFail('clients');
-		$entity = ORM::entity($table, false, true, ['client_id', 'client_first_name']);
+		$entity = ORM::entity($table, false);
+		$entity->markAsPartial(['client_id', 'client_first_name']);
 
-		self::assertTrue($entity->isPartial(), 'Entity created via ORM::entity() with $partial_columns must be partial');
+		self::assertTrue($entity->isPartial(), 'markAsPartial() must mark the entity as partial');
 		self::assertTrue($entity->isColumnLoaded('client_id'), 'client_id must be marked loaded');
 		self::assertTrue($entity->isColumnLoaded('client_first_name'), 'client_first_name must be marked loaded');
 		self::assertFalse($entity->isColumnLoaded('client_last_name'), 'client_last_name was not in the projection');
 	}
 
 	/**
-	 * ORM::entity() with short column names in $partial_columns must resolve correctly.
+	 * Generated entity::new() followed by markAsPartial() must produce a partial entity.
 	 */
-	public function testOrmEntityFactoryWithPartialColumnsAcceptsShortNames(): void
+	public function testGeneratedEntityNewAndMarkAsPartial(): void
 	{
 		$db     = ORM::getDatabase(self::TEST_DB_NAMESPACE);
 		$table  = $db->getTableOrFail('clients');
-		$entity = ORM::entity($table, false, true, ['id', 'first_name']);
-
-		self::assertTrue($entity->isPartial(), 'Entity created via ORM::entity() with short names must be partial');
-		self::assertTrue($entity->isColumnLoaded('client_id'), 'short name "id" must resolve to client_id');
-		self::assertTrue($entity->isColumnLoaded('client_first_name'), 'short name "first_name" must resolve to client_first_name');
-		self::assertFalse($entity->isColumnLoaded('client_last_name'), 'client_last_name was not in the projection');
-	}
-
-	/**
-	 * Generated entity::new() with $partial_columns must create a partial entity via the constructor path.
-	 */
-	public function testGeneratedEntityNewWithPartialColumns(): void
-	{
-		$db           = ORM::getDatabase(self::TEST_DB_NAMESPACE);
-		$table        = $db->getTableOrFail('clients');
 
 		/** @var class-string<ORMEntity> $entity_class */
 		$entity_class = ORMClassKind::ENTITY->getClassFQN($table);
-		$entity       = $entity_class::new(false, true, ['client_id', 'client_first_name']);
+		$entity       = $entity_class::new(false);
+		$entity->markAsPartial(['client_id', 'client_first_name']);
 
-		self::assertTrue($entity->isPartial(), 'Entity created via ::new() with $partial_columns must be partial');
+		self::assertTrue($entity->isPartial(), 'Entity marked via markAsPartial() must be partial');
 		self::assertTrue($entity->isColumnLoaded('client_id'));
 		self::assertFalse($entity->isColumnLoaded('client_last_name'));
 	}
 
 	/**
-	 * ORM::entity() without $partial_columns must create a non-partial entity even for non-new entities.
+	 * ORM::entity() without markAsPartial() must create a non-partial entity.
 	 */
-	public function testOrmEntityFactoryWithoutPartialColumnsIsNotPartial(): void
+	public function testEntityIsNotPartialByDefault(): void
 	{
 		$db     = ORM::getDatabase(self::TEST_DB_NAMESPACE);
 		$table  = $db->getTableOrFail('clients');
-		$entity = ORM::entity($table, false, true, null);
+		$entity = ORM::entity($table, false);
 
-		self::assertFalse($entity->isPartial(), 'ORM::entity() without $partial_columns must not be partial');
-	}
-
-	/**
-	 * ORM::entity() with an empty $partial_columns array must NOT mark the entity as partial.
-	 */
-	public function testOrmEntityFactoryWithEmptyPartialColumnsMustNotBePartial(): void
-	{
-		$db     = ORM::getDatabase(self::TEST_DB_NAMESPACE);
-		$table  = $db->getTableOrFail('clients');
-		$entity = ORM::entity($table, false, true, []);
-
-		self::assertFalse($entity->isPartial(), 'An empty $partial_columns list must not flip isPartial()');
+		self::assertFalse($entity->isPartial(), 'ORM::entity() without markAsPartial() must not be partial');
 	}
 
 	/**

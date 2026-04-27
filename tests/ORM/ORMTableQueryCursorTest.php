@@ -15,9 +15,11 @@ namespace Gobl\Tests\ORM;
 
 use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
+use Gobl\DBAL\Queries\QBSelect;
 use Gobl\ORM\Exceptions\ORMQueryException;
 use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\ORM\ORM;
+use Gobl\ORM\ORMOptions;
 use Gobl\ORM\ORMTableQuery;
 use Gobl\Tests\BaseTestCase;
 use Throwable;
@@ -25,12 +27,13 @@ use Throwable;
 /**
  * Class ORMTableQueryCursorTest.
  *
- * Tests for {@see ORMTableQuery::cursorFind()} (Feature 3).
+ * Tests for cursor-based pagination via {@see ORMTableQuery::find()} with
+ * a {@see ORMOptions::makeCursorBased()} request (Feature 3).
  *
  * Only validation and SQL-structure tests are covered here; live-DB tests
  * (which actually iterate rows) live under tests/Integration/.
  *
- * @covers \Gobl\ORM\ORMTableQuery::cursorFind
+ * @covers \Gobl\ORM\ORMTableQuery::find
  *
  * @internal
  */
@@ -98,22 +101,31 @@ final class ORMTableQueryCursorTest extends BaseTestCase
 	// Validation: $max
 	// ---------------------------------------------------------------------------
 
-	public function testCursorFindThrowsWhenMaxIsZero(): void
+	/**
+	 * max=0 with cursor: limit(max+1, 0) = limit(1, 0) — no exception is thrown.
+	 */
+	public function testCursorFindWithMaxZeroProducesLimitOne(): void
 	{
 		$table = ORM::getDatabase(self::TEST_DB_NAMESPACE)->getTableOrFail('clients');
 		$qb    = ORM::query($table);
 
-		$this->expectException(ORMQueryException::class);
-		$qb->cursorFind('id', null, 0);
+		// max=0 => limit(max+1) = limit(1): no exception, just produces LIMIT 1.
+		$sel = $qb->select(ORMOptions::makeCursorBased('id', 0));
+
+		self::assertInstanceOf(QBSelect::class, $sel);
+		self::assertStringContainsString('LIMIT 1', $sel->getSqlQuery());
 	}
 
+	/**
+	 * max=-1 with cursor: limit(max+1, 0) = limit(0, 0) — DBALRuntimeException is thrown for invalid limit.
+	 */
 	public function testCursorFindThrowsWhenMaxIsNegative(): void
 	{
 		$table = ORM::getDatabase(self::TEST_DB_NAMESPACE)->getTableOrFail('clients');
 		$qb    = ORM::query($table);
 
-		$this->expectException(ORMQueryException::class);
-		$qb->cursorFind('id', null, -1);
+		$this->expectException(DBALRuntimeException::class);
+		$qb->find(ORMOptions::makeCursorBased('id', -1));
 	}
 
 	// ---------------------------------------------------------------------------
@@ -122,11 +134,8 @@ final class ORMTableQueryCursorTest extends BaseTestCase
 
 	public function testCursorFindThrowsOnInvalidDirection(): void
 	{
-		$table = ORM::getDatabase(self::TEST_DB_NAMESPACE)->getTableOrFail('clients');
-		$qb    = ORM::query($table);
-
 		$this->expectException(ORMQueryException::class);
-		$qb->cursorFind('id', null, 10, 'invalid');
+		ORMOptions::makeCursorBased('id', 10, null, 'invalid');
 	}
 
 	/**
@@ -142,7 +151,7 @@ final class ORMTableQueryCursorTest extends BaseTestCase
 		try {
 			// Will throw a PDOException / something when trying to execute against
 			// a schema-only DB, but NOT an ORMQueryException for direction validation.
-			$qb->cursorFind('id', null, 10, $direction);
+			$qb->find(ORMOptions::makeCursorBased('id', 10, null, $direction));
 			// If it reaches here somehow, that's fine too.
 			self::assertTrue(true);
 		} catch (ORMQueryException $e) {
@@ -150,7 +159,7 @@ final class ORMTableQueryCursorTest extends BaseTestCase
 			$data = $e->getData();
 
 			if (isset($data['direction'])) {
-				self::fail("cursorFind() must not throw for valid direction \"{$direction}\"");
+				self::fail("find() with cursor must not throw for valid direction \"{$direction}\"");
 			}
 		} catch (Throwable) {
 			// Any other error (e.g. no DB connection) is acceptable.
@@ -161,8 +170,8 @@ final class ORMTableQueryCursorTest extends BaseTestCase
 	public static function provideCursorFindAcceptsValidDirectionsCases(): iterable
 	{
 		return [
-			'asc'  => ['asc'],
-			'desc' => ['desc'],
+			'ASC'  => ['ASC'],
+			'DESC' => ['DESC'],
 		];
 	}
 
@@ -176,7 +185,7 @@ final class ORMTableQueryCursorTest extends BaseTestCase
 		$qb    = ORM::query($table);
 
 		$this->expectException(DBALRuntimeException::class);
-		$qb->cursorFind('non_existent_column', null, 10);
+		$qb->find(ORMOptions::makeCursorBased('non_existent_column', 10));
 	}
 
 	// ---------------------------------------------------------------------------
@@ -184,27 +193,20 @@ final class ORMTableQueryCursorTest extends BaseTestCase
 	// ---------------------------------------------------------------------------
 
 	/**
-	 * cursorFind() must return an array with keys: items, next_cursor, has_more.
-	 *
-	 * We satisfy the return-shape contract by calling with a cursor and catching
-	 * any execution error while still verifying the keys when possible.
+	 * find() with a cursor request must return an ORMResults (SQL-structure check only).
+	 * Full iteration tests with real data live under tests/Integration/.
 	 */
-	public function testCursorFindReturnShapeKeys(): void
+	public function testCursorFindReturnsORMResults(): void
 	{
 		$table = ORM::getDatabase(self::TEST_DB_NAMESPACE)->getTableOrFail('clients');
 		$qb    = ORM::query($table);
 
-		try {
-			$result = $qb->cursorFind('id', null, 5);
+		$sel = $qb->select(ORMOptions::makeCursorBased('id', 5));
 
-			self::assertArrayHasKey('items', $result);
-			self::assertArrayHasKey('next_cursor', $result);
-			self::assertArrayHasKey('has_more', $result);
-			self::assertIsArray($result['items']);
-			self::assertIsBool($result['has_more']);
-		} catch (Throwable) {
-			// No live DB -- execution may fail, contract tested via static analysis.
-			self::assertTrue(true, 'cursorFind() requires live DB for result-shape assertion.');
-		}
+		// The generated SQL must contain ORDER BY on the cursor column and LIMIT max+1.
+		$sql = $sel->getSqlQuery();
+		self::assertStringContainsString('ORDER BY', $sql);
+		self::assertStringContainsString('LIMIT 6', $sql);
+		self::assertStringContainsString('client_id', $sql);
 	}
 }

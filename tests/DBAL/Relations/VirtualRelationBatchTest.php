@@ -18,7 +18,7 @@ use Gobl\DBAL\Relations\Interfaces\RelationControllerInterface;
 use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\ORM\ORM;
 use Gobl\ORM\ORMEntityRelationController;
-use Gobl\ORM\ORMRequest;
+use Gobl\ORM\ORMOptions;
 use Gobl\Tests\BaseTestCase;
 use Throwable;
 
@@ -163,8 +163,8 @@ final class VirtualRelationBatchTest extends BaseTestCase
 		$relation = $accounts->getRelation('client');
 		$ctrl     = new ORMEntityRelationController($relation);
 
-		$request = new ORMRequest();
-		$result  = $ctrl->getBatch([], $request);
+		$options = new ORMOptions();
+		$result  = $ctrl->getBatch([], $options);
 
 		self::assertSame(
 			[],
@@ -184,8 +184,8 @@ final class VirtualRelationBatchTest extends BaseTestCase
 		$rel     = $clients->getRelation('accounts');
 		$ctrl    = new ORMEntityRelationController($rel);
 
-		$request = new ORMRequest();
-		$result  = $ctrl->getBatch([], $request);
+		$options = new ORMOptions();
+		$result  = $ctrl->getBatch([], $options);
 
 		self::assertSame(
 			[],

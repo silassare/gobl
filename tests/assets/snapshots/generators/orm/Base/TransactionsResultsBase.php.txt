@@ -15,13 +15,12 @@ abstract class TransactionsResultsBase extends \Gobl\ORM\ORMResults
 	/**
 	 * TransactionsResultsBase constructor.
 	 */
-	public function __construct(\Gobl\DBAL\Queries\QBSelect $query, array|null $partial_columns = NULL)
+	public function __construct(\Gobl\DBAL\Queries\QBSelect $query)
 	{
 		parent::__construct(
 			\Gobl\Tests\Db\Transaction::TABLE_NAMESPACE,
 			\Gobl\Tests\Db\Transaction::TABLE_NAME,
-			$query,
-			$partial_columns
+			$query
 		);
 	}
 
@@ -31,8 +30,8 @@ abstract class TransactionsResultsBase extends \Gobl\ORM\ORMResults
 	 * @return static
 	 */
 	#[\Override]
-	public static function new(\Gobl\DBAL\Queries\QBSelect $query, array|null $partial_columns = NULL): static
+	public static function new(\Gobl\DBAL\Queries\QBSelect $query): static
 	{
-		return new TransactionsResults($query, $partial_columns);
+		return new TransactionsResults($query);
 	}
 }

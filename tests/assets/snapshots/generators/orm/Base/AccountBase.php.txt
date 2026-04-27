@@ -36,16 +36,14 @@ abstract class AccountBase extends \Gobl\ORM\ORMEntity
 	 * 
 	 * @param bool $is_new true for new entity false for entity fetched from the database, default is true
 	 * @param bool $strict Enable/disable strict mode
-	 * @param null|list<string> $partial_columns Use this to mark the entity as partially loaded with only the specified columns.
 	 */
-	public function __construct(bool $is_new = true, bool $strict = true, array|null $partial_columns = NULL)
+	public function __construct(bool $is_new = true, bool $strict = true)
 	{
 		parent::__construct(
 			self::TABLE_NAMESPACE,
 			self::TABLE_NAME,
 			$is_new,
-			$strict,
-			$partial_columns
+			$strict
 		);
 	}
 
@@ -55,9 +53,9 @@ abstract class AccountBase extends \Gobl\ORM\ORMEntity
 	 * @return static
 	 */
 	#[\Override]
-	public static function new(bool $is_new = true, bool $strict = true, array|null $partial_columns = NULL): static
+	public static function new(bool $is_new = true, bool $strict = true): static
 	{
-		return new Account($is_new, $strict, $partial_columns);
+		return new Account($is_new, $strict);
 	}
 
 	/**
@@ -99,9 +97,9 @@ abstract class AccountBase extends \Gobl\ORM\ORMEntity
 	 * @return \Gobl\Tests\Db\AccountsResults
 	 */
 	#[\Override]
-	public static function results(\Gobl\DBAL\Queries\QBSelect $query, array|null $partial_columns = NULL): \Gobl\Tests\Db\AccountsResults
+	public static function results(\Gobl\DBAL\Queries\QBSelect $query): \Gobl\Tests\Db\AccountsResults
 	{
-		return \Gobl\Tests\Db\AccountsResults::new($query, $partial_columns);
+		return \Gobl\Tests\Db\AccountsResults::new($query);
 	}
 
 	/**
@@ -358,27 +356,17 @@ abstract class AccountBase extends \Gobl\ORM\ORMEntity
 	/**
 	 * `OneToMany` relation between `accounts` and `transactions`.
 	 * 
-	 * @param array    $filters  the row filters
-	 * @param null|int $max      maximum row to retrieve
-	 * @param int      $offset   first row offset
-	 * @param array    $order_by order by rules
-	 * @param null|int $total    total number of items that match the filters
+	 * @param \Gobl\ORM\Interfaces\ORMOptionsInterface|null $options pagination/filter/ordering options, or null for defaults
 	 * 
 	 * @throws \Gobl\Exceptions\GoblException
-	 * @return \Gobl\Tests\Db\Transaction[]
+	 * @return \Gobl\Tests\Db\TransactionsResults
 	 */
-	public function getTransactions(array $filters = array (
-	), ?int $max = NULL, int $offset = 0, array $order_by = array (
-	), ?int &$total = -1): array
+	public function getTransactions(?\Gobl\ORM\Interfaces\ORMOptionsInterface $options = NULL): \Gobl\Tests\Db\TransactionsResults
 	{
 		return \Gobl\Tests\Db\Transaction::ctrl()->getAllRelatives(
 			$this,
 			static::table()->getRelation('transactions'),
-			$filters,
-			$max,
-			$offset,
-			$order_by,
-			$total
+			$options
 		);
 	}
 

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Gobl\Tests\DBAL\Queries;
 
 use Gobl\DBAL\Builders\TableBuilder;
+use Gobl\DBAL\Filters\Filters;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\Tests\BaseTestCase;
 
@@ -107,5 +108,36 @@ final class QBSelectTest extends BaseTestCase
 			'_val_h' => 'articles',
 			'_val_i' => (string) \strtotime('2020-01-01'),
 		], $qb_b->getBoundValues());
+	}
+
+	public function testWhereShouldNotMutateFiltersButShouldAddToQuery(): void
+	{
+		$db = self::getSampleDB();
+
+		$qb                = new QBSelect($db);
+		$should_not_mutate = $qb->filters()->where(['id', 'eq', 1]);
+
+		$qb->select()
+			->from('articles')
+			->where($should_not_mutate);
+
+		$before = $should_not_mutate->__toString();
+
+		self::assertSame('SELECT * FROM `gObL_articles` AS _b_ WHERE ((id = :_val_a))', $qb->getSqlQuery());
+		self::assertSame(['_val_a' => 1], $qb->getBoundValues());
+
+		// calling where on the query again should not modify "$should_not_mutate"
+		$qb->andWhere(Filters::fromArray(['name', 'eq', 'foo'], $qb));
+
+		$after = $should_not_mutate->__toString();
+
+		self::assertSame($before, $after);
+
+		// the whole query should now include the new where condition, but $should_not_mutate should remain unchanged
+		self::assertSame('SELECT * FROM `gObL_articles` AS _b_ WHERE ((id = :_val_a) AND (name = :_val_c))', $qb->getSqlQuery());
+		self::assertSame([
+			'_val_a' => 1,
+			'_val_c' => 'foo',
+		], $qb->getBoundValues());
 	}
 }

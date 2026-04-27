@@ -10,6 +10,7 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
+-- foreign key constraint added
 ALTER TABLE `gObL_products` ADD CONSTRAINT fk_products_categories FOREIGN KEY (`product_category_id`) REFERENCES `gObL_categories` (`category_id`) ON UPDATE NO ACTION ON DELETE NO ACTION;
 
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

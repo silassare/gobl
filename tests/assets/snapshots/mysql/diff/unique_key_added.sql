@@ -10,6 +10,7 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
+-- unique key constraint added
 ALTER TABLE `gObL_users` ADD CONSTRAINT uc_gObL_users_0c83f57c786a0b4a39efab23731c7ebc UNIQUE (`user_email`);
 
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
