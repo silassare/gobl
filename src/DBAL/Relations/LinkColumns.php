@@ -101,7 +101,7 @@ final class LinkColumns extends Link
 	 * value is `null`, because a null FK value makes the relation unsatisfiable.
 	 */
 	#[Override]
-	public function fillRelation(ORMEntity $host_entity, array &$target_data = []): bool
+	public function fillRelation(ORMEntity $host_entity, ORMEntity $target_entity): bool
 	{
 		foreach ($this->columns_mapping as $host_column => $target_column) {
 			$value = $host_entity->{$host_column};
@@ -111,10 +111,18 @@ final class LinkColumns extends Link
 				return false;
 			}
 
-			$target_data[$target_column] = $value;
+			$target_entity->{$target_column} = $value;
 		}
 
 		return true;
+	}
+
+	#[Override]
+	public function toArray(): array
+	{
+		return [
+			'type' => $this->type->value,
+		] + $this->options;
 	}
 
 	/**
@@ -129,7 +137,7 @@ final class LinkColumns extends Link
 	 *   the target table to the host table with the mapped columns as the ON condition.
 	 */
 	#[Override]
-	public function runLinkTypeApplyLogic(QBSelect $target_qb, ?ORMEntity $host_entity = null): bool
+	protected function runLinkTypeApplyLogic(QBSelect $target_qb, ?ORMEntity $host_entity = null): bool
 	{
 		if ($host_entity) {
 			// we use array to not pollute the query builder filters
@@ -175,160 +183,5 @@ final class LinkColumns extends Link
 		}
 
 		return true;
-	}
-
-	#[Override]
-	public function toArray(): array
-	{
-		return [
-			'type' => $this->type->value,
-		] + $this->options;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * For a single-column mapping `host_col -> target_col`, adds:
-	 *   `target_col IN (host_col values from host_entities)`
-	 *
-	 * For composite mappings `(host_0 -> target_0, host_1 -> target_1, ...)`, adds one
-	 * `IN` condition per column (AND-joined). `groupBatchResults()` performs exact
-	 * composite-key matching to eliminate the cross-product over-selection.
-	 */
-	#[Override]
-	public function applyBatch(QBSelect $target_qb, array $host_entities): bool
-	{
-		/** @var array<string, list<mixed>> $values_per_col keyed by host_col full name */
-		$values_per_col = [];
-
-		foreach ($this->columns_mapping as $host_col => $target_col) {
-			$values_per_col[$host_col] = [];
-		}
-
-		foreach ($host_entities as $entity) {
-			$row  = [];
-			$skip = false;
-
-			foreach ($this->columns_mapping as $host_col => $target_col) {
-				$val = $entity->{$host_col};
-
-				if (null === $val) {
-					$skip = true;
-
-					break;
-				}
-
-				$row[$host_col] = $val;
-			}
-
-			if ($skip) {
-				continue;
-			}
-
-			foreach ($row as $host_col => $val) {
-				$values_per_col[$host_col][] = $val;
-			}
-		}
-
-		// Nothing to filter on.
-		$has_values = false;
-
-		foreach ($values_per_col as $values) {
-			if (!empty($values)) {
-				$has_values = true;
-
-				break;
-			}
-		}
-
-		if (!$has_values) {
-			return false;
-		}
-
-		foreach ($this->columns_mapping as $host_col => $target_col) {
-			$values = $values_per_col[$host_col];
-
-			if (empty($values)) {
-				continue;
-			}
-
-			$c_fqn = $target_qb->fullyQualifiedName($this->target_table, $target_col);
-
-			$target_qb->andWhere(
-				Filters::fromArray([[$c_fqn, Operator::IN->value, $values]], $target_qb)
-			);
-		}
-
-		return true;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * For single-column mapping `host_col -> target_col`:
-	 * - Build a reverse index: `target_col_value -> [host_pk_string, ...]`
-	 *   (multiple hosts may share the same FK value in many-to-one scenarios).
-	 * - For each result entity, look up the host PKs by `result.target_col`.
-	 * - The returned map is keyed by host entity PK string.
-	 *
-	 * For composite mappings, the same pattern applies using a null-byte-delimited
-	 * composite key `"val_0\0val_1\0..."` for both the index build and the lookup so
-	 * that cross-product results from `applyBatch()` are filtered out accurately.
-	 */
-	#[Override]
-	public function groupBatchResults(array $host_entities, array $result_entities): array
-	{
-		$is_composite = \count($this->columns_mapping) > 1;
-
-		// host_cols = host column names; target_cols = corresponding target column names
-		$host_cols   = \array_keys($this->columns_mapping);
-		$target_cols = \array_values($this->columns_mapping);
-
-		// Build reverse index: composite_key -> [host_identity_key, ...]
-		$host_pks_by_key = [];
-
-		foreach ($host_entities as $entity) {
-			$key_parts = [];
-			$skip      = false;
-
-			foreach ($host_cols as $host_col) {
-				$val = $entity->{$host_col};
-
-				if (null === $val) {
-					$skip = true;
-
-					break;
-				}
-
-				$key_parts[] = (string) $val;
-			}
-
-			if ($skip) {
-				continue;
-			}
-
-			$lookup_key = $is_composite ? \implode("\0", $key_parts) : $key_parts[0];
-
-			$host_pks_by_key[$lookup_key][] = $entity->toIdentityKey();
-		}
-
-		$grouped = [];
-
-		foreach ($result_entities as $result) {
-			$key_parts = [];
-
-			foreach ($target_cols as $target_col) {
-				$key_parts[] = (string) $result->{$target_col};
-			}
-
-			$lookup_key   = $is_composite ? \implode("\0", $key_parts) : $key_parts[0];
-			$host_pk_keys = $host_pks_by_key[$lookup_key] ?? [];
-
-			foreach ($host_pk_keys as $host_pk_key) {
-				$grouped[$host_pk_key][] = $result;
-			}
-		}
-
-		return $grouped;
 	}
 }

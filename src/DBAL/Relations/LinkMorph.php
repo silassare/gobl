@@ -16,7 +16,6 @@ namespace Gobl\DBAL\Relations;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Filters\Filters;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
-use Gobl\DBAL\Operator;
 use Gobl\DBAL\Queries\QBExpression;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Table;
@@ -250,7 +249,7 @@ final class LinkMorph extends Link
 	 * or when the parent-key column value on the entity is `null`.
 	 */
 	#[Override]
-	public function fillRelation(ORMEntity $host_entity, array &$target_data = []): bool
+	public function fillRelation(ORMEntity $host_entity, ORMEntity $target_entity): bool
 	{
 		if ($this->host_is_parent) {
 			$key = $host_entity->{$this->morph_parent_key_column};
@@ -262,13 +261,21 @@ final class LinkMorph extends Link
 			$key_column  = $this->target_table->getColumnOrFail($this->morph_child_key_column)->getFullName();
 			$type_column = $this->target_table->getColumnOrFail($this->morph_child_type_column)->getFullName();
 
-			$target_data[$key_column]  = $key;
-			$target_data[$type_column] = $this->morph_parent_type;
+			$target_entity->{$key_column}  = $key;
+			$target_entity->{$type_column} = $this->morph_parent_type;
 
 			return true;
 		}
 
 		return false;
+	}
+
+	#[Override]
+	public function toArray(): array
+	{
+		return [
+			'type' => $this->type->value,
+		] + $this->options;
 	}
 
 	/**
@@ -277,16 +284,16 @@ final class LinkMorph extends Link
 	 * Behavior depends on `$host_is_parent` and whether a host entity is provided:
 	 *
 	 * | `host_is_parent` | `$host_entity` | Action |
-	 * |---|---|---|
-	 * | true  | present | Filter target by `child_key = entity_pk AND child_type = parent_type` |
-	 * | true  | null    | INNER JOIN target ON `child_key = host_pk AND child_type = parent_type` |
-	 * | false | present | Filter target by `parent_key = entity.child_key_column` |
-	 * | false | null    | INNER JOIN target ON `target_pk = host.child_key AND host.child_type = parent_type` |
+	 * |------------------|----------------|--------|
+	 * | true             | present        | Filter target by `child_key = entity_pk AND child_type = parent_type` |
+	 * | true             | null           | INNER JOIN target ON `child_key = host_pk AND child_type = parent_type` |
+	 * | false            | present        | Filter target by `parent_key = entity.child_key_column` |
+	 * | false            | null           | INNER JOIN target ON `target_pk = host.child_key AND host.child_type = parent_type` |
 	 *
 	 * Returns `false` when an entity is provided but the relevant key column value is `null`.
 	 */
 	#[Override]
-	public function runLinkTypeApplyLogic(QBSelect $target_qb, ?ORMEntity $host_entity = null): bool
+	protected function runLinkTypeApplyLogic(QBSelect $target_qb, ?ORMEntity $host_entity = null): bool
 	{
 		$filters = $target_qb->filters();
 
@@ -359,151 +366,5 @@ final class LinkMorph extends Link
 		);
 
 		return true;
-	}
-
-	#[Override]
-	public function toArray(): array
-	{
-		return [
-			'type' => $this->type->value,
-		] + $this->options;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * When host is parent:
-	 *   `child_type = :type AND child_key IN (host_pk1, host_pk2, ...)`
-	 *
-	 * When host is child:
-	 *   `parent_key IN (child_key_val1, child_key_val2, ...)`
-	 */
-	#[Override]
-	public function applyBatch(QBSelect $target_qb, array $host_entities): bool
-	{
-		$filters = $target_qb->filters();
-
-		if ($this->host_is_parent) {
-			$values = [];
-
-			foreach ($host_entities as $entity) {
-				$val = $entity->{$this->morph_parent_key_column};
-
-				if (null === $val) {
-					continue;
-				}
-
-				$values[] = $val;
-			}
-
-			if (empty($values)) {
-				return false;
-			}
-
-			$child_key_fqn  = $target_qb->fullyQualifiedName($this->target_table, $this->morph_child_key_column);
-			$child_type_fqn = $target_qb->fullyQualifiedName($this->target_table, $this->morph_child_type_column);
-
-			$target_qb->andWhere(
-				Filters::fromArray([
-					[$child_type_fqn, Operator::EQ->value, $this->morph_parent_type],
-					'and',
-					[$child_key_fqn, Operator::IN->value, $values],
-				], $target_qb)
-			);
-
-			return true;
-		}
-
-		// host is child
-		$values = [];
-
-		foreach ($host_entities as $entity) {
-			$val = $entity->{$this->morph_child_key_column};
-
-			if (null === $val) {
-				continue;
-			}
-
-			$values[] = $val;
-		}
-
-		if (empty($values)) {
-			return false;
-		}
-
-		$parent_key_fqn = $target_qb->fullyQualifiedName($this->target_table, $this->morph_parent_key_column);
-
-		$target_qb->andWhere(
-			Filters::fromArray([[$parent_key_fqn, Operator::IN->value, $values]], $target_qb)
-		);
-
-		return true;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * When host is parent:
-	 *   `result.child_key` equals `host.morph_parent_key` -> group by `host.toIdentityKey()`.
-	 *
-	 * When host is child:
-	 *   `result.parent_key` equals `host.child_key` -> group by `host.toIdentityKey()`.
-	 */
-	#[Override]
-	public function groupBatchResults(array $host_entities, array $result_entities): array
-	{
-		if ($this->host_is_parent) {
-			// result.child_key -> host PK
-			$host_pks_by_parent_key = [];
-
-			foreach ($host_entities as $entity) {
-				$val = $entity->{$this->morph_parent_key_column};
-
-				if (null === $val) {
-					continue;
-				}
-
-				$host_pks_by_parent_key[(string) $val][] = $entity->toIdentityKey();
-			}
-
-			$grouped = [];
-
-			foreach ($result_entities as $result) {
-				$child_key_val = $result->{$this->morph_child_key_column};
-				$host_pk_keys  = $host_pks_by_parent_key[(string) $child_key_val] ?? [];
-
-				foreach ($host_pk_keys as $host_pk_key) {
-					$grouped[$host_pk_key][] = $result;
-				}
-			}
-
-			return $grouped;
-		}
-
-		// host is child: result.parent_key -> host.child_key -> host PK
-		$host_pks_by_child_key = [];
-
-		foreach ($host_entities as $entity) {
-			$val = $entity->{$this->morph_child_key_column};
-
-			if (null === $val) {
-				continue;
-			}
-
-			$host_pks_by_child_key[(string) $val][] = $entity->toIdentityKey();
-		}
-
-		$grouped = [];
-
-		foreach ($result_entities as $result) {
-			$parent_key_val = $result->{$this->morph_parent_key_column};
-			$host_pk_keys   = $host_pks_by_child_key[(string) $parent_key_val] ?? [];
-
-			foreach ($host_pk_keys as $host_pk_key) {
-				$grouped[$host_pk_key][] = $result;
-			}
-		}
-
-		return $grouped;
 	}
 }

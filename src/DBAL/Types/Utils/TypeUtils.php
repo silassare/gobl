@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Types\Utils;
 
 use Gobl\DBAL\Column;
+use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Types\Exceptions\TypesException;
@@ -135,7 +136,7 @@ class TypeUtils
 
 			if (!$type_ok) {
 				throw new TypesException(\sprintf(
-					'Custom column type "%s" provided by "%s" for type "%s" returned "%s" while expecting one of allowed base type: %s',
+					'Custom column type "%s" provided by "%s" for type "%s" returned "%s" as base type while expecting one of allowed base type: %s',
 					\get_class($found),
 					\get_class($found_in),
 					$name,
@@ -151,7 +152,7 @@ class TypeUtils
 	/**
 	 * Returns base types class map.
 	 *
-	 * @return class-string<BaseTypeInterface>[]
+	 * @return array<string, class-string<BaseTypeInterface>>
 	 */
 	public static function getBaseTypes(): array
 	{
@@ -192,7 +193,21 @@ class TypeUtils
 			return $type->castValueForFilter($value, $operator, $rdbms);
 		}
 
-		return $value;
+		// Cast was skipped: the value must already be in DB-compatible scalar form.
+		if (null === $value || \is_int($value) || \is_float($value) || \is_string($value)) {
+			return $value;
+		}
+
+		if (\is_bool($value)) {
+			return $value ? 1 : 0;
+		}
+
+		throw new DBALRuntimeException(\sprintf(
+			'Filter value for column "%s" is not a DB-compatible scalar (got "%s");'
+				. ' either cast it before filtering or implement castValueForFilter() on the type.',
+			$column->getFullName(),
+			\get_debug_type($value)
+		));
 	}
 
 	/**

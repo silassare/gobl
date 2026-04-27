@@ -18,7 +18,8 @@ use Generator;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Table;
-use Gobl\ORM\Exceptions\ORMRuntimeException;
+use Gobl\ORM\Interfaces\WithPaginationInterface;
+use Gobl\ORM\Utils\Helpers;
 use Gobl\ORM\Utils\ORMClassKind;
 use Iterator;
 use Override;
@@ -55,9 +56,6 @@ abstract class ORMResults implements Countable, Iterator
 	/** @var bool */
 	protected bool $trust_row_count = true;
 
-	/** @var int */
-	protected int $foreach_count = 0;
-
 	/** @var null|PDOStatement */
 	protected ?PDOStatement $statement = null;
 
@@ -74,16 +72,14 @@ abstract class ORMResults implements Countable, Iterator
 	/**
 	 * ORMResults constructor.
 	 *
-	 * @param string            $namespace       the table namespace
-	 * @param string            $table_name      the table name
-	 * @param QBSelect          $query           the select query builder instance
-	 * @param null|list<string> $partial_columns use this to mark the results entities as partially loaded with only the specified columns
+	 * @param string   $namespace  the table namespace
+	 * @param string   $table_name the table name
+	 * @param QBSelect $query      the select query builder instance
 	 */
 	protected function __construct(
 		string $namespace,
 		protected string $table_name,
 		QBSelect $query,
-		protected ?array $partial_columns = null
 	) {
 		$this->db           = ORM::getDatabase($namespace);
 		$this->table        = $this->db->getTable($this->table_name);
@@ -111,26 +107,25 @@ abstract class ORMResults implements Countable, Iterator
 	/**
 	 * Returns new instance.
 	 *
-	 * @param QBSelect          $query           the select query builder instance
-	 * @param null|list<string> $partial_columns use this to mark the results entities as partially loaded with only the specified columns
+	 * @param QBSelect $query the select query builder instance
 	 *
 	 * @return static
 	 */
-	abstract public static function new(QBSelect $query, ?array $partial_columns = null): static;
+	abstract public static function new(QBSelect $query): static;
 
 	/**
 	 * Lazily iterate through large result set.
 	 *
-	 * @param bool $strict
-	 * @param int  $max
+	 * @param bool $strict    enable/disable strict mode on class fetch
+	 * @param int  $chunk_max maximum number of rows to fetch per chunk
 	 *
 	 * @return Generator<int,TEntity>
 	 */
-	public function lazy(bool $strict = true, int $max = 100): Generator
+	public function lazy(bool $strict = true, int $chunk_max = 100): Generator
 	{
 		$page = 1;
 
-		while ($this->query->limit($max, ($page - 1) * $max) && $this->getStatement(true)) {
+		while ($this->query->limit($chunk_max, ($page - 1) * $chunk_max) && $this->getStatement(true)) {
 			$count = 0;
 			while ($entry = $this->fetchClass($strict)) {
 				++$count;
@@ -138,7 +133,7 @@ abstract class ORMResults implements Countable, Iterator
 				yield $entry;
 			}
 
-			if ($count < $max) {
+			if ($count < $chunk_max) {
 				break;
 			}
 			++$page;
@@ -146,7 +141,7 @@ abstract class ORMResults implements Countable, Iterator
 	}
 
 	/**
-	 * Fetches  the next row into table of the entity class instance.
+	 * Fetches the next row into table of the entity class instance.
 	 *
 	 * @param bool $strict enable/disable strict mode on class fetch
 	 *
@@ -154,7 +149,7 @@ abstract class ORMResults implements Countable, Iterator
 	 */
 	public function fetchClass(bool $strict = true): ?ORMEntity
 	{
-		$entity = ORM::entity($this->table, false, $strict, $this->partial_columns);
+		$entity = ORM::entity($this->table, false, $strict);
 		$stmt   = $this->getStatement();
 
 		$stmt->setFetchMode(PDO::FETCH_INTO, $entity);
@@ -198,7 +193,7 @@ abstract class ORMResults implements Countable, Iterator
 	}
 
 	/**
-	 * Fetches  all rows and return array of the entity class instance.
+	 * Fetches all rows and return array of the entity class instance.
 	 *
 	 * @param bool $strict enable/disable strict mode on class fetch
 	 *
@@ -212,7 +207,49 @@ abstract class ORMResults implements Countable, Iterator
 		$fetch_style = PDO::FETCH_CLASS | PDO::FETCH_PROPS_LATE;
 
 		return $this->getStatement()
-			->fetchAll($fetch_style, $this->entity_class, [false, $strict, $this->partial_columns]);
+			->fetchAll($fetch_style, $this->entity_class, [false, $strict]);
+	}
+
+	/**
+	 * Fetches all rows and returns an array of the entity class instances along with cursor metadata.
+	 *
+	 * The extra row used to detect `has_more` is fetched automatically by `applyPaginationLogic`.
+	 * Pass plain `$max` (e.g. 25) to `makeCursorBased()` -- do NOT add 1 yourself.
+	 *
+	 * @param WithPaginationInterface $options pagination options
+	 * @param bool                    $strict  enable/disable strict mode on class fetch
+	 *
+	 * @return array{items: TEntity[], next_cursor: null|int|string, has_more: bool}
+	 */
+	public function fetchAllClassWithCursorMeta(WithPaginationInterface $options, bool $strict = true): array
+	{
+		$expected_max  = $options->getMax();
+
+		if (null === $expected_max || $expected_max <= 0) {
+			return [
+				'items'       => $this->fetchAllClass($strict),
+				'next_cursor' => null,
+				'has_more'    => false,
+			];
+		}
+
+		$cursor_column = Helpers::requireCursorColumn($this->table, $options);
+		$all           = $this->fetchAllClass($strict);
+
+		$has_more    = \count($all) > $expected_max;
+		$items       = $has_more ? \array_slice($all, 0, $expected_max) : $all;
+		$last        = !empty($items) ? $items[\count($items) - 1] : null;
+		$next_cursor = null;
+
+		if ($has_more && $last) {
+			$next_cursor = (string) $last->{$cursor_column->getFullName()};
+		}
+
+		return [
+			'items'       => $items,
+			'next_cursor' => $next_cursor,
+			'has_more'    => $has_more,
+		];
 	}
 
 	/**
@@ -278,23 +315,19 @@ abstract class ORMResults implements Countable, Iterator
 
 	/**
 	 * Rewind the Iterator to the first element.
-	 *
-	 * **One-time iteration only.** This result set wraps a forward-only PDO cursor;
-	 * calling `rewind()` a second time (as happens on a second `foreach` loop) throws
-	 * `ORMRuntimeException`. Use `fetchAllClass()` or `lazy()` if you need to iterate
-	 * the same results more than once.
 	 */
 	#[Override]
 	public function rewind(): void
 	{
-		// not supported
-		if ($this->foreach_count) {
-			throw new ORMRuntimeException('You cannot use the same result set in multiple foreach.');
-		}
+		$this->statement           = null; // reset statement to re-execute the query
+		$this->limited_count_cache = null;
+		$this->total_count_cache   = null;
+		$this->index               = 0;
 
-		$this->current = $this->fetchClass();
-
-		++$this->foreach_count;
+		// Note this should be called after resetting the statement and caches,
+		// otherwise we might have some unexpected behavior when rewinding after
+		// iterating at least one element
+		$this->current             = $this->fetchClass(); // prime the first element
 	}
 
 	/**
@@ -334,17 +367,86 @@ abstract class ORMResults implements Countable, Iterator
 	}
 
 	/**
-	 * Count rows without limit.
+	 * Returns the underlying QBSelect instance.
+	 *
+	 * @return QBSelect
+	 */
+	public function getSelect(): QBSelect
+	{
+		return $this->query;
+	}
+
+	/**
+	 * Lazily computes the total row count by running a `SELECT COUNT(*)` query if necessary.
+	 *
+	 * In cursor based pagination:
+	 *  - we add +1 to the max limit to detect has_more without an extra COUNT query.
+	 *  - the total returned should mean total number of items available for the current cursor, not total number of items in the whole result set.
+	 * In non-cursor based pagination:
+	 *  - when we are on the last page, we can calculate total without an extra COUNT query if we have some rows in the current page and the number of rows found is less than the max limit (or when max limit is not set, which also means we are on the last page).
+	 *  - in other cases, we need to run the COUNT query to get the total number of items in the whole result set.
+	 *
+	 * @param null|WithPaginationInterface $options the pagination options; when null, a default non-cursor-based context is used
+	 * @param bool                         $force   whether to force a refresh of the total count
 	 *
 	 * @return int
 	 */
-	public function totalCount(): int
+	public function getTotal(?WithPaginationInterface $options = null, bool $force = false): int
 	{
-		if (null === $this->total_count_cache) {
-			$this->total_count_cache = $this->query->runTotalRowsCount(false);
+		if (null === $this->total_count_cache || $force) {
+			$computed = null;
+
+			if (!$options?->isCursorBased()) {
+				$max    = $this->query->getOptionsLimitMax();
+				$offset = $this->query->getOptionsLimitOffset() ?? 0;
+				$found  = $this->limited_count_cache;
+
+				// we have some rows in the current page
+				// in paginated queries we can calculate the total count without an extra query when we are on a page that is not full (i.e. the last page)
+				// 1) max is set and we found less than max rows => we are on the last page, so total is offset + found
+				// 2) max is not set => we are on the last page, so total is offset + found
+				if (null !== $found) {
+					if (null !== $max && $found < $max) {
+						$computed = $offset + $found;
+					} elseif (null === $max) {
+						$computed = $offset + $found;
+					}
+				}
+			}
+
+			$this->total_count_cache = $computed ?? $this->query->runTotalRowsCount(false);
 		}
 
 		return $this->total_count_cache;
+	}
+
+	/**
+	 * Returns a generator that yields entities keyed by their identity key ({@see ORMEntity::toIdentityKey()}).
+	 *
+	 * @param bool $strict enable/disable strict mode on class fetch
+	 *
+	 * @return Generator<string, TEntity>
+	 */
+	public function groupByKey(bool $strict = true): Generator
+	{
+		foreach ($this->lazy($strict) as $entity) {
+			yield $entity->toIdentityKey() => $entity;
+		}
+	}
+
+	/**
+	 * Returns a generator that yields entities grouped by a key generated from the entity using the provided callable.
+	 *
+	 * @param callable(TEntity):string $key_factory callable that receives an entity and returns its group key
+	 * @param bool                     $strict      enable/disable strict mode on class fetch
+	 *
+	 * @return Generator<string, TEntity>
+	 */
+	public function groupBy(callable $key_factory, bool $strict = true): Generator
+	{
+		foreach ($this->lazy($strict) as $entity) {
+			yield $key_factory($entity) => $entity; // yield the key and the entity
+		}
 	}
 
 	/**

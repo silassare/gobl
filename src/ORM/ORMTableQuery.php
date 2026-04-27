@@ -16,7 +16,6 @@ namespace Gobl\ORM;
 use BadMethodCallException;
 use Gobl\DBAL\Column;
 use Gobl\DBAL\Exceptions\DBALException;
-use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Filters\Filter;
 use Gobl\DBAL\Filters\Filters;
 use Gobl\DBAL\Filters\FiltersTableScope;
@@ -32,6 +31,13 @@ use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Table;
 use Gobl\ORM\Exceptions\ORMQueryException;
 use Gobl\ORM\Exceptions\ORMRuntimeException;
+use Gobl\ORM\Interfaces\ORMDeleteOptionsInterface;
+use Gobl\ORM\Interfaces\ORMSelectOptionsInterface;
+use Gobl\ORM\Interfaces\ORMUpdateOptionsInterface;
+use Gobl\ORM\Interfaces\WithExpectedColumnsInterface;
+use Gobl\ORM\Interfaces\WithFiltersInterface;
+use Gobl\ORM\Interfaces\WithPaginationInterface;
+use Gobl\ORM\Utils\Helpers;
 use Gobl\ORM\Utils\ORMClassKind;
 use Override;
 use PHPUtils\Str;
@@ -44,6 +50,8 @@ use Throwable;
  */
 abstract class ORMTableQuery extends FiltersTableScope
 {
+	public const BATCH_HOST_IDENTITY_KEY = 'batch_host_identity_key';
+
 	/** @var RDBMSInterface */
 	protected RDBMSInterface $db;
 
@@ -173,7 +181,7 @@ abstract class ORMTableQuery extends FiltersTableScope
 	/**
 	 * Alias of {@see Filters::and}.
 	 *
-	 * @param array|callable|static ...$filters
+	 * @param array|(callable(static):void)|static ...$filters
 	 *
 	 * @return static
 	 */
@@ -189,12 +197,12 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 *
 	 * Accepts three filter forms:
 	 * - **`static` instance** - merged directly into the current filters; passing `$this` throws.
-	 * - **`callable`** - invoked with a fresh `subGroup()` and must return the **same sub-group
-	 *   instance** (not a new one); throws `ORMRuntimeException` if the callable returns a
-	 *   different object.
+	 * - **`callable`** - invoked with a fresh `subGroup()` instance to build a nested filter group;
+	 * the sub-group filters are merged into the current filters as a single nested group; passing
+	 * a callable that does not add any filter throws.
 	 * - **`array`** - forwarded as-is to `Filters::where()`.
 	 *
-	 * @param array|callable|static ...$filters
+	 * @param array|(callable(static):void)|static ...$filters
 	 *
 	 * @return static
 	 */
@@ -212,13 +220,14 @@ abstract class ORMTableQuery extends FiltersTableScope
 				}
 				$this->filters->where($entry->filters);
 			} elseif (\is_callable($entry)) {
-				$sub    = $this->subGroup();
-				$return = $entry($sub);
+				$sub = $this->subGroup();
 
-				if ($return !== $sub) {
+				$entry($sub);
+
+				if ($sub->filters->isEmpty()) {
 					throw (new ORMRuntimeException(
 						\sprintf(
-							'The sub-filters group callable should return the same instance of "%s" passed as argument.',
+							'The sub-filters group callable should add at least one filter to the provided %s instance, got empty group from callable.',
 							static::class
 						)
 					))
@@ -263,7 +272,7 @@ abstract class ORMTableQuery extends FiltersTableScope
 	/**
 	 * Alias of {@see Filters::or}.
 	 *
-	 * @param array|callable|static ...$filters
+	 * @param array|(callable(static):void)|static ...$filters
 	 *
 	 * @return static
 	 */
@@ -296,62 +305,45 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 */
 	public function insert(array $values): QBInsert
 	{
-		$row = $this->table->doPhpToDbConversion($this->completeRow($values), $this->db);
+		$ins = new QBInsert($this->db);
+		$ins->into($this->table->getFullName())
+			->values($this->prepareValuesForInsertion($values));
 
-		// Remove null auto-increment columns: the RDBMS generates the value via
-		// AUTO_INCREMENT (MySQL), SERIAL sequence (PostgreSQL), or ROWID (SQLite).
-		// Passing an explicit NULL would violate NOT NULL on PostgreSQL SERIAL columns.
-		foreach ($this->table->getColumns() as $column) {
-			$full_name = $column->getFullName();
-
-			if (
-				$column->getType()->isAutoIncremented()
-				&& \array_key_exists($full_name, $row)
-				&& null === $row[$full_name]
-			) {
-				unset($row[$full_name]);
-			}
-		}
-
-		$qb = new QBInsert($this->db);
-		$qb->into($this->table->getFullName())
-			->values($row);
-
-		return $qb;
+		return $ins;
 	}
 
 	/**
 	 * Create a {@see QBInsert} instance for multiple rows insertion.
 	 *
-	 * @param array<int, array> $values a two dimensional array of column => value map
+	 * @param array<array> $values a two dimensional array of column => value map
 	 *
 	 * @return QBInsert
 	 */
 	public function insertMulti(array $values): QBInsert
 	{
-		$qb = new QBInsert($this->db);
-		$qb->into($this->table->getFullName());
+		$ins = new QBInsert($this->db);
+		$ins->into($this->table->getFullName());
 
 		foreach ($values as $entry) {
-			$entry = $this->completeRow($entry);
-			$row   = $this->table->doPhpToDbConversion($entry, $this->db);
-			$qb->values($row);
+			$ins->values($this->prepareValuesForInsertion($entry));
 		}
 
-		return $qb;
+		return $ins;
 	}
 
 	/**
-	 * Create a {@see QBDelete} instance and apply the current filters.
+	 * Delete rows in the table.
 	 *
 	 * @return QBDelete
 	 */
-	public function delete(): QBDelete
+	public function delete(ORMDeleteOptionsInterface $options): QBDelete
 	{
 		$del = new QBDelete($this->db);
 		$del->from($this->table->getFullName(), $this->getTableAlias())
-			->bindMergeFrom($this->getBindingSource())
-			->where($this->getFilters());
+			->bindMergeFrom($this->getBindingSource());
+
+		$this->applyFiltersLogic($del, $options);
+		$this->applyPaginationLogic($del, $options);
 
 		return $del;
 	}
@@ -385,38 +377,39 @@ abstract class ORMTableQuery extends FiltersTableScope
 	}
 
 	/**
-	 * Soft delete rows in the table using the current filters.
+	 * Soft delete rows in the table.
 	 *
 	 * @return QBUpdate
 	 *
 	 * @throws DBALException
 	 */
-	public function softDelete(): QBUpdate
+	public function softDelete(ORMDeleteOptionsInterface $options): QBUpdate
 	{
 		$this->table->assertSoftDeletable();
 
-		$upd = new QBUpdate($this->db);
-		$upd->update($this->table->getFullName(), $this->getTableAlias())
+		$del = new QBUpdate($this->db);
+		$del->update($this->table->getFullName(), $this->getTableAlias())
 			->set([
 				Table::COLUMN_SOFT_DELETED    => true,
 				Table::COLUMN_SOFT_DELETED_AT => \time(),
 			])
-			->bindMergeFrom($this->getBindingSource())
-			->where($this->getFilters());
+			->bindMergeFrom($this->getBindingSource());
 
-		$this->applySoftDeletedLogic($upd, true);
+		$this->applyFiltersLogic($del, $options);
+		$this->applyPaginationLogic($del, $options);
+		$this->applySoftDeletedLogic($del, true);
 
-		return $upd;
+		return $del;
 	}
 
 	/**
-	 * Create a {@see QBUpdate} instance and apply the current filters.
+	 * Update rows in the table.
 	 *
 	 * @param array $values new values
 	 *
 	 * @return QBUpdate
 	 */
-	public function update(array $values): QBUpdate
+	public function update(ORMUpdateOptionsInterface $options, array $values): QBUpdate
 	{
 		if (!\count($values)) {
 			throw new ORMRuntimeException('Empty columns, can\'t update.');
@@ -427,9 +420,10 @@ abstract class ORMTableQuery extends FiltersTableScope
 		$upd = new QBUpdate($this->db);
 		$upd->update($this->table->getFullName(), $this->getTableAlias())
 			->set($values)
-			->bindMergeFrom($this->getBindingSource())
-			->where($this->getFilters());
+			->bindMergeFrom($this->getBindingSource());
 
+		$this->applyFiltersLogic($upd, $options);
+		$this->applyPaginationLogic($upd, $options);
 		$this->applySoftDeletedLogic($upd);
 
 		return $upd;
@@ -438,56 +432,65 @@ abstract class ORMTableQuery extends FiltersTableScope
 	/**
 	 * Finds rows in the table and returns a new instance of the table's result iterator.
 	 *
-	 * @param null|int $max      maximum row to retrieve
-	 * @param int      $offset   first row offset
-	 * @param array    $order_by order by rules
+	 * @param null|ORMDeleteOptionsInterface|ORMSelectOptionsInterface|ORMUpdateOptionsInterface $options
+	 * @param null|list<string>                                                                  $restrict_to_columns optional list of column names to scope the expected columns to (e.g. for relations); if provided, only columns in this list are allowed to be selected even if present in `$options->getExpectedColumns()`
 	 *
 	 * @return ORMResults<TEntity>
 	 */
-	public function find(?int $max = null, int $offset = 0, array $order_by = []): ORMResults
+	public function find(ORMDeleteOptionsInterface|ORMSelectOptionsInterface|ORMUpdateOptionsInterface|null $options = null, ?array $restrict_to_columns = []): ORMResults
 	{
-		$qb = $this->select($max, $offset, $order_by);
+		$sel = $this->select($options, $restrict_to_columns);
 
-		/** @var ORMResults<TEntity> $class_name */
-		$class_name = ORMClassKind::RESULTS->getClassFQN($this->table);
-
-		/** @var ORMResults<TEntity> */
-		return $class_name::new($qb);
+		return $this->wrapResults($sel);
 	}
 
 	/**
-	 * Create a {@see QBSelect} and apply the current filters.
+	 * Create a {@see QBSelect} and apply the options.
 	 *
-	 * @param null|int $max      maximum row to retrieve
-	 * @param int      $offset   first row offset
-	 * @param array    $order_by order by rules
+	 * @param null|ORMDeleteOptionsInterface|ORMSelectOptionsInterface|ORMUpdateOptionsInterface $options
+	 * @param null|list<string>                                                                  $restrict_to_columns optional list of column names to scope the expected columns to (e.g. for relations); if provided, only columns in this list are allowed to be selected even if present in `$options->getExpectedColumns()`
 	 *
 	 * @return QBSelect
 	 */
-	public function select(?int $max = null, int $offset = 0, array $order_by = []): QBSelect
+	public function select(ORMDeleteOptionsInterface|ORMSelectOptionsInterface|ORMUpdateOptionsInterface|null $options = null, ?array $restrict_to_columns = []): QBSelect
 	{
-		$sel = new QBSelect($this->db);
-		$sel->select($this->table_alias)
-			->from($this->table->getFullName(), $this->getTableAlias())
-			->bindMergeFrom($this->getBindingSource())
-			->where($this->getFilters());
+		$table            = $this->table;
+		$rtc_map          = \array_fill_keys($restrict_to_columns ?? [], true);
+		$expected_columns = $restrict_to_columns ?? [];
+		$allowed          = [];
 
-		$this->applySoftDeletedLogic($sel);
-
-		if (!empty($order_by)) {
-			$sel->orderBy($order_by);
+		if (null !== $options && $options instanceof WithExpectedColumnsInterface) {
+			$expected_columns = $options->getExpectedColumns() ?? $expected_columns;
 		}
 
-		return $sel->limit($max, $offset);
+		foreach ($expected_columns as $name) {
+			if (!empty($rtc_map) && !isset($rtc_map[$name])) {
+				throw new ORMRuntimeException(\sprintf('Column "%s" is not allowed in the expected columns list for this query.', $name));
+			}
+
+			$col       = $table->getColumnOrFail($name);
+			$allowed[] = $col->getFullName();
+		}
+
+		$alias = $this->getTableAlias();
+		$sel   = new QBSelect($this->db);
+
+		// Register FROM first so the alias is declared before SELECT resolves expected column names if not empty.
+		$sel->from($this->table->getFullName(), $alias)
+			->select($alias, $allowed)
+			->bindMergeFrom($this->getBindingSource());
+
+		$this->applyFiltersLogic($sel, $options);
+		$this->applyPaginationLogic($sel, $options);
+		$this->applySoftDeletedLogic($sel);
+
+		return $sel;
 	}
 
 	/**
 	 * Create a {@see QBSelect} and apply the current filters and the relation's filters.
 	 *
-	 * Validates via `assertCanManageRelatives()` that the relation targets this query's table
-	 * and (when an entity is given) that the entity is persisted and of the correct class.
-	 *
-	 * When the relation has a column projection ({@see Relation::getSelect()} is non-null),
+	 * When the relation has a column projection ({@see Relation::getSelect()} is not empty),
 	 * only those columns are included in the SELECT clause.
 	 *
 	 * Returns `null` when the link cannot be applied - e.g. a column-based link where a
@@ -496,15 +499,12 @@ abstract class ORMTableQuery extends FiltersTableScope
 	public function selectRelatives(
 		Relation $relation,
 		?ORMEntity $host_entity = null,
-		?int $max = null,
-		int $offset = 0,
-		array $order_by = [],
+		?ORMSelectOptionsInterface $options = null,
 	): ?QBSelect {
-		self::assertCanManageRelatives($this->table, $relation, $host_entity);
+		Helpers::assertCanManageRelatives($this->table, $relation, $host_entity ? [$host_entity] : []);
 
-		$select  = $relation->getSelect();
-		$sel     = empty($select) ? $this->select($max, $offset, $order_by) : $this->selectWithColumns($select, $max, $offset, $order_by);
-		$l       = $relation->getLink();
+		$sel = $this->select($options, $relation->resolveSelectColumns());
+		$l   = $relation->getLink();
 
 		if ($l->apply($sel, $host_entity)) {
 			return $sel;
@@ -519,7 +519,7 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 * Uses {@see LinkInterface::applyBatch()} to build a single
 	 * IN-clause query for all host entities at once.
 	 *
-	 * When the relation has a column projection ({@see Relation::getSelect()} is non-null),
+	 * When the relation has a column projection ({@see Relation::getSelect()} is not empty),
 	 * only those columns are included in the SELECT clause.
 	 *
 	 * Returns `null` when:
@@ -531,21 +531,36 @@ abstract class ORMTableQuery extends FiltersTableScope
 	public function selectRelativesBatch(
 		Relation $relation,
 		array $host_entities,
-		?int $max = null,
-		int $offset = 0,
-		array $order_by = [],
+		ORMDeleteOptionsInterface|ORMSelectOptionsInterface|ORMUpdateOptionsInterface|null $options = null,
 	): ?QBSelect {
 		if (empty($host_entities)) {
 			return null;
 		}
 
-		self::assertCanManageRelatives($this->table, $relation, null);
+		if (!$relation->getHostTable()->hasSinglePKColumn()) {
+			return null;
+		}
 
-		$select = $relation->getSelect();
-		$sel    = empty($select) ? $this->select($max, $offset, $order_by) : $this->selectWithColumns($select, $max, $offset, $order_by);
-		$l      = $relation->getLink();
+		Helpers::assertCanManageRelatives($this->table, $relation, $host_entities);
 
-		if ($l->applyBatch($sel, $host_entities)) {
+		$sel = $this->select($options, $relation->resolveSelectColumns());
+		$l   = $relation->getLink();
+
+		if ($l->apply($sel)) {
+			$key_col     = $relation->getHostTable()->getPrimaryKeyConstraint()->getColumns()[0];
+			$key_col_fqn = $sel->fullyQualifiedName($relation->getHostTable(), $key_col);
+
+			$sel->selectComputed(self::BATCH_HOST_IDENTITY_KEY, $key_col_fqn);
+
+			$ids = [];
+			foreach ($host_entities as $host_entity) {
+				$ids[] = $host_entity->toIdentityKey();
+			}
+
+			$sel->andWhere(
+				Filters::fromArray([$key_col_fqn, Operator::IN, $ids], $sel)
+			);
+
 			return $sel;
 		}
 
@@ -553,48 +568,49 @@ abstract class ORMTableQuery extends FiltersTableScope
 	}
 
 	/**
-	 * Assert if relatives can be retrieved.
+	 * Finds relatives and returns a result set.
 	 *
-	 * @param Table          $expected_target_table
-	 * @param Relation       $relation
-	 * @param null|ORMEntity $host_entity
+	 * @param Relation                       $relation    the relation to use for fetching relatives
+	 * @param null|ORMEntity                 $host_entity the host entity, or null to skip host filtering
+	 * @param null|ORMSelectOptionsInterface $options
 	 *
-	 * @internal
+	 * @return null|ORMResults<TEntity>
 	 */
-	public static function assertCanManageRelatives(Table $expected_target_table, Relation $relation, ?ORMEntity $host_entity): void
-	{
-		$target_table = $relation->getTargetTable();
-		$host_table   = $relation->getHostTable();
+	public function findRelatives(
+		Relation $relation,
+		?ORMEntity $host_entity,
+		?ORMSelectOptionsInterface $options = null,
+	): ?ORMResults {
+		$sel = $this->selectRelatives($relation, $host_entity, $options);
 
-		if ($target_table !== $expected_target_table) {
-			throw new ORMRuntimeException(
-				\sprintf(
-					'The relation "%s" target table "%s" is not the same as the expected target table "%s".',
-					$relation->getName(),
-					$target_table->getFullName(),
-					$expected_target_table->getFullName()
-				)
-			);
+		if (null === $sel) {
+			return null;
 		}
 
-		if ($host_entity) {
-			if (!$host_entity->isSaved()) {
-				throw new ORMRuntimeException('Entity should be persisted to get relatives.');
-			}
+		return $this->wrapResults($sel);
+	}
 
-			if ($host_entity::table() !== $host_table) {
-				$expected_entity_class = ORMClassKind::ENTITY->getClassFQN($host_table);
+	/**
+	 * Finds relatives for multiple host entities in a single batch query and returns a result set.
+	 *
+	 * @param Relation                       $relation      the relation to use for fetching relatives
+	 * @param ORMEntity[]                    $host_entities the host entities
+	 * @param null|ORMSelectOptionsInterface $options
+	 *
+	 * @return null|ORMResults<TEntity>
+	 */
+	public function findRelativesBatch(
+		Relation $relation,
+		array $host_entities,
+		?ORMSelectOptionsInterface $options = null
+	): ?ORMResults {
+		$sel = $this->selectRelativesBatch($relation, $host_entities, $options);
 
-				throw new ORMRuntimeException(
-					\sprintf(
-						'To get relatives for the relation "%s" the entity should be an instance of "%s" not "%s".',
-						$relation->getName(),
-						$expected_entity_class,
-						\get_class($host_entity)
-					)
-				);
-			}
+		if (null === $sel) {
+			return null;
 		}
+
+		return $this->wrapResults($sel);
 	}
 
 	/**
@@ -633,134 +649,88 @@ abstract class ORMTableQuery extends FiltersTableScope
 	}
 
 	/**
-	 * Executes a forward cursor-paginated query.
+	 * Wraps a QBSelect in the table's ORMResults class.
 	 *
-	 * Generates:
-	 *   `SELECT ... WHERE cursor_col > :cursor ORDER BY cursor_col ASC LIMIT max + 1`
-	 * (or `<` for `desc`). The extra row tells the caller whether a next page exists
-	 * without a separate COUNT query.
-	 *
-	 * The returned `next_cursor` is the opaque serialised value of `cursor_column`
-	 * on the last item; pass it as `$cursor` on the next call.
-	 *
-	 * @param string       $cursor_column short or full column name used to order and slice
-	 * @param mixed        $cursor        last seen cursor value from the previous page; null = first page
-	 * @param int          $max           page size (> 0)
-	 * @param 'asc'|'desc' $direction     sort direction
-	 *
-	 * @return array{items: ORMEntity[], next_cursor: null|string, has_more: bool}
-	 *
-	 * @throws ORMQueryException when $max < 1 or $cursor_column is not a valid column
+	 * @return ORMResults<TEntity>
 	 */
-	public function cursorFind(
-		string $cursor_column,
-		mixed $cursor,
-		int $max,
-		string $direction = 'asc',
-	): array {
-		if ($max < 1) {
-			throw new ORMQueryException('GOBL_ORM_CURSOR_MAX_INVALID', ['max' => $max]);
-		}
+	protected function wrapResults(QBSelect $sel): ORMResults
+	{
+		/** @var class-string<ORMResults<TEntity>> $class_name */
+		$class_name = ORMClassKind::RESULTS->getClassFQN($this->table);
 
-		if ('asc' !== $direction && 'desc' !== $direction) {
-			throw new ORMQueryException('GOBL_ORM_CURSOR_DIRECTION_INVALID', ['direction' => $direction]);
-		}
-
-		$this->table->assertHasColumn($cursor_column);
-		$column  = $this->table->getColumnOrFail($cursor_column);
-		$col_fqn = $this->getTableAlias() . '.' . $column->getFullName();
-
-		// Build the SELECT with max + 1 rows (one extra for has_more detection).
-		$order_by = [$col_fqn => \strtoupper($direction)];
-		$sel      = $this->select($max + 1, 0, $order_by);
-
-		// Add cursor condition directly to the QBSelect so bindings land in the same QB.
-		if (null !== $cursor) {
-			$op = 'asc' === $direction ? Operator::GT : Operator::LT;
-			$sel->andWhere(
-				Filters::fromArray([[$col_fqn, $op->value, $cursor]], $sel)
-			);
-		}
-
-		/** @var class-string<ORMResults<TEntity>> $results_class */
-		$results_class = ORMClassKind::RESULTS->getClassFQN($this->table);
-		$results       = $results_class::new($sel);
-		$all           = $results->fetchAllClass();
-
-		$has_more    = \count($all) > $max;
-		$items       = $has_more ? \array_slice($all, 0, $max) : $all;
-		$last        = !empty($items) ? $items[\count($items) - 1] : null;
-		$next_cursor = null;
-
-		if ($has_more && $last) {
-			$next_cursor = (string) $last->{$column->getFullName()};
-		}
-
-		return [
-			'items'       => $items,
-			'next_cursor' => $next_cursor,
-			'has_more'    => $has_more,
-		];
+		/** @var ORMResults<TEntity> */
+		return $class_name::new($sel);
 	}
 
 	/**
-	 * Creates a {@see QBSelect} restricted to the given column list.
-	 *
-	 * Restricts the SELECT clause to only the specified columns, which is useful
-	 * for field-projection scenarios such as GraphQL resolvers requesting a subset
-	 * of fields, or any caller that knows in advance which columns it needs.
-	 *
-	 * Also used internally by selectRelatives() and selectRelativesBatch() when
-	 * the relation carries a per-relation column projection.
-	 *
-	 * - Each column name is validated against the table schema;
-	 *   unknown names throw {@see DBALRuntimeException}.
-	 * - Private columns are silently excluded from the projection.
-	 * - Falls back to a full SELECT when all columns are filtered out.
-	 *
-	 * The FROM clause is registered before the SELECT clause so that the table
-	 * alias is available when QBSelect resolves column names.
-	 *
-	 * @param string[] $columns  short or full column names to include in the SELECT
-	 * @param null|int $max      maximum row to retrieve
-	 * @param int      $offset   first row offset
-	 * @param array    $order_by order by rules
-	 *
-	 * @return QBSelect
+	 * Applies pagination/ordering logic (cursor-based or offset-based) on the given QB.
 	 */
-	public function selectWithColumns(array $columns, ?int $max = null, int $offset = 0, array $order_by = []): QBSelect
+	protected function applyPaginationLogic(QBDelete|QBSelect|QBUpdate $qb, ?WithPaginationInterface $options): void
 	{
-		$table   = $this->table;
-		$allowed = [];
+		if (null === $options) {
+			return;
+		}
 
-		foreach ($columns as $name) {
-			$col = $table->getColumnOrFail($name); // throws DBALRuntimeException for unknown columns
-			if (!$col->isPrivate()) {
-				$allowed[] = $col->getFullName();
+		if ($options->isCursorBased()) {
+			$cursor_column = Helpers::requireCursorColumn($this->table, $options);
+			$cursor        = $options->getCursor();
+			$max           = $options->getMax();
+			$direction     = \strtoupper($options->getCursorDirection() ?? 'ASC');
+
+			$col_fqn = $this->getTableAlias() . '.' . $cursor_column->getFullName();
+
+			$qb->orderBy([$col_fqn => $direction]);
+
+			// Fetch max + 1 rows so fetchAllClassWithCursorMeta() can detect has_more without an extra COUNT query.
+			if (null !== $max) {
+				$qb->limit($max + 1, 0);
+			}
+
+			// Add cursor condition when we have a cursor value.
+			if (null !== $cursor) {
+				$op = ('ASC' === $direction) ? Operator::GT : Operator::LT;
+				$qb->andWhere(
+					Filters::fromArray([[$col_fqn, $op->value, $cursor]], $qb)
+				);
+			}
+		} else {
+			$max    = $options->getMax();
+			$offset = $options->getOffset() ?? 0;
+
+			if (null !== $max) {
+				$qb->limit($max, $offset);
 			}
 		}
 
-		// If all columns were filtered out (e.g. all are private), fall back to a full SELECT.
-		if (empty($allowed)) {
-			return $this->select($max, $offset, $order_by);
-		}
-
-		$alias = $this->getTableAlias();
-		$sel   = new QBSelect($this->db);
-
-		// Register FROM first so the alias is declared before SELECT resolves column names.
-		$sel->from($this->table->getFullName(), $alias)
-			->select($alias, $allowed)
-			->bindMergeFrom($this->getBindingSource())
-			->where($this->getFilters());
-
-		$this->applySoftDeletedLogic($sel);
-
+		$order_by = $options->getOrderBy() ?? [];
 		if (!empty($order_by)) {
-			$sel->orderBy($order_by);
+			$qb->orderBy($order_by);
+		}
+	}
+
+	/**
+	 * Applies the current filters to the given QBSelect/QBUpdate/QBDelete.
+	 */
+	protected function applyFiltersLogic(QBDelete|QBSelect|QBUpdate $qb, ?WithFiltersInterface $options = null): void
+	{
+		$safe_filters = $this->getFilters();
+
+		if (!$safe_filters->isEmpty()) {
+			$qb->where($safe_filters);
 		}
 
-		return $sel->limit($max, $offset);
+		$additional_filters = $options?->getFilters();
+
+		if (!empty($additional_filters)) {
+			try {
+				$qb->where(Filters::fromArray($additional_filters, $qb));
+			} catch (Throwable $t) {
+				throw new ORMQueryException('Failed to apply filters to query.', [
+					'_filters' => $additional_filters,
+					'_table'   => $this->table->getName(),
+				], $t);
+			}
+		}
 	}
 
 	/**
@@ -785,14 +755,32 @@ abstract class ORMTableQuery extends FiltersTableScope
 	}
 
 	/**
-	 * Complete a row with default values if needed.
+	 * Prepare values for insertion by adding missing values, doing a PHP to DB conversion and removing null auto-increment columns.
 	 *
-	 * @param array $row
+	 * @param array $values the column => value map
 	 *
-	 * @return array
+	 * @return array the cleaned row ready for insertion
 	 */
-	private function completeRow(array $row): array
+	private function prepareValuesForInsertion(array $values): array
 	{
-		return ORM::entity($this->table)->hydrate($row)->toRow();
+		$completed = ORM::entity($this->table)->hydrate($values)->toRow();
+		$row       = $this->table->doPhpToDbConversion($completed, $this->db);
+
+		// Remove null auto-increment columns: the RDBMS generates the value via
+		// AUTO_INCREMENT (MySQL), SERIAL sequence (PostgreSQL), or ROWID (SQLite).
+		// Passing an explicit NULL would violate NOT NULL on PostgreSQL SERIAL columns.
+		foreach ($this->table->getColumns() as $column) {
+			$full_name = $column->getFullName();
+
+			if (
+				$column->getType()->isAutoIncremented()
+				&& \array_key_exists($full_name, $row)
+				&& null === $row[$full_name]
+			) {
+				unset($row[$full_name]);
+			}
+		}
+
+		return $row;
 	}
 }

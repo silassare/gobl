@@ -26,11 +26,12 @@ use Gobl\DBAL\Types\Utils\JsonPatch;
 use Gobl\Exceptions\GoblException;
 use Gobl\Gobl;
 use Gobl\ORM\Events\ORMTableFilesGenerated;
+use Gobl\ORM\Interfaces\ORMOptionsInterface;
 use Gobl\ORM\ORM;
 use Gobl\ORM\ORMController;
 use Gobl\ORM\ORMEntity;
 use Gobl\ORM\ORMEntityCRUD;
-use Gobl\ORM\ORMRequest;
+use Gobl\ORM\ORMOptions;
 use Gobl\ORM\ORMResults;
 use Gobl\ORM\ORMTableQuery;
 use Gobl\ORM\ORMTypeHint;
@@ -265,8 +266,7 @@ Time: {$date}";
 						. '	self::TABLE_NAMESPACE,' . \PHP_EOL
 						. '	self::TABLE_NAME,' . \PHP_EOL
 						. '	$is_new,' . \PHP_EOL
-						. '	$strict,' . \PHP_EOL
-						. '	$partial_columns' . \PHP_EOL
+						. '	$strict' . \PHP_EOL
 						. ');',
 					$inject
 				)
@@ -277,8 +277,7 @@ Time: {$date}";
 					. \PHP_EOL
 					. '@param bool $is_new true for new entity false for entity fetched from the database, default is true'
 					. \PHP_EOL
-					. '@param bool $strict Enable/disable strict mode' . \PHP_EOL
-					. '@param null|list<string> $partial_columns Use this to mark the entity as partially loaded with only the specified columns.',
+					. '@param bool $strict Enable/disable strict mode',
 				$inject
 			)
 		);
@@ -289,9 +288,6 @@ Time: {$date}";
 		$construct->newArgument('strict')
 			->setType('bool')
 			->setValue(true);
-		$construct->newArgument('partial_columns')
-			->setType('array|null')
-			->setValue(null);
 
 		/**
 		 * @var array<string, array{comment: string, return: string, body: string, args?: PHPArgument[]}> $static_helpers
@@ -303,7 +299,7 @@ Time: {$date}";
 					. \PHP_EOL
 					. '@return static',
 				'return' => 'static',
-				'body'   => 'return new {class_name_sub}($is_new, $strict, $partial_columns);',
+				'body'   => 'return new {class_name_sub}($is_new, $strict);',
 				'args'   => $construct->getArguments(),
 			],
 			'crud' => [
@@ -336,10 +332,9 @@ Time: {$date}";
 					. \PHP_EOL
 					. '@return \{db_namespace}\{results_class_name}',
 				'return' => '\{db_namespace}\{results_class_name}',
-				'body'   => 'return \{db_namespace}\{results_class_name}::new($query, $partial_columns);',
+				'body'   => 'return \{db_namespace}\{results_class_name}::new($query);',
 				'args'   => [
 					new PHPArgument('query', '\\' . QBSelect::class),
-					$construct->getArgument('partial_columns'),
 				],
 			],
 			'table' => [
@@ -579,49 +574,32 @@ Time: {$date}";
 		];
 
 		if ($relation_type->isMultiple()) {
+			$results_class_fqn                       = ORMClassKind::RESULTS->getClassFQN($target);
+			$rel_inject['results_class_fqn']         = $results_class_fqn;
+			$rel_inject['orm_options_interface_fqn'] = '\\' . ORMOptionsInterface::class;
+
 			$comment .= Str::interpolate(
 				\PHP_EOL
 					. \PHP_EOL
-					. '@param array    $filters  the row filters' . \PHP_EOL
-					. '@param null|int $max      maximum row to retrieve' . \PHP_EOL
-					. '@param int      $offset   first row offset' . \PHP_EOL
-					. '@param array    $order_by order by rules' . \PHP_EOL
-					. '@param null|int $total    total number of items that match the filters' . \PHP_EOL
+					. '@param {orm_options_interface_fqn}|null $options pagination/filter/ordering options, or null for defaults' . \PHP_EOL
 					. \PHP_EOL
 					. '@throws \\' . GoblException::class . \PHP_EOL
-					. '@return {target_entity_class_fqn}[]',
+					. '@return {results_class_fqn}',
 				$rel_inject
 			);
 
-			$m->newArgument('filters')
-				->setType('array')
-				->setValue([]);
-			$m->newArgument('max')
-				->setType(new PHPType('null', 'int'))
+			$m->newArgument('options')
+				->setType(new PHPType('null', '\\' . ORMOptionsInterface::class))
 				->setValue(null);
-			$m->newArgument('offset')
-				->setType('int')
-				->setValue(0);
-			$m->newArgument('order_by')
-				->setType('array')
-				->setValue([]);
-			$m->newArgument('total')
-				->setType(new PHPType('null', 'int'))
-				->reference()
-				->setValue(-1);
 
-			$m->setReturnType('array');
+			$m->setReturnType($results_class_fqn);
 
 			$m->addChild(
 				Str::interpolate(
 					'return {target_entity_class_fqn}::ctrl()->getAllRelatives(' . \PHP_EOL
 						. '	$this,' . \PHP_EOL
 						. '	static::table()->getRelation(\'{relation_name}\'),' . \PHP_EOL
-						. '	$filters,' . \PHP_EOL
-						. '	$max,' . \PHP_EOL
-						. '	$offset,' . \PHP_EOL
-						. '	$order_by,' . \PHP_EOL
-						. '	$total' . \PHP_EOL
+						. '	$options' . \PHP_EOL
 						. ');',
 					$rel_inject
 				)
@@ -743,13 +721,14 @@ Time: {$date}";
 		);
 		$paginated  = $relation->isPaginated();
 		$rel_inject = [
-			'read_type_hint'    => $read_type_hint,
-			'relation_name'     => $relation->getName(),
-			'request_class_fqn' => '\\' . ORMRequest::class,
+			'read_type_hint'            => $read_type_hint,
+			'relation_name'             => $relation->getName(),
+			'orm_options_interface_fqn' => '\\' . ORMOptionsInterface::class,
+			'orm_options_class_fqn'     => '\\' . ORMOptions::class,
 		];
 
-		$m->newArgument('request')
-			->setType(new PHPType('null', '\\' . ORMRequest::class))
+		$m->newArgument('options')
+			->setType(new PHPType('null', '\\' . ORMOptionsInterface::class))
 			->setValue(null);
 
 		$m->setReturnType($paginated ? 'array' : $read_type_hint);
@@ -758,23 +737,18 @@ Time: {$date}";
 			$comment .= Str::interpolate(
 				\PHP_EOL
 					. \PHP_EOL
-					. ' @param null|{request_class_fqn} $request the request object' . \PHP_EOL
+					. ' @param null|{orm_options_interface_fqn} $options the options object' . \PHP_EOL
 					. \PHP_EOL
 					. '@return array<{read_type_hint}>',
 				$rel_inject
 			);
 
-			$m->newArgument('total')
-				->setType(new PHPType('null', 'int'))
-				->reference()
-				->setValue(-1);
-
 			$m->addChild(
 				Str::interpolate(
 					\PHP_EOL
-						. '$request =  $request ?? new {request_class_fqn}();' . \PHP_EOL
+						. '$options =  $options ?? new {orm_options_class_fqn}();' . \PHP_EOL
 						. \PHP_EOL
-						. 'return static::table()->getVirtualRelation(\'{relation_name}\')->getController()->list($this, $request, $total);',
+						. 'return static::table()->getVirtualRelation(\'{relation_name}\')->getController()->list($this, $options);',
 					$rel_inject
 				)
 			);
@@ -782,7 +756,7 @@ Time: {$date}";
 			$comment .= Str::interpolate(
 				\PHP_EOL
 					. \PHP_EOL
-					. '@param null|{request_class_fqn} $request the request object' . \PHP_EOL
+					. '@param null|{orm_options_interface_fqn} $options the options object' . \PHP_EOL
 					. \PHP_EOL
 					. '@return {read_type_hint}',
 				$rel_inject
@@ -791,9 +765,9 @@ Time: {$date}";
 			$m->addChild(
 				Str::interpolate(
 					\PHP_EOL
-						. '$request =  $request ?? new {request_class_fqn}();' . \PHP_EOL
+						. '$options =  $options ?? new {orm_options_class_fqn}();' . \PHP_EOL
 						. \PHP_EOL
-						. 'return static::table()->getVirtualRelation(\'{relation_name}\')->getController()->get($this, $request);',
+						. 'return static::table()->getVirtualRelation(\'{relation_name}\')->getController()->get($this, $options);',
 					$rel_inject
 				)
 			);
@@ -1039,8 +1013,7 @@ Time: {$date}";
 					'parent::__construct(' . \PHP_EOL
 						. '	\{db_namespace}\{entity_class_name}::TABLE_NAMESPACE,' . \PHP_EOL
 						. '	\{db_namespace}\{entity_class_name}::TABLE_NAME,' . \PHP_EOL
-						. '	$query,' . \PHP_EOL
-						. '	$partial_columns' . \PHP_EOL
+						. '	$query' . \PHP_EOL
 						. ');',
 					$inject
 				)
@@ -1048,9 +1021,6 @@ Time: {$date}";
 
 		$construct->newArgument('query')
 			->setType('\\' . (QBSelect::class));
-		$construct->newArgument('partial_columns')
-			->setType('array|null')
-			->setValue(null);
 		$construct->comment(Str::interpolate('{class_name} constructor.', $inject));
 
 		$create_instance = $class->newMethod('new')
@@ -1058,12 +1028,11 @@ Time: {$date}";
 			->public()
 			->addAttribute('\\' . Override::class)
 			->addChild(
-				Str::interpolate('return new {class_name_sub}($query, $partial_columns);', $inject)
+				Str::interpolate('return new {class_name_sub}($query);', $inject)
 			)
 			->setReturnType('static');
 
 		$create_instance->addArgument($construct->getArgument('query'));
-		$create_instance->addArgument($construct->getArgument('partial_columns'));
 
 		$create_instance->comment(
 			Str::interpolate(

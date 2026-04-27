@@ -107,10 +107,10 @@ final class FilterFieldNotation
 	 */
 	public static function fromString(string $notation, ?QBInterface $qb = null, ?FiltersScopeInterface $scope = null): static
 	{
-		$field          = \trim($notation);
-		$hashPos        = \strpos($field, '#');
-		$path           = null;
-		$segments       = [];
+		$notation = \trim($notation);
+		$hashPos  = \strpos($notation, '#');
+		$path     = null;
+		$segments = [];
 
 		if (false === $hashPos) {
 			// just a string without segments

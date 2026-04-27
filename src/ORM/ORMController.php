@@ -23,6 +23,10 @@ use Gobl\DBAL\Table;
 use Gobl\Exceptions\GoblException;
 use Gobl\ORM\Exceptions\ORMException;
 use Gobl\ORM\Exceptions\ORMQueryException;
+use Gobl\ORM\Interfaces\ORMCreateOptionsInterface;
+use Gobl\ORM\Interfaces\ORMDeleteOptionsInterface;
+use Gobl\ORM\Interfaces\ORMSelectOptionsInterface;
+use Gobl\ORM\Interfaces\ORMUpdateOptionsInterface;
 
 /**
  * Class ORMController.
@@ -124,22 +128,24 @@ abstract class ORMController
 	/**
 	 * Adds item to the table.
 	 *
-	 * @psalm-param array|TEntity $item
+	 * @psalm-param array|ORMCreateOptionsInterface|TEntity $options
 	 *
 	 * @return TEntity
 	 *
 	 * @throws GoblException
 	 */
-	public function addItem(array|ORMEntity $item = []): ORMEntity
+	public function addItem(array|ORMCreateOptionsInterface|ORMEntity $options = []): ORMEntity
 	{
 		/** @var null|TEntity $instance */
 		$instance = null;
 
-		if (\is_array($item)) {
-			$values = $item;
+		if ($options instanceof ORMCreateOptionsInterface) {
+			$values = $options->getFormData($this->table);
+		} elseif (\is_array($options)) {
+			$values = $options;
 		} else {
-			/** @var TEntity $item */
-			$instance = $item;
+			/** @var TEntity $options */
+			$instance = $options;
 
 			if ($instance->isSaved()) {
 				return $instance;
@@ -172,26 +178,24 @@ abstract class ORMController
 	/**
 	 * Updates one item in the table.
 	 *
-	 * @param array $filters    the row filters
-	 * @param array $new_values the new values
+	 * @param ORMUpdateOptionsInterface $options
 	 *
 	 * @return null|TEntity
 	 *
 	 * @throws GoblException
 	 */
-	public function updateOneItem(array $filters, array $new_values): ?ORMEntity
+	public function updateOneItem(ORMUpdateOptionsInterface $options): ?ORMEntity
 	{
-		return $this->db->runInTransaction(function () use ($filters, $new_values): ?ORMEntity {
+		return $this->db->runInTransaction(function () use ($options): ?ORMEntity {
+			$new_values = $options->getFormData($this->table);
+
 			/** @var TQuery $tq */
-			$tq         = ORM::query($this->table, $filters);
+			$tq         = ORM::query($this->table);
 			$action     = $this->crud->assertUpdate($tq, $new_values);
 			$new_values = $action->getForm();
+			$payload    = $this->scopeUpdateValues($new_values);
 
-			static::assertFiltersNotEmpty($tq);
-			$payload = $this->scopeUpdateValues($new_values);
-
-			$entity = $tq->find(1)
-				->fetchClass();
+			$entity = $tq->find($options)->fetchClass();
 
 			if ($entity) {
 				$this->crud->dispatchEntityEvent($entity, EntityEventType::BEFORE_UPDATE);
@@ -210,59 +214,47 @@ abstract class ORMController
 	/**
 	 * Updates all items in the table that match the given item filters.
 	 *
-	 * @param array    $filters    the row filters
-	 * @param array    $new_values the new values
-	 * @param null|int $max        maximum row to update. If null, all rows will be updated.
-	 * @param array    $order_by   order by rules
+	 * @param ORMUpdateOptionsInterface $options
 	 *
 	 * @return int affected row count
 	 *
 	 * @throws GoblException
 	 */
-	public function updateAllItems(
-		array $filters,
-		array $new_values,
-		?int $max = null,
-		array $order_by = []
-	): int {
-		return $this->db->runInTransaction(function () use ($filters, $new_values, $max, $order_by): int {
+	public function updateAllItems(ORMUpdateOptionsInterface $options): int
+	{
+		return $this->db->runInTransaction(function () use ($options): int {
+			$new_values = $options->getFormData($this->table);
+
 			/** @var TQuery $tq */
-			$tq         = ORM::query($this->table, $filters);
+			$tq         = ORM::query($this->table);
 			$action     = $this->crud->assertUpdateAll($tq, $new_values);
 			$new_values = $action->getForm();
 
-			static::assertFiltersNotEmpty($tq);
-
 			$payload = $this->scopeUpdateValues($new_values);
 
-			return $tq->update($payload)
-				->limit($max)
-				->orderBy($order_by)
-				->execute();
+			return $tq->update($options, $payload)->execute();
 		});
 	}
 
 	/**
 	 * Deletes one item from the table.
 	 *
-	 * @param array     $filters the row filters
-	 * @param null|bool $soft    soft delete
+	 * @param ORMDeleteOptionsInterface $options
+	 * @param null|bool                 $soft    soft delete
 	 *
 	 * @return null|TEntity
 	 *
 	 * @throws GoblException
 	 */
-	public function deleteOneItem(array $filters, ?bool $soft = null): ?ORMEntity
+	public function deleteOneItem(ORMDeleteOptionsInterface $options, ?bool $soft = null): ?ORMEntity
 	{
 		$soft = $this->clarifyUserSoftDeleteStrategy($soft);
 
-		return $this->db->runInTransaction(function () use ($filters, $soft): ?ORMEntity {
+		return $this->db->runInTransaction(function () use ($options, $soft): ?ORMEntity {
 			/** @var TQuery $tq */
-			$tq = ORM::query($this->table, $filters);
+			$tq = ORM::query($this->table);
 
 			$this->crud->assertDelete($tq);
-
-			static::assertFiltersNotEmpty($tq);
 
 			// because soft deleted rows are not included by default
 			// this make sure if the entity is already soft deleted we don't need to do it again
@@ -271,17 +263,18 @@ abstract class ORMController
 				$tq->includeSoftDeletedRows();
 			}
 
-			$entity = $tq->find(1)
-				->fetchClass();
+			$entity = $tq->find($options)->fetchClass();
 
 			if ($entity) {
 				$this->crud->dispatchEntityEvent($entity, EntityEventType::BEFORE_DELETE);
 
 				// we need to make sure that we delete the selected entity and only that
 				/** @var TQuery $tq */
-				$tq = ORM::query($this->table, $entity->toIdentityFilters());
+				$tq = ORM::query($this->table);
 
-				$qb = $soft ? $tq->softDelete() : $tq->delete();
+				// we want to make sure that we delete the same entity we fetched before
+				$del_opt = ORMOptions::makePaginated(1)->setFilters($entity->toIdentityFilters());
+				$qb      = $soft ? $tq->softDelete($del_opt) : $tq->delete($del_opt);
 
 				$qb->limit(1)->execute();
 
@@ -297,63 +290,49 @@ abstract class ORMController
 	/**
 	 * Deletes all items in the table that match the given item filters.
 	 *
-	 * @param array     $filters  the row filters
-	 * @param null|int  $max      maximum row to delete. If null, all rows will be deleted.
-	 * @param array     $order_by order by rules
-	 * @param null|bool $soft     soft delete
+	 * @param ORMDeleteOptionsInterface $options
+	 * @param null|bool                 $soft    soft delete
 	 *
 	 * @return int affected row count
 	 *
 	 * @throws GoblException
 	 */
-	public function deleteAllItems(
-		array $filters,
-		?int $max = null,
-		array $order_by = [],
-		?bool $soft = null
-	): int {
+	public function deleteAllItems(ORMDeleteOptionsInterface $options, ?bool $soft = null): int
+	{
 		$soft = $this->clarifyUserSoftDeleteStrategy($soft);
 
-		return $this->db->runInTransaction(function () use ($order_by, $max, $filters, $soft): int {
+		return $this->db->runInTransaction(function () use ($options, $soft): int {
 			/** @var TQuery $tq */
-			$tq = ORM::query($this->table, $filters);
+			$tq = ORM::query($this->table);
 
 			$this->crud->assertDeleteAll($tq);
 
-			static::assertFiltersNotEmpty($tq);
+			$qb = $soft ? $tq->softDelete($options) : $tq->delete($options);
 
-			$qb = $soft ? $tq->softDelete() : $tq->delete();
-
-			return $qb->limit($max)
-				->orderBy($order_by)
-				->execute();
+			return $qb->execute();
 		});
 	}
 
 	/**
 	 * Gets item from the table that match the given filters.
 	 *
-	 * @param array $filters  the row filters
-	 * @param array $order_by order by rules
+	 * @param ORMSelectOptionsInterface $options
 	 *
 	 * @return null|TEntity
 	 *
 	 * @throws GoblException
 	 */
-	public function getItem(array $filters, array $order_by = []): ?ORMEntity
+	public function getItem(ORMSelectOptionsInterface $options): ?ORMEntity
 	{
 		// we use transaction for reading too
 		// https://stackoverflow.com/questions/308905/should-there-be-a-transaction-for-read-queries
-		return $this->db->runInTransaction(function () use ($filters, $order_by): ?ORMEntity {
+		return $this->db->runInTransaction(function () use ($options): ?ORMEntity {
 			/** @var TQuery $tq */
-			$tq = ORM::query($this->table, $filters);
+			$tq = ORM::query($this->table);
 
 			$this->crud->assertRead($tq);
 
-			static::assertFiltersNotEmpty($tq);
-
-			$entity = $tq->find(1, 0, $order_by)
-				->fetchClass();
+			$entity = $tq->find($options)->fetchClass();
 
 			if ($entity) {
 				$this->crud->dispatchEntityEvent($entity, EntityEventType::AFTER_READ);
@@ -366,76 +345,49 @@ abstract class ORMController
 	/**
 	 * Gets all items from the table that match the given filters.
 	 *
-	 * @param array    $filters  the row filters
-	 * @param null|int $max      maximum row to retrieve
-	 * @param int      $offset   first row offset
-	 * @param array    $order_by order by rules
-	 * @param null|int &$total   total number of items that match the filters
+	 * @param null|ORMSelectOptionsInterface $options
 	 *
-	 * @return TEntity[]
+	 * @return TResults
 	 *
 	 * @throws GoblException
 	 */
-	public function getAllItems(
-		array $filters = [],
-		?int $max = null,
-		int $offset = 0,
-		array $order_by = [],
-		?int &$total = null
-	): array {
-		return $this->db->runInTransaction(function () use ($filters, $max, $offset, $order_by, &$total): array {
+	public function getAllItems(?ORMSelectOptionsInterface $options = null): ORMResults
+	{
+		return $this->db->runInTransaction(function () use ($options): ORMResults {
 			/** @var TQuery $tq */
-			$tq = ORM::query($this->table, $filters);
+			$tq = ORM::query($this->table);
 
 			$this->crud->assertReadAll($tq);
 
-			$results = $tq->find($max, $offset, $order_by);
-
-			$items = $results->fetchAllClass();
-
-			$total = static::lazyTotalResultsCount($results, \count($items), $max, $offset);
-
-			return $items;
+			return $tq->find($options);
 		});
 	}
 
 	/**
 	 * Gets all items from the table with a custom query builder instance.
 	 *
-	 * @param QBSelect $qb     the custom select query instance
-	 * @param null|int $max    maximum row to retrieve
-	 * @param int      $offset first row offset
-	 * @param null|int $total  total number of items that match the filters
+	 * @param QBSelect $qb the custom select query instance
 	 *
-	 * @return TEntity[]
+	 * @return TResults
 	 *
 	 * @throws GoblException
 	 */
-	public function getAllItemsCustom(QBSelect $qb, ?int $max = null, int $offset = 0, ?int &$total = null): array
+	public function getAllItemsCustom(QBSelect $qb): ORMResults
 	{
-		return $this->db->runInTransaction(function () use ($qb, $max, $offset, &$total): array {
+		return $this->db->runInTransaction(function () use ($qb): ORMResults {
 			$this->crud->assertReadAll(ORM::query($this->table));
 
-			$qb->limit($max, $offset);
-
 			/** @var TResults $results */
-			$results = ORM::results($this->table, $qb);
-
-			$items = $results->fetchAllClass(false);
-
-			$total = static::lazyTotalResultsCount($results, \count($items), $max, $offset);
-
-			return $items;
+			return ORM::results($this->table, $qb);
 		});
 	}
 
 	/**
 	 * Gets a given item relative.
 	 *
-	 * @param ORMEntity $host_entity
-	 * @param Relation  $relation
-	 * @param array     $filters
-	 * @param array     $order_by
+	 * @param ORMEntity                      $host_entity
+	 * @param Relation                       $relation
+	 * @param null|ORMSelectOptionsInterface $options
 	 *
 	 * @return null|TEntity
 	 *
@@ -444,25 +396,22 @@ abstract class ORMController
 	public function getRelative(
 		ORMEntity $host_entity,
 		Relation $relation,
-		array $filters = [],
-		array $order_by = []
+		?ORMSelectOptionsInterface $options = null
 	): ?ORMEntity {
-		return $this->db->runInTransaction(function () use ($host_entity, $relation, $filters, $order_by): ?ORMEntity {
+		return $this->db->runInTransaction(function () use ($host_entity, $relation, $options): ?ORMEntity {
 			/** @var TQuery $tq */
-			$tq = ORM::query($this->table, $filters);
+			$tq = ORM::query($this->table);
+
+			$options?->setMax(1);
 
 			$this->crud->assertReadRelative($tq, $relation);
 
-			$qb = $tq->selectRelatives($relation, $host_entity, 1, 0, $order_by);
+			$results = $tq->findRelatives($relation, $host_entity, $options);
 
-			if (!$qb) {
+			if (null === $results) {
 				return null;
 			}
 
-			$partial = $relation->resolveSelectColumns();
-
-			/** @var TResults $results */
-			$results       = ORM::results($this->table, $qb, $partial);
 			$target_entity = $results->fetchClass();
 
 			if ($target_entity) {
@@ -474,52 +423,29 @@ abstract class ORMController
 	}
 
 	/**
-	 * Gets a given item relatives.
+	 * Gets all relatives for a given host entity.
 	 *
-	 * @param ORMEntity $host_entity
-	 * @param Relation  $relation
-	 * @param array     $filters
-	 * @param null|int  $max
-	 * @param int       $offset
-	 * @param array     $order_by
-	 * @param null|int  $total
+	 * @param ORMEntity                      $host_entity
+	 * @param Relation                       $relation
+	 * @param null|ORMSelectOptionsInterface $options
 	 *
-	 * @return TEntity[]
+	 * @return ?TResults
 	 *
 	 * @throws GoblException
 	 */
 	public function getAllRelatives(
 		ORMEntity $host_entity,
 		Relation $relation,
-		array $filters = [],
-		?int $max = null,
-		int $offset = 0,
-		array $order_by = [],
-		?int &$total = null
-	): array {
+		?ORMSelectOptionsInterface $options = null
+	): ?ORMResults {
 		return $this->db->runInTransaction(
-			function () use ($host_entity, $relation, $filters, $max, $offset, $order_by, &$total): array {
+			function () use ($host_entity, $relation, $options): ?ORMResults {
 				/** @var TQuery $tq */
-				$tq = ORM::query($this->table, $filters);
+				$tq = ORM::query($this->table);
 
 				$this->crud->assertReadAllRelatives($tq, $relation);
 
-				$qb = $tq->selectRelatives($relation, $host_entity, $max, $offset, $order_by);
-
-				if (!$qb) {
-					return [];
-				}
-
-				$partial = $relation->resolveSelectColumns();
-
-				/** @var TResults $results */
-				$results = ORM::results($this->table, $qb, $partial);
-
-				$items = $results->fetchAllClass();
-
-				$total = static::lazyTotalResultsCount($results, \count($items), $max, $offset);
-
-				return $items;
+				return $tq->findRelatives($relation, $host_entity, $options);
 			}
 		);
 	}
@@ -527,18 +453,11 @@ abstract class ORMController
 	/**
 	 * Loads one relative per host entity in a single batch query when possible.
 	 *
-	 * The returned map is keyed by {@see ORMEntity::toIdentityKey()} of each host. Hosts
-	 * for which no relative was found get a `null` value.
+	 * The returned map is keyed by {@see ORMEntity::toIdentityKey()} of each host entity.
 	 *
-	 * When the link type does not support batch queries (e.g. through, join), the method
-	 * falls back to N individual queries -- one per host -- under a single CRUD assertion.
-	 *
-	 * @param ORMEntity[] $host_entities
-	 * @param Relation    $relation
-	 * @param array       $filters
-	 * @param null|int    $max
-	 * @param int         $offset
-	 * @param array       $order_by
+	 * @param ORMEntity[]                    $host_entities
+	 * @param Relation                       $relation
+	 * @param null|ORMSelectOptionsInterface $options
 	 *
 	 * @return array<string, null|TEntity>
 	 *
@@ -547,71 +466,55 @@ abstract class ORMController
 	public function getRelativeBatch(
 		array $host_entities,
 		Relation $relation,
-		array $filters = [],
-		?int $max = null,
-		int $offset = 0,
-		array $order_by = []
+		?ORMSelectOptionsInterface $options = null
 	): array {
 		if (empty($host_entities)) {
 			return [];
 		}
 
 		return $this->db->runInTransaction(
-			function () use ($host_entities, $relation, $filters, $max, $offset, $order_by): array {
+			function () use ($host_entities, $relation, $options): array {
 				/** @var TQuery $tq */
-				$tq = ORM::query($this->table, $filters);
+				$tq = ORM::query($this->table);
 
 				$this->crud->assertReadAllRelatives($tq, $relation);
 
-				// Pre-fill map with null for every requested host.
-				$result  = [];
-				$partial = $relation->resolveSelectColumns();
-
-				foreach ($host_entities as $host) {
-					$result[$host->toIdentityKey()] = null;
+				// Pre-fill map with null for every given host entity.
+				$out = [];
+				foreach ($host_entities as $entry) {
+					$out[$entry->toIdentityKey()] = null;
 				}
 
-				// Attempt a single batch query.
-				$qb = $tq->selectRelativesBatch($relation, $host_entities, $max, $offset, $order_by);
+				$host_results = $tq->findRelativesBatch($relation, $host_entities, $options);
 
-				if (null !== $qb) {
-					/** @var TResults $results */
-					$results  = ORM::results($this->table, $qb, $partial);
-					$entities = $results->fetchAllClass();
+				if (null !== $host_results) {
+					$key_factory = static fn (ORMEntity $entry) => $entry->getComputedValue(ORMTableQuery::BATCH_HOST_IDENTITY_KEY);
 
-					$groups = $relation->getLink()->groupBatchResults($host_entities, $entities);
+					foreach ($host_results->groupBy($key_factory) as $key => $target_entity) {
+						$this->crud->dispatchEntityEvent($target_entity, EntityEventType::AFTER_READ);
 
-					foreach ($groups as $identity_key => $group_entities) {
-						$target_entity = $group_entities[0] ?? null;
-
-						if ($target_entity) {
-							$this->crud->dispatchEntityEvent($target_entity, EntityEventType::AFTER_READ);
-						}
-
-						$result[$identity_key] = $target_entity;
+						$out[$key] = $target_entity;
 					}
 				} else {
 					// Fallback: one query per host.
 					foreach ($host_entities as $host) {
-						/** @var TQuery $host_tq */
-						$host_tq = ORM::query($this->table, $filters);
-						$host_qb = $host_tq->selectRelatives($relation, $host, $max, $offset, $order_by);
+						/** @var TQuery $tq */
+						$tq      = ORM::query($this->table);
+						$results = $tq->findRelatives($relation, $host, $options);
 
-						if ($host_qb) {
-							/** @var TResults $host_results */
-							$host_results  = ORM::results($this->table, $host_qb, $partial);
-							$target_entity = $host_results->fetchClass();
+						if ($results) {
+							$target_entity = $results->fetchClass();
 
 							if ($target_entity) {
 								$this->crud->dispatchEntityEvent($target_entity, EntityEventType::AFTER_READ);
 							}
 
-							$result[$host->toIdentityKey()] = $target_entity;
+							$out[$host->toIdentityKey()] = $target_entity;
 						}
 					}
 				}
 
-				return $result;
+				return $out;
 			}
 		);
 	}
@@ -619,21 +522,11 @@ abstract class ORMController
 	/**
 	 * Loads all relatives per host entity in a single batch query when possible.
 	 *
-	 * The returned map is keyed by {@see ORMEntity::toIdentityKey()} of each host. Every
-	 * entry is an array of relatives (possibly empty).
+	 * The returned map is keyed by {@see ORMEntity::toIdentityKey()} of each host entity.
 	 *
-	 * All link types (LinkColumns, LinkThrough, LinkJoin, LinkMorph) support the batch path.
-	 * The fallback path (one query per host) is used only when `applyBatch()` returns false,
-	 * which can happen for complex nested link configurations (e.g. LinkThrough whose
-	 * host-to-pivot link is itself a complex join, or a LinkJoin whose first step is
-	 * not LinkColumns/LinkMorph). In those edge cases, `$max` and `$offset` apply per host.
-	 *
-	 * @param ORMEntity[] $host_entities
-	 * @param Relation    $relation
-	 * @param array       $filters
-	 * @param null|int    $max
-	 * @param int         $offset
-	 * @param array       $order_by
+	 * @param ORMEntity[]                    $host_entities
+	 * @param Relation                       $relation
+	 * @param null|ORMSelectOptionsInterface $options
 	 *
 	 * @return array<string, TEntity[]>
 	 *
@@ -642,61 +535,48 @@ abstract class ORMController
 	public function getAllRelativesBatch(
 		array $host_entities,
 		Relation $relation,
-		array $filters = [],
-		?int $max = null,
-		int $offset = 0,
-		array $order_by = []
+		?ORMSelectOptionsInterface $options =   null
 	): array {
 		if (empty($host_entities)) {
 			return [];
 		}
 
 		return $this->db->runInTransaction(
-			function () use ($host_entities, $relation, $filters, $max, $offset, $order_by): array {
+			function () use ($host_entities, $relation, $options): array {
 				/** @var TQuery $tq */
-				$tq = ORM::query($this->table, $filters);
+				$tq = ORM::query($this->table);
 
 				$this->crud->assertReadAllRelatives($tq, $relation);
 
-				// Pre-fill map with empty arrays for every requested host.
-				$result  = [];
-				$partial = $relation->resolveSelectColumns();
+				// Pre-fill map with empty arrays for every given host entity.
+				$out  = [];
 
 				foreach ($host_entities as $host) {
-					$result[$host->toIdentityKey()] = [];
+					$out[$host->toIdentityKey()] = [];
 				}
 
 				// Attempt a single batch query.
-				$qb = $tq->selectRelativesBatch($relation, $host_entities, $max, $offset, $order_by);
+				$results = $tq->findRelativesBatch($relation, $host_entities, $options);
 
-				if (null !== $qb) {
-					/** @var TResults $results */
-					$results  = ORM::results($this->table, $qb, $partial);
-					$entities = $results->fetchAllClass();
-
-					$groups = $relation->getLink()->groupBatchResults($host_entities, $entities);
-
-					foreach ($groups as $identity_key => $group_entities) {
-						$result[$identity_key] = $group_entities;
+				if (null !== $results) {
+					foreach ($results->lazy() as $entry) {
+						$key         = $entry->getComputedValue(ORMTableQuery::BATCH_HOST_IDENTITY_KEY);
+						$out[$key][] = $entry;
 					}
 				} else {
 					// Fallback: one query per host.
 					foreach ($host_entities as $host) {
-						/** @var TQuery $host_tq */
-						$host_tq  = ORM::query($this->table, $filters);
-						$host_qb  = $host_tq->selectRelatives($relation, $host, $max, $offset, $order_by);
+						/** @var TQuery $tq */
+						$tq       = ORM::query($this->table);
+						$results  = $tq->findRelatives($relation, $host, $options);
 
-						if ($host_qb) {
-							/** @var TResults $host_results */
-							$host_results = ORM::results($this->table, $host_qb, $partial);
-							$entities     = $host_results->fetchAllClass();
-
-							$result[$host->toIdentityKey()] = $entities;
+						if ($results) {
+							$out[$host->toIdentityKey()] = $results->fetchAllClass();
 						}
 					}
 				}
 
-				return $result;
+				return $out;
 			}
 		);
 	}
@@ -704,9 +584,9 @@ abstract class ORMController
 	/**
 	 * Counts the relatives of a single host entity.
 	 *
-	 * @param ORMEntity $host_entity
-	 * @param Relation  $relation
-	 * @param array     $filters
+	 * @param ORMEntity                      $host_entity
+	 * @param Relation                       $relation
+	 * @param null|ORMSelectOptionsInterface $options
 	 *
 	 * @return int
 	 *
@@ -715,39 +595,32 @@ abstract class ORMController
 	public function countRelatives(
 		ORMEntity $host_entity,
 		Relation $relation,
-		array $filters = []
+		?ORMSelectOptionsInterface $options = null
 	): int {
-		return $this->db->runInTransaction(function () use ($host_entity, $relation, $filters): int {
+		return $this->db->runInTransaction(function () use ($host_entity, $relation, $options): int {
 			/** @var TQuery $tq */
-			$tq = ORM::query($this->table, $filters);
+			$tq = ORM::query($this->table);
 
 			$this->crud->assertReadAllRelatives($tq, $relation);
 
-			$qb = $tq->selectRelatives($relation, $host_entity);
+			$results = $tq->findRelatives($relation, $host_entity, $options);
 
-			if (!$qb) {
+			if (!$results) {
 				return 0;
 			}
 
-			/** @var TResults $results */
-			$results = ORM::results($this->table, $qb);
-
-			return $results->totalCount();
+			return $results->getTotal($options, true);
 		});
 	}
 
 	/**
-	 * Counts relatives for multiple host entities in a single batch query when possible.
+	 * Counts relatives for multiple host entities.
 	 *
-	 * The returned map is keyed by {@see ORMEntity::toIdentityKey()} of each host, with
-	 * the count as the value. Hosts with no relatives get a 0.
+	 * The returned map is keyed by {@see ORMEntity::toIdentityKey()} of each host entity.
 	 *
-	 * When the link type does not support batch queries the method falls back to one
-	 * `COUNT(*)` query per host under a single CRUD assertion.
-	 *
-	 * @param ORMEntity[] $host_entities
-	 * @param Relation    $relation
-	 * @param array       $filters
+	 * @param ORMEntity[]                    $host_entities
+	 * @param Relation                       $relation
+	 * @param null|ORMSelectOptionsInterface $options
 	 *
 	 * @return array<string, int>
 	 *
@@ -756,55 +629,28 @@ abstract class ORMController
 	public function countRelativesBatch(
 		array $host_entities,
 		Relation $relation,
-		array $filters = []
+		?ORMSelectOptionsInterface $options = null
 	): array {
 		if (empty($host_entities)) {
 			return [];
 		}
 
 		return $this->db->runInTransaction(
-			function () use ($host_entities, $relation, $filters): array {
+			function () use ($host_entities, $relation, $options): array {
 				/** @var TQuery $tq */
-				$tq = ORM::query($this->table, $filters);
+				$tq = ORM::query($this->table);
 
 				$this->crud->assertReadAllRelatives($tq, $relation);
 
-				// Pre-fill all hosts with 0.
-				$result = [];
+				$out = [];
 
 				foreach ($host_entities as $host) {
-					$result[$host->toIdentityKey()] = 0;
+					$results = $tq->findRelatives($relation, $host, $options);
+
+					$out[$host->toIdentityKey()] = $results?->getTotal($options, true) ?? 0;
 				}
 
-				// Batch query -- load all matching rows, count per group in PHP.
-				$qb = $tq->selectRelativesBatch($relation, $host_entities);
-
-				if (null !== $qb) {
-					/** @var TResults $results */
-					$results  = ORM::results($this->table, $qb);
-					$entities = $results->fetchAllClass();
-
-					$groups = $relation->getLink()->groupBatchResults($host_entities, $entities);
-
-					foreach ($groups as $identity_key => $group_entities) {
-						$result[$identity_key] = \count($group_entities);
-					}
-				} else {
-					// Fallback: one COUNT(*) per host.
-					foreach ($host_entities as $host) {
-						/** @var TQuery $host_tq */
-						$host_tq = ORM::query($this->table, $filters);
-						$host_qb = $host_tq->selectRelatives($relation, $host);
-
-						if ($host_qb) {
-							/** @var TResults $host_results */
-							$host_results                   = ORM::results($this->table, $host_qb);
-							$result[$host->toIdentityKey()] = $host_results->totalCount();
-						}
-					}
-				}
-
-				return $result;
+				return $out;
 			}
 		);
 	}
@@ -866,22 +712,6 @@ abstract class ORMController
 	}
 
 	/**
-	 * Asserts that the filters are not empty.
-	 *
-	 * @param ORMTableQuery $filters the row filters
-	 *
-	 * @throws ORMQueryException
-	 */
-	protected static function assertFiltersNotEmpty(ORMTableQuery $filters): void
-	{
-		if ($filters->getFilters()
-			->isEmpty()
-		) {
-			throw new ORMQueryException('GOBL_ORM_REQUEST_FILTERS_EMPTY');
-		}
-	}
-
-	/**
 	 * Keeps only the values for fields that are columns in the table.
 	 * If no column is found, an exception is thrown.
 	 *
@@ -905,37 +735,6 @@ abstract class ORMController
 		}
 
 		return $scope_values;
-	}
-
-	/**
-	 * Lazily count total row that match a select query according to the current results and current pagination info.
-	 *
-	 * @param ORMResults $results
-	 * @param int        $found
-	 * @param null|int   $max
-	 * @param int        $offset
-	 *
-	 * @return int
-	 */
-	protected static function lazyTotalResultsCount(
-		ORMResults $results,
-		int $found = 0,
-		?int $max = null,
-		int $offset = 0
-	): int {
-		if (isset($max)) {
-			if ($found < $max) {
-				$total = $offset + $found;
-			} else {
-				$total = $results->totalCount();
-			}
-		} elseif (0 === $offset) {
-			$total = $found;
-		} else {
-			$total = $results->totalCount();
-		}
-
-		return $total;
 	}
 
 	/**
@@ -998,10 +797,12 @@ abstract class ORMController
 		} elseif (!empty($values) && !$entity->isSaved()) {
 			// its an update
 			/** @var TQuery $tq */
-			$tq = ORM::query($this->table, $entity->toIdentityFilters());
+			$tq      = ORM::query($this->table);
+			$options = new ORMOptions();
+			$options->setFilters($entity->toIdentityFilters());
+			$options->setMax(1);
 
-			$tq->update($values)
-				->limit(1)
+			$tq->update($options, $values)
 				->execute();
 
 			$entity->isSaved(true);

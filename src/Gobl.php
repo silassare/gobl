@@ -232,12 +232,16 @@ final class Gobl
 	public static function getForbiddenColumnsName(): array
 	{
 		return [
-			'save'          => 1,
-			'saved'         => 1,
-			'is_saved'      => 1,
-			'new'           => 1,
-			'is_new'        => 1,
-			'hydrate'       => 1,
+			'save'                  => 1,
+			'saved'                 => 1,
+			'is_saved'              => 1,
+			'partial'               => 1,
+			'is_partial'            => 1,
+			'column_loaded'         => 1,
+			'is_column_loaded'      => 1,
+			'new'                   => 1,
+			'is_new'                => 1,
+			'hydrate'               => 1,
 			// static helpers to get some instances
 			'table'          => 1,
 			'crud'           => 1,

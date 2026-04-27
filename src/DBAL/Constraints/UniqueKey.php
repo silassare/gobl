@@ -22,6 +22,11 @@ use PHPUtils\Exceptions\RuntimeException;
  */
 final class UniqueKey extends Constraint
 {
+	/**
+	 * The columns that make up the unique key.
+	 *
+	 * @var list<string>
+	 */
 	private array $columns = [];
 
 	/**
@@ -57,7 +62,7 @@ final class UniqueKey extends Constraint
 	/**
 	 * Gets unique constraints columns.
 	 *
-	 * @return string[]
+	 * @return list<string>
 	 */
 	public function getColumns(): array
 	{

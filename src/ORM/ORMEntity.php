@@ -125,29 +125,23 @@ abstract class ORMEntity implements ArrayCapableInterface
 	/**
 	 * ORMEntity constructor.
 	 *
-	 * @param string            $namespace       the table namespace
-	 * @param string            $table_name      the table name
-	 * @param bool              $is_new          true for new entity, false for entity fetched
-	 *                                           from the database, default is true
-	 * @param bool              $strict          enable/disable strict mode
-	 * @param null|list<string> $partial_columns use this to mark the entity as partially loaded with only the specified columns
+	 * @param string $namespace  the table namespace
+	 * @param string $table_name the table name
+	 * @param bool   $is_new     true for new entity, false for entity fetched
+	 *                           from the database, default is true
+	 * @param bool   $strict     enable/disable strict mode
 	 */
 	protected function __construct(
 		string $namespace,
 		string $table_name,
 		bool $is_new,
-		bool $strict,
-		?array $partial_columns = null
+		bool $strict
 	) {
 		$this->_oeb_db       = ORM::getDatabase($namespace);
 		$this->_oeb_table    = $this->_oeb_db->getTableOrFail($table_name);
 		$columns             = $this->_oeb_table->getColumns();
 		$this->_oeb_is_new   = $is_new;
 		$this->_oeb_strict   = $strict;
-
-		if (!empty($partial_columns)) {
-			$this->markAsPartial($partial_columns);
-		}
 
 		if ($this->_oeb_is_new) {
 			foreach ($columns as $column) {
@@ -169,11 +163,11 @@ abstract class ORMEntity implements ArrayCapableInterface
 	/**
 	 * Magic isset for column.
 	 *
-	 * @param $name
+	 * @param string $name
 	 *
 	 * @return bool
 	 */
-	final public function __isset($name)
+	final public function __isset(string $name)
 	{
 		return $this->_oeb_table->hasColumn($name);
 	}
@@ -334,14 +328,13 @@ abstract class ORMEntity implements ArrayCapableInterface
 	/**
 	 * Returns new instance.
 	 *
-	 * @param bool              $is_new          true for new entity, false for entity fetched
-	 *                                           from the database, default is true
-	 * @param bool              $strict          enable/disable strict mode
-	 * @param null|list<string> $partial_columns use this to mark the entity as partially loaded with only the specified columns
+	 * @param bool $is_new true for new entity, false for entity fetched
+	 *                     from the database, default is true
+	 * @param bool $strict enable/disable strict mode
 	 *
 	 * @return static
 	 */
-	abstract public static function new(bool $is_new = true, bool $strict = true, ?array $partial_columns = null): static;
+	abstract public static function new(bool $is_new = true, bool $strict = true): static;
 
 	/**
 	 * Returns the table instance.
@@ -360,12 +353,11 @@ abstract class ORMEntity implements ArrayCapableInterface
 	/**
 	 * Returns the table results instance.
 	 *
-	 * @param QBSelect          $query           the query builder instance
-	 * @param null|list<string> $partial_columns use this to mark the results entities as partially loaded with only the specified columns
+	 * @param QBSelect $query the query builder instance
 	 *
 	 * @return ORMResults
 	 */
-	abstract public static function results(QBSelect $query, ?array $partial_columns = null): ORMResults;
+	abstract public static function results(QBSelect $query): ORMResults;
 
 	/**
 	 * Returns the table crud event producer instance.
@@ -457,7 +449,6 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 *
 	 * @throws CRUDException
 	 * @throws ORMException
-	 * @throws ORMException
 	 * @throws GoblException
 	 */
 	public function save(): bool
@@ -477,8 +468,11 @@ abstract class ORMEntity implements ArrayCapableInterface
 			}
 
 			if (!empty($to_update)) {
-				$saved = static::ctrl()
-					->updateOneItem($this->toIdentityFilters(), $to_update);
+				$options = new ORMOptions();
+				$options->setFilters($this->toIdentityFilters());
+				$options->setFormData($to_update);
+
+				$saved = static::ctrl()->updateOneItem($options);
 
 				return $saved && $this->hydrate($saved->toRow())
 					->isSaved(true);
@@ -510,6 +504,17 @@ abstract class ORMEntity implements ArrayCapableInterface
 	public function isSaved(bool $set_as_saved = false): bool
 	{
 		if ($set_as_saved) {
+			// Auto-detect partial load: when coming from a DB fetch (not new), at least one
+			// column was hydrated, and fewer columns were hydrated than the table defines,
+			// mark as partial automatically -- no need for the caller to pass partial_columns.
+			if (!$this->_oeb_is_partial && !$this->_oeb_is_new && !empty($this->_oeb_row)) {
+				$total = \count($this->_oeb_table->getColumns());
+
+				if (\count($this->_oeb_row) < $total) {
+					$this->markAsPartial(\array_keys($this->_oeb_row));
+				}
+			}
+
 			foreach ($this->_oeb_row as $full_name => $v) {
 				$this->_oeb_saved_hashes[$full_name] = $this->_oeb_table->getColumnOrFail($full_name)->getType()->hash($v);
 				$this->_oeb_from_db[$full_name]      = true;
@@ -715,8 +720,10 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 */
 	public function selfDelete(?bool $soft = null): static
 	{
-		static::ctrl()
-			->deleteOneItem($this->toIdentityFilters(), $soft);
+		$options = new ORMOptions();
+		$options->setFilters($this->toIdentityFilters());
+
+		static::ctrl()->deleteOneItem($options, $soft);
 
 		return $this;
 	}

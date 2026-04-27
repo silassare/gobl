@@ -245,7 +245,7 @@ final class Column implements ArrayCapableInterface, MetaCapableInterface, DiffC
 	}
 
 	/**
-	 * Asserts if this table name is not locked.
+	 * Asserts if this column name is not locked.
 	 */
 	public function assertNameNotLocked(): void
 	{

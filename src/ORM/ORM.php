@@ -17,7 +17,6 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Table;
 use Gobl\Gobl;
-use Gobl\ORM\Exceptions\ORMQueryException;
 use Gobl\ORM\Exceptions\ORMRuntimeException;
 use Gobl\ORM\Utils\ORMClassKind;
 use PHPUtils\FS\FSUtils;
@@ -178,65 +177,49 @@ final class ORM
 	/**
 	 * Returns a new entity instance for a given table.
 	 *
-	 * @param Table             $table           the table instance
-	 * @param bool              $is_new          true for new entity, false for entity fetched
-	 *                                           from the database, default is true
-	 * @param bool              $strict          enable/disable strict mode
-	 * @param null|list<string> $partial_columns use this to mark the entity as partially loaded with only the specified columns
+	 * @param Table $table  the table instance
+	 * @param bool  $is_new true for new entity, false for entity fetched
+	 *                      from the database, default is true
+	 * @param bool  $strict enable/disable strict mode
 	 *
 	 * @return ORMEntity
 	 */
-	public static function entity(Table $table, bool $is_new = true, bool $strict = true, ?array $partial_columns = null): ORMEntity
+	public static function entity(Table $table, bool $is_new = true, bool $strict = true): ORMEntity
 	{
 		/** @var ORMEntity $entity_class */
 		$entity_class = ORMClassKind::ENTITY->getClassFQN($table);
 
-		return $entity_class::new($is_new, $strict, $partial_columns);
+		return $entity_class::new($is_new, $strict);
 	}
 
 	/**
 	 * Returns a new entity results instance for a given table and queries.
 	 *
-	 * @param Table             $table           the table instance
-	 * @param QBSelect          $qb              the query builder instance with the query to execute for fetching results
-	 * @param null|list<string> $partial_columns use this to mark the results entities as partially loaded with only the specified columns
+	 * @param Table    $table the table instance
+	 * @param QBSelect $qb    the query builder instance with the query to execute for fetching results
 	 *
 	 * @return ORMResults
 	 */
-	public static function results(Table $table, QBSelect $qb, ?array $partial_columns = null): ORMResults
+	public static function results(Table $table, QBSelect $qb): ORMResults
 	{
 		/** @var ORMResults $results_class */
 		$results_class = ORMClassKind::RESULTS->getClassFQN($table);
 
-		return $results_class::new($qb, $partial_columns);
+		return $results_class::new($qb);
 	}
 
 	/**
-	 * Returns a new table query instance for a given table and filters.
+	 * Returns a new table query instance for a given table.
 	 *
-	 * @param Table $table   the table instance
-	 * @param array $filters optional filters to apply to the query, in the format accepted by `QBSelect::where()`
+	 * @param Table $table the table instance
 	 *
 	 * @return ORMTableQuery
 	 */
-	public static function query(Table $table, array $filters = []): ORMTableQuery
+	public static function query(Table $table): ORMTableQuery
 	{
 		/** @var ORMTableQuery $class */
 		$class = ORMClassKind::QUERY->getClassFQN($table);
 
-		$tq = $class::new();
-
-		if (!empty($filters)) {
-			try {
-				$tq->where($filters);
-			} catch (Throwable $t) {
-				throw new ORMQueryException('Failed to apply filters to query.', [
-					'_filters' => $filters,
-					'_table'   => $table->getName(),
-				], $t);
-			}
-		}
-
-		return $tq;
+		return $class::new();
 	}
 }

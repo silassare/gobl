@@ -364,8 +364,8 @@ final class CRUD
 
 			$this->checkForColumnWrite($column, $form, $field, false);
 
+			$type = $column->getType();
 			if (null !== $value) {
-				$type = $column->getType();
 				if ($type->isAutoIncremented()) {
 					$debug            = $this->debug;
 					$debug['field']   = $field;
@@ -376,6 +376,16 @@ final class CRUD
 				}
 
 				$this->checkForPKColumnWrite($column, $form, $field, false);
+			} else {
+				// if null and not nullable, not auto-incremented, no default refuse to create (avoid relying on DB-level constraints for this)
+				if (!$type->isNullable() && !$type->isAutoIncremented() && !$type->hasDefault()) {
+					$debug            = $this->debug;
+					$debug['field']   = $field;
+					$debug['_why']    = 'column_is_not_nullable_and_no_default';
+					$debug['_column'] = $column->getFullName();
+
+					throw new CRUDException('GOBL_COLUMN_WRITE_REFUSED', $debug);
+				}
 			}
 		}
 	}

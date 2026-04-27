@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Relations\Interfaces;
 
 use Gobl\DBAL\Table;
+use Gobl\ORM\Interfaces\ORMOptionsInterface;
 use Gobl\ORM\ORMEntity;
-use Gobl\ORM\ORMRequest;
 use JsonSerializable;
 
 /**
@@ -44,23 +44,22 @@ interface RelationControllerInterface
 	/**
 	 * Gets a relative of a given item.
 	 *
-	 * @param ORMEntity  $host_entity the host entity
-	 * @param ORMRequest $request     the request
+	 * @param ORMEntity           $host_entity the host entity
+	 * @param ORMOptionsInterface $options     the options with filters, pagination, etc. to apply to each host entity's relatives
 	 *
 	 * @return null|TRelative
 	 */
-	public function get(ORMEntity $host_entity, ORMRequest $request): mixed;
+	public function get(ORMEntity $host_entity, ORMOptionsInterface $options): mixed;
 
 	/**
 	 * Gets a list of relatives of a given item.
 	 *
-	 * @param ORMEntity  $host_entity the host entity
-	 * @param ORMRequest $request     the request
-	 * @param null|int   &$total      total number of items that match the filters
+	 * @param ORMEntity           $host_entity the host entity
+	 * @param ORMOptionsInterface $options     the options with filters, pagination, etc. to apply to each host entity's relatives
 	 *
 	 * @return TRelative[]
 	 */
-	public function list(ORMEntity $host_entity, ORMRequest $request, ?int &$total = null): array;
+	public function list(ORMEntity $host_entity, ORMOptionsInterface $options): array;
 
 	/**
 	 * Create a relative for a given item.
@@ -111,10 +110,10 @@ interface RelationControllerInterface
 	 * MAY throw \BadMethodCallException; callers must catch it and fall back to per-host
 	 * calls.
 	 *
-	 * @param ORMEntity[] $host_entities the host entities to load relatives for
-	 * @param ORMRequest  $request       the request (filters, order_by, max, offset)
+	 * @param ORMEntity[]         $host_entities the host entities to load relatives for
+	 * @param ORMOptionsInterface $options       the options with filters, pagination, etc. to apply to each host entity's relatives
 	 *
 	 * @return array<string, TRelative[]>
 	 */
-	public function getBatch(array $host_entities, ORMRequest $request): array;
+	public function getBatch(array $host_entities, ORMOptionsInterface $options): array;
 }

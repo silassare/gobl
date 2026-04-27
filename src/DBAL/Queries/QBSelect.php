@@ -194,12 +194,12 @@ final class QBSelect implements QBInterface
 	 * The value becomes accessible on hydrated entities via
 	 * {@see ORMEntity::getComputedValue()}.
 	 *
-	 * @param string $expression raw SQL expression (e.g. a fully-qualified column reference such as `_a1_.pivot_fk`)
 	 * @param string $var_name   logical name, without the `_gobl_` prefix
+	 * @param string $expression raw SQL expression (e.g. a fully-qualified column reference such as `_a1_.pivot_fk`)
 	 *
 	 * @return static
 	 */
-	public function selectComputed(string $expression, string $var_name): static
+	public function selectComputed(string $var_name, string $expression): static
 	{
 		$this->options_select[] = $expression . ' AS ' . self::computedAlias($var_name);
 

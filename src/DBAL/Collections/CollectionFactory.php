@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Collections;
 
-use Gobl\ORM\ORMRequest;
+use Gobl\ORM\Interfaces\ORMOptionsInterface;
 use Override;
 
 /**
@@ -47,8 +47,8 @@ class CollectionFactory extends Collection
 	}
 
 	#[Override]
-	public function getItems(ORMRequest $request, ?int &$total_records = null): array
+	public function getItems(ORMOptionsInterface $options, ?int &$total_records = null): array
 	{
-		return ($this->factory)($request, $total_records);
+		return ($this->factory)($options, $total_records);
 	}
 }

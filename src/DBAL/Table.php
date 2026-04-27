@@ -457,7 +457,7 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	}
 
 	/**
-	 * Asserts if this column definition/instance is valid.
+	 * Asserts if this table definition/instance is valid.
 	 */
 	public function assertIsValid(): void
 	{

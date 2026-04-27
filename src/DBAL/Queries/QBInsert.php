@@ -121,6 +121,10 @@ final class QBInsert implements QBInterface
 	 */
 	public function values(array $values): static
 	{
+		if (empty($values)) {
+			throw new InvalidArgumentException('Values array cannot be empty');
+		}
+
 		$key = \array_keys($values)[0];
 
 		if (\is_string($key)) {
@@ -155,6 +159,10 @@ final class QBInsert implements QBInterface
 	{
 		if (!isset($this->options_table)) {
 			throw new LogicException(\sprintf('You must call "%s" method first', Str::callableName([$this, 'into'])));
+		}
+
+		if (empty($value)) {
+			throw new InvalidArgumentException('Value array cannot be empty');
 		}
 
 		$map           = $this->bindColumnsValuesForInsertOrUpdate($this->options_table, $value, $this->auto_prefix);

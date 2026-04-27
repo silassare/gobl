@@ -101,7 +101,7 @@ class CRUDEventProducer
 	 * Called after we allow CREATE action on a table and before the flush.
 	 *
 	 * PS: any column that is private or part of the primary key
-	 *     that can't be updated though request
+	 *     that can't be updated through request
 	 *     should not be added before a call to this
 	 *
 	 * @param callable(BeforeCreateFlush):void $listener
@@ -145,7 +145,7 @@ class CRUDEventProducer
 	 * Called after we allow UPDATE action on a table and before the flush.
 	 *
 	 * PS: any column that is private or part of the primary key
-	 *     that can't be updated though request
+	 *     that can't be updated through request
 	 *     should not be added before a call to this
 	 *
 	 * @param callable(BeforeUpdateFlush):void $listener
@@ -169,7 +169,7 @@ class CRUDEventProducer
 	 * Called after we allow UPDATE_ALL action on a table and before the flush.
 	 *
 	 * PS: any column that is private or part of the primary key
-	 *     that can't be updated though request
+	 *     that can't be updated through request
 	 *     should not be added before a call to this
 	 *
 	 * @param callable(BeforeUpdateAllFlush):void $listener

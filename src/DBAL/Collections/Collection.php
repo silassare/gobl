@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Collections;
 
+use Gobl\ORM\Interfaces\ORMOptionsInterface;
 use Gobl\ORM\ORMEntity;
-use Gobl\ORM\ORMRequest;
 use InvalidArgumentException;
 
 /**
@@ -62,12 +62,12 @@ abstract class Collection
 	/**
 	 * Returns the collection items.
 	 *
-	 * @param ORMRequest $request
-	 * @param null|int   &$total_records
+	 * @param ORMOptionsInterface $options
+	 * @param null|int            &$total_records
 	 *
 	 * @return ORMEntity[]
 	 */
-	abstract public function getItems(ORMRequest $request, ?int &$total_records = null): array;
+	abstract public function getItems(ORMOptionsInterface $options, ?int &$total_records = null): array;
 
 	/**
 	 * Creates a new collection using a callable.

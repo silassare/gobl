@@ -59,45 +59,12 @@ interface LinkInterface extends ArrayCapableInterface
 	public function apply(QBSelect $target_qb, ?ORMEntity $host_entity = null): bool;
 
 	/**
-	 * Apply the join/filter conditions for a batch of host entities onto the
-	 * given target query builder.
+	 * Fill the target entity with the relation data from the host entity.
 	 *
-	 * Implementations must add a single compound condition (e.g. an IN clause
-	 * on the FK column) rather than iterating per entity.
-	 *
-	 * Returns false when the link type cannot be batched (the caller must fall
-	 * back to per-entity loading).
-	 *
-	 * @param QBSelect    $target_qb     a select query builder on the target table
-	 * @param ORMEntity[] $host_entities non-empty array, all from the host table
-	 *
-	 * @return bool true when the query was augmented, false when not supported
-	 */
-	public function applyBatch(QBSelect $target_qb, array $host_entities): bool;
-
-	/**
-	 * Group batch result entities back to their corresponding host entity PK strings.
-	 *
-	 * Called after {@see applyBatch()} + query execution to map each result entity
-	 * back to its host entity(ies) by PK string (as returned by
-	 * {@see ORMEntity::toIdentityKey()}).
-	 *
-	 * Implementations that returned false from applyBatch() may return an empty array.
-	 *
-	 * @param ORMEntity[] $host_entities   the same array passed to applyBatch()
-	 * @param ORMEntity[] $result_entities the entities fetched from the batch query
-	 *
-	 * @return array<string, ORMEntity[]> map of host-pk-string -> result entities
-	 */
-	public function groupBatchResults(array $host_entities, array $result_entities): array;
-
-	/**
-	 * Fill the target data with the relation data from the host entity.
-	 *
-	 * @param ORMEntity $host_entity  the host entity
-	 * @param array     &$target_data the target data to fill
+	 * @param ORMEntity $host_entity   the host entity
+	 * @param ORMEntity $target_entity the target entity to fill
 	 *
 	 * @return bool returns true if the relation was filled, false otherwise
 	 */
-	public function fillRelation(ORMEntity $host_entity, array &$target_data = []): bool;
+	public function fillRelation(ORMEntity $host_entity, ORMEntity $target_entity): bool;
 }

@@ -534,8 +534,10 @@ final class Diff
 		$b_pk = $to_table->getPrimaryKeyConstraint();
 		if ($a_pk) {
 			if ($b_pk) {
-				if (!empty(\array_diff($a_pk->getColumns(), $b_pk->getColumns()))) {
-					// there is a change in the constraint columns types
+				$a_cols = $a_pk->getColumns();
+				$b_cols = $b_pk->getColumns();
+				if (!empty(\array_diff($a_cols, $b_cols)) || !empty(\array_diff($b_cols, $a_cols))) {
+					// there is a change in the constraint columns
 					$diff[] = $this->getConstraintDeletedClassInstance($a_pk);
 					$diff[] = $this->getConstraintAddedClassInstance($b_pk);
 				}
@@ -558,12 +560,12 @@ final class Diff
 	private function getConstraintAddedClassInstance(Constraint $constraint, string $reason = ''): ForeignKeyConstraintAdded|PrimaryKeyConstraintAdded|UniqueKeyConstraintAdded
 	{
 		if ($constraint instanceof PrimaryKey) {
-			$c = new PrimaryKeyConstraintAdded($constraint, $reason);
+			$c = new PrimaryKeyConstraintAdded($constraint);
 		} elseif ($constraint instanceof UniqueKey) {
-			$c = new UniqueKeyConstraintAdded($constraint, $reason);
+			$c = new UniqueKeyConstraintAdded($constraint);
 		} else {
 			/** @var ForeignKey $constraint */
-			$c = new ForeignKeyConstraintAdded($constraint, $reason);
+			$c = new ForeignKeyConstraintAdded($constraint);
 		}
 
 		!empty($reason) && $c->setReason($reason);

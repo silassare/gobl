@@ -29,7 +29,7 @@ trait QBWhereTrait
 	/**
 	 * Adds a where condition.
 	 *
-	 * @param callable|FilterInterface|Filters|string $condition
+	 * @param (callable(Filters):void)|FilterInterface|Filters|string $condition
 	 *
 	 * @return static
 	 */
@@ -41,7 +41,7 @@ trait QBWhereTrait
 	/**
 	 * Adds a where condition with an AND chaining condition.
 	 *
-	 * @param callable|FilterInterface|Filters|string $condition
+	 * @param (callable(Filters):void)|FilterInterface|Filters|string $condition
 	 *
 	 * @return static
 	 */
@@ -53,7 +53,7 @@ trait QBWhereTrait
 	/**
 	 * Adds a where condition with an OR chaining condition.
 	 *
-	 * @param callable|FilterInterface|Filters|string $condition
+	 * @param (callable(Filters):void)|FilterInterface|Filters|string $condition
 	 *
 	 * @return static
 	 */
@@ -76,8 +76,8 @@ trait QBWhereTrait
 	 * If not, it creates a new one.
 	 * If yes, it ensures the chaining condition is the same as the given one.
 	 *
-	 * @param bool                                    $is_and
-	 * @param callable|FilterInterface|Filters|string $condition
+	 * @param bool                                                    $is_and
+	 * @param (callable(Filters):void)|FilterInterface|Filters|string $condition
 	 *
 	 * @return static
 	 */

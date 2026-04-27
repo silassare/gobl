@@ -22,6 +22,11 @@ use Override;
  */
 final class PrimaryKey extends Constraint
 {
+	/**
+	 * The columns that make up the primary key.
+	 *
+	 * @var list<string>
+	 */
 	private array $columns = [];
 
 	/**
@@ -75,7 +80,7 @@ final class PrimaryKey extends Constraint
 	/**
 	 * Gets primary key columns.
 	 *
-	 * @return string[]
+	 * @return list<string>
 	 */
 	public function getColumns(): array
 	{

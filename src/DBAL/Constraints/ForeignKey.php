@@ -260,7 +260,7 @@ final class ForeignKey extends Constraint
 	/**
 	 * Gets host columns.
 	 *
-	 * @return string[]
+	 * @return list<string>
 	 */
 	public function getHostColumns(): array
 	{
@@ -338,7 +338,7 @@ final class ForeignKey extends Constraint
 	/**
 	 * Gets reference columns.
 	 *
-	 * @return string[]
+	 * @return list<string>
 	 */
 	public function getReferenceColumns(): array
 	{

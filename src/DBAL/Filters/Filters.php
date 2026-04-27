@@ -337,16 +337,16 @@ final class Filters
 	 * // Inline AND (bare call - usually omitted)
 	 * $f->eq('a', 1)->and()->eq('b', 2);
 	 *
-	 * // AND sub-group via callable - callable MUST return the same $g instance
+	 * // AND sub-group via callable - callable
 	 * $f->and(function (Filters $g) {
-	 *     return $g->isNotNull('email')->like('email', '%@example.com');
+	 *     $g->isNotNull('email')->like('email', '%@example.com');
 	 * });
 	 *
 	 * // AND an existing Filters instance (must share the same QBInterface)
 	 * $f->and($otherFilters);
 	 * ```
 	 *
-	 * @param array|callable|self ...$filters
+	 * @param array|(callable(Filters):void)|self ...$filters
 	 *
 	 * @return self
 	 */
@@ -371,7 +371,7 @@ final class Filters
 	 *    `FiltersScopeInterface::shouldAllowFiltersScope()`, preventing unauthorized
 	 *    column access from leaking in through merged filters.
 	 *
-	 * @param array|callable|Filters ...$filters
+	 * @param array|(callable(Filters):void)|Filters ...$filters
 	 *
 	 * @return self
 	 */
@@ -409,12 +409,13 @@ final class Filters
 				$filter = $entry->group;
 			} elseif (\is_callable($entry)) {
 				$sub    = $this->subGroup();
-				$return = $entry($sub);
 
-				if ($return !== $sub) {
+				$entry($sub);
+
+				if ($sub->isEmpty()) {
 					throw (new DBALRuntimeException(
 						\sprintf(
-							'The sub-filters group callable should return the same instance of "%s" passed as argument.',
+							'The sub-filters group callable should add at least one filter to the provided %s instance, got empty group from callable.',
 							self::class
 						)
 					))
@@ -444,16 +445,16 @@ final class Filters
 	 * // Inline OR between two equal checks
 	 * $f->eq('role', 'admin')->or()->eq('role', 'superadmin');
 	 *
-	 * // OR sub-group via callable - callable MUST return the same $g instance
+	 * // OR sub-group via callable
 	 * $f->or(function (Filters $g) {
-	 *     return $g->lt('age', 13)->or()->gt('age', 65);
+	 *      $g->lt('age', 13)->or()->gt('age', 65);
 	 * });
 	 *
 	 * // OR an existing Filters instance (must share the same QBInterface)
 	 * $f->or($otherFilters);
 	 * ```
 	 *
-	 * @param array|callable|self ...$filters
+	 * @param array|(callable(Filters):void)|self ...$filters
 	 *
 	 * @return self
 	 */

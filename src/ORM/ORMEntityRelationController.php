@@ -20,6 +20,8 @@ use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Table;
 use Gobl\Exceptions\GoblException;
 use Gobl\ORM\Exceptions\ORMException;
+use Gobl\ORM\Interfaces\ORMOptionsInterface;
+use Gobl\ORM\Utils\Helpers;
 use Override;
 use Throwable;
 
@@ -57,12 +59,9 @@ class ORMEntityRelationController implements RelationControllerInterface
 	 * @throws GoblException
 	 */
 	#[Override]
-	public function get(ORMEntity $host_entity, ORMRequest $request): ?ORMEntity
+	public function get(ORMEntity $host_entity, ORMOptionsInterface $options): ?ORMEntity
 	{
-		$order_by = $request->getOrderBy();
-		$filters  = $request->getFilters();
-
-		return $this->controller->getRelative($host_entity, $this->relation, $order_by, $filters);
+		return $this->controller->getRelative($host_entity, $this->relation, $options);
 	}
 
 	/**
@@ -71,22 +70,11 @@ class ORMEntityRelationController implements RelationControllerInterface
 	 * @throws GoblException
 	 */
 	#[Override]
-	public function list(ORMEntity $host_entity, ORMRequest $request, ?int &$total = null): array
+	public function list(ORMEntity $host_entity, ORMOptionsInterface $options): array
 	{
-		$max      = $request->getMax();
-		$offset   = $request->getOffset();
-		$order_by = $request->getOrderBy();
-		$filters  = $request->getFilters();
+		$results = $this->controller->getAllRelatives($host_entity, $this->relation, $options);
 
-		return $this->controller->getAllRelatives(
-			$host_entity,
-			$this->relation,
-			$filters,
-			$max,
-			$offset,
-			$order_by,
-			$total
-		);
+		return $results?->fetchAllClass() ?? [];
 	}
 
 	/**
@@ -98,15 +86,18 @@ class ORMEntityRelationController implements RelationControllerInterface
 	#[Override]
 	public function create(ORMEntity $host_entity, array $payload): mixed
 	{
-		ORMTableQuery::assertCanManageRelatives($this->table, $this->relation, $host_entity);
+		Helpers::assertCanManageRelatives($this->table, $this->relation, [$host_entity]);
 
-		$link = $this->relation->getLink();
+		$link          = $this->relation->getLink();
+		$target_entity = ORM::entity($this->relation->getTargetTable());
 
-		if (!$link->fillRelation($host_entity, $payload)) {
+		if (!$link->fillRelation($host_entity, $target_entity)) {
 			throw new ORMException('Unable to fill relation.');
 		}
 
-		return $this->controller->addItem($payload);
+		$target_entity->hydrate($payload);
+
+		return $this->controller->addItem($target_entity);
 	}
 
 	/**
@@ -121,12 +112,9 @@ class ORMEntityRelationController implements RelationControllerInterface
 	{
 		$link = $this->relation->getLink();
 
-		$payload = [];
-		if (!$link->fillRelation($parent_entity, $payload)) {
+		if (!$link->fillRelation($parent_entity, $child_entity)) {
 			throw new ORMException('Unable to link entities.');
 		}
-
-		$child_entity->hydrate($payload);
 
 		if ($auto_save) {
 			$child_entity->save();
@@ -169,20 +157,12 @@ class ORMEntityRelationController implements RelationControllerInterface
 	 * @throws GoblException
 	 */
 	#[Override]
-	public function getBatch(array $host_entities, ORMRequest $request): array
+	public function getBatch(array $host_entities, ORMOptionsInterface $options): array
 	{
-		$max      = $request->getMax();
-		$offset   = $request->getOffset();
-		$order_by = $request->getOrderBy();
-		$filters  = $request->getFilters();
-
 		return $this->controller->getAllRelativesBatch(
 			$host_entities,
 			$this->relation,
-			$filters,
-			$max,
-			$offset,
-			$order_by
+			$options
 		);
 	}
 
@@ -195,11 +175,13 @@ class ORMEntityRelationController implements RelationControllerInterface
 	private function identify(ORMEntity $host_entity, array $relative): ORMEntity
 	{
 		$filters = $this->extractFilters($relative);
+		$options = new ORMOptions();
+		$options->setFilters($filters);
 
 		$target = $this->controller->getRelative(
 			$host_entity,
 			$this->relation,
-			$filters
+			$options
 		);
 
 		if (!$target) {

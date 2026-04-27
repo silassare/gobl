@@ -282,7 +282,7 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface, Loc
 	 */
 	public function setSelect(?array $columns): static
 	{
-		$this->_select = $columns;
+		$this->_select = empty($columns) ? null : $columns;
 
 		return $this;
 	}

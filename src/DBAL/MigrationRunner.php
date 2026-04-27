@@ -76,6 +76,12 @@ final class MigrationRunner
 
 			if ($m instanceof MigrationInterface) {
 				$this->add($m);
+			} else {
+				throw new DBALException(\sprintf(
+					'Migration file "%s" did not return a valid %s instance.',
+					$path,
+					MigrationInterface::class
+				));
 			}
 		}
 
@@ -169,10 +175,6 @@ final class MigrationRunner
 
 		return $list;
 	}
-
-	// ------------------------------------------------------------------
-	// Internal helpers
-	// ------------------------------------------------------------------
 
 	/**
 	 * Creates the `_gobl_migrations` bookkeeping table if it does not exist.

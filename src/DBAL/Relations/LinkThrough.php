@@ -153,29 +153,8 @@ final class LinkThrough extends Link
 	 * host entity cannot populate the target data without a database round-trip.
 	 */
 	#[Override]
-	public function fillRelation(ORMEntity $host_entity, array &$target_data = []): bool
+	public function fillRelation(ORMEntity $host_entity, ORMEntity $target_entity): bool
 	{
-		return false;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * The pivot join is applied in **pivot-first** order:
-	 * 1. `pivot_to_target_link->apply()` (join mode, no entity) - joins the pivot to the target.
-	 * 2. `host_to_pivot_link->apply($host_entity)` - either filters by entity values (entity mode)
-	 *    or adds the host->pivot join (join mode).
-	 *
-	 * This ordering ensures the JOIN clauses are emitted in the correct inside-out sequence
-	 * required by the SQL generator.
-	 */
-	#[Override]
-	public function runLinkTypeApplyLogic(QBSelect $target_qb, ?ORMEntity $host_entity = null): bool
-	{
-		if ($this->pivot_to_target_link->apply($target_qb)) {
-			return $this->host_to_pivot_link->apply($target_qb, $host_entity);
-		}
-
 		return false;
 	}
 
@@ -191,215 +170,21 @@ final class LinkThrough extends Link
 	/**
 	 * {@inheritDoc}
 	 *
-	 * Batch strategy for `LinkThrough`:
-	 * 1. Apply `pivot_to_target_link` in join mode - registers the pivot alias on `$target_qb`.
-	 * 2. Delegate the host -> pivot batch filter to `host_to_pivot_link->applyBatch()`.
-	 *    Because the pivot alias is now registered, `fullyQualifiedName(pivot, col)` resolves
-	 *    correctly inside `applyBatch()`.
-	 * 3. Inject `SELECT pivot_col AS _gobl_batch_key[_N]` so that each target entity carries
-	 *    the pivot FK value used to route it back to its host in `groupBatchResults()`.
+	 * The pivot join is applied in **pivot-first** order:
+	 * 1. `pivot_to_target_link->apply()` (join mode, no entity) - joins the pivot to the target.
+	 * 2. `host_to_pivot_link->apply($host_entity)` - either filters by entity values (entity mode)
+	 *    or adds the host->pivot join (join mode).
 	 *
-	 * Supports both `LinkColumns` and `LinkMorph` as `host_to_pivot_link`.
-	 * Returns `false` for any other sub-link type.
+	 * This ordering ensures the JOIN clauses are emitted in the correct inside-out sequence
+	 * required by the SQL generator.
 	 */
 	#[Override]
-	public function applyBatch(QBSelect $target_qb, array $host_entities): bool
+	protected function runLinkTypeApplyLogic(QBSelect $target_qb, ?ORMEntity $host_entity = null): bool
 	{
-		// Step 1: register the pivot via the pivot -> target join (same as entity path).
-		if (!$this->pivot_to_target_link->apply($target_qb)) {
-			return false;
+		if ($this->pivot_to_target_link->apply($target_qb)) {
+			return $this->host_to_pivot_link->apply($target_qb, $host_entity);
 		}
 
-		// Step 2: batch-filter the pivot using the host -> pivot link.
-		if (!$this->host_to_pivot_link->applyBatch($target_qb, $host_entities)) {
-			return false;
-		}
-
-		// Step 3: inject computed slots so groupBatchResults() can route results.
-		$this->selectPivotBatchKeys($target_qb);
-
-		return true;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * Uses the `_gobl_batch_key[_N]` computed values that `applyBatch()` injected into the
-	 * SELECT to route each target entity back to its host(s).
-	 *
-	 * For `LinkColumns` host-to-pivot: the pivot FK value equals the host column value, so we
-	 * build a reverse index `str(host.host_col) -> [host_identity_key]` and look up
-	 * `str(entity.getComputedValue('batch_key[_N]'))`.
-	 *
-	 * For `LinkMorph` host-to-pivot: the pivot morph-key equals the host routing-column value,
-	 * same reverse-lookup pattern with a single `batch_key` slot.
-	 */
-	#[Override]
-	public function groupBatchResults(array $host_entities, array $result_entities): array
-	{
-		$htp = $this->host_to_pivot_link;
-
-		if ($htp instanceof LinkColumns) {
-			return $this->groupBatchResultsLinkColumns($htp, $host_entities, $result_entities);
-		}
-
-		if ($htp instanceof LinkMorph) {
-			return $this->groupBatchResultsLinkMorph($htp, $host_entities, $result_entities);
-		}
-
-		return [];
-	}
-
-	/**
-	 * Injects `SELECT pivot_alias.pivot_col AS _gobl_batch_key[_N]` for every FK column
-	 * that routes results back to a host entity.
-	 *
-	 * For `LinkColumns`: one slot per mapping entry (`batch_key` for single, `batch_key_0`,
-	 * `batch_key_1`, ... for composite).
-	 * For `LinkMorph`: always a single `batch_key` slot using the pivot morph-key column.
-	 */
-	private function selectPivotBatchKeys(QBSelect $target_qb): void
-	{
-		$htp = $this->host_to_pivot_link;
-
-		if ($htp instanceof LinkColumns) {
-			$mapping      = $htp->getColumnsMapping();
-			$is_composite = \count($mapping) > 1;
-			$slot         = 0;
-
-			foreach ($mapping as $host_col => $pivot_col) {
-				$pivot_fqn = $target_qb->fullyQualifiedName($this->pivot_table, $pivot_col);
-				$key       = $is_composite ? 'batch_key_' . $slot : 'batch_key';
-
-				$target_qb->selectComputed($pivot_fqn, $key);
-				++$slot;
-			}
-
-			return;
-		}
-
-		if ($htp instanceof LinkMorph) {
-			// host_is_parent=true  -> pivot carries child columns; routing col = child_key
-			// host_is_parent=false -> pivot carries parent_key; routing col = parent_key
-			$pivot_routing_col = $htp->isHostParent()
-				? $htp->getMorphChildKeyColumn()
-				: $htp->getMorphParentKeyColumn();
-
-			$pivot_fqn = $target_qb->fullyQualifiedName($this->pivot_table, $pivot_routing_col);
-
-			$target_qb->selectComputed($pivot_fqn, 'batch_key');
-		}
-	}
-
-	/**
-	 * Grouping helper for `LinkColumns` host-to-pivot links.
-	 *
-	 * @param LinkColumns $htp
-	 * @param ORMEntity[] $host_entities
-	 * @param ORMEntity[] $result_entities
-	 *
-	 * @return array<string, ORMEntity[]>
-	 */
-	private function groupBatchResultsLinkColumns(
-		LinkColumns $htp,
-		array $host_entities,
-		array $result_entities
-	): array {
-		$mapping      = $htp->getColumnsMapping();
-		$is_composite = \count($mapping) > 1;
-		$host_cols    = \array_keys($mapping);
-
-		// Build reverse index: composite_key -> [host_identity_key, ...]
-		$by_key = [];
-
-		foreach ($host_entities as $entity) {
-			$key_parts = [];
-			$skip      = false;
-
-			foreach ($host_cols as $host_col) {
-				$val = $entity->{$host_col};
-
-				if (null === $val) {
-					$skip = true;
-
-					break;
-				}
-
-				$key_parts[] = (string) $val;
-			}
-
-			if ($skip) {
-				continue;
-			}
-
-			$lookup_key = $is_composite ? \implode("\0", $key_parts) : $key_parts[0];
-
-			$by_key[$lookup_key][] = $entity->toIdentityKey();
-		}
-
-		$grouped = [];
-
-		foreach ($result_entities as $result) {
-			if ($is_composite) {
-				$key_parts = [];
-
-				for ($i = 0; $i < \count($mapping); ++$i) {
-					$key_parts[] = (string) $result->getComputedValue('batch_key_' . $i);
-				}
-
-				$lookup_key = \implode("\0", $key_parts);
-			} else {
-				$lookup_key = (string) $result->getComputedValue('batch_key');
-			}
-
-			foreach ($by_key[$lookup_key] ?? [] as $host_pk) {
-				$grouped[$host_pk][] = $result;
-			}
-		}
-
-		return $grouped;
-	}
-
-	/**
-	 * Grouping helper for `LinkMorph` host-to-pivot links.
-	 *
-	 * @param LinkMorph   $htp
-	 * @param ORMEntity[] $host_entities
-	 * @param ORMEntity[] $result_entities
-	 *
-	 * @return array<string, ORMEntity[]>
-	 */
-	private function groupBatchResultsLinkMorph(
-		LinkMorph $htp,
-		array $host_entities,
-		array $result_entities
-	): array {
-		// host_is_parent=true  -> host has parent_key, pivot has child_key (= host FK)
-		// host_is_parent=false -> host has child_key, pivot has parent_key (= host FK)
-		$host_routing_col = $htp->isHostParent()
-			? $htp->getMorphParentKeyColumn()
-			: $htp->getMorphChildKeyColumn();
-
-		$by_key = [];
-
-		foreach ($host_entities as $entity) {
-			$val = $entity->{$host_routing_col};
-
-			if (null !== $val) {
-				$by_key[(string) $val][] = $entity->toIdentityKey();
-			}
-		}
-
-		$grouped = [];
-
-		foreach ($result_entities as $result) {
-			$lookup_key = (string) $result->getComputedValue('batch_key');
-
-			foreach ($by_key[$lookup_key] ?? [] as $host_pk) {
-				$grouped[$host_pk][] = $result;
-			}
-		}
-
-		return $grouped;
+		return false;
 	}
 }

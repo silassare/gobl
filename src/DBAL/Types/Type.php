@@ -170,6 +170,10 @@ abstract class Type implements TypeInterface
 			return $value ? 1 : 0;
 		}
 
+		if ($value instanceof BackedEnum) {
+			return (string) $value->value;
+		}
+
 		return (string) $value;
 	}
 
