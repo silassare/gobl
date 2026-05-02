@@ -336,7 +336,7 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 *
 	 * @return QBDelete
 	 */
-	public function delete(ORMDeleteOptionsInterface $options): QBDelete
+	public function delete(?ORMDeleteOptionsInterface $options = null): QBDelete
 	{
 		$del = new QBDelete($this->db);
 		$del->from($this->table->getFullName(), $this->getTableAlias())
@@ -383,7 +383,7 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 *
 	 * @throws DBALException
 	 */
-	public function softDelete(ORMDeleteOptionsInterface $options): QBUpdate
+	public function softDelete(?ORMDeleteOptionsInterface $options = null): QBUpdate
 	{
 		$this->table->assertSoftDeletable();
 
@@ -409,7 +409,7 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 *
 	 * @return QBUpdate
 	 */
-	public function update(ORMUpdateOptionsInterface $options, array $values): QBUpdate
+	public function update(array $values, ?ORMUpdateOptionsInterface $options = null): QBUpdate
 	{
 		if (!\count($values)) {
 			throw new ORMRuntimeException('Empty columns, can\'t update.');

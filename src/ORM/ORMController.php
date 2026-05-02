@@ -232,21 +232,21 @@ abstract class ORMController
 
 			$payload = $this->scopeUpdateValues($new_values);
 
-			return $tq->update($options, $payload)->execute();
+			return $tq->update($payload, $options)->execute();
 		});
 	}
 
 	/**
 	 * Deletes one item from the table.
 	 *
-	 * @param ORMDeleteOptionsInterface $options
-	 * @param null|bool                 $soft    soft delete
+	 * @param null|ORMDeleteOptionsInterface $options
+	 * @param null|bool                      $soft    soft delete
 	 *
 	 * @return null|TEntity
 	 *
 	 * @throws GoblException
 	 */
-	public function deleteOneItem(ORMDeleteOptionsInterface $options, ?bool $soft = null): ?ORMEntity
+	public function deleteOneItem(?ORMDeleteOptionsInterface $options = null, ?bool $soft = null): ?ORMEntity
 	{
 		$soft = $this->clarifyUserSoftDeleteStrategy($soft);
 
@@ -290,14 +290,14 @@ abstract class ORMController
 	/**
 	 * Deletes all items in the table that match the given item filters.
 	 *
-	 * @param ORMDeleteOptionsInterface $options
-	 * @param null|bool                 $soft    soft delete
+	 * @param null|ORMDeleteOptionsInterface $options
+	 * @param null|bool                      $soft    soft delete
 	 *
 	 * @return int affected row count
 	 *
 	 * @throws GoblException
 	 */
-	public function deleteAllItems(ORMDeleteOptionsInterface $options, ?bool $soft = null): int
+	public function deleteAllItems(?ORMDeleteOptionsInterface $options = null, ?bool $soft = null): int
 	{
 		$soft = $this->clarifyUserSoftDeleteStrategy($soft);
 
@@ -316,13 +316,13 @@ abstract class ORMController
 	/**
 	 * Gets item from the table that match the given filters.
 	 *
-	 * @param ORMSelectOptionsInterface $options
+	 * @param null|ORMSelectOptionsInterface $options
 	 *
 	 * @return null|TEntity
 	 *
 	 * @throws GoblException
 	 */
-	public function getItem(ORMSelectOptionsInterface $options): ?ORMEntity
+	public function getItem(?ORMSelectOptionsInterface $options = null): ?ORMEntity
 	{
 		// we use transaction for reading too
 		// https://stackoverflow.com/questions/308905/should-there-be-a-transaction-for-read-queries
@@ -802,7 +802,7 @@ abstract class ORMController
 			$options->setFilters($entity->toIdentityFilters());
 			$options->setMax(1);
 
-			$tq->update($options, $values)
+			$tq->update($values, $options)
 				->execute();
 
 			$entity->isSaved(true);
