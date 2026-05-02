@@ -28,9 +28,7 @@ use Throwable;
 /**
  * Class ORMEntityRelationController.
  *
- * @template TEntity of ORMEntity
- *
- * @implements RelationControllerInterface<TEntity,ORMEntity,array,array>
+ * @implements RelationControllerInterface<ORMEntity,array,array>
  */
 class ORMEntityRelationController implements RelationControllerInterface
 {

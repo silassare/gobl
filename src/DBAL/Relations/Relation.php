@@ -35,7 +35,7 @@ use Throwable;
 /**
  * Class Relation.
  *
- * @implements RelationInterface<ORMEntity,ORMEntity,array,array>
+ * @implements RelationInterface<ORMEntity,array,array>
  */
 abstract class Relation implements RelationInterface, ArrayCapableInterface, LockableInterface
 {

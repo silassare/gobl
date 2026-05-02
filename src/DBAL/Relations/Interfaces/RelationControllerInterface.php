@@ -24,7 +24,6 @@ use JsonSerializable;
  * The TRelative must be serializable to json.
  * The TRelativeIdentityPayload should contains base information to identify the relative
  *
- * @template TEntity of ORMEntity
  * @template TRelative of null|string|int|float|bool|array|JsonSerializable
  * @template TRelativeCreatePayload of array
  * @template TRelativeIdentityPayload of array

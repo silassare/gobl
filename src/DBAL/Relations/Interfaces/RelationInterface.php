@@ -14,13 +14,11 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Relations\Interfaces;
 
 use Gobl\DBAL\Table;
-use Gobl\ORM\ORMEntity;
 use JsonSerializable;
 
 /**
  * Class RelationInterface.
  *
- * @template TEntity of ORMEntity
  * @template TRelative of null|string|int|float|bool|array|JsonSerializable
  * @template TRelativeCreatePayload of array
  * @template TRelativeIdentityPayload of array
@@ -32,7 +30,7 @@ interface RelationInterface
 	public const NAME_REG = '~^' . self::NAME_PATTERN . '$~';
 
 	/**
-	 * Gets th relation name.
+	 * Gets the relation name.
 	 *
 	 * @return string
 	 */
@@ -62,9 +60,9 @@ interface RelationInterface
 	public function isPaginated(): bool;
 
 	/**
-	 * Should returns relatives controller instance.
+	 * Should return the relatives controller instance.
 	 *
-	 * @return RelationControllerInterface<TEntity,TRelative,TRelativeCreatePayload,TRelativeIdentityPayload>
+	 * @return RelationControllerInterface<TRelative,TRelativeCreatePayload,TRelativeIdentityPayload>
 	 */
 	public function getController(): RelationControllerInterface;
 }
