@@ -15,10 +15,13 @@ namespace Gobl\DBAL\Collections;
 
 use Gobl\ORM\Interfaces\ORMOptionsInterface;
 use Gobl\ORM\ORMEntity;
+use Gobl\ORM\ORMResults;
 use InvalidArgumentException;
 
 /**
  * Class Collection.
+ *
+ * @template TEntity of ORMEntity
  */
 abstract class Collection
 {
@@ -63,19 +66,20 @@ abstract class Collection
 	 * Returns the collection items.
 	 *
 	 * @param ORMOptionsInterface $options
-	 * @param null|int            &$total_records
 	 *
-	 * @return ORMEntity[]
+	 * @return ORMResults<TEntity>
 	 */
-	abstract public function getItems(ORMOptionsInterface $options, ?int &$total_records = null): array;
+	abstract public function getItems(ORMOptionsInterface $options): ORMResults;
 
 	/**
 	 * Creates a new collection using a callable.
 	 *
-	 * @param string   $name    the collection name
-	 * @param callable $factory the collection factory
+	 * @template T of ORMEntity
 	 *
-	 * @return CollectionFactory
+	 * @param string                                      $name    the collection name
+	 * @param callable(ORMOptionsInterface):ORMResults<T> $factory the collection factory
+	 *
+	 * @return CollectionFactory<T>
 	 */
 	final public static function fromFactory(string $name, callable $factory): CollectionFactory
 	{

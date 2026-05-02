@@ -14,23 +14,29 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Collections;
 
 use Gobl\ORM\Interfaces\ORMOptionsInterface;
+use Gobl\ORM\ORMEntity;
+use Gobl\ORM\ORMResults;
 use Override;
 
 /**
  * Class CollectionFactory.
+ *
+ * @template TEntity of ORMEntity
+ *
+ * @extends Collection<TEntity>
  */
-class CollectionFactory extends Collection
+final class CollectionFactory extends Collection
 {
 	/**
-	 * @var callable
+	 * @var callable(ORMOptionsInterface):ORMResults<TEntity>
 	 */
 	protected $factory;
 
 	/**
 	 * CollectionFactory constructor.
 	 *
-	 * @param string   $name
-	 * @param callable $factory
+	 * @param string                                            $name    the collection name
+	 * @param callable(ORMOptionsInterface):ORMResults<TEntity> $factory the collection factory
 	 */
 	public function __construct(string $name, callable $factory)
 	{
@@ -46,9 +52,12 @@ class CollectionFactory extends Collection
 		unset($this->factory);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	#[Override]
-	public function getItems(ORMOptionsInterface $options, ?int &$total_records = null): array
+	public function getItems(ORMOptionsInterface $options): ORMResults
 	{
-		return ($this->factory)($options, $total_records);
+		return \call_user_func($this->factory, $options);
 	}
 }
