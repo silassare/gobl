@@ -70,19 +70,4 @@ abstract class Collection
 	 * @return ORMResults<TEntity>
 	 */
 	abstract public function getItems(ORMOptionsInterface $options): ORMResults;
-
-	/**
-	 * Creates a new collection using a callable.
-	 *
-	 * @template T of ORMEntity
-	 *
-	 * @param string                                      $name    the collection name
-	 * @param callable(ORMOptionsInterface):ORMResults<T> $factory the collection factory
-	 *
-	 * @return CollectionFactory<T>
-	 */
-	final public static function fromFactory(string $name, callable $factory): CollectionFactory
-	{
-		return new CollectionFactory($name, $factory);
-	}
 }

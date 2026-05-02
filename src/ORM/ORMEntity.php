@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Gobl\ORM;
 
 use Gobl\CRUD\Exceptions\CRUDException;
+use Gobl\DBAL\Collections\CollectionFactory;
 use Gobl\DBAL\Column;
 use Gobl\DBAL\Constraints\PrimaryKey;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
@@ -25,6 +26,7 @@ use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
 use Gobl\Exceptions\GoblException;
 use Gobl\ORM\Exceptions\ORMException;
 use Gobl\ORM\Exceptions\ORMRuntimeException;
+use Gobl\ORM\Interfaces\ORMOptionsInterface;
 use Override;
 use PHPUtils\Interfaces\ArrayCapableInterface;
 use PHPUtils\Traits\ArrayCapableTrait;
@@ -365,6 +367,24 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 * @return ORMEntityCRUD
 	 */
 	abstract public static function crud(): ORMEntityCRUD;
+
+	/**
+	 * Registers a collection using the provided factory to the table.
+	 *
+	 * @param string                                           $name    the collection name
+	 * @param callable(ORMOptionsInterface):ORMResults<static> $factory the collection factory
+	 *
+	 * @return CollectionFactory<static>
+	 */
+	public static function registerCollection(string $name, callable $factory): CollectionFactory
+	{
+		/** @var CollectionFactory<ORMEntity> $collection */
+		$collection = new CollectionFactory($name, $factory);
+
+		static::table()->addCollection($collection);
+
+		return $collection;
+	}
 
 	/**
 	 * Returns true for entities not yet persisted to the DB.

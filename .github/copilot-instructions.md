@@ -65,7 +65,7 @@ Relation methods: `hasMany()`, `hasOne()`, `belongsTo()`, `belongsToMany()`.
 - Table and column names: `[a-z][a-z0-9_]*` only
 - `column_prefix` is prepended to every column's DB name (prefix `user` + name `id` = full name `user_id`)
 - `ref:table.column` — shared type instance; `cp:table.column` — cloned copy
-- Forbidden column/relation names: `save`, `saved`, `is_saved`, `new`, `is_new`, `table`, `crud`, `qb`, `ctrl`, `results`, `computed_value` (see `Gobl::getForbiddenColumnsName()`)
+- Forbidden column/relation names: `save`, `saved`, `is_saved`, `new`, `is_new`, `table`, `crud`, `qb`, `ctrl`, `results`, `register_collection`, `computed_value` (see `Gobl::getForbiddenColumnsName()`)
 - Supported types: `bigint`, `int`, `bool`, `string`, `decimal`, `float`, `date`, `enum`, `json`, `list`, `map`
 - `json`/`list`/`map` use native JSON storage by default (`native_json=true`). Opt out with `->nativeJson(false)`.
 - Column relations in array schema: auto-detected from FK constraints; `link` key only needed for morph/through/custom join.
