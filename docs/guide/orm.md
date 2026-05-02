@@ -127,7 +127,7 @@ $client->isSaved();            // false
 use Gobl\ORM\ORMOptions;
 
 // Paginated request
-$request = ORMOptions::makePaginated(max: 20, offset: 0, order_by: ['user_name ASC']);
+$request = ORMOptions::makePaginated(max: 20, page: 1, order_by: ['user_name ASC']);
 $results = $userController->getAllItems($request);
 
 foreach ($results as $user) {
@@ -215,8 +215,7 @@ When `$hasMore` is `false` and `$nextCursor` is `null` you have reached
 the last page. `$options->isCursorBased()` returns `true` when a cursor-based
 request is in use.
 
-Throws `ORMQueryException` when `$max < 1` or `$direction` is not
-`'ASC'`/`'DESC'`.
+Throws `ORMQueryException` when `$direction` is not `'ASC'`/`'DESC'`.
 
 ---
 

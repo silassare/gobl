@@ -53,7 +53,7 @@ $user = $controller->getItem(ORMOptions::makeFromFilters(['user_id' => 1]));
 ```php
 use Gobl\ORM\ORMOptions;
 
-$request = ORMOptions::makePaginated(max: 20, offset: 0, order_by: ['user_name ASC']);
+$request = ORMOptions::makePaginated(max: 20, page: 1, order_by: ['user_name ASC']);
 $results = $controller->getAllItems($request);
 
 foreach ($results as $user) {
@@ -73,7 +73,7 @@ use Gobl\ORM\ORMOptions;
 $tq = UsersQuery::new();
 $tq->where($tq->filters()->eq('user_status', 'active'));
 
-$request = ORMOptions::makePaginated(max: 20, offset: 0, order_by: ['user_name ASC']);
+$request = ORMOptions::makePaginated(max: 20, page: 1, order_by: ['user_name ASC']);
 $results = $controller->getAllItemsCustom($tq->select($request));
 ```
 

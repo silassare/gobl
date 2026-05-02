@@ -20,7 +20,6 @@ use Gobl\DBAL\Table;
 use Gobl\ORM\Exceptions\ORMQueryException;
 use Gobl\ORM\Interfaces\ORMOptionsInterface;
 use Override;
-use PHPUtils\Exceptions\RuntimeException;
 
 /**
  * Class ORMOptions.
@@ -90,13 +89,18 @@ class ORMOptions implements ORMOptionsInterface
 	 */
 	private array $order_by = [];
 
+	/**
+	 * Current page number (1-based). When null, pagination is disabled and all items are returned.
+	 * Note that when using page-based pagination, the offset is computed as (`page` - 1) * `max`.
+	 * When using cursor-based pagination, this property is ignored and the offset.
+	 */
 	private ?int $page = null;
 
 	private ?int $max        = null;
 	private bool $ignore_max = false;
 
 	/**
-	 * Raw offset set by {@see makePaginated()}. When non-null, takes priority over the
+	 * Raw offset set by {@see setRawOffset()}. When non-null, takes priority over the
 	 * page-computed offset in {@see getOffset()}.
 	 */
 	private ?int $_raw_offset = null;
@@ -172,20 +176,16 @@ class ORMOptions implements ORMOptionsInterface
 	 * This bypasses HTTP payload parsing; useful when building queries programmatically.
 	 *
 	 * @param null|int                         $max      maximum number of items per page, or null for no limit
-	 * @param int                              $offset   zero-based row offset
+	 * @param null|int                         $page     1-based page number, or null to disable pagination (ignored if $max is null)
 	 * @param null|array<string, 'ASC'|'DESC'> $order_by optional column sort order
 	 *
 	 * @return static
 	 */
-	public static function makePaginated(?int $max, int $offset = 0, ?array $order_by = null): static
+	public static function makePaginated(?int $max, ?int $page = null, ?array $order_by = null): static
 	{
-		$instance              = new self();
-		$instance->max         = $max;
-		$instance->_raw_offset = $offset;
-		$instance->order_by    = $order_by ?? [];
-		$instance->page        = null;
+		$instance = new self();
 
-		return $instance;
+		return $instance->setPage($page)->setMax($max)->setOrderBy($order_by);
 	}
 
 	/**
@@ -199,10 +199,9 @@ class ORMOptions implements ORMOptionsInterface
 	 */
 	public static function makeFromFilters(array $filters): static
 	{
-		$instance          = new self();
-		$instance->filters = $filters;
+		$instance = new self();
 
-		return $instance;
+		return $instance->setFilters($filters);
 	}
 
 	/**
@@ -225,20 +224,12 @@ class ORMOptions implements ORMOptionsInterface
 		int|string|null $cursor = null,
 		string $direction = 'ASC'
 	): static {
-		$direction = \strtoupper($direction);
+		$instance = new self();
 
-		if ('ASC' !== $direction && 'DESC' !== $direction) {
-			throw new ORMQueryException('GOBL_ORM_CURSOR_DIRECTION_INVALID', ['direction' => $direction]);
-		}
-
-		$instance             = new self();
-		$instance->max        = $max;
-		$instance->cursor_col = $cursor_column;
-		$instance->cursor     = $cursor;
-		$instance->cursor_dir = $direction;
-		$instance->page       = null;
-
-		return $instance;
+		return $instance->setCursor($cursor)
+			->setCursorColumn($cursor_column)
+			->setCursorDirection($direction)
+			->setMax($max);
 	}
 
 	/**
@@ -406,7 +397,7 @@ class ORMOptions implements ORMOptionsInterface
 	{
 		if (null !== $page) {
 			if ($page <= 0) {
-				throw new RuntimeException('Page number must be a positive integer.');
+				throw new ORMQueryException('Page number must be a positive integer.');
 			}
 
 			$this->clearCursorPagination();
@@ -475,6 +466,21 @@ class ORMOptions implements ORMOptionsInterface
 	 * {@inheritDoc}
 	 */
 	#[Override]
+	public function setRawOffset(?int $offset): static
+	{
+		if (null !== $offset && $offset < 0) {
+			throw new ORMQueryException('Offset must be a non-negative integer.');
+		}
+
+		$this->_raw_offset = $offset;
+
+		return $this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	#[Override]
 	public function getCursor(): int|string|null
 	{
 		return $this->cursor;
@@ -529,7 +535,7 @@ class ORMOptions implements ORMOptionsInterface
 		if (null !== $direction) {
 			$direction = \strtoupper($direction);
 			if ('ASC' !== $direction && 'DESC' !== $direction) {
-				throw new RuntimeException('Cursor direction must be either "ASC" or "DESC".');
+				throw new ORMQueryException('Cursor direction must be either "ASC" or "DESC".');
 			}
 		}
 

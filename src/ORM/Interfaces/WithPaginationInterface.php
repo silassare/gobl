@@ -46,6 +46,17 @@ interface WithPaginationInterface
 	public function getOffset(): ?int;
 
 	/**
+	 * Sets the raw offset for page-based pagination.
+	 *
+	 * This overrides the computed offset from the page number and max items per page, allowing for custom pagination logic.
+	 *
+	 * @param null|int $offset the raw offset to set, or null to unset it
+	 *
+	 * @return $this
+	 */
+	public function setRawOffset(?int $offset): static;
+
+	/**
 	 * Gets the maximum number of items limit per result.
 	 */
 	public function getMax(): ?int;
