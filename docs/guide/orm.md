@@ -202,9 +202,10 @@ $options = ORMOptions::makeCursorBased(
 $results = $qb->find($options);
 
 $data      = $results->fetchAllClassWithCursorMeta($options);
-$items = $data['items'];   // Account[]
-$nextCursor = $data['next_cursor']; // string|null
-$hasMore    = $data['has_more'];    // bool
+$items        = $data['items'];         // Account[]
+$nextCursor   = $data['next_cursor'];   // string|null — value to pass as $cursor on the next request
+$cursorColumn = $data['cursor_column']; // string|null — full column name used for cursor pagination
+$hasMore      = $data['has_more'];      // bool
 
 // Fetch the next page by passing the cursor back:
 $next = ORMOptions::makeCursorBased('id', $max, $nextCursor, 'ASC');
@@ -214,6 +215,8 @@ $results2 = $qb->find($next);
 When `$hasMore` is `false` and `$nextCursor` is `null` you have reached
 the last page. `$options->isCursorBased()` returns `true` when a cursor-based
 request is in use.
+
+`cursor_column` is the full column name (including table prefix) used for pagination, or `null` when `$max` is not set. It is useful when building generic API layers that need to relay pagination metadata to clients.
 
 Throws `ORMQueryException` when `$direction` is not `'ASC'`/`'DESC'`.
 
