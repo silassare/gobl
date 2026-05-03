@@ -16,10 +16,13 @@ namespace Gobl\Tests\DBAL\Relations;
 use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Relations\Interfaces\RelationControllerInterface;
 use Gobl\ORM\Generators\CSGeneratorORM;
+use Gobl\ORM\Interfaces\PaginationAwareListInterface;
 use Gobl\ORM\ORM;
 use Gobl\ORM\ORMEntityRelationController;
 use Gobl\ORM\ORMOptions;
 use Gobl\Tests\BaseTestCase;
+use ReflectionMethod;
+use ReflectionNamedType;
 use Throwable;
 
 /**
@@ -127,6 +130,30 @@ final class VirtualRelationBatchTest extends BaseTestCase
 		self::assertTrue(
 			\method_exists(RelationControllerInterface::class, 'getBatch'),
 			'RelationControllerInterface must declare getBatch()'
+		);
+	}
+
+	/**
+	 * list() must be declared on RelationControllerInterface and return ?PaginationAwareListInterface.
+	 */
+	public function testListSignatureOnInterface(): void
+	{
+		self::assertTrue(
+			\method_exists(RelationControllerInterface::class, 'list'),
+			'RelationControllerInterface must declare list()'
+		);
+
+		$m          = new ReflectionMethod(RelationControllerInterface::class, 'list');
+		$returnType = $m->getReturnType();
+
+		self::assertNotNull($returnType, 'list() must have a declared return type');
+		self::assertTrue($returnType->allowsNull(), 'list() return type must be nullable');
+
+		$typeName = $returnType instanceof ReflectionNamedType ? $returnType->getName() : (string) $returnType;
+		self::assertSame(
+			PaginationAwareListInterface::class,
+			$typeName,
+			'list() must return ?' . PaginationAwareListInterface::class
 		);
 	}
 
