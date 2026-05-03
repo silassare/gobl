@@ -201,7 +201,7 @@ $options = ORMOptions::makeCursorBased(
 
 $results = $qb->find($options);
 
-$data      = $results->fetchAllClassWithCursorMeta($options);
+$data      = $results->getItemsWithCursorMeta($options);
 $items        = $data['items'];         // Account[]
 $nextCursor   = $data['next_cursor'];   // string|null — value to pass as $cursor on the next request
 $cursorColumn = $data['cursor_column']; // string|null — full column name used for cursor pagination

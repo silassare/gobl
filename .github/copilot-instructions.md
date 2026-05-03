@@ -171,6 +171,8 @@ $t->belongsTo('client')->from('clients')->select('id', 'first_name');
 
 **Access control** — `CRUD::assertReadRelative()` / `assertReadAllRelatives()` wrap `assertRead()` / `assertReadAll()`. `BeforeRead` and `BeforeReadAll` both mix in `HasRelationContext` trait; call `$action->getRelation()` to distinguish direct vs relational reads.
 
+**Virtual relations** — `VirtualRelation` (extends abstract class) + `VirtualRelationInterface`. `getRelativeType()` returns `Table|TypeInterface` — a `Table` means the relative is a full ORM entity from that table; a `TypeInterface` means a custom scalar/structured value. `RelationControllerInterface::list()` returns `?PaginationAwareListInterface<TRelative>` — callers must not assume a plain array. `ORMEntityRelationController::list()` returns `?ORMResults` directly (which implements `PaginationAwareListInterface`). Generated paginated virtual relation getters use `?PaginationAwareListInterface` as the return type.
+
 ## CRUD Events
 
 ```php
@@ -256,32 +258,33 @@ Docs live in `docs/` (VitePress). JSON schema for IDE at `docs/public/schema.jso
 
 ## Key Files
 
-| File                                          | Purpose                                                                    |
-| --------------------------------------------- | -------------------------------------------------------------------------- |
-| `src/Gobl.php`                                | Static entry point, forbidden name lists                                   |
-| `src/bootstrap.php`                           | Constants, default type provider                                           |
-| `src/DBAL/Db.php`                             | RDBMS base, `ns()`, `loadSchema()`, column ref resolution                  |
-| `src/DBAL/Builders/TableBuilder.php`          | Fluent schema builder                                                      |
-| `src/DBAL/Table.php`                          | Table model, soft-delete, morph                                            |
-| `src/DBAL/Column.php`                         | Column model, private/sensitive flags, type binding                        |
-| `src/DBAL/Types/Type.php`                     | Abstract base for all column types                                         |
-| `src/DBAL/Types/Interfaces/TypeInterface.php` | Type contract                                                              |
-| `src/DBAL/Types/Utils/TypeUtils.php`          | Type provider registry, filter cast helpers                                |
-| `src/ORM/ORM.php`                             | Namespace registry, entity/results/query factories                         |
-| `src/ORM/ORMEntity.php`                       | Entity base: magic access, dirty tracking, partial state                   |
-| `src/ORM/ORMResults.php`                      | Result iterator: `fetchClass()`, `groupBy()`, `groupByKey()`, `getTotal()` |
-| `src/ORM/ORMController.php`                   | CRUD ops, relative loading and counting                                    |
-| `src/ORM/ORMTableQuery.php`                   | Query/filter builder, `find()`, `select()`                                 |
-| `src/ORM/ORMEntityRelationController.php`     | Relation controller: `get()`, `list()`, `getBatch()`                       |
-| `src/ORM/ORMEntityCRUD.php`                   | Consumer event subscription base                                           |
-| `src/ORM/Generators/CSGeneratorORM.php`       | PHP ORM class generator                                                    |
-| `src/CRUD/CRUD.php`                           | Per-operation event dispatcher                                             |
-| `src/CRUD/CRUDEventProducer.php`              | `listen()`, `onBefore*`, `onAfter*` subscriptions                          |
-| `src/DBAL/Relations/Relation.php`             | Relation model, projection (`select`), `resolveSelectColumns()`            |
-| `src/DBAL/Filters/FilterFieldNotation.php`    | Path parser: bracket/dot notation                                          |
-| `src/DBAL/MigrationRunner.php`                | Version-based migration runner                                             |
-| `tests/assets/schemas.php`                    | Canonical array schema reference                                           |
-| `tests/BaseTestCase.php`                      | Test scaffolding, fluent builder examples                                  |
+| File                                                  | Purpose                                                                                                                                                          |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/Gobl.php`                                        | Static entry point, forbidden name lists                                                                                                                         |
+| `src/bootstrap.php`                                   | Constants, default type provider                                                                                                                                 |
+| `src/DBAL/Db.php`                                     | RDBMS base, `ns()`, `loadSchema()`, column ref resolution                                                                                                        |
+| `src/DBAL/Builders/TableBuilder.php`                  | Fluent schema builder                                                                                                                                            |
+| `src/DBAL/Table.php`                                  | Table model, soft-delete, morph                                                                                                                                  |
+| `src/DBAL/Column.php`                                 | Column model, private/sensitive flags, type binding                                                                                                              |
+| `src/DBAL/Types/Type.php`                             | Abstract base for all column types                                                                                                                               |
+| `src/DBAL/Types/Interfaces/TypeInterface.php`         | Type contract                                                                                                                                                    |
+| `src/DBAL/Types/Utils/TypeUtils.php`                  | Type provider registry, filter cast helpers                                                                                                                      |
+| `src/ORM/ORM.php`                                     | Namespace registry, entity/results/query factories                                                                                                               |
+| `src/ORM/ORMEntity.php`                               | Entity base: magic access, dirty tracking, partial state                                                                                                         |
+| `src/ORM/ORMResults.php`                              | Result iterator: `fetchClass()`, `groupBy()`, `groupByKey()`, `getTotal()`, `getItems()`, `getItemsWithCursorMeta()` — implements `PaginationAwareListInterface` |
+| `src/ORM/Interfaces/PaginationAwareListInterface.php` | Contract for paginated result lists: `getItems()`, `getItemsWithCursorMeta()`, `getTotal()`, `toArray()`                                                         |
+| `src/ORM/ORMController.php`                           | CRUD ops, relative loading and counting                                                                                                                          |
+| `src/ORM/ORMTableQuery.php`                           | Query/filter builder, `find()`, `select()`                                                                                                                       |
+| `src/ORM/ORMEntityRelationController.php`             | Relation controller: `get()`, `list()` -> `?PaginationAwareListInterface`, `getBatch()`                                                                          |
+| `src/ORM/ORMEntityCRUD.php`                           | Consumer event subscription base                                                                                                                                 |
+| `src/ORM/Generators/CSGeneratorORM.php`               | PHP ORM class generator                                                                                                                                          |
+| `src/CRUD/CRUD.php`                                   | Per-operation event dispatcher                                                                                                                                   |
+| `src/CRUD/CRUDEventProducer.php`                      | `listen()`, `onBefore*`, `onAfter*` subscriptions                                                                                                                |
+| `src/DBAL/Relations/Relation.php`                     | Relation model, projection (`select`), `resolveSelectColumns()`                                                                                                  |
+| `src/DBAL/Filters/FilterFieldNotation.php`            | Path parser: bracket/dot notation                                                                                                                                |
+| `src/DBAL/MigrationRunner.php`                        | Version-based migration runner                                                                                                                                   |
+| `tests/assets/schemas.php`                            | Canonical array schema reference                                                                                                                                 |
+| `tests/BaseTestCase.php`                              | Test scaffolding, fluent builder examples                                                                                                                        |
 
 ## Test Coverage Notes
 
