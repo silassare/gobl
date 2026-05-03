@@ -253,7 +253,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 
 		$detach = EventManager::listen(
 			BeforeDeleteAll::class,
-			static fn () => true,
+			static fn() => true,
 			Event::RUN_DEFAULT,
 			$channel
 		);
@@ -287,7 +287,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 
 		$detach = EventManager::listen(
 			BeforeUpdateAll::class,
-			static fn () => true,
+			static fn() => true,
 			Event::RUN_DEFAULT,
 			$channel
 		);
@@ -409,6 +409,69 @@ abstract class ORMLiveTestCase extends BaseTestCase
 	}
 
 	/**
+	 * fetchAllClassWithCursorMeta() returns the expected shape including cursor_column.
+	 *
+	 * Scenario:
+	 *   - When max is not set (null), cursor_column is null and has_more is false.
+	 *   - When max is set and there are more rows, cursor_column holds the full column name,
+	 *     next_cursor holds the last item's cursor value, and has_more is true.
+	 *   - When max is set and there are no more rows, cursor_column holds the full column name
+	 *     and next_cursor is null.
+	 */
+	public function testFetchAllClassWithCursorMeta(): void
+	{
+		$ctrl  = ORM::ctrl(static::$db->getTableOrFail('clients'));
+		$table = static::$db->getTableOrFail('clients');
+		$last  = 'CursorMeta_' . \uniqid();
+		$count = 3;
+
+		for ($i = 1; $i <= $count; ++$i) {
+			$ctrl->addItem([
+				'client_first_name' => 'CM' . $i,
+				'client_last_name'  => $last,
+				'client_given_name' => 'C' . $i,
+				'client_gender'     => 'unknown',
+			]);
+		}
+
+		$tq = ORM::query($table)->where(['client_last_name' => $last]);
+
+		// ----------------------------------------------------------------
+		// max = null: cursor_column is null, has_more is false
+		// ----------------------------------------------------------------
+		$noMaxOptions = ORMOptions::makePaginated(null);
+		$data         = $tq->find($noMaxOptions)->fetchAllClassWithCursorMeta($noMaxOptions);
+
+		self::assertArrayHasKey('cursor_column', $data, 'cursor_column key must be present when max is null');
+		self::assertNull($data['cursor_column'], 'cursor_column must be null when max is not set');
+		self::assertNull($data['next_cursor'], 'next_cursor must be null when max is not set');
+		self::assertFalse($data['has_more'], 'has_more must be false when max is not set');
+
+		// ----------------------------------------------------------------
+		// max < total: has_more=true, cursor_column is the full column name
+		// ----------------------------------------------------------------
+		$cursorOptions = ORMOptions::makeCursorBased('id', 2, null, 'ASC');
+		$data          = $tq->find($cursorOptions)->fetchAllClassWithCursorMeta($cursorOptions);
+
+		self::assertArrayHasKey('cursor_column', $data, 'cursor_column key must be present');
+		self::assertSame('client_id', $data['cursor_column'], 'cursor_column must be the full column name');
+		self::assertTrue($data['has_more'], 'has_more must be true when more rows exist');
+		self::assertNotNull($data['next_cursor'], 'next_cursor must not be null when has_more is true');
+		self::assertCount(2, $data['items'], 'items must be capped at max');
+
+		// ----------------------------------------------------------------
+		// max >= total: has_more=false, cursor_column is still present
+		// ----------------------------------------------------------------
+		$allOptions = ORMOptions::makeCursorBased('id', 100, null, 'ASC');
+		$data       = $tq->find($allOptions)->fetchAllClassWithCursorMeta($allOptions);
+
+		self::assertArrayHasKey('cursor_column', $data, 'cursor_column key must be present even when no more pages');
+		self::assertSame('client_id', $data['cursor_column'], 'cursor_column must be the full column name');
+		self::assertFalse($data['has_more'], 'has_more must be false when all rows fit in one page');
+		self::assertNull($data['next_cursor'], 'next_cursor must be null when has_more is false');
+	}
+
+	/**
 	 * ORMEntity: entity setters validate values and getters return correct types.
 	 */
 	public function testORMEntityGettersAndSetters(): void
@@ -457,7 +520,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 		// Register a scoped listener and detach it when the test ends.
 		$detach = EventManager::listen(
 			BeforePKColumnWrite::class,
-			static fn () => true,
+			static fn() => true,
 			Event::RUN_DEFAULT,
 			$channel
 		);
@@ -616,7 +679,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 
 		// Resolve to actual full table names (includes namespace prefix, e.g. "gObL_clients").
 		$tables = \array_map(
-			static fn (string $name) => $db->getTableOrFail($name)->getFullName(),
+			static fn(string $name) => $db->getTableOrFail($name)->getFullName(),
 			$logical
 		);
 
