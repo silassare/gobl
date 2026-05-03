@@ -105,11 +105,11 @@ interface WithPaginationInterface
 	/**
 	 * Sets the cursor column name when using cursor-based pagination.
 	 *
-	 * @param null|string $cursor_col the cursor column name to set, or null to unset it
+	 * @param null|string $cursor_column the cursor column name to set, or null to unset it
 	 *
 	 * @return $this
 	 */
-	public function setCursorColumn(?string $cursor_col): static;
+	public function setCursorColumn(?string $cursor_column): static;
 
 	/**
 	 * Gets the cursor direction when using cursor-based pagination.

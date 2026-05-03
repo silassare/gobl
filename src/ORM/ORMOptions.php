@@ -26,18 +26,18 @@ use Override;
  */
 class ORMOptions implements ORMOptionsInterface
 {
-	public const COLLECTION_PARAM            = 'collection';
-	public const FILTERS_PARAM               = 'filters';
-	public const FORM_DATA_PARAM             = 'form_data';
-	public const MAX_PARAM                   = 'max';
-	public const ORDER_BY_PARAM              = 'order_by';
-	public const ORDER_BY_DELIMITER          = '|';
-	public const ORDER_BY_DELIMITER_ASC_DESC = ':';
-	public const CURSOR_PARAM                = 'cursor';
-	public const CURSOR_COL_PARAM            = 'cursor_col';
-	public const CURSOR_DIR_PARAM      		    = 'cursor_dir';
-	public const EXPECTED_COLUMNS_PARAM      = '_columns';
-	public const DELETE_PARAM                = '_delete';
+	public const COLLECTION_PARAM               = 'collection';
+	public const FILTERS_PARAM                  = 'filters';
+	public const FORM_DATA_PARAM                = 'form_data';
+	public const MAX_PARAM                      = 'max';
+	public const ORDER_BY_PARAM                 = 'order_by';
+	public const ORDER_BY_DELIMITER             = '|';
+	public const ORDER_BY_DELIMITER_ASC_DESC    = ':';
+	public const CURSOR_PARAM                   = 'cursor';
+	public const CURSOR_COLUMN_PARAM            = 'cursor_column';
+	public const CURSOR_DIR_PARAM      		       = 'cursor_dir';
+	public const EXPECTED_COLUMNS_PARAM         = '_columns';
+	public const DELETE_PARAM                   = '_delete';
 
 	public const PAGE_PARAM          = 'page';
 	public const RELATIONS_PARAM     = 'relations';
@@ -48,7 +48,7 @@ class ORMOptions implements ORMOptionsInterface
 		self::FORM_DATA_PARAM,
 		self::RELATIONS_PARAM,
 		self::CURSOR_PARAM,
-		self::CURSOR_COL_PARAM,
+		self::CURSOR_COLUMN_PARAM,
 		self::CURSOR_DIR_PARAM,
 		self::COLLECTION_PARAM,
 		self::FILTERS_PARAM,
@@ -107,7 +107,7 @@ class ORMOptions implements ORMOptionsInterface
 
 	private int|string|null $cursor = null;
 
-	private ?string $cursor_col = null;
+	private ?string $cursor_column = null;
 
 	/**
 	 * Cursor direction: 'ASC' or 'DESC'.
@@ -279,8 +279,8 @@ class ORMOptions implements ORMOptionsInterface
 				$r[self::CURSOR_PARAM] = $this->cursor;
 			}
 
-			if (isset($this->cursor_col)) {
-				$r[self::CURSOR_COL_PARAM] = $this->cursor_col;
+			if (isset($this->cursor_column)) {
+				$r[self::CURSOR_COLUMN_PARAM] = $this->cursor_column;
 			}
 
 			if (isset($this->cursor_dir)) {
@@ -299,7 +299,7 @@ class ORMOptions implements ORMOptionsInterface
 	#[Override]
 	public function isCursorBased(): bool
 	{
-		return isset($this->cursor) || isset($this->cursor_col) || isset($this->cursor_dir);
+		return isset($this->cursor) || isset($this->cursor_column) || isset($this->cursor_dir);
 	}
 
 	/**
@@ -503,16 +503,16 @@ class ORMOptions implements ORMOptionsInterface
 	#[Override]
 	public function getCursorColumn(): ?string
 	{
-		return $this->cursor_col;
+		return $this->cursor_column;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	#[Override]
-	public function setCursorColumn(?string $cursor_col): static
+	public function setCursorColumn(?string $cursor_column): static
 	{
-		$this->cursor_col = $cursor_col;
+		$this->cursor_column = $cursor_column;
 
 		return $this;
 	}
@@ -763,14 +763,14 @@ class ORMOptions implements ORMOptionsInterface
 			$has_cursor_info = true;
 		}
 
-		if (isset($options[self::CURSOR_COL_PARAM])) {
-			$cc = $options[self::CURSOR_COL_PARAM];
+		if (isset($options[self::CURSOR_COLUMN_PARAM])) {
+			$cc = $options[self::CURSOR_COLUMN_PARAM];
 			if (!\is_string($cc)) {
-				throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_CURSOR_COL', $options);
+				throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_CURSOR_COLUMN', $options);
 			}
 
-			$this->cursor_col = $cc;
-			$has_cursor_info  = true;
+			$this->cursor_column = $cc;
+			$has_cursor_info     = true;
 		}
 
 		if (isset($options[self::CURSOR_DIR_PARAM])) {
@@ -1017,8 +1017,8 @@ class ORMOptions implements ORMOptionsInterface
 	 */
 	private function clearCursorPagination(): void
 	{
-		$this->cursor     = null;
-		$this->cursor_col = null;
-		$this->cursor_dir = null;
+		$this->cursor        = null;
+		$this->cursor_column = null;
+		$this->cursor_dir    = null;
 	}
 }
