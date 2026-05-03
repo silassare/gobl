@@ -31,7 +31,7 @@ use PDOStatement;
  *
  * @template TEntity of ORMEntity
  *
- * @implements  Iterator<int,TEntity>
+ * @implements Iterator<int,TEntity>
  */
 abstract class ORMResults implements Countable, Iterator
 {
@@ -219,7 +219,7 @@ abstract class ORMResults implements Countable, Iterator
 	 * @param WithPaginationInterface $options pagination options
 	 * @param bool                    $strict  enable/disable strict mode on class fetch
 	 *
-	 * @return array{items: TEntity[], next_cursor: null|int|string, has_more: bool}
+	 * @return array{items: TEntity[], next_cursor: null|int|string, cursor_column: null|string, has_more: bool}
 	 */
 	public function fetchAllClassWithCursorMeta(WithPaginationInterface $options, bool $strict = true): array
 	{
@@ -227,9 +227,10 @@ abstract class ORMResults implements Countable, Iterator
 
 		if (null === $expected_max || $expected_max <= 0) {
 			return [
-				'items'       => $this->fetchAllClass($strict),
-				'next_cursor' => null,
-				'has_more'    => false,
+				'items'         => $this->fetchAllClass($strict),
+				'next_cursor'   => null,
+				'cursor_column' => null,
+				'has_more'      => false,
 			];
 		}
 
@@ -246,9 +247,10 @@ abstract class ORMResults implements Countable, Iterator
 		}
 
 		return [
-			'items'       => $items,
-			'next_cursor' => $next_cursor,
-			'has_more'    => $has_more,
+			'items'         => $items,
+			'next_cursor'   => $next_cursor,
+			'cursor_column' => $cursor_column->getFullName(),
+			'has_more'      => $has_more,
 		];
 	}
 
