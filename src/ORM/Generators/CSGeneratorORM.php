@@ -27,6 +27,7 @@ use Gobl\Exceptions\GoblException;
 use Gobl\Gobl;
 use Gobl\ORM\Events\ORMTableFilesGenerated;
 use Gobl\ORM\Interfaces\ORMOptionsInterface;
+use Gobl\ORM\Interfaces\PaginationAwareListInterface;
 use Gobl\ORM\ORM;
 use Gobl\ORM\ORMController;
 use Gobl\ORM\ORMEntity;
@@ -710,8 +711,14 @@ Time: {$date}";
 	{
 		$host           = $relation->getHostTable();
 		$relative_type  = $relation->getRelativeType();
+
+		if ($relative_type instanceof Table) {
+			$relative_read_type_hint = ORMClassKind::ENTITY->getClassFQN($relative_type);
+		} else {
+			$relative_read_type_hint = $this->getReadTypeHintString($relative_type);
+		}
+
 		$relation_name  = $relation->getName();
-		$read_type_hint = $this->getReadTypeHintString($relative_type);
 		$m              = $class->newMethod('get' . Str::toClassName($relation_name))
 			->public();
 		$comment = \sprintf(
@@ -721,17 +728,18 @@ Time: {$date}";
 		);
 		$paginated  = $relation->isPaginated();
 		$rel_inject = [
-			'read_type_hint'            => $read_type_hint,
-			'relation_name'             => $relation->getName(),
-			'orm_options_interface_fqn' => '\\' . ORMOptionsInterface::class,
-			'orm_options_class_fqn'     => '\\' . ORMOptions::class,
+			'relative_read_type_hint'            => $relative_read_type_hint,
+			'relation_name'                      => $relation->getName(),
+			'orm_options_interface_fqn'          => '\\' . ORMOptionsInterface::class,
+			'orm_options_class_fqn'              => '\\' . ORMOptions::class,
+			'pagination_aware_list_fqn'          => '\\' . PaginationAwareListInterface::class,
 		];
 
 		$m->newArgument('options')
 			->setType(new PHPType('null', '\\' . ORMOptionsInterface::class))
 			->setValue(null);
 
-		$m->setReturnType($paginated ? 'array' : $read_type_hint);
+		$m->setReturnType($paginated ? new PHPType('null', '\\' . PaginationAwareListInterface::class) : $relative_read_type_hint);
 
 		if ($paginated) {
 			$comment .= Str::interpolate(
@@ -739,7 +747,7 @@ Time: {$date}";
 					. \PHP_EOL
 					. ' @param null|{orm_options_interface_fqn} $options the options object' . \PHP_EOL
 					. \PHP_EOL
-					. '@return array<{read_type_hint}>',
+					. '@return ?{pagination_aware_list_fqn}<{relative_read_type_hint}>',
 				$rel_inject
 			);
 
@@ -758,10 +766,10 @@ Time: {$date}";
 					. \PHP_EOL
 					. '@param null|{orm_options_interface_fqn} $options the options object' . \PHP_EOL
 					. \PHP_EOL
-					. '@return {read_type_hint}',
+					. '@return {relative_read_type_hint}',
 				$rel_inject
 			);
-			$m->setReturnType($read_type_hint);
+			$m->setReturnType($relative_read_type_hint);
 			$m->addChild(
 				Str::interpolate(
 					\PHP_EOL

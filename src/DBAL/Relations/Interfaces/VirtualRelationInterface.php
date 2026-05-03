@@ -13,13 +13,15 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Relations\Interfaces;
 
+use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
+use Gobl\ORM\ORMEntity;
 use JsonSerializable;
 
 /**
  * Class VirtualRelationInterface.
  *
- * @template TRelative of null|string|int|float|bool|array|JsonSerializable
+ * @template TRelative of null|string|int|float|bool|array|JsonSerializable|ORMEntity
  * @template TRelativeCreatePayload of array
  * @template TRelativeIdentityPayload of array
  *
@@ -35,7 +37,7 @@ interface VirtualRelationInterface extends RelationInterface
 	 * This is useful for ORM generated getters/setters.
 	 * And for generated API documentation.
 	 *
-	 * @return TypeInterface
+	 * @return Table|TypeInterface
 	 */
-	public function getRelativeType(): TypeInterface;
+	public function getRelativeType(): Table|TypeInterface;
 }

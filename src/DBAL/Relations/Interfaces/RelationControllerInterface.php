@@ -15,6 +15,7 @@ namespace Gobl\DBAL\Relations\Interfaces;
 
 use Gobl\DBAL\Table;
 use Gobl\ORM\Interfaces\ORMOptionsInterface;
+use Gobl\ORM\Interfaces\PaginationAwareListInterface;
 use Gobl\ORM\ORMEntity;
 use JsonSerializable;
 
@@ -24,7 +25,7 @@ use JsonSerializable;
  * The TRelative must be serializable to json.
  * The TRelativeIdentityPayload should contains base information to identify the relative
  *
- * @template TRelative of null|string|int|float|bool|array|JsonSerializable
+ * @template TRelative of null|string|int|float|bool|array|JsonSerializable|ORMEntity
  * @template TRelativeCreatePayload of array
  * @template TRelativeIdentityPayload of array
  */
@@ -56,9 +57,9 @@ interface RelationControllerInterface
 	 * @param ORMEntity           $host_entity the host entity
 	 * @param ORMOptionsInterface $options     the options with filters, pagination, etc. to apply to each host entity's relatives
 	 *
-	 * @return TRelative[]
+	 * @return ?PaginationAwareListInterface<TRelative>
 	 */
-	public function list(ORMEntity $host_entity, ORMOptionsInterface $options): array;
+	public function list(ORMEntity $host_entity, ORMOptionsInterface $options): ?PaginationAwareListInterface;
 
 	/**
 	 * Create a relative for a given item.

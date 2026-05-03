@@ -68,11 +68,9 @@ class ORMEntityRelationController implements RelationControllerInterface
 	 * @throws GoblException
 	 */
 	#[Override]
-	public function list(ORMEntity $host_entity, ORMOptionsInterface $options): array
+	public function list(ORMEntity $host_entity, ORMOptionsInterface $options): ?ORMResults
 	{
-		$results = $this->controller->getAllRelatives($host_entity, $this->relation, $options);
-
-		return $results?->fetchAllClass() ?? [];
+		return $this->controller->getAllRelatives($host_entity, $this->relation, $options);
 	}
 
 	/**

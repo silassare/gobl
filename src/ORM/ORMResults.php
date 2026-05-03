@@ -18,6 +18,7 @@ use Generator;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Table;
+use Gobl\ORM\Interfaces\PaginationAwareListInterface;
 use Gobl\ORM\Interfaces\WithPaginationInterface;
 use Gobl\ORM\Utils\Helpers;
 use Gobl\ORM\Utils\ORMClassKind;
@@ -25,16 +26,20 @@ use Iterator;
 use Override;
 use PDO;
 use PDOStatement;
+use PHPUtils\Traits\ArrayCapableTrait;
 
 /**
  * Class ORMResults.
  *
  * @template TEntity of ORMEntity
  *
- * @implements Iterator<int,TEntity>
+ * @implements PaginationAwareListInterface<TEntity>
+ * @implements Iterator<int, TEntity>
  */
-abstract class ORMResults implements Countable, Iterator
+abstract class ORMResults implements PaginationAwareListInterface, Countable, Iterator
 {
+	use ArrayCapableTrait;
+
 	/** @var RDBMSInterface */
 	protected RDBMSInterface $db;
 
@@ -211,6 +216,15 @@ abstract class ORMResults implements Countable, Iterator
 	}
 
 	/**
+	 * {@inheritDoc}
+	 */
+	#[Override]
+	public function getItems(bool $strict = true): iterable
+	{
+		return $this->lazy($strict);
+	}
+
+	/**
 	 * Fetches all rows and returns an array of the entity class instances along with cursor metadata.
 	 *
 	 * The extra row used to detect `has_more` is fetched automatically by `applyPaginationLogic`.
@@ -221,7 +235,8 @@ abstract class ORMResults implements Countable, Iterator
 	 *
 	 * @return array{items: TEntity[], next_cursor: null|int|string, cursor_column: null|string, has_more: bool}
 	 */
-	public function fetchAllClassWithCursorMeta(WithPaginationInterface $options, bool $strict = true): array
+	#[Override]
+	public function getItemsWithCursorMeta(WithPaginationInterface $options, bool $strict = true): array
 	{
 		$expected_max  = $options->getMax();
 
@@ -252,6 +267,51 @@ abstract class ORMResults implements Countable, Iterator
 			'cursor_column' => $cursor_column->getFullName(),
 			'has_more'      => $has_more,
 		];
+	}
+
+	/**
+	 * Lazily computes the total row count by running a `SELECT COUNT(*)` query if necessary.
+	 *
+	 * In cursor based pagination:
+	 *  - we add +1 to the max limit to detect has_more without an extra COUNT query.
+	 *  - the total returned should mean total number of items available for the current cursor, not total number of items in the whole result set.
+	 * In non-cursor based pagination:
+	 *  - when we are on the last page, we can calculate total without an extra COUNT query if we have some rows in the current page and the number of rows found is less than the max limit (or when max limit is not set, which also means we are on the last page).
+	 *  - in other cases, we need to run the COUNT query to get the total number of items in the whole result set.
+	 *
+	 * @param null|WithPaginationInterface $options the pagination options; when null, a default non-cursor-based context is used
+	 * @param bool                         $force   whether to force a refresh of the total count
+	 *
+	 * @return int
+	 */
+	#[Override]
+	public function getTotal(?WithPaginationInterface $options = null, bool $force = false): int
+	{
+		if (null === $this->total_count_cache || $force) {
+			$computed = null;
+
+			if (!$options?->isCursorBased()) {
+				$max    = $this->query->getOptionsLimitMax();
+				$offset = $this->query->getOptionsLimitOffset() ?? 0;
+				$found  = $this->limited_count_cache;
+
+				// we have some rows in the current page
+				// in paginated queries we can calculate the total count without an extra query when we are on a page that is not full (i.e. the last page)
+				// 1) max is set and we found less than max rows => we are on the last page, so total is offset + found
+				// 2) max is not set => we are on the last page, so total is offset + found
+				if (null !== $found) {
+					if (null !== $max && $found < $max) {
+						$computed = $offset + $found;
+					} elseif (null === $max) {
+						$computed = $offset + $found;
+					}
+				}
+			}
+
+			$this->total_count_cache = $computed ?? $this->query->runTotalRowsCount(false);
+		}
+
+		return $this->total_count_cache;
 	}
 
 	/**
@@ -379,50 +439,6 @@ abstract class ORMResults implements Countable, Iterator
 	}
 
 	/**
-	 * Lazily computes the total row count by running a `SELECT COUNT(*)` query if necessary.
-	 *
-	 * In cursor based pagination:
-	 *  - we add +1 to the max limit to detect has_more without an extra COUNT query.
-	 *  - the total returned should mean total number of items available for the current cursor, not total number of items in the whole result set.
-	 * In non-cursor based pagination:
-	 *  - when we are on the last page, we can calculate total without an extra COUNT query if we have some rows in the current page and the number of rows found is less than the max limit (or when max limit is not set, which also means we are on the last page).
-	 *  - in other cases, we need to run the COUNT query to get the total number of items in the whole result set.
-	 *
-	 * @param null|WithPaginationInterface $options the pagination options; when null, a default non-cursor-based context is used
-	 * @param bool                         $force   whether to force a refresh of the total count
-	 *
-	 * @return int
-	 */
-	public function getTotal(?WithPaginationInterface $options = null, bool $force = false): int
-	{
-		if (null === $this->total_count_cache || $force) {
-			$computed = null;
-
-			if (!$options?->isCursorBased()) {
-				$max    = $this->query->getOptionsLimitMax();
-				$offset = $this->query->getOptionsLimitOffset() ?? 0;
-				$found  = $this->limited_count_cache;
-
-				// we have some rows in the current page
-				// in paginated queries we can calculate the total count without an extra query when we are on a page that is not full (i.e. the last page)
-				// 1) max is set and we found less than max rows => we are on the last page, so total is offset + found
-				// 2) max is not set => we are on the last page, so total is offset + found
-				if (null !== $found) {
-					if (null !== $max && $found < $max) {
-						$computed = $offset + $found;
-					} elseif (null === $max) {
-						$computed = $offset + $found;
-					}
-				}
-			}
-
-			$this->total_count_cache = $computed ?? $this->query->runTotalRowsCount(false);
-		}
-
-		return $this->total_count_cache;
-	}
-
-	/**
 	 * Returns a generator that yields entities keyed by their identity key ({@see ORMEntity::toIdentityKey()}).
 	 *
 	 * @param bool $strict enable/disable strict mode on class fetch
@@ -449,6 +465,15 @@ abstract class ORMResults implements Countable, Iterator
 		foreach ($this->lazy($strict) as $entity) {
 			yield $key_factory($entity) => $entity; // yield the key and the entity
 		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	#[Override]
+	public function toArray(): array
+	{
+		return \iterator_to_array($this->lazy());
 	}
 
 	/**

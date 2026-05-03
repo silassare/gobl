@@ -681,7 +681,7 @@ abstract class ORMTableQuery extends FiltersTableScope
 
 			$qb->orderBy([$col_fqn => $direction]);
 
-			// Fetch max + 1 rows so fetchAllClassWithCursorMeta() can detect has_more without an extra COUNT query.
+			// Fetch max + 1 rows so ORMResults::getItemsWithCursorMeta() can detect has_more without an extra COUNT query.
 			if (null !== $max) {
 				$qb->limit($max + 1, 0);
 			}

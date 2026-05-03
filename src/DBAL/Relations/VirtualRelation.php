@@ -18,6 +18,7 @@ use Gobl\DBAL\Relations\Interfaces\VirtualRelationInterface;
 use Gobl\DBAL\Table;
 use Gobl\Gobl;
 use Gobl\ORM\ORM;
+use Gobl\ORM\ORMEntity;
 use InvalidArgumentException;
 use JsonSerializable;
 use Override;
@@ -25,7 +26,7 @@ use Override;
 /**
  * Class VirtualRelation.
  *
- * @template TRelative of null|string|int|float|bool|array|JsonSerializable
+ * @template TRelative of null|string|int|float|bool|array|JsonSerializable|ORMEntity
  * @template TRelativeCreatePayload of array
  * @template TRelativeIdentityPayload of array
  *
