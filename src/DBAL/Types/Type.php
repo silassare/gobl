@@ -65,6 +65,11 @@ abstract class Type implements TypeInterface
 	private ?TypeValidatorInterface $_type_post_validator = null;
 
 	/**
+	 * Whether a default value is taken as valid when a type is locked: {@see trustingDefaults()}.
+	 */
+	private static bool $trust_defaults = false;
+
+	/**
 	 * Type constructor.
 	 */
 	protected function __construct(BaseTypeInterface $base_type)
@@ -86,6 +91,33 @@ abstract class Type implements TypeInterface
 		$this->base_type     = TypeUtils::buildTypeOrFail($this->base_type->toArray());
 		$this->meta          = $this->meta ? clone $this->meta : null;
 		$this->lock_instance = $this->createLock();
+	}
+
+	/**
+	 * Runs a callable with the default values of the types it locks taken as valid.
+	 *
+	 * What a database does while it locks a table of its lazy schema, whose definitions it takes as
+	 * valid (a migration recorded them): each default would otherwise be validated again every time
+	 * the table is built, which is every request of a process serving one.
+	 *
+	 * @internal
+	 *
+	 * @template T
+	 *
+	 * @param callable():T $fn
+	 *
+	 * @return T
+	 */
+	public static function trustingDefaults(callable $fn): mixed
+	{
+		$trusted              = self::$trust_defaults;
+		self::$trust_defaults = true;
+
+		try {
+			return $fn();
+		} finally {
+			self::$trust_defaults = $trusted;
+		}
 	}
 
 	#[Override]
@@ -295,7 +327,7 @@ abstract class Type implements TypeInterface
 			return $this;
 		}
 
-		if ($this->hasDefault()) {
+		if (!self::$trust_defaults && $this->hasDefault()) {
 			try {
 				$this->validate($this->getDefault());
 			} catch (Throwable $e) {

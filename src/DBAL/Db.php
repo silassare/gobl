@@ -35,6 +35,7 @@ use Gobl\DBAL\Relations\OneToOne;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Relations\RelationType;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
+use Gobl\DBAL\Types\Type;
 use Gobl\DBAL\Types\Utils\TypeUtils;
 use Gobl\Gobl;
 use InvalidArgumentException;
@@ -961,7 +962,9 @@ abstract class Db implements RDBMSInterface
 			unset($this->lazy_partial[$name]);
 
 			if ($this->isLocked()) {
-				$table->lock();
+				// A lazy schema is one taken as valid: its column defaults are not validated again
+				// every time a process builds the table.
+				Type::trustingDefaults(static fn () => $table->lock());
 			}
 		} else {
 			$table->setLazyBuilder($this->lazyBuilder($name));

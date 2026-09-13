@@ -41,6 +41,14 @@ class TypeUtils
 	private static array $type_providers = [];
 
 	/**
+	 * The type classes found to have an allowed base type, with it: checked once per class rather
+	 * than for every column built.
+	 *
+	 * @var array<string, true>
+	 */
+	private static array $checked_base_types = [];
+
+	/**
 	 * Adds type provider.
 	 */
 	public static function addTypeProvider(TypeProviderInterface $provider): void
@@ -120,29 +128,35 @@ class TypeUtils
 			$found
 			&& $found_in
 		) {
-			$base_types = self::getBaseTypes();
-			$type_ok    = false;
-			$found_bt   = $found->getBaseType();
+			$found_bt = $found->getBaseType();
+			$checked  = \get_class($found) . '>' . \get_class($found_bt);
 
-			foreach ($base_types as $bt) {
-				if (!($found_bt instanceof $bt || \is_subclass_of($found_bt, $bt))) {
-					continue;
+			if (!isset(self::$checked_base_types[$checked])) {
+				$base_types = self::getBaseTypes();
+				$type_ok    = false;
+
+				foreach ($base_types as $bt) {
+					if (!($found_bt instanceof $bt || \is_subclass_of($found_bt, $bt))) {
+						continue;
+					}
+
+					$type_ok = true;
+
+					break;
 				}
 
-				$type_ok = true;
+				if (!$type_ok) {
+					throw new TypesException(\sprintf(
+						'Custom column type "%s" provided by "%s" for type "%s" returned "%s" as base type while expecting one of allowed base type: %s',
+						\get_class($found),
+						\get_class($found_in),
+						$name,
+						\get_class($found_bt),
+						\implode('|', $base_types)
+					));
+				}
 
-				break;
-			}
-
-			if (!$type_ok) {
-				throw new TypesException(\sprintf(
-					'Custom column type "%s" provided by "%s" for type "%s" returned "%s" as base type while expecting one of allowed base type: %s',
-					\get_class($found),
-					\get_class($found_in),
-					$name,
-					\get_class($found_bt),
-					\implode('|', $base_types)
-				));
+				self::$checked_base_types[$checked] = true;
 			}
 		}
 
