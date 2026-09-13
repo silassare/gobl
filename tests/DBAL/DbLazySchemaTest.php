@@ -246,6 +246,42 @@ final class DbLazySchemaTest extends BaseTestCase
 		self::assertTrue($accounts->isLocked());
 	}
 
+	public function testDefaultsAreTakenAsValidOnceLocked(): void
+	{
+		// "not an array" is no valid default for a list: an eager load rejects it when locking
+		$schema = ['items' => ['columns' => [
+			'id'   => ['type' => 'int'],
+			'tags' => ['type' => 'json', 'json_of' => 'list', 'default' => 'not an array'],
+		]]];
+
+		$lazy = self::getNewDbInstance()->setLazySchema();
+		$lazy->ns('Lazy\Db')
+			->schema($schema);
+		$lazy->lock();
+
+		self::assertTrue($lazy->getTableOrFail('items')->isLocked());
+
+		// only while the lazy table locks
+		$type = $lazy->getTableOrFail('items')
+			->getColumnOrFail('tags')
+			->getType();
+
+		try {
+			(clone $type)->lock();
+			self::fail('A type locked on its own should still validate its default.');
+		} catch (DBALRuntimeException $e) {
+			self::assertSame('Default value for type "json" failed validation.', $e->getMessage());
+		}
+
+		$eager = self::getNewDbInstance();
+		$eager->ns('Lazy\Db')
+			->schema($schema);
+
+		$this->expectException(DBALRuntimeException::class);
+
+		$eager->lock();
+	}
+
 	public function testTablesCannotBeDeclaredOnceLocked(): void
 	{
 		$db = self::getNewDbInstance()->setLazySchema();
