@@ -559,6 +559,30 @@ abstract class Db implements RDBMSInterface
 		return $table;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * A name and a full name are taken together when a table is declared: a table of a lazy schema
+	 * knows its full name before it is built.
+	 */
+	#[Override]
+	public function getTableFullName(string $name): ?string
+	{
+		$name = $this->tableNameOf($name);
+
+		if (null === $name) {
+			return null;
+		}
+
+		if (null !== $this->tables[$name]) {
+			return $this->tables[$name]->getFullName();
+		}
+
+		$full_name = \array_search($name, $this->tbl_full_name_map, true);
+
+		return false === $full_name ? null : (string) $full_name;
+	}
+
 	#[Override]
 	public function assertHasTable(string $name): void
 	{

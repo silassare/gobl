@@ -169,6 +169,15 @@ interface RDBMSInterface extends LockableInterface
 	public function getTableOrFail(string $name): Table;
 
 	/**
+	 * Gets the full name of the table with a given name, without building a table of a lazy schema.
+	 *
+	 * @param string $name the table name or table full name
+	 *
+	 * @return null|string null when no such table is defined
+	 */
+	public function getTableFullName(string $name): ?string;
+
+	/**
 	 * Gets table with a given morph type.
 	 *
 	 * @param string $morph_type the table morph type

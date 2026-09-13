@@ -36,6 +36,7 @@ use Gobl\CRUD\Events\BeforeUpdateAll;
 use Gobl\CRUD\Events\BeforeUpdateAllFlush;
 use Gobl\CRUD\Events\BeforeUpdateFlush;
 use Gobl\CRUD\Interfaces\CRUDEventListenerInterface;
+use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\ORM\ORM;
 use PHPUtils\Events\Event;
 use PHPUtils\Events\EventManager;
@@ -58,8 +59,10 @@ class CRUDEventProducer
 	 */
 	public function __construct(string $namespace, string $table_name)
 	{
-		$this->event_channel = ORM::table($namespace, $table_name)
-			->getFullName();
+		// The full name alone, which a table of a lazy schema knows before it is built: creating a
+		// producer to listen to a table must not build it.
+		$this->event_channel = ORM::getDatabase($namespace)->getTableFullName($table_name)
+			?? throw new DBALRuntimeException(\sprintf('The table "%s" is not defined.', $table_name));
 	}
 
 	/**
