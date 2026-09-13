@@ -26,6 +26,7 @@ use PHPUtils\Interfaces\ArrayCapableInterface;
 use PHPUtils\Interfaces\MetaCapableInterface;
 use PHPUtils\Lock\Interfaces\LockableInterface;
 use PHPUtils\Lock\Traits\PermanentlyLockableTrait;
+use PHPUtils\Store\Map;
 use PHPUtils\Str;
 use PHPUtils\Traits\ArrayCapableTrait;
 use PHPUtils\Traits\MetaCapableTrait;
@@ -688,8 +689,23 @@ final class Column implements ArrayCapableInterface, MetaCapableInterface, DiffC
 		return $this->prefix . '_' . $this->name;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * Through {@see MetaMerger}: no dot path parsed for keys that need none.
+	 */
+	#[Override]
+	public function mergeMeta(array|Map $meta): static
+	{
+		$this->assertNotLocked();
+
+		$this->getMeta()->lazyMerge($meta);
+
+		return $this;
+	}
+
 	private function syncWithType(): void
 	{
-		$this->getMeta()->merge($this->type->getMeta());
+		$this->getMeta()->lazyMerge($this->type->getMeta());
 	}
 }

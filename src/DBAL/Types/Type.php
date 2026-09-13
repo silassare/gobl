@@ -134,6 +134,21 @@ abstract class Type implements TypeInterface
 		return $this;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * Through {@see MetaMerger}: no dot path parsed for keys that need none.
+	 */
+	#[Override]
+	public function mergeMeta(array|Map $meta): static
+	{
+		$this->assertNotLocked();
+
+		$this->getMeta()->lazyMerge($meta);
+
+		return $this;
+	}
+
 	#[Override]
 	public function dbQueryDefault(RDBMSInterface $rdbms): ?string
 	{

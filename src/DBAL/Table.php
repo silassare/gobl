@@ -36,6 +36,7 @@ use PHPUtils\Interfaces\ArrayCapableInterface;
 use PHPUtils\Interfaces\MetaCapableInterface;
 use PHPUtils\Lock\Interfaces\LockableInterface;
 use PHPUtils\Lock\Traits\PermanentlyLockableTrait;
+use PHPUtils\Store\Map;
 use PHPUtils\Traits\ArrayCapableTrait;
 use PHPUtils\Traits\MetaCapableTrait;
 use Throwable;
@@ -442,17 +443,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	}
 
 	/**
-	 * Finishes building this table, when a lazy schema declared it, before its constraints, indexes
-	 * or relations are read or added to: true for everything, false for the constraints and indexes.
-	 */
-	private function lazyBuild(bool $with_relations): void
-	{
-		if (null !== $this->lazy_builder) {
-			($this->lazy_builder)($with_relations);
-		}
-	}
-
-	/**
 	 * Locks this table to prevent further changes.
 	 *
 	 * Locking cascades to all registered columns, the PK constraint,
@@ -828,6 +818,21 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 		}
 
 		return $this->prefix . '_' . $this->name;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * Through {@see MetaMerger}: no dot path parsed for keys that need none.
+	 */
+	#[Override]
+	public function mergeMeta(array|Map $meta): static
+	{
+		$this->assertNotLocked();
+
+		$this->getMeta()->lazyMerge($meta);
+
+		return $this;
 	}
 
 	/**
@@ -2004,6 +2009,17 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	public function hasSinglePKColumn(): bool
 	{
 		return 1 === \count($this->getPrimaryKeyConstraint()->getColumns());
+	}
+
+	/**
+	 * Finishes building this table, when a lazy schema declared it, before its constraints, indexes
+	 * or relations are read or added to: true for everything, false for the constraints and indexes.
+	 */
+	private function lazyBuild(bool $with_relations): void
+	{
+		if (null !== $this->lazy_builder) {
+			($this->lazy_builder)($with_relations);
+		}
 	}
 
 	/**
