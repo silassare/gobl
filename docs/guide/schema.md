@@ -223,7 +223,9 @@ boot costs none of them.
 The tables come out as an eager load builds them, in the same order. What changes is
 when an invalid definition is reported: when its table is first used, instead of by
 `loadSchema()`. Use it for a schema known to be valid -- one a migration recorded --
-and keep eager loading while writing one.
+and keep eager loading while writing one: a table built once the database is locked
+takes its column defaults as valid, rather than validating them again every time a
+process builds it.
 
 ## Multiple namespaces
 
