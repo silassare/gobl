@@ -52,6 +52,15 @@ abstract class ORMTableQuery extends FiltersTableScope
 {
 	public const BATCH_HOST_IDENTITY_KEY = 'batch_host_identity_key';
 
+	/**
+	 * The filter methods {@see __call()} serves, written by the generator: method name => [column name,
+	 * operator value]. Empty in a class generated before it, whose methods are then found by building
+	 * the name of every filter of the table.
+	 *
+	 * @var array<string, array{0: string, 1: string}>
+	 */
+	protected const FILTER_METHODS = [];
+
 	/** @var RDBMSInterface */
 	protected RDBMSInterface $db;
 
@@ -104,10 +113,12 @@ abstract class ORMTableQuery extends FiltersTableScope
 	/**
 	 * Magic method to handle dynamically generated per-column filter methods.
 	 *
-	 * On the first call for a given table, builds a whitelist of allowed filter methods by
-	 * iterating all table columns and their `Type::getAllowedFilterOperators()`. Each entry
-	 * maps a camelCase method name (e.g. `whereNameEq`, `whereAgeGt`) to a `[column, Operator]`
-	 * pair. The whitelist is cached in a static variable indexed by table name.
+	 * A generated query class lists its filter methods ({@see FILTER_METHODS}): one lookup. For a
+	 * name it does not list (a class generated before the list, a column added since), the first call
+	 * for a given table builds a whitelist of allowed filter methods by iterating all table columns and
+	 * their `Type::getAllowedFilterOperators()`. Each entry maps a camelCase method name (e.g.
+	 * `whereNameEq`, `whereAgeGt`) to a `[column, Operator]` pair, cached in a static variable indexed
+	 * by table name -- for the life of the process, which is one request under PHP-FPM.
 	 *
 	 * Throws `BadMethodCallException` for any method name not in the whitelist.
 	 *
@@ -118,6 +129,16 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 */
 	public function __call(string $name, array $arguments)
 	{
+		if (isset(static::FILTER_METHODS[$name])) {
+			[$column_name, $operator] = static::FILTER_METHODS[$name];
+
+			$column = $this->table->getColumnOrFail($column_name);
+
+			$column->getType()->queryBuilderApplyFilter($this, $column, Operator::from($operator), $arguments);
+
+			return $this;
+		}
+
 		/** @var array<string, array<string, array{0:Column, 1:Operator}>> $filters_methods */
 		static $filters_methods = [];
 

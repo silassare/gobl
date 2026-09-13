@@ -911,6 +911,9 @@ Time: {$date}";
 				)
 			);
 
+		/** @var array<string, array{0: string, 1: string}> $filter_methods */
+		$filter_methods = [];
+
 		foreach ($table->getColumns() as $column) {
 			$type = $column->getType();
 			foreach ($type->getAllowedFilterOperators() as $operator) {
@@ -940,6 +943,8 @@ Time: {$date}";
 				if (!empty($php_method->getChildren())) {
 					$class->addMethod($php_method);
 				} else {
+					$filter_methods[$method_name] = [$column->getName(), $operator->value];
+
 					$enhanced_args = $php_method->getArguments();
 					// Get plain comment text (without docblock delimiters) for the @method tag.
 					$comment =   $php_method->getComment()?->getContent() ?? '';
@@ -972,6 +977,14 @@ Time: {$date}";
 					}
 				}
 			}
+		}
+
+		// What __call() serves the @method filters from: one lookup, instead of building the name of every
+		// filter of the table in each process -- each request under PHP-FPM.
+		if (!empty($filter_methods)) {
+			$class->newConstant('FILTER_METHODS', $filter_methods)
+				->protected()
+				->setComment('The filter methods __call() serves: method name => [column name, operator value] (for speed).');
 		}
 
 		$class->setComment(\implode(\PHP_EOL, $class_comment_lines));
