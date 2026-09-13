@@ -193,6 +193,33 @@ $db->ns('app')
    ->enableORM(__DIR__ . '/generated');
 ```
 
+## Lazy loading
+
+A process serving one request rarely uses every table. With `setLazySchema()`,
+`loadSchema()` only declares the tables it is given as arrays -- their names, full
+names and morph types are taken at once -- and builds each one when it is first used:
+
+```php
+$db->setLazySchema()
+   ->ns('app')
+   ->schema(require 'config/schema.php');
+
+$db->lock();                     // cheap: only the tables built so far are locked
+$users = $db->getTable('users'); // built now, and locked since the database is
+```
+
+A table is built when it is asked for (`getTable()`, `getTableOrFail()`,
+`getTableByMorphType()`), listed (`getTables()` builds them all), or read through a
+relation or foreign key pointing to it: a table another one refers to is built as far
+as that needs (its columns), and finishes building when its constraints or relations
+are read. A column reference (`ref:users.id`) reads the referenced definition without
+building the table.
+
+The tables come out as an eager load builds them, in the same order. What changes is
+when an invalid definition is reported: when its table is first used, instead of by
+`loadSchema()`. Use it for a schema known to be valid -- one a migration recorded --
+and keep eager loading while writing one.
+
 ## Multiple namespaces
 
 Large applications can split their schema across namespaces:
