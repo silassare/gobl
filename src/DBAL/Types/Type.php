@@ -137,7 +137,7 @@ abstract class Type implements TypeInterface
 	/**
 	 * {@inheritDoc}
 	 *
-	 * Through {@see MetaMerger}: no dot path parsed for keys that need none.
+	 * Through {@see Map::lazyMerge()}: no dot path parsed for keys that need none.
 	 */
 	#[Override]
 	public function mergeMeta(array|Map $meta): static
