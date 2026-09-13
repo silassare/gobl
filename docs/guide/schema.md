@@ -215,6 +215,11 @@ as that needs (its columns), and finishes building when its constraints or relat
 are read. A column reference (`ref:users.id`) reads the referenced definition without
 building the table.
 
+A table's full name is known without building it (`getTableFullName()`), and that is
+all a CRUD event producer needs: `UsersCrud::new()->onBeforeCreate(...)` listens to the
+`users` events without building the table, so registering listeners for every table at
+boot costs none of them.
+
 The tables come out as an eager load builds them, in the same order. What changes is
 when an invalid definition is reported: when its table is first used, instead of by
 `loadSchema()`. Use it for a schema known to be valid -- one a migration recorded --
