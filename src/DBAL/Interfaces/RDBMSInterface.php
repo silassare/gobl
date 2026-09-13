@@ -76,6 +76,28 @@ interface RDBMSInterface extends LockableInterface
 	public function loadSchema(array $schema, ?string $desired_namespace = null): static;
 
 	/**
+	 * Makes the next {@see loadSchema()} calls declare the tables they define as arrays instead of
+	 * building them: each table is built when first used -- asked for by name, full name or morph
+	 * type, listed by {@see getTables()}, or read through a foreign key or relation that points to
+	 * it -- so a process pays for the tables it uses, not for the whole schema.
+	 *
+	 * An invalid definition is then reported when its table is first used rather than by
+	 * {@see loadSchema()}: meant for a schema known to be valid, such as one a migration recorded.
+	 *
+	 * @param bool $lazy
+	 *
+	 * @return $this
+	 */
+	public function setLazySchema(bool $lazy = true): static;
+
+	/**
+	 * Whether {@see loadSchema()} declares the tables it is given as arrays instead of building them.
+	 *
+	 * @return bool
+	 */
+	public function isLazySchema(): bool;
+
+	/**
 	 * Exports the registered tables as a plain array compatible with {@see loadSchema()}.
 	 *
 	 * @param null|string $namespace when provided, only exports tables in that namespace

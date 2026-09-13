@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL;
 
+use Closure;
 use Gobl\DBAL\Collections\Collection;
 use Gobl\DBAL\Constraints\Constraint;
 use Gobl\DBAL\Constraints\ForeignKey;
@@ -221,6 +222,14 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	private array $collections = [];
 
 	/**
+	 * Finishes building this table when a lazy schema declared it ({@see Db::setLazySchema()}):
+	 * called with true when the relations are needed, false when the constraints and indexes are.
+	 *
+	 * @var null|Closure(bool):void
+	 */
+	private ?Closure $lazy_builder = null;
+
+	/**
 	 * Table constructor.
 	 *
 	 * Plural and singular class name are used to generate
@@ -416,6 +425,34 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	}
 
 	/**
+	 * Sets what finishes building this table, when a lazy schema declared it
+	 * ({@see RDBMSInterface::setLazySchema()}).
+	 *
+	 * @param null|Closure(bool):void $builder
+	 *
+	 * @return $this
+	 *
+	 * @internal called by {@see Db} only
+	 */
+	public function setLazyBuilder(?Closure $builder): static
+	{
+		$this->lazy_builder = $builder;
+
+		return $this;
+	}
+
+	/**
+	 * Finishes building this table, when a lazy schema declared it, before its constraints, indexes
+	 * or relations are read or added to: true for everything, false for the constraints and indexes.
+	 */
+	private function lazyBuild(bool $with_relations): void
+	{
+		if (null !== $this->lazy_builder) {
+			($this->lazy_builder)($with_relations);
+		}
+	}
+
+	/**
 	 * Locks this table to prevent further changes.
 	 *
 	 * Locking cascades to all registered columns, the PK constraint,
@@ -425,6 +462,9 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	#[Override]
 	public function lock(): static
 	{
+		// first: finishing a lazily declared table of a locked database locks it
+		$this->lazyBuild(true);
+
 		if (!$this->isLocked()) {
 			$this->assertIsValid();
 
@@ -879,6 +919,7 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 */
 	public function addRelation(Relation $relation): static
 	{
+		$this->lazyBuild(true);
 		$this->assertNotLocked();
 		$this->assertCanAddRelation($relation);
 
@@ -908,6 +949,8 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 */
 	public function hasRelation(string $name): bool
 	{
+		$this->lazyBuild(true);
+
 		return isset($this->relations[$name]);
 	}
 
@@ -1011,6 +1054,7 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 */
 	public function addUniqueKeyConstraint(array $columns): UniqueKey
 	{
+		$this->lazyBuild(true);
 		$this->assertNotLocked();
 
 		if (empty($columns)) {
@@ -1066,6 +1110,7 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 */
 	public function addIndex(array $columns, ?IndexType $index_type = null): Index
 	{
+		$this->lazyBuild(true);
 		$this->assertNotLocked();
 
 		if (empty($columns)) {
@@ -1211,6 +1256,7 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 */
 	public function addPrimaryKeyConstraint(array $columns): PrimaryKey
 	{
+		$this->lazyBuild(true);
 		$this->assertNotLocked();
 
 		if (!$this->pk_constraint && empty($columns)) {
@@ -1257,6 +1303,7 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 		?ForeignKeyAction $update_action = null,
 		?ForeignKeyAction $delete_action = null
 	): ForeignKey {
+		$this->lazyBuild(true);
 		$this->assertNotLocked();
 
 		if (empty($columns)) {
@@ -1362,6 +1409,8 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 */
 	public function getRelations(bool $include_private = true): array
 	{
+		$this->lazyBuild(true);
+
 		if (!$include_private) {
 			return \array_filter($this->relations, static fn ($relation) => !$relation->isPrivate());
 		}
@@ -1434,6 +1483,8 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 */
 	public function getUniqueKeyConstraints(): array
 	{
+		$this->lazyBuild(false);
+
 		return $this->uc_constraints;
 	}
 
@@ -1444,6 +1495,8 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 */
 	public function getPrimaryKeyConstraint(): ?PrimaryKey
 	{
+		$this->lazyBuild(false);
+
 		return $this->pk_constraint;
 	}
 
@@ -1454,6 +1507,8 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 */
 	public function getForeignKeyConstraints(): array
 	{
+		$this->lazyBuild(false);
+
 		return $this->fk_constraints;
 	}
 
@@ -1464,6 +1519,8 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 */
 	public function getIndexes(): array
 	{
+		$this->lazyBuild(false);
+
 		return $this->indexes;
 	}
 
@@ -1478,6 +1535,8 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 */
 	public function hasForeignColumns(self $reference, array $columns): bool
 	{
+		$this->lazyBuild(false);
+
 		$x = \count($columns);
 
 		if ($x) {
@@ -1519,6 +1578,8 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 */
 	public function getDefaultForeignKeyConstraintFrom(self $reference): ForeignKey
 	{
+		$this->lazyBuild(false);
+
 		$fk_name = $this->defaultForeignKeyName($reference);
 
 		if (isset($this->fk_constraints[$fk_name])) {
@@ -1543,6 +1604,8 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 */
 	public function hasDefaultForeignKeyConstraint(self $reference): bool
 	{
+		$this->lazyBuild(false);
+
 		return isset($this->fk_constraints[$this->defaultForeignKeyName($reference)]);
 	}
 
@@ -1553,6 +1616,8 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 */
 	public function hasUniqueKeyConstraint(): bool
 	{
+		$this->lazyBuild(false);
+
 		return !empty($this->uc_constraints);
 	}
 
@@ -1565,6 +1630,8 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 */
 	public function isPrimaryKey(array $columns_full_names): bool
 	{
+		$this->lazyBuild(false);
+
 		$x = \count($columns_full_names);
 
 		if ($x && $this->pk_constraint) {
@@ -1584,6 +1651,8 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 */
 	public function hasPrimaryKeyConstraint(): bool
 	{
+		$this->lazyBuild(false);
+
 		return null !== $this->pk_constraint;
 	}
 
@@ -1596,6 +1665,8 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 */
 	public function isPartOfPrimaryKey(Column $column): bool
 	{
+		$this->lazyBuild(false);
+
 		if ($this->pk_constraint) {
 			$pk_columns = $this->pk_constraint->getColumns();
 
@@ -1614,6 +1685,8 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 */
 	public function isForeignKey(array $columns): bool
 	{
+		$this->lazyBuild(false);
+
 		$x = \count($columns);
 
 		if ($x) {
@@ -1640,6 +1713,8 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 */
 	public function isUniqueKey(array $columns): bool
 	{
+		$this->lazyBuild(false);
+
 		$x = \count($columns);
 
 		if ($x) {
@@ -1769,6 +1844,8 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	#[Override]
 	public function toArray(): array
 	{
+		$this->lazyBuild(true);
+
 		$options = [
 			'diff_key'      => $this->getDiffKey(),
 			'singular_name' => $this->singular_name,
