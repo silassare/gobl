@@ -327,7 +327,7 @@ final class JsonPathTest extends BaseTestCase
 		$this->expectExceptionMessageMatches('/requires native_json/');
 
 		$db = self::getNewDbInstance();
-		$db->ns('GoblPathErr1')->table('t_err', static function (TableBuilder $t) {
+		$db->ns('GoblPathErr1')->table('t_err', static function (TableBuilder $t): void {
 			$t->columnPrefix('te');
 			$t->id();
 			$t->map('data')->nativeJson(false); // explicitly non-native JSON
@@ -347,7 +347,7 @@ final class JsonPathTest extends BaseTestCase
 		$this->expectExceptionMessageMatches('/only allowed on JSON columns/');
 
 		$db = self::getNewDbInstance();
-		$db->ns('GoblPathErr2')->table('t_err', static function (TableBuilder $t) {
+		$db->ns('GoblPathErr2')->table('t_err', static function (TableBuilder $t): void {
 			$t->columnPrefix('te');
 			$t->id();
 			$t->string('name');
@@ -373,7 +373,7 @@ final class JsonPathTest extends BaseTestCase
 	public static function makeFiltersOnNativeJsonTable(): array
 	{
 		$db = self::getNewDbInstance();
-		$db->ns('GoblFiltersTest')->table('t_data', static function (TableBuilder $t) {
+		$db->ns('GoblFiltersTest')->table('t_data', static function (TableBuilder $t): void {
 			$t->columnPrefix('td');
 			$t->id();
 			$t->map('data');
@@ -405,7 +405,7 @@ final class JsonPathTest extends BaseTestCase
 		++$counter;
 		$ns = 'GoblAddJsonPathCol' . $counter;
 		$db = self::getNewDbInstance();
-		$db->ns($ns)->table('t_data', static function (TableBuilder $t) {
+		$db->ns($ns)->table('t_data', static function (TableBuilder $t): void {
 			$t->columnPrefix('td');
 			$t->id();
 			$t->map('data');

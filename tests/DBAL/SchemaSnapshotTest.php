@@ -51,7 +51,7 @@ final class SchemaSnapshotTest extends BaseTestCase
 	 */
 	public function testIntAndBigintVariants(string $driver): void
 	{
-		$db = $this->singleTableDb($driver, static function (TableBuilder $t) {
+		$db = $this->singleTableDb($driver, static function (TableBuilder $t): void {
 			$t->columnPrefix('t');
 			$t->id();                                      // bigint unsigned auto_increment PK
 			$t->int('plain_int');
@@ -75,7 +75,7 @@ final class SchemaSnapshotTest extends BaseTestCase
 	 */
 	public function testStringVariants(string $driver): void
 	{
-		$db = $this->singleTableDb($driver, static function (TableBuilder $t) {
+		$db = $this->singleTableDb($driver, static function (TableBuilder $t): void {
 			$t->columnPrefix('t');
 			$t->id();
 			$t->string('name')->min(1)->max(60);
@@ -96,7 +96,7 @@ final class SchemaSnapshotTest extends BaseTestCase
 	 */
 	public function testStringTextVariants(): void
 	{
-		$db = $this->singleTableDb(MySQL::NAME, static function (TableBuilder $t) {
+		$db = $this->singleTableDb(MySQL::NAME, static function (TableBuilder $t): void {
 			$t->columnPrefix('t');
 			$t->id();
 			$t->string('body');                           // TEXT
@@ -119,7 +119,7 @@ final class SchemaSnapshotTest extends BaseTestCase
 	 */
 	public function testBoolFloatDecimalVariants(string $driver): void
 	{
-		$db = $this->singleTableDb($driver, static function (TableBuilder $t) {
+		$db = $this->singleTableDb($driver, static function (TableBuilder $t): void {
 			$t->columnPrefix('t');
 			$t->id();
 			$t->bool('active')->default(true);
@@ -148,7 +148,7 @@ final class SchemaSnapshotTest extends BaseTestCase
 	 */
 	public function testDateVariants(string $driver): void
 	{
-		$db = $this->singleTableDb($driver, static function (TableBuilder $t) {
+		$db = $this->singleTableDb($driver, static function (TableBuilder $t): void {
 			$t->columnPrefix('t');
 			$t->id();
 			$t->timestamp('created_at')->auto();          // auto bigint
@@ -173,7 +173,7 @@ final class SchemaSnapshotTest extends BaseTestCase
 	 */
 	public function testMapAndListColumns(string $driver): void
 	{
-		$db = $this->singleTableDb($driver, static function (TableBuilder $t) {
+		$db = $this->singleTableDb($driver, static function (TableBuilder $t): void {
 			$t->columnPrefix('t');
 			$t->id();
 			$t->map('data')->default([]);
@@ -201,7 +201,7 @@ final class SchemaSnapshotTest extends BaseTestCase
 		$db = self::getNewDbInstance($driver);
 		$ns = $db->ns('test');
 
-		$ns->table('authors', static function (TableBuilder $t) {
+		$ns->table('authors', static function (TableBuilder $t): void {
 			$t->columnPrefix('author');
 			$t->id();
 			$t->string('email')->max(255);
@@ -209,7 +209,7 @@ final class SchemaSnapshotTest extends BaseTestCase
 			$t->unique('email');
 		});
 
-		$ns->table('posts', static function (TableBuilder $t) {
+		$ns->table('posts', static function (TableBuilder $t): void {
 			$t->columnPrefix('post');
 			$t->id();
 			$t->foreign('author_id', 'authors', 'id');

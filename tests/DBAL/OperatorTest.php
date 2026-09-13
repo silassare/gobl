@@ -34,7 +34,7 @@ final class OperatorTest extends BaseTestCase
 			$expected[$op->name] = [
 				'unary' => match ($op) {
 					Operator::IS_TRUE, Operator::IS_FALSE, Operator::IS_NULL, Operator::IS_NOT_NULL => true,
-					default => false,
+					default                                                                         => false,
 				},
 			];
 			$found[$op->name] = [

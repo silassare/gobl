@@ -67,7 +67,7 @@ final class ORMEntityToArrayTest extends BaseTestCase
 			$ns = $db->ns(self::TOARRAY_NS);
 
 			// Table with a private column and a sensitive column.
-			$ns->table('credentials', static function (TableBuilder $t) {
+			$ns->table('credentials', static function (TableBuilder $t): void {
 				$t->columnPrefix('cred');
 				$t->id();
 				$t->string('username');

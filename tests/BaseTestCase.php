@@ -151,13 +151,13 @@ abstract class BaseTestCase extends TestCase
 		$db = self::getNewDbInstance($type);
 		$ns = $db->ns('test');
 
-		$users = $ns->table('users', static function (TableBuilder $t) {
+		$users = $ns->table('users', static function (TableBuilder $t): void {
 			$t->id();
 			$t->string('name');
 			$t->softDeletable();
 		});
 
-		$roles = $ns->table('roles', static function (TableBuilder $t) {
+		$roles = $ns->table('roles', static function (TableBuilder $t): void {
 			$t->id();
 			$t->string('title');
 			$t->foreign('user_id', 'users', 'id');
@@ -166,12 +166,12 @@ abstract class BaseTestCase extends TestCase
 				->from('users');
 		});
 
-		$ns->table('tags', static function (TableBuilder $t) {
+		$ns->table('tags', static function (TableBuilder $t): void {
 			$t->id();
 			$t->string('label');
 		});
 
-		$ns->table('taggables', static function (TableBuilder $t) {
+		$ns->table('taggables', static function (TableBuilder $t): void {
 			$t->id();
 			$t->foreign('tag_id', 'tags', 'id');
 			$t->timestamps();
@@ -181,7 +181,7 @@ abstract class BaseTestCase extends TestCase
 				->from('tags');
 		});
 
-		$ns->table('articles', static function (TableBuilder $t) {
+		$ns->table('articles', static function (TableBuilder $t): void {
 			$t->id();
 			$t->string('title');
 			$t->foreign('user_id', 'users', 'id');
@@ -205,12 +205,12 @@ abstract class BaseTestCase extends TestCase
 				]);
 		});
 
-		$roles->factory(static function (TableBuilder $t) {
+		$roles->factory(static function (TableBuilder $t): void {
 			$t->hasMany('users')
 				->from('users');
 		});
 
-		$users->factory(static function (TableBuilder $t) {
+		$users->factory(static function (TableBuilder $t): void {
 			$t->hasMany('roles')
 				->from('roles');
 		});

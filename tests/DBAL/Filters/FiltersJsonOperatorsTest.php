@@ -365,7 +365,7 @@ final class FiltersJsonOperatorsTest extends BaseTestCase
 		$ns = 'GoblEnhanceTest' . $counter;
 
 		$db = self::getNewDbInstance();
-		$db->ns($ns)->table('t_enh', static function (TableBuilder $t) {
+		$db->ns($ns)->table('t_enh', static function (TableBuilder $t): void {
 			$t->columnPrefix('te');
 			$t->id();
 			$t->map('data');

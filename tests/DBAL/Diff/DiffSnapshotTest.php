@@ -49,8 +49,8 @@ final class DiffSnapshotTest extends BaseTestCase
 	 */
 	public function testIdenticalDbs(string $driver): void
 	{
-		$db = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('users', static function (TableBuilder $t) {
+		$db = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('users', static function (TableBuilder $t): void {
 				$t->id();
 				$t->string('name');
 			});
@@ -66,12 +66,12 @@ final class DiffSnapshotTest extends BaseTestCase
 	 */
 	public function testTableAdded(string $driver): void
 	{
-		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
 			// no tables
 		});
 
-		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('products', static function (TableBuilder $t) {
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('products', static function (TableBuilder $t): void {
 				$t->id();
 				$t->string('name')->min(1)->max(120);
 				$t->decimal('price')->unsigned();
@@ -88,14 +88,14 @@ final class DiffSnapshotTest extends BaseTestCase
 	 */
 	public function testTableDeleted(string $driver): void
 	{
-		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('temporary', static function (TableBuilder $t) {
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('temporary', static function (TableBuilder $t): void {
 				$t->id();
 				$t->string('label');
 			});
 		});
 
-		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
 			// table removed
 		});
 
@@ -109,15 +109,15 @@ final class DiffSnapshotTest extends BaseTestCase
 	 */
 	public function testColumnAdded(string $driver): void
 	{
-		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('posts', static function (TableBuilder $t) {
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('posts', static function (TableBuilder $t): void {
 				$t->id();
 				$t->string('title');
 			});
 		});
 
-		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('posts', static function (TableBuilder $t) {
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('posts', static function (TableBuilder $t): void {
 				$t->id();
 				$t->string('title');
 				$t->string('body')->nullable();   // new column
@@ -134,16 +134,16 @@ final class DiffSnapshotTest extends BaseTestCase
 	 */
 	public function testColumnDeleted(string $driver): void
 	{
-		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('posts', static function (TableBuilder $t) {
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('posts', static function (TableBuilder $t): void {
 				$t->id();
 				$t->string('title');
 				$t->string('subtitle')->nullable();
 			});
 		});
 
-		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('posts', static function (TableBuilder $t) {
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('posts', static function (TableBuilder $t): void {
 				$t->id();
 				$t->string('title');
 				// subtitle removed
@@ -160,8 +160,8 @@ final class DiffSnapshotTest extends BaseTestCase
 	 */
 	public function testColumnTypeChanged(string $driver): void
 	{
-		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('items', static function (TableBuilder $t) {
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('items', static function (TableBuilder $t): void {
 				$t->columnPrefix('item');
 				$t->id();
 				$t->int('counter')->unsigned();   // int
@@ -169,8 +169,8 @@ final class DiffSnapshotTest extends BaseTestCase
 			});
 		});
 
-		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('items', static function (TableBuilder $t) {
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('items', static function (TableBuilder $t): void {
 				$t->columnPrefix('item');
 				$t->id();
 				$t->bigint('counter')->unsigned();   // int => bigint
@@ -192,16 +192,16 @@ final class DiffSnapshotTest extends BaseTestCase
 	 */
 	public function testColumnTypeChangedStringToNativeJson(string $driver): void
 	{
-		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('docs', static function (TableBuilder $t) {
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('docs', static function (TableBuilder $t): void {
 				$t->columnPrefix('doc');
 				$t->id();
 				$t->string('payload')->max(65535);   // text-like string
 			});
 		});
 
-		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('docs', static function (TableBuilder $t) {
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('docs', static function (TableBuilder $t): void {
 				$t->columnPrefix('doc');
 				$t->id();
 				$t->json('payload');   // string => native JSON (JSONB on PostgreSQL, default)
@@ -222,16 +222,16 @@ final class DiffSnapshotTest extends BaseTestCase
 	 */
 	public function testColumnTypeChangedNonNativeJsonToNativeJson(string $driver): void
 	{
-		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('docs', static function (TableBuilder $t) {
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('docs', static function (TableBuilder $t): void {
 				$t->columnPrefix('doc');
 				$t->id();
 				$t->json('payload')->nativeJson(false);   // explicitly TEXT-stored JSON (native_json=false)
 			});
 		});
 
-		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('docs', static function (TableBuilder $t) {
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('docs', static function (TableBuilder $t): void {
 				$t->columnPrefix('doc');
 				$t->id();
 				$t->json('payload');   // TEXT-JSON => native JSON (JSONB on PostgreSQL)
@@ -248,15 +248,15 @@ final class DiffSnapshotTest extends BaseTestCase
 	 */
 	public function testColumnDefaultAdded(string $driver): void
 	{
-		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('items', static function (TableBuilder $t) {
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('items', static function (TableBuilder $t): void {
 				$t->id();
 				$t->string('status')->min(1)->max(20);
 			});
 		});
 
-		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('items', static function (TableBuilder $t) {
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('items', static function (TableBuilder $t): void {
 				$t->id();
 				$t->string('status')->min(1)->max(20)->default('active');
 			});
@@ -272,15 +272,15 @@ final class DiffSnapshotTest extends BaseTestCase
 	 */
 	public function testColumnNullableChanged(string $driver): void
 	{
-		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('profiles', static function (TableBuilder $t) {
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('profiles', static function (TableBuilder $t): void {
 				$t->id();
 				$t->string('bio')->max(500);
 			});
 		});
 
-		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('profiles', static function (TableBuilder $t) {
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('profiles', static function (TableBuilder $t): void {
 				$t->id();
 				$t->string('bio')->max(500)->nullable();
 			});
@@ -296,14 +296,14 @@ final class DiffSnapshotTest extends BaseTestCase
 	 */
 	public function testForeignKeyAdded(string $driver): void
 	{
-		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('categories', static function (TableBuilder $t) {
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('categories', static function (TableBuilder $t): void {
 				$t->columnPrefix('category');
 				$t->id();
 				$t->string('name');
 			});
 
-			$ns->table('products', static function (TableBuilder $t) {
+			$ns->table('products', static function (TableBuilder $t): void {
 				$t->columnPrefix('product');
 				$t->id();
 				$t->string('name');
@@ -311,14 +311,14 @@ final class DiffSnapshotTest extends BaseTestCase
 			});
 		});
 
-		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('categories', static function (TableBuilder $t) {
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('categories', static function (TableBuilder $t): void {
 				$t->columnPrefix('category');
 				$t->id();
 				$t->string('name');
 			});
 
-			$ns->table('products', static function (TableBuilder $t) {
+			$ns->table('products', static function (TableBuilder $t): void {
 				$t->columnPrefix('product');
 				$t->id();
 				$t->string('name');
@@ -336,14 +336,14 @@ final class DiffSnapshotTest extends BaseTestCase
 	 */
 	public function testForeignKeyDeleted(string $driver): void
 	{
-		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('categories', static function (TableBuilder $t) {
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('categories', static function (TableBuilder $t): void {
 				$t->columnPrefix('category');
 				$t->id();
 				$t->string('name');
 			});
 
-			$ns->table('products', static function (TableBuilder $t) {
+			$ns->table('products', static function (TableBuilder $t): void {
 				$t->columnPrefix('product');
 				$t->id();
 				$t->string('name');
@@ -351,14 +351,14 @@ final class DiffSnapshotTest extends BaseTestCase
 			});
 		});
 
-		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('categories', static function (TableBuilder $t) {
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('categories', static function (TableBuilder $t): void {
 				$t->columnPrefix('category');
 				$t->id();
 				$t->string('name');
 			});
 
-			$ns->table('products', static function (TableBuilder $t) {
+			$ns->table('products', static function (TableBuilder $t): void {
 				$t->columnPrefix('product');
 				$t->id();
 				$t->string('name');
@@ -376,16 +376,16 @@ final class DiffSnapshotTest extends BaseTestCase
 	 */
 	public function testUniqueKeyAdded(string $driver): void
 	{
-		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('users', static function (TableBuilder $t) {
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('users', static function (TableBuilder $t): void {
 				$t->columnPrefix('user');
 				$t->id();
 				$t->string('email')->min(5)->max(200);
 			});
 		});
 
-		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('users', static function (TableBuilder $t) {
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('users', static function (TableBuilder $t): void {
 				$t->columnPrefix('user');
 				$t->id();
 				$t->string('email')->min(5)->max(200);
@@ -403,16 +403,16 @@ final class DiffSnapshotTest extends BaseTestCase
 	 */
 	public function testIndexAdded(string $driver): void
 	{
-		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('users', static function (TableBuilder $t) {
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('users', static function (TableBuilder $t): void {
 				$t->columnPrefix('user');
 				$t->id();
 				$t->string('email')->min(5)->max(200);
 			});
 		});
 
-		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('users', static function (TableBuilder $t) {
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('users', static function (TableBuilder $t): void {
 				$t->columnPrefix('user');
 				$t->id();
 				$t->string('email')->min(5)->max(200);
@@ -430,8 +430,8 @@ final class DiffSnapshotTest extends BaseTestCase
 	 */
 	public function testIndexDeleted(string $driver): void
 	{
-		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('users', static function (TableBuilder $t) {
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('users', static function (TableBuilder $t): void {
 				$t->columnPrefix('user');
 				$t->id();
 				$t->string('email')->min(5)->max(200);
@@ -439,8 +439,8 @@ final class DiffSnapshotTest extends BaseTestCase
 			});
 		});
 
-		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('users', static function (TableBuilder $t) {
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('users', static function (TableBuilder $t): void {
 				$t->columnPrefix('user');
 				$t->id();
 				$t->string('email')->min(5)->max(200);
@@ -458,8 +458,8 @@ final class DiffSnapshotTest extends BaseTestCase
 	 */
 	public function testIndexWithType(string $driver): void
 	{
-		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('articles', static function (TableBuilder $t) {
+		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('articles', static function (TableBuilder $t): void {
 				$t->columnPrefix('article');
 				$t->id();
 				$t->string('title')->min(1)->max(255);
@@ -467,8 +467,8 @@ final class DiffSnapshotTest extends BaseTestCase
 			});
 		});
 
-		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) use ($driver) {
-			$ns->table('articles', static function (TableBuilder $t) use ($driver) {
+		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns) use ($driver): void {
+			$ns->table('articles', static function (TableBuilder $t) use ($driver): void {
 				$t->columnPrefix('article');
 				$t->id();
 				$t->string('title')->min(1)->max(255);

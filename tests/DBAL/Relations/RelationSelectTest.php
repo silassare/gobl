@@ -119,13 +119,13 @@ final class RelationSelectTest extends BaseTestCase
 		$db = self::getNewDbInstance();
 		$ns = $db->ns('test');
 
-		$ns->table('items', static function (TableBuilder $t) {
+		$ns->table('items', static function (TableBuilder $t): void {
 			$t->id();
 			$t->string('name');
 			$t->string('secret');
 		});
 
-		$ns->table('orders', static function (TableBuilder $t) {
+		$ns->table('orders', static function (TableBuilder $t): void {
 			$t->id();
 			$t->foreign('item_id', 'items', 'id');
 			$t->belongsTo('item')
@@ -147,12 +147,12 @@ final class RelationSelectTest extends BaseTestCase
 		$db = self::getNewDbInstance();
 		$ns = $db->ns('test');
 
-		$ns->table('books', static function (TableBuilder $t) {
+		$ns->table('books', static function (TableBuilder $t): void {
 			$t->id();
 			$t->string('title');
 		});
 
-		$ns->table('chapters', static function (TableBuilder $t) {
+		$ns->table('chapters', static function (TableBuilder $t): void {
 			$t->id();
 			$t->foreign('book_id', 'books', 'id');
 			// Build the relation and obtain the Relation object after set
@@ -238,12 +238,12 @@ final class RelationSelectTest extends BaseTestCase
 		$db = self::getNewDbInstance();
 		$ns = $db->ns('test');
 
-		$ns->table('cats', static function (TableBuilder $t) {
+		$ns->table('cats', static function (TableBuilder $t): void {
 			$t->id();
 			$t->string('breed');
 		});
 
-		$ns->table('owners', static function (TableBuilder $t) {
+		$ns->table('owners', static function (TableBuilder $t): void {
 			$t->id();
 			$t->foreign('cat_id', 'cats', 'id');
 			$t->belongsTo('cat')->from('cats');
@@ -274,14 +274,14 @@ final class RelationSelectTest extends BaseTestCase
 		$db = self::getNewDbInstance();
 		$ns = $db->ns('test');
 
-		$ns->table('secrets', static function (TableBuilder $t) {
+		$ns->table('secrets', static function (TableBuilder $t): void {
 			$t->id();
 			$t->string('label');
 			$t->string('token');
 			$t->useColumn('token')->setPrivate();
 		});
 
-		$ns->table('secret_refs', static function (TableBuilder $t) {
+		$ns->table('secret_refs', static function (TableBuilder $t): void {
 			$t->id();
 			$t->foreign('secret_id', 'secrets', 'id');
 			$t->belongsTo('secret')->from('secrets');
@@ -305,14 +305,14 @@ final class RelationSelectTest extends BaseTestCase
 		$db = self::getNewDbInstance();
 		$ns = $db->ns('test');
 
-		$ns->table('products_v2', static function (TableBuilder $t) {
+		$ns->table('products_v2', static function (TableBuilder $t): void {
 			$t->id();
 			$t->string('name');
 			$t->string('internal_code');
 			$t->useColumn('internal_code')->setPrivate();
 		});
 
-		$ns->table('orders_v2', static function (TableBuilder $t) {
+		$ns->table('orders_v2', static function (TableBuilder $t): void {
 			$t->id();
 			$t->foreign('product_id', 'products_v2', 'id');
 			$t->belongsTo('product')->from('products_v2');
@@ -348,13 +348,13 @@ final class RelationSelectTest extends BaseTestCase
 		$db = self::getNewDbInstance();
 		$ns = $db->ns('test');
 
-		$ns->table('members', static function (TableBuilder $t) {
+		$ns->table('members', static function (TableBuilder $t): void {
 			$t->columnPrefix('mbr');
 			$t->id();
 			$t->string('name');
 		});
 
-		$ns->table('memberships', static function (TableBuilder $t) {
+		$ns->table('memberships', static function (TableBuilder $t): void {
 			$t->id();
 			$t->foreign('member_id', 'members', 'id');
 			$t->belongsTo('member')->from('members');
@@ -379,13 +379,13 @@ final class RelationSelectTest extends BaseTestCase
 		$db = self::getNewDbInstance();
 		$ns = $db->ns('test');
 
-		$ns->table('nodes', static function (TableBuilder $t) {
+		$ns->table('nodes', static function (TableBuilder $t): void {
 			$t->id();
 			$t->string('label');
 			$t->string('secret');
 		});
 
-		$ns->table('edges', static function (TableBuilder $t) {
+		$ns->table('edges', static function (TableBuilder $t): void {
 			$t->id();
 			$t->foreign('node_id', 'nodes', 'id');
 			$t->belongsTo('node')->from('nodes');
@@ -421,12 +421,12 @@ final class RelationSelectTest extends BaseTestCase
 		$db = self::getNewDbInstance();
 		$ns = $db->ns('test');
 
-		$ns->table('items_v2', static function (TableBuilder $t) {
+		$ns->table('items_v2', static function (TableBuilder $t): void {
 			$t->id();
 			$t->string('title');
 		});
 
-		$ns->table('carts', static function (TableBuilder $t) {
+		$ns->table('carts', static function (TableBuilder $t): void {
 			$t->id();
 			$t->foreign('item_id', 'items_v2', 'id');
 			$t->belongsTo('item')->from('items_v2');

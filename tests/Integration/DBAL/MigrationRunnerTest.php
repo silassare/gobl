@@ -416,10 +416,10 @@ final class MigrationRunnerTest extends BaseTestCase
 	 */
 	public function testDiffBuildMigrationReturnsMigrationInterface(string $driver): void
 	{
-		$db_from = $this->runWithTestDb($driver, static function (NamespaceBuilder $ns) {});
+		$db_from = $this->runWithTestDb($driver, static function (NamespaceBuilder $ns): void {});
 
-		$db_to = $this->runWithTestDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('products', static function (TableBuilder $t) {
+		$db_to = $this->runWithTestDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('products', static function (TableBuilder $t): void {
 				$t->id();
 				$t->string('name')->min(1)->max(120);
 			});
@@ -441,10 +441,10 @@ final class MigrationRunnerTest extends BaseTestCase
 	 */
 	public function testDiffMakeMigrationInstanceIsRunnable(string $driver): void
 	{
-		$db_from = $this->runWithTestDb($driver, static function (NamespaceBuilder $ns) {});
+		$db_from = $this->runWithTestDb($driver, static function (NamespaceBuilder $ns): void {});
 
-		$db_to = $this->runWithTestDb($driver, static function (NamespaceBuilder $ns) {
-			$ns->table('products', static function (TableBuilder $t) {
+		$db_to = $this->runWithTestDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('products', static function (TableBuilder $t): void {
 				$t->id();
 				$t->string('name')->min(1)->max(120);
 			});

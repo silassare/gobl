@@ -191,7 +191,7 @@ final class FilterOperandTest extends BaseTestCase
 		static $counter = 0;
 		++$counter;
 		$db = self::getNewDbInstance();
-		$db->ns('FFNOperandTest' . $counter)->table('things', static function (TableBuilder $t) {
+		$db->ns('FFNOperandTest' . $counter)->table('things', static function (TableBuilder $t): void {
 			$t->columnPrefix('th');
 			$t->id();
 			$t->string('code_a');

@@ -13,9 +13,12 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\DBAL;
 
+use Gobl\CRUD\CRUDEventProducer;
 use Gobl\DBAL\Exceptions\DBALException;
+use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Table;
+use Gobl\ORM\ORM;
 use Gobl\Tests\BaseTestCase;
 use Throwable;
 
@@ -133,6 +136,64 @@ final class DbLazySchemaTest extends BaseTestCase
 		$this->expectExceptionMessage('The table name conflict with an existing table name or full name: "users".');
 
 		$db->addTable(new Table('users'));
+	}
+
+	public function testFullNamesAreKnownWithoutBuilding(): void
+	{
+		$db     = self::getNewDbInstance()->setLazySchema();
+		$prefix = $db->getConfig()
+			->getDbTablePrefix();
+		$full   = empty($prefix) ? 'broken' : $prefix . '_broken';
+
+		$db->ns('Lazy\Db')
+			->schema([
+				'good'   => ['columns' => ['id' => ['type' => 'int']]],
+				'broken' => ['columns' => ['id' => ['type' => 'not-a-type']]],
+			]);
+
+		// Not built: building the invalid definition would have thrown.
+		self::assertSame($full, $db->getTableFullName('broken'));
+		self::assertSame($full, $db->getTableFullName($full));
+		self::assertNull($db->getTableFullName('missing'));
+
+		self::assertSame($db->getTableOrFail('good')->getFullName(), $db->getTableFullName('good'));
+	}
+
+	public function testACrudProducerDoesNotBuildItsTable(): void
+	{
+		$db = self::getNewDbInstance()->setLazySchema();
+
+		if (!\is_dir(GOBL_TEST_ORM_OUTPUT)) {
+			\mkdir(GOBL_TEST_ORM_OUTPUT, 0o755, true);
+		}
+
+		$db->ns('Lazy\Crud')
+			->schema([
+				'good'   => ['columns' => ['id' => ['type' => 'int']]],
+				'broken' => ['columns' => ['id' => ['type' => 'not-a-type']]],
+			])
+			->enableORM(GOBL_TEST_ORM_OUTPUT);
+
+		$channel = static fn (CRUDEventProducer $producer): string => (fn (): string => $this->event_channel)
+			->call($producer);
+
+		try {
+			// Listening to a table does not build it: building the invalid definition would have thrown.
+			$broken = new CRUDEventProducer('Lazy\Crud', 'broken');
+			$good   = new CRUDEventProducer('Lazy\Crud', 'good');
+
+			self::assertSame($db->getTableFullName('broken'), $channel($broken));
+
+			// The channel a CRUD of the built table dispatches on.
+			self::assertSame($db->getTableOrFail('good')->getFullName(), $channel($good));
+
+			$this->expectException(DBALRuntimeException::class);
+			$this->expectExceptionMessage('The table "missing" is not defined.');
+
+			new CRUDEventProducer('Lazy\Crud', 'missing');
+		} finally {
+			ORM::undeclareNamespace('Lazy\Crud');
+		}
 	}
 
 	public function testForeignKeysAndRelationsReachTablesBuiltOnDemand(): void

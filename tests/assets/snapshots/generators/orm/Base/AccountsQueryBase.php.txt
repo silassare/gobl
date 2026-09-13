@@ -94,6 +94,411 @@ use Gobl\Tests\Db\AccountsQuery;
 abstract class AccountsQueryBase extends \Gobl\ORM\ORMTableQuery
 {
 	/**
+	 * The filter methods __call() serves: method name => [column name, operator value].
+	 */
+	protected const FILTER_METHODS = array (
+	  'whereIdIs' => 
+	  array (
+	    0 => 'id',
+	    1 => 'eq',
+	  ),
+	  'whereIdIsNot' => 
+	  array (
+	    0 => 'id',
+	    1 => 'neq',
+	  ),
+	  'whereIdIsLt' => 
+	  array (
+	    0 => 'id',
+	    1 => 'lt',
+	  ),
+	  'whereIdIsLte' => 
+	  array (
+	    0 => 'id',
+	    1 => 'lte',
+	  ),
+	  'whereIdIsGt' => 
+	  array (
+	    0 => 'id',
+	    1 => 'gt',
+	  ),
+	  'whereIdIsGte' => 
+	  array (
+	    0 => 'id',
+	    1 => 'gte',
+	  ),
+	  'whereIdIsLike' => 
+	  array (
+	    0 => 'id',
+	    1 => 'like',
+	  ),
+	  'whereIdIsNotLike' => 
+	  array (
+	    0 => 'id',
+	    1 => 'not_like',
+	  ),
+	  'whereIdIsIn' => 
+	  array (
+	    0 => 'id',
+	    1 => 'in',
+	  ),
+	  'whereIdIsNotIn' => 
+	  array (
+	    0 => 'id',
+	    1 => 'not_in',
+	  ),
+	  'whereClientIdIs' => 
+	  array (
+	    0 => 'client_id',
+	    1 => 'eq',
+	  ),
+	  'whereClientIdIsNot' => 
+	  array (
+	    0 => 'client_id',
+	    1 => 'neq',
+	  ),
+	  'whereClientIdIsLt' => 
+	  array (
+	    0 => 'client_id',
+	    1 => 'lt',
+	  ),
+	  'whereClientIdIsLte' => 
+	  array (
+	    0 => 'client_id',
+	    1 => 'lte',
+	  ),
+	  'whereClientIdIsGt' => 
+	  array (
+	    0 => 'client_id',
+	    1 => 'gt',
+	  ),
+	  'whereClientIdIsGte' => 
+	  array (
+	    0 => 'client_id',
+	    1 => 'gte',
+	  ),
+	  'whereClientIdIsLike' => 
+	  array (
+	    0 => 'client_id',
+	    1 => 'like',
+	  ),
+	  'whereClientIdIsNotLike' => 
+	  array (
+	    0 => 'client_id',
+	    1 => 'not_like',
+	  ),
+	  'whereClientIdIsIn' => 
+	  array (
+	    0 => 'client_id',
+	    1 => 'in',
+	  ),
+	  'whereClientIdIsNotIn' => 
+	  array (
+	    0 => 'client_id',
+	    1 => 'not_in',
+	  ),
+	  'whereLabelIs' => 
+	  array (
+	    0 => 'label',
+	    1 => 'eq',
+	  ),
+	  'whereLabelIsNot' => 
+	  array (
+	    0 => 'label',
+	    1 => 'neq',
+	  ),
+	  'whereLabelIsLt' => 
+	  array (
+	    0 => 'label',
+	    1 => 'lt',
+	  ),
+	  'whereLabelIsLte' => 
+	  array (
+	    0 => 'label',
+	    1 => 'lte',
+	  ),
+	  'whereLabelIsGt' => 
+	  array (
+	    0 => 'label',
+	    1 => 'gt',
+	  ),
+	  'whereLabelIsGte' => 
+	  array (
+	    0 => 'label',
+	    1 => 'gte',
+	  ),
+	  'whereLabelIsLike' => 
+	  array (
+	    0 => 'label',
+	    1 => 'like',
+	  ),
+	  'whereLabelIsNotLike' => 
+	  array (
+	    0 => 'label',
+	    1 => 'not_like',
+	  ),
+	  'whereLabelIsIn' => 
+	  array (
+	    0 => 'label',
+	    1 => 'in',
+	  ),
+	  'whereLabelIsNotIn' => 
+	  array (
+	    0 => 'label',
+	    1 => 'not_in',
+	  ),
+	  'whereBalanceIs' => 
+	  array (
+	    0 => 'balance',
+	    1 => 'eq',
+	  ),
+	  'whereBalanceIsNot' => 
+	  array (
+	    0 => 'balance',
+	    1 => 'neq',
+	  ),
+	  'whereBalanceIsLt' => 
+	  array (
+	    0 => 'balance',
+	    1 => 'lt',
+	  ),
+	  'whereBalanceIsLte' => 
+	  array (
+	    0 => 'balance',
+	    1 => 'lte',
+	  ),
+	  'whereBalanceIsGt' => 
+	  array (
+	    0 => 'balance',
+	    1 => 'gt',
+	  ),
+	  'whereBalanceIsGte' => 
+	  array (
+	    0 => 'balance',
+	    1 => 'gte',
+	  ),
+	  'whereBalanceIsLike' => 
+	  array (
+	    0 => 'balance',
+	    1 => 'like',
+	  ),
+	  'whereBalanceIsNotLike' => 
+	  array (
+	    0 => 'balance',
+	    1 => 'not_like',
+	  ),
+	  'whereBalanceIsIn' => 
+	  array (
+	    0 => 'balance',
+	    1 => 'in',
+	  ),
+	  'whereBalanceIsNotIn' => 
+	  array (
+	    0 => 'balance',
+	    1 => 'not_in',
+	  ),
+	  'whereCurrencyCodeIs' => 
+	  array (
+	    0 => 'currency_code',
+	    1 => 'eq',
+	  ),
+	  'whereCurrencyCodeIsNot' => 
+	  array (
+	    0 => 'currency_code',
+	    1 => 'neq',
+	  ),
+	  'whereCurrencyCodeIsLt' => 
+	  array (
+	    0 => 'currency_code',
+	    1 => 'lt',
+	  ),
+	  'whereCurrencyCodeIsLte' => 
+	  array (
+	    0 => 'currency_code',
+	    1 => 'lte',
+	  ),
+	  'whereCurrencyCodeIsGt' => 
+	  array (
+	    0 => 'currency_code',
+	    1 => 'gt',
+	  ),
+	  'whereCurrencyCodeIsGte' => 
+	  array (
+	    0 => 'currency_code',
+	    1 => 'gte',
+	  ),
+	  'whereCurrencyCodeIsLike' => 
+	  array (
+	    0 => 'currency_code',
+	    1 => 'like',
+	  ),
+	  'whereCurrencyCodeIsNotLike' => 
+	  array (
+	    0 => 'currency_code',
+	    1 => 'not_like',
+	  ),
+	  'whereCurrencyCodeIsIn' => 
+	  array (
+	    0 => 'currency_code',
+	    1 => 'in',
+	  ),
+	  'whereCurrencyCodeIsNotIn' => 
+	  array (
+	    0 => 'currency_code',
+	    1 => 'not_in',
+	  ),
+	  'whereDataIs' => 
+	  array (
+	    0 => 'data',
+	    1 => 'eq',
+	  ),
+	  'whereDataIsNot' => 
+	  array (
+	    0 => 'data',
+	    1 => 'neq',
+	  ),
+	  'whereDataIsLike' => 
+	  array (
+	    0 => 'data',
+	    1 => 'like',
+	  ),
+	  'whereDataIsNotLike' => 
+	  array (
+	    0 => 'data',
+	    1 => 'not_like',
+	  ),
+	  'whereDataContains' => 
+	  array (
+	    0 => 'data',
+	    1 => 'contains',
+	  ),
+	  'whereDataHasKey' => 
+	  array (
+	    0 => 'data',
+	    1 => 'has_key',
+	  ),
+	  'whereCreatedAtIs' => 
+	  array (
+	    0 => 'created_at',
+	    1 => 'eq',
+	  ),
+	  'whereCreatedAtIsNot' => 
+	  array (
+	    0 => 'created_at',
+	    1 => 'neq',
+	  ),
+	  'whereCreatedAtIsLt' => 
+	  array (
+	    0 => 'created_at',
+	    1 => 'lt',
+	  ),
+	  'whereCreatedAtIsLte' => 
+	  array (
+	    0 => 'created_at',
+	    1 => 'lte',
+	  ),
+	  'whereCreatedAtIsGt' => 
+	  array (
+	    0 => 'created_at',
+	    1 => 'gt',
+	  ),
+	  'whereCreatedAtIsGte' => 
+	  array (
+	    0 => 'created_at',
+	    1 => 'gte',
+	  ),
+	  'whereCreatedAtIsLike' => 
+	  array (
+	    0 => 'created_at',
+	    1 => 'like',
+	  ),
+	  'whereCreatedAtIsNotLike' => 
+	  array (
+	    0 => 'created_at',
+	    1 => 'not_like',
+	  ),
+	  'whereCreatedAtIsIn' => 
+	  array (
+	    0 => 'created_at',
+	    1 => 'in',
+	  ),
+	  'whereCreatedAtIsNotIn' => 
+	  array (
+	    0 => 'created_at',
+	    1 => 'not_in',
+	  ),
+	  'whereUpdatedAtIs' => 
+	  array (
+	    0 => 'updated_at',
+	    1 => 'eq',
+	  ),
+	  'whereUpdatedAtIsNot' => 
+	  array (
+	    0 => 'updated_at',
+	    1 => 'neq',
+	  ),
+	  'whereUpdatedAtIsLt' => 
+	  array (
+	    0 => 'updated_at',
+	    1 => 'lt',
+	  ),
+	  'whereUpdatedAtIsLte' => 
+	  array (
+	    0 => 'updated_at',
+	    1 => 'lte',
+	  ),
+	  'whereUpdatedAtIsGt' => 
+	  array (
+	    0 => 'updated_at',
+	    1 => 'gt',
+	  ),
+	  'whereUpdatedAtIsGte' => 
+	  array (
+	    0 => 'updated_at',
+	    1 => 'gte',
+	  ),
+	  'whereUpdatedAtIsLike' => 
+	  array (
+	    0 => 'updated_at',
+	    1 => 'like',
+	  ),
+	  'whereUpdatedAtIsNotLike' => 
+	  array (
+	    0 => 'updated_at',
+	    1 => 'not_like',
+	  ),
+	  'whereUpdatedAtIsIn' => 
+	  array (
+	    0 => 'updated_at',
+	    1 => 'in',
+	  ),
+	  'whereUpdatedAtIsNotIn' => 
+	  array (
+	    0 => 'updated_at',
+	    1 => 'not_in',
+	  ),
+	  'whereValidIs' => 
+	  array (
+	    0 => 'valid',
+	    1 => 'eq',
+	  ),
+	  'whereValidIsNot' => 
+	  array (
+	    0 => 'valid',
+	    1 => 'neq',
+	  ),
+	  'whereValidIsFalse' => 
+	  array (
+	    0 => 'valid',
+	    1 => 'is_false',
+	  ),
+	  'whereValidIsTrue' => 
+	  array (
+	    0 => 'valid',
+	    1 => 'is_true',
+	  ),
+	);
+	/**
 	 * AccountsQueryBase constructor.
 	 */
 	public function __construct()

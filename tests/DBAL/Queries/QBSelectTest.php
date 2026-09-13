@@ -31,14 +31,14 @@ final class QBSelectTest extends BaseTestCase
 	{
 		$db = self::getNewDbInstance();
 		$ns = $db->ns('test');
-		$ns->table('users', static function (TableBuilder $t) {
+		$ns->table('users', static function (TableBuilder $t): void {
 			$t->columnPrefix('usr');
 			$t->id();
 			$t->string('name');
 			$t->string('phone');
 		});
 
-		$ns->table('commands', static function (TableBuilder $t) {
+		$ns->table('commands', static function (TableBuilder $t): void {
 			$t->columnPrefix('cmd');
 			$t->id();
 			$t->string('title');

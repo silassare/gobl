@@ -71,7 +71,7 @@ final class ORMTableQuerySelectWithColumnsTest extends BaseTestCase
 			$ns->schema(self::getTablesDefinitions());
 
 			// Extra table with a private column used by private-column projection tests.
-			$ns->table('widgets', static function (TableBuilder $t) {
+			$ns->table('widgets', static function (TableBuilder $t): void {
 				$t->id();
 				$t->string('label');
 				$t->string('internal_token');

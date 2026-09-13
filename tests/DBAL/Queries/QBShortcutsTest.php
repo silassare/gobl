@@ -250,7 +250,7 @@ final class QBShortcutsTest extends BaseTestCase
 	{
 		$db = self::getNewDbInstance();
 		$ns = $db->ns('test');
-		$ns->table('users', static function (TableBuilder $t) {
+		$ns->table('users', static function (TableBuilder $t): void {
 			$t->columnPrefix('usr');
 			$t->id();
 			$t->string('name');

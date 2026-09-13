@@ -265,7 +265,7 @@ abstract class NativeJsonMigrationTestCase extends BaseTestCase
 	private function buildSchema(bool $native, bool $nullable = false): RDBMSInterface
 	{
 		$db = static::getNewDbInstance(static::getDriverName());
-		$db->ns('test')->table(self::TABLE, static function (TableBuilder $t) use ($native, $nullable) {
+		$db->ns('test')->table(self::TABLE, static function (TableBuilder $t) use ($native, $nullable): void {
 			$t->id();
 			$json = $t->json('payload', $native);
 			$map  = $t->map('meta', $native);

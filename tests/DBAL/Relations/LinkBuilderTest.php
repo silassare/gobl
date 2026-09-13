@@ -174,22 +174,22 @@ final class LinkBuilderTest extends BaseTestCase
 		$ns  = $db->ns('test');
 
 		// Define dependency tables FIRST so that FK constraints can be resolved.
-		$hosts = $ns->table('hosts', static function (TableBuilder $t) {
+		$hosts = $ns->table('hosts', static function (TableBuilder $t): void {
 			$t->id();
 			$t->string('name');
 		});
-		$ns->table('targets', static function (TableBuilder $t) {
+		$ns->table('targets', static function (TableBuilder $t): void {
 			$t->id();
 			$t->string('label');
 		});
-		$ns->table('pivots', static function (TableBuilder $t) {
+		$ns->table('pivots', static function (TableBuilder $t): void {
 			$t->id();
 			$t->foreign('host_id', 'hosts', 'id');
 			$t->foreign('target_id', 'targets', 'id');
 			$t->string('pivot_type');
 		});
 
-		$hosts->factory(static function (TableBuilder $t) {
+		$hosts->factory(static function (TableBuilder $t): void {
 			$t->hasMany('my_targets')
 				->from('targets')
 				->through(
@@ -216,22 +216,22 @@ final class LinkBuilderTest extends BaseTestCase
 		$ns  = $db->ns('test');
 
 		// Define dependency tables FIRST so that FK constraints can be resolved.
-		$hosts = $ns->table('hosts', static function (TableBuilder $t) {
+		$hosts = $ns->table('hosts', static function (TableBuilder $t): void {
 			$t->id();
 			$t->string('name');
 		});
-		$ns->table('targets', static function (TableBuilder $t) {
+		$ns->table('targets', static function (TableBuilder $t): void {
 			$t->id();
 			$t->string('label');
 		});
-		$ns->table('pivots', static function (TableBuilder $t) {
+		$ns->table('pivots', static function (TableBuilder $t): void {
 			$t->id();
 			$t->foreign('host_id', 'hosts', 'id');
 			$t->foreign('target_id', 'targets', 'id');
 			$t->string('pivot_type');
 		});
 
-		$hosts->factory(static function (TableBuilder $t) {
+		$hosts->factory(static function (TableBuilder $t): void {
 			$t->hasMany('my_targets')
 				->from('targets')
 				->through('pivots', null, [
@@ -276,22 +276,22 @@ final class LinkBuilderTest extends BaseTestCase
 		$ns = $db->ns('test');
 
 		// Define dependency tables FIRST so that FK constraints can be resolved.
-		$sessions = $ns->table('sessions', static function (TableBuilder $t) {
+		$sessions = $ns->table('sessions', static function (TableBuilder $t): void {
 			$t->id();
 			$t->string('title');
 		});
-		$ns->table('schedules', static function (TableBuilder $t) {
+		$ns->table('schedules', static function (TableBuilder $t): void {
 			$t->id();
 			$t->string('name');
 		});
-		$ns->table('sess_schedules', static function (TableBuilder $t) {
+		$ns->table('sess_schedules', static function (TableBuilder $t): void {
 			$t->id();
 			$t->foreign('session_id', 'sessions', 'id');
 			$t->foreign('schedule_id', 'schedules', 'id');
 			$t->string('for_type'); // pivot-only column - NOT present on 'schedules'
 		});
 
-		$sessions->factory(static function (TableBuilder $t) {
+		$sessions->factory(static function (TableBuilder $t): void {
 			$t->hasMany('schedules')
 				->from('schedules')
 				->through(
@@ -353,22 +353,22 @@ final class LinkBuilderTest extends BaseTestCase
 		$db = self::getNewDbInstance();
 		$ns = $db->ns('test');
 
-		$sessions = $ns->table('sessions', static function (TableBuilder $t) {
+		$sessions = $ns->table('sessions', static function (TableBuilder $t): void {
 			$t->id();
 			$t->string('title');
 		});
-		$ns->table('schedules', static function (TableBuilder $t) {
+		$ns->table('schedules', static function (TableBuilder $t): void {
 			$t->id();
 			$t->string('name');
 		});
-		$ns->table('sess_schedules', static function (TableBuilder $t) {
+		$ns->table('sess_schedules', static function (TableBuilder $t): void {
 			$t->id();
 			$t->foreign('session_id', 'sessions', 'id');
 			$t->foreign('schedule_id', 'schedules', 'id');
 			$t->string('for_type');
 		});
 
-		$sessions->factory(static function (TableBuilder $t) {
+		$sessions->factory(static function (TableBuilder $t): void {
 			$t->hasMany('schedules')
 				->from('schedules')
 				->through(
@@ -406,16 +406,16 @@ final class LinkBuilderTest extends BaseTestCase
 		$ns = $db->ns('test');
 
 		// Define dependency tables FIRST so that FK constraints can be resolved.
-		$ns->table('a', static function (TableBuilder $t) {
+		$ns->table('a', static function (TableBuilder $t): void {
 			$t->id();
 			$t->string('title');
 		});
-		$ns->table('b', static function (TableBuilder $t) {
+		$ns->table('b', static function (TableBuilder $t): void {
 			$t->id();
 			$t->foreign('a_id', 'a', 'id');
 			$t->string('tag');
 		});
-		$ns->table('c', static function (TableBuilder $t) {
+		$ns->table('c', static function (TableBuilder $t): void {
 			$t->id();
 			$t->foreign('b_id', 'b', 'id');
 			$t->string('label');
@@ -453,15 +453,15 @@ final class LinkBuilderTest extends BaseTestCase
 		$ns = $db->ns('test');
 
 		// Define dependency tables FIRST so that FK constraints can be resolved.
-		$ns->table('a', static function (TableBuilder $t) {
+		$ns->table('a', static function (TableBuilder $t): void {
 			$t->id();
 			$t->string('title');
 		});
-		$ns->table('c', static function (TableBuilder $t) {
+		$ns->table('c', static function (TableBuilder $t): void {
 			$t->id();
 			$t->string('label');
 		});
-		$ns->table('pivot', static function (TableBuilder $t) {
+		$ns->table('pivot', static function (TableBuilder $t): void {
 			$t->id();
 			$t->foreign('a_id', 'a', 'id');
 			$t->foreign('c_id', 'c', 'id');

@@ -52,7 +52,7 @@ final class FiltersTypeCastTest extends BaseTestCase
 	/** Date string '2024-12-31' on a date column converts to a Unix timestamp string (TypeBigint stores as string). */
 	public function testDateStringConvertedToTimestamp(): void
 	{
-		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t) {
+		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t): void {
 			$t->date('created_at');
 		});
 
@@ -68,7 +68,7 @@ final class FiltersTypeCastTest extends BaseTestCase
 	/** An already-numeric value on a date column passes through unchanged. */
 	public function testDateNumericTimestampUnchanged(): void
 	{
-		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t) {
+		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t): void {
 			$t->date('created_at');
 		});
 
@@ -84,7 +84,7 @@ final class FiltersTypeCastTest extends BaseTestCase
 	{
 		$this->expectException(TypesInvalidValueException::class);
 
-		[$filters] = self::makeFilters(static function (TableBuilder $t) {
+		[$filters] = self::makeFilters(static function (TableBuilder $t): void {
 			$t->date('created_at');
 		});
 
@@ -94,7 +94,7 @@ final class FiltersTypeCastTest extends BaseTestCase
 	/** IN list: each date string element converts to a timestamp. */
 	public function testDateInListConvertedToTimestamps(): void
 	{
-		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t) {
+		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t): void {
 			$t->date('created_at');
 		});
 
@@ -113,7 +113,7 @@ final class FiltersTypeCastTest extends BaseTestCase
 	/** PHP bool true on a bool column converts to 1. */
 	public function testBoolTrueConvertsToOne(): void
 	{
-		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t) {
+		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t): void {
 			$t->bool('active');
 		});
 
@@ -126,7 +126,7 @@ final class FiltersTypeCastTest extends BaseTestCase
 	/** PHP bool false on a bool column converts to 0. */
 	public function testBoolFalseConvertsToZero(): void
 	{
-		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t) {
+		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t): void {
 			$t->bool('active');
 		});
 
@@ -139,7 +139,7 @@ final class FiltersTypeCastTest extends BaseTestCase
 	/** Integer 1 on a bool column converts to 1. */
 	public function testBoolIntOneConvertsToOne(): void
 	{
-		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t) {
+		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t): void {
 			$t->bool('active');
 		});
 
@@ -152,7 +152,7 @@ final class FiltersTypeCastTest extends BaseTestCase
 	/** Integer 0 on a bool column converts to 0. */
 	public function testBoolIntZeroConvertsToZero(): void
 	{
-		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t) {
+		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t): void {
 			$t->bool('active');
 		});
 
@@ -167,7 +167,7 @@ final class FiltersTypeCastTest extends BaseTestCase
 	{
 		$this->expectException(TypesInvalidValueException::class);
 
-		[$filters] = self::makeFilters(static function (TableBuilder $t) {
+		[$filters] = self::makeFilters(static function (TableBuilder $t): void {
 			$t->bool('active'); // strict by default
 		});
 
@@ -177,7 +177,7 @@ final class FiltersTypeCastTest extends BaseTestCase
 	/** IS_TRUE on a bool column: normalized to EQ true, then cast to 1 via phpToFilterValue. */
 	public function testBoolIsTrueCastsToOne(): void
 	{
-		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t) {
+		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t): void {
 			$t->bool('active');
 		});
 
@@ -190,7 +190,7 @@ final class FiltersTypeCastTest extends BaseTestCase
 	/** IS_FALSE on a bool column: normalized to EQ false, then cast to 0 via phpToFilterValue. */
 	public function testBoolIsFalseCastsToZero(): void
 	{
-		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t) {
+		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t): void {
 			$t->bool('active');
 		});
 
@@ -207,7 +207,7 @@ final class FiltersTypeCastTest extends BaseTestCase
 	/** String '42' on an int column converts to int 42. */
 	public function testIntStringConvertsToInt(): void
 	{
-		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t) {
+		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t): void {
 			$t->int('age');
 		});
 
@@ -220,7 +220,7 @@ final class FiltersTypeCastTest extends BaseTestCase
 	/** Float 3.0 on an int column converts to int 3. */
 	public function testIntFloatConvertsToInt(): void
 	{
-		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t) {
+		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t): void {
 			$t->int('age');
 		});
 
@@ -235,7 +235,7 @@ final class FiltersTypeCastTest extends BaseTestCase
 	{
 		$this->expectException(TypesInvalidValueException::class);
 
-		[$filters] = self::makeFilters(static function (TableBuilder $t) {
+		[$filters] = self::makeFilters(static function (TableBuilder $t): void {
 			$t->int('age');
 		});
 
@@ -245,7 +245,7 @@ final class FiltersTypeCastTest extends BaseTestCase
 	/** IN list: each element converts to int. */
 	public function testIntInListConverted(): void
 	{
-		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t) {
+		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t): void {
 			$t->int('age');
 		});
 
@@ -262,7 +262,7 @@ final class FiltersTypeCastTest extends BaseTestCase
 	/** String '9876543210' on a bigint column stays a string (bigint stored as string). */
 	public function testBigintStringStaysString(): void
 	{
-		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t) {
+		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t): void {
 			$t->bigint('score');
 		});
 
@@ -275,7 +275,7 @@ final class FiltersTypeCastTest extends BaseTestCase
 	/** PHP int 42 on a bigint column converts to string '42' (TypeBigint stores bigints as strings). */
 	public function testBigintIntConvertsToString(): void
 	{
-		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t) {
+		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t): void {
 			$t->bigint('score');
 		});
 
@@ -292,7 +292,7 @@ final class FiltersTypeCastTest extends BaseTestCase
 	/** String '3.14' on a float column converts to float 3.14. */
 	public function testFloatStringConvertsToFloat(): void
 	{
-		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t) {
+		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t): void {
 			$t->float('ratio');
 		});
 
@@ -307,7 +307,7 @@ final class FiltersTypeCastTest extends BaseTestCase
 	{
 		$this->expectException(TypesInvalidValueException::class);
 
-		[$filters] = self::makeFilters(static function (TableBuilder $t) {
+		[$filters] = self::makeFilters(static function (TableBuilder $t): void {
 			$t->float('ratio');
 		});
 
@@ -321,7 +321,7 @@ final class FiltersTypeCastTest extends BaseTestCase
 	/** String '12.50' on a decimal column stays a string. */
 	public function testDecimalStringStaysString(): void
 	{
-		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t) {
+		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t): void {
 			$t->decimal('amount')->precision(10, 2);
 		});
 
@@ -334,7 +334,7 @@ final class FiltersTypeCastTest extends BaseTestCase
 	/** Float 3.14 on a decimal column converts to string (TypeDecimal stores as string). */
 	public function testDecimalFloatConvertsToString(): void
 	{
-		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t) {
+		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t): void {
 			$t->decimal('amount')->precision(10, 2);
 		});
 
@@ -351,7 +351,7 @@ final class FiltersTypeCastTest extends BaseTestCase
 	/** String value on a string column passes through unchanged (no-op). */
 	public function testStringNoConversion(): void
 	{
-		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t) {
+		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t): void {
 			$t->string('name');
 		});
 
@@ -368,7 +368,7 @@ final class FiltersTypeCastTest extends BaseTestCase
 	 */
 	public function testStringLikePatternPassesThrough(): void
 	{
-		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t) {
+		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t): void {
 			$t->string('name')->min(2)->max(100);
 		});
 
@@ -408,7 +408,7 @@ final class FiltersTypeCastTest extends BaseTestCase
 	/** IS_NULL produces no bound value since it has no right operand. */
 	public function testIsNullNoBinding(): void
 	{
-		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t) {
+		[$filters, $qb] = self::makeFilters(static function (TableBuilder $t): void {
 			$t->int('age')->nullable();
 		});
 
@@ -430,7 +430,7 @@ final class FiltersTypeCastTest extends BaseTestCase
 	public function testContainsSkipsPhpToFilterValue(): void
 	{
 		$db = self::getNewDbInstance();
-		$db->ns('ContainsTest')->table('t', static function (TableBuilder $t) {
+		$db->ns('ContainsTest')->table('t', static function (TableBuilder $t): void {
 			$t->columnPrefix('tc');
 			$t->id();
 			$t->map('data');
@@ -467,7 +467,7 @@ final class FiltersTypeCastTest extends BaseTestCase
 		++$counter;
 
 		$db = self::getNewDbInstance();
-		$db->ns('FiltersTypeCastTest' . $counter)->table('t', static function (TableBuilder $t) use ($configure) {
+		$db->ns('FiltersTypeCastTest' . $counter)->table('t', static function (TableBuilder $t) use ($configure): void {
 			$t->columnPrefix('col');
 			$t->id();
 			$configure($t);
