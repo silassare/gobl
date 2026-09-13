@@ -94,7 +94,7 @@ use Gobl\Tests\Db\AccountsQuery;
 abstract class AccountsQueryBase extends \Gobl\ORM\ORMTableQuery
 {
 	/**
-	 * The filter methods __call() serves: method name => [column name, operator value].
+	 * The filter methods __call() serves: method name => [column name, operator value] (for speed).
 	 */
 	protected const FILTER_METHODS = array (
 	  'whereIdIs' => 
