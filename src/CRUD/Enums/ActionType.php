@@ -38,10 +38,10 @@ enum ActionType: string
 	public function getDefaultSuccessMessage(): string
 	{
 		return match ($this) {
-			self::CREATE => 'CREATED',
-			self::UPDATE, self::UPDATE_ALL => 'UPDATED',
-			self::DELETE, self::DELETE_ALL => 'DELETED',
-			self::READ, self::READ_ALL => 'READ',
+			self::CREATE                                                                                         => 'CREATED',
+			self::UPDATE, self::UPDATE_ALL                                                                       => 'UPDATED',
+			self::DELETE, self::DELETE_ALL                                                                       => 'DELETED',
+			self::READ, self::READ_ALL                                                                           => 'READ',
 			self::PK_COLUMN_WRITE, self::PRIVATE_COLUMN_WRITE, self::SENSITIVE_COLUMN_WRITE, self::COLUMN_UPDATE => 'OK',
 		};
 	}

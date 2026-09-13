@@ -89,7 +89,7 @@ final class ORMTypeHint
 			Operator::IS_NULL, Operator::IS_NOT_NULL                                              => self::null(),
 			Operator::IN, Operator::NOT_IN                                                        => self::list(),
 			Operator::IS_TRUE, Operator::IS_FALSE                                                 => self::bool(),
-			Operator::CONTAINS, Operator::HAS_KEY => self::string(),
+			Operator::CONTAINS, Operator::HAS_KEY                                                 => self::string(),
 		};
 	}
 

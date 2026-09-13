@@ -142,7 +142,7 @@ final class TypeFloat extends BaseType
 	#[Override]
 	public static function getInstance(array $options): static
 	{
-		return (new static())->configure($options);
+		return (new self())->configure($options);
 	}
 
 	/**

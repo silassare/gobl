@@ -128,7 +128,7 @@ enum Operator: string
 	{
 		return match ($this) {
 			self::IS_NULL, self::IS_NOT_NULL, self::IS_TRUE, self::IS_FALSE => true,
-			default => false
+			default                                                         => false
 		};
 	}
 }

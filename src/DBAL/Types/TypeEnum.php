@@ -99,7 +99,7 @@ final class TypeEnum extends Type
 	#[Override]
 	public static function getInstance(array $options): static
 	{
-		return (new static())->configure($options);
+		return (new self())->configure($options);
 	}
 
 	/**

@@ -59,15 +59,15 @@ enum ORMUniversalType: string
 	public function isValidValue(mixed $value): bool
 	{
 		return match ($this) {
-			ORMUniversalType::LIST     => \is_array($value) && \array_is_list($value),
-			ORMUniversalType::MAP      => \is_array($value) || $value instanceof Map,
-			ORMUniversalType::STRING   => \is_string($value),
-			ORMUniversalType::INT      => \is_int($value),
-			ORMUniversalType::FLOAT    => \is_float($value),
-			ORMUniversalType::BOOL     => \is_bool($value),
-			ORMUniversalType::DECIMAL  => \is_numeric($value) && \preg_match('/^-?\d+(\.\d+)?$/', (string) $value),
-			ORMUniversalType::BIGINT   => \is_numeric($value) && \preg_match('/^-?\d+$/', (string) $value),
-			ORMUniversalType::NULL     => null === $value,
+			ORMUniversalType::LIST                           => \is_array($value) && \array_is_list($value),
+			ORMUniversalType::MAP                            => \is_array($value) || $value instanceof Map,
+			ORMUniversalType::STRING                         => \is_string($value),
+			ORMUniversalType::INT                            => \is_int($value),
+			ORMUniversalType::FLOAT                          => \is_float($value),
+			ORMUniversalType::BOOL                           => \is_bool($value),
+			ORMUniversalType::DECIMAL                        => \is_numeric($value) && \preg_match('/^-?\d+(\.\d+)?$/', (string) $value),
+			ORMUniversalType::BIGINT                         => \is_numeric($value) && \preg_match('/^-?\d+$/', (string) $value),
+			ORMUniversalType::NULL                           => null === $value,
 			ORMUniversalType::ANY, ORMUniversalType::UNKNOWN => true,
 		};
 	}
@@ -81,14 +81,14 @@ enum ORMUniversalType: string
 	public function toPHPType(string $of = 'mixed'): string
 	{
 		return match ($this) {
-			ORMUniversalType::LIST              => 'list<' . $of . '>',
-			ORMUniversalType::MAP               => '\\' . Map::class . '<' . $of . '>',
+			ORMUniversalType::LIST                                                        => 'list<' . $of . '>',
+			ORMUniversalType::MAP                                                         => '\\' . Map::class . '<' . $of . '>',
 			ORMUniversalType::DECIMAL, ORMUniversalType::STRING, ORMUniversalType::BIGINT => 'string',
-			ORMUniversalType::BOOL              => 'bool',
-			ORMUniversalType::FLOAT             => 'float',
-			ORMUniversalType::INT               => 'int',
-			ORMUniversalType::NULL              => 'null',
-			ORMUniversalType::ANY, ORMUniversalType::UNKNOWN => 'mixed',
+			ORMUniversalType::BOOL                                                        => 'bool',
+			ORMUniversalType::FLOAT                                                       => 'float',
+			ORMUniversalType::INT                                                         => 'int',
+			ORMUniversalType::NULL                                                        => 'null',
+			ORMUniversalType::ANY, ORMUniversalType::UNKNOWN                              => 'mixed',
 		};
 	}
 }
