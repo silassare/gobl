@@ -118,12 +118,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/silassare/blate.git",
-                "reference": "9701351dcd7d9e65a6050b721cbb7adf2966d70e"
+                "reference": "8e6ec748715ca16b561cdc8cd5de741bc3eb3f61"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/silassare/blate/zipball/9701351dcd7d9e65a6050b721cbb7adf2966d70e",
-                "reference": "9701351dcd7d9e65a6050b721cbb7adf2966d70e",
+                "url": "https://api.github.com/repos/silassare/blate/zipball/8e6ec748715ca16b561cdc8cd5de741bc3eb3f61",
+                "reference": "8e6ec748715ca16b561cdc8cd5de741bc3eb3f61",
                 "shasum": ""
             },
             "require": {
@@ -145,9 +145,6 @@
                 }
             },
             "autoload": {
-                "files": [
-                    "src/bootstrap.php"
-                ],
                 "psr-4": {
                     "Blate\\": "src/"
                 }
@@ -174,7 +171,7 @@
                 "issues": "https://github.com/silassare/blate/issues",
                 "source": "https://github.com/silassare/blate/tree/main"
             },
-            "time": "2026-03-21T06:31:02+00:00"
+            "time": "2026-09-14T13:27:12+00:00"
         },
         {
             "name": "silassare/php-utils",
@@ -182,12 +179,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/silassare/php-utils.git",
-                "reference": "a552f4381303febdc6472ae94076d33cdd6cafc8"
+                "reference": "2415a37ea9b946e8947d30ca84fc1d5f961e895e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/silassare/php-utils/zipball/a552f4381303febdc6472ae94076d33cdd6cafc8",
-                "reference": "a552f4381303febdc6472ae94076d33cdd6cafc8",
+                "url": "https://api.github.com/repos/silassare/php-utils/zipball/2415a37ea9b946e8947d30ca84fc1d5f961e895e",
+                "reference": "2415a37ea9b946e8947d30ca84fc1d5f961e895e",
                 "shasum": ""
             },
             "require": {
@@ -235,7 +232,7 @@
                 "issues": "https://github.com/silassare/php-utils/issues",
                 "source": "https://github.com/silassare/php-utils/tree/main"
             },
-            "time": "2026-09-13T20:19:06+00:00"
+            "time": "2026-09-14T13:08:43+00:00"
         }
     ],
     "packages-dev": [
