@@ -111,6 +111,7 @@ Key contracts (verify exact signatures in `src/ORM/ORMEntity.php`):
 - **Dirty tracking** — `__set` hashes the new validated value; column marked dirty only when hash differs from the last-saved snapshot. Handles mutable values (e.g. `Map`) correctly.
 - **`isSaved(bool $set_as_saved = false): bool`** — `true` when no dirty columns and not new. `isSaved(true)` snapshots hashes, clears dirty set, unsets isNew. Also auto-detects partial state when PDO row has fewer columns than the table defines.
 - **`isNew(): bool`** — `true` until first successful `save()` or DB load.
+- **`save()` on an entity loaded from the DB** — updates the dirty columns, then takes the row the database returns back through the DB path (`takeSavedRow()`), never through `__set`. Those values are not user input and are not validated again: a validation that reads the database ("this email must not be already registered") would otherwise reject the row's own stored values. Covered by `tests/Integration/ORM/ORMEntitySaveRevalidationTestCase.php`.
 - **`toIdentityKey(): string`** — stable opaque key from PK columns (`:` joined for composite). Used as map key in batch methods.
 - **`markAsPartial(array $partial_columns): static`** — the only way to mark an entity as partial. Accepts short or full column names. Partial entities throw on access to unloaded columns.
 - **`isPartial(): bool`**, **`isColumnLoaded(string $name): bool`** — guards for partial state.

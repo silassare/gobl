@@ -494,7 +494,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 
 				$saved = static::ctrl()->updateOneItem($options);
 
-				return $saved && $this->hydrate($saved->toRow())
+				return $saved && $this->takeSavedRow($saved)
 					->isSaved(true);
 			}
 		}
@@ -817,6 +817,33 @@ abstract class ORMEntity implements ArrayCapableInterface
 		}
 
 		return $subject->getCleanValue();
+	}
+
+	/**
+	 * Takes the values of the row the database gave back after a write.
+	 *
+	 * They are not user input: they come from the database, like the values a fetch populates an entity
+	 * with. Assigning them through `__set()` would validate them again, and a validation that reads the
+	 * database rejects them (a column that must not be already registered is registered, by this very
+	 * row), so saving an entity again would fail on values it had just stored.
+	 */
+	private function takeSavedRow(self $saved): static
+	{
+		foreach ($saved->toRow() as $full_name => $value) {
+			if (!$this->_oeb_table->hasColumn($full_name)) {
+				continue;
+			}
+
+			$this->_oeb_row[$full_name]          = $value;
+			$this->_oeb_from_db[$full_name]      = true;
+			$this->_oeb_saved_hashes[$full_name] = $this->_oeb_table->getColumnOrFail($full_name)
+				->getType()
+				->hash($value);
+
+			unset($this->_oeb_dirty[$full_name], $this->_oeb_subjects[$full_name]);
+		}
+
+		return $this;
 	}
 
 	/**
