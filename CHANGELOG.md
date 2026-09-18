@@ -1,3 +1,47 @@
+### Unreleased (3.0.x-dev)
+
+-   `ORMEntity::save()` no longer validates the row the database gives back
+    after an update: those values are not user input, and a validation that
+    reads the database rejected the row's own stored values (changing a
+    password failed with "email already registered")
+
+### v3.0.0 (unreleased, since 2026-03-09)
+
+Nothing was tagged after v1.5.0. The two entries below summarize what the
+`2.0.x` and `3.0.x` lines added since then; from here on the changelog is
+kept per change.
+
+-   SQLite and PostgreSQL drivers added next to MySQL, suggested by Composer
+-   lazy schema loading: a table is built on first use
+-   partial entity loading, batch loading of relations, cursor pagination
+-   `LinkJoin` relations (multi hop through pivot tables)
+-   schema files can be loaded and exported, with a JSON schema for editors
+-   types reworked: `listOf()`, `mapOf()` and `jsonOf()` column builders,
+    typed revival, `medium` / `long` / `big` options for large values, date
+    precision and min/max, backed enums, values coerced to their type
+-   metadata on tables and columns, merged lazily
+-   query logging (`QueriesLogger`)
+-   PHP 8.1 is the floor; classes are `final` where they are not meant to be
+    extended, `#[Override]` is used throughout, Psalm runs on the sources
+
+### v2.0.0 (unreleased, since 2022-12-01)
+
+-   the ORM rewritten around entities: `ORMEntity`, `ORMController`,
+    `ORMResults`, `ORMTableQuery`
+-   fluent schema definition next to arrays: `NamespaceBuilder`,
+    `TableBuilder`, `RelationBuilder`
+-   query builders `QBSelect`, `QBInsert`, `QBUpdate` and `QBDelete`, with
+    multi insert, derived tables, `order by` and `limit` on update and
+    delete, and lazy iteration of large result sets
+-   filters with a full operator set and type aware right operands
+-   schema diff and migrations: `MigrationMode`, `beforeRun()` /
+    `afterRun()`, table and column renames
+-   CRUD rewritten: events per table and per action, private and sensitive
+    columns
+-   relations: soft deletion, morph relations with morph types, virtual
+    relations, lazy definition of foreign keys, indexes and relations
+-   `runInTransaction()` moved to `RDBMSInterface`
+
 ### v1.5.0 (2021-03-26)
 
 -   Dart class generator added
