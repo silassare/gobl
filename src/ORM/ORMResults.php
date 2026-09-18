@@ -128,20 +128,41 @@ abstract class ORMResults implements PaginationAwareListInterface, Countable, It
 	 */
 	public function lazy(bool $strict = true, int $chunk_max = 100): Generator
 	{
-		$page = 1;
+		// The chunks stay inside the window the query asks for: reading in chunks is how the rows are
+		// fetched, not what is fetched. Without this a limited query would answer every row, since each
+		// chunk replaces its LIMIT.
+		$window_max    = $this->query->getOptionsLimitMax();
+		$window_offset = $this->query->getOptionsLimitOffset() ?? 0;
+		$yielded       = 0;
 
-		while ($this->query->limit($chunk_max, ($page - 1) * $chunk_max) && $this->getStatement(true)) {
+		while (true) {
+			$size = $chunk_max;
+
+			if (null !== $window_max) {
+				$left = $window_max - $yielded;
+
+				if ($left <= 0) {
+					break;
+				}
+
+				$size = \min($chunk_max, $left);
+			}
+
+			$this->query->limit($size, $window_offset + $yielded);
+			$this->getStatement(true);
+
 			$count = 0;
+
 			while ($entry = $this->fetchClass($strict)) {
 				++$count;
+				++$yielded;
 
 				yield $entry;
 			}
 
-			if ($count < $chunk_max) {
+			if ($count < $size) {
 				break;
 			}
-			++$page;
 		}
 	}
 

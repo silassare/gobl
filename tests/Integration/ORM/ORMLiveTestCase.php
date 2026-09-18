@@ -409,6 +409,90 @@ abstract class ORMLiveTestCase extends BaseTestCase
 	}
 
 	/**
+	 * getItems() answers the page the query asks for, not every row.
+	 *
+	 * It reads in chunks (`lazy()`), and a chunk used to replace the LIMIT of the query: an offset page
+	 * then answered the whole table, however small `max` was.
+	 */
+	public function testGetItemsHonoursTheLimitOfTheQuery(): void
+	{
+		$ctrl  = ORM::ctrl(static::$db->getTableOrFail('clients'));
+		$table = static::$db->getTableOrFail('clients');
+		$last  = 'LazyWindow_' . \uniqid();
+
+		for ($i = 0; $i < 5; ++$i) {
+			$ctrl->addItem([
+				'client_first_name' => 'Lazy' . $i,
+				'client_last_name'  => $last,
+				'client_given_name' => 'L' . $i,
+				'client_gender'     => 'unknown',
+			]);
+		}
+
+		$options = ORMOptions::makeFromFilters(['client_last_name' => $last]);
+		$options->setMax(2)->setPage(1);
+
+		$first = \iterator_to_array(ORM::query($table)->find($options)->getItems(), false);
+
+		self::assertCount(2, $first, 'the first page holds what max asks for');
+
+		$options2 = ORMOptions::makeFromFilters(['client_last_name' => $last]);
+		$options2->setMax(2)->setPage(2);
+
+		$second = \iterator_to_array(ORM::query($table)->find($options2)->getItems(), false);
+
+		self::assertCount(2, $second, 'the second page holds what max asks for');
+		self::assertNotEquals(
+			\array_map(static fn ($e) => (string) $e->id, $first),
+			\array_map(static fn ($e) => (string) $e->id, $second),
+			'a page is not the previous one again'
+		);
+
+		$options3 = ORMOptions::makeFromFilters(['client_last_name' => $last]);
+		$options3->setMax(2)->setPage(3);
+
+		self::assertCount(
+			1,
+			\iterator_to_array(ORM::query($table)->find($options3)->getItems(), false),
+			'the last page holds what is left'
+		);
+
+		$all = \iterator_to_array(
+			ORM::query($table)->find(ORMOptions::makeFromFilters(['client_last_name' => $last]))->getItems(),
+			false
+		);
+
+		self::assertCount(5, $all, 'a query with no limit still answers every row');
+	}
+
+	/**
+	 * A chunk smaller than the window still stops at the window.
+	 */
+	public function testGetItemsReadsInChunksInsideTheWindow(): void
+	{
+		$ctrl  = ORM::ctrl(static::$db->getTableOrFail('clients'));
+		$table = static::$db->getTableOrFail('clients');
+		$last  = 'LazyChunk_' . \uniqid();
+
+		for ($i = 0; $i < 7; ++$i) {
+			$ctrl->addItem([
+				'client_first_name' => 'Chunk' . $i,
+				'client_last_name'  => $last,
+				'client_given_name' => 'C' . $i,
+				'client_gender'     => 'unknown',
+			]);
+		}
+
+		$options = ORMOptions::makeFromFilters(['client_last_name' => $last]);
+		$options->setMax(4)->setPage(1);
+
+		$results = ORM::query($table)->find($options);
+
+		// Two rows per query, four rows asked for: the chunks are read inside the window.
+		self::assertCount(4, \iterator_to_array($results->lazy(true, 2), false));
+	}
+
+	/**
 	 * getItemsWithCursorMeta() returns the expected shape including cursor_column.
 	 *
 	 * Scenario:

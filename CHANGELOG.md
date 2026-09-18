@@ -1,5 +1,9 @@
 ### Unreleased (3.0.x-dev)
 
+-   `ORMResults::getItems()` (and `lazy()`) no longer answers every row of a
+    limited query. It reads in chunks, and each chunk replaced the `LIMIT` the
+    query carried, so an offset page (`max`, `page`) returned the whole table;
+    the chunks now stay inside the window the query asks for.
 -   `ORMEntity::save()` no longer validates the row the database gives back
     after an update: those values are not user input, and a validation that
     reads the database rejected the row's own stored values (changing a

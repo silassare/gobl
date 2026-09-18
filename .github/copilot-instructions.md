@@ -135,6 +135,15 @@ Internal `ORMEntity` properties use `_oeb_*` prefix. Subclass properties must us
 - Generated: `EntityBase::results(QBSelect): ORMResults`
 - `ORMResults::new(QBSelect): static` — abstract, implemented by generated Results class
 
+**Reading results** (`ORMResults`):
+
+- `getItems()` reads through `lazy()`, in chunks, and the chunks stay **inside the limit the query
+  carries**: an offset page (`max`, `page`, applied by `ORMTableQuery::applyPaginationLogic()`) answers
+  that page, and a query with no limit answers every row. A chunk must never replace the query's own
+  `LIMIT` (that bug made every offset-paginated list answer the whole table).
+- `getItemsWithCursorMeta()` is the cursor path: it fetches `max + 1` rows to know `has_more`, and
+  answers `{items, next_cursor, cursor_column, has_more}`.
+
 ## Relations
 
 For full link-type implementations see `src/DBAL/Relations/` (`LinkColumns`, `LinkMorph`, `LinkThrough`, `LinkJoin`).
