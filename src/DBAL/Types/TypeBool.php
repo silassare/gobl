@@ -105,7 +105,11 @@ final class TypeBool extends BaseType
 	#[Override]
 	public function default(mixed $default): static
 	{
-		return parent::default((int) ((bool) $default));
+		// The PHP form, as every other type keeps it: `SQLQueryGeneratorBase::defaultAndNullChunks()`
+		// converts it with `phpToDb()` for the DDL, and a new entity gets a real `false` rather than the
+		// `0` it was given (`ORMController::fillRequiredFields()`), which the generated TypeScript types
+		// as a boolean.
+		return parent::default(null === $default ? null : (bool) $default);
 	}
 
 	#[Override]

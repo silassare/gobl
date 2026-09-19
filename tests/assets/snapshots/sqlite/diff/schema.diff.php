@@ -323,7 +323,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		      array (
 		        'strict' => true,
 		        'type' => 'bool',
-		        'default' => 1,
+		        'default' => true,
 		        'prefix' => 'client',
 		        'diff_key' => 'a7c31f9a83842303a68c6b80b2ed138d',
 		      ),
@@ -430,7 +430,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		      array (
 		        'strict' => true,
 		        'type' => 'bool',
-		        'default' => 1,
+		        'default' => true,
 		        'prefix' => 'account',
 		        'diff_key' => '90016cc6efa18ca15429fde9c79819ff',
 		      ),
@@ -566,7 +566,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		      array (
 		        'strict' => true,
 		        'type' => 'bool',
-		        'default' => 1,
+		        'default' => true,
 		        'prefix' => 'currency',
 		        'diff_key' => 'c4b8a3e8f1f2e21532bed2415bc45f4d',
 		      ),
@@ -630,7 +630,7 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		      array (
 		        'strict' => true,
 		        'type' => 'bool',
-		        'default' => 1,
+		        'default' => true,
 		        'prefix' => 'order',
 		        'diff_key' => '94f9ff63a8b94307812b0cfa3ab8e08d',
 		      ),

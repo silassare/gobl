@@ -409,6 +409,38 @@ abstract class ORMLiveTestCase extends BaseTestCase
 	}
 
 	/**
+	 * A created entity answers a value of the same shape as one read back.
+	 *
+	 * The default of a bool column used to be kept in its database form, so a freshly created entity
+	 * answered `0` or `1` where a read answered `false` or `true`: one row, two shapes, and the type a
+	 * client was generated from said boolean.
+	 */
+	public function testACreatedEntityAnswersTheSameShapeAsOneReadBack(): void
+	{
+		$ctrl = ORM::ctrl(static::$db->getTableOrFail('clients'));
+
+		// `client_valid` is not given: the column's default fills it.
+		$created = $ctrl->addItem([
+			'client_first_name' => 'Bool',
+			'client_last_name'  => 'Default_' . \uniqid(),
+			'client_given_name' => 'BD',
+			'client_gender'     => 'male',
+		]);
+
+		self::assertTrue($created->valid, 'the default of a bool column is a bool');
+		self::assertTrue($created->toArray()['client_valid']);
+
+		$read = $ctrl->getItem(ORMOptions::makeFromFilters(['client_id' => $created->id]));
+
+		self::assertNotNull($read);
+		self::assertSame(
+			$created->toArray()['client_valid'],
+			$read->toArray()['client_valid'],
+			'what a creation answers and what a read answers are the same value'
+		);
+	}
+
+	/**
 	 * getItems() answers the page the query asks for, not every row.
 	 *
 	 * It reads in chunks (`lazy()`), and a chunk used to replace the LIMIT of the query: an offset page
