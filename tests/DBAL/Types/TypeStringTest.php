@@ -83,6 +83,49 @@ final class TypeStringTest extends BaseTestCase
 		self::assertSame('hello', $t->validate('hello world')->getCleanValue());
 	}
 
+	/**
+	 * Truncating must never cut a character in half.
+	 *
+	 * `max` counts bytes, as the column's own limit does, but a multi-byte character sitting on the
+	 * boundary used to be split: the clean value was invalid UTF-8.
+	 */
+	public function testStringTruncateDoesNotSplitACharacter(): void
+	{
+		$t = (new TypeString())->max(9)->truncate();
+		// 8 ASCII bytes then a two-byte character: the boundary falls inside it.
+		$clean = $t->validate('abcdefgh' . "\u{e9}")->getCleanValue();
+
+		self::assertSame('abcdefgh', $clean);
+		self::assertTrue(\mb_check_encoding($clean, 'UTF-8'));
+		self::assertLessThanOrEqual(9, \strlen($clean));
+	}
+
+	/**
+	 * The whole point of the fix: a truncated value must still be encodable.
+	 *
+	 * `json_encode()` answers `false` for malformed UTF-8, so a single split character used to break
+	 * the encoding of the entire response that carried it, not just that one field.
+	 */
+	public function testStringTruncatedValueStaysEncodable(): void
+	{
+		$t = (new TypeString())->max(9)->truncate();
+
+		foreach (['abcdefgh' . "\u{e9}", "\u{e9}" . 'abcdefgh', \str_repeat("\u{4e2d}", 5)] as $value) {
+			$clean = $t->validate($value)->getCleanValue();
+
+			self::assertIsString(\json_encode(['v' => $clean]), 'not encodable: ' . \bin2hex((string) $clean));
+			self::assertLessThanOrEqual(9, \strlen((string) $clean));
+		}
+	}
+
+	/** A cut that falls on a boundary keeps every character it fits. */
+	public function testStringTruncateKeepsWholeCharactersThatFit(): void
+	{
+		// Three three-byte characters: exactly 9 bytes, so nothing is lost.
+		$t = (new TypeString())->max(9)->truncate();
+		self::assertSame(\str_repeat("\u{4e2d}", 3), $t->validate(\str_repeat("\u{4e2d}", 4))->getCleanValue());
+	}
+
 	public function testStringPatternValid(): void
 	{
 		$t = (new TypeString())->pattern('/^[a-z]+$/');

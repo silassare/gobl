@@ -1,5 +1,14 @@
 ### Unreleased (3.0.x-dev)
 
+-   `TypeString` no longer truncates in the middle of a character. `max` counts
+    bytes, as the column's own limit does, but the cut used `substr()`, so a
+    multi-byte character sitting on the boundary was split and the clean value
+    was invalid UTF-8. `json_encode()` answers `false` for malformed UTF-8, so
+    a single truncated value broke the encoding of the whole response carrying
+    it, not merely that field. The cut is now `mb_strcut()`, which stays within
+    the byte limit and never splits a character: a value simply loses one more
+    character when the boundary falls inside one. Reachable by any `TypeString`
+    with both `max()` and `truncate()`. **Gobl now requires `ext-mbstring`.**
 -   A `string` pattern must be portable: `TypeString::pattern()` (and the
     `pattern` option of a schema) refuses a pattern JavaScript would read
     differently or not at all (possessive quantifiers, `\A`, POSIX classes,

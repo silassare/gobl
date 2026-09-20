@@ -398,7 +398,11 @@ final class TypeString extends BaseType
 				return;
 			}
 
-			$value = \substr($value, 0, $max);
+			// Cut on a character boundary, never inside one. `max` counts bytes, as the checks above
+			// do and as the column's own limit does, but `substr()` would split a multi-byte character
+			// sitting on the boundary: the clean value was then invalid UTF-8, and `json_encode()` of
+			// any response carrying it answered false, so the whole answer failed to encode.
+			$value = \mb_strcut($value, 0, $max, 'UTF-8');
 		}
 
 		$pattern = $this->getOption('pattern');
