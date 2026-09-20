@@ -1,5 +1,15 @@
 ### Unreleased (3.0.x-dev)
 
+-   A `string` pattern must be portable: `TypeString::pattern()` (and the
+    `pattern` option of a schema) refuses a pattern JavaScript would read
+    differently or not at all (possessive quantifiers, `\A`, POSIX classes,
+    flags other than `i`, `m`, `s`, `u`, ...), saying why and where, since a
+    client checks the same pattern in the browser (the check itself lives in
+    php-utils, `PHPUtils\PortablePattern`, which needs php-utils >= the release
+    carrying it). A pattern now runs in
+    Unicode mode, and `$` without `m` matches only at the very end of the
+    value, not before a final newline: `"abc\n"` no longer matches `~^abc$~`,
+    and a value that is not valid UTF-8 matches nothing.
 -   `ORMResults::getItems()` (and `lazy()`) no longer answers every row of a
     limited query. It reads in chunks, and each chunk replaced the `LIMIT` the
     query carried, so an offset page (`max`, `page`) returned the whole table;

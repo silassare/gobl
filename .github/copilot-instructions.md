@@ -67,6 +67,7 @@ Relation methods: `hasMany()`, `hasOne()`, `belongsTo()`, `belongsToMany()`.
 - `ref:table.column` — shared type instance; `cp:table.column` — cloned copy
 - Forbidden column/relation names: `save`, `saved`, `is_saved`, `new`, `is_new`, `table`, `crud`, `qb`, `ctrl`, `results`, `register_collection`, `computed_value` (see `Gobl::getForbiddenColumnsName()`)
 - Supported types: `bigint`, `int`, `bool`, `string`, `decimal`, `float`, `date`, `enum`, `json`, `list`, `map`
+- A `string` pattern is written as PHP writes one (`~^[a-z]+$~i`) but must be **portable**: the subset JavaScript reads the same way, flags `i`, `m`, `s`, `u` only (php-utils `PHPUtils\PortablePattern`, contract in oliup-suite `docs/specs/patterns.md`). It runs in Unicode mode with `$` at the very end of the value (`PortablePattern::toPcre()` adds `u` and, without `m`, `D`).
 - `json`/`list`/`map` use native JSON storage by default (`native_json=true`). Opt out with `->nativeJson(false)`.
 - Column relations in array schema: auto-detected from FK constraints; `link` key only needed for morph/through/custom join.
 

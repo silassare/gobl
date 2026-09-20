@@ -18,7 +18,9 @@ use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
 use Gobl\ORM\ORMTypeHint;
+use InvalidArgumentException;
 use Override;
+use PHPUtils\PortablePattern;
 
 /**
  * Class TypeString.
@@ -115,6 +117,9 @@ final class TypeString extends BaseType
 	/**
 	 * Sets the string pattern (regular expression).
 	 *
+	 * Written as PHP writes one (`~^[a-z]+$~i`), in the subset JavaScript reads the same way
+	 * ({@see PortablePattern}); it runs in Unicode mode, `$` matching only at the end of the value.
+	 *
 	 * @param string      $pattern
 	 * @param null|string $message
 	 *
@@ -124,8 +129,11 @@ final class TypeString extends BaseType
 	 */
 	public function pattern(string $pattern, ?string $message = null): static
 	{
-		if (false === \preg_match($pattern, '')) {
-			throw new TypesException(\sprintf('invalid regular expression: %s', $pattern));
+		try {
+			// Only a pattern PHP and JavaScript read the same way: a client checks it too.
+			PortablePattern::assertPortable($pattern);
+		} catch (InvalidArgumentException $e) {
+			throw new TypesException($e->getMessage(), null, $e);
 		}
 
 		!empty($message) && $this->msg('string_pattern_check_fails', $message);
@@ -395,7 +403,7 @@ final class TypeString extends BaseType
 
 		$pattern = $this->getOption('pattern');
 
-		if (null !== $pattern && !\preg_match($pattern, $value)) {
+		if (null !== $pattern && 1 !== \preg_match(PortablePattern::toPcre($pattern), $value)) {
 			$subject->reject($this->msg('string_pattern_check_fails'), $debug);
 
 			return;
