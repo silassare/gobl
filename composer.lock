@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "22fd7cad831a5fa879618f8f4001a58d",
+    "content-hash": "f351bb3fb79e400f3d9fabd848289931",
     "packages": [
         {
             "name": "oliup/code-generator",
@@ -8212,7 +8212,8 @@
         "php": ">=8.1",
         "ext-pdo": "*",
         "ext-json": "*",
-        "ext-bcmath": "*"
+        "ext-bcmath": "*",
+        "ext-mbstring": "*"
     },
     "platform-dev": {},
     "platform-overrides": {
