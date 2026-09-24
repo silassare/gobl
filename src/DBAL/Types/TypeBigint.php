@@ -29,8 +29,12 @@ use Override;
  */
 final class TypeBigint extends BaseType
 {
-	public const BIGINT_REG          = '~[-+]?(?:[1-9]\d*|0)~';
-	public const BIGINT_UNSIGNED_REG = '~[+]?(?:[1-9]\d*|0)~';
+	/**
+	 * A whole integer, and nothing around it. Anchored: without `^` and `$` any value that merely
+	 * contained digits matched, so `1.5` and `1e5` passed as bigints and `-5` as an unsigned one.
+	 */
+	public const BIGINT_REG          = '~^[-+]?(?:[1-9]\d*|0)$~D';
+	public const BIGINT_UNSIGNED_REG = '~^[+]?(?:[1-9]\d*|0)$~D';
 	public const NAME                = 'bigint';
 
 	/**

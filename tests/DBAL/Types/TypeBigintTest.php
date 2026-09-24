@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\DBAL\Types;
 
+use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\TypeBigint;
 use Gobl\Tests\BaseTestCase;
@@ -84,5 +85,62 @@ final class TypeBigintTest extends BaseTestCase
 		$t = (new TypeBigint())->max('100');
 		$this->expectException(TypesInvalidValueException::class);
 		$t->validate('200')->getCleanValue();
+	}
+
+	/**
+	 * A bigint is a whole integer and nothing else. The pattern was unanchored, so any value that
+	 * merely contained digits matched.
+	 *
+	 * @dataProvider provideNotABigint
+	 */
+	public function testBigintRejectsWhatIsNotAWholeInteger(string $value): void
+	{
+		$this->expectException(TypesInvalidValueException::class);
+		(new TypeBigint())->validate($value);
+	}
+
+	/** @return iterable<string, array{string}> */
+	public static function provideNotABigint(): iterable
+	{
+		yield 'a fraction' => ['1.5'];
+		yield 'an exponent' => ['1e5'];
+		yield 'a trailing newline' => ["5\n"];
+		yield 'leading zeros' => ['007'];
+	}
+
+	/** An unsigned bigint used to accept "-5", which a strict MySQL then refused on insert. */
+	public function testUnsignedBigintRejectsANegative(): void
+	{
+		$this->expectException(TypesInvalidValueException::class);
+		(new TypeBigint())->unsigned()->validate('-5');
+	}
+
+	/**
+	 * Bounds past 2^53 are compared exactly. They used to go through a float, so a max of ...992
+	 * accepted ...993.
+	 */
+	public function testBigintBoundsHoldPastTwoToTheFiftyThree(): void
+	{
+		$max = (new TypeBigint())->max('9007199254740992');
+		self::assertSame('9007199254740992', $max->validate('9007199254740992')->getCleanValue());
+
+		$min = (new TypeBigint())->min('9007199254740993');
+		self::assertSame('9007199254740993', $min->validate('9007199254740993')->getCleanValue());
+
+		$this->expectException(TypesInvalidValueException::class);
+		$max->validate('9007199254740993');
+	}
+
+	public function testBigintMinPastTwoToTheFiftyThreeRefusesTheValueBelow(): void
+	{
+		$this->expectException(TypesInvalidValueException::class);
+		(new TypeBigint())->min('9007199254740993')->validate('9007199254740992');
+	}
+
+	/** A schema cannot declare a bound that is not a whole integer either. */
+	public function testBigintRefusesAFractionalBoundInItsDeclaration(): void
+	{
+		$this->expectException(TypesException::class);
+		(new TypeBigint())->min('1.5');
 	}
 }
