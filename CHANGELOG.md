@@ -1,5 +1,36 @@
 ### Unreleased (3.0.x-dev)
 
+- `TypeDate::microseconds()` keeps what was set before it. It replaces the
+  base type with a decimal one, and the new base knew nothing of the bounds and
+  nullability set on the old: `min(10)->max(20)->microseconds()` still
+  reported `min` and `max` but accepted any value. The bounds (with their
+  messages) and nullability are set again on the new base, so the order of the
+  calls no longer matters. A type built from an array was not affected
+  (`configure()` applies the precision first).
+- `ORMUniversalType::isValidValue()` checks `DECIMAL` and `BIGINT` with `$`
+  meaning the very end (`D`): a trailing newline passed. A `BIGINT` element is
+  now what a bigint column accepts (`TypeBigint::BIGINT_REG`): no leading zeros,
+  an optional sign.
+- A `bigint` is a **whole integer**. Its patterns were unanchored, so any value
+  that merely contained digits matched: `1.5` and `1e5` were accepted and
+  stored as they came, and an **unsigned** bigint accepted `-5`, which a strict
+  MySQL then refused on insert (a 500). A value, and a bound or default a
+  schema declares, must now be an integer written in digits, with an optional
+  sign and no leading zeros.
+- **`bigint` and `decimal` bounds are compared exactly.** Both sides went
+  through `sprintf('%F', ...)` before `bccomp()`, which made floats of them and
+  kept six places: a bigint `max` of `9007199254740992` accepted
+  `9007199254740993`, and a decimal `min` of `0.0000005` accepted
+  `0.0000001`. They are now written out as exact decimals, exponents included.
+- An `int` **refuses a fractional value** instead of cutting it: `(int)` turned
+  `3.9` into `3` without a word, and `-0.5` into `0`, which then passed the
+  unsigned check. A whole value is still accepted however it is written (`3`,
+  `3.0`, `1e3`).
+- An **int-backed enum reads the text of an integer** (`"2"`), which is what an
+  HTML form and a multipart body send; `::from()` wants an int, so it used to
+  be refused and such an enum could only be submitted as JSON. Only a plain
+  integer is read (`2.0`, ` 2`, `02` stay refused), and a string-backed enum is
+  unchanged.
 - The TypeScript bundle types an **enum column with its enum**. `ts-bundle`
   already generated `enums.ts`, but an entity typed such a column as a bare
   `string`: the enum class travels on the PHP type hint

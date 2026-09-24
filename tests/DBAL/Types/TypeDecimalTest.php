@@ -86,4 +86,31 @@ final class TypeDecimalTest extends BaseTestCase
 		$this->expectException(TypesInvalidValueException::class);
 		$t->validate('200')->getCleanValue();
 	}
+
+	/**
+	 * Bounds are compared exactly, however many places they carry. They used to be rounded to six
+	 * places through a float, so a min of 0.0000005 accepted 0.0000001.
+	 */
+	public function testDecimalBoundsHoldPastSixPlaces(): void
+	{
+		$t = (new TypeDecimal())->min('0.0000005');
+		self::assertSame('0.0000005', $t->validate('0.0000005')->getCleanValue());
+
+		$this->expectException(TypesInvalidValueException::class);
+		$t->validate('0.0000001');
+	}
+
+	/** An exponent is read exactly, so 1e3 is a thousand and not something smaller. */
+	public function testDecimalBoundReadsAnExponent(): void
+	{
+		$this->expectException(TypesInvalidValueException::class);
+		(new TypeDecimal())->max('100')->validate('1e3');
+	}
+
+	/** Trailing zeros change nothing: 1.50 is 1.5. */
+	public function testDecimalBoundIgnoresTrailingZeros(): void
+	{
+		self::assertSame('1.50', (new TypeDecimal())->max('1.5')->validate('1.50')->getCleanValue());
+		self::assertSame('-1.0', (new TypeDecimal())->min('-1')->validate('-1.0')->getCleanValue());
+	}
 }

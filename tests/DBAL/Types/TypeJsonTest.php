@@ -301,4 +301,25 @@ final class TypeJsonTest extends BaseTestCase
 		$this->expectException(TypesInvalidValueException::class);
 		$map->validate('not-an-array')->getCleanValue();
 	}
+
+	/**
+	 * A `DECIMAL` or `BIGINT` element is checked with `$` meaning the very end: without `D`, a trailing
+	 * newline passed.
+	 */
+	public function testUniversalDecimalAndBigintRefuseATrailingNewline(): void
+	{
+		self::assertFalse(ORMUniversalType::DECIMAL->isValidValue("1.5\n"));
+		self::assertFalse(ORMUniversalType::BIGINT->isValidValue("5\n"));
+		self::assertTrue(ORMUniversalType::DECIMAL->isValidValue('1.5'));
+		self::assertTrue(ORMUniversalType::BIGINT->isValidValue('5'));
+	}
+
+	/** A `BIGINT` element is what a bigint column accepts: no leading zeros, an optional sign. */
+	public function testUniversalBigintFollowsTheBigintColumn(): void
+	{
+		self::assertFalse(ORMUniversalType::BIGINT->isValidValue('007'));
+		self::assertTrue(ORMUniversalType::BIGINT->isValidValue('-42'));
+		self::assertTrue(ORMUniversalType::BIGINT->isValidValue(42));
+		self::assertFalse(ORMUniversalType::BIGINT->isValidValue('1.5'));
+	}
 }

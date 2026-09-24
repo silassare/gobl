@@ -618,6 +618,12 @@ abstract class Type implements TypeInterface
 	/**
 	 * Checks if the first argument is the smallest.
 	 *
+	 * Both sides are compared as **exact** decimals when they can be written as one, which is what a
+	 * bigint past 2^53 and a decimal with many places need. They used to go through
+	 * `sprintf('%F', ...)` first, which turns a value into a float and keeps six places: a bigint max of
+	 * `9007199254740992` then accepted `9007199254740993`, and a decimal min of `0.0000005` accepted
+	 * `0.0000001`.
+	 *
 	 * @param bool  $or_equal
 	 * @param mixed $a
 	 * @param mixed $b
@@ -626,15 +632,100 @@ abstract class Type implements TypeInterface
 	 */
 	final protected static function isLt(mixed $a, mixed $b, bool $or_equal): bool
 	{
-		if ((\is_string($a) || \is_string($b)) && \function_exists('bccomp')) {
-			$a = \sprintf('%F', $a);
-			$b = \sprintf('%F', $b);
-			$c = \bccomp($a, $b);
+		$x = self::toExactDecimal($a);
+		$y = self::toExactDecimal($b);
+
+		if (null !== $x && null !== $y) {
+			$c = \bccomp($x, $y, \max(self::decimalPlaces($x), self::decimalPlaces($y)));
 
 			return $or_equal ? $c <= 0 : $c < 0;
 		}
 
 		return $or_equal ? $a <= $b : $a < $b;
+	}
+
+	/**
+	 * Writes a number as a plain decimal string that `bccomp()` reads exactly: no exponent, no `+`, no
+	 * surrounding whitespace, no leading zeros, and no float in between.
+	 *
+	 * A float is read from its shortest representation, which is the value it really holds; a numeric
+	 * string is expanded digit by digit, exponent included (`1.5e-7` is `0.00000015`).
+	 *
+	 * `null` when the value is not a number, or when its exponent is so large that writing it out would
+	 * cost more than it is worth: the caller then compares natively, which orders it correctly anyway.
+	 *
+	 * @param mixed $value
+	 *
+	 * @return null|string
+	 */
+	private static function toExactDecimal(mixed $value): ?string
+	{
+		if (\is_int($value)) {
+			return (string) $value;
+		}
+
+		if (\is_float($value)) {
+			if (!\is_finite($value)) {
+				return null;
+			}
+
+			$value = (string) $value;
+		} elseif (\is_string($value)) {
+			$value = \trim($value, " \t\n\r\v\f");
+
+			if (!\is_numeric($value)) {
+				return null;
+			}
+		} else {
+			return null;
+		}
+
+		if (!\preg_match('~^([+-]?)(\d*)(?:\.(\d*))?(?:[eE]([+-]?\d+))?$~', $value, $m)) {
+			return null;
+		}
+
+		$int  = $m[2];
+		$frac = $m[3] ?? '';
+		$exp  = isset($m[4]) && '' !== $m[4] ? (int) $m[4] : 0;
+
+		if (\abs($exp) > 1000) {
+			return null;
+		}
+
+		$digits = $int . $frac;
+		$point  = \strlen($int) + $exp;
+
+		if ($point < 0) {
+			$digits = \str_repeat('0', -$point) . $digits;
+			$point  = 0;
+		} elseif ($point > \strlen($digits)) {
+			$digits .= \str_repeat('0', $point - \strlen($digits));
+		}
+
+		$ip = \ltrim(\substr($digits, 0, $point), '0');
+		$fp = \rtrim(\substr($digits, $point), '0');
+
+		if ('' === $ip) {
+			$ip = '0';
+		}
+
+		$sign = ('-' === $m[1] && ('0' !== $ip || '' !== $fp)) ? '-' : '';
+
+		return $sign . $ip . ('' !== $fp ? '.' . $fp : '');
+	}
+
+	/**
+	 * The number of places after the point of an exact decimal string.
+	 *
+	 * @param string $decimal
+	 *
+	 * @return int
+	 */
+	private static function decimalPlaces(string $decimal): int
+	{
+		$point = \strpos($decimal, '.');
+
+		return false === $point ? 0 : \strlen($decimal) - $point - 1;
 	}
 
 	/**

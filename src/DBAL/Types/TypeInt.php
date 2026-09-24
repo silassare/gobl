@@ -254,8 +254,31 @@ final class TypeInt extends BaseType
 			return;
 		}
 
-		// coerce the value to a integer
-		$value = (int) $value;
+		// A number whose value is whole, however it is written (`3`, `3.0`, `1e3`). A fractional one is
+		// refused rather than cut: `(int)` used to turn `3.9` into `3` without a word, and turned `-0.5`
+		// into `0`, which then passed the unsigned check below.
+		// A float is exact over the whole range an int column holds (32 bits), so reading a numeric
+		// string as one loses nothing that is checked below.
+		$number = \is_int($value) ? $value : (float) $value;
+
+		if (\is_float($number) && (!\is_finite($number) || \floor($number) !== $number)) {
+			$subject->reject($this->msg('invalid_int_type'), $debug);
+
+			return;
+		}
+
+		// Checked against the limits before the cast, which past them would not be meaningful.
+		if ($number < self::INT_SIGNED_MIN || $number > self::INT_UNSIGNED_MAX) {
+			$subject->reject($this->msg(
+				$number < 0
+					? 'int_value_must_be_gt_or_equal_to_allowed_int_min'
+					: 'int_value_must_be_lt_or_equal_to_allowed_int_max'
+			), $debug);
+
+			return;
+		}
+
+		$value = (int) $number;
 
 		if (0 > $value && $this->isUnsigned()) {
 			$subject->reject($this->msg('invalid_unsigned_int_type'), $debug);

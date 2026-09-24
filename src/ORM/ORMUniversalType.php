@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\ORM;
 
+use Gobl\DBAL\Types\TypeBigint;
 use PHPUtils\Store\Map;
 
 /**
@@ -65,8 +66,10 @@ enum ORMUniversalType: string
 			ORMUniversalType::INT                            => \is_int($value),
 			ORMUniversalType::FLOAT                          => \is_float($value),
 			ORMUniversalType::BOOL                           => \is_bool($value),
-			ORMUniversalType::DECIMAL                        => \is_numeric($value) && \preg_match('/^-?\d+(\.\d+)?$/', (string) $value),
-			ORMUniversalType::BIGINT                         => \is_numeric($value) && \preg_match('/^-?\d+$/', (string) $value),
+			// `D`: without it `$` matched before a trailing newline, so "5\n" was a valid element.
+			ORMUniversalType::DECIMAL                        => \is_numeric($value) && \preg_match('/^-?\d+(\.\d+)?$/D', (string) $value),
+			// The same rule as a bigint column, so an element and a column never disagree on what a bigint is.
+			ORMUniversalType::BIGINT                         => \is_numeric($value) && \preg_match(TypeBigint::BIGINT_REG, (string) $value),
 			ORMUniversalType::NULL                           => null === $value,
 			ORMUniversalType::ANY, ORMUniversalType::UNKNOWN => true,
 		};

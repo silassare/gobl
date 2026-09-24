@@ -42,16 +42,20 @@ final class TypeIntTest extends BaseTestCase
 		self::assertSame(5, $t->validate('5')->getCleanValue());
 	}
 
-	public function testIntAcceptFloat(): void
+	/** A fractional float used to be cut to 3; it is refused since 2026-09-24. */
+	public function testIntRefusesAFractionalFloat(): void
 	{
 		$t = new TypeInt();
-		self::assertSame(3, $t->validate(3.14)->getCleanValue());
+		$this->expectException(TypesInvalidValueException::class);
+		$t->validate(3.14);
 	}
 
-	public function testIntAcceptFloatString(): void
+	/** A fractional string used to be cut to 3; it is refused since 2026-09-24. */
+	public function testIntRefusesAFractionalFloatString(): void
 	{
 		$t = new TypeInt();
-		self::assertSame(3, $t->validate('3.14')->getCleanValue());
+		$this->expectException(TypesInvalidValueException::class);
+		$t->validate('3.14');
 	}
 
 	public function testIntRejectsNonNumericString(): void
@@ -125,5 +129,46 @@ final class TypeIntTest extends BaseTestCase
 	{
 		$this->expectException(TypesException::class);
 		(new TypeInt())->min(10)->max(5);
+	}
+
+	/**
+	 * A fractional value is refused, not cut. `(int)` used to turn 3.9 into 3 without a word.
+	 *
+	 * @dataProvider provideFractional
+	 */
+	public function testIntRefusesAFractionalValue(mixed $value): void
+	{
+		$this->expectException(TypesInvalidValueException::class);
+		(new TypeInt())->validate($value);
+	}
+
+	/** @return iterable<string, array{mixed}> */
+	public static function provideFractional(): iterable
+	{
+		yield 'a fractional string' => ['3.9'];
+		yield 'a fractional float' => [3.9];
+		yield 'a negative fraction' => ['-0.5'];
+	}
+
+	/** A whole value is accepted however it is written. */
+	public function testIntAcceptsAWholeValueWrittenAnyWay(): void
+	{
+		$t = new TypeInt();
+		self::assertSame(3, $t->validate('3.0')->getCleanValue());
+		self::assertSame(3, $t->validate(3.0)->getCleanValue());
+		self::assertSame(1000, $t->validate('1e3')->getCleanValue());
+	}
+
+	/** -0.5 used to become 0 and pass the unsigned check. */
+	public function testUnsignedIntRefusesANegativeFraction(): void
+	{
+		$this->expectException(TypesInvalidValueException::class);
+		(new TypeInt())->unsigned()->validate('-0.5');
+	}
+
+	public function testIntRefusesAValuePastTheSignedMax(): void
+	{
+		$this->expectException(TypesInvalidValueException::class);
+		(new TypeInt())->validate('2147483648');
 	}
 }
