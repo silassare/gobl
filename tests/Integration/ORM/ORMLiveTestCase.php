@@ -474,7 +474,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 		$second = \iterator_to_array(ORM::query($table)->find($options2)->getItems(), false);
 
 		self::assertCount(2, $second, 'the second page holds what max asks for');
-		self::assertNotEquals(
+		self::assertNotSame(
 			\array_map(static fn ($e) => (string) $e->id, $first),
 			\array_map(static fn ($e) => (string) $e->id, $second),
 			'a page is not the previous one again'
