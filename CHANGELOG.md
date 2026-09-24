@@ -7,6 +7,12 @@
   entity now imports the enums its own columns use and types them with those,
   so a case added in PHP reaches the client on the next build instead of
   passing as any string.
+- The TypeScript bundle declares a **row type per entity** (`EntityRow` beside
+  `Entity`): its columns with the table prefix, which is what a REST answer
+  and a form submission hold, while the entity exposes them unprefixed. It is
+  derived from the entity with `GoblRowOf`, imported from gobl-utils-ts, so a
+  generated bundle needs **gobl-utils-ts > 2.0.0**, the first release that
+  exports it.
 - `TypeString` no longer truncates in the middle of a character. `max` counts
   bytes, as the column's own limit does, but the cut used `substr()`, so a
   multi-byte character sitting on the boundary was split and the clean value
