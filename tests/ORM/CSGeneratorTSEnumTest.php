@@ -18,6 +18,7 @@ use Gobl\DBAL\Types\TypeString;
 use Gobl\ORM\Generators\CSGeneratorTS;
 use Gobl\Tests\BaseTestCase;
 use Gobl\Tests\Fixtures\SampleKind;
+use OLIUP\CG\PHPEnum;
 
 /**
  * Class CSGeneratorTSEnumTest.
@@ -62,6 +63,6 @@ final class CSGeneratorTSEnumTest extends BaseTestCase
 		$generator = new CSGeneratorTS(self::getNewDbInstanceWithSchema());
 		$name      = $generator->getReadTypeHintString(new TypeEnum(SampleKind::class));
 
-		self::assertSame((new \OLIUP\CG\PHPEnum(SampleKind::class))->getName(), $name);
+		self::assertSame((new PHPEnum(SampleKind::class))->getName(), $name);
 	}
 }
