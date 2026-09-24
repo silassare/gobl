@@ -22,6 +22,7 @@ use Gobl\ORM\ORMTypeHint;
 use OLIUP\CG\PHPEnum;
 use OLIUP\CG\PHPType;
 use Override;
+use ReflectionEnum;
 use Throwable;
 
 /**
@@ -265,6 +266,17 @@ final class TypeEnum extends Type
 	protected function toEnumValue(int|string $value): BackedEnum
 	{
 		$cls = $this->getEnumClass();
+
+		// An int-backed enum given the text of an integer, which is what every field of an HTML form or
+		// of a multipart body is: `from('1')` is a TypeError under strict types, so such an enum could
+		// only be submitted as JSON. Only a plain integer is read; `1.0`, ` 1` or `01` are not.
+		if (
+			\is_string($value)
+			&& 'int' === (string) (new ReflectionEnum($cls))->getBackingType()
+			&& \preg_match('~^-?(?:0|[1-9]\d*)$~D', $value)
+		) {
+			$value = (int) $value;
+		}
 
 		return $cls::from($value);
 	}

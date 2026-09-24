@@ -108,12 +108,14 @@ final class TypeEnumTest extends BaseTestCase
 		self::assertSame(TestPriority::Medium, $t->validate(2)->getCleanValue());
 	}
 
-	public function testValidateIntBackedWithStringValueThrows(): void
+	/**
+	 * `::from()` wants an int, so the text of one used to be refused; since 2026-09-24 it is read, as
+	 * a form sends it.
+	 */
+	public function testValidateIntBackedWithIntegerStringValue(): void
 	{
-		// PHP int-backed enums require int, not string, in ::from()
 		$t = new TypeEnum(TestPriority::class);
-		$this->expectException(TypesInvalidValueException::class);
-		$t->validate('1')->getCleanValue();
+		self::assertSame(TestPriority::Low, $t->validate('1')->getCleanValue());
 	}
 
 	public function testValidateIntBackedWithInvalidValueThrows(): void
@@ -237,5 +239,44 @@ final class TypeEnumTest extends BaseTestCase
 	{
 		$t = new TypeEnum(TestStatus::class);
 		self::assertNull($t->getEmptyValueOfType());
+	}
+
+	/**
+	 * An int-backed enum reads the text of an integer, which is what an HTML form and a multipart body
+	 * send: `from("2")` is a TypeError under strict types, so it used to be refused.
+	 */
+	public function testIntBackedEnumReadsTheTextOfAnInteger(): void
+	{
+		$t = new TypeEnum(TestPriority::class);
+		self::assertSame(TestPriority::Medium, $t->validate('2')->getCleanValue());
+		self::assertSame(TestPriority::Medium, $t->validate(2)->getCleanValue());
+	}
+
+	/**
+	 * Only a plain integer: anything that is not written as one stays refused.
+	 *
+	 * @dataProvider provideNotAPlainInteger
+	 */
+	public function testIntBackedEnumRefusesWhatIsNotAPlainInteger(string $value): void
+	{
+		$this->expectException(TypesInvalidValueException::class);
+		(new TypeEnum(TestPriority::class))->validate($value);
+	}
+
+	/** @return iterable<string, array{string}> */
+	public static function provideNotAPlainInteger(): iterable
+	{
+		yield 'a decimal' => ['2.0'];
+		yield 'a leading space' => [' 2'];
+		yield 'a leading zero' => ['02'];
+		yield 'a case name' => ['Medium'];
+		yield 'no such case' => ['9'];
+	}
+
+	/** A string-backed enum is unchanged: its value, never its case name. */
+	public function testStringBackedEnumStillRefusesACaseName(): void
+	{
+		$this->expectException(TypesInvalidValueException::class);
+		(new TypeEnum(TestStatus::class))->validate('Active');
 	}
 }
