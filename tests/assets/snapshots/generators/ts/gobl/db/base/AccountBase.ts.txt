@@ -9,7 +9,7 @@
  */
 
 
-import {GoblEntity} from 'gobl-utils-ts';
+import {GoblEntity, type GoblRowOf} from 'gobl-utils-ts';
 
 
 export default abstract class AccountBase extends GoblEntity {
@@ -78,3 +78,10 @@ export default abstract class AccountBase extends GoblEntity {
 	set valid(v: boolean) { this._set(AccountBase.COL_VALID, v); }
 
 }
+
+/**
+ * The row of `Account`: its columns with the table prefix, as the API sends them.
+ *
+ * Derived from the entity, so the columns are described once.
+ */
+export type AccountRow = GoblRowOf<AccountBase, 'account'>;

@@ -9,8 +9,9 @@
  */
 {/if}
 {@raw}
-import {GoblEntity} from 'gobl-utils-ts';
-{/raw}
+import {GoblEntity, type GoblRowOf} from 'gobl-utils-ts';
+{/raw}{@if $length(enums_used)}
+import {='{'} {@each name:i in enums_used}{@if i}, {/if}{= name}{/each} {='}'} from '../../enums';{/if}
 
 export default abstract class {= class.entity_base} extends GoblEntity {='{'}
 	public static readonly PREFIX = '{= columns_prefix}';
@@ -44,3 +45,10 @@ export default abstract class {= class.entity_base} extends GoblEntity {='{'}
 	set {= column.name}(v: {= column.write_type_hint}) {='{'} this._set({= class.entity_base}.{= column.const}, v); {='}'}
 {/each}
 {='}'}
+
+/**
+ * The row of `{= class.entity}`: its columns with the table prefix, as the API sends them.
+ *
+ * Derived from the entity, so the columns are described once.
+ */
+export type {= class.entity}Row = GoblRowOf<{= class.entity_base}, '{= columns_prefix}'>;

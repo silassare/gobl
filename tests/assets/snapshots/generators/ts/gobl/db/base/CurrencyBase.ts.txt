@@ -9,7 +9,7 @@
  */
 
 
-import {GoblEntity} from 'gobl-utils-ts';
+import {GoblEntity, type GoblRowOf} from 'gobl-utils-ts';
 
 
 export default abstract class CurrencyBase extends GoblEntity {
@@ -68,3 +68,10 @@ export default abstract class CurrencyBase extends GoblEntity {
 	set valid(v: boolean) { this._set(CurrencyBase.COL_VALID, v); }
 
 }
+
+/**
+ * The row of `Currency`: its columns with the table prefix, as the API sends them.
+ *
+ * Derived from the entity, so the columns are described once.
+ */
+export type CurrencyRow = GoblRowOf<CurrencyBase, 'ccy'>;
