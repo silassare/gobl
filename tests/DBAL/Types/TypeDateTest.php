@@ -80,4 +80,42 @@ final class TypeDateTest extends BaseTestCase
 		self::assertIsString($result);
 		self::assertNotEmpty($result);
 	}
+
+	/**
+	 * The order of the calls does not matter: `microseconds()` replaces the base type, and used to drop
+	 * the bounds set before it while the type still reported them.
+	 */
+	public function testMicrosecondsKeepsTheBoundsSetBeforeIt(): void
+	{
+		$t = (new TypeDate())->min(10)->max(20)->microseconds();
+
+		self::assertSame('15', $t->validate('15')->getCleanValue());
+
+		$this->expectException(TypesInvalidValueException::class);
+		$t->validate('5');
+	}
+
+	public function testMicrosecondsKeepsTheUpperBoundSetBeforeIt(): void
+	{
+		$this->expectException(TypesInvalidValueException::class);
+		(new TypeDate())->min(10)->max(20)->microseconds()->validate('99');
+	}
+
+	/** A custom message given with a bound survives the base being replaced. */
+	public function testMicrosecondsKeepsTheMessageOfABound(): void
+	{
+		$t = (new TypeDate())->min(10, 'too_early')->microseconds();
+
+		try {
+			$t->validate('5');
+			self::fail('A value under the bound was accepted.');
+		} catch (TypesInvalidValueException $e) {
+			self::assertSame('too_early', $e->getPrevious()?->getMessage());
+		}
+	}
+
+	public function testMicrosecondsKeepsNullableSetBeforeIt(): void
+	{
+		self::assertNull((new TypeDate())->nullable()->microseconds()->validate(null)->getCleanValue());
+	}
 }

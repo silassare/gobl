@@ -35,6 +35,13 @@ final class TypeDate extends Type
 	public const FORMAT_DEFAULT   = \DATE_ATOM;
 
 	/**
+	 * The messages given with the bounds, kept here as well as on the base type, so they survive
+	 * {@see self::microseconds()} replacing the base.
+	 */
+	private ?string $min_message = null;
+	private ?string $max_message = null;
+
+	/**
 	 * TypeDate constructor.
 	 *
 	 * @param null|string $message the error message
@@ -96,7 +103,28 @@ final class TypeDate extends Type
 	{
 		$this->base_type = self::chooseBaseType(true);
 
-		return $this->setOption('precision', 'microseconds');
+		$this->setOption('precision', 'microseconds');
+
+		// A fresh base knows nothing of what was set on the one it replaces, so set it again: the order
+		// of the calls must not matter. `min()->microseconds()` used to drop the bounds silently while
+		// the type still reported them, so a discovered form claimed bounds the server did not enforce.
+		if ($this->isNullable()) {
+			$this->base_type->nullable();
+		}
+
+		$min = $this->getOption('min');
+
+		if (null !== $min) {
+			$this->min($min, $this->min_message);
+		}
+
+		$max = $this->getOption('max');
+
+		if (null !== $max) {
+			$this->max($max, $this->max_message);
+		}
+
+		return $this;
 	}
 
 	/**
@@ -121,6 +149,8 @@ final class TypeDate extends Type
 		$bt = $this->base_type;
 
 		$bt->min($min_parsed, !empty($message) ? $message : 'date_value_must_be_gt_or_equal_to_min');
+
+		$this->min_message = $message;
 
 		return $this->setOption('min', $min);
 	}
@@ -147,6 +177,8 @@ final class TypeDate extends Type
 		$bt = $this->base_type;
 
 		$bt->max($max_parsed, !empty($message) ? $message : 'date_value_must_be_lt_or_equal_to_max');
+
+		$this->max_message = $message;
 
 		return $this->setOption('max', $max);
 	}
