@@ -17,6 +17,7 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Table;
 use Gobl\Gobl;
+use Gobl\ORM\Exceptions\ORMQueryException;
 use Gobl\ORM\Exceptions\ORMRuntimeException;
 use Gobl\ORM\Utils\ORMClassKind;
 use PHPUtils\FS\FSUtils;
@@ -206,6 +207,38 @@ final class ORM
 		$results_class = ORMClassKind::RESULTS->getClassFQN($table);
 
 		return $results_class::new($qb);
+	}
+
+	/**
+	 * Keys a form by the full names of the table's columns.
+	 *
+	 * A form may name a column by its name (`email`) or its full name (`user_email`); what writes it
+	 * (required fields, hydration, queries) reads full names. A key that is not a column is kept as is.
+	 * A column named twice (by both names) is refused: neither value can be chosen over the other.
+	 *
+	 * @param Table               $table the table the form writes
+	 * @param array<array-key, mixed> $form  the form
+	 *
+	 * @return array<array-key, mixed>
+	 *
+	 * @throws ORMQueryException when a column is named twice
+	 */
+	public static function formByFullNames(Table $table, array $form): array
+	{
+		$out = [];
+
+		foreach ($form as $field => $value) {
+			$column    = \is_string($field) ? $table->getColumn($field) : null;
+			$full_name = null !== $column ? $column->getFullName() : $field;
+
+			if (\array_key_exists($full_name, $out)) {
+				throw new ORMQueryException('GOBL_ORM_REQUEST_FIELD_GIVEN_TWICE', ['field' => $full_name]);
+			}
+
+			$out[$full_name] = $value;
+		}
+
+		return $out;
 	}
 
 	/**

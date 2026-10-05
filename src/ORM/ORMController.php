@@ -155,8 +155,9 @@ abstract class ORMController
 		}
 
 		return $this->db->runInTransaction(function () use ($instance, $values): ORMEntity {
-			$values = $this->crud->assertCreate($values)
-				->getForm();
+			// Keyed by full names before the checks, and again after them: a listener may edit the form.
+			$values = ORM::formByFullNames($this->table, $values);
+			$values = ORM::formByFullNames($this->table, $this->crud->assertCreate($values)->getForm());
 
 			$this->fillRequiredFields($values);
 
@@ -192,7 +193,7 @@ abstract class ORMController
 			/** @var TQuery $tq */
 			$tq         = ORM::query($this->table);
 			$action     = $this->crud->assertUpdate($tq, $new_values);
-			$new_values = $action->getForm();
+			$new_values = ORM::formByFullNames($this->table, $action->getForm());
 			$payload    = $this->scopeUpdateValues($new_values);
 
 			$entity = $tq->find($options)->fetchClass();
@@ -228,7 +229,7 @@ abstract class ORMController
 			/** @var TQuery $tq */
 			$tq         = ORM::query($this->table);
 			$action     = $this->crud->assertUpdateAll($tq, $new_values);
-			$new_values = $action->getForm();
+			$new_values = ORM::formByFullNames($this->table, $action->getForm());
 
 			$payload = $this->scopeUpdateValues($new_values);
 

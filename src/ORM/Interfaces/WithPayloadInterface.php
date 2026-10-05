@@ -23,7 +23,8 @@ interface WithPayloadInterface
 	/**
 	 * Gets the form data.
 	 *
-	 * @param null|Table $table optional table to filter form data keys (when provided only keys matching table columns are returned)
+	 * @param null|Table $table optional table to filter form data keys (when provided only keys matching table
+	 *                          columns are returned, by their full names, whichever name the form used)
 	 *
 	 * @return array
 	 */

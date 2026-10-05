@@ -1,5 +1,17 @@
 ### Unreleased (3.0.x-dev)
 
+- **A controller's form names a column by its name or its full name.**
+  `ORMController::addItem()` took a form keyed by column names (`email`) through
+  the CRUD checks, then looked for its required fields by full name
+  (`user_email`) and refused it with `GOBL_ORM_REQUEST_MISSING_FIELDS`; and
+  `ORMOptions::getFormData($table)` silently dropped every key that was not a
+  full name, so an update by column names failed with
+  `GOBL_ORM_REQUEST_NO_FIELDS_TO_UPDATE`. A form is now keyed by full names
+  (`ORM::formByFullNames()`) before the CRUD checks and again after them (a
+  listener may edit it), in `addItem()`, `updateOneItem()` and
+  `updateAllItems()`. A form that names one column by both names is refused with
+  `GOBL_ORM_REQUEST_FIELD_GIVEN_TWICE`. A private column is guarded whichever
+  name the form gives it.
 - `TypeDate::microseconds()` keeps what was set before it. It replaces the
   base type with a decimal one, and the new base knew nothing of the bounds and
   nullability set on the old: `min(10)->max(20)->microseconds()` still

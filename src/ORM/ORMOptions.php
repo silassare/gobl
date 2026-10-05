@@ -312,22 +312,12 @@ class ORMOptions implements ORMOptionsInterface
 			return $this->form_data;
 		}
 
-		$values = [];
-
-		foreach ($this->form_data as $field => $value) {
-			if (!$table->hasColumn($field)) {
-				continue;
-			}
-
-			$column    = $table->getColumnOrFail($field);
-			$full_name = $column->getFullName();
-			// only full name will be used
-			if ($full_name === $field) {
-				$values[$field] = $value;
-			}
-		}
-
-		return $values;
+		// The table's columns only, by their full names, whichever name the form used.
+		return \array_filter(
+			ORM::formByFullNames($table, $this->form_data),
+			static fn (int|string $field): bool => \is_string($field) && $table->hasColumn($field),
+			\ARRAY_FILTER_USE_KEY
+		);
 	}
 
 	/**
