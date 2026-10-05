@@ -1,5 +1,19 @@
 ### Unreleased (3.0.x-dev)
 
+- **A write that meets a unique key throws `DBALUniqueViolationException`** on
+  every driver, in place of the database's own `PDOException` (kept as its
+  previous): `getTable()`, `getConstraint()` (the `UniqueKey` or the
+  `PrimaryKey`) and `getColumns()` (full names); message
+  `GOBL_UNIQUE_KEY_VIOLATION`. A check made before a write ("this email is not
+  registered") cannot replace it: two writes may both pass the check first. A
+  key the schema does not declare keeps the `PDOException`.
+- **SQLite transactions begin with `BEGIN IMMEDIATE`**: a transaction takes the
+  write lock as it starts and waits for it. With a plain `BEGIN`, two
+  transactions that read then write (check, then insert) met, and SQLite failed
+  one at once with "database is locked". Read-only transactions are serialized
+  too. Drivers override `beginOuterTransaction()`, `commitOuterTransaction()`
+  and `rollBackOuterTransaction()`; `SQLDriverBase` gains the abstract
+  `readUniqueViolation()`.
 - **A controller's form names a column by its name or its full name.**
   `ORMController::addItem()` took a form keyed by column names (`email`) through
   the CRUD checks, then looked for its required fields by full name

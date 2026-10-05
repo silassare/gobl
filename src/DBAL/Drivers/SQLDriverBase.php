@@ -20,9 +20,11 @@ use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Drivers\SQLite\SQLite;
 use Gobl\DBAL\Exceptions\DBALException;
+use Gobl\DBAL\Exceptions\DBALUniqueViolationException;
 use Gobl\DBAL\Queries\QBUtils;
 use Gobl\Gobl;
 use Override;
+use PDO;
 use PDOException;
 use PDOStatement;
 
@@ -69,7 +71,7 @@ abstract class SQLDriverBase extends Db
 	 * {@inheritDoc}
 	 *
 	 * Implements **nested transaction emulation via SAVEPOINTs**.
-	 * - When `$transaction_counter` is 0 (outermost call), delegates to `PDO::beginTransaction()`.
+	 * - When `$transaction_counter` is 0 (outermost call), delegates to {@see beginOuterTransaction()}.
 	 * - For every subsequent nested call, issues `SAVEPOINT sp_N` where `N` is the new counter value.
 	 *
 	 * @throws DBALException
@@ -82,7 +84,7 @@ abstract class SQLDriverBase extends Db
 		++$this->transaction_counter;
 
 		if (1 === $this->transaction_counter) {
-			return $con->beginTransaction();
+			return $this->beginOuterTransaction($con);
 		}
 
 		$con->exec(\sprintf('SAVEPOINT %s_%s', $this->transaction_name_prefix, $this->transaction_counter));
@@ -94,7 +96,7 @@ abstract class SQLDriverBase extends Db
 	 * {@inheritDoc}
 	 *
 	 * Decrements `$transaction_counter`:
-	 * - When it reaches 0 (outermost transaction), calls `PDO::commit()`.
+	 * - When it reaches 0 (outermost transaction), calls {@see commitOuterTransaction()}.
 	 * - For nested transactions, issues `RELEASE SAVEPOINT sp_N` to commit the savepoint.
 	 *
 	 * @throws DBALException
@@ -108,7 +110,7 @@ abstract class SQLDriverBase extends Db
 			$con = $this->getConnection();
 
 			if (0 === $this->transaction_counter) {
-				return $con->commit();
+				return $this->commitOuterTransaction($con);
 			}
 
 			$con->exec(\sprintf('RELEASE SAVEPOINT %s_%s', $this->transaction_name_prefix, $this->transaction_counter + 1));
@@ -121,7 +123,7 @@ abstract class SQLDriverBase extends Db
 	 * {@inheritDoc}
 	 *
 	 * Decrements `$transaction_counter`:
-	 * - When it reaches 0 (outermost transaction), calls `PDO::rollback()`.
+	 * - When it reaches 0 (outermost transaction), calls {@see rollBackOuterTransaction()}.
 	 * - For nested transactions, issues `ROLLBACK TO SAVEPOINT sp_N` to roll back to the savepoint
 	 *   without aborting the outer transaction.
 	 *
@@ -136,7 +138,7 @@ abstract class SQLDriverBase extends Db
 			$con = $this->getConnection();
 
 			if (0 === $this->transaction_counter) {
-				return $con->rollback();
+				return $this->rollBackOuterTransaction($con);
 			}
 
 			$con->exec(\sprintf('ROLLBACK TO %s_%s', $this->transaction_name_prefix, $this->transaction_counter + 1));
@@ -220,7 +222,7 @@ abstract class SQLDriverBase extends Db
 
 			$ql('end');
 
-			throw $e;
+			throw $this->toUniqueViolation($e) ?? $e;
 		}
 	}
 
@@ -334,5 +336,89 @@ abstract class SQLDriverBase extends Db
 	{
 		return $this->execute($sql, $params, $params_types)
 			->rowCount();
+	}
+
+	/**
+	 * Reads, from the database's error, the key a write met: the table's full name when the error says
+	 * it, the constraint's name when it says it, otherwise the columns' full names.
+	 *
+	 * @return null|array{table: null|string, constraint: null|string, columns: list<string>} null when
+	 *                                                                                         the error is not a duplicate key
+	 */
+	abstract protected function readUniqueViolation(PDOException $e): ?array;
+
+	/**
+	 * Starts the outermost transaction.
+	 */
+	protected function beginOuterTransaction(PDO $con): bool
+	{
+		return $con->beginTransaction();
+	}
+
+	/**
+	 * Commits the outermost transaction.
+	 */
+	protected function commitOuterTransaction(PDO $con): bool
+	{
+		return $con->commit();
+	}
+
+	/**
+	 * Rolls the outermost transaction back.
+	 */
+	protected function rollBackOuterTransaction(PDO $con): bool
+	{
+		return $con->rollBack();
+	}
+
+	/**
+	 * The database's duplicate-key error, as the key of this database's schema it names.
+	 *
+	 * Null when the error is not a duplicate key, or names a key this schema does not declare (a key
+	 * added by hand): the database's own error is then kept.
+	 */
+	private function toUniqueViolation(PDOException $e): ?DBALUniqueViolationException
+	{
+		$read = $this->readUniqueViolation($e);
+
+		if (null === $read) {
+			return null;
+		}
+
+		foreach ($this->getTables() as $table) {
+			if (null !== $read['table'] && 0 !== \strcasecmp($read['table'], $table->getFullName())) {
+				continue;
+			}
+
+			$pk   = $table->getPrimaryKeyConstraint();
+			$keys = \array_values($table->getUniqueKeyConstraints());
+
+			if (null !== $pk) {
+				$keys[] = $pk;
+			}
+
+			foreach ($keys as $key) {
+				if (null !== $read['constraint']) {
+					// MySQL names every primary key `PRIMARY`; PostgreSQL folds an unquoted name to
+					// lowercase.
+					$found = 0 === \strcasecmp($read['constraint'], $key->getName())
+						|| ($key === $pk && null !== $read['table'] && 'PRIMARY' === $read['constraint']);
+				} else {
+					$a = $read['columns'];
+					$b = $key->getColumns();
+
+					\sort($a);
+					\sort($b);
+
+					$found = $a === $b;
+				}
+
+				if ($found) {
+					return DBALUniqueViolationException::of($key, $e);
+				}
+			}
+		}
+
+		return null;
 	}
 }

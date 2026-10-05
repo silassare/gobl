@@ -17,6 +17,7 @@ use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Drivers\SQLDriverBase;
 use Override;
 use PDO;
+use PDOException;
 
 /**
  * Class MySQL.
@@ -64,5 +65,24 @@ final class MySQL extends SQLDriverBase
 		$pdo_dsn = "mysql:host={$host};port={$port};dbname={$dbname};charset={$charset}";
 
 		return new PDO($pdo_dsn, $user, $password, $pdo_options);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * Error 1062: `Duplicate entry '...' for key 'table.name'` (the table since MySQL 8.0.19).
+	 */
+	#[Override]
+	protected function readUniqueViolation(PDOException $e): ?array
+	{
+		if (1062 !== (int) ($e->errorInfo[1] ?? 0)) {
+			return null;
+		}
+
+		if (!\preg_match("~ for key '(?:([^'.]+)\\.)?([^'.]+)'$~", $e->getMessage(), $m)) {
+			return null;
+		}
+
+		return ['table' => '' !== $m[1] ? $m[1] : null, 'constraint' => $m[2], 'columns' => []];
 	}
 }

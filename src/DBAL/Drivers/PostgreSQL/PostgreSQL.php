@@ -89,4 +89,23 @@ final class PostgreSQL extends SQLDriverBase
 
 		return new PDO($dsn, $user, $password, $pdo_options);
 	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * SQLSTATE 23505: `duplicate key value violates unique constraint "name"`.
+	 */
+	#[Override]
+	protected function readUniqueViolation(PDOException $e): ?array
+	{
+		if ('23505' !== (string) $e->getCode()) {
+			return null;
+		}
+
+		if (!\preg_match('~unique constraint "([^"]+)"~', $e->getMessage(), $m)) {
+			return null;
+		}
+
+		return ['table' => null, 'constraint' => $m[1], 'columns' => []];
+	}
 }
