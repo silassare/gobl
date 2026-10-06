@@ -343,7 +343,7 @@ abstract class SQLDriverBase extends Db
 	 * it, the constraint's name when it says it, otherwise the columns' full names.
 	 *
 	 * @return null|array{table: null|string, constraint: null|string, columns: list<string>} null when
-	 *                                                                                         the error is not a duplicate key
+	 *                                                                                        the error is not a duplicate key
 	 */
 	abstract protected function readUniqueViolation(PDOException $e): ?array;
 

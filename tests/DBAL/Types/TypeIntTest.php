@@ -134,7 +134,7 @@ final class TypeIntTest extends BaseTestCase
 	/**
 	 * A fractional value is refused, not cut. `(int)` used to turn 3.9 into 3 without a word.
 	 *
-	 * @dataProvider provideFractional
+	 * @dataProvider provideIntRefusesAFractionalValueCases
 	 */
 	public function testIntRefusesAFractionalValue(mixed $value): void
 	{
@@ -143,10 +143,12 @@ final class TypeIntTest extends BaseTestCase
 	}
 
 	/** @return iterable<string, array{mixed}> */
-	public static function provideFractional(): iterable
+	public static function provideIntRefusesAFractionalValueCases(): iterable
 	{
 		yield 'a fractional string' => ['3.9'];
+
 		yield 'a fractional float' => [3.9];
+
 		yield 'a negative fraction' => ['-0.5'];
 	}
 

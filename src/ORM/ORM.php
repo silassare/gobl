@@ -216,7 +216,7 @@ final class ORM
 	 * (required fields, hydration, queries) reads full names. A key that is not a column is kept as is.
 	 * A column named twice (by both names) is refused: neither value can be chosen over the other.
 	 *
-	 * @param Table               $table the table the form writes
+	 * @param Table                   $table the table the form writes
 	 * @param array<array-key, mixed> $form  the form
 	 *
 	 * @return array<array-key, mixed>

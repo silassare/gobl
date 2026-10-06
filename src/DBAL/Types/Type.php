@@ -645,6 +645,44 @@ abstract class Type implements TypeInterface
 	}
 
 	/**
+	 * Sets/Gets custom error message.
+	 *
+	 * @param string      $key     the error key
+	 * @param null|string $message the error message
+	 *
+	 * @return string
+	 */
+	protected function msg(string $key, ?string $message = null): string
+	{
+		if (!empty($message)) {
+			$this->error_messages[$key] = $message;
+		}
+
+		return $this->error_messages[$key] ?? $key;
+	}
+
+	/**
+	 * Forwards a method call to the base type only when the base type is a **different** type.
+	 *
+	 * When the wrapper type and the base type share the same `getName()` (i.e. `Type` wraps
+	 * itself - a self-referential configuration), the call would recurse infinitely.
+	 * This guard returns `null` in that case, preventing the infinite loop.
+	 *
+	 * @param string $method the method name to call on `$this->base_type`
+	 * @param array  $args   positional arguments to pass
+	 *
+	 * @return mixed the return value from the base type method, or `null` for self-references
+	 */
+	protected function safelyCallOnBaseType(string $method, array $args): mixed
+	{
+		if ($this->base_type->getName() === $this->getName()) {
+			return null;
+		}
+
+		return \call_user_func_array([$this->base_type, $method], $args);
+	}
+
+	/**
 	 * Writes a number as a plain decimal string that `bccomp()` reads exactly: no exponent, no `+`, no
 	 * surrounding whitespace, no leading zeros, and no float in between.
 	 *
@@ -726,43 +764,5 @@ abstract class Type implements TypeInterface
 		$point = \strpos($decimal, '.');
 
 		return false === $point ? 0 : \strlen($decimal) - $point - 1;
-	}
-
-	/**
-	 * Sets/Gets custom error message.
-	 *
-	 * @param string      $key     the error key
-	 * @param null|string $message the error message
-	 *
-	 * @return string
-	 */
-	protected function msg(string $key, ?string $message = null): string
-	{
-		if (!empty($message)) {
-			$this->error_messages[$key] = $message;
-		}
-
-		return $this->error_messages[$key] ?? $key;
-	}
-
-	/**
-	 * Forwards a method call to the base type only when the base type is a **different** type.
-	 *
-	 * When the wrapper type and the base type share the same `getName()` (i.e. `Type` wraps
-	 * itself - a self-referential configuration), the call would recurse infinitely.
-	 * This guard returns `null` in that case, preventing the infinite loop.
-	 *
-	 * @param string $method the method name to call on `$this->base_type`
-	 * @param array  $args   positional arguments to pass
-	 *
-	 * @return mixed the return value from the base type method, or `null` for self-references
-	 */
-	protected function safelyCallOnBaseType(string $method, array $args): mixed
-	{
-		if ($this->base_type->getName() === $this->getName()) {
-			return null;
-		}
-
-		return \call_user_func_array([$this->base_type, $method], $args);
 	}
 }

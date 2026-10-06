@@ -255,7 +255,7 @@ final class TypeEnumTest extends BaseTestCase
 	/**
 	 * Only a plain integer: anything that is not written as one stays refused.
 	 *
-	 * @dataProvider provideNotAPlainInteger
+	 * @dataProvider provideIntBackedEnumRefusesWhatIsNotAPlainIntegerCases
 	 */
 	public function testIntBackedEnumRefusesWhatIsNotAPlainInteger(string $value): void
 	{
@@ -264,12 +264,16 @@ final class TypeEnumTest extends BaseTestCase
 	}
 
 	/** @return iterable<string, array{string}> */
-	public static function provideNotAPlainInteger(): iterable
+	public static function provideIntBackedEnumRefusesWhatIsNotAPlainIntegerCases(): iterable
 	{
 		yield 'a decimal' => ['2.0'];
+
 		yield 'a leading space' => [' 2'];
+
 		yield 'a leading zero' => ['02'];
+
 		yield 'a case name' => ['Medium'];
+
 		yield 'no such case' => ['9'];
 	}
 

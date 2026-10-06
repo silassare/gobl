@@ -1,5 +1,29 @@
 ### Unreleased (3.0.x-dev)
 
+- **An entity's own `save()` may write its private and sensitive columns.** It
+  goes through the controller, whose CRUD checks refused such a column unless a
+  listener allowed it, so server code could not save an entity's own data, and
+  with `softDeletable()` making `deleted` private no new row of a
+  soft-deletable table could be saved. `save()` now runs its write through
+  `CRUD::trusted()`, which skips the private and sensitive column checks only;
+  every other check and event still runs. A request's write (a form given to
+  `addItem()` / `updateOneItem()`) is checked as before.
+- **Security: a request may not filter, sort or page on a private or sensitive
+  column; server code may.** The check ran the wrong way round: a request's
+  filters (`ORMOptions`, as a REST client sends them) were applied with no
+  scope, so a client could filter on a column it is never shown and learn its
+  values by trial, while the query's own methods (`filterBy()`, the generated
+  `where...()`) refused a private column even to server code. A request's
+  filters are now checked by a strict `FiltersTableScope`; its `order_by` and
+  `cursor_column` refuse such a column (`GOBL_ORM_REQUEST_INVALID_ORDER_BY`,
+  `GOBL_ORM_REQUEST_INVALID_CURSOR_COLUMN`); an `ORMTableQuery` allows private
+  and sensitive columns in its own filters.
+- **`softDeletable()` makes `deleted` and `deleted_at` private.** A form could
+  write them: a create through a controller could make a row already deleted,
+  an update could undelete one. They are now written by the ORM's soft delete
+  only (a CRUD request needs a listener allowing a private column write), and
+  left out of `toArray()` and of the generated TS and Dart types. The schema
+  diff compares column types only: no migration follows.
 - **A write that meets a unique key throws `DBALUniqueViolationException`** on
   every driver, in place of the database's own `PDOException` (kept as its
   previous): `getTable()`, `getConstraint()` (the `UniqueKey` or the

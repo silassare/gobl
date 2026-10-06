@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace Gobl\Tests\Integration\DBAL;
 
 use Gobl\DBAL\Builders\TableBuilder;
+use Gobl\DBAL\Exceptions\DBALUniqueViolationException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\ORM\ORM;
-use Gobl\DBAL\Exceptions\DBALUniqueViolationException;
 use Gobl\Tests\BaseTestCase;
 use Throwable;
 

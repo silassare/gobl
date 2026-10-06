@@ -91,7 +91,7 @@ final class TypeBigintTest extends BaseTestCase
 	 * A bigint is a whole integer and nothing else. The pattern was unanchored, so any value that
 	 * merely contained digits matched.
 	 *
-	 * @dataProvider provideNotABigint
+	 * @dataProvider provideBigintRejectsWhatIsNotAWholeIntegerCases
 	 */
 	public function testBigintRejectsWhatIsNotAWholeInteger(string $value): void
 	{
@@ -100,11 +100,14 @@ final class TypeBigintTest extends BaseTestCase
 	}
 
 	/** @return iterable<string, array{string}> */
-	public static function provideNotABigint(): iterable
+	public static function provideBigintRejectsWhatIsNotAWholeIntegerCases(): iterable
 	{
 		yield 'a fraction' => ['1.5'];
+
 		yield 'an exponent' => ['1e5'];
+
 		yield 'a trailing newline' => ["5\n"];
+
 		yield 'leading zeros' => ['007'];
 	}
 
