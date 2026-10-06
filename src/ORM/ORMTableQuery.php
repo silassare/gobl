@@ -84,6 +84,12 @@ abstract class ORMTableQuery extends FiltersTableScope
 
 		parent::__construct($this->db->getTableOrFail($table_name));
 
+		// What the query's own methods filter on (`whereIsNotDeleted()`, `filterBy()`...) is written by
+		// server code: a private or sensitive column is allowed there. A request's filters, order and
+		// cursor are checked apart ({@see assertRequestColumn()}).
+		$this->allow_private_column_in_filters   = true;
+		$this->allow_sensitive_column_in_filters = true;
+
 		$this->qb = $qb = new QBSelect($this->db);
 		// Register the table alias in the QB immediately so that FilterOperand::normalizeOperand()
 		// can resolve `table_alias.column#json_path` notation during filter-add time (before find()
@@ -694,6 +700,11 @@ abstract class ORMTableQuery extends FiltersTableScope
 
 		if ($options->isCursorBased()) {
 			$cursor_column = Helpers::requireCursorColumn($this->table, $options);
+
+			if (null !== $options->getCursorColumn()) {
+				$this->assertRequestColumn($cursor_column, 'GOBL_ORM_REQUEST_INVALID_CURSOR_COLUMN');
+			}
+
 			$cursor        = $options->getCursor();
 			$max           = $options->getMax();
 			$direction     = \strtoupper($options->getCursorDirection() ?? 'ASC');
@@ -725,6 +736,14 @@ abstract class ORMTableQuery extends FiltersTableScope
 
 		$order_by = $options->getOrderBy() ?? [];
 		if (!empty($order_by)) {
+			foreach ($order_by as $name => $_) {
+				$column = \is_string($name) ? $this->table->getColumn($name) : null;
+
+				if (null !== $column) {
+					$this->assertRequestColumn($column, 'GOBL_ORM_REQUEST_INVALID_ORDER_BY');
+				}
+			}
+
 			$qb->orderBy($order_by);
 		}
 	}
@@ -744,7 +763,13 @@ abstract class ORMTableQuery extends FiltersTableScope
 
 		if (!empty($additional_filters)) {
 			try {
-				$qb->where(Filters::fromArray($additional_filters, $qb));
+				// A request's filters: a private or sensitive column refused, as filtering on one tells
+				// its values.
+				$qb->where(Filters::fromArray(
+					$additional_filters,
+					$qb,
+					new FiltersTableScope($this->table, $this->table_alias)
+				));
 			} catch (Throwable $t) {
 				throw new ORMQueryException('Failed to apply filters to query.', [
 					'_filters' => $additional_filters,
@@ -772,6 +797,22 @@ abstract class ORMTableQuery extends FiltersTableScope
 			$column = $this->table->getColumnOrFail(Table::COLUMN_SOFT_DELETED);
 			$filter = $qb->filters()->isFalse($this->getTableAlias() . '.' . $column->getFullName());
 			$qb->andWhere($filter);
+		}
+	}
+
+	/**
+	 * Refuses a request's use of a private or sensitive column: sorting on one, or paging through it,
+	 * tells its values as filtering on it does.
+	 *
+	 * @throws ORMQueryException
+	 */
+	private function assertRequestColumn(Column $column, string $message): void
+	{
+		if ($column->isPrivate() || $column->isSensitive()) {
+			throw new ORMQueryException($message, [
+				'field' => $column->getName(),
+				'_why'  => $column->isPrivate() ? 'column_is_private' : 'column_is_sensitive',
+			]);
 		}
 	}
 

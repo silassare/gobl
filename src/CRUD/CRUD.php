@@ -54,6 +54,9 @@ final class CRUD
 	private string $message = 'OK';
 	private array $debug;
 
+	/** Whether the write being checked is the server's own ({@see trusted()}). */
+	private bool $trusted = false;
+
 	/**
 	 * CRUD constructor.
 	 *
@@ -317,6 +320,28 @@ final class CRUD
 	}
 
 	/**
+	 * Runs a write made by server code, not asked by a request: a private or sensitive column may be
+	 * written (an entity's own data, its soft delete flag). Every other check and event still runs.
+	 *
+	 * @template T
+	 *
+	 * @param callable():T $write
+	 *
+	 * @return T
+	 */
+	public function trusted(callable $write): mixed
+	{
+		$was           = $this->trusted;
+		$this->trusted = true;
+
+		try {
+			return $write();
+		} finally {
+			$this->trusted = $was;
+		}
+	}
+
+	/**
 	 * Dispatches the given action for authorization.
 	 *
 	 * Uses **stop-on-first-denial** semantics: the first listener that returns `false` must
@@ -393,7 +418,8 @@ final class CRUD
 	/**
 	 * Checks if the given column can be written.
 	 *
-	 * Checks if the column is private or sensitive and dispatches the corresponding authorization events.
+	 * Checks if the column is private or sensitive and dispatches the corresponding authorization events;
+	 * a trusted write ({@see trusted()}) skips both.
 	 *
 	 * @param Column $column   the column being written
 	 * @param array  $form     the full form data being written (useful for context in event listeners)
@@ -404,6 +430,10 @@ final class CRUD
 	 */
 	private function checkForColumnWrite(Column $column, array $form, string $field, bool $updating): void
 	{
+		if ($this->trusted) {
+			return;
+		}
+
 		if ($column->isPrivate()) {
 			$action = new BeforePrivateColumnWrite($this->table, $column, $form, $updating);
 

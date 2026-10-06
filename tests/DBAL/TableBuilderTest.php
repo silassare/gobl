@@ -73,6 +73,9 @@ final class TableBuilderTest extends BaseTestCase
 		], $role_user_id_column->toArray());
 
 		self::assertTrue($tbl_users->isSoftDeletable());
+		// Written by the ORM's soft delete only: never by a form, never shown.
+		self::assertTrue($tbl_users->getColumnOrFail('deleted')->isPrivate());
+		self::assertTrue($tbl_users->getColumnOrFail('deleted_at')->isPrivate());
 	}
 
 	public function testUseColumnReturnsExistingColumn(): void

@@ -473,9 +473,12 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 */
 	public function save(): bool
 	{
+		// The entity's own save is server code: it may write its private and sensitive columns, which
+		// a request may not.
 		if ($this->isNew()) {
-			static::ctrl()
-				->addItem($this);
+			$ctrl = static::ctrl();
+
+			$ctrl->getCRUD()->trusted(fn () => $ctrl->addItem($this));
 
 			return true;
 		}
@@ -492,7 +495,8 @@ abstract class ORMEntity implements ArrayCapableInterface
 				$options->setFilters($this->toIdentityFilters());
 				$options->setFormData($to_update);
 
-				$saved = static::ctrl()->updateOneItem($options);
+				$ctrl  = static::ctrl();
+				$saved = $ctrl->getCRUD()->trusted(static fn () => $ctrl->updateOneItem($options));
 
 				return $saved && $this->takeSavedRow($saved)
 					->isSaved(true);

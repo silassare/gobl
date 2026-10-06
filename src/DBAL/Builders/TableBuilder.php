@@ -555,6 +555,9 @@ final class TableBuilder
 	/**
 	 * Adds `deleted_at` and `deleted` columns.
 	 *
+	 * Both are private: the ORM's soft delete writes them, a form or a CRUD request never does (unless
+	 * a listener allows it), and no answer or generated client type shows them.
+	 *
 	 * @return $this
 	 *
 	 * @throws DBALException
@@ -565,6 +568,8 @@ final class TableBuilder
 			->default(false);
 		$this->timestamp(Table::COLUMN_SOFT_DELETED_AT)
 			->nullable();
+		$this->useColumn(Table::COLUMN_SOFT_DELETED)->setPrivate();
+		$this->useColumn(Table::COLUMN_SOFT_DELETED_AT)->setPrivate();
 
 		return $this;
 	}
