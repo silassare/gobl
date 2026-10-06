@@ -61,6 +61,30 @@ src/Db/
 The top-level files are created **once** and never overwritten - put
 all your custom logic there.
 
+### Loading order
+
+The controller, CRUD, query and results classes give their table's namespace
+and name to their parent written out, as the entity's `TABLE_NAMESPACE` and
+`TABLE_NAME` constants hold them: constructing one never loads the entity. So
+any generated class may be the first one a request loads, even when a framework
+declares the ORM namespace lazily, from its autoloader, and constructs a CRUD
+class then (registering listeners): the entity's `qb()`, `ctrl()` and
+`results()` return the query, controller and results classes, and PHP cannot
+check them against the parent's while one of them is still loading.
+
+A framework that attaches listeners while declaring the namespace does so
+through a `CRUDEventProducer` keyed by the table, not the generated CRUD class:
+both listen on the same channel (the table's full name), and the producer loads
+no generated class, while the CRUD class cannot be constructed when it is the
+one loading:
+
+```php
+use Gobl\CRUD\CRUDEventProducer;
+
+(new CRUDEventProducer('App\Db', 'users'))
+    ->onBeforeCreate(fn (BeforeCreate $action) => $this->canCreate($action));
+```
+
 ### Generated relation getter signatures
 
 For each declared relation, `EntityBase` gets a typed getter method:

@@ -19,8 +19,8 @@ abstract class TransactionsControllerBase extends \Gobl\ORM\ORMController
 	public function __construct()
 	{
 		parent::__construct(
-			\Gobl\Tests\Db\Transaction::TABLE_NAMESPACE,
-			\Gobl\Tests\Db\Transaction::TABLE_NAME
+			'Gobl\\Tests\\Db',
+			'transactions'
 		);
 	}
 

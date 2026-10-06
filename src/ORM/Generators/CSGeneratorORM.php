@@ -784,6 +784,19 @@ Time: {$date}";
 		$m->setComment($comment);
 	}
 
+	/**
+	 * The namespace and the name of a table, as the constructor of a generated class gives them to
+	 * its parent: written out, not read from the entity's constants, so that constructing one never
+	 * loads the entity. A framework may construct one (a CRUD listener registering) while the
+	 * namespace's first class is still loading, and the entity's methods return that class: loading
+	 * the entity then would need it, and PHP cannot load a class that is already loading.
+	 */
+	private static function tableArgs(Table $table): string
+	{
+		return \var_export($table->getNamespace(), true) . ',' . \PHP_EOL
+			. '	' . \var_export($table->getName(), true);
+	}
+
 	private function getBaseCRUD(Table $table): PHPFile
 	{
 		$db_ns             = $table->getNamespace();
@@ -821,8 +834,7 @@ Time: {$date}";
 			->addChild(
 				Str::interpolate(
 					'parent::__construct(' . \PHP_EOL
-						. '	\{db_namespace}\{entity_class_name}::TABLE_NAMESPACE,' . \PHP_EOL
-						. '	\{db_namespace}\{entity_class_name}::TABLE_NAME' . \PHP_EOL
+						. '	' . self::tableArgs($table) . \PHP_EOL
 						. ');',
 					$inject
 				)
@@ -886,8 +898,7 @@ Time: {$date}";
 			->addChild(
 				Str::interpolate(
 					'parent::__construct(' . \PHP_EOL
-						. '	\{db_namespace}\{entity_class_name}::TABLE_NAMESPACE,' . \PHP_EOL
-						. '	\{db_namespace}\{entity_class_name}::TABLE_NAME' . \PHP_EOL
+						. '	' . self::tableArgs($table) . \PHP_EOL
 						. ');',
 					$inject
 				)
@@ -1032,8 +1043,7 @@ Time: {$date}";
 			->addChild(
 				Str::interpolate(
 					'parent::__construct(' . \PHP_EOL
-						. '	\{db_namespace}\{entity_class_name}::TABLE_NAMESPACE,' . \PHP_EOL
-						. '	\{db_namespace}\{entity_class_name}::TABLE_NAME,' . \PHP_EOL
+						. '	' . self::tableArgs($table) . ',' . \PHP_EOL
 						. '	$query' . \PHP_EOL
 						. ');',
 					$inject
@@ -1113,8 +1123,7 @@ Time: {$date}";
 			->addChild(
 				Str::interpolate(
 					'parent::__construct(' . \PHP_EOL
-						. '	\{db_namespace}\{entity_class_name}::TABLE_NAMESPACE,' . \PHP_EOL
-						. '	\{db_namespace}\{entity_class_name}::TABLE_NAME' . \PHP_EOL
+						. '	' . self::tableArgs($table) . \PHP_EOL
 						. ');',
 					$inject
 				)

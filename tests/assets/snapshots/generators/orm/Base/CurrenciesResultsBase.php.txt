@@ -18,8 +18,8 @@ abstract class CurrenciesResultsBase extends \Gobl\ORM\ORMResults
 	public function __construct(\Gobl\DBAL\Queries\QBSelect $query)
 	{
 		parent::__construct(
-			\Gobl\Tests\Db\Currency::TABLE_NAMESPACE,
-			\Gobl\Tests\Db\Currency::TABLE_NAME,
+			'Gobl\\Tests\\Db',
+			'currencies',
 			$query
 		);
 	}

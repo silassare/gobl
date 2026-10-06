@@ -1,5 +1,16 @@
 ### Unreleased (3.0.x-dev)
 
+- **A generated query, controller or results class may be the first one
+  loaded.** Their constructors, and the CRUD class's, read the entity's
+  `TABLE_NAMESPACE` and `TABLE_NAME`, which loaded the entity. A framework that
+  declares the ORM namespace from its autoloader and constructs the CRUD classes
+  then (OZone, registering its listeners) did so while the first class was still
+  loading, and the entity's `qb()`, `ctrl()` or `results()` names that class: PHP
+  stopped with a compile error no handler can catch ("Could not check
+  compatibility between ...Base::qb() ... because class ...Query is not
+  available"). The four constructors now write the namespace and the table name
+  out. Regenerate the `Base/` classes to get it.
+
 - **An entity's own `save()` may write its private and sensitive columns.** It
   goes through the controller, whose CRUD checks refused such a column unless a
   listener allowed it, so server code could not save an entity's own data, and

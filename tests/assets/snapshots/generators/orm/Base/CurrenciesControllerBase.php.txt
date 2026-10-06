@@ -19,8 +19,8 @@ abstract class CurrenciesControllerBase extends \Gobl\ORM\ORMController
 	public function __construct()
 	{
 		parent::__construct(
-			\Gobl\Tests\Db\Currency::TABLE_NAMESPACE,
-			\Gobl\Tests\Db\Currency::TABLE_NAME
+			'Gobl\\Tests\\Db',
+			'currencies'
 		);
 	}
 
