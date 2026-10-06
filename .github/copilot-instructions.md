@@ -113,6 +113,7 @@ Key contracts (verify exact signatures in `src/ORM/ORMEntity.php`):
 - **`isSaved(bool $set_as_saved = false): bool`** — `true` when no dirty columns and not new. `isSaved(true)` snapshots hashes, clears dirty set, unsets isNew. Also auto-detects partial state when PDO row has fewer columns than the table defines.
 - **`isNew(): bool`** — `true` until first successful `save()` or DB load.
 - **`save()` on an entity loaded from the DB** — updates the dirty columns, then takes the row the database returns back through the DB path (`takeSavedRow()`), never through `__set`. Those values are not user input and are not validated again: a validation that reads the database ("this email must not be already registered") would otherwise reject the row's own stored values. Covered by `tests/Integration/ORM/ORMEntitySaveRevalidationTestCase.php`.
+- **Private columns** — a request may not write one (CRUD `BeforePrivateColumnWrite`, refused unless a listener allows it), nor filter, sort or page on one (`ORMOptions` filters, `order_by`, `cursor_column`); server code may: an entity's own `save()` writes through `CRUD::trusted()`, and an `ORMTableQuery`'s own filters allow them. `softDeletable()` columns are private.
 - **`toIdentityKey(): string`** — stable opaque key from PK columns (`:` joined for composite). Used as map key in batch methods.
 - **`markAsPartial(array $partial_columns): static`** — the only way to mark an entity as partial. Accepts short or full column names. Partial entities throw on access to unloaded columns.
 - **`isPartial(): bool`**, **`isColumnLoaded(string $name): bool`** — guards for partial state.
@@ -258,6 +259,7 @@ Docs live in `docs/` (VitePress). JSON schema for IDE at `docs/public/schema.jso
 3. **CRUD event pattern.** Show `*Crud::new()` + `onBefore*()` — not `EventManager::listen()`.
 4. **schema.json accuracy.** Keep in sync with `IndexType` enum values, constraint types, and relation link types in source.
 5. **Comparison callouts** with Eloquent/Doctrine/Prisma must be accurate and concise; never claim feature parity unless verified.
+6. **A change is documented in the same change.** A change of behaviour or API (a new option, method, exception, event rule, or a different outcome) updates the guide pages that describe it in `docs/guide/` together with its `CHANGELOG.md` entry, and adds a page or section when none covers it; this file's contracts too when one changes. Before finishing, search `docs/` for the names the change touches. `docs/changelog.md` includes `CHANGELOG.md` (`<!--@include: ../CHANGELOG.md-->`): never edit a copy of it there.
 
 ## Code Style
 

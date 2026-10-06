@@ -145,6 +145,11 @@ UsersCrud::new()->listen(new UsersPolicy());
 | `BeforePrivateColumnWrite`   | A private column is about to be written     |
 | `BeforeSensitiveColumnWrite` | A sensitive column is about to be written   |
 
+`BeforePrivateColumnWrite` and `BeforeSensitiveColumnWrite` decide a request's write: without
+a listener allowing it, the write is refused (`CRUDException`, `_why` `column_is_private` or
+`column_is_sensitive`). They do not fire for an entity's own `save()`, which is server code
+(`CRUD::trusted()`), nor for a write run inside `CRUD::trusted()`.
+
 ```php
 use App\Db\UsersCrud;
 use Gobl\CRUD\Events\BeforePrivateColumnWrite;

@@ -234,6 +234,17 @@ Supported operator strings map to `Gobl\DBAL\Operator` values:
 
 ---
 
+### Filters from a request
+
+What a client sends (`ORMOptions` filters, as a REST request carries them) is applied with a
+strict `FiltersTableScope`: a [private or sensitive column](./schema.md#private-and-sensitive-columns)
+is refused, as are an `order_by` or a `cursor_column` on one
+(`GOBL_ORM_REQUEST_INVALID_ORDER_BY`, `GOBL_ORM_REQUEST_INVALID_CURSOR_COLUMN`). A query's own
+methods (`filterBy()`, the generated `where...()`) are server code and may use them. A scope of
+your own can allow them with `allowPrivateColumnInFilters()` / `allowSensitiveColumnInFilters()`.
+
+---
+
 ## Low-level `add()`
 
 When you need an operator not covered by the helper methods:

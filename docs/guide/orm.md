@@ -103,6 +103,11 @@ $new->isSaved();              // true
 $client->selfDelete();        // calls deleteOneItem internally
 ```
 
+`save()` goes through the controller (`addItem()` / `updateOneItem()`), so the CRUD events
+fire, but it is server code: it may write the entity's
+[private and sensitive columns](./schema.md#private-and-sensitive-columns), which a request's
+form may not (`CRUD::trusted()`; only those two checks are skipped).
+
 Dirty detection compares a frozen **hash snapshot** (taken at load / last save) with
 the hash of the newly assigned value. This correctly detects changes even for
 mutable values such as `Map` — mutating a `Map` in place and re-assigning the same

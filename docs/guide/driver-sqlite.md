@@ -54,6 +54,11 @@ CREATE TABLE "app_users" (
     ```
 - **Concurrency**: SQLite uses file-level locking. For multi-process or
   high-write workloads prefer MySQL or PostgreSQL.
+- **Transactions begin `IMMEDIATE`**: a transaction takes the write lock as
+  it starts and waits for it while another holds it. With a plain `BEGIN`,
+  two transactions that read then write (check a value, then insert) met,
+  and SQLite failed one at once with "database is locked" rather than wait.
+  Read-only transactions are serialized too.
 - **WAL mode** (recommended for concurrent reads):
     ```php
     // Execute raw DDL/PRAGMA statements:

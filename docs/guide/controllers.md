@@ -33,6 +33,34 @@ $user = $controller->addItem($entity);
 the row, and returns the persisted `User` entity with its auto-increment
 id set.
 
+A form may name a column by its name or its full name (`email` or `user_email`): it is keyed
+by full names before the CRUD checks and again after them (a listener may edit it), in
+`addItem()`, `updateOneItem()` and `updateAllItems()`. A form naming one column by both is
+refused (`GOBL_ORM_REQUEST_FIELD_GIVEN_TWICE`). A form is a request: it may not write a
+[private column](./schema.md#private-and-sensitive-columns) unless a listener allows it; an
+entity's own `save()` may.
+
+### A value already taken
+
+A write that meets a unique key or the primary key throws `DBALUniqueViolationException`,
+the same on every driver, in place of the database's `PDOException` (kept as its previous):
+
+```php
+use Gobl\DBAL\Exceptions\DBALUniqueViolationException;
+
+try {
+    $controller->addItem(['user_email' => $email, /* ... */]);
+} catch (DBALUniqueViolationException $e) {
+    $e->getTable();      // the Table
+    $e->getConstraint(); // the UniqueKey, or the PrimaryKey
+    $e->getColumns();    // ['user_email'], full names
+}
+```
+
+A check made before the write (a type refusing an email already registered) cannot replace
+it: two requests may both pass the check before either has written. Catch the exception to
+answer the field's error. A key the schema does not declare keeps the `PDOException`.
+
 ---
 
 ## Read one
@@ -132,7 +160,9 @@ $deleted = $controller->deleteOneItem(ORMOptions::makeFromFilters(['user_id' => 
 
 ### Soft delete
 
-If the table has soft-delete columns (`deleted` + `deleted_at`):
+If the table has soft-delete columns (`deleted` + `deleted_at`, added by
+`softDeletable()`, both [private](./schema.md#private-and-sensitive-columns): only the ORM's
+soft delete writes them, never a form):
 
 ```php
 $controller->deleteOneItem(ORMOptions::makeFromFilters(['user_id' => 1]), soft: true);

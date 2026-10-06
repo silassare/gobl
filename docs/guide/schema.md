@@ -52,6 +52,33 @@ becomes `user_id` in SQL.
 ],
 ```
 
+### Private and sensitive columns
+
+A **private** column is the server's own: a flag, internal data, a soft delete marker. A
+**sensitive** one is shown redacted (a password hash). Both are declared on the column:
+
+```php
+'columns' => [
+    'is_valid'   => ['type' => 'bool', 'default' => true, 'private' => true],
+    'pass'       => ['type' => 'string', 'sensitive' => true, 'sensitive_redacted_value' => null],
+],
+```
+
+or, with the fluent builder, `$t->useColumn('is_valid')->setPrivate()` /
+`->setSensitive()`. `softDeletable()` makes its `deleted` and `deleted_at` columns private.
+
+| Who                                                       | Private column                    | Sensitive column |
+| --------------------------------------------------------- | --------------------------------- | ---------------- |
+| An entity's own `save()` (server code)                    | writes it                         | writes it        |
+| A query's own methods (`filterBy()`, generated `where...()`) | filters on it                  | filters on it    |
+| A request's form (`addItem()` / `updateOneItem()` with a form) | refused, unless a [listener](./crud-events.md#column-level-events) allows it | same |
+| A request's filters, `order_by`, `cursor_column` (`ORMOptions`) | refused                   | refused          |
+| `toArray()`, generated TS / Dart types                    | left out                          | redacted         |
+
+A request may not filter, sort or page on such a column: doing so tells its values, one
+guess at a time. The schema diff compares column types only, so changing these flags makes
+no migration.
+
 ## Constraints
 
 ```php
