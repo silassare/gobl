@@ -30,6 +30,7 @@ use Gobl\DBAL\Types\TypeJson;
 use Gobl\DBAL\Types\Utils\TypeUtils;
 use JsonSerializable;
 use PHPUtils\Str;
+use Throwable;
 
 /**
  * Class FiltersBuilder.
@@ -155,6 +156,24 @@ final class Filters
 	 */
 	public static function fromArray(array $filters, QBInterface $qb, ?FiltersScopeInterface $scope = null): self
 	{
+		return self::parseArray($filters, $qb, $scope, []);
+	}
+
+	/**
+	 * Parses a filters array found at a given position of the outermost one.
+	 *
+	 * A refusal names its position (`[1]` is the second item of the outermost array, `[0, 2]` the third
+	 * item of its first group), in the exception's public data, so that a caller sent back a refused
+	 * filter can tell which part of it to fix.
+	 *
+	 * @param list<int> $position
+	 */
+	private static function parseArray(
+		array $filters,
+		QBInterface $qb,
+		?FiltersScopeInterface $scope,
+		array $position
+	): self {
 		// check new string expression format with bindings
 		if (isset($filters[self::STR_EXPR_FILTER_KEY])) {
 			$expression = $filters[self::STR_EXPR_FILTER_KEY];
@@ -204,22 +223,23 @@ final class Filters
 		$i = 0;
 		while ($cur = $filters[$i] ?? null) {
 			if (\is_string($cur)) {
+				$at   = [...$position, $i];
 				$left = $cur;
 				$op   = $filters[++$i] ?? null;
 
 				if ($op instanceof Operator) {
 					$op = $op->value;
 				} elseif (!\is_string($op)) {
-					throw new DBALRuntimeException(
+					throw self::refused(
 						\sprintf(
-							'unexpected "%s" while expecting operator.',
+							'condition at %s: expected an operator after "%s", found "%s".',
+							self::positionString($at),
+							$left,
 							\get_debug_type($op)
 						),
-						[
-							'_after'      => $left,
-							'_unexpected' => $op,
-							'_filters'    => $filters,
-						]
+						$at,
+						['column' => $left],
+						$filters
 					);
 				}
 
@@ -227,15 +247,21 @@ final class Filters
 				$operator = Operator::tryFrom($op);
 
 				if (!$operator) {
-					throw new DBALRuntimeException('invalid operator.', [
-						'_found'   => $op,
-						'_filters' => $filters,
-					]);
+					throw self::refused(
+						\sprintf(
+							'condition at %s: "%s" is not an operator.',
+							self::positionString($at),
+							$op
+						),
+						$at,
+						['column' => $left, 'operator' => $op] + self::allowedOperatorsData($left, $qb, $scope),
+						$filters
+					);
 				}
 
-				if ($operator->isUnary()) {
-					$instance->add($operator, $left);
-				} else {
+				$right = null;
+
+				if (!$operator->isUnary()) {
 					$right = $filters[++$i] ?? null;
 
 					if (null === $right) {
@@ -244,24 +270,50 @@ final class Filters
 						} elseif (Operator::NEQ === $operator) {
 							$operator = Operator::IS_NOT_NULL;
 						} else {
-							throw new DBALRuntimeException('invalid right operand.', [
-								'_filter'  => [$left, $op, $right],
-								'_filters' => $filters,
-							]);
+							throw self::refused(
+								\sprintf(
+									'condition at %s: operator "%s" on "%s" needs a value.',
+									self::positionString($at),
+									$op,
+									$left
+								),
+								$at,
+								['column' => $left, 'operator' => $op],
+								$filters
+							);
 						}
 					}
+				}
 
-					$instance->add($operator, $left, $right);
+				try {
+					$operator->isUnary() ? $instance->add($operator, $left) : $instance->add($operator, $left, $right);
+				} catch (Throwable $t) {
+					throw self::refused(
+						\sprintf(
+							'condition at %s ("%s" %s) refused: %s',
+							self::positionString($at),
+							$left,
+							$op,
+							$t->getMessage()
+						),
+						$at,
+						['column' => $left, 'operator' => $op] + self::allowedOperatorsData($left, $qb, $scope),
+						$filters,
+						$t
+					);
 				}
 			} elseif (\is_array($cur)) {
-				$instance->where(self::fromArray($cur, $qb, $scope));
+				$instance->where(self::parseArray($cur, $qb, $scope, [...$position, $i]));
 			} else {
-				throw new DBALRuntimeException(
-					\sprintf('unexpected "%s" will expecting "string|array".', \get_debug_type($cur)),
-					[
-						'_unexpected' => $cur,
-						'_filters'    => $filters,
-					]
+				throw self::refused(
+					\sprintf(
+						'item at %s: expected a column name or a group of conditions, found "%s".',
+						self::positionString([...$position, $i]),
+						\get_debug_type($cur)
+					),
+					[...$position, $i],
+					[],
+					$filters
 				);
 			}
 
@@ -272,37 +324,114 @@ final class Filters
 			 */
 			if (\array_key_exists(++$i, $filters)) {
 				$cond = $filters[$i];
+				$at   = [...$position, $i];
+
 				if (!\is_string($cond)) {
-					throw new DBALRuntimeException(
+					throw self::refused(
 						\sprintf(
-							'unexpected "%s" will expecting conditional operator: "and|or".',
+							'item at %s: expected "and" or "or" between two conditions, found "%s".',
+							self::positionString($at),
 							\get_debug_type($cond)
-						)
+						),
+						$at,
+						[],
+						$filters
 					);
 				}
 
-				$cond = \strtoupper($cond);
+				$glue = \strtoupper($cond);
 
-				if ('AND' === $cond) {
+				if ('AND' === $glue) {
 					$instance->and();
-				} elseif ('OR' === $cond) {
+				} elseif ('OR' === $glue) {
 					$instance->or();
 				} else {
-					throw new DBALRuntimeException(
-						\sprintf('unexpected conditional operator "%s" allowed value are: "and|or".', $cond)
+					throw self::refused(
+						\sprintf(
+							'item at %s: expected "and" or "or" between two conditions, found "%s".',
+							self::positionString($at),
+							$cond
+						),
+						$at,
+						[],
+						$filters
 					);
 				}
 
 				$next = $filters[++$i] ?? null;
 				if (null === $next) {
-					throw new DBALRuntimeException(
-						'a conditional operator should not be the last item in a filter or filter group.'
+					throw self::refused(
+						\sprintf(
+							'item at %s: "%s" must be followed by a condition.',
+							self::positionString($at),
+							$cond
+						),
+						$at,
+						[],
+						$filters
 					);
 				}
 			}
 		}
 
 		return $instance;
+	}
+
+	/**
+	 * Builds the exception of a refused filter.
+	 *
+	 * @param list<int>            $position
+	 * @param array<string, mixed> $data     public details: the column, the operator, the allowed ones
+	 */
+	private static function refused(
+		string $message,
+		array $position,
+		array $data,
+		array $filters,
+		?Throwable $previous = null
+	): DBALRuntimeException {
+		return new DBALRuntimeException($message, ['position' => $position] + $data + [
+			'_filters' => $filters,
+		], $previous);
+	}
+
+	/**
+	 * A position as it reads in a message: `[0][2]`.
+	 *
+	 * @param list<int> $position
+	 */
+	private static function positionString(array $position): string
+	{
+		return '[' . \implode('][', $position) . ']';
+	}
+
+	/**
+	 * The operators the type of a filtered column takes, when the column can be resolved.
+	 *
+	 * @return array{allowed_operators?: list<string>}
+	 */
+	private static function allowedOperatorsData(string $left, QBInterface $qb, ?FiltersScopeInterface $scope): array
+	{
+		try {
+			$operand = new FilterLeftOperand($left, $qb, $scope);
+
+			if (!$operand->hasResolvedColumn()) {
+				return [];
+			}
+
+			$resolved = $operand->getResolvedColumnOrFail();
+			$type     = $resolved->getTable()->getColumnOrFail($resolved->getColumnName())->getType();
+
+			return [
+				'allowed_operators' => \array_values(\array_map(
+					static fn (Operator $op) => $op->value,
+					$type->getAllowedFilterOperators()
+				)),
+			];
+		} catch (Throwable) {
+			// An unknown or refused column: the error being reported already says so.
+			return [];
+		}
 	}
 
 	/**

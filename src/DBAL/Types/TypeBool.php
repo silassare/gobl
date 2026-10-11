@@ -30,6 +30,19 @@ final class TypeBool extends BaseType
 	public const NAME = 'bool';
 
 	/**
+	 * The words a filter value may use: a filter given in a query string is always a string, whatever
+	 * the strictness of the column.
+	 *
+	 * @var array<array-key, bool>
+	 */
+	private static array $map_filter = [
+		'1'     => true,
+		'0'     => false,
+		'true'  => true,
+		'false' => false,
+	];
+
+	/**
 	 * @var array
 	 */
 	private static array $map_extended = [
@@ -168,6 +181,10 @@ final class TypeBool extends BaseType
 	#[Override]
 	public function castValueForFilter(mixed $value, Operator $operator, RDBMSInterface $rdbms): float|int|string|null
 	{
+		if (\is_string($value) && isset(self::$map_filter[$key = \strtolower($value)])) {
+			$value = self::$map_filter[$key];
+		}
+
 		return $this->phpToDb($value, $rdbms);
 	}
 

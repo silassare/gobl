@@ -45,6 +45,9 @@ $filters->isTrue('u.user_active');   // = 1 / = true
 $filters->isFalse('u.user_banned');  // = 0 / = false
 ```
 
+`eq` / `neq` take `true`, `false`, `1`, `0`, and the strings `'1'`, `'0'`, `'true'`, `'false'`
+(any case) whatever the column's strictness: a filter from a query string is always a string.
+
 ---
 
 ## IN / NOT IN
@@ -232,6 +235,20 @@ Supported operator strings map to `Gobl\DBAL\Operator` values:
 `eq`, `neq`, `lt`, `lte`, `gt`, `gte`, `like`, `not_like`, `in`, `not_in`,
 `is_null`, `is_not_null`, `is_true`, `is_false`, `contains`, `has_key`.
 
+Two conditions need `'AND'` or `'OR'` between them. A refused item is named by its position, in
+the message and in the exception's public data (`getData()`):
+
+```php
+// [['kind', 'eq', 'a'], ['kind', 'eq', 'b']]
+// DBALRuntimeException: item at [1]: expected "and" or "or" between two conditions, found "array".
+// getData(): ['position' => [1]]
+
+// ['is_active', 'eq', 'maybe']
+// DBALRuntimeException: condition at [0] ("is_active" eq) refused: ...
+// getData(): ['position' => [0], 'column' => 'is_active', 'operator' => 'eq',
+//             'allowed_operators' => ['eq', 'neq', 'is_false', 'is_true']]
+```
+
 ---
 
 ### Filters from a request
@@ -242,6 +259,10 @@ is refused, as are an `order_by` or a `cursor_column` on one
 (`GOBL_ORM_REQUEST_INVALID_ORDER_BY`, `GOBL_ORM_REQUEST_INVALID_CURSOR_COLUMN`). A query's own
 methods (`filterBy()`, the generated `where...()`) are server code and may use them. A scope of
 your own can allow them with `allowPrivateColumnInFilters()` / `allowSensitiveColumnInFilters()`.
+
+A request's filters that are refused throw an `ORMQueryException` ("Failed to apply filters to
+query.") whose public data carries the refusal: `reason` (the message above), `position`, and for a
+condition `column`, `operator` and `allowed_operators`.
 
 ---
 
