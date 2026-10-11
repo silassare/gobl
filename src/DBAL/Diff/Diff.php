@@ -38,6 +38,7 @@ use Gobl\DBAL\Diff\Actions\UniqueKeyConstraintDeleted;
 use Gobl\DBAL\Interfaces\MigrationInterface;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\MigrationMode;
+use Gobl\DBAL\MigrationSchema;
 use Gobl\DBAL\Table;
 use OLIUP\CG\PHPClass;
 use OLIUP\CG\PHPComment;
@@ -189,6 +190,9 @@ final class Diff
 		foreach ($this->db_to->getTables() as $table) {
 			$tables[$table->getName()] = $table->toArray();
 		}
+
+		// Written as PHP code: an object would be an expression that needs its class to load the file.
+		MigrationSchema::assertPureData($tables);
 
 		$m_get_configs = $class->newMethod('getConfigs')
 			->public()

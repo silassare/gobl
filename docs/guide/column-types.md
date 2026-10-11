@@ -154,9 +154,18 @@ Stores a text value.
 
 Stores a PHP 8.1+ `BackedEnum` value. The underlying storage uses `TypeString(0, 128)`.
 
-| Option       | Type     | Default      | Description                                  |
-| ------------ | -------- | ------------ | -------------------------------------------- |
-| `enum_class` | `string` | _(required)_ | Fully-qualified name of a `BackedEnum` class |
+| Option         | Type                       | Default      | Description                                                                         |
+| -------------- | -------------------------- | ------------ | ----------------------------------------------------------------------------------- |
+| `enum_class`   | `string`                   | _(required)_ | Fully-qualified name of a `BackedEnum` class                                        |
+| `enum_cases`   | `array<string, int\|string>` | _(written)_  | The cases, name => value in declaration order, frozen when the type is serialized   |
+| `enum_backing` | `'int'\|'string'`          | _(written)_  | The backing type, frozen with the cases                                             |
+
+`toArray()` writes `enum_cases` and `enum_backing` from the class, and the default as its backing
+value, so a schema written to a migration file is pure data. When `enum_class` no longer exists and
+`enum_cases` is given, the type loads **detached** (`TypeEnum::isDetached()`): it validates against the
+frozen cases, and reads and writes the backing values (`int` or `string`) instead of enum instances;
+the generators type such a column with them. When the class exists, it wins over the frozen cases.
+A missing class with no frozen cases is refused, as before.
 
 ```php
 // PHP enum:

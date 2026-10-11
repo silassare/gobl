@@ -16,6 +16,7 @@ namespace Gobl\Tests\DBAL\Types;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\TypeEnum;
+use Gobl\ORM\ORMUniversalType;
 use Gobl\Tests\BaseTestCase;
 use stdClass;
 
@@ -282,5 +283,135 @@ final class TypeEnumTest extends BaseTestCase
 	{
 		$this->expectException(TypesInvalidValueException::class);
 		(new TypeEnum(TestStatus::class))->validate('Active');
+	}
+
+	// -------------------------------------------------------------------------
+	// Frozen cases and detached enums
+	// -------------------------------------------------------------------------
+
+	public function testToArrayFreezesTheCasesAndWritesTheDefaultAsItsValue(): void
+	{
+		$a = (new TypeEnum(TestStatus::class))->default(TestStatus::Pending)->toArray();
+
+		self::assertSame(TestStatus::class, $a['enum_class']);
+		self::assertSame(['Active' => 'active', 'Inactive' => 'inactive', 'Pending' => 'pending'], $a['enum_cases']);
+		self::assertSame('string', $a['enum_backing']);
+		self::assertSame('pending', $a['default']);
+
+		$b = (new TypeEnum(TestPriority::class))->toArray();
+
+		self::assertSame(['Low' => 1, 'Medium' => 2, 'High' => 3], $b['enum_cases']);
+		self::assertSame('int', $b['enum_backing']);
+	}
+
+	public function testADefaultGivenAsItsValueIsTheEnumCase(): void
+	{
+		$t = TypeEnum::getInstance(['enum_class' => TestPriority::class, 'default' => 2]);
+
+		self::assertSame(TestPriority::Medium, $t->getDefault());
+		self::assertSame(2, $t->toArray()['default']);
+		self::assertSame(TestStatus::Pending, (new TypeEnum(TestStatus::class))->default('pending')->getDefault());
+	}
+
+	public function testAnExistingClassWinsOverTheFrozenCases(): void
+	{
+		$t = TypeEnum::getInstance([
+			'enum_class'   => TestStatus::class,
+			'enum_cases'   => ['Gone' => 'gone'],
+			'enum_backing' => 'string',
+		]);
+
+		self::assertFalse($t->isDetached());
+		self::assertSame(['Active' => 'active', 'Inactive' => 'inactive', 'Pending' => 'pending'], $t->getEnumCases());
+		self::assertSame(TestStatus::Active, $t->validate('active')->getCleanValue());
+	}
+
+	public function testAMissingClassWithoutFrozenCasesStillThrows(): void
+	{
+		$this->expectException(TypesException::class);
+		TypeEnum::getInstance(['enum_class' => 'Gobl\Tests\Missing\NoSuchEnum']);
+	}
+
+	public function testAMissingClassLoadsDetachedFromTheFrozenCases(): void
+	{
+		$t = TypeEnum::getInstance([
+			'enum_class'   => 'Gobl\Tests\Missing\NoSuchStatus',
+			'enum_cases'   => ['QUEUED' => 'queued', 'SENT' => 'sent'],
+			'enum_backing' => 'string',
+			'default'      => 'queued',
+		]);
+		$db = self::getNewDbInstance();
+
+		self::assertTrue($t->isDetached());
+		self::assertSame('Gobl\Tests\Missing\NoSuchStatus', $t->getEnumClass());
+		self::assertSame('sent', $t->validate('sent')->getCleanValue());
+		self::assertSame('queued', $t->validate(null)->getCleanValue());
+		self::assertSame('sent', $t->phpToDb('sent', $db));
+		self::assertSame('sent', $t->dbToPhp('sent', $db));
+		self::assertNull($t->dbToPhp(null, $db));
+		self::assertSame('queued', $t->toArray()['default']);
+		self::assertSame(['QUEUED' => 'queued', 'SENT' => 'sent'], $t->toArray()['enum_cases']);
+
+		$this->expectException(TypesInvalidValueException::class);
+		$t->validate('failed');
+	}
+
+	public function testADetachedIntBackedEnumReadsIntegerText(): void
+	{
+		$t = TypeEnum::getInstance([
+			'enum_class' => 'Gobl\Tests\Missing\NoSuchPriority',
+			'enum_cases' => ['LOW' => 1, 'HIGH' => 3],
+		]);
+		$db = self::getNewDbInstance();
+
+		self::assertTrue($t->isDetached());
+		self::assertSame('int', $t->toArray()['enum_backing']);
+		self::assertSame(3, $t->validate('3')->getCleanValue());
+		self::assertSame(1, $t->validate(1)->getCleanValue());
+		self::assertSame(3, $t->dbToPhp('3', $db));
+
+		$this->expectException(TypesInvalidValueException::class);
+		$t->validate('2');
+	}
+
+	public function testADetachedEnumAcceptsACaseOfAnyEnumWithAFrozenValue(): void
+	{
+		$t = TypeEnum::getInstance([
+			'enum_class' => 'Gobl\Tests\Missing\NoSuchStatus',
+			'enum_cases' => ['ACTIVE' => 'active'],
+		]);
+
+		self::assertSame('active', $t->validate(TestStatus::Active)->getCleanValue());
+	}
+
+	public function testADetachedEnumIsTypedByItsBackingValues(): void
+	{
+		$string = TypeEnum::getInstance(['enum_class' => 'Gobl\Tests\Missing\A', 'enum_cases' => ['X' => 'x']]);
+		$int    = TypeEnum::getInstance(['enum_class' => 'Gobl\Tests\Missing\B', 'enum_cases' => ['X' => 1]]);
+
+		self::assertNull($string->getReadTypeHint()->getPHPType());
+		self::assertSame([ORMUniversalType::STRING], $string->getReadTypeHint()->getUniversalTypes());
+		self::assertSame([ORMUniversalType::INT], $int->getWriteTypeHint()->getUniversalTypes());
+	}
+
+	/**
+	 * @dataProvider provideInvalidFrozenCasesAreRefusedCases
+	 */
+	public function testInvalidFrozenCasesAreRefused(array $cases, ?string $backing): void
+	{
+		$this->expectException(TypesException::class);
+		(new TypeEnum())->detachedEnum('Gobl\Tests\Missing\NoSuchEnum', $cases, $backing);
+	}
+
+	/** @return iterable<string, array{array, null|string}> */
+	public static function provideInvalidFrozenCasesAreRefusedCases(): iterable
+	{
+		yield 'a list, not names' => [['a', 'b'], 'string'];
+
+		yield 'an int in a string enum' => [['A' => 1], 'string'];
+
+		yield 'a string in an int enum' => [['A' => 'a'], 'int'];
+
+		yield 'an unknown backing' => [['A' => 1.5], 'float'];
 	}
 }

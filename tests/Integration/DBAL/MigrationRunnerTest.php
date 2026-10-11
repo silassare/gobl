@@ -15,6 +15,7 @@ namespace Gobl\Tests\Integration\DBAL;
 
 use Gobl\DBAL\Builders\NamespaceBuilder;
 use Gobl\DBAL\Builders\TableBuilder;
+use Gobl\DBAL\Db;
 use Gobl\DBAL\Diff\Diff;
 use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
@@ -23,7 +24,9 @@ use Gobl\DBAL\Interfaces\MigrationInterface;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\MigrationMode;
 use Gobl\DBAL\MigrationRunner;
+use Gobl\DBAL\Types\TypeEnum;
 use Gobl\Tests\BaseTestCase;
+use Gobl\Tests\Fixtures\SampleKind;
 use Throwable;
 
 /**
@@ -459,6 +462,61 @@ final class MigrationRunnerTest extends BaseTestCase
 
 		self::assertSame([1], $applied);
 	}
+
+	/**
+	 * A migration file whose enum class is gone runs, and its default reaches the database.
+	 *
+	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
+	 */
+	public function testAMigrationRunsWhenItsEnumClassIsGone(string $driver): void
+	{
+		$db_from = $this->runWithTestDb($driver, static function (NamespaceBuilder $ns): void {});
+		$db_to   = $this->runWithTestDb($driver, static function (NamespaceBuilder $ns): void {
+			$ns->table('products', static function (TableBuilder $t): void {
+				$t->id();
+				$t->string('name')->min(1)->max(120);
+				$t->enum('kind', SampleKind::class)->default(SampleKind::VIDEO);
+			});
+		});
+
+		$code = (string) (new Diff($db_from, $db_to))->generateMigrationFile(1);
+		$code = \str_replace(\addslashes(SampleKind::class), \addslashes('Gobl\Tests\Missing\RemovedKind'), $code);
+		$dir  = GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'migration_runner';
+
+		if (!\is_dir($dir)) {
+			\mkdir($dir, 0755, true);
+		}
+
+		$file = $dir . \DIRECTORY_SEPARATOR . $driver . '_' . \uniqid() . '.php';
+		\file_put_contents($file, $code);
+
+		$db     = $this->getNewDbInstance($driver);
+		$runner = (new MigrationRunner($db))->addFromFile($file);
+
+		self::assertSame([1], $runner->migrate());
+
+		$products = $db->getGenerator()->quoteIdentifier($db_to->getTableOrFail('products')->getFullName());
+
+		// The default the column was created with, not one the code passes.
+		$db->execute(\sprintf(
+			'INSERT INTO %s (%s) VALUES (%s)',
+			$products,
+			$db->getGenerator()->quoteIdentifier('name'),
+			"'a product'"
+		));
+
+		$schema = $runner->getMigrations()[1]->getSchema();
+		$kind   = Db::newInstanceOf($driver, $db->getConfig())->loadSchema($schema)
+			->getTableOrFail('products')
+			->getColumnOrFail('kind')
+			->getType();
+		$row    = $db->select('SELECT * FROM ' . $products)->fetch();
+
+		self::assertInstanceOf(TypeEnum::class, $kind);
+		self::assertTrue($kind->isDetached());
+		self::assertSame('video', $kind->dbToPhp($row['kind'], $db));
+	}
+
 	// ------------------------------------------------------------------
 	// Helpers / infrastructure
 	// ------------------------------------------------------------------

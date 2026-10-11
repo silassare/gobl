@@ -1,5 +1,22 @@
 ### Unreleased (3.0.x-dev)
 
+- **A migration file no longer needs the enum classes it names.** An enum
+  column's default was written by `var_export()` as `\App\Enum::CASE`, an
+  expression that needs the class to load the file, and `TypeEnum` refused a
+  class that does not exist: deleting an enum broke every migration naming it.
+  `TypeEnum::toArray()` now writes the default as its backing value and freezes
+  the cases (`enum_cases`, name => value, and `enum_backing`). When the class is
+  gone, a type given frozen cases loads detached (`TypeEnum::isDetached()`):
+  it validates against them and reads and writes backing values, and the
+  generators type the column with those. While the class exists, a default
+  given as its value (as a migration gives it) is the enum case
+  (`TypeEnum::getDefault()`): a default is trusted, not validated, so a new
+  entity would otherwise hold the bare value. `Diff::generateMigrationFile()`
+  refuses a schema holding anything but scalars and arrays
+  (`MigrationSchema::assertPureData()`). `TypeEnum::dbToPhp()`,
+  `phpToDb()` and `toEnumValue()` may now return a backing value (detached
+  only). Migration files written before keep the old default and still need
+  their enum classes.
 - **The generated TypeScript bundle exports the row types.** `index.ts`
   exported the entity classes and the enums only, while a REST answer is made
   of rows: every `<Entity>Row` (`GoblRowOf<...>`) declared in a base file is

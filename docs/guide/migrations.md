@@ -180,6 +180,35 @@ clause and is emitted as a plain `ALTER COLUMN` statement.
 
 ---
 
+## A migration file is history
+
+`generateMigrationFile()` writes the schema the migration leaves (`getSchema()`) as PHP code, so
+loading the file must not depend on code that has moved on since. That schema is pure data: Gobl
+refuses to write anything but scalars and arrays of them (`MigrationSchema::assertPureData()`, a
+`DBALRuntimeException` naming where the object is). An enum column is written with its default as its
+backing value and its cases frozen beside its class name:
+
+```php
+'status' => [
+    'enum_class'   => 'App\\Enums\\Status',
+    'type'         => 'enum',
+    'default'      => 'queued',
+    'enum_cases'   => ['QUEUED' => 'queued', 'SENT' => 'sent'],
+    'enum_backing' => 'string',
+],
+```
+
+Once the enum class is deleted, such a migration still loads: the column is a detached enum (see
+[column types](./column-types.md#enum)), and the SQL is the same either way, since an enum column is a
+string column. A diff compares that SQL only, so adding or removing a case creates no migration.
+
+A migration file written by an older Gobl has the default as an expression
+(`\App\Enums\Status::QUEUED`) and no frozen cases: it needs the class to load. Rewrite that by hand
+(the default as its value, `enum_cases` and `enum_backing` added) before deleting the class, or keep the
+class until those migrations are squashed.
+
+---
+
 ## Rename tracking
 
 By default the diff engine identifies a table by `md5(namespace/name)` and a column by

@@ -781,6 +781,17 @@
 						"App\\Enums\\OrderState"
 					]
 				},
+				"enum_cases": {
+					"type": "object",
+					"additionalProperties": {
+						"type": ["string", "integer"]
+					},
+					"description": "The cases, name => value in declaration order, as Gobl writes them in a migration file. When 'enum_class' no longer exists, the column loads from them (detached) and reads and writes the backing values. Ignored while the class exists."
+				},
+				"enum_backing": {
+					"enum": ["int", "string"],
+					"description": "The backing type of the frozen 'enum_cases'. Written by Gobl with them."
+				},
 				"nullable": {
 					"type": "boolean",
 					"description": "Whether the column accepts NULL. When false (default), NULL values are rejected during validation. Alias: 'null'.",

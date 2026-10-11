@@ -177,7 +177,8 @@ abstract class CSGenerator
 
 		$filtersRules = [];
 
-		if ($type instanceof TypeEnum) {
+		// A detached enum (its class is gone) is typed by its backing values: there is no enum to declare.
+		if ($type instanceof TypeEnum && !$type->isDetached()) {
 			try {
 				$enum_class = $type->getEnumClass();
 				$this->declareEnum($enum_class, $column->getTable()->getName());
