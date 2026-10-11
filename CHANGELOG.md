@@ -1,5 +1,34 @@
 ### Unreleased (3.0.x-dev)
 
+- **The generated TypeScript bundle exports the row types.** `index.ts`
+  exported the entity classes and the enums only, while a REST answer is made
+  of rows: every `<Entity>Row` (`GoblRowOf<...>`) declared in a base file is
+  now exported from `index.ts` too (`export type { ClientRow } from
+'./db/base/ClientBase'`).
+- **The generation time can be left out of generated files.**
+  `Gobl::enableGeneratedAtDate(false)` drops the `Time:` line from the headers
+  of the PHP, TypeScript and Dart classes and of the SQL scripts, so that a
+  file generated again from an unchanged schema is byte-identical and a
+  regeneration only rewrites what changed. The `Proudly With:` version line
+  stays. `Gobl::getGeneratedAtDate()` now returns `?string`: `null` while
+  disabled.
+- **A refused flat filter says which item and why.** `Filters::fromArray()`
+  names the position of the refused item (`item at [1]`, `condition at [0][2]`)
+  and the reason in its message, and puts `position` (a list of indexes), and
+  for a condition its `column`, `operator` and, when the column resolves, the
+  `allowed_operators` of its type, in the exception's public data. A condition
+  that `add()` refuses (a value the column's type refuses, a column the scope
+  refuses) is wrapped the same way, the cause as its previous. The
+  `ORMQueryException` of a request's filters ("Failed to apply filters to
+  query.") carries that message as `reason`, with the same public data, so a
+  REST client is told what to fix. Two conditions with no `and` / `or` between
+  them are still refused, now saying so. The typo "will expecting" is gone
+  with the old messages.
+- **A boolean column takes `1`, `0`, `true` and `false` given as strings in a
+  filter**, whatever its strictness (`TypeBool::castValueForFilter()`): a
+  filter from a query string is always a string, and `['is_active', 'eq', '1']`
+  was refused by a strict column.
+
 - **A generated query, controller or results class may be the first one
   loaded.** Their constructors, and the CRUD class's, read the entity's
   `TABLE_NAMESPACE` and `TABLE_NAME`, which loaded the entity. A framework that
