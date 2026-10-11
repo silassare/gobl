@@ -37,6 +37,11 @@ final class Gobl
 	private static array $templates = [];
 
 	/**
+	 * @var bool
+	 */
+	private static bool $generated_at_enabled = true;
+
+	/**
 	 * @var null|string
 	 */
 	private static ?string $default_schema_url = 'https://raw.githubusercontent.com/silassare/gobl/main/docs/public/schema.json';
@@ -293,13 +298,26 @@ final class Gobl
 	}
 
 	/**
+	 * Enables or disables the generation time in the headers of generated files.
+	 *
+	 * Disabled, a file generated again from an unchanged schema is identical to the previous one, so a
+	 * regeneration only rewrites the files whose content changed.
+	 *
+	 * @param bool $enabled
+	 */
+	public static function enableGeneratedAtDate(bool $enabled = true): void
+	{
+		self::$generated_at_enabled = $enabled;
+	}
+
+	/**
 	 * Returns a formatted date string to be used in generated files.
 	 *
-	 * @return string
+	 * @return null|string null when disabled with {@see enableGeneratedAtDate()}
 	 */
-	public static function getGeneratedAtDate(): string
+	public static function getGeneratedAtDate(): ?string
 	{
-		return \date(\DATE_ATOM);
+		return self::$generated_at_enabled ? \date(\DATE_ATOM) : null;
 	}
 
 	/**

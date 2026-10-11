@@ -90,6 +90,7 @@ final class CSGeneratorTS extends CSGenerator
 			$entity_content                           = $ts_entity_class_tpl->runGet($inject);
 			$entity_base_content                      = $ts_entity_base_class_tpl->runGet($inject);
 			$bundle_inject['entities'][$entity_class] = $entity_content;
+			$bundle_inject['rows'][$entity_class]     = $entity_base_class;
 			$this->writeFile($path_db_base . $ds . $entity_base_class . '.ts', $entity_base_content);
 			$this->writeFile($path_db . $ds . $entity_class . '.ts', $entity_content, false);
 		}

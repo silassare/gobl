@@ -40,6 +40,7 @@ use Gobl\ORM\Interfaces\WithPaginationInterface;
 use Gobl\ORM\Utils\Helpers;
 use Gobl\ORM\Utils\ORMClassKind;
 use Override;
+use PHPUtils\Interfaces\RichExceptionInterface;
 use PHPUtils\Str;
 use Throwable;
 
@@ -771,7 +772,14 @@ abstract class ORMTableQuery extends FiltersTableScope
 					new FiltersTableScope($this->table, $this->table_alias)
 				));
 			} catch (Throwable $t) {
+				// The reason and where it is (`Filters::fromArray()` puts the position, the column, the
+				// operator and the operators the column takes in its public data) are for the caller
+				// who sent the filters.
+				$details = $t instanceof RichExceptionInterface ? $t->getData() : [];
+
 				throw new ORMQueryException('Failed to apply filters to query.', [
+					'reason'   => $t->getMessage(),
+					...$details,
 					'_filters' => $additional_filters,
 					'_table'   => $this->table->getName(),
 				], $t);

@@ -26,6 +26,11 @@ _r('Currency', Currency);
 
 export * from './enums.ts';
 
+export type { ClientRow } from './db/base/ClientBase';
+export type { AccountRow } from './db/base/AccountBase';
+export type { TransactionRow } from './db/base/TransactionBase';
+export type { CurrencyRow } from './db/base/CurrencyBase';
+
 export {
 	Client,
 	Account,

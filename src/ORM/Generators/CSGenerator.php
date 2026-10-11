@@ -406,6 +406,7 @@ abstract class CSGenerator
 	 */
 	protected static function getHeaderDoc(): string
 	{
+		$date    = Gobl::getGeneratedAtDate();
 		$comment = <<<'COMMENT'
 /**
  * Auto generated file,
@@ -413,14 +414,13 @@ abstract class CSGenerator
  * INFO: you are free to edit it,
  * but make sure to know what you are doing.
  *
- * Proudly With: {gobl_version}
- * Time: {gobl_time}
+ * Proudly With: {gobl_version}{gobl_time}
  */
 COMMENT;
 
 		return Str::interpolate($comment, [
 			'gobl_version' => GOBL_VERSION,
-			'gobl_time'    => Gobl::getGeneratedAtDate(),
+			'gobl_time'    => null === $date ? '' : "\n * Time: {$date}",
 		]);
 	}
 

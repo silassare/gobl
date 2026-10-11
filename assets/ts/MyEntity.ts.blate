@@ -6,8 +6,8 @@
  * but make sure to know what you are doing.
  *
  * Proudly With: {= gobl_version}
- * Time: {= gobl_time}
- */
+{@if gobl_time} * Time: {= gobl_time}
+{/if} */
 {/if}
 {@raw}
 import { getEntityCache, type GoblEntityData } from "gobl-utils-ts";

@@ -132,12 +132,15 @@ $generator->generate($db->getTables(), __DIR__ . '/assets/ts');
 
 Output (`assets/ts/`):
 
-| File              | Contents                             |
-| ----------------- | ------------------------------------ |
-| `MyEntityBase.ts` | Base interface with all column types |
-| `MyEntity.ts`     | Extending interface - edit freely    |
-| `TSBundle.ts`     | Re-exports all entities              |
-| `TSEnums.ts`      | Enum type definitions                |
+| File                           | Contents                                                      |
+| ------------------------------ | ------------------------------------------------------------- |
+| `gobl/db/base/MyEntityBase.ts` | Base class with all column types, and the `MyEntityRow` type  |
+| `gobl/db/MyEntity.ts`          | Extending class - edit freely                                 |
+| `gobl/index.ts`                | Registers and exports every entity, its `Row` type, the enums |
+| `gobl/enums.ts`                | Enum type definitions                                         |
+
+A REST answer is made of rows (prefixed column names), not entities: import the row types from
+the bundle (`import type { MyEntityRow } from './gobl'`).
 
 ---
 
@@ -174,6 +177,10 @@ WARNING: please don't edit.
 Proudly With: gobl/v2.0.0
 Time: 2024-01-15T10:30:00+00:00
 ```
+
+`Gobl::enableGeneratedAtDate(false)` leaves the `Time:` line out (of the SQL scripts too), so that a
+file generated again from an unchanged schema is identical and a regeneration rewrites only what
+changed. The version line stays.
 
 Editable files use:
 

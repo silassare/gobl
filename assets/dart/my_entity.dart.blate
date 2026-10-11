@@ -4,8 +4,8 @@
 // WARNING: please don't edit.
 //
 // Proudly With: {= gobl_version}
-// Time: {= gobl_time}
-{/if}
+{@if gobl_time}// Time: {= gobl_time}
+{/if}{/if}
 import '../base/{= table.name}_base.dart';
 import '../mixins/{= table.name}_mixin.dart';
 

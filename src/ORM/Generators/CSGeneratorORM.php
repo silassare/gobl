@@ -70,19 +70,18 @@ final class CSGeneratorORM extends CSGenerator
 
 		$version                   = GOBL_VERSION;
 		$date                      = Gobl::getGeneratedAtDate();
+		$time                      = null === $date ? '' : "\nTime: {$date}";
 		$this->not_editable_header = "Auto generated file
 
 WARNING: please don't edit.
 
-Proudly With: {$version}
-Time: {$date}";
+Proudly With: {$version}{$time}";
 		$this->editable_header = "Auto generated file,
 
 INFO: you are free to edit it,
 but make sure to know what you are doing.
 
-Proudly With: {$version}
-Time: {$date}";
+Proudly With: {$version}{$time}";
 
 		$this->editable_body_comment = '
 //====================================================

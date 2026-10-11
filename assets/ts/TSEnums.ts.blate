@@ -5,8 +5,8 @@
  * WARNING: please don't edit.
  *
  * Proudly With: {= gobl_version}
- * Time: {= gobl_time}
- */
+{@if gobl_time} * Time: {= gobl_time}
+{/if} */
 {/if}
 
 {@each cases:name in enums}
