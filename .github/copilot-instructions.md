@@ -241,14 +241,30 @@ Diff key defaults: `md5(namespace/name)` for tables, `md5(table_key/prefix_name)
 
 ## Developer Workflows
 
-| Task             | Command            |
-| ---------------- | ------------------ |
-| Full test suite  | `make test`        |
-| Unit tests only  | `make test-unit`   |
-| Docker tests     | `make test-docker` |
-| Code style check | `make cs`          |
-| Auto-fix style   | `make fix`         |
-| Docs dev server  | `make docs-dev`    |
+| Task                  | Command                              |
+| --------------------- | ------------------------------------ |
+| Every change          | `make check`                         |
+| One class or one case | `make test-unit FILE=... FILTER=...` |
+| Unit tests only       | `make test-unit`                     |
+| Live-database tests   | `make test-integration`              |
+| Full test suite       | `make test`                          |
+| Docker tests          | `make test-docker`                   |
+| Code style check      | `make cs`                            |
+| Auto-fix style        | `make fix`                           |
+| Docs dev server       | `make docs-dev`                      |
+
+**Three tiers of re-running**, the cadence of every repository of the suite, with the same words
+everywhere (the `Makefile`'s own comments say what each one skips):
+
+- `make check` -- **every change**: `cs` and `lint`, both cached; `make check-full` ignores the caches.
+- `make test-unit FILE=... FILTER=...` -- **a feature is done**: the tests that cover it. It touches
+  no database and does not empty `tests/tmp/`, so a change to a generator or to the sample schema
+  needs `make test`, which rebuilds those classes from nothing.
+- `make test` -- **end of a cycle, and before anything is handed over**: both suites, from an empty
+  `tests/tmp/`. Start it in the background and carry on working.
+
+The tiers are about re-running, never about writing: a feature's test is written with the feature.
+A failure in a narrowed run is repeated with the full target before it is believed or reported.
 
 ## Documentation Guidelines
 

@@ -24,3 +24,6 @@ gobl.test.log.txt
 /docs/public/api
 /.phpdoc/cache
 /pnpm-lock.yaml
+
+# phpcs
+.phpcs.cache
