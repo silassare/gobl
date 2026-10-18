@@ -1380,13 +1380,20 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	/**
 	 * Returns default foreign key name for a given reference table.
 	 *
+	 * Built from the tables' full names, prefix included: a foreign key constraint name has to be
+	 * unique per database on MySQL, not per table, so two prefixed schemas of the same shape in one
+	 * database would otherwise claim the same name and only the first could be installed. Without a
+	 * table prefix a full name is the name, and so is the constraint's.
+	 *
 	 * @param Table $reference
 	 *
 	 * @return string
 	 */
 	public function defaultForeignKeyName(self $reference): string
 	{
-		return Constraint::normalizeName(\sprintf('fk_%s_%s', $this->getName(), $reference->getName()));
+		return Constraint::normalizeName(
+			\sprintf('fk_%s_%s', $this->getFullName(), $reference->getFullName())
+		);
 	}
 
 	/**
