@@ -11,7 +11,7 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 -- foreign key constraint deleted
-ALTER TABLE `gObL_products` DROP FOREIGN KEY fk_products_categories;
+ALTER TABLE `gObL_products` DROP FOREIGN KEY fk_gObL_products_gObL_categories;
 
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -35,7 +35,7 @@ ALTER TABLE `gObL_products` DROP FOREIGN KEY fk_products_categories;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 -- foreign key constraint added
-ALTER TABLE `gObL_products` ADD CONSTRAINT fk_products_categories FOREIGN KEY (`product_category_id`) REFERENCES `gObL_categories` (`category_id`) ON UPDATE NO ACTION ON DELETE NO ACTION;
+ALTER TABLE `gObL_products` ADD CONSTRAINT fk_gObL_products_gObL_categories FOREIGN KEY (`product_category_id`) REFERENCES `gObL_categories` (`category_id`) ON UPDATE NO ACTION ON DELETE NO ACTION;
 
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

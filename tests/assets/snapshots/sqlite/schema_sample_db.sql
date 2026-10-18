@@ -26,7 +26,7 @@ CREATE TABLE "gObL_roles" (
 "id" integer PRIMARY KEY AUTOINCREMENT,
 "title" text NOT NULL,
 "user_id" integer NOT NULL,
-CONSTRAINT fk_roles_users FOREIGN KEY ("user_id") REFERENCES "gObL_users" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
+CONSTRAINT fk_gObL_roles_gObL_users FOREIGN KEY ("user_id") REFERENCES "gObL_users" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
 );
 
 
@@ -55,7 +55,7 @@ CREATE TABLE "gObL_taggables" (
 "updated_at" integer NOT NULL,
 "taggable_id" integer NOT NULL,
 "taggable_type" varchar(64) NOT NULL,
-CONSTRAINT fk_taggables_tags FOREIGN KEY ("tag_id") REFERENCES "gObL_tags" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
+CONSTRAINT fk_gObL_taggables_gObL_tags FOREIGN KEY ("tag_id") REFERENCES "gObL_tags" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
 );
 
 
@@ -71,7 +71,7 @@ CREATE TABLE "gObL_articles" (
 "user_id" integer NOT NULL,
 "deleted" integer NOT NULL DEFAULT '0',
 "deleted_at" integer NULL DEFAULT NULL,
-CONSTRAINT fk_articles_users FOREIGN KEY ("user_id") REFERENCES "gObL_users" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
+CONSTRAINT fk_gObL_articles_gObL_users FOREIGN KEY ("user_id") REFERENCES "gObL_users" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
 );
 
 

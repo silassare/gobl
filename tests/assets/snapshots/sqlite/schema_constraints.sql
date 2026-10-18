@@ -28,7 +28,7 @@ CREATE TABLE "gObL_posts" (
 "post_title" varchar(200) NOT NULL,
 "post_slug" varchar(200) NOT NULL,
 "post_published" integer NOT NULL DEFAULT '0',
-CONSTRAINT fk_posts_authors FOREIGN KEY ("post_author_id") REFERENCES "gObL_authors" ("author_id") ON UPDATE NO ACTION ON DELETE NO ACTION,
+CONSTRAINT fk_gObL_posts_gObL_authors FOREIGN KEY ("post_author_id") REFERENCES "gObL_authors" ("author_id") ON UPDATE NO ACTION ON DELETE NO ACTION,
 CONSTRAINT uc_gObL_posts_2dbcba41b9ac4c5d22886ba672463cb4 UNIQUE ("post_slug")
 );
 

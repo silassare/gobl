@@ -217,6 +217,49 @@ final class TableTest extends BaseTestCase
 		self::assertFalse($posts->isForeignKey(['p_id']));
 	}
 
+	/**
+	 * A foreign key constraint name is unique per database on MySQL, not per table, so it is built
+	 * from the tables' full names: two schemas of the same shape told apart only by their table
+	 * prefix would otherwise both want `fk_posts_users`, and only the first could be installed in a
+	 * given database.
+	 */
+	public function testForeignKeyNameCarriesTheTablePrefix(): void
+	{
+		$name_with = static function (string $table_prefix): string {
+			$users = new Table('users', $table_prefix);
+			$users->addColumn(new Column('id', 'u', ['type' => 'bigint', 'auto_increment' => true]));
+			$users->addPrimaryKeyConstraint(['id']);
+
+			$posts = new Table('posts', $table_prefix);
+			$posts->addColumn(new Column('id', 'p', ['type' => 'bigint', 'auto_increment' => true]));
+			$posts->addColumn(new Column('user_id', 'p', ['type' => 'bigint']));
+
+			return $posts->addForeignKeyConstraint(null, $users, ['user_id' => 'id'])
+				->getName();
+		};
+
+		self::assertSame('fk_one_posts_one_users', $name_with('one'));
+		self::assertSame('fk_two_posts_two_users', $name_with('two'));
+	}
+
+	/**
+	 * Without a table prefix a full name is the name, so the constraint is named as it always was.
+	 */
+	public function testForeignKeyNameWithoutATablePrefixIsUnchanged(): void
+	{
+		$users = new Table('users');
+		$users->addColumn(new Column('id', 'u', ['type' => 'bigint', 'auto_increment' => true]));
+		$users->addPrimaryKeyConstraint(['id']);
+
+		$posts = new Table('posts');
+		$posts->addColumn(new Column('id', 'p', ['type' => 'bigint', 'auto_increment' => true]));
+		$posts->addColumn(new Column('user_id', 'p', ['type' => 'bigint']));
+
+		$fk = $posts->addForeignKeyConstraint(null, $users, ['user_id' => 'id']);
+
+		self::assertSame('fk_posts_users', $fk->getName());
+	}
+
 	public function testAddIndex(): void
 	{
 		$table = new Table('users', 'u');

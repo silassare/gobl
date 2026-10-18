@@ -64,11 +64,11 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		
 		return <<<DIFF_SQL
 		-- constraints column "account_client_id" type changed in host table "gObL_accounts".
-		ALTER TABLE "gObL_accounts" DROP CONSTRAINT fk_accounts_clients;
+		ALTER TABLE "gObL_accounts" DROP CONSTRAINT fk_gObL_accounts_gObL_clients;
 		-- constraints column mapping changed.
-		ALTER TABLE "gObL_accounts" DROP CONSTRAINT fk_accounts_currencies;
+		ALTER TABLE "gObL_accounts" DROP CONSTRAINT fk_gObL_accounts_gObL_currencies;
 		-- table "gObL_transactions" was deleted.
-		ALTER TABLE "gObL_transactions" DROP CONSTRAINT fk_transactions_accounts;
+		ALTER TABLE "gObL_transactions" DROP CONSTRAINT fk_gObL_transactions_gObL_accounts;
 		-- primary key constraint deleted
 		ALTER TABLE "gObL_currencies" DROP CONSTRAINT pk_gObL_currencies;
 		-- table "gObL_transactions" was deleted.
@@ -150,9 +150,9 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		-- unique key constraint added
 		ALTER TABLE "gObL_currencies" ADD CONSTRAINT uc_gObL_currencies_c13367945d5d4c91047b3b50234aa7ab UNIQUE ("currency_code");
 		-- constraints column "account_client_id" type changed in host table "gObL_accounts".
-		ALTER TABLE "gObL_accounts" ADD CONSTRAINT fk_accounts_clients FOREIGN KEY ("account_client_id") REFERENCES "gObL_clients" ("client_id") ON UPDATE NO ACTION ON DELETE NO ACTION;
+		ALTER TABLE "gObL_accounts" ADD CONSTRAINT fk_gObL_accounts_gObL_clients FOREIGN KEY ("account_client_id") REFERENCES "gObL_clients" ("client_id") ON UPDATE NO ACTION ON DELETE NO ACTION;
 		-- constraints column mapping changed.
-		ALTER TABLE "gObL_accounts" ADD CONSTRAINT fk_accounts_currencies FOREIGN KEY ("account_currency_code") REFERENCES "gObL_currencies" ("currency_code") ON UPDATE NO ACTION ON DELETE NO ACTION;
+		ALTER TABLE "gObL_accounts" ADD CONSTRAINT fk_gObL_accounts_gObL_currencies FOREIGN KEY ("account_currency_code") REFERENCES "gObL_currencies" ("currency_code") ON UPDATE NO ACTION ON DELETE NO ACTION;
 		DIFF_SQL;
 	}
 
@@ -165,9 +165,9 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		
 		return <<<DIFF_SQL
 		-- constraints column "account_client_id" type changed in host table "gObL_accounts".
-		ALTER TABLE "gObL_accounts" DROP CONSTRAINT fk_accounts_clients;
+		ALTER TABLE "gObL_accounts" DROP CONSTRAINT fk_gObL_accounts_gObL_clients;
 		-- constraints column mapping changed.
-		ALTER TABLE "gObL_accounts" DROP CONSTRAINT fk_accounts_currencies;
+		ALTER TABLE "gObL_accounts" DROP CONSTRAINT fk_gObL_accounts_gObL_currencies;
 		-- unique key constraint deleted
 		ALTER TABLE "gObL_accounts" DROP CONSTRAINT uc_gObL_accounts_f9913917ef012372103dd1a027b2cd6a;
 		-- unique key constraint deleted
@@ -257,11 +257,11 @@ return new class implements \Gobl\DBAL\Interfaces\MigrationInterface
 		-- table "gObL_transactions" was added.
 		ALTER TABLE "gObL_transactions" ADD CONSTRAINT uc_gObL_transactions_b8af13ea9c8fe890c9979a1fa8dbde22 UNIQUE ("transaction_reference");
 		-- constraints column "account_client_id" type changed in host table "gObL_accounts".
-		ALTER TABLE "gObL_accounts" ADD CONSTRAINT fk_accounts_clients FOREIGN KEY ("account_client_id") REFERENCES "gObL_clients" ("client_id") ON UPDATE NO ACTION ON DELETE NO ACTION;
+		ALTER TABLE "gObL_accounts" ADD CONSTRAINT fk_gObL_accounts_gObL_clients FOREIGN KEY ("account_client_id") REFERENCES "gObL_clients" ("client_id") ON UPDATE NO ACTION ON DELETE NO ACTION;
 		-- constraints column mapping changed.
-		ALTER TABLE "gObL_accounts" ADD CONSTRAINT fk_accounts_currencies FOREIGN KEY ("account_currency_code") REFERENCES "gObL_currencies" ("ccy_code") ON UPDATE NO ACTION ON DELETE NO ACTION;
+		ALTER TABLE "gObL_accounts" ADD CONSTRAINT fk_gObL_accounts_gObL_currencies FOREIGN KEY ("account_currency_code") REFERENCES "gObL_currencies" ("ccy_code") ON UPDATE NO ACTION ON DELETE NO ACTION;
 		-- table "gObL_transactions" was added.
-		ALTER TABLE "gObL_transactions" ADD CONSTRAINT fk_transactions_accounts FOREIGN KEY ("transaction_account_id") REFERENCES "gObL_accounts" ("account_id") ON UPDATE NO ACTION ON DELETE NO ACTION;
+		ALTER TABLE "gObL_transactions" ADD CONSTRAINT fk_gObL_transactions_gObL_accounts FOREIGN KEY ("transaction_account_id") REFERENCES "gObL_accounts" ("account_id") ON UPDATE NO ACTION ON DELETE NO ACTION;
 		DIFF_SQL;
 	}
 

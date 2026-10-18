@@ -105,14 +105,14 @@ CONSTRAINT pk_gObL_currencies PRIMARY KEY ("ccy_code")
 --
 -- Foreign keys constraints definition for table "gObL_accounts"
 --
-ALTER TABLE "gObL_accounts" ADD CONSTRAINT fk_accounts_clients FOREIGN KEY ("account_client_id") REFERENCES "gObL_clients" ("client_id") ON UPDATE NO ACTION ON DELETE NO ACTION;
-ALTER TABLE "gObL_accounts" ADD CONSTRAINT fk_accounts_currencies FOREIGN KEY ("account_currency_code") REFERENCES "gObL_currencies" ("ccy_code") ON UPDATE NO ACTION ON DELETE NO ACTION;
+ALTER TABLE "gObL_accounts" ADD CONSTRAINT fk_gObL_accounts_gObL_clients FOREIGN KEY ("account_client_id") REFERENCES "gObL_clients" ("client_id") ON UPDATE NO ACTION ON DELETE NO ACTION;
+ALTER TABLE "gObL_accounts" ADD CONSTRAINT fk_gObL_accounts_gObL_currencies FOREIGN KEY ("account_currency_code") REFERENCES "gObL_currencies" ("ccy_code") ON UPDATE NO ACTION ON DELETE NO ACTION;
 
 
 --
 -- Foreign keys constraints definition for table "gObL_transactions"
 --
-ALTER TABLE "gObL_transactions" ADD CONSTRAINT fk_transactions_accounts FOREIGN KEY ("transaction_account_id") REFERENCES "gObL_accounts" ("account_id") ON UPDATE NO ACTION ON DELETE NO ACTION;
+ALTER TABLE "gObL_transactions" ADD CONSTRAINT fk_gObL_transactions_gObL_accounts FOREIGN KEY ("transaction_account_id") REFERENCES "gObL_accounts" ("account_id") ON UPDATE NO ACTION ON DELETE NO ACTION;
 
 
 --

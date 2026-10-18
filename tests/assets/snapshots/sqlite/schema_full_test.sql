@@ -37,8 +37,8 @@ CREATE TABLE "gObL_accounts" (
 "account_created_at" integer NOT NULL,
 "account_updated_at" integer NOT NULL,
 "account_valid" integer NOT NULL DEFAULT '1',
-CONSTRAINT fk_accounts_clients FOREIGN KEY ("account_client_id") REFERENCES "gObL_clients" ("client_id") ON UPDATE NO ACTION ON DELETE NO ACTION,
-CONSTRAINT fk_accounts_currencies FOREIGN KEY ("account_currency_code") REFERENCES "gObL_currencies" ("ccy_code") ON UPDATE NO ACTION ON DELETE NO ACTION
+CONSTRAINT fk_gObL_accounts_gObL_clients FOREIGN KEY ("account_client_id") REFERENCES "gObL_clients" ("client_id") ON UPDATE NO ACTION ON DELETE NO ACTION,
+CONSTRAINT fk_gObL_accounts_gObL_currencies FOREIGN KEY ("account_currency_code") REFERENCES "gObL_currencies" ("ccy_code") ON UPDATE NO ACTION ON DELETE NO ACTION
 );
 
 
@@ -62,7 +62,7 @@ CREATE TABLE "gObL_transactions" (
 "transaction_created_at" integer NOT NULL,
 "transaction_updated_at" integer NOT NULL,
 "transaction_valid" integer NOT NULL DEFAULT '1',
-CONSTRAINT fk_transactions_accounts FOREIGN KEY ("transaction_account_id") REFERENCES "gObL_accounts" ("account_id") ON UPDATE NO ACTION ON DELETE NO ACTION,
+CONSTRAINT fk_gObL_transactions_gObL_accounts FOREIGN KEY ("transaction_account_id") REFERENCES "gObL_accounts" ("account_id") ON UPDATE NO ACTION ON DELETE NO ACTION,
 CONSTRAINT uc_gObL_transactions_b8af13ea9c8fe890c9979a1fa8dbde22 UNIQUE ("transaction_reference")
 );
 
