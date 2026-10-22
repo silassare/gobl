@@ -1,5 +1,29 @@
 ### Unreleased (3.0.x-dev)
 
+- **An UPDATE sends a JSON patch as the paths it changed.** A `JsonPatch`
+  assigned to a column (`$entity->setDataKey(...)`, `patchData()`, or the
+  object itself) was flattened to a document and written whole, so two
+  transactions patching different keys of one column overwrote each other:
+  each wrote every key as it was when it read the row, and whichever committed
+  last won. A patch now keeps its operations, and an UPDATE asks the database
+  to apply them to the row it holds -- `JSON_SET` / `JSON_REMOVE` on MySQL,
+  `json_set()` / `json_remove()` on SQLite, `jsonb_set()` / `#-` on
+  PostgreSQL, each over the column itself, with the objects above a written
+  path made from the column's own value. Writes to different paths of one
+  column no longer undo each other; writes to the same path are still the last
+  one in. An INSERT writes the whole document as before (there is no row to
+  patch), and so does an UPDATE whose patch cannot be expressed as paths: an
+  empty path, a segment that reads as an array index (which a JSON path
+  expression cannot tell from a member named `0`), two paths where one is
+  inside the other, or a value that does not encode as JSON. The document the
+  entity holds is the patch applied to the value it held, so it reads back what
+  the row will hold; MySQL and PostgreSQL keep an object's members in an order
+  of their own, so a patched document may come back with its keys in another
+  order. `JsonPatch` gains `setAt()` / `removeAt()` (a path as segments, for a
+  key holding a dot or a bracket), `getOperations()`, `hasOperations()` and
+  `append()`, and `set()` now accepts a `bool` value. `ORMEntity::toRowPatches()`
+  is what the controller writes them from.
+
 - **A migration file no longer needs the enum classes it names.** An enum
   column's default was written by `var_export()` as `\App\Enum::CASE`, an
   expression that needs the class to load the file, and `TypeEnum` refused a

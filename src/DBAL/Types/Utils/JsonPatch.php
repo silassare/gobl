@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Types\Utils;
 
+use Gobl\DBAL\Interfaces\QueryGeneratorInterface;
+use InvalidArgumentException;
 use JsonSerializable;
 use PHPUtils\DotPath;
 use PHPUtils\Store\Map;
@@ -55,17 +57,23 @@ use PHPUtils\Store\Map;
  *   - An intermediate key that exists but is not an array is overwritten by `set()`.
  *   - `remove()` on a non-existent path is a silent no-op.
  *
- * > **Note:** JsonPatch operates purely in PHP - no SQL-level `JSON_SET` / `JSON_REMOVE`
- * > expressions are generated. The full JSON document is sent to the database on every save,
- * > which is adequate for small-to-medium payloads (up to a few KB). This is safe and
- * > efficient for the typical pattern of loading an entity, patching it, then saving it.
- * > If you need atomic concurrent updates on individual JSON keys (to prevent a lost-update
- * > when two transactions modify different keys of the same column), SQL-level path updates
- * > can be added in a future iteration.
+ * A patch keeps the operations it was given, not only their result, so an UPDATE can send the
+ * paths instead of the document: the database applies them to the row it holds, and two
+ * transactions patching different paths of one column no longer overwrite each other. The whole
+ * document is still what an INSERT writes, what the entity reads back, and what an UPDATE falls
+ * back to when the operations cannot be expressed as paths (see
+ * {@see QueryGeneratorInterface::getJsonPatchUpdateExpression()}).
  */
 final class JsonPatch
 {
 	private array $data;
+
+	/**
+	 * The operations, in the order they were asked for.
+	 *
+	 * @var list<array{op: 'remove'|'set', path: list<string>, value?: mixed}>
+	 */
+	private array $operations = [];
 
 	/**
 	 * JsonPatch constructor.
@@ -84,15 +92,34 @@ final class JsonPatch
 	 * Intermediate objects/arrays are created as needed.
 	 * If an intermediate key exists but is not an array it is overwritten.
 	 *
-	 * @param string                                       $path  dot-notation path (e.g. `'user.name'`, `'tags.0'`)
-	 * @param null|array|float|int|JsonSerializable|string $value the value to store
+	 * @param string                                            $path  dot-notation path (e.g. `'user.name'`, `'tags.0'`)
+	 * @param null|array|bool|float|int|JsonSerializable|string $value the value to store
 	 *
 	 * @return static
 	 */
-	public function set(string $path, array|float|int|JsonSerializable|string|null $value): static
+	public function set(string $path, array|bool|float|int|JsonSerializable|string|null $value): static
 	{
-		$keys = self::parsePath($path);
-		self::doSet($this->data, $keys, $value);
+		return $this->setAt(self::parsePath($path), $value);
+	}
+
+	/**
+	 * Sets a value at the given path, as segments.
+	 *
+	 * For a caller that has the segments already, and for a key a path string cannot hold: one with
+	 * a dot or a bracket in it is a single segment here, where `set()` would read it as a path.
+	 *
+	 * @param list<string>                                      $segments
+	 * @param null|array|bool|float|int|JsonSerializable|string $value
+	 *
+	 * @return static
+	 */
+	public function setAt(array $segments, array|bool|float|int|JsonSerializable|string|null $value): static
+	{
+		self::assertSegments($segments);
+
+		self::doSet($this->data, $segments, $value);
+
+		$this->operations[] = ['op' => 'set', 'path' => $segments, 'value' => $value];
 
 		return $this;
 	}
@@ -108,8 +135,68 @@ final class JsonPatch
 	 */
 	public function remove(string $path): static
 	{
-		$keys = self::parsePath($path);
-		self::doRemove($this->data, $keys);
+		return $this->removeAt(self::parsePath($path));
+	}
+
+	/**
+	 * Removes the key at the given path, as segments.
+	 *
+	 * The counterpart of {@see self::setAt()}.
+	 *
+	 * @param list<string> $segments
+	 *
+	 * @return static
+	 */
+	public function removeAt(array $segments): static
+	{
+		self::assertSegments($segments);
+
+		self::doRemove($this->data, $segments);
+
+		$this->operations[] = ['op' => 'remove', 'path' => $segments];
+
+		return $this;
+	}
+
+	/**
+	 * The operations this patch holds, in the order they were asked for.
+	 *
+	 * @return list<array{op: 'remove'|'set', path: list<string>, value?: mixed}>
+	 */
+	public function getOperations(): array
+	{
+		return $this->operations;
+	}
+
+	/**
+	 * Whether anything was asked of this patch.
+	 */
+	public function hasOperations(): bool
+	{
+		return [] !== $this->operations;
+	}
+
+	/**
+	 * Takes another patch's operations, applied to this one's document in the order they were given.
+	 *
+	 * How successive patches of one column become one patch: the operations are what the UPDATE
+	 * sends, so dropping the earlier ones would leave their paths unwritten.
+	 *
+	 * @param JsonPatch $other
+	 *
+	 * @return static
+	 */
+	public function append(self $other): static
+	{
+		foreach ($other->operations as $operation) {
+			if ('remove' === $operation['op']) {
+				self::doRemove($this->data, $operation['path']);
+			} else {
+				self::doSet($this->data, $operation['path'], $operation['value']);
+			}
+
+			$this->operations[] = $operation;
+		}
 
 		return $this;
 	}
@@ -132,6 +219,24 @@ final class JsonPatch
 	public function toMap(): Map
 	{
 		return new Map($this->data);
+	}
+
+	/**
+	 * Asserts that a path is addressable: at least one segment, none of them empty.
+	 *
+	 * @param list<string> $segments
+	 */
+	private static function assertSegments(array $segments): void
+	{
+		if ([] === $segments) {
+			throw new InvalidArgumentException('A JSON patch path needs at least one segment.');
+		}
+
+		foreach ($segments as $segment) {
+			if ('' === $segment) {
+				throw new InvalidArgumentException('A JSON patch path segment cannot be empty.');
+			}
+		}
 	}
 
 	/**

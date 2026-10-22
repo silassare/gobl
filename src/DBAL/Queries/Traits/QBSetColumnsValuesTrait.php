@@ -14,8 +14,10 @@ declare(strict_types=1);
 namespace Gobl\DBAL\Queries\Traits;
 
 use Gobl\DBAL\Queries\QBExpression;
+use Gobl\DBAL\Queries\QBType;
 use Gobl\DBAL\Queries\QBUtils;
 use Gobl\DBAL\Table;
+use Gobl\DBAL\Types\Utils\JsonPatch;
 use Gobl\DBAL\Types\Utils\TypeUtils;
 
 /**
@@ -27,6 +29,10 @@ trait QBSetColumnsValuesTrait
 	 * Binds column values for an INSERT or UPDATE statement.
 	 *
 	 * For each entry in `$values`:
+	 * - `JsonPatch` values become a path expression in an UPDATE, so that the database applies them
+	 *   to the row it holds rather than being handed a document read before another transaction
+	 *   wrote to it. A patch that cannot be expressed as paths, and any patch in an INSERT, is
+	 *   written as its whole document.
 	 * - `QBExpression` values are passed through as raw SQL fragments (no binding).
 	 * - All other values are bound to uniquely generated named parameters and the
 	 *   parameter map is merged into the query via `bindArray()` as a side effect.
@@ -65,6 +71,35 @@ trait QBSetColumnsValuesTrait
 
 		foreach ($values as $column_full_name => $value) {
 			$col = $table->getColumnOrFail($column_full_name);
+
+			if ($value instanceof JsonPatch) {
+				$patch_params = [];
+				$expression   = QBType::UPDATE === $this->getType()
+					? $this->db->getGenerator()
+						->getJsonPatchUpdateExpression(
+							$col,
+							$column_full_name,
+							$value,
+							static function (mixed $patch_value) use (&$patch_params): string {
+								$param_key                = QBUtils::newParamKey();
+								$patch_params[$param_key] = $patch_value;
+
+								return ':' . $param_key;
+							}
+						)
+					: null;
+
+				if (null !== $expression) {
+					// The expression is already of the column's type, so it skips the cast a value
+					// goes through. An INSERT gets the document: there is no row to patch yet.
+					$params                     = \array_merge($params, $patch_params);
+					$columns[$column_full_name] = $expression;
+
+					continue;
+				}
+
+				$value = $value->toMap();
+			}
 
 			if ($value instanceof QBExpression) {
 				$value = (string) $value;

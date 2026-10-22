@@ -121,6 +121,50 @@ $client->client_data = $data;  // re-assign: detected as dirty
 $client->isSaved();            // false
 ```
 
+### Patching a JSON column
+
+Assigning a whole document to a `json`, `map` or `list` column writes that document: the column
+ends up holding exactly what was assigned, so a value read before another transaction wrote to the
+column carries its keys back as they were. Assigning a **patch** says what changed instead, and the
+UPDATE asks the database to apply it to the row it holds:
+
+```php
+// Both forms build a JsonPatch over the column's current value.
+$client->setDataKey('prefs.theme', 'dark')     // generated per JSON column
+    ->removeDataKey('prefs.beta');
+
+$client->data = $client->patchData()
+    ->set('prefs.theme', 'dark')
+    ->remove('prefs.beta');
+
+$client->save();
+// UPDATE ... SET client_data = JSON_REMOVE(JSON_SET(..., '$.prefs.theme', ...), '$.prefs.beta')
+```
+
+Two transactions patching different paths of one column therefore keep each other's writes, where
+two writing the document would not. Two writing the same path are still the last one in.
+
+The objects above a written path are made from the column's own value, so a path the document does
+not have yet is created, and an intermediate holding something other than an object is replaced --
+as `set()` does in PHP. The entity reads back the patch applied to the value it held, which is what
+the row will hold.
+
+The whole document is written instead of the paths when:
+
+- the write is an INSERT -- there is no row to apply a patch to;
+- a path is empty, or a segment reads as an array index (`tags.0`), which a JSON path expression
+  cannot tell from a member named `0`;
+- two of the patch's paths are the same or one is inside the other, so the result would depend on
+  the order they are applied in;
+- a value does not encode as JSON.
+
+The result is the same in each case; what is lost is only the merge the database would have done.
+MySQL and PostgreSQL keep an object's members in an order of their own, so a patched document may
+come back with its keys in another order than it was written in.
+
+Use `JsonPatch::setAt()` / `removeAt()` to address a key that holds a dot or a bracket: they take
+the path as segments, where `set()` and `remove()` read it as a dot path.
+
 ---
 
 ## Results collection

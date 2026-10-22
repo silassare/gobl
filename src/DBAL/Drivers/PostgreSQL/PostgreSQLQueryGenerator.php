@@ -129,6 +129,108 @@ final class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		return 'jsonb_path_exists(' . $col_sql_expression . ", ('$.' || " . $key_expression . ')::jsonpath)';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * PostgreSQL reads a JSON value as `jsonb`, whatever the column stores it as.
+	 */
+	#[Override]
+	protected function getJsonValueExpression(string $value): string
+	{
+		return '(' . $value . ')::jsonb';
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * The column may hold `jsonb`, `json` or text: `::jsonb` reads all three.
+	 */
+	#[Override]
+	protected function getJsonDocumentOrEmptyExpression(string $expression): string
+	{
+		return 'COALESCE(' . $this->getJsonValueExpression($expression) . ', '
+			. $this->getJsonValueExpression($this->quoteLiteral('{}')) . ')';
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	#[Override]
+	protected function getJsonTypeExpression(string $expression): string
+	{
+		return 'jsonb_typeof(' . $expression . ')';
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	#[Override]
+	protected function getJsonObjectTypeName(): string
+	{
+		return 'object';
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * PostgreSQL addresses a path with a `text[]`, which is bound and not written as a literal: an
+	 * array literal would be two layers of escaping inside one string.
+	 */
+	#[Override]
+	protected function getJsonPathArgument(array $segments, callable $bind): string
+	{
+		$bound = \array_map(static fn (string $segment): string => $bind($segment), $segments);
+
+		return 'ARRAY[' . \implode(', ', $bound) . ']::text[]';
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	#[Override]
+	protected function getJsonExtractPathExpression(string $expression, array $segments, callable $bind): string
+	{
+		return '(' . $expression . ' #> ' . $this->getJsonPathArgument($segments, $bind) . ')';
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	#[Override]
+	protected function getJsonSetPathExpression(
+		string $expression,
+		array $segments,
+		string $value,
+		callable $bind
+	): string {
+		return 'jsonb_set(' . $expression . ', ' . $this->getJsonPathArgument($segments, $bind)
+			. ', ' . $value . ', true)';
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	#[Override]
+	protected function getJsonRemovePathExpression(string $expression, array $segments, callable $bind): string
+	{
+		return '(' . $expression . ' #- ' . $this->getJsonPathArgument($segments, $bind) . ')';
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * A `jsonb` column takes the patched document as it is; a column storing JSON as text needs it
+	 * written back as text.
+	 */
+	#[Override]
+	protected function getJsonPatchResultExpression(Column $column, string $expression): string
+	{
+		/** @var TypeJson $base */
+		$base = $column->getType()->getBaseType();
+
+		return $base->isNativeJson() ? $expression : '(' . $expression . ')::text';
+	}
+
 	#[Override]
 	protected function getJsonPathSegmentsAsString(JsonPath $json_path): string
 	{

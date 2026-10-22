@@ -797,6 +797,13 @@ abstract class ORMController
 			}
 		} elseif (!empty($values) && !$entity->isSaved()) {
 			// its an update
+			// A column dirtied through a patch is written as its paths, which the database applies to
+			// the row it holds: the value in hand was read before another transaction may have
+			// written to the column, and would undo what it wrote.
+			foreach ($entity->toRowPatches() as $column_full_name => $patch) {
+				$values[$column_full_name] = $patch;
+			}
+
 			/** @var TQuery $tq */
 			$tq      = ORM::query($this->table);
 			$options = new ORMOptions();

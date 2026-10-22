@@ -187,6 +187,68 @@ final class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 		return 'json_extract(' . $col_sql_expression . ', \'$.\'||' . $key_expression . ') IS NOT NULL';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * `json()` both checks the text is JSON and marks the value as JSON for the function that
+	 * receives it, which is how SQLite tells a document from a string holding one.
+	 */
+	#[Override]
+	protected function getJsonValueExpression(string $value): string
+	{
+		return 'json(' . $value . ')';
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	#[Override]
+	protected function getJsonTypeExpression(string $expression): string
+	{
+		return 'json_type(' . $expression . ')';
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	#[Override]
+	protected function getJsonObjectTypeName(): string
+	{
+		return 'object';
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	#[Override]
+	protected function getJsonExtractPathExpression(string $expression, array $segments, callable $bind): string
+	{
+		return 'json_extract(' . $expression . ', ' . $this->getJsonPathArgument($segments, $bind) . ')';
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	#[Override]
+	protected function getJsonSetPathExpression(
+		string $expression,
+		array $segments,
+		string $value,
+		callable $bind
+	): string {
+		return 'json_set(' . $expression . ', ' . $this->getJsonPathArgument($segments, $bind)
+			. ', ' . $value . ')';
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	#[Override]
+	protected function getJsonRemovePathExpression(string $expression, array $segments, callable $bind): string
+	{
+		return 'json_remove(' . $expression . ', ' . $this->getJsonPathArgument($segments, $bind) . ')';
+	}
+
 	#[Override]
 	protected function dbQueryTemplate(): string
 	{

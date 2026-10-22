@@ -66,8 +66,10 @@ use Gobl\DBAL\Types\TypeFloat;
 use Gobl\DBAL\Types\TypeInt;
 use Gobl\DBAL\Types\TypeJson;
 use Gobl\DBAL\Types\TypeString;
+use Gobl\DBAL\Types\Utils\JsonPatch;
 use Gobl\DBAL\Types\Utils\JsonPath;
 use Gobl\Gobl;
+use JsonException;
 use Override;
 use PHPUtils\Str;
 
@@ -400,6 +402,67 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
+	 * Default implementation: MySQL-compatible `JSON_SET` / `JSON_REMOVE` nesting. Drivers say what
+	 * their functions are called through the protected methods below, not by rewriting this one.
+	 */
+	#[Override]
+	public function getJsonPatchUpdateExpression(
+		Column $column,
+		string $column_ref,
+		JsonPatch $patch,
+		callable $bind
+	): ?string {
+		$operations = $patch->getOperations();
+
+		if (!self::canExpressJsonPatchAsPaths($operations)) {
+			return null;
+		}
+
+		try {
+			$expression = $this->getJsonDocumentOrEmptyExpression($column_ref);
+
+			// The engines write a path's last segment and no more: every ancestor of it has to be an
+			// object already. They are made here, shallowest first, each read from the column itself
+			// rather than from the expression being built -- so a path costs the query a fixed size,
+			// and no ancestor is put back the way the row had it after an operation wrote into it.
+			foreach (self::jsonPatchAncestorPaths($operations) as $ancestor) {
+				$expression = $this->getJsonSetPathExpression(
+					$expression,
+					$ancestor,
+					$this->getJsonObjectOrEmptyExpression(
+						$this->getJsonExtractPathExpression($column_ref, $ancestor, $bind)
+					),
+					$bind
+				);
+			}
+
+			foreach ($operations as $operation) {
+				if ('remove' === $operation['op']) {
+					$expression = $this->getJsonRemovePathExpression($expression, $operation['path'], $bind);
+
+					continue;
+				}
+
+				$encoded = \json_encode($operation['value'], \JSON_THROW_ON_ERROR);
+
+				$expression = $this->getJsonSetPathExpression(
+					$expression,
+					$operation['path'],
+					$this->getJsonValueExpression($bind($encoded)),
+					$bind
+				);
+			}
+		} catch (JsonException) {
+			// A value the patch cannot be asked of the database: the document is written instead.
+			return null;
+		}
+
+		return $this->getJsonPatchResultExpression($column, $expression);
+	}
+
+	/**
 	 * Quote a database identifier (table name, column name, etc.).
 	 *
 	 * @param string $name
@@ -426,12 +489,143 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	}
 
 	/**
+	 * The column reference or expression a patch reads when the row holds no document.
+	 *
+	 * Default implementation: MySQL-compatible.
+	 */
+	protected function getJsonDocumentOrEmptyExpression(string $expression): string
+	{
+		return 'COALESCE(' . $expression . ', ' . $this->getJsonValueExpression($this->quoteLiteral('{}')) . ')';
+	}
+
+	/**
+	 * An expression's value when it is an object, an empty object when it is anything else.
+	 *
+	 * Anything else includes the absence of a value: a path the row does not have. A value that is
+	 * not an object is replaced, as `set()` on such an intermediate does in PHP.
+	 *
+	 * Default implementation: MySQL-compatible. The whole `CASE` goes through
+	 * {@see self::getJsonValueExpression()} because an engine loses what a branch's type was.
+	 */
+	protected function getJsonObjectOrEmptyExpression(string $expression): string
+	{
+		return $this->getJsonValueExpression(
+			'CASE WHEN ' . $this->getJsonTypeExpression($expression)
+				. ' = ' . $this->quoteLiteral($this->getJsonObjectTypeName())
+				. ' THEN ' . $expression
+				. ' ELSE ' . $this->quoteLiteral('{}') . ' END'
+		);
+	}
+
+	/**
+	 * Reads a JSON value as this engine's JSON type.
+	 *
+	 * Default implementation: MySQL-compatible `CAST(x AS JSON)`.
+	 */
+	protected function getJsonValueExpression(string $value): string
+	{
+		return 'CAST(' . $value . ' AS JSON)';
+	}
+
+	/**
+	 * The name of a JSON value's type.
+	 *
+	 * Default implementation: MySQL-compatible `JSON_TYPE()`.
+	 */
+	protected function getJsonTypeExpression(string $expression): string
+	{
+		return 'JSON_TYPE(' . $expression . ')';
+	}
+
+	/**
+	 * What this engine's type function answers for an object.
+	 *
+	 * Default implementation: MySQL-compatible.
+	 */
+	protected function getJsonObjectTypeName(): string
+	{
+		return 'OBJECT';
+	}
+
+	/**
+	 * Reads the value a JSON document holds at a path.
+	 *
+	 * Default implementation: MySQL-compatible `JSON_EXTRACT()`.
+	 *
+	 * @param list<string> $segments
+	 */
+	protected function getJsonExtractPathExpression(string $expression, array $segments, callable $bind): string
+	{
+		return 'JSON_EXTRACT(' . $expression . ', ' . $this->getJsonPathArgument($segments, $bind) . ')';
+	}
+
+	/**
+	 * Writes a value at a path of a JSON document.
+	 *
+	 * Default implementation: MySQL-compatible `JSON_SET()`.
+	 *
+	 * @param list<string> $segments
+	 */
+	protected function getJsonSetPathExpression(
+		string $expression,
+		array $segments,
+		string $value,
+		callable $bind
+	): string {
+		return 'JSON_SET(' . $expression . ', ' . $this->getJsonPathArgument($segments, $bind) . ', ' . $value . ')';
+	}
+
+	/**
+	 * Drops a path from a JSON document.
+	 *
+	 * Default implementation: MySQL-compatible `JSON_REMOVE()`.
+	 *
+	 * @param list<string> $segments
+	 */
+	protected function getJsonRemovePathExpression(string $expression, array $segments, callable $bind): string
+	{
+		return 'JSON_REMOVE(' . $expression . ', ' . $this->getJsonPathArgument($segments, $bind) . ')';
+	}
+
+	/**
+	 * How a path is written as an argument of this engine's JSON functions.
+	 *
+	 * Default implementation: MySQL-compatible path string, a literal and never a bound parameter,
+	 * because MySQL and SQLite only accept a constant there.
+	 *
+	 * @param list<string> $segments
+	 */
+	protected function getJsonPathArgument(array $segments, callable $bind): string
+	{
+		return $this->quoteLiteral($this->getJsonPathStringFromSegments($segments));
+	}
+
+	/**
+	 * The patched document as the column's own type, when it is not the type the functions answer.
+	 *
+	 * Default implementation: MySQL-compatible, where a JSON value is written to a text column as
+	 * its own text.
+	 */
+	protected function getJsonPatchResultExpression(Column $column, string $expression): string
+	{
+		return $expression;
+	}
+
+	/**
 	 * Converts JSON path segments into a properly escaped JSON path string for use in SQL expressions.
 	 */
 	protected function getJsonPathSegmentsAsString(JsonPath $json_path): string
 	{
-		$path_segments = $json_path->getPathSegments();
+		return $this->getJsonPathStringFromSegments($json_path->getPathSegments());
+	}
 
+	/**
+	 * Converts path segments into a properly escaped JSON path string for use in SQL expressions.
+	 *
+	 * @param list<string> $path_segments
+	 */
+	protected function getJsonPathStringFromSegments(array $path_segments): string
+	{
 		// Segments that are valid unquoted identifiers (`[a-zA-Z_][a-zA-Z0-9_]*`)
 		// are used as-is.  All other segments are wrapped in double-quotes with
 		// internal `"` escaped as `\"` and `\` escaped as `\\` (MySQL JSON path
@@ -1867,6 +2061,105 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 * @return string
 	 */
 	abstract protected function dbQueryTemplate(): string;
+
+	/**
+	 * Whether a patch's operations can be asked of the database as paths.
+	 *
+	 * Refused, so that the document is written instead:
+	 * - an empty path, which addresses the document itself;
+	 * - a segment that reads as an array index, which a JSON path expression cannot tell from the
+	 *   name of a member;
+	 * - two operations whose paths are the same or one inside the other, whose result would then
+	 *   depend on an order the expression does not keep.
+	 *
+	 * @param list<array{op: 'remove'|'set', path: list<string>, value?: mixed}> $operations
+	 */
+	private static function canExpressJsonPatchAsPaths(array $operations): bool
+	{
+		if ([] === $operations) {
+			return false;
+		}
+
+		$paths = [];
+
+		foreach ($operations as $operation) {
+			$path = $operation['path'];
+
+			if ([] === $path) {
+				return false;
+			}
+
+			foreach ($path as $segment) {
+				if (\ctype_digit($segment)) {
+					return false;
+				}
+			}
+
+			$paths[] = $path;
+		}
+
+		foreach ($paths as $i => $path) {
+			foreach ($paths as $j => $other) {
+				if ($i === $j) {
+					continue;
+				}
+
+				if (self::isJsonPathWithin($path, $other)) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Whether a path is the same as another or inside it.
+	 *
+	 * @param list<string> $path
+	 * @param list<string> $other
+	 */
+	private static function isJsonPathWithin(array $path, array $other): bool
+	{
+		if (\count($other) > \count($path)) {
+			return false;
+		}
+
+		return \array_slice($path, 0, \count($other)) === $other;
+	}
+
+	/**
+	 * Every ancestor of every path written to, each once, shallowest first.
+	 *
+	 * @param list<array{op: 'remove'|'set', path: list<string>, value?: mixed}> $operations
+	 *
+	 * @return list<list<string>>
+	 */
+	private static function jsonPatchAncestorPaths(array $operations): array
+	{
+		$ancestors = [];
+
+		foreach ($operations as $operation) {
+			if ('set' !== $operation['op']) {
+				continue;
+			}
+
+			$path  = $operation['path'];
+			$depth = \count($path);
+
+			for ($i = 1; $i < $depth; ++$i) {
+				$ancestor = \array_slice($path, 0, $i);
+
+				$ancestors[\json_encode($ancestor)] = $ancestor;
+			}
+		}
+
+		$ancestors = \array_values($ancestors);
+
+		\usort($ancestors, static fn (array $a, array $b): int => \count($a) <=> \count($b));
+
+		return $ancestors;
+	}
 
 	/**
 	 * Recursively builds the JOIN SQL fragment for a given alias, tracking visited
