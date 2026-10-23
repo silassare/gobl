@@ -32,7 +32,7 @@ use Throwable;
  */
 abstract class JsonPatchUpdateTestCase extends BaseTestCase
 {
-	protected const NAMESPACE = 'Gobl\Tests\DbJsonPatch';
+	protected const string NAMESPACE = 'Gobl\Tests\DbJsonPatch';
 
 	protected static ?RDBMSInterface $db = null;
 
@@ -303,6 +303,25 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 		$entity->data = $patch;
 
 		self::assertTrue($entity->isSaved(), 'the column was dirtied by a patch that changed nothing');
+	}
+
+	/**
+	 * A boolean is a value a patch takes, through the generated one-liner that builds it.
+	 *
+	 * Under `strict_types` a `bool` has to be in the signature's union or it is a TypeError, and a
+	 * flag is among the first things a session or a preferences document holds.
+	 */
+	public function testABooleanIsPatchedAsABoolean(): void
+	{
+		$id = $this->addBox([]);
+
+		$entity = $this->getBox($id);
+
+		// The generated helper: setDataKey() seeds a patch from the column and sets a path in it.
+		$entity->setDataKey('flags.seen', true);
+
+		self::assertTrue($entity->save());
+		self::assertSameDocument(['flags' => ['seen' => true]], $this->storedData($id));
 	}
 
 	/**

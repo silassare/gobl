@@ -30,7 +30,7 @@ use Throwable;
  */
 abstract class DBALUniqueViolationTestCase extends BaseTestCase
 {
-	protected const NAMESPACE = 'Gobl\Tests\DbUniqueViolation';
+	protected const string NAMESPACE = 'Gobl\Tests\DbUniqueViolation';
 
 	protected static ?RDBMSInterface $db = null;
 

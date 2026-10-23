@@ -156,8 +156,8 @@ final class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 	#[Override]
 	public function getJsonPathExtractionExpression(JsonPath $json_path): string
 	{
-		$col_fqn  =  $this->getJsonPathColumnFQN($json_path);
-		$dot_path =  $this->getJsonPathSegmentsAsString($json_path);
+		$col_fqn  = $this->getJsonPathColumnFQN($json_path);
+		$dot_path = $this->getJsonPathSegmentsAsString($json_path);
 
 		return 'JSON_EXTRACT(' . $col_fqn . ', ' . $this->quoteLiteral($dot_path) . ')';
 	}

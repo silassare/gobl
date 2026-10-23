@@ -34,7 +34,7 @@ use Override;
  */
 final class RegistryCheckedType extends BaseType
 {
-	public const NAME = 'registry_checked';
+	public const string NAME = 'registry_checked';
 
 	/** @var array<string, true> the values the registry holds */
 	public static array $registry = [];

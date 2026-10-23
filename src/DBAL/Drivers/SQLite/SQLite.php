@@ -24,7 +24,7 @@ use PDOException;
  */
 final class SQLite extends SQLDriverBase
 {
-	public const NAME = 'sqlite';
+	public const string NAME = 'sqlite';
 
 	#[Override]
 	public function getGenerator(): SQLiteQueryGenerator

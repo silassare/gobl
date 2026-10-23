@@ -536,7 +536,7 @@ abstract class ORMController
 	public function getAllRelativesBatch(
 		array $host_entities,
 		Relation $relation,
-		?ORMSelectOptionsInterface $options =   null
+		?ORMSelectOptionsInterface $options = null
 	): array {
 		if (empty($host_entities)) {
 			return [];

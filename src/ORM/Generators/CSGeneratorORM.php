@@ -383,8 +383,10 @@ Proudly With: {$version}{$time}";
 		}
 
 		$class->newConstant('TABLE_NAME', $table->getName())
+			->setType('string')
 			->public();
 		$class->newConstant('TABLE_NAMESPACE', $db_ns)
+			->setType('string')
 			->public();
 
 		foreach ($table->getColumns() as $column) {
@@ -407,6 +409,7 @@ Proudly With: {$version}{$time}";
 					)
 				);
 			$class->newConstant($column_const, $column->getFullName())
+				->setType('string')
 				->public();
 
 			$get = $class->newMethod(self::propertyGetterName($column_name))
@@ -507,16 +510,16 @@ Proudly With: {$version}{$time}";
 	{
 		$column_name = $column->getName();
 		$type        = $column->getType();
-		$value_type  = 'array|float|int|string|\JsonSerializable|null';
+		$value_type  = 'array|bool|float|int|string|\JsonSerializable|null';
 
 		if ($type instanceof TypeList) {
-			$of =  $type->getListOfUniversalType();
+			$of = $type->getListOfUniversalType();
 
 			if (null === $of || !\in_array($of, [ORMUniversalType::MAP, ORMUniversalType::LIST], true)) {
 				return;
 			}
 		} elseif ($type instanceof TypeJson) {
-			$of =  $type->getJsonOfUniversalType();
+			$of = $type->getJsonOfUniversalType();
 
 			if (!\in_array($of, [ORMUniversalType::MAP, ORMUniversalType::LIST], true)) {
 				return;
@@ -957,7 +960,7 @@ Proudly With: {$version}{$time}";
 
 					$enhanced_args = $php_method->getArguments();
 					// Get plain comment text (without docblock delimiters) for the @method tag.
-					$comment =   $php_method->getComment()?->getContent() ?? '';
+					$comment = $php_method->getComment()?->getContent() ?? '';
 
 					if (!empty($enhanced_args)) {
 						// Type provided a custom signature: render each argument (with optional default value)
@@ -993,6 +996,7 @@ Proudly With: {$version}{$time}";
 		// filter of the table in each process -- each request under PHP-FPM.
 		if (!empty($filter_methods)) {
 			$class->newConstant('FILTER_METHODS', $filter_methods)
+				->setType('array')
 				->protected()
 				->setComment('The filter methods __call() serves: method name => [column name, operator value] (for speed).');
 		}

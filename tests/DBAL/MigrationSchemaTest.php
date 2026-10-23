@@ -38,7 +38,7 @@ use stdClass;
  */
 final class MigrationSchemaTest extends BaseTestCase
 {
-	private const MISSING_ENUM = 'Gobl\Tests\Missing\RemovedKind';
+	private const string MISSING_ENUM = 'Gobl\Tests\Missing\RemovedKind';
 
 	public function testAssertPureDataNamesWhereAnObjectIs(): void
 	{

@@ -26,7 +26,7 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
 final class MigrationRunner
 {
 	/** The name of the internal bookkeeping table. */
-	public const MIGRATIONS_TABLE = '_gobl_migrations';
+	public const string MIGRATIONS_TABLE = '_gobl_migrations';
 
 	/**
 	 * Registered migrations, keyed and sorted by version number.

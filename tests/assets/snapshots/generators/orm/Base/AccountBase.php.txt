@@ -20,17 +20,17 @@ use Gobl\Tests\Db\Account;
  */
 abstract class AccountBase extends \Gobl\ORM\ORMEntity
 {
-	public const TABLE_NAME = 'accounts';
-	public const TABLE_NAMESPACE = 'Gobl\\Tests\\Db';
-	public const COL_ID = 'account_id';
-	public const COL_CLIENT_ID = 'account_client_id';
-	public const COL_LABEL = 'account_label';
-	public const COL_BALANCE = 'account_balance';
-	public const COL_CURRENCY_CODE = 'account_currency_code';
-	public const COL_DATA = 'account_data';
-	public const COL_CREATED_AT = 'account_created_at';
-	public const COL_UPDATED_AT = 'account_updated_at';
-	public const COL_VALID = 'account_valid';
+	public const string TABLE_NAME = 'accounts';
+	public const string TABLE_NAMESPACE = 'Gobl\\Tests\\Db';
+	public const string COL_ID = 'account_id';
+	public const string COL_CLIENT_ID = 'account_client_id';
+	public const string COL_LABEL = 'account_label';
+	public const string COL_BALANCE = 'account_balance';
+	public const string COL_CURRENCY_CODE = 'account_currency_code';
+	public const string COL_DATA = 'account_data';
+	public const string COL_CREATED_AT = 'account_created_at';
+	public const string COL_UPDATED_AT = 'account_updated_at';
+	public const string COL_VALID = 'account_valid';
 	/**
 	 * AccountBase constructor.
 	 * 
@@ -268,7 +268,7 @@ abstract class AccountBase extends \Gobl\ORM\ORMEntity
 	/**
 	 * Sets a value at the given dot-notation path in `data`.
 	 */
-	public function setDataKey(string $path, array|float|int|string|\JsonSerializable|null $value): static
+	public function setDataKey(string $path, array|bool|float|int|string|\JsonSerializable|null $value): static
 	{
 		return $this->setData($this->patchData()->set($path, $value));
 	}

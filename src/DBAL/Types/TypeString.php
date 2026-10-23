@@ -29,7 +29,7 @@ use PHPUtils\PortablePattern;
  */
 final class TypeString extends BaseType
 {
-	public const NAME = 'string';
+	public const string NAME = 'string';
 
 	/**
 	 * TypeString constructor.

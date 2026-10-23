@@ -45,9 +45,19 @@ final class ORMAutoloadCycleTest extends BaseTestCase
 	}
 
 	/**
+	 * @dataProvider provideAnyGeneratedClassMayBeTheFirstOneLoadedCases
+	 */
+	public function testAnyGeneratedClassMayBeTheFirstOneLoaded(string $first, string $listen): void
+	{
+		[$code, $output] = self::runFixture('use', $first, $listen);
+
+		self::assertSame([0, 'ok'], [$code, $output]);
+	}
+
+	/**
 	 * @return iterable<string, array{string, string}>
 	 */
-	public static function provideFirstClassCases(): iterable
+	public static function provideAnyGeneratedClassMayBeTheFirstOneLoadedCases(): iterable
 	{
 		foreach (['query', 'entity', 'crud', 'controller', 'results'] as $first) {
 			yield $first . ', listening by table' => [$first, 'producer'];
@@ -59,22 +69,12 @@ final class ORMAutoloadCycleTest extends BaseTestCase
 		}
 	}
 
-	/**
-	 * @dataProvider provideFirstClassCases
-	 */
-	public function testAnyGeneratedClassMayBeTheFirstOneLoaded(string $first, string $listen): void
-	{
-		[$code, $output] = self::runFixture('use', $first, $listen);
-
-		self::assertSame([0, 'ok'], [$code, $output]);
-	}
-
 	public function testTheGeneratedCrudClassCannotListenWhileItIsTheOneLoading(): void
 	{
 		[$code, $output] = self::runFixture('use', 'crud', 'generated');
 
 		self::assertSame(255, $code);
-		self::assertStringContainsString('Class "Gobl\\Tests\\Cycle\\Db\\CycleEventsCrud" not found', $output);
+		self::assertStringContainsString('Class "Gobl\Tests\Cycle\Db\CycleEventsCrud" not found', $output);
 	}
 
 	/**

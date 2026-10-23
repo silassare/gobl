@@ -29,7 +29,7 @@ use Override;
  */
 final class TypeFloat extends BaseType
 {
-	public const NAME = 'float';
+	public const string NAME = 'float';
 
 	/**
 	 * TypeFloat constructor.

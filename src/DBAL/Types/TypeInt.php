@@ -28,11 +28,11 @@ use Override;
  */
 final class TypeInt extends BaseType
 {
-	public const INT_SIGNED_MAX   = 2147483647;
-	public const INT_SIGNED_MIN   = -2147483648;
-	public const INT_UNSIGNED_MAX = 4294967295;
-	public const INT_UNSIGNED_MIN = 0;
-	public const NAME             = 'int';
+	public const int INT_SIGNED_MAX      = 2147483647;
+	public const int INT_SIGNED_MIN      = -2147483648;
+	public const int INT_UNSIGNED_MAX    = 4294967295;
+	public const int INT_UNSIGNED_MIN    = 0;
+	public const string NAME             = 'int';
 
 	/**
 	 * TypeInt constructor.

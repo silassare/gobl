@@ -29,7 +29,7 @@ use Override;
  */
 final class TypeDecimal extends BaseType
 {
-	public const NAME = 'decimal';
+	public const string NAME = 'decimal';
 
 	/**
 	 * TypeDecimal constructor.

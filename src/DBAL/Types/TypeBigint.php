@@ -33,9 +33,9 @@ final class TypeBigint extends BaseType
 	 * A whole integer, and nothing around it. Anchored: without `^` and `$` any value that merely
 	 * contained digits matched, so `1.5` and `1e5` passed as bigints and `-5` as an unsigned one.
 	 */
-	public const BIGINT_REG          = '~^[-+]?(?:[1-9]\d*|0)$~D';
-	public const BIGINT_UNSIGNED_REG = '~^[+]?(?:[1-9]\d*|0)$~D';
-	public const NAME                = 'bigint';
+	public const string BIGINT_REG          = '~^[-+]?(?:[1-9]\d*|0)$~D';
+	public const string BIGINT_UNSIGNED_REG = '~^[+]?(?:[1-9]\d*|0)$~D';
+	public const string NAME                = 'bigint';
 
 	/**
 	 * TypeBigint constructor.

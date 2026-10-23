@@ -33,17 +33,17 @@ final class Index implements ArrayCapableInterface, LockableInterface
 		PermanentlyLockableTrait::lock as private traitLock;
 	}
 
-	public const NAME_PATTERN = '[a-zA-Z](?:[a-zA-Z0-9_]*[a-zA-Z0-9])?';
+	public const string NAME_PATTERN = '[a-zA-Z](?:[a-zA-Z0-9_]*[a-zA-Z0-9])?';
 
-	public const NAME_REG = '~^' . self::NAME_PATTERN . '$~';
+	public const string NAME_REG = '~^' . self::NAME_PATTERN . '$~';
 
-	public const PRIMARY_KEY = 1;
+	public const int PRIMARY_KEY = 1;
 
-	public const UNIQUE_KEY = 2;
+	public const int UNIQUE_KEY = 2;
 
-	public const FOREIGN_KEY = 3;
+	public const int FOREIGN_KEY = 3;
 
-	public const MAX_INDEX_NAME_LENGTH = 64;
+	public const int MAX_INDEX_NAME_LENGTH = 64;
 
 	/** @var null|IndexType */
 	protected ?IndexType $type = null;

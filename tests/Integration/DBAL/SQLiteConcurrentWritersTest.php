@@ -31,8 +31,8 @@ use Gobl\Tests\BaseTestCase;
  */
 final class SQLiteConcurrentWritersTest extends BaseTestCase
 {
-	private const WRITERS      = 4;
-	private const TRANSACTIONS = 15;
+	private const int WRITERS      = 4;
+	private const int TRANSACTIONS = 15;
 
 	private string $file = '';
 

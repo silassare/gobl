@@ -31,6 +31,11 @@ use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Drivers\SQLite\SQLite;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\ORM\Generators\CSGeneratorORM;
+use Gobl\Tests\Cycle\Db\CycleEvent;
+use Gobl\Tests\Cycle\Db\CycleEventsController;
+use Gobl\Tests\Cycle\Db\CycleEventsCrud;
+use Gobl\Tests\Cycle\Db\CycleEventsQuery;
+use Gobl\Tests\Cycle\Db\CycleEventsResults;
 
 require __DIR__ . '/../../vendor/autoload.php';
 
@@ -77,7 +82,7 @@ $declared = false;
 
 		// What a CRUD listener does when it registers.
 		$crud = 'generated' === $listen
-			? \Gobl\Tests\Cycle\Db\CycleEventsCrud::new()
+			? CycleEventsCrud::new()
 			: new CRUDEventProducer(CYCLE_NAMESPACE, 'cycle_events');
 
 		$crud->onBeforeCreate(static fn (): bool => true);
@@ -92,11 +97,11 @@ $declared = false;
 });
 
 match ($first) {
-	'query'      => new \Gobl\Tests\Cycle\Db\CycleEventsQuery(),
-	'entity'     => new \Gobl\Tests\Cycle\Db\CycleEvent(),
-	'crud'       => \Gobl\Tests\Cycle\Db\CycleEventsCrud::new(),
-	'controller' => new \Gobl\Tests\Cycle\Db\CycleEventsController(),
-	'results'    => \class_exists(\Gobl\Tests\Cycle\Db\CycleEventsResults::class),
+	'query'      => new CycleEventsQuery(),
+	'entity'     => new CycleEvent(),
+	'crud'       => CycleEventsCrud::new(),
+	'controller' => new CycleEventsController(),
+	'results'    => \class_exists(CycleEventsResults::class),
 };
 
 echo 'ok';

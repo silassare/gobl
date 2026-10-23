@@ -50,25 +50,25 @@ use Throwable;
  */
 abstract class Db implements RDBMSInterface
 {
+	// `protected` instead of `private`: Db is abstract, and the concrete RDBMS class may want this.
 	use PermanentlyLockableTrait {
-		// use `protected` instead of `private` as Db is abstract and the concrete RDBMS class may want this
 		lock as protected traitLock;
 	}
 
-	public const REG_COLUMN_REF = '~^(ref|cp):(\w+)\.(\w+)$~';
+	public const string REG_COLUMN_REF = '~^(ref|cp):(\w+)\.(\w+)$~';
 
 	/**
 	 * The stages a table of a lazy schema is built in, in order: its columns, then its constraints
 	 * and indexes, then its relations -- the passes {@see loadSchema()} runs over a whole schema.
 	 */
-	private const LAZY_COLUMNS     = 1;
-	private const LAZY_CONSTRAINTS = 2;
-	private const LAZY_RELATIONS   = 3;
+	private const int LAZY_COLUMNS     = 1;
+	private const int LAZY_CONSTRAINTS = 2;
+	private const int LAZY_RELATIONS   = 3;
 
 	/**
 	 * The stage of a table of a lazy schema whose build failed: using it again throws.
 	 */
-	private const LAZY_FAILED = -1;
+	private const int LAZY_FAILED = -1;
 
 	/**
 	 * Gobl rdbms class setting shortcuts map.
@@ -529,7 +529,8 @@ abstract class Db implements RDBMSInterface
 		}
 
 		if (empty($table->getPrefix()) && !empty($prefix = $this->getConfig()
-			->getDbTablePrefix())) {
+			->getDbTablePrefix())
+		) {
 			$table->setPrefix($prefix);
 		}
 
@@ -913,7 +914,8 @@ abstract class Db implements RDBMSInterface
 			}
 
 			if (empty($table->getPrefix()) && !empty($prefix = $this->getConfig()
-				->getDbTablePrefix())) {
+				->getDbTablePrefix())
+			) {
 				$table->setPrefix($prefix);
 			}
 

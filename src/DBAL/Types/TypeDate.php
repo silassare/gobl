@@ -29,10 +29,10 @@ use Override;
  */
 final class TypeDate extends Type
 {
-	public const NAME = 'date';
+	public const string NAME = 'date';
 
-	public const FORMAT_TIMESTAMP = 'timestamp';
-	public const FORMAT_DEFAULT   = \DATE_ATOM;
+	public const string FORMAT_TIMESTAMP = 'timestamp';
+	public const FORMAT_DEFAULT          = \DATE_ATOM;
 
 	/**
 	 * The messages given with the bounds, kept here as well as on the base type, so they survive

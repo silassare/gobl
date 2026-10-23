@@ -34,7 +34,7 @@ use Throwable;
  */
 abstract class ORMControllerFormNamesTestCase extends BaseTestCase
 {
-	protected const NAMESPACE = 'Gobl\Tests\DbFormNames';
+	protected const string NAMESPACE = 'Gobl\Tests\DbFormNames';
 
 	protected static ?RDBMSInterface $db = null;
 

@@ -58,7 +58,7 @@ use Throwable;
  */
 abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 {
-	protected const BATCH_REL_DB_NAMESPACE = 'Gobl\Tests\BatchRelDb';
+	protected const string BATCH_REL_DB_NAMESPACE = 'Gobl\Tests\BatchRelDb';
 
 	/** @var null|RDBMSInterface Shared live-DB connection for all tests in the class */
 	protected static ?RDBMSInterface $db = null;

@@ -16,6 +16,7 @@ namespace Gobl\Tests\DBAL\Queries;
 use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
 use Gobl\DBAL\Drivers\SQLite\SQLite;
+use Gobl\DBAL\Queries\NamedToPositionalParams;
 use Gobl\DBAL\Queries\QBInsert;
 use Gobl\DBAL\Queries\QBUpdate;
 use Gobl\DBAL\Types\Utils\JsonPatch;
@@ -76,14 +77,17 @@ final class QBUpdateJsonPatchTest extends BaseTestCase
 			$patch->set('oz.lang', 'fr');
 		});
 
-		// PostgreSQL addresses a path with a bound `text[]`, so the segments are values and the
-		// query is read for its shape: the object above the path made from the column, then the
-		// path written.
-		self::assertStringContainsString("COALESCE((client_data)::jsonb, ('{}')::jsonb)", $sql);
-		self::assertStringContainsString("jsonb_typeof((client_data #> ARRAY[?]::text[])) = 'object'", $sql);
-		self::assertStringContainsString('ARRAY[?, ?]::text[], (?)::jsonb, true)', $sql);
-		self::assertSame(2, \substr_count($sql, 'jsonb_set('));
-		self::assertSame(['oz', 'oz', '"fr"', 'oz', 'lang', 1], $params);
+		// PostgreSQL addresses a path with a bound `text[]`, so a segment is a value here where
+		// MySQL and SQLite take a literal path string.
+		self::assertSame(
+			'UPDATE "gObL_clients" SET client_data = jsonb_set(jsonb_set('
+				. "COALESCE((client_data)::jsonb, ('{}')::jsonb), ARRAY[?]::text[], "
+				. "(CASE WHEN jsonb_typeof((client_data #> ARRAY[?]::text[])) = 'object' "
+				. "THEN (client_data #> ARRAY[?]::text[]) ELSE '{}' END)::jsonb, true), "
+				. 'ARRAY[?, ?]::text[], (?)::jsonb, true) WHERE ((id = ?))',
+			$sql
+		);
+		self::assertSame(['oz', 'oz', 'oz', 'oz', 'lang', '"fr"', 1], $params);
 	}
 
 	/**
@@ -161,10 +165,8 @@ final class QBUpdateJsonPatchTest extends BaseTestCase
 			->set(['data' => $patch])
 			->where($qb->filters()->eq('id', 1));
 
-		// The parameter names are generated: the query is read with them replaced by `?`, in the
-		// order they appear, which is the order they were bound in.
-		$sql = (string) \preg_replace('~:_val_\w+~', '?', $qb->getSqlQuery());
+		$n = new NamedToPositionalParams($qb->getSqlQuery(), $qb->getBoundValues(), $qb->getBoundValuesTypes());
 
-		return [$sql, \array_values($qb->getBoundValues())];
+		return [$n->getNewQuery(), $n->getNewParams()];
 	}
 }

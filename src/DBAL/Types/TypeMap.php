@@ -36,7 +36,7 @@ use PHPUtils\Store\Map;
  */
 final class TypeMap extends Type
 {
-	public const NAME = 'map';
+	public const string NAME = 'map';
 
 	/**
 	 * TypeMap constructor.

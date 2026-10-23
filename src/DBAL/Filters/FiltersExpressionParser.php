@@ -50,18 +50,18 @@ final class FiltersExpressionParser implements FilterInterface
 {
 	use ArrayCapableTrait;
 
-	private const T_OPEN    = 'T_OPEN';
-	private const T_CLOSE   = 'T_CLOSE';
-	private const T_COND    = 'T_COND';
-	private const T_IDENT   = 'T_IDENT';
-	private const T_OP      = 'T_OP';
-	private const T_BINDING = 'T_BINDING';
+	private const string T_OPEN    = 'T_OPEN';
+	private const string T_CLOSE   = 'T_CLOSE';
+	private const string T_COND    = 'T_COND';
+	private const string T_IDENT   = 'T_IDENT';
+	private const string T_OP      = 'T_OP';
+	private const string T_BINDING = 'T_BINDING';
 
 	/** Inline numeric literal available in non-strict mode only. */
-	private const T_NUMBER  = 'T_NUMBER';
+	private const string T_NUMBER  = 'T_NUMBER';
 
 	/** Inline quoted-string literal available in non-strict mode only. */
-	private const T_STRING  = 'T_STRING';
+	private const string T_STRING  = 'T_STRING';
 
 	/** @var list<array{type: string, value: string}> */
 	private array $tokens = [];

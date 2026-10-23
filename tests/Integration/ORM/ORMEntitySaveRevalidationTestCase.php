@@ -34,7 +34,7 @@ use Throwable;
  */
 abstract class ORMEntitySaveRevalidationTestCase extends BaseTestCase
 {
-	protected const NAMESPACE = 'Gobl\Tests\DbRevalidation';
+	protected const string NAMESPACE = 'Gobl\Tests\DbRevalidation';
 
 	protected static ?RDBMSInterface $db = null;
 

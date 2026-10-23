@@ -96,7 +96,7 @@ abstract class ClientsQueryBase extends \Gobl\ORM\ORMTableQuery
 	/**
 	 * The filter methods __call() serves: method name => [column name, operator value] (for speed).
 	 */
-	protected const FILTER_METHODS = array (
+	protected const array FILTER_METHODS = array (
 	  'whereIdIs' => 
 	  array (
 	    0 => 'id',

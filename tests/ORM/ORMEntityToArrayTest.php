@@ -34,7 +34,7 @@ use Throwable;
 final class ORMEntityToArrayTest extends BaseTestCase
 {
 	/** Separate namespace so this class does not conflict with other ORM test setups. */
-	private const TOARRAY_NS = 'Gobl\Tests\ToArrayDb';
+	private const string TOARRAY_NS = 'Gobl\Tests\ToArrayDb';
 
 	/** @var null|callable Autoloader registered for TOARRAY_NS. */
 	private static mixed $autoloader = null;

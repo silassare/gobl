@@ -1,5 +1,27 @@
 ### Unreleased (3.0.x-dev)
 
+- **Every class constant a value types beyond doubt is typed** (`private const
+  array`, `public const string`, ...), which PHP 8.3 allows: a constant says
+  what it is, and a subclass redeclaring it as something else is refused. The
+  generator types the constants it writes too (`TABLE_NAME`, `TABLE_NAMESPACE`,
+  `COL_*` as `string`, `FILTER_METHODS` as `array`), which needs
+  `oliup/code-generator` with a type on `PHPConstant`. **The generated classes
+  must be rebuilt** (`oz db build --class-only`): a query class generated before
+  this redeclares `FILTER_METHODS` without a type, and PHP refuses that against
+  the typed one it inherits. The
+  `VERSION` file says `gobl v3.0.0`, the version the `dev-main` branch alias has
+  carried for a while and the one `GOBL_VERSION` stamps into every generated
+  file's header -- it still said v2. **Not a release**: no tag is cut and this
+  section stays `Unreleased`.
+
+- **PHP 8.3 is the minimum** (`"php": ">=8.3"`), the version OZone requires, so
+  that every package of the suite answers for one floor. 8.1 and 8.2 are end of
+  life, and their security fixes are source backports and not releases, so no
+  release of them can satisfy the advisory database `roave/security-advisories`
+  carries: the dependencies of a run on one cannot be resolved at all.
+  `config.platform.php`, the PHPCompatibility target (`testVersion`) and the CI
+  matrix say 8.3 with it.
+
 - **An UPDATE sends a JSON patch as the paths it changed.** A `JsonPatch`
   assigned to a column (`$entity->setDataKey(...)`, `patchData()`, or the
   object itself) was flattened to a document and written whole, so two
@@ -21,8 +43,17 @@
   of their own, so a patched document may come back with its keys in another
   order. `JsonPatch` gains `setAt()` / `removeAt()` (a path as segments, for a
   key holding a dot or a bracket), `getOperations()`, `hasOperations()` and
-  `append()`, and `set()` now accepts a `bool` value. `ORMEntity::toRowPatches()`
-  is what the controller writes them from.
+  `append()`, and `set()` now accepts a `bool` value -- so does the generated
+  `set<Column>Key()`, whose signature rejected one under `strict_types` (a flag
+  is among the first things a document holds); the generated classes need
+  rebuilding for it. `ORMEntity::toRowPatches()` is what the controller writes
+  them from.
+- **A cast is no longer read as a named parameter.**
+  `NamedToPositionalParams` matched `:(\w+)` anywhere, so the second colon of
+  a PostgreSQL cast (`(data)::jsonb`) was taken for a parameter named after the
+  type and the conversion threw "Missing query token". Only SQLite converts to
+  positional parameters today, so nothing reached it; a cast in a converted
+  query now stays a cast.
 
 - **A migration file no longer needs the enum classes it names.** An enum
   column's default was written by `var_export()` as `\App\Enum::CASE`, an

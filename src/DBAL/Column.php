@@ -43,13 +43,13 @@ final class Column implements ArrayCapableInterface, MetaCapableInterface, DiffC
 		lock as private traitLock;
 	}
 
-	public const NAME_PATTERN = '[a-z](?:[a-z0-9_]*[a-z0-9])?';
+	public const string NAME_PATTERN = '[a-z](?:[a-z0-9_]*[a-z0-9])?';
 
-	public const NAME_REG = '~^' . self::NAME_PATTERN . '$~';
+	public const string NAME_REG = '~^' . self::NAME_PATTERN . '$~';
 
-	public const PREFIX_PATTERN = '[a-z](?:[a-z0-9_]*[a-z0-9])?';
+	public const string PREFIX_PATTERN = '[a-z](?:[a-z0-9_]*[a-z0-9])?';
 
-	public const PREFIX_REG = '~^' . self::PREFIX_PATTERN . '$~';
+	public const string PREFIX_REG = '~^' . self::PREFIX_PATTERN . '$~';
 
 	/**
 	 * The column diff key.

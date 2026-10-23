@@ -27,7 +27,7 @@ use Override;
  */
 final class TypeBool extends BaseType
 {
-	public const NAME = 'bool';
+	public const string NAME = 'bool';
 
 	/**
 	 * The words a filter value may use: a filter given in a query string is always a string, whatever

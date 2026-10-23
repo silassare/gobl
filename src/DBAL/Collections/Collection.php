@@ -25,9 +25,9 @@ use InvalidArgumentException;
  */
 abstract class Collection
 {
-	public const NAME_PATTERN = '[a-zA-Z](?:[a-zA-Z0-9_-]*[a-zA-Z0-9])?';
+	public const string NAME_PATTERN = '[a-zA-Z](?:[a-zA-Z0-9_-]*[a-zA-Z0-9])?';
 
-	public const NAME_REG = '~^' . self::NAME_PATTERN . '$~';
+	public const string NAME_REG = '~^' . self::NAME_PATTERN . '$~';
 
 	/**
 	 * @var string

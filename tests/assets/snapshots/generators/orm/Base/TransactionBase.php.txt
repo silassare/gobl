@@ -24,21 +24,21 @@ use Gobl\Tests\Db\Transaction;
  */
 abstract class TransactionBase extends \Gobl\ORM\ORMEntity
 {
-	public const TABLE_NAME = 'transactions';
-	public const TABLE_NAMESPACE = 'Gobl\\Tests\\Db';
-	public const COL_ID = 'transaction_id';
-	public const COL_ACCOUNT_ID = 'transaction_account_id';
-	public const COL_REFERENCE = 'transaction_reference';
-	public const COL_SOURCE = 'transaction_source';
-	public const COL_TYPE = 'transaction_type';
-	public const COL_STATE = 'transaction_state';
-	public const COL_AMOUNT = 'transaction_amount';
-	public const COL_CURRENCY_CODE = 'transaction_currency_code';
-	public const COL_DATE = 'transaction_date';
-	public const COL_DATA = 'transaction_data';
-	public const COL_CREATED_AT = 'transaction_created_at';
-	public const COL_UPDATED_AT = 'transaction_updated_at';
-	public const COL_VALID = 'transaction_valid';
+	public const string TABLE_NAME = 'transactions';
+	public const string TABLE_NAMESPACE = 'Gobl\\Tests\\Db';
+	public const string COL_ID = 'transaction_id';
+	public const string COL_ACCOUNT_ID = 'transaction_account_id';
+	public const string COL_REFERENCE = 'transaction_reference';
+	public const string COL_SOURCE = 'transaction_source';
+	public const string COL_TYPE = 'transaction_type';
+	public const string COL_STATE = 'transaction_state';
+	public const string COL_AMOUNT = 'transaction_amount';
+	public const string COL_CURRENCY_CODE = 'transaction_currency_code';
+	public const string COL_DATE = 'transaction_date';
+	public const string COL_DATA = 'transaction_data';
+	public const string COL_CREATED_AT = 'transaction_created_at';
+	public const string COL_UPDATED_AT = 'transaction_updated_at';
+	public const string COL_VALID = 'transaction_valid';
 	/**
 	 * TransactionBase constructor.
 	 * 
@@ -372,7 +372,7 @@ abstract class TransactionBase extends \Gobl\ORM\ORMEntity
 	/**
 	 * Sets a value at the given dot-notation path in `data`.
 	 */
-	public function setDataKey(string $path, array|float|int|string|\JsonSerializable|null $value): static
+	public function setDataKey(string $path, array|bool|float|int|string|\JsonSerializable|null $value): static
 	{
 		return $this->setData($this->patchData()->set($path, $value));
 	}

@@ -80,7 +80,7 @@ use Override;
  */
 final class TypeJson extends BaseType
 {
-	public const NAME = 'json';
+	public const string NAME = 'json';
 
 	/**
 	 * TypeJson constructor.

@@ -51,7 +51,7 @@ use Throwable;
  */
 abstract class ORMTableQuery extends FiltersTableScope
 {
-	public const BATCH_HOST_IDENTITY_KEY = 'batch_host_identity_key';
+	public const string BATCH_HOST_IDENTITY_KEY = 'batch_host_identity_key';
 
 	/**
 	 * The filter methods {@see __call()} serves, written by the generator: method name => [column name,
@@ -60,7 +60,7 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 *
 	 * @var array<string, array{0: string, 1: string}>
 	 */
-	protected const FILTER_METHODS = [];
+	protected const array FILTER_METHODS = [];
 
 	/** @var RDBMSInterface */
 	protected RDBMSInterface $db;

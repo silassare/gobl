@@ -24,7 +24,7 @@ use PDOException;
  */
 final class PostgreSQL extends SQLDriverBase
 {
-	public const NAME = 'postgresql';
+	public const string NAME = 'postgresql';
 
 	#[Override]
 	public function getGenerator(): PostgreSQLQueryGenerator

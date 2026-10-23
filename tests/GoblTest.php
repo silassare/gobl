@@ -53,7 +53,7 @@ final class GoblTest extends BaseTestCase
 
 		self::assertFileExists(Gobl::getTemplateFilePath('test_template_array'));
 
-		Gobl::addTemplates(['test_template_array' =>  $template]);
+		Gobl::addTemplates(['test_template_array' => $template]);
 	}
 
 	public function testGetUnknownTemplateCompiler(): void

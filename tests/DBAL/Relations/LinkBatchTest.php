@@ -42,7 +42,7 @@ use Throwable;
 final class LinkBatchTest extends BaseTestCase
 {
 	/** The sample DB namespace (articles/tags/taggables) used for morph-through tests. */
-	private const SAMPLE_NS = 'test';
+	private const string SAMPLE_NS = 'test';
 
 	/** @var bool Whether ORM setup completed successfully */
 	private static bool $setupOk = false;

@@ -38,10 +38,10 @@ use Throwable;
  */
 final class TypeEnum extends Type
 {
-	public const NAME                = 'enum';
-	public const OPTION_ENUM_CLASS   = 'enum_class';
-	public const OPTION_ENUM_CASES   = 'enum_cases';
-	public const OPTION_ENUM_BACKING = 'enum_backing';
+	public const string NAME                = 'enum';
+	public const string OPTION_ENUM_CLASS   = 'enum_class';
+	public const string OPTION_ENUM_CASES   = 'enum_cases';
+	public const string OPTION_ENUM_BACKING = 'enum_backing';
 
 	/**
 	 * Whether the enum is int-backed, from the backing type of the enum class or the frozen one.

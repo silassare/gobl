@@ -88,7 +88,7 @@ final class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	#[Override]
 	public function getJsonPathExtractionExpression(JsonPath $json_path): string
 	{
-		$col_expr      =  $this->getJsonPathColumnFQN($json_path);
+		$col_expr      = $this->getJsonPathColumnFQN($json_path);
 		$path_segments = $json_path->getPathSegments();
 
 		if (1 === \count($path_segments)) {

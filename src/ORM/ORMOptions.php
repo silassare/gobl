@@ -26,23 +26,23 @@ use Override;
  */
 class ORMOptions implements ORMOptionsInterface
 {
-	public const COLLECTION_PARAM               = 'collection';
-	public const FILTERS_PARAM                  = 'filters';
-	public const FORM_DATA_PARAM                = 'form_data';
-	public const MAX_PARAM                      = 'max';
-	public const ORDER_BY_PARAM                 = 'order_by';
-	public const ORDER_BY_DELIMITER             = '|';
-	public const ORDER_BY_DELIMITER_ASC_DESC    = ':';
-	public const CURSOR_PARAM                   = 'cursor';
-	public const CURSOR_COLUMN_PARAM            = 'cursor_column';
-	public const CURSOR_DIR_PARAM      		       = 'cursor_dir';
-	public const EXPECTED_COLUMNS_PARAM         = '_columns';
-	public const DELETE_PARAM                   = '_delete';
+	public const string COLLECTION_PARAM               = 'collection';
+	public const string FILTERS_PARAM                  = 'filters';
+	public const string FORM_DATA_PARAM                = 'form_data';
+	public const string MAX_PARAM                      = 'max';
+	public const string ORDER_BY_PARAM                 = 'order_by';
+	public const string ORDER_BY_DELIMITER             = '|';
+	public const string ORDER_BY_DELIMITER_ASC_DESC    = ':';
+	public const string CURSOR_PARAM                   = 'cursor';
+	public const string CURSOR_COLUMN_PARAM            = 'cursor_column';
+	public const string CURSOR_DIR_PARAM      		       = 'cursor_dir';
+	public const string EXPECTED_COLUMNS_PARAM         = '_columns';
+	public const string DELETE_PARAM                   = '_delete';
 
-	public const PAGE_PARAM          = 'page';
-	public const RELATIONS_PARAM     = 'relations';
-	public const RELATIONS_DELIMITER = '|';
-	public const SCOPES_PARAM        = 'scopes';
+	public const string PAGE_PARAM          = 'page';
+	public const string RELATIONS_PARAM     = 'relations';
+	public const string RELATIONS_DELIMITER = '|';
+	public const string SCOPES_PARAM        = 'scopes';
 
 	private array $key_words = [
 		self::FORM_DATA_PARAM,

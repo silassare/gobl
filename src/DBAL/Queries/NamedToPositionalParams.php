@@ -55,7 +55,9 @@ class NamedToPositionalParams
 		protected array $params = [],
 		protected array $params_types = []
 	) {
-		$this->new_query = (string) \preg_replace_callback('~:(\w+)~', [$this, 'replacer'], $query);
+		// A colon that follows another is a cast, not a parameter: PostgreSQL writes `x::jsonb`, and
+		// `:jsonb` was read as a parameter nothing had bound.
+		$this->new_query = (string) \preg_replace_callback('~(?<!:):(\w+)~', [$this, 'replacer'], $query);
 	}
 
 	/**

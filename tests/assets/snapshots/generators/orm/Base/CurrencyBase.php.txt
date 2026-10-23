@@ -18,15 +18,15 @@ use Gobl\Tests\Db\Currency;
  */
 abstract class CurrencyBase extends \Gobl\ORM\ORMEntity
 {
-	public const TABLE_NAME = 'currencies';
-	public const TABLE_NAMESPACE = 'Gobl\\Tests\\Db';
-	public const COL_CODE = 'ccy_code';
-	public const COL_NAME = 'ccy_name';
-	public const COL_SYMBOL = 'ccy_symbol';
-	public const COL_DATA = 'ccy_data';
-	public const COL_CREATED_AT = 'ccy_created_at';
-	public const COL_UPDATED_AT = 'ccy_updated_at';
-	public const COL_VALID = 'ccy_valid';
+	public const string TABLE_NAME = 'currencies';
+	public const string TABLE_NAMESPACE = 'Gobl\\Tests\\Db';
+	public const string COL_CODE = 'ccy_code';
+	public const string COL_NAME = 'ccy_name';
+	public const string COL_SYMBOL = 'ccy_symbol';
+	public const string COL_DATA = 'ccy_data';
+	public const string COL_CREATED_AT = 'ccy_created_at';
+	public const string COL_UPDATED_AT = 'ccy_updated_at';
+	public const string COL_VALID = 'ccy_valid';
 	/**
 	 * CurrencyBase constructor.
 	 * 
@@ -216,7 +216,7 @@ abstract class CurrencyBase extends \Gobl\ORM\ORMEntity
 	/**
 	 * Sets a value at the given dot-notation path in `data`.
 	 */
-	public function setDataKey(string $path, array|float|int|string|\JsonSerializable|null $value): static
+	public function setDataKey(string $path, array|bool|float|int|string|\JsonSerializable|null $value): static
 	{
 		return $this->setData($this->patchData()->set($path, $value));
 	}

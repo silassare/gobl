@@ -43,7 +43,7 @@ use Throwable;
 abstract class NativeJsonMigrationTestCase extends BaseTestCase
 {
 	/** Short table name; the DB prefix 'gObL' will be prepended -> gObL_json_mig */
-	private const TABLE = 'json_mig';
+	private const string TABLE = 'json_mig';
 
 	/** @var null|RDBMSInterface Shared live-DB connection for all tests in the class */
 	protected static ?RDBMSInterface $db = null;

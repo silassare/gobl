@@ -35,7 +35,7 @@ use Override;
  */
 final class TypeList extends Type
 {
-	public const NAME = 'list';
+	public const string NAME = 'list';
 
 	/**
 	 * TypeArray constructor.

@@ -24,7 +24,7 @@ use PDOException;
  */
 final class MySQL extends SQLDriverBase
 {
-	public const NAME = 'mysql';
+	public const string NAME = 'mysql';
 
 	#[Override]
 	public function getGenerator(): MySQLQueryGenerator

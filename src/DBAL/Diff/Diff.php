@@ -519,8 +519,10 @@ final class Diff
 			$diff[] = new ColumnRenamed($table, $from_column, $to_column, $reason);
 		}
 
-		if (!$this->db_from->getGenerator()
-			->hasSameColumnTypeDefinition($from_column, $to_column)) {
+		if (
+			!$this->db_from->getGenerator()
+				->hasSameColumnTypeDefinition($from_column, $to_column)
+		) {
 			$diff[] = new ColumnTypeChanged($table, $from_column, $to_column);
 		}
 	}
@@ -597,9 +599,11 @@ final class Diff
 				$diff[] = $this->getConstraintDeletedClassInstance($from_constraint);
 			} else {
 				$touched = '';
-				if (($a = $from_constraint->getHostTable()
-					->getFullName()) !== ($b = $to_constraint->getHostTable()
-					->getFullName())) {
+				if (
+					($a = $from_constraint->getHostTable()
+						->getFullName()) !== ($b = $to_constraint->getHostTable()
+						->getFullName())
+				) {
 					$touched = \sprintf('constraint host table changed from "%s" to "%s".', $a, $b);
 				} elseif (($a = $from_constraint->getReferenceTable()
 					->getFullName()) !== ($b = $to_constraint->getReferenceTable()
@@ -611,12 +615,14 @@ final class Diff
 				} else {
 					$gen = $this->db_from->getGenerator();
 					foreach ($to_constraint->getColumnsMapping() as $host_column => $reference_column) {
-						if (!$gen->hasSameColumnTypeDefinition(
-							$from_constraint->getHostTable()
-								->getColumnOrFail($host_column),
-							$to_constraint->getHostTable()
-								->getColumnOrFail($host_column)
-						)) {
+						if (
+							!$gen->hasSameColumnTypeDefinition(
+								$from_constraint->getHostTable()
+									->getColumnOrFail($host_column),
+								$to_constraint->getHostTable()
+									->getColumnOrFail($host_column)
+							)
+						) {
 							$touched = \sprintf(
 								'constraints column "%s" type changed in host table "%s".',
 								$host_column,
@@ -626,12 +632,14 @@ final class Diff
 
 							break;
 						}
-						if (!$gen->hasSameColumnTypeDefinition(
-							$from_constraint->getReferenceTable()
-								->getColumnOrFail($reference_column),
-							$to_constraint->getReferenceTable()
-								->getColumnOrFail($reference_column)
-						)) {
+						if (
+							!$gen->hasSameColumnTypeDefinition(
+								$from_constraint->getReferenceTable()
+									->getColumnOrFail($reference_column),
+								$to_constraint->getReferenceTable()
+									->getColumnOrFail($reference_column)
+							)
+						) {
 							$touched = \sprintf(
 								'constraints column "%s" type changed in reference table "%s".',
 								$reference_column,

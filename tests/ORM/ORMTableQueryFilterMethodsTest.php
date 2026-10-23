@@ -107,10 +107,11 @@ final class ORMTableQueryFilterMethodsTest extends BaseTestCase
 			QBUtils::resetIdentifierCounter();
 			$listed = CurrenciesQuery::new()->{$method}(...$args);
 
-			// As a class generated before the list: __call() builds the table-wide one.
+			// As a class generated before the list: __call() builds the table-wide one. The type is
+			// the parent's, which a generated class now declares too.
 			QBUtils::resetIdentifierCounter();
 			$built = (new class extends CurrenciesQueryBase {
-				protected const FILTER_METHODS = [];
+				protected const array FILTER_METHODS = [];
 			})->{$method}(...$args);
 
 			self::assertSame((string) $built->getFilters(), (string) $listed->getFilters(), $method);

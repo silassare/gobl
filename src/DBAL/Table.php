@@ -52,17 +52,17 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 		lock as private traitLock;
 	}
 
-	public const ALIAS_PATTERN  = '[a-zA-Z_][a-zA-Z0-9_]*';
-	public const ALIAS_REG      = '~^' . self::ALIAS_PATTERN . '$~';
-	public const NAME_PATTERN   = '[a-z](?:[a-z0-9_]*[a-z0-9])?';
-	public const NAME_REG       = '~^' . self::NAME_PATTERN . '$~';
-	public const PREFIX_PATTERN = '[a-zA-Z](?:[a-zA-Z0-9_]*[a-zA-Z0-9])?';
+	public const string ALIAS_PATTERN  = '[a-zA-Z_][a-zA-Z0-9_]*';
+	public const string ALIAS_REG      = '~^' . self::ALIAS_PATTERN . '$~';
+	public const string NAME_PATTERN   = '[a-z](?:[a-z0-9_]*[a-z0-9])?';
+	public const string NAME_REG       = '~^' . self::NAME_PATTERN . '$~';
+	public const string PREFIX_PATTERN = '[a-zA-Z](?:[a-zA-Z0-9_]*[a-zA-Z0-9])?';
 
-	public const PREFIX_REG = '~^' . self::PREFIX_PATTERN . '$~';
+	public const string PREFIX_REG = '~^' . self::PREFIX_PATTERN . '$~';
 
-	public const TABLE_DEFAULT_NAMESPACE = 'Gobl\DefaultNamespace';
-	public const COLUMN_SOFT_DELETED     = 'deleted';
-	public const COLUMN_SOFT_DELETED_AT  = 'deleted_at';
+	public const string TABLE_DEFAULT_NAMESPACE = 'Gobl\DefaultNamespace';
+	public const string COLUMN_SOFT_DELETED     = 'deleted';
+	public const string COLUMN_SOFT_DELETED_AT  = 'deleted_at';
 
 	/**
 	 * @var array<string, array{morph_type_column:Column, morph_id_column :Column}>
@@ -96,7 +96,7 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 *
 	 * @var null|string
 	 */
-	private ?string $morph_type =  null;
+	private ?string $morph_type = null;
 
 	/**
 	 * The table singular name.
