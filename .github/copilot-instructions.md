@@ -6,7 +6,7 @@
 
 ## Architecture
 
-PHP 8.1+ library: DBAL + ORM + CRUD event system. Supports MySQL, PostgreSQL, SQLite via PDO.
+PHP 8.3+ library: DBAL + ORM + CRUD event system. Supports MySQL, PostgreSQL, SQLite via PDO.
 
 ```
 DBAL  (src/DBAL/)  — schema model, query builders, drivers, diff/migration

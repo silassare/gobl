@@ -1,6 +1,6 @@
 # Gobl
 
-A PHP 8.1+ **Database Abstraction Layer (DBAL)** and **ORM** with code generation
+A PHP 8.3+ **Database Abstraction Layer (DBAL)** and **ORM** with code generation
 for MySQL/MariaDB, PostgreSQL, and SQLite.
 
 ## Features
@@ -14,7 +14,7 @@ for MySQL/MariaDB, PostgreSQL, and SQLite.
 
 ## Requirements
 
-- PHP >= 8.1
+- PHP >= 8.3
 - PDO extension with at least one of: `pdo_mysql`, `pdo_pgsql`, `pdo_sqlite`
 
 ## Installation

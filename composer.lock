@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "206ab9f4b51cd23aee0b2e76bc0b03c1",
+    "content-hash": "5b59dad4ec786bb9fe108ad1dbe4db7e",
     "packages": [
         {
             "name": "oliup/code-generator",
@@ -12,16 +12,16 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/oliup-io/code-generator.git",
-                "reference": "20889fe850902097df78b24ef033dbf3c082d122"
+                "reference": "5c32954014c3e11bdbc977d4d2ea1988740cd9a7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/oliup-io/code-generator/zipball/20889fe850902097df78b24ef033dbf3c082d122",
-                "reference": "20889fe850902097df78b24ef033dbf3c082d122",
+                "url": "https://api.github.com/repos/oliup-io/code-generator/zipball/5c32954014c3e11bdbc977d4d2ea1988740cd9a7",
+                "reference": "5c32954014c3e11bdbc977d4d2ea1988740cd9a7",
                 "shasum": ""
             },
             "require": {
-                "php": ">=8.1",
+                "php": ">=8.3",
                 "silassare/php-utils": "^2.0.0"
             },
             "require-dev": {
@@ -57,7 +57,7 @@
                 "issues": "https://github.com/oliup-io/code-generator/issues",
                 "source": "https://github.com/oliup-io/code-generator/tree/main"
             },
-            "time": "2026-10-12T19:20:29+00:00"
+            "time": "2026-10-22T14:51:07+00:00"
         },
         {
             "name": "psr/http-message",
@@ -118,17 +118,17 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/silassare/blate.git",
-                "reference": "286696fd259eaab89a70e2af70c8e0e33e95ff40"
+                "reference": "39a7d9bbbc17440c983750806379f1cad4f37619"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/silassare/blate/zipball/286696fd259eaab89a70e2af70c8e0e33e95ff40",
-                "reference": "286696fd259eaab89a70e2af70c8e0e33e95ff40",
+                "url": "https://api.github.com/repos/silassare/blate/zipball/39a7d9bbbc17440c983750806379f1cad4f37619",
+                "reference": "39a7d9bbbc17440c983750806379f1cad4f37619",
                 "shasum": ""
             },
             "require": {
                 "ext-json": "*",
-                "php": ">=8.1",
+                "php": ">=8.3",
                 "silassare/php-utils": "^2.0.0"
             },
             "require-dev": {
@@ -171,7 +171,7 @@
                 "issues": "https://github.com/silassare/blate/issues",
                 "source": "https://github.com/silassare/blate/tree/main"
             },
-            "time": "2026-10-12T19:22:38+00:00"
+            "time": "2026-10-23T07:37:53+00:00"
         },
         {
             "name": "silassare/php-utils",
@@ -179,17 +179,17 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/silassare/php-utils.git",
-                "reference": "5547d2c12006bac69192c790e03148ea382efd9a"
+                "reference": "2392f3c4c43d36e36f1f6ae26aa9e76d6d1b7873"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/silassare/php-utils/zipball/5547d2c12006bac69192c790e03148ea382efd9a",
-                "reference": "5547d2c12006bac69192c790e03148ea382efd9a",
+                "url": "https://api.github.com/repos/silassare/php-utils/zipball/2392f3c4c43d36e36f1f6ae26aa9e76d6d1b7873",
+                "reference": "2392f3c4c43d36e36f1f6ae26aa9e76d6d1b7873",
                 "shasum": ""
             },
             "require": {
                 "ext-json": "*",
-                "php": ">=8.1",
+                "php": ">=8.3",
                 "psr/http-message": "^2.0"
             },
             "require-dev": {
@@ -232,7 +232,7 @@
                 "issues": "https://github.com/silassare/php-utils/issues",
                 "source": "https://github.com/silassare/php-utils/tree/main"
             },
-            "time": "2026-10-12T19:19:28+00:00"
+            "time": "2026-10-22T14:54:51+00:00"
         }
     ],
     "packages-dev": [
@@ -1195,16 +1195,16 @@
         },
         {
             "name": "composer/semver",
-            "version": "3.5.1",
+            "version": "3.5.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer/semver.git",
-                "reference": "528948210cc46f967a4b98e83b19e76f2b504993"
+                "reference": "9dfce66f1e97360ea5e6d3e38ab14277e4cc591e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/composer/semver/zipball/528948210cc46f967a4b98e83b19e76f2b504993",
-                "reference": "528948210cc46f967a4b98e83b19e76f2b504993",
+                "url": "https://api.github.com/repos/composer/semver/zipball/9dfce66f1e97360ea5e6d3e38ab14277e4cc591e",
+                "reference": "9dfce66f1e97360ea5e6d3e38ab14277e4cc591e",
                 "shasum": ""
             },
             "require": {
@@ -1256,7 +1256,7 @@
             "support": {
                 "irc": "ircs://irc.libera.chat:6697/composer",
                 "issues": "https://github.com/composer/semver/issues",
-                "source": "https://github.com/composer/semver/tree/3.5.1"
+                "source": "https://github.com/composer/semver/tree/3.5.2"
             },
             "funding": [
                 {
@@ -1268,7 +1268,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-10-05T13:12:12+00:00"
+            "time": "2026-10-22T15:37:26+00:00"
         },
         {
             "name": "composer/xdebug-handler",
@@ -2436,17 +2436,17 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/oliup-io/oliup-cs-php.git",
-                "reference": "0735cbf6acd32616a38e3563bb3e99418403700a"
+                "reference": "43a284886bdb0825bf74dbf42eb4c5c0f5b53676"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/oliup-io/oliup-cs-php/zipball/0735cbf6acd32616a38e3563bb3e99418403700a",
-                "reference": "0735cbf6acd32616a38e3563bb3e99418403700a",
+                "url": "https://api.github.com/repos/oliup-io/oliup-cs-php/zipball/43a284886bdb0825bf74dbf42eb4c5c0f5b53676",
+                "reference": "43a284886bdb0825bf74dbf42eb4c5c0f5b53676",
                 "shasum": ""
             },
             "require": {
                 "friendsofphp/php-cs-fixer": "^3.94",
-                "php": ">=8.1",
+                "php": ">=8.3",
                 "phpcompatibility/php-compatibility": "^10.0@alpha",
                 "squizlabs/php_codesniffer": "^4.0"
             },
@@ -2491,7 +2491,7 @@
                 "issues": "https://github.com/oliup-io/oliup-cs-php/issues",
                 "source": "https://github.com/oliup-io/oliup-cs-php/tree/main"
             },
-            "time": "2026-09-14T18:23:53+00:00"
+            "time": "2026-10-23T08:26:31+00:00"
         },
         {
             "name": "phar-io/manifest",
@@ -8248,7 +8248,7 @@
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=8.1",
+        "php": ">=8.3",
         "ext-pdo": "*",
         "ext-json": "*",
         "ext-bcmath": "*",
@@ -8256,7 +8256,7 @@
     },
     "platform-dev": {},
     "platform-overrides": {
-        "php": "8.2.35"
+        "php": "8.3.36"
     },
     "plugin-api-version": "2.9.0"
 }

@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- PHP **>= 8.1** with extensions `pdo`, `json`, `bcmath`
+- PHP **>= 8.3** with extensions `pdo`, `json`, `bcmath`
 - Composer
 
 ## Install via Composer

@@ -1,6 +1,6 @@
 # What is Gobl?
 
-Gobl is a **PHP 8.1+ Database Abstraction Layer (DBAL) and Object-Relational Mapper (ORM)** that
+Gobl is a **PHP 8.3+ Database Abstraction Layer (DBAL) and Object-Relational Mapper (ORM)** that
 lets you define your database schema in plain PHP arrays and then query any supported RDBMS through
 a consistent API.
 
@@ -36,7 +36,7 @@ your-app/
 
 |                 | Version      |
 | --------------- | ------------ |
-| PHP             | >= 8.1        |
+| PHP             | >= 8.3        |
 | MySQL / MariaDB | 5.7+ / 10.3+ |
 | PostgreSQL      | 12+          |
 | SQLite          | 3.35+        |

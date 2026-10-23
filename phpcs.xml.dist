@@ -12,6 +12,19 @@
     <!-- Path to our coding standard folder -->
     <rule ref="vendor/oliup/oliup-cs-php/src"/>
 
-    <!-- You should use at least PHP 8.1 -->
-	<config name="testVersion" value="8.1-"/>
+	<!--
+		`ORMEntity`'s own members are prefixed `_oeb_`, and its helpers with `_`, so that none of them
+		can ever collide with a column: a table's columns are the entity's properties and methods,
+		named by the schema, and `__get()` / `__set()` map them. The underscore is that convention,
+		not a marker of visibility.
+	-->
+	<rule ref="PSR2.Classes.PropertyDeclaration.Underscore">
+		<exclude-pattern>*/src/ORM/ORMEntity.php</exclude-pattern>
+	</rule>
+	<rule ref="PSR2.Methods.MethodDeclaration.Underscore">
+		<exclude-pattern>*/src/ORM/ORMEntity.php</exclude-pattern>
+	</rule>
+
+    <!-- You should use at least PHP 8.3 -->
+	<config name="testVersion" value="8.3-"/>
 </ruleset>
