@@ -1,4 +1,4 @@
-FROM php:8.3-cli
+FROM php:8.5-cli
 
 # System dependencies (cached as a layer)
 RUN apt-get update -qq \

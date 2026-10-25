@@ -14,13 +14,16 @@
   file's header -- it still said v2. **Not a release**: no tag is cut and this
   section stays `Unreleased`.
 
-- **PHP 8.3 is the minimum** (`"php": ">=8.3"`), the version OZone requires, so
-  that every package of the suite answers for one floor. 8.1 and 8.2 are end of
-  life, and their security fixes are source backports and not releases, so no
-  release of them can satisfy the advisory database `roave/security-advisories`
-  carries: the dependencies of a run on one cannot be resolved at all.
-  `config.platform.php`, the PHPCompatibility target (`testVersion`) and the CI
-  matrix say 8.3 with it.
+- **PHP 8.5 is the minimum** (`"php": ">=8.5"`), the version OZone requires, so
+  that every package of the suite answers for one floor. A branch below it
+  cannot satisfy the advisory database `roave/security-advisories` carries
+  either: 8.1 and 8.2 are end of life and their security fixes are source
+  backports rather than releases, and for the live branches the advisory set
+  asks for a patch level (8.5.12) above what an older branch has -- so the
+  dependencies of a run on one cannot be resolved at all.
+  `config.platform.php` (8.5.12), the PHPCompatibility target (`testVersion`)
+  and the CI matrix say 8.5 with it, the matrix now being a single version
+  since 8.6 is not out.
 
 - **An UPDATE sends a JSON patch as the paths it changed.** A `JsonPatch`
   assigned to a column (`$entity->setDataKey(...)`, `patchData()`, or the

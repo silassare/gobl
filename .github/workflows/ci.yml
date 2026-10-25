@@ -14,11 +14,11 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                # The versions composer.json allows. 8.1 and 8.2 were dropped with the minimum: an
-                # end-of-life branch cannot satisfy `roave/security-advisories` either, since its
-                # security fixes are source backports and not releases, so a run on one could not
-                # resolve its dependencies at all.
-                php: ["8.3", "8.4"]
+                # The versions composer.json allows, which is one: the minimum is 8.5 and 8.6 is not
+                # out. A branch below it cannot satisfy `roave/security-advisories` either, whether
+                # because it is end of life (8.1, 8.2) or because the advisory set asks for a patch
+                # level above what that branch has, so a run on one could not resolve at all.
+                php: ["8.5"]
                 os: [ubuntu-latest]
 
         services:
