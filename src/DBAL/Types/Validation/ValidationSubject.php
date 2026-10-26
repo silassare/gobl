@@ -184,6 +184,9 @@ class ValidationSubject implements ValidationSubjectInterface
 		return $this->cleanValue;
 	}
 
+	/**
+	 * @return static enables fluent chaining; returns $this
+	 */
 	#[Override]
 	public function lock(): static
 	{

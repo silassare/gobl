@@ -8,6 +8,9 @@
 >
 	<projectFiles>
 		<directory name="src"/>
+		<!-- Checks that a generic class's fluent `static` still resolves to the subclass; see
+		     the file's own docblock for what silently breaks when it does not. -->
+		<file name="tests/Psalm/FluentChainGuard.php"/>
 		<ignoreFiles>
 			<directory name="vendor"/>
 			<directory name="tests/assets/snapshots"/>

@@ -53,6 +53,8 @@ interface TypeInterface extends ArrayCapableInterface, MetaCapableInterface, Loc
 
 	/**
 	 * Enable null value.
+	 *
+	 * @return static enables fluent chaining; returns $this
 	 */
 	public function nullable(bool $nullable = true): static;
 
@@ -70,6 +72,8 @@ interface TypeInterface extends ArrayCapableInterface, MetaCapableInterface, Loc
 	/**
 	 * Auto-increment allows a unique number to be generated,
 	 * when a new record is inserted.
+	 *
+	 * @return static enables fluent chaining; returns $this
 	 */
 	public function autoIncrement(bool $auto_increment = true): static;
 
@@ -92,6 +96,8 @@ interface TypeInterface extends ArrayCapableInterface, MetaCapableInterface, Loc
 	 * Explicitly set the default value.
 	 *
 	 * @param mixed $default the value to use as default
+	 *
+	 * @return static enables fluent chaining; returns $this
 	 */
 	public function default(mixed $default): static;
 
@@ -241,6 +247,8 @@ interface TypeInterface extends ArrayCapableInterface, MetaCapableInterface, Loc
 
 	/**
 	 * Adds option key value pair.
+	 *
+	 * @return static enables fluent chaining; returns $this
 	 */
 	public function setOption(string $key, mixed $value): static;
 
@@ -265,6 +273,8 @@ interface TypeInterface extends ArrayCapableInterface, MetaCapableInterface, Loc
 
 	/**
 	 * Apply default, null and auto_increment options.
+	 *
+	 * @return static enables fluent chaining; returns $this
 	 */
 	public function configure(array $options): static;
 

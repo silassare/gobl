@@ -25,7 +25,7 @@ final class CRUDException extends GoblException
 	/**
 	 * CRUDException constructor.
 	 *
-	 * @param CRUDAction|string $message a message, or the refused action to take the message from.
+	 * @param CRUDAction|string $message a message, or the refused action to take the message from
 	 */
 	public function __construct(CRUDAction|string $message, ?array $data = null, ?Throwable $previous = null, int $code = 0)
 	{

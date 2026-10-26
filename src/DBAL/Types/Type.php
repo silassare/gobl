@@ -126,6 +126,9 @@ abstract class Type implements TypeInterface
 		$this->safelyCallOnBaseType(__FUNCTION__, [$filter]);
 	}
 
+	/**
+	 * @return static enables fluent chaining; returns $this
+	 */
 	#[Override]
 	public function autoIncrement(bool $auto_increment = true): static
 	{
@@ -135,6 +138,9 @@ abstract class Type implements TypeInterface
 		return $this->setOption('auto_increment', $auto_increment);
 	}
 
+	/**
+	 * @return static enables fluent chaining; returns $this
+	 */
 	#[Override]
 	public function configure(array $options): static
 	{
@@ -170,6 +176,8 @@ abstract class Type implements TypeInterface
 	 * {@inheritDoc}
 	 *
 	 * Through {@see Map::lazyMerge()}: no dot path parsed for keys that need none.
+	 *
+	 * @return static enables fluent chaining; returns $this
 	 */
 	#[Override]
 	public function mergeMeta(array|Map $meta): static
@@ -193,6 +201,9 @@ abstract class Type implements TypeInterface
 		return $this->safelyCallOnBaseType(__FUNCTION__, [$value, $rdbms]);
 	}
 
+	/**
+	 * @return static enables fluent chaining; returns $this
+	 */
 	#[Override]
 	public function default(mixed $default): static
 	{
@@ -320,6 +331,9 @@ abstract class Type implements TypeInterface
 		return (bool) $this->getOption('nullable', false);
 	}
 
+	/**
+	 * @return static enables fluent chaining; returns $this
+	 */
 	#[Override]
 	public function lock(): static
 	{
@@ -344,6 +358,9 @@ abstract class Type implements TypeInterface
 		return $this;
 	}
 
+	/**
+	 * @return static enables fluent chaining; returns $this
+	 */
 	#[Override]
 	public function nullable(bool $nullable = true): static
 	{
@@ -415,6 +432,8 @@ abstract class Type implements TypeInterface
 	 *
 	 * @param string|TypeValidatorInterface $validator a validator instance or its FQCN
 	 *
+	 * @return static enables fluent chaining; returns $this
+	 *
 	 * @throws TypesException when a FQCN is given that does not implement TypeValidatorInterface
 	 */
 	public function preValidator(string|TypeValidatorInterface $validator): static
@@ -444,6 +463,8 @@ abstract class Type implements TypeInterface
 	 * Attaches a post-validator to run after this type's own {@see runValidation()}.
 	 *
 	 * @param string|TypeValidatorInterface $validator a validator instance or its FQCN
+	 *
+	 * @return static enables fluent chaining; returns $this
 	 *
 	 * @throws TypesException when a FQCN is given that does not implement TypeValidatorInterface
 	 */

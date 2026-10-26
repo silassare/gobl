@@ -64,6 +64,8 @@ class CRUDEventProducer
 
 	/**
 	 * Register a listener for an event.
+	 *
+	 * @return static enables fluent chaining; returns $this
 	 */
 	public function listen(CRUDEventListenerInterface $listener): static
 	{

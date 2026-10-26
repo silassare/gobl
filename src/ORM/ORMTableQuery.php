@@ -186,6 +186,8 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 * Exclude soft deleted rows in select/update query.
 	 *
 	 * Soft deleted rows are excluded by default.
+	 *
+	 * @return static enables fluent chaining; returns $this
 	 */
 	public function excludeSoftDeletedRows(): static
 	{
@@ -198,6 +200,8 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 * Alias of {@see Filters::and}.
 	 *
 	 * @param array|(callable(static):void)|static ...$filters
+	 *
+	 * @return static enables fluent chaining; returns $this
 	 */
 	public function and(array|callable|self ...$filters): static
 	{
@@ -217,6 +221,8 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 * - **`array`** - forwarded as-is to `Filters::where()`.
 	 *
 	 * @param array|(callable(static):void)|static ...$filters
+	 *
+	 * @return static enables fluent chaining; returns $this
 	 */
 	public function where(array|callable|self ...$filters): static
 	{
@@ -261,6 +267,8 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 * The returned instance **shares the same `QBSelect`** as the parent (same bindings, same
 	 * alias map) but gets its own `Filters` sub-group instance so its conditions are nested
 	 * separately. Pass the returned instance to `where()` or a callable to add grouped conditions.
+	 *
+	 * @return static enables fluent chaining; a new instance sharing this one's query builder and alias, not $this
 	 */
 	public function subGroup(): static
 	{
@@ -281,6 +289,8 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 * Alias of {@see Filters::or}.
 	 *
 	 * @param array|(callable(static):void)|static ...$filters
+	 *
+	 * @return static enables fluent chaining; returns $this
 	 */
 	public function or(array|callable|self ...$filters): static
 	{
@@ -291,6 +301,8 @@ abstract class ORMTableQuery extends FiltersTableScope
 
 	/**
 	 * Resets this instance filters.
+	 *
+	 * @return static enables fluent chaining; returns $this
 	 */
 	public function reset(): static
 	{
@@ -601,6 +613,8 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 * Include soft deleted rows in select/update/delete query.
 	 *
 	 * Soft deleted rows are excluded by default.
+	 *
+	 * @return static enables fluent chaining; returns $this
 	 */
 	public function includeSoftDeletedRows(): static
 	{
@@ -616,6 +630,8 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 * @param Operator    $operator the operator to use
 	 * @param mixed       $value    the filter value
 	 * @param null|string $at_path  optional JSON path for JSON column filters
+	 *
+	 * @return static enables fluent chaining; returns $this
 	 */
 	public function filterBy(string $column, Operator $operator, mixed $value = null, ?string $at_path = null): static
 	{
