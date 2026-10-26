@@ -85,6 +85,29 @@ use Gobl\CRUD\CRUDEventProducer;
     ->onBeforeCreate(fn (BeforeCreate $action) => $this->canCreate($action));
 ```
 
+### Generated column properties
+
+Per column, `EntityBase` declares a typed virtual property named after the column's short name,
+with `get` and `set` hooks over the entity's row, plus the getter and the fluent setter:
+
+```php
+public \PHPUtils\Store\Map $data {
+    get => $this->_oebRead(self::COL_DATA);
+    set(\PHPUtils\Store\Map|array|\Gobl\DBAL\Types\Utils\JsonPatch $value) {
+        $this->_oebWrite(self::COL_DATA, $value);
+    }
+}
+```
+
+The property type is the column's **read** type and the hook parameter its **write** type, which is
+the wider of the two where they differ: PHP requires a `set` hook parameter to be a supertype of
+the property type, which is the direction a column needs. An element type a PHP type cannot carry
+(`Map<\App\Thing>`) goes in the property's `@var`.
+
+A column no longer gets an `@property` line on the class docblock: the type is in the code. See
+[Columns are typed properties](./orm.md#columns-are-typed-properties) for what changes at the call
+site.
+
 ### Generated relation getter signatures
 
 For each declared relation, `EntityBase` gets a typed getter method:

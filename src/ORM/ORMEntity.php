@@ -210,49 +210,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 	final public function __get(string $name)
 	{
 		if ($this->_oeb_table->hasColumn($name)) {
-			$column    = $this->_oeb_table->getColumnOrFail($name);
-			$full_name = $column->getFullName();
-
-			// Partial-load guard: throw clearly when the column was not fetched.
-			if ($this->_oeb_is_partial && !isset($this->_oeb_partial_columns[$full_name])) {
-				throw new ORMRuntimeException(
-					\sprintf(
-						'Column "%s" was not included in the partial projection for table "%s". Use isColumnLoaded() to check before accessing.',
-						$name,
-						$this->_oeb_table->getName()
-					)
-				);
-			}
-
-			$value = $this->_oeb_row[$full_name] ?? null;
-			$type  = $column->getType();
-
-			if (null === $value) {
-				if ($this->isNew() && $type->isAutoIncremented()) {
-					return null;
-				}
-
-				if (!$type->isNullable()) {
-					// this is an attempt to prevent returning null
-					// as the property is supposed to not have null value
-					$value = $type->getDefault();
-					if (null === $value) {
-						$value = $type->getEmptyValueOfType();
-					}
-
-					if (null === $value) {
-						throw new ORMRuntimeException(
-							\sprintf(
-								'Missing required value for column "%s" defined in table "%s".',
-								$name,
-								$this->_oeb_table->getName()
-							)
-						);
-					}
-				}
-			}
-
-			return $value;
+			return $this->_oebRead($name);
 		}
 
 		$error = \sprintf('Column "%s" not defined in table "%s".', $name, $this->_oeb_table->getName());
@@ -269,16 +227,16 @@ abstract class ORMEntity implements ArrayCapableInterface
 	/**
 	 * Magic setter for column value.
 	 *
-	 * Three modes in priority order:
+	 * Two modes in priority order:
 	 * - **Computed mode** (name starts with `_gobl_`): stores the raw value in
 	 *   `$_oeb_computed`. No validation, no
 	 *   dirty tracking, never written by save(). Used by batch-routing queries
 	 *   (e.g. `pivot.fk AS _gobl_batch_key`) and any custom computed SELECT
 	 *   expressions added via {@see QBSelect::selectComputed()}.
-	 * - **User mode** (entity is new, or column is in `_oeb_from_db`): validates via
-	 *   `doValidation()`, compares hash against `_oeb_saved_hashes`, marks dirty if changed.
-	 * - **PDO mode** (column not yet in `_oeb_from_db`): converts via `Type::dbToPhp()`,
-	 *   records a hash snapshot, marks the column as DB-sourced.
+	 * - **Column mode**: {@see _oebWrite()}, which validates, hashes and marks dirty.
+	 *
+	 * A row the database answered with does not come through here: it goes to
+	 * {@see _oebHydrate()}, which is where `Type::dbToPhp()` runs.
 	 *
 	 * @param string $name  the column full name, short name, or a `_gobl_*` computed alias
 	 * @param mixed  $value the column value
@@ -295,57 +253,180 @@ abstract class ORMEntity implements ArrayCapableInterface
 		}
 
 		if ($this->_oeb_table->hasColumn($name)) {
-			$column    = $this->_oeb_table->getColumnOrFail($name);
-			$full_name = $column->getFullName();
+			$this->_oebWrite($name, $value);
 
-			// false when PDO is populating the entity from a DB row
-			if (\array_key_exists($full_name, $this->_oeb_from_db) || $this->isNew()) {
-				$type = $column->getType();
-
-				if ($value instanceof JsonPatch) {
-					// A patch says what changed, the entity says what it changed from: the column's
-					// new value is the one applied to the other, so the entity reads back what the
-					// row will hold. The paths are kept apart, for the UPDATE to send.
-					$current = $this->_oeb_row[$full_name] ?? null;
-
-					$patch = $this->_oeb_patches[$full_name]
-						?? new JsonPatch($current instanceof Map || \is_array($current) ? $current : []);
-
-					$this->_oeb_patches[$full_name] = $patch->append($value);
-
-					$value = $patch->toArray();
-				} else {
-					// A whole value answers for the column on its own.
-					unset($this->_oeb_patches[$full_name]);
-				}
-
-				$clean      = $this->doValidation($full_name, $value);
-				$clean_hash = $type->hash($clean);
-
-				if (
-					!\array_key_exists($full_name, $this->_oeb_row)
-					|| !\array_key_exists($full_name, $this->_oeb_saved_hashes)
-					|| $this->_oeb_saved_hashes[$full_name] !== $clean_hash
-				) {
-					$this->_oeb_row[$full_name]   = $clean;
-					$this->_oeb_dirty[$full_name] = true;
-				}
-			} else { // PDO is populating the entity from a DB row
-				$type                                = $column->getType();
-				$value                               = $type->dbToPhp($value, $this->_oeb_db);
-				$this->_oeb_row[$full_name]          = $value;
-				$this->_oeb_from_db[$full_name]      = true;
-				$this->_oeb_saved_hashes[$full_name] = $type->hash($value);
-			}
-		} else {
-			$error = \sprintf('Column "%s" not defined in table "%s".', $name, $this->_oeb_table->getName());
-
-			if ($this->_oeb_strict) {
-				throw new ORMRuntimeException($error);
-			}
-
-			\trigger_error($error /* , \E_USER_NOTICE */);
+			return;
 		}
+
+		$error = \sprintf('Column "%s" not defined in table "%s".', $name, $this->_oeb_table->getName());
+
+		if ($this->_oeb_strict) {
+			throw new ORMRuntimeException($error);
+		}
+
+		\trigger_error($error /* , \E_USER_NOTICE */);
+	}
+
+	/**
+	 * Reads a column value, for the magic getter and for a generated property's `get` hook.
+	 *
+	 * Resolution order when the stored value is `null`:
+	 * 1. If the column is auto-incremented and the entity is new -> returns `null` (ID not yet assigned).
+	 * 2. If the column is non-nullable -> tries `Type::getDefault()`, then `Type::getEmptyValueOfType()`;
+	 *    if both return `null`, throws `ORMRuntimeException` (programming error: required value was never set).
+	 * 3. Otherwise (nullable column) -> returns `null`.
+	 *
+	 * For partially-loaded entities (see {@see markAsPartial()}) a column that was not included in the
+	 * projection always throws `ORMRuntimeException`. Use {@see isColumnLoaded()} to check first.
+	 *
+	 * @param string $name the column full name or name
+	 *
+	 * @throws ORMRuntimeException
+	 */
+	final protected function _oebRead(string $name): mixed
+	{
+		$column    = $this->_oeb_table->getColumnOrFail($name);
+		$full_name = $column->getFullName();
+
+		// Partial-load guard: throw clearly when the column was not fetched.
+		if ($this->_oeb_is_partial && !isset($this->_oeb_partial_columns[$full_name])) {
+			throw new ORMRuntimeException(
+				\sprintf(
+					'Column "%s" was not included in the partial projection for table "%s". Use isColumnLoaded() to check before accessing.',
+					$name,
+					$this->_oeb_table->getName()
+				)
+			);
+		}
+
+		$value = $this->_oeb_row[$full_name] ?? null;
+		$type  = $column->getType();
+
+		if (null === $value) {
+			if ($this->isNew() && $type->isAutoIncremented()) {
+				return null;
+			}
+
+			if (!$type->isNullable()) {
+				// this is an attempt to prevent returning null
+				// as the property is supposed to not have null value
+				$value = $type->getDefault();
+				if (null === $value) {
+					$value = $type->getEmptyValueOfType();
+				}
+
+				if (null === $value) {
+					throw new ORMRuntimeException(
+						\sprintf(
+							'Missing required value for column "%s" defined in table "%s".',
+							$name,
+							$this->_oeb_table->getName()
+						)
+					);
+				}
+			}
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Writes a column value, for the magic setter and for a generated property's `set` hook.
+	 *
+	 * Validates through `doValidation()`, compares the hash against `_oeb_saved_hashes` and marks the
+	 * column dirty only when it changed. A {@see JsonPatch} is appended to the column's pending patch
+	 * instead of replacing the value, so the UPDATE sends the paths that changed.
+	 *
+	 * @param string $name  the column full name or name
+	 * @param mixed  $value the column value
+	 *
+	 * @throws TypesInvalidValueException
+	 */
+	final protected function _oebWrite(string $name, mixed $value): void
+	{
+		$column    = $this->_oeb_table->getColumnOrFail($name);
+		$full_name = $column->getFullName();
+		$type      = $column->getType();
+
+		if ($value instanceof JsonPatch) {
+			// A patch says what changed, the entity says what it changed from: the column's
+			// new value is the one applied to the other, so the entity reads back what the
+			// row will hold. The paths are kept apart, for the UPDATE to send.
+			$current = $this->_oeb_row[$full_name] ?? null;
+
+			$patch = $this->_oeb_patches[$full_name]
+				?? new JsonPatch($current instanceof Map || \is_array($current) ? $current : []);
+
+			$this->_oeb_patches[$full_name] = $patch->append($value);
+
+			$value = $patch->toArray();
+		} else {
+			// A whole value answers for the column on its own.
+			unset($this->_oeb_patches[$full_name]);
+		}
+
+		$clean      = $this->doValidation($full_name, $value);
+		$clean_hash = $type->hash($clean);
+
+		if (
+			!\array_key_exists($full_name, $this->_oeb_row)
+			|| !\array_key_exists($full_name, $this->_oeb_saved_hashes)
+			|| $this->_oeb_saved_hashes[$full_name] !== $clean_hash
+		) {
+			$this->_oeb_row[$full_name]   = $clean;
+			$this->_oeb_dirty[$full_name] = true;
+		}
+	}
+
+	/**
+	 * Takes a row the database answered with, column values in their DB form.
+	 *
+	 * The explicit counterpart of letting PDO write the entity's properties: a generated column is a
+	 * hooked property now, and a hook would see the raw DB value against the column's PHP write type.
+	 * So the row is read as an associative array and placed here, where `Type::dbToPhp()` runs and the
+	 * hash snapshot is taken, which is what the magic setter used to do in its PDO branch.
+	 *
+	 * A `_gobl_*` key is a computed SELECT alias and goes to its slot, unvalidated and never written
+	 * back. Anything else that is not a column of the table is a programming error, loud in strict mode.
+	 *
+	 * @param array<string, mixed> $row
+	 *
+	 * @return $this
+	 *
+	 * @throws ORMRuntimeException
+	 */
+	final public function _oebHydrate(array $row): static
+	{
+		foreach ($row as $name => $value) {
+			if (\str_starts_with((string) $name, '_gobl_')) {
+				$this->_oeb_computed[$name] = $value;
+
+				continue;
+			}
+
+			if (!$this->_oeb_table->hasColumn((string) $name)) {
+				$error = \sprintf('Column "%s" not defined in table "%s".', $name, $this->_oeb_table->getName());
+
+				if ($this->_oeb_strict) {
+					throw new ORMRuntimeException($error);
+				}
+
+				\trigger_error($error /* , \E_USER_NOTICE */);
+
+				continue;
+			}
+
+			$column    = $this->_oeb_table->getColumnOrFail((string) $name);
+			$full_name = $column->getFullName();
+			$type      = $column->getType();
+			$value     = $type->dbToPhp($value, $this->_oeb_db);
+
+			$this->_oeb_row[$full_name]          = $value;
+			$this->_oeb_from_db[$full_name]      = true;
+			$this->_oeb_saved_hashes[$full_name] = $type->hash($value);
+		}
+
+		return $this;
 	}
 
 	/**

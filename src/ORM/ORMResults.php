@@ -175,24 +175,20 @@ abstract class ORMResults implements PaginationAwareListInterface, Countable, It
 	 */
 	public function fetchClass(bool $strict = true): ?ORMEntity
 	{
-		$entity = ORM::entity($this->table, false, $strict);
-		$stmt   = $this->getStatement();
+		$row = $this->getStatement()
+			->fetch(PDO::FETCH_ASSOC);
 
-		$stmt->setFetchMode(PDO::FETCH_INTO, $entity);
-		$entity = $stmt->fetch();
-
-		if ($entity instanceof $this->entity_class) {
-			/**
-			 * @psalm-suppress UnnecessaryVarAnnotation
-			 *
-			 * @var TEntity $entity
-			 */
-			$entity->isSaved(true); // the entity is fetched from the database
-
-			return $entity;
+		if (!\is_array($row)) {
+			return null;
 		}
 
-		return null;
+		/** @var TEntity $entity */
+		$entity = ORM::entity($this->table, false, $strict);
+
+		$entity->_oebHydrate($row)
+			->isSaved(true); // the entity is fetched from the database
+
+		return $entity;
 	}
 
 	/**
@@ -227,13 +223,19 @@ abstract class ORMResults implements PaginationAwareListInterface, Countable, It
 	 */
 	public function fetchAllClass(bool $strict = true): array
 	{
-		// according to https://phpdelusions.net/pdo/fetch_modes#FETCH_CLASS
-		// in PDO::FETCH_CLASS mode, PDO assign class properties before calling a constructor.
-		// To amend this behavior, use the following flag \PDO::FETCH_PROPS_LATE.
-		$fetch_style = PDO::FETCH_CLASS | PDO::FETCH_PROPS_LATE;
+		$rows = $this->getStatement()
+			->fetchAll(PDO::FETCH_ASSOC);
 
-		return $this->getStatement()
-			->fetchAll($fetch_style, $this->entity_class, [false, $strict]);
+		$out = [];
+
+		foreach ($rows as $row) {
+			/** @var TEntity $entity */
+			$entity = ORM::entity($this->table, false, $strict);
+
+			$out[] = $entity->_oebHydrate($row);
+		}
+
+		return $out;
 	}
 
 	/**

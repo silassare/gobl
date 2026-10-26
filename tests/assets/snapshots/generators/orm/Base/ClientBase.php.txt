@@ -7,16 +7,6 @@ use Gobl\Tests\Db\Client;
 
 /**
  * Class ClientBase.
- * 
- * @property string|null $id Getter for column `clients.id`.
- * @property string $first_name Getter for column `clients.first_name`.
- * @property string $last_name Getter for column `clients.last_name`.
- * @property string $given_name Getter for column `clients.given_name`.
- * @property string $gender Getter for column `clients.gender`.
- * @property \PHPUtils\Store\Map<mixed> $data Getter for column `clients.data`.
- * @property string $created_at Getter for column `clients.created_at`.
- * @property string $updated_at Getter for column `clients.updated_at`.
- * @property bool $valid Getter for column `clients.valid`.
  */
 abstract class ClientBase extends \Gobl\ORM\ORMEntity
 {
@@ -31,6 +21,89 @@ abstract class ClientBase extends \Gobl\ORM\ORMEntity
 	public const string COL_CREATED_AT = 'client_created_at';
 	public const string COL_UPDATED_AT = 'client_updated_at';
 	public const string COL_VALID = 'client_valid';
+	/**
+	 * Column `clients.id`.
+	 */
+	public string|null $id {
+		get => $this->_oebRead(self::COL_ID);
+		set(string|int|null $value) {
+			$this->_oebWrite(self::COL_ID, $value);
+		}
+	}
+	/**
+	 * Column `clients.first_name`.
+	 */
+	public string $first_name {
+		get => $this->_oebRead(self::COL_FIRST_NAME);
+		set(string $value) {
+			$this->_oebWrite(self::COL_FIRST_NAME, $value);
+		}
+	}
+	/**
+	 * Column `clients.last_name`.
+	 */
+	public string $last_name {
+		get => $this->_oebRead(self::COL_LAST_NAME);
+		set(string $value) {
+			$this->_oebWrite(self::COL_LAST_NAME, $value);
+		}
+	}
+	/**
+	 * Column `clients.given_name`.
+	 */
+	public string $given_name {
+		get => $this->_oebRead(self::COL_GIVEN_NAME);
+		set(string $value) {
+			$this->_oebWrite(self::COL_GIVEN_NAME, $value);
+		}
+	}
+	/**
+	 * Column `clients.gender`.
+	 */
+	public string $gender {
+		get => $this->_oebRead(self::COL_GENDER);
+		set(string $value) {
+			$this->_oebWrite(self::COL_GENDER, $value);
+		}
+	}
+	/**
+	 * Column `clients.data`.
+	 * 
+	 * @var \PHPUtils\Store\Map<mixed>
+	 */
+	public \PHPUtils\Store\Map $data {
+		get => $this->_oebRead(self::COL_DATA);
+		set(\PHPUtils\Store\Map|array|\Gobl\DBAL\Types\Utils\JsonPatch $value) {
+			$this->_oebWrite(self::COL_DATA, $value);
+		}
+	}
+	/**
+	 * Column `clients.created_at`.
+	 */
+	public string $created_at {
+		get => $this->_oebRead(self::COL_CREATED_AT);
+		set(string|int $value) {
+			$this->_oebWrite(self::COL_CREATED_AT, $value);
+		}
+	}
+	/**
+	 * Column `clients.updated_at`.
+	 */
+	public string $updated_at {
+		get => $this->_oebRead(self::COL_UPDATED_AT);
+		set(string|int $value) {
+			$this->_oebWrite(self::COL_UPDATED_AT, $value);
+		}
+	}
+	/**
+	 * Column `clients.valid`.
+	 */
+	public bool $valid {
+		get => $this->_oebRead(self::COL_VALID);
+		set(bool $value) {
+			$this->_oebWrite(self::COL_VALID, $value);
+		}
+	}
 	/**
 	 * ClientBase constructor.
 	 * 

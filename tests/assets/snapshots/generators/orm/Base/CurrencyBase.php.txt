@@ -7,14 +7,6 @@ use Gobl\Tests\Db\Currency;
 
 /**
  * Class CurrencyBase.
- * 
- * @property string $code Getter for column `currencies.code`.
- * @property string $name Getter for column `currencies.name`.
- * @property string $symbol Getter for column `currencies.symbol`.
- * @property \PHPUtils\Store\Map<mixed> $data Getter for column `currencies.data`.
- * @property string $created_at Getter for column `currencies.created_at`.
- * @property string $updated_at Getter for column `currencies.updated_at`.
- * @property bool $valid Getter for column `currencies.valid`.
  */
 abstract class CurrencyBase extends \Gobl\ORM\ORMEntity
 {
@@ -27,6 +19,71 @@ abstract class CurrencyBase extends \Gobl\ORM\ORMEntity
 	public const string COL_CREATED_AT = 'ccy_created_at';
 	public const string COL_UPDATED_AT = 'ccy_updated_at';
 	public const string COL_VALID = 'ccy_valid';
+	/**
+	 * Column `currencies.code`.
+	 */
+	public string $code {
+		get => $this->_oebRead(self::COL_CODE);
+		set(string $value) {
+			$this->_oebWrite(self::COL_CODE, $value);
+		}
+	}
+	/**
+	 * Column `currencies.name`.
+	 */
+	public string $name {
+		get => $this->_oebRead(self::COL_NAME);
+		set(string $value) {
+			$this->_oebWrite(self::COL_NAME, $value);
+		}
+	}
+	/**
+	 * Column `currencies.symbol`.
+	 */
+	public string $symbol {
+		get => $this->_oebRead(self::COL_SYMBOL);
+		set(string $value) {
+			$this->_oebWrite(self::COL_SYMBOL, $value);
+		}
+	}
+	/**
+	 * Column `currencies.data`.
+	 * 
+	 * @var \PHPUtils\Store\Map<mixed>
+	 */
+	public \PHPUtils\Store\Map $data {
+		get => $this->_oebRead(self::COL_DATA);
+		set(\PHPUtils\Store\Map|array|\Gobl\DBAL\Types\Utils\JsonPatch $value) {
+			$this->_oebWrite(self::COL_DATA, $value);
+		}
+	}
+	/**
+	 * Column `currencies.created_at`.
+	 */
+	public string $created_at {
+		get => $this->_oebRead(self::COL_CREATED_AT);
+		set(string|int $value) {
+			$this->_oebWrite(self::COL_CREATED_AT, $value);
+		}
+	}
+	/**
+	 * Column `currencies.updated_at`.
+	 */
+	public string $updated_at {
+		get => $this->_oebRead(self::COL_UPDATED_AT);
+		set(string|int $value) {
+			$this->_oebWrite(self::COL_UPDATED_AT, $value);
+		}
+	}
+	/**
+	 * Column `currencies.valid`.
+	 */
+	public bool $valid {
+		get => $this->_oebRead(self::COL_VALID);
+		set(bool $value) {
+			$this->_oebWrite(self::COL_VALID, $value);
+		}
+	}
 	/**
 	 * CurrencyBase constructor.
 	 * 

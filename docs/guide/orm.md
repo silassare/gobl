@@ -45,9 +45,9 @@ ORM::declareNamespace(
 
 ## Entities
 
-Every generated entity extends `ORMEntity` and exposes typed getters and setters derived
-from **column short names** (without the prefix). For a `clients` table with `column_prefix:
-'client'` and columns `id`, `first_name`, `last_name`:
+Every generated entity extends `ORMEntity` and exposes, per column, a **typed property** named
+after the column's short name (without the prefix) plus a getter and a fluent setter. For a
+`clients` table with `column_prefix: 'client'` and columns `id`, `first_name`, `last_name`:
 
 ```php
 $client = new Client();
@@ -60,20 +60,65 @@ $client->setFirstName('Jane')
 echo $client->getFirstName();  // 'Jane'
 echo $client->getID();         // null until persisted
 
-// Magic property access also works (short name or full name)
-$client->first_name = 'Jane'; // short name
-$client->client_first_name;   // full name (same column)
+// The property is the same column, with the same type
+$client->first_name = 'Jane';
+echo $client->first_name;
 
-// Hydration from a raw DB row
-$client->hydrate($row);
+// The full name goes through magic access, as it always did
+$client->client_first_name = 'Jane';
 
 // Convert to array / JSON (sensitive columns are redacted)
 $client->toArray();
-json_encode($client);
 
 // Persist to the database
 $client->save();
 ```
+
+### Columns are typed properties
+
+A column is a **virtual property with hooks**, which is what the generated base class declares:
+
+```php
+public string $first_name {
+    get => $this->_oebRead(self::COL_FIRST_NAME);
+    set(string $value) {
+        $this->_oebWrite(self::COL_FIRST_NAME, $value);
+    }
+}
+```
+
+So the column's type is enforced by PHP, at the assignment, instead of being described by a
+docblock the generator writes. The property holds no value of its own: both hooks reach the
+entity's row, through the same code the magic getter and setter reach.
+
+Where a column accepts more than it answers with, the setter is wider than the property. A `map`
+column reads as a `Map` and accepts an `array` or a `JsonPatch`:
+
+```php
+$client->data = ['theme' => 'dark'];     // accepted
+$client->data->get('theme');             // read back as a Map
+$client->first_name = 42;                // TypeError
+```
+
+Three things answer differently than they did under magic access, because PHP runs the `get` hook
+instead of `__isset()`:
+
+| | with a typed property |
+| --- | --- |
+| `isset($client->note)` on a nullable column holding null | **`false`** -- it is a question about the value now, not about the schema. Use `$table->hasColumn()` for the schema question |
+| `isset($client->note)` on a partially loaded entity | **throws** -- `isset()` runs the hook and cannot opt out of its exception. Use `isColumnLoaded()` |
+| `unset($client->note)` | **`Error`** -- a hooked property cannot be unset. It used to be a silent no-op |
+
+And a column name now appears in `get_object_vars()`, `var_dump()` and `json_encode()`, where it
+used not to. `toArray()` is still the way to get an entity's values: it redacts sensitive columns
+and filters a partial projection, which none of those three do.
+
+### Reading a row
+
+A row the database answers with carries DB-form values, which `ORMResults` places with
+`_oebHydrate()` -- where `Type::dbToPhp()` runs. It does not write the entity's properties, so a
+raw JSON string never meets a column's PHP type. `hydrate()` is the other direction: it assigns
+PHP-form values as a caller would, and is type-checked like any property write.
 
 ### Save state
 

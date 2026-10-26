@@ -7,16 +7,6 @@ use Gobl\Tests\Db\Account;
 
 /**
  * Class AccountBase.
- * 
- * @property string|null $id Getter for column `accounts.id`.
- * @property string $client_id Getter for column `accounts.client_id`.
- * @property string $label Getter for column `accounts.label`.
- * @property string $balance Getter for column `accounts.balance`.
- * @property string $currency_code Getter for column `accounts.currency_code`.
- * @property \PHPUtils\Store\Map<mixed> $data Getter for column `accounts.data`.
- * @property string $created_at Getter for column `accounts.created_at`.
- * @property string $updated_at Getter for column `accounts.updated_at`.
- * @property bool $valid Getter for column `accounts.valid`.
  */
 abstract class AccountBase extends \Gobl\ORM\ORMEntity
 {
@@ -31,6 +21,89 @@ abstract class AccountBase extends \Gobl\ORM\ORMEntity
 	public const string COL_CREATED_AT = 'account_created_at';
 	public const string COL_UPDATED_AT = 'account_updated_at';
 	public const string COL_VALID = 'account_valid';
+	/**
+	 * Column `accounts.id`.
+	 */
+	public string|null $id {
+		get => $this->_oebRead(self::COL_ID);
+		set(string|int|null $value) {
+			$this->_oebWrite(self::COL_ID, $value);
+		}
+	}
+	/**
+	 * Column `accounts.client_id`.
+	 */
+	public string $client_id {
+		get => $this->_oebRead(self::COL_CLIENT_ID);
+		set(string|int $value) {
+			$this->_oebWrite(self::COL_CLIENT_ID, $value);
+		}
+	}
+	/**
+	 * Column `accounts.label`.
+	 */
+	public string $label {
+		get => $this->_oebRead(self::COL_LABEL);
+		set(string $value) {
+			$this->_oebWrite(self::COL_LABEL, $value);
+		}
+	}
+	/**
+	 * Column `accounts.balance`.
+	 */
+	public string $balance {
+		get => $this->_oebRead(self::COL_BALANCE);
+		set(string|float|int $value) {
+			$this->_oebWrite(self::COL_BALANCE, $value);
+		}
+	}
+	/**
+	 * Column `accounts.currency_code`.
+	 */
+	public string $currency_code {
+		get => $this->_oebRead(self::COL_CURRENCY_CODE);
+		set(string $value) {
+			$this->_oebWrite(self::COL_CURRENCY_CODE, $value);
+		}
+	}
+	/**
+	 * Column `accounts.data`.
+	 * 
+	 * @var \PHPUtils\Store\Map<mixed>
+	 */
+	public \PHPUtils\Store\Map $data {
+		get => $this->_oebRead(self::COL_DATA);
+		set(\PHPUtils\Store\Map|array|\Gobl\DBAL\Types\Utils\JsonPatch $value) {
+			$this->_oebWrite(self::COL_DATA, $value);
+		}
+	}
+	/**
+	 * Column `accounts.created_at`.
+	 */
+	public string $created_at {
+		get => $this->_oebRead(self::COL_CREATED_AT);
+		set(string|int $value) {
+			$this->_oebWrite(self::COL_CREATED_AT, $value);
+		}
+	}
+	/**
+	 * Column `accounts.updated_at`.
+	 */
+	public string $updated_at {
+		get => $this->_oebRead(self::COL_UPDATED_AT);
+		set(string|int $value) {
+			$this->_oebWrite(self::COL_UPDATED_AT, $value);
+		}
+	}
+	/**
+	 * Column `accounts.valid`.
+	 */
+	public bool $valid {
+		get => $this->_oebRead(self::COL_VALID);
+		set(bool $value) {
+			$this->_oebWrite(self::COL_VALID, $value);
+		}
+	}
 	/**
 	 * AccountBase constructor.
 	 * 

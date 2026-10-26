@@ -252,10 +252,7 @@ Proudly With: {$version}{$time}";
 			->abstract();
 
 		$class->setComment(
-			Str::interpolate(
-				'Class {class_name}.' . \PHP_EOL,
-				$inject
-			)
+			Str::interpolate('Class {class_name}.', $inject)
 		);
 
 		$construct = $class->newMethod('__construct')
@@ -401,16 +398,41 @@ Proudly With: {$version}{$time}";
 				'write_type_hint'   => $this->getWriteTypeHintString($type),
 			];
 
-			$class->getComment()
-				?->addLines(
-					Str::interpolate(
-						'@property {read_type_hint} ${column_name} Getter for column `{table_name}.{column_name}`.',
-						$col_inject
-					)
-				);
 			$class->newConstant($column_const, $column->getFullName())
 				->setType('string')
 				->public();
+
+			// A virtual property with hooks, in place of an `@property` line the generator used to
+			// write: the column's type is the engine's business now, not a docblock's. Both hooks
+			// reach the same code the magic getter and setter reach, so there is one implementation
+			// of a column read and one of a column write.
+			$property_comment = Str::interpolate('Column `{table_name}.{column_name}`.', $col_inject);
+
+			if (\str_contains($col_inject['read_type_hint'], '<')) {
+				// A PHP type carries no element type, so the docblock carries it: the type is still
+				// declared once, in the code, and this only says what it holds.
+				$property_comment .= \PHP_EOL . \PHP_EOL . Str::interpolate('@var {read_type_hint}', $col_inject);
+			}
+
+			$property = $class->newProperty($column_name)
+				->public()
+				->setType($col_inject['read_type_hint'])
+				->setComment($property_comment);
+
+			$property->newGetHook()
+				->setExpression(Str::interpolate('$this->_oebRead(self::{column_name_const})', $col_inject));
+
+			// A block, not the `set => expr` form: that one assigns the expression to a backing
+			// store, which would give the property a value of its own and assign the setter's void.
+			// The write type is wider than the read type for some columns (an `array` into a `Map`),
+			// which is the direction PHP allows: a set hook parameter must be a supertype of the
+			// property type.
+			$property->newSetHook()
+				->setContent(
+					Str::interpolate('$this->_oebWrite(self::{column_name_const}, $value);', $col_inject)
+				)
+				->newArgument('value')
+				->setType($col_inject['write_type_hint']);
 
 			$get = $class->newMethod(self::propertyGetterName($column_name))
 				->public()

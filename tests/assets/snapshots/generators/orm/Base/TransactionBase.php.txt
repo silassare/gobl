@@ -7,20 +7,6 @@ use Gobl\Tests\Db\Transaction;
 
 /**
  * Class TransactionBase.
- * 
- * @property string|null $id Getter for column `transactions.id`.
- * @property string $account_id Getter for column `transactions.account_id`.
- * @property string $reference Getter for column `transactions.reference`.
- * @property string $source Getter for column `transactions.source`.
- * @property string $type Getter for column `transactions.type`.
- * @property string $state Getter for column `transactions.state`.
- * @property string $amount Getter for column `transactions.amount`.
- * @property string $currency_code Getter for column `transactions.currency_code`.
- * @property string $date Getter for column `transactions.date`.
- * @property \PHPUtils\Store\Map<mixed> $data Getter for column `transactions.data`.
- * @property string $created_at Getter for column `transactions.created_at`.
- * @property string $updated_at Getter for column `transactions.updated_at`.
- * @property bool $valid Getter for column `transactions.valid`.
  */
 abstract class TransactionBase extends \Gobl\ORM\ORMEntity
 {
@@ -39,6 +25,125 @@ abstract class TransactionBase extends \Gobl\ORM\ORMEntity
 	public const string COL_CREATED_AT = 'transaction_created_at';
 	public const string COL_UPDATED_AT = 'transaction_updated_at';
 	public const string COL_VALID = 'transaction_valid';
+	/**
+	 * Column `transactions.id`.
+	 */
+	public string|null $id {
+		get => $this->_oebRead(self::COL_ID);
+		set(string|int|null $value) {
+			$this->_oebWrite(self::COL_ID, $value);
+		}
+	}
+	/**
+	 * Column `transactions.account_id`.
+	 */
+	public string $account_id {
+		get => $this->_oebRead(self::COL_ACCOUNT_ID);
+		set(string|int $value) {
+			$this->_oebWrite(self::COL_ACCOUNT_ID, $value);
+		}
+	}
+	/**
+	 * Column `transactions.reference`.
+	 */
+	public string $reference {
+		get => $this->_oebRead(self::COL_REFERENCE);
+		set(string $value) {
+			$this->_oebWrite(self::COL_REFERENCE, $value);
+		}
+	}
+	/**
+	 * Column `transactions.source`.
+	 */
+	public string $source {
+		get => $this->_oebRead(self::COL_SOURCE);
+		set(string $value) {
+			$this->_oebWrite(self::COL_SOURCE, $value);
+		}
+	}
+	/**
+	 * Column `transactions.type`.
+	 */
+	public string $type {
+		get => $this->_oebRead(self::COL_TYPE);
+		set(string $value) {
+			$this->_oebWrite(self::COL_TYPE, $value);
+		}
+	}
+	/**
+	 * Column `transactions.state`.
+	 */
+	public string $state {
+		get => $this->_oebRead(self::COL_STATE);
+		set(string $value) {
+			$this->_oebWrite(self::COL_STATE, $value);
+		}
+	}
+	/**
+	 * Column `transactions.amount`.
+	 */
+	public string $amount {
+		get => $this->_oebRead(self::COL_AMOUNT);
+		set(string|float|int $value) {
+			$this->_oebWrite(self::COL_AMOUNT, $value);
+		}
+	}
+	/**
+	 * Column `transactions.currency_code`.
+	 */
+	public string $currency_code {
+		get => $this->_oebRead(self::COL_CURRENCY_CODE);
+		set(string $value) {
+			$this->_oebWrite(self::COL_CURRENCY_CODE, $value);
+		}
+	}
+	/**
+	 * Column `transactions.date`.
+	 */
+	public string $date {
+		get => $this->_oebRead(self::COL_DATE);
+		set(string|int $value) {
+			$this->_oebWrite(self::COL_DATE, $value);
+		}
+	}
+	/**
+	 * Column `transactions.data`.
+	 * 
+	 * @var \PHPUtils\Store\Map<mixed>
+	 */
+	public \PHPUtils\Store\Map $data {
+		get => $this->_oebRead(self::COL_DATA);
+		set(\PHPUtils\Store\Map|array|\Gobl\DBAL\Types\Utils\JsonPatch $value) {
+			$this->_oebWrite(self::COL_DATA, $value);
+		}
+	}
+	/**
+	 * Column `transactions.created_at`.
+	 */
+	public string $created_at {
+		get => $this->_oebRead(self::COL_CREATED_AT);
+		set(string|int $value) {
+			$this->_oebWrite(self::COL_CREATED_AT, $value);
+		}
+	}
+	/**
+	 * Column `transactions.updated_at`.
+	 */
+	public string $updated_at {
+		get => $this->_oebRead(self::COL_UPDATED_AT);
+		set(string|int $value) {
+			$this->_oebWrite(self::COL_UPDATED_AT, $value);
+		}
+	}
+	/**
+	 * Column `transactions.valid`.
+	 */
+	public bool $valid {
+		get => $this->_oebRead(self::COL_VALID);
+		set(bool $value) {
+			$this->_oebWrite(self::COL_VALID, $value);
+		}
+	}
 	/**
 	 * TransactionBase constructor.
 	 * 

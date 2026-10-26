@@ -6,7 +6,7 @@
 
 ## Architecture
 
-PHP 8.3+ library: DBAL + ORM + CRUD event system. Supports MySQL, PostgreSQL, SQLite via PDO.
+PHP 8.5+ library: DBAL + ORM + CRUD event system. Supports MySQL, PostgreSQL, SQLite via PDO.
 
 ```
 DBAL  (src/DBAL/)  — schema model, query builders, drivers, diff/migration
@@ -97,15 +97,54 @@ Class names driven by `ORMClassKind::getClassName()` — check source before ass
 - Setters: always `set{Name}()`
 - Magic property access also works: `$entity->user_name` (full column name with prefix)
 
-## ORM Entity
-
-`ORMEntity` uses magic `__get`/`__set` keyed by full column name:
+**Generated column properties** — per column, a typed **virtual** property named after the column's
+short name, with hooks over the entity's row, in place of the `@property` docblock line the
+generator used to write:
 
 ```php
-$entity->user_name;           // read
+public \PHPUtils\Store\Map $data {
+    get => $this->_oebRead(self::COL_DATA);
+    set(\PHPUtils\Store\Map|array|\Gobl\DBAL\Types\Utils\JsonPatch $value) {
+        $this->_oebWrite(self::COL_DATA, $value);
+    }
+}
+```
+
+- The property type is the **read** hint, the hook parameter the **write** hint. PHP requires the
+  parameter to be a **supertype** of the property type, which is the direction a column needs
+  (`array|Map` over `Map`); the reverse is a compile-time fatal.
+- A `set` hook is written as a **block**, never `set => expr`: the arrow form assigns the
+  expression to a backing store, which would give the property a value of its own.
+- An element type a PHP type cannot carry (`Map<\App\Thing>`) goes in the property's `@var`.
+- `get<Col>()` / `set<Col>()` keep their signatures and the setter stays fluent; a `set` hook
+  returns void, so `$entity->col = $v` can never chain.
+
+## ORM Entity
+
+A generated column is a typed property; the magic `__get`/`__set` answer for the **full** column
+name and for anything with no generated property (virtual relations):
+
+```php
+$entity->name;                // read, through the get hook
+$entity->user_name;           // read, through __get (full name)
 $entity->user_name = 'Alice'; // write (validates via type)
 $entity->save();              // persist
 ```
+
+One implementation per direction, reached by both: `_oebRead()` (`final protected`) holds what
+`__get()` did, `_oebWrite()` (`final protected`) what `__set()` did for a column, and the
+generated hooks call the same.
+
+- **`_oebHydrate(array $row): static`** (`final public`) — takes a row the database answered with,
+  column values in DB form: `Type::dbToPhp()` runs, the hash snapshot is taken, `_oeb_from_db` is
+  marked, a `_gobl_*` key goes to its computed slot, and anything else is an error (loud in strict
+  mode). `ORMResults::fetchClass()` / `fetchAllClass()` read `PDO::FETCH_ASSOC` and call it, rather
+  than letting PDO write the entity's properties: a hook would see the raw DB value against the
+  column's PHP write type, which a JSON column's string cannot satisfy, and a scalar would be
+  coerced by PHP instead of converted by the type. This matters most when a table has **no**
+  `column_prefix`, since the property name is then the DB column name too.
+- `isset()`, `??` and `unset()` answer differently on a hooked column than `__isset()` did: see
+  `docs/guide/orm.md`.
 
 Key contracts (verify exact signatures in `src/ORM/ORMEntity.php`):
 

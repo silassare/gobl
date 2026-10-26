@@ -1,5 +1,48 @@
 ### Unreleased (3.0.x-dev)
 
+- **A generated column is a typed property, not a docblock line.** Per column the generator wrote
+  an `@property` line and two accessors, and both ends of the pair went through `__get` / `__set`:
+  the column's type was something a comment claimed and nothing enforced. Each column is now a
+  **virtual property with hooks** on the generated base class, typed with the column's read type
+  and taking its write type where that is wider (`array|Map` over `Map`), so a wrong assignment is
+  a `TypeError` at the call site. `get<Col>()` and `set<Col>()` keep their signatures and the
+  setter stays fluent; the `@property` lines are gone, and an element type a PHP type cannot carry
+  (`Map<\App\Thing>`) is in the property's `@var`. Both hooks reach the same code the magic
+  accessors reach (`_oebRead()`, `_oebWrite()`), which the magic accessors now call too, so
+  there is one implementation of a column read and one of a column write. The magic methods stay
+  for the **full** column name and for anything with no generated property.
+
+  **Breaking, at the call site.** PHP runs the `get` hook where it used to call `__isset()`, so
+  `isset($entity->col)` answers a question about the value instead of about the schema:
+
+  - `isset()` on a nullable column holding null is **false** where it was true, and `??` reaches
+    its fallback where it answered null. `$table->hasColumn()` is the schema question.
+  - `isset()` on a **partially loaded** entity **throws**: `isset()` runs the hook and cannot opt
+    out of its exception. `isColumnLoaded()` is the guard.
+  - `unset($entity->col)` is an **`Error`**, where it was a silent no-op (`ORMEntity` declares no
+    `__unset`).
+  - a column name appears in `get_object_vars()`, `var_dump()` and `json_encode()`, where it used
+    not to. `toArray()` is still what answers with an entity's values: it redacts sensitive
+    columns and filters a partial projection, which none of those three do.
+  - assigning a DB-form value to a short column name through `hydrate()` is type-checked now, as
+    any property write is; a row from the database belongs on `_oebHydrate()`.
+
+  **The generated classes must be rebuilt** (`oz db build --class-only`). Needs
+  `oliup/code-generator` with property-hook support on `PHPProperty`.
+
+- **A row from the database no longer reaches the entity through its properties.** `ORMResults`
+  let PDO write them (`PDO::FETCH_INTO`, `PDO::FETCH_CLASS | PDO::FETCH_PROPS_LATE`), which worked
+  only because a generated property carried the column's **short** name while PDO delivers its
+  **full** one. `column_prefix` defaults to empty, though, and then the two are the same word -- so
+  on a table without a prefix PDO wrote straight into the hooks above, with the value still in its
+  DB form: a `TypeError` on a JSON column, whose raw value is a string, and PHP's own coercion
+  instead of `Type::dbToPhp()` on the others, with no hash snapshot taken. `fetchClass()` and
+  `fetchAllClass()` now read `PDO::FETCH_ASSOC` and place the row with
+  `ORMEntity::_oebHydrate()`, which does what `__set`'s PDO branch did and routes a `_gobl_*`
+  computed alias to its slot. Hydration is explicit, it is the same on a prefixed table as on one
+  without a prefix, and it costs one magic dispatch less per column on every row read. `__set`
+  keeps its computed-alias mode and its column mode; it no longer has a PDO mode.
+
 - **Every class constant a value types beyond doubt is typed** (`private const
   array`, `public const string`, ...), which PHP 8.3 allows: a constant says
   what it is, and a subclass redeclaring it as something else is refused. The
