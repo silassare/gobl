@@ -21,7 +21,6 @@ use Gobl\DBAL\Table;
 use Gobl\ORM\Interfaces\PaginationAwareListInterface;
 use Gobl\ORM\Interfaces\WithPaginationInterface;
 use Gobl\ORM\Utils\Helpers;
-use Gobl\ORM\Utils\ORMClassKind;
 use Iterator;
 use Override;
 use PDO;
@@ -61,9 +60,6 @@ abstract class ORMResults implements PaginationAwareListInterface, Countable, It
 	 */
 	protected ?ORMEntity $current = null;
 
-	/** @var class-string<TEntity> */
-	protected string $entity_class;
-
 	/**
 	 * ORMResults constructor.
 	 *
@@ -78,7 +74,6 @@ abstract class ORMResults implements PaginationAwareListInterface, Countable, It
 	) {
 		$this->db           = ORM::getDatabase($namespace);
 		$this->table        = $this->db->getTable($this->table_name);
-		$this->entity_class = ORMClassKind::ENTITY->getClassFQN($this->db->getTableOrFail($table_name));
 		$this->query        = $query;
 		$driver             = $this->db->getConnection()
 			->getAttribute(PDO::ATTR_DRIVER_NAME);
