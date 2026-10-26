@@ -23,8 +23,11 @@ MYSQL_ADMIN_PORT="${MYSQL_ADMIN_PORT:-3306}"
 # Runs the mysql client as the administrator, over TCP or over the local socket.
 mysql_admin() {
 	if [ -n "${MYSQL_ADMIN_USER:-}" ] || [ -n "${MYSQL_ADMIN_PASS:-}" ]; then
-		mysql -h "$MYSQL_ADMIN_HOST" -P "$MYSQL_ADMIN_PORT" \
-			-u "${MYSQL_ADMIN_USER:-root}" -p"${MYSQL_ADMIN_PASS:-}" "$@"
+		# The password goes through the environment, not the command line, so it stays out of
+		# the process list and the client stops warning about it over every line of output.
+		MYSQL_PWD="${MYSQL_ADMIN_PASS:-}" \
+			mysql -h "$MYSQL_ADMIN_HOST" -P "$MYSQL_ADMIN_PORT" \
+			-u "${MYSQL_ADMIN_USER:-root}" "$@"
 	else
 		sudo mysql "$@"
 	fi
