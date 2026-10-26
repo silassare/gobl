@@ -259,10 +259,7 @@ final class SchemaSnapshotTest extends BaseTestCase
 	/**
 	 * Builds a locked DB instance of the given $driver with a single table defined by $builder.
 	 *
-	 * @param string                      $driver
 	 * @param callable(TableBuilder):void $builder
-	 *
-	 * @return RDBMSInterface
 	 */
 	private function singleTableDb(string $driver, callable $builder): RDBMSInterface
 	{
@@ -275,8 +272,7 @@ final class SchemaSnapshotTest extends BaseTestCase
 	/**
 	 * Runs buildDatabase() on $db and snapshots its normalized output.
 	 *
-	 * @param string         $name Slash-separated snapshot key, e.g. "mysql/schema_int_bigint_variants"
-	 * @param RDBMSInterface $db
+	 * @param string $name Slash-separated snapshot key, e.g. "mysql/schema_int_bigint_variants"
 	 */
 	private function assertDbSchema(string $name, RDBMSInterface $db): void
 	{

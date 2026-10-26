@@ -43,13 +43,10 @@ abstract class Constraint implements ArrayCapableInterface, LockableInterface
 
 	public const int MAX_CONSTRAINT_NAME_LENGTH = 64;
 
-	/** @var int */
 	protected int $type;
 
-	/** @var string */
 	protected string $name;
 
-	/** @var Table */
 	protected Table $host_table;
 
 	/**
@@ -91,8 +88,6 @@ abstract class Constraint implements ArrayCapableInterface, LockableInterface
 
 	/**
 	 * Gets constraint name.
-	 *
-	 * @return string
 	 */
 	public function getName(): string
 	{
@@ -101,10 +96,6 @@ abstract class Constraint implements ArrayCapableInterface, LockableInterface
 
 	/**
 	 * Normalizes constraint name.
-	 *
-	 * @param string $name
-	 *
-	 * @return string
 	 */
 	public static function normalizeName(string $name): string
 	{
@@ -117,8 +108,6 @@ abstract class Constraint implements ArrayCapableInterface, LockableInterface
 
 	/**
 	 * Returns constraints host table.
-	 *
-	 * @return Table
 	 */
 	public function getHostTable(): Table
 	{
@@ -127,8 +116,6 @@ abstract class Constraint implements ArrayCapableInterface, LockableInterface
 
 	/**
 	 * Locks this constraints to prevent further changes.
-	 *
-	 * @return static
 	 */
 	#[Override]
 	public function lock(): static
@@ -149,8 +136,6 @@ abstract class Constraint implements ArrayCapableInterface, LockableInterface
 
 	/**
 	 * Gets constraint type.
-	 *
-	 * @return int
 	 */
 	public function getType(): int
 	{

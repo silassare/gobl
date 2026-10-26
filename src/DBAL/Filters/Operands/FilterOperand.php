@@ -70,8 +70,6 @@ abstract class FilterOperand
 
 	/**
 	 * Get user defined operand value.
-	 *
-	 * @return null|array|BackedEnum|bool|Column|FilterFieldNotation|float|int|QBExpression|QBInterface|string
 	 */
 	public function getValueAsDefined(): array|BackedEnum|bool|Column|FilterFieldNotation|float|int|QBExpression|QBInterface|string|null
 	{
@@ -80,8 +78,6 @@ abstract class FilterOperand
 
 	/**
 	 * Get filter operand value after normalization (ready for binding).
-	 *
-	 * @return null|array|bool|float|int|string
 	 */
 	public function getValueNormalized(): array|bool|float|int|string|null
 	{
@@ -92,8 +88,6 @@ abstract class FilterOperand
 	 * Sets the operand normalized value.
 	 *
 	 * @param null|array|bool|float|int|string $normalized the normalized operand value
-	 *
-	 * @return static
 	 */
 	public function setValueNormalized(array|bool|float|int|string|null $normalized): static
 	{
@@ -104,8 +98,6 @@ abstract class FilterOperand
 
 	/**
 	 * Get filter operand value for query.
-	 *
-	 * @return null|string
 	 */
 	public function getValueForQuery(): ?string
 	{
@@ -128,8 +120,6 @@ abstract class FilterOperand
 
 	/**
 	 * Get resolved column (if any).
-	 *
-	 * @return null|FilterResolvedColumn
 	 */
 	public function getResolvedColumn(): ?FilterResolvedColumn
 	{
@@ -138,8 +128,6 @@ abstract class FilterOperand
 
 	/**
 	 * Get resolved column (if any).
-	 *
-	 * @return FilterResolvedColumn
 	 */
 	public function getResolvedColumnOrFail(): FilterResolvedColumn
 	{
@@ -159,8 +147,6 @@ abstract class FilterOperand
 	 * - it is not explicitly marked as non-bindable
 	 * - it does not have a resolved column
 	 * - it is not already a binding (IMPORTANT to recheck: because it can be the case)
-	 *
-	 * @return bool
 	 */
 	public function canBeSafelyBound(): bool
 	{
@@ -184,8 +170,6 @@ abstract class FilterOperand
 	 * A value is considered a binding when it is a string starting with `:` and
 	 * the remainder is a registered parameter name in the current QB.
 	 * Used to avoid double-binding values that were already bound by `bindArrayForInList`.
-	 *
-	 * @return bool
 	 */
 	protected function isABinding(): bool
 	{

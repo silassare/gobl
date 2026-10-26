@@ -37,9 +37,6 @@ final class LinkJoin extends Link
 	/**
 	 * LinkJoin constructor.
 	 *
-	 * @param RDBMSInterface $rdbms
-	 * @param Table          $host_table
-	 * @param Table          $target_table
 	 * @param array{
 	 * 			steps: array{join: string, link: array|\Gobl\DBAL\Builders\LinkBuilder} }[],
 	 *          filters?: null|array,

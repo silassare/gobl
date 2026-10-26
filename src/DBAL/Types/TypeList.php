@@ -39,8 +39,6 @@ final class TypeList extends Type
 
 	/**
 	 * TypeArray constructor.
-	 *
-	 * @param null|string $message
 	 */
 	public function __construct(?string $message = null)
 	{
@@ -96,10 +94,6 @@ final class TypeList extends Type
 	 * Enable or disable the native JSON column type in supporting RDBMS (MySQL >= 5.7, PostgreSQL).
 	 *
 	 * Native JSON is the default. Pass `false` to opt out and store as TEXT.
-	 *
-	 * @param bool $native_json
-	 *
-	 * @return static
 	 */
 	public function nativeJson(bool $native_json = true): static
 	{
@@ -137,8 +131,6 @@ final class TypeList extends Type
 	 * Defaults to {@see ORMUniversalType::UNKNOWN} (hint-only, no revival) when not set.
 	 *
 	 * @param class-string<JsonOfInterface>|ORMUniversalType $of Element type or revival class
-	 *
-	 * @return static
 	 */
 	public function listOf(ORMUniversalType|string $of): static
 	{
@@ -178,8 +170,6 @@ final class TypeList extends Type
 
 	/**
 	 * Returns the universal type hint set via `listOf()`, or null if none (or if it is a revival class).
-	 *
-	 * @return null|ORMUniversalType
 	 */
 	public function getListOfUniversalType(): ?ORMUniversalType
 	{
@@ -280,8 +270,6 @@ final class TypeList extends Type
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws JsonException
 	 * @throws TypesInvalidValueException
 	 */
@@ -403,10 +391,6 @@ final class TypeList extends Type
 
 	/**
 	 * Ensure the value is a list (indexed array).
-	 *
-	 * @param array $value
-	 *
-	 * @return array
 	 */
 	private function ensureList(array $value): array
 	{

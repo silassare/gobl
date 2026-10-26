@@ -26,9 +26,6 @@ use Gobl\DBAL\Drivers\MySQL\MySQL;
  */
 final class JsonPatchUpdateMySQLTest extends JsonPatchUpdateTestCase
 {
-	/**
-	 * {@inheritDoc}
-	 */
 	protected static function getDriverName(): string
 	{
 		return MySQL::NAME;

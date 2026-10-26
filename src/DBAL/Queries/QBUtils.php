@@ -20,7 +20,6 @@ use PDO;
  */
 final class QBUtils
 {
-	/** @var int */
 	private static int $GEN_IDENTIFIER_COUNTER = 0;
 
 	/**
@@ -35,8 +34,6 @@ final class QBUtils
 
 	/**
 	 * Generate a new unique (table) alias.
-	 *
-	 * @return string
 	 */
 	public static function newAlias(): string
 	{
@@ -45,8 +42,6 @@ final class QBUtils
 
 	/**
 	 * Generate a new unique parameter key.
-	 *
-	 * @return string
 	 */
 	public static function newParamKey(): string
 	{
@@ -55,10 +50,6 @@ final class QBUtils
 
 	/**
 	 * Returns PDO type for a given value.
-	 *
-	 * @param mixed $value
-	 *
-	 * @return int
 	 */
 	public static function paramType(mixed $value): int
 	{
@@ -81,8 +72,6 @@ final class QBUtils
 	 * a,  b  ... z
 	 * aa, ab ... az
 	 * ba, bb ... bz
-	 *
-	 * @return string
 	 */
 	private static function alphaId(): string
 	{

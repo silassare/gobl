@@ -56,10 +56,6 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface, Loc
 
 	/**
 	 * Relation constructor.
-	 *
-	 * @param RelationType  $type
-	 * @param string        $name
-	 * @param LinkInterface $link
 	 */
 	public function __construct(
 		protected RelationType $type,
@@ -97,13 +93,6 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface, Loc
 	 * Note: `$options['filters']` is accepted here but is **not validated at creation time**
 	 * because the target table's generated class files may not yet exist when the schema is
 	 * being built. Validation happens lazily when the relation is actually used.
-	 *
-	 * @param RDBMSInterface $rdbms
-	 * @param Table          $host_table
-	 * @param Table          $target_table
-	 * @param array          $options
-	 *
-	 * @return LinkInterface
 	 *
 	 * @throws DBALException
 	 */
@@ -177,8 +166,6 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface, Loc
 
 	/**
 	 * Gets the relation link.
-	 *
-	 * @return LinkInterface
 	 */
 	public function getLink(): LinkInterface
 	{
@@ -199,8 +186,6 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface, Loc
 
 	/**
 	 * Gets the relation type.
-	 *
-	 * @return RelationType
 	 */
 	public function getType(): RelationType
 	{
@@ -209,8 +194,6 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface, Loc
 
 	/**
 	 * Gets relation getter method name.
-	 *
-	 * @return string
 	 */
 	public function getGetterName(): string
 	{
@@ -237,8 +220,6 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface, Loc
 
 	/**
 	 * Gets the relation target table.
-	 *
-	 * @return Table
 	 */
 	public function getTargetTable(): Table
 	{
@@ -315,8 +296,6 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface, Loc
 
 	/**
 	 * Locks this relation to prevent further changes.
-	 *
-	 * @return static
 	 */
 	#[Override]
 	public function lock(): static

@@ -28,17 +28,11 @@ final class DBCollateChanged extends DiffAction
 		parent::__construct(DiffActionType::DB_COLLATE_CHANGED, $reason);
 	}
 
-	/**
-	 * @return string
-	 */
 	public function getCollate(): string
 	{
 		return $this->collate;
 	}
 
-	/**
-	 * @return RDBMSInterface
-	 */
 	public function getDb(): RDBMSInterface
 	{
 		return $this->db;

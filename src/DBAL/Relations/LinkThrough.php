@@ -33,10 +33,6 @@ final class LinkThrough extends Link
 	/**
 	 * LinkThrough constructor.
 	 *
-	 * @param RDBMSInterface $rdbms
-	 * @param Table          $host_table
-	 * @param Table          $target_table
-	 * @param Table          $pivot_table
 	 * @param array{
 	 *          filters?: null|array,
 	 * 			pivot_table?: null|string,
@@ -118,8 +114,6 @@ final class LinkThrough extends Link
 
 	/**
 	 * Gets the pivot table.
-	 *
-	 * @return Table
 	 */
 	public function getPivotTable(): Table
 	{
@@ -128,8 +122,6 @@ final class LinkThrough extends Link
 
 	/**
 	 * Gets the link between the host table and the pivot table.
-	 *
-	 * @return LinkInterface
 	 */
 	public function getHostToThroughLink(): LinkInterface
 	{
@@ -138,8 +130,6 @@ final class LinkThrough extends Link
 
 	/**
 	 * Gets the link between the pivot table and the target table.
-	 *
-	 * @return LinkInterface
 	 */
 	public function getThroughToTargetLink(): LinkInterface
 	{

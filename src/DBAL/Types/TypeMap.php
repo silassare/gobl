@@ -40,8 +40,6 @@ final class TypeMap extends Type
 
 	/**
 	 * TypeMap constructor.
-	 *
-	 * @param null|string $message
 	 */
 	public function __construct(?string $message = null)
 	{
@@ -104,10 +102,6 @@ final class TypeMap extends Type
 	 * Enable or disable the native JSON column type in supporting RDBMS (MySQL >= 5.7, PostgreSQL).
 	 *
 	 * Native JSON is the default. Pass `false` to opt out and store as TEXT.
-	 *
-	 * @param bool $native_json
-	 *
-	 * @return static
 	 */
 	public function nativeJson(bool $native_json = true): static
 	{
@@ -145,8 +139,6 @@ final class TypeMap extends Type
 	 * Defaults to no type constraint when not set.
 	 *
 	 * @param class-string<JsonOfInterface>|ORMUniversalType $of Value type or revival class
-	 *
-	 * @return static
 	 */
 	public function mapOf(ORMUniversalType|string $of): static
 	{
@@ -186,8 +178,6 @@ final class TypeMap extends Type
 
 	/**
 	 * Returns the universal type hint set via `mapOf()`, or null if none (or if it is a revival class).
-	 *
-	 * @return null|ORMUniversalType
 	 */
 	public function getMapOfUniversalType(): ?ORMUniversalType
 	{
@@ -240,9 +230,6 @@ final class TypeMap extends Type
 		$this->safelyCallOnBaseType(__FUNCTION__, [$qb, $column, $operator, $args]);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getReadTypeHint(): ORMTypeHint
 	{
@@ -290,8 +277,6 @@ final class TypeMap extends Type
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws JsonException
 	 * @throws TypesInvalidValueException
 	 */
@@ -308,8 +293,6 @@ final class TypeMap extends Type
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws TypesInvalidValueException
 	 */
 	#[Override]
@@ -432,10 +415,6 @@ final class TypeMap extends Type
 
 	/**
 	 * Ensure the value is a Map.
-	 *
-	 * @param mixed $value
-	 *
-	 * @return Map
 	 *
 	 * @throws TypesInvalidValueException
 	 */

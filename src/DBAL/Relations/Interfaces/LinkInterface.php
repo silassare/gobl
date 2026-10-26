@@ -26,22 +26,16 @@ interface LinkInterface extends ArrayCapableInterface
 {
 	/**
 	 * Get the host table.
-	 *
-	 * @return Table
 	 */
 	public function getHostTable(): Table;
 
 	/**
 	 * Get the target table.
-	 *
-	 * @return Table
 	 */
 	public function getTargetTable(): Table;
 
 	/**
 	 * Get the link type.
-	 *
-	 * @return LinkType
 	 */
 	public function getType(): LinkType;
 

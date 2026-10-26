@@ -45,16 +45,13 @@ trait QBFromTrait
 	/**
 	 * Sets the from clause.
 	 *
-	 * @param array|QBSelect|string|Table $table
-	 * @param null|string                 $alias
+	 * @param null|string $alias
 	 *
 	 * ```php
 	 * $this->from('users');
 	 * $this->from('users','u');
 	 * $this->from(['users', 'articles' => 'a', 'another_table']);
 	 * ```
-	 *
-	 * @return static
 	 */
 	public function from(array|QBSelect|string|Table $table, ?string $alias = null): static
 	{
@@ -119,11 +116,6 @@ trait QBFromTrait
 	 * Checks if a table is in the from clause.
 	 * If an alias is provided, it will check if the table is in the from clause
 	 * with the provided alias.
-	 *
-	 * @param string|Table $table
-	 * @param null|string  $alias
-	 *
-	 * @return bool
 	 */
 	public function inFromClause(string|Table $table, ?string $alias = null): bool
 	{
@@ -140,9 +132,6 @@ trait QBFromTrait
 
 	/**
 	 * Adds a table to the from clause.
-	 *
-	 * @param string      $table
-	 * @param null|string $alias
 	 */
 	private function addFromOptions(string $table, ?string $alias = null): void
 	{

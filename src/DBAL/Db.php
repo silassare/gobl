@@ -72,8 +72,6 @@ abstract class Db implements RDBMSInterface
 
 	/**
 	 * Gobl rdbms class setting shortcuts map.
-	 *
-	 * @var array
 	 */
 	private static array $rdbms_map = [
 		MySQL::NAME      => MySQL::class,
@@ -114,8 +112,6 @@ abstract class Db implements RDBMSInterface
 
 	/**
 	 * PDO database connection instance.
-	 *
-	 * @var null|PDO
 	 */
 	private ?PDO $db_connection = null;
 
@@ -150,8 +146,6 @@ abstract class Db implements RDBMSInterface
 
 	/**
 	 * Help var_dump().
-	 *
-	 * @return array
 	 */
 	public function __debugInfo(): array
 	{
@@ -165,11 +159,6 @@ abstract class Db implements RDBMSInterface
 
 	/**
 	 * Creates a new database instance of the given rdbms name.
-	 *
-	 * @param string   $rdbms_type
-	 * @param DbConfig $config
-	 *
-	 * @return RDBMSInterface
 	 */
 	public static function newInstanceOf(string $rdbms_type, DbConfig $config): RDBMSInterface
 	{
@@ -184,8 +173,6 @@ abstract class Db implements RDBMSInterface
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws DBALException
 	 */
 	#[Override]
@@ -315,8 +302,6 @@ abstract class Db implements RDBMSInterface
 	 *
 	 * @param null|string $namespace when provided, only exports tables in that namespace
 	 * @param int         $flags     flags forwarded to {@see json_encode()} (default: JSON_PRETTY_PRINT)
-	 *
-	 * @return string
 	 */
 	#[Override]
 	public function toSchemaJson(?string $namespace = null, int $flags = \JSON_PRETTY_PRINT): string
@@ -331,9 +316,6 @@ abstract class Db implements RDBMSInterface
 		return \json_encode($data, $flags) ?: '{}';
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function setLazySchema(bool $lazy = true): static
 	{
@@ -342,9 +324,6 @@ abstract class Db implements RDBMSInterface
 		return $this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function isLazySchema(): bool
 	{
@@ -409,10 +388,6 @@ abstract class Db implements RDBMSInterface
 
 	/**
 	 * Checks if a given string is a column reference.
-	 *
-	 * @param string $str
-	 *
-	 * @return bool
 	 */
 	public static function isColumnReference(string $str): bool
 	{
@@ -504,8 +479,6 @@ abstract class Db implements RDBMSInterface
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws DBALException
 	 */
 	#[Override]
@@ -610,8 +583,6 @@ abstract class Db implements RDBMSInterface
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws DBALException
 	 */
 	#[Override]
@@ -622,8 +593,6 @@ abstract class Db implements RDBMSInterface
 
 	/**
 	 * Connect to the relational database management system.
-	 *
-	 * @return PDO
 	 */
 	abstract protected function connect(): PDO;
 
@@ -1010,8 +979,6 @@ abstract class Db implements RDBMSInterface
 	 * @param mixed       $table_options     the table definition: an array of options or a `Table` instance
 	 * @param null|string $desired_namespace overrides the namespace the definition declares
 	 * @param array       $schema            the schema the table is defined in, to resolve column references
-	 *
-	 * @return Table
 	 *
 	 * @throws DBALException
 	 */

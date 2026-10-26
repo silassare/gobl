@@ -44,8 +44,6 @@ interface FiltersScopeInterface
 	 * This is helpful to safely merge filters from different sources (sub-queries etc.).
 	 *
 	 * @param FiltersScopeInterface $scope the scope to check
-	 *
-	 * @return bool
 	 */
 	public function shouldAllowFiltersScope(self $scope): bool;
 }

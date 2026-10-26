@@ -30,9 +30,6 @@ use Gobl\DBAL\Drivers\SQLite\SQLite;
  */
 final class ORMSQLiteLiveTest extends ORMLiveTestCase
 {
-	/**
-	 * {@inheritDoc}
-	 */
 	protected static function getDriverName(): string
 	{
 		return SQLite::NAME;

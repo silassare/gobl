@@ -120,8 +120,6 @@ final class TypeJson extends BaseType
 	 * `dbToPhp()` decodes the JSON value and returns it as-is.
 	 *
 	 * @param class-string<JsonOfInterface>|ORMUniversalType $class revival class or universal type hint
-	 *
-	 * @return static
 	 */
 	public function jsonOf(ORMUniversalType|string $class): static
 	{
@@ -147,8 +145,6 @@ final class TypeJson extends BaseType
 	 * enum value string, or null if not set.
 	 *
 	 * Use {@see getJsonOfClass()} when you need only the revival class-string.
-	 *
-	 * @return null|string
 	 */
 	public function getJsonOf(): ?string
 	{
@@ -174,8 +170,6 @@ final class TypeJson extends BaseType
 
 	/**
 	 * Returns the universal type hint set via `jsonOf()`, or null if none (or if it is a revival class).
-	 *
-	 * @return null|ORMUniversalType
 	 */
 	public function getJsonOfUniversalType(): ?ORMUniversalType
 	{
@@ -194,10 +188,6 @@ final class TypeJson extends BaseType
 	 * Native JSON is the default. Pass `false` to opt out and store as TEXT,
 	 * which is compatible with every RDBMS and useful when migrating existing TEXT columns
 	 * to native JSON in a controlled migration step.
-	 *
-	 * @param bool $native_json
-	 *
-	 * @return static
 	 */
 	public function nativeJson(bool $native_json = true): static
 	{
@@ -208,10 +198,6 @@ final class TypeJson extends BaseType
 	 * Big JSON hints to the schema generator that the column may hold larger data.
 	 *
 	 * When native_json is disabled this maps to MEDIUMTEXT in MySQL.
-	 *
-	 * @param bool $big
-	 *
-	 * @return static
 	 */
 	public function big(bool $big = true): static
 	{
@@ -512,9 +498,6 @@ final class TypeJson extends BaseType
 		return ORMTypeHint::unknown();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getWriteTypeHint(): ORMTypeHint
 	{
@@ -529,10 +512,6 @@ final class TypeJson extends BaseType
 	 * - `null` and `string` are passed through as-is (string is assumed pre-encoded).
 	 * - `int`|`float`|`bool` are JSON-encoded to a string (e.g. 42 -> '42', 3.14 -> '3.14', true -> 'true', false -> 'false')
 	 * - `array`|`\JsonSerializable` are JSON-encoded (e.g. ['a', 'b'] -> '["a","b"]', ['role => 'admin'] -> '{"role":"admin"}')
-	 *
-	 * @param null|array|bool|float|int|JsonSerializable|string $value
-	 *
-	 * @return null|string
 	 */
 	public static function serializeJsonValue(array|bool|float|int|JsonSerializable|string|null $value): ?string
 	{

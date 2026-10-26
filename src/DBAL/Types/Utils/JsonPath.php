@@ -66,8 +66,6 @@ final class JsonPath
 
 	/**
 	 * Get the table name or alias, or null if not set.
-	 *
-	 * @return null|string
 	 */
 	public function getTableOrAlias(): ?string
 	{

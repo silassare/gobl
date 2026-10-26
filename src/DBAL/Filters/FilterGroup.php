@@ -29,8 +29,6 @@ final class FilterGroup implements FilterInterface
 
 	/**
 	 * FilterGroup constructor.
-	 *
-	 * @param bool $is_and
 	 */
 	public function __construct(protected bool $is_and) {}
 
@@ -67,8 +65,6 @@ final class FilterGroup implements FilterInterface
 
 	/**
 	 * Checks if this group use AND conditional operator.
-	 *
-	 * @return bool
 	 */
 	public function isAnd(): bool
 	{
@@ -77,8 +73,6 @@ final class FilterGroup implements FilterInterface
 
 	/**
 	 * Adds a new filter to this group.
-	 *
-	 * @param FilterInterface|Filters|string $filter
 	 *
 	 * @return $this
 	 */

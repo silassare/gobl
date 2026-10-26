@@ -25,8 +25,6 @@ interface WithPayloadInterface
 	 *
 	 * @param null|Table $table optional table to filter form data keys (when provided only keys matching table
 	 *                          columns are returned, by their full names, whichever name the form used)
-	 *
-	 * @return array
 	 */
 	public function getFormData(?Table $table = null): array;
 
@@ -34,8 +32,6 @@ interface WithPayloadInterface
 	 * Sets the form data.
 	 *
 	 * @param array $form_data the form data to set, as an associative array of field names and their values
-	 *
-	 * @return static
 	 */
 	public function setFormData(array $form_data): static;
 
@@ -54,8 +50,6 @@ interface WithPayloadInterface
 	 *
 	 * @param string $name  the form field name
 	 * @param mixed  $value the value to set
-	 *
-	 * @return static
 	 */
 	public function setFormField(string $name, mixed $value): static;
 
@@ -63,8 +57,6 @@ interface WithPayloadInterface
 	 * Unsets a specific form field value.
 	 *
 	 * @param string $name the form field name
-	 *
-	 * @return static
 	 */
 	public function unsetFormField(string $name): static;
 }

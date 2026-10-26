@@ -74,8 +74,6 @@ final class CRUD
 
 	/**
 	 * Gets latest message.
-	 *
-	 * @return string
 	 */
 	public function getMessage(): string
 	{
@@ -94,10 +92,6 @@ final class CRUD
 	 *
 	 * Returns a `BeforeCreateFlush` event (already dispatched) for the caller to attach
 	 * post-flush callbacks.
-	 *
-	 * @param array $form
-	 *
-	 * @return BeforeCreateFlush
 	 *
 	 * @throws CRUDException
 	 */
@@ -119,10 +113,7 @@ final class CRUD
 	/**
 	 * Read assertion.
 	 *
-	 * @param ORMTableQuery $filters
 	 * @param null|Relation $relation optional relation context for authorizing access to related entities
-	 *
-	 * @return BeforeRead
 	 *
 	 * @throws CRUDException
 	 */
@@ -142,10 +133,7 @@ final class CRUD
 	/**
 	 * Read all assertion.
 	 *
-	 * @param ORMTableQuery $filters
 	 * @param null|Relation $relation optional relation context for authorizing access to related entities
-	 *
-	 * @return BeforeReadAll
 	 *
 	 * @throws CRUDException
 	 */
@@ -168,11 +156,6 @@ final class CRUD
 	 * Provides a dedicated hook for authorizing access to related entities,
 	 * separate from the generic assertRead path. Delegates to assertRead.
 	 *
-	 * @param ORMTableQuery $filters
-	 * @param Relation      $relation
-	 *
-	 * @return BeforeRead
-	 *
 	 * @throws CRUDException
 	 */
 	public function assertReadRelative(ORMTableQuery $filters, Relation $relation): BeforeRead
@@ -186,11 +169,6 @@ final class CRUD
 	 * Provides a dedicated hook for authorizing list access to related entities,
 	 * separate from the generic assertReadAll path. Delegates to assertReadAll.
 	 *
-	 * @param ORMTableQuery $filters
-	 * @param Relation      $relation
-	 *
-	 * @return BeforeReadAll
-	 *
 	 * @throws CRUDException
 	 */
 	public function assertReadAllRelatives(ORMTableQuery $filters, Relation $relation): BeforeReadAll
@@ -200,11 +178,6 @@ final class CRUD
 
 	/**
 	 * Update assertion.
-	 *
-	 * @param ORMTableQuery $filters
-	 * @param array         $form
-	 *
-	 * @return BeforeUpdateFlush
 	 *
 	 * @throws CRUDException
 	 */
@@ -226,11 +199,6 @@ final class CRUD
 	/**
 	 * Update all assertion.
 	 *
-	 * @param ORMTableQuery $filters
-	 * @param array         $form
-	 *
-	 * @return BeforeUpdateAllFlush
-	 *
 	 * @throws CRUDException
 	 */
 	public function assertUpdateAll(ORMTableQuery $filters, array $form): BeforeUpdateAllFlush
@@ -251,10 +219,6 @@ final class CRUD
 	/**
 	 * Delete assertion.
 	 *
-	 * @param ORMTableQuery $filters
-	 *
-	 * @return BeforeDeleteFlush
-	 *
 	 * @throws CRUDException
 	 */
 	public function assertDelete(ORMTableQuery $filters): BeforeDeleteFlush
@@ -272,10 +236,6 @@ final class CRUD
 
 	/**
 	 * Delete all assertion.
-	 *
-	 * @param ORMTableQuery $filters
-	 *
-	 * @return BeforeDeleteAllFlush
 	 *
 	 * @throws CRUDException
 	 */
@@ -297,11 +257,6 @@ final class CRUD
 	 *
 	 * Events are dispatched over the table's **full-name channel** (set in `__construct`).
 	 * Only listeners registered for that specific channel (i.e. scoped to this table) receive the event.
-	 *
-	 * @param ORMEntity       $entity
-	 * @param EntityEventType $event_type
-	 *
-	 * @return EntityEvent
 	 */
 	public function dispatchEntityEvent(ORMEntity $entity, EntityEventType $event_type): EntityEvent
 	{
@@ -349,10 +304,7 @@ final class CRUD
 	 * the denial. Returns `$default` when no listener is registered (opt-in for most actions,
 	 * opt-out for destructive `deleteAll`).
 	 *
-	 * @param CRUDAction $action
-	 * @param bool       $default the decision when no listener is registered
-	 *
-	 * @return bool
+	 * @param bool $default the decision when no listener is registered
 	 */
 	private function authorize(CRUDAction $action, bool $default): bool
 	{
@@ -371,8 +323,6 @@ final class CRUD
 
 	/**
 	 * Checks columns values for create.
-	 *
-	 * @param BeforeCreate $create_action
 	 *
 	 * @throws CRUDException
 	 */
@@ -489,8 +439,6 @@ final class CRUD
 
 	/**
 	 * Checks columns values for update.
-	 *
-	 * @param BeforeUpdate|BeforeUpdateAll $base_action
 	 *
 	 * @throws CRUDException
 	 */

@@ -87,9 +87,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	/**
 	 * SQLGeneratorBase constructor.
-	 *
-	 * @param RDBMSInterface $db
-	 * @param DbConfig       $config
 	 */
 	public function __construct(protected RDBMSInterface $db, protected DbConfig $config) {}
 
@@ -102,8 +99,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws DBALException
 	 */
 	#[Override]
@@ -268,11 +263,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		};
 	}
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @return string
-	 */
 	#[Override]
 	public function filterToExpression(FilterInterface|Filters $filter): string
 	{
@@ -308,10 +298,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
-	 * @return bool
-	 *
 	 * @throws DBALException
 	 */
 	#[Override]
@@ -321,8 +307,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws DBALException
 	 */
 	#[Override]
@@ -464,10 +448,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	/**
 	 * Quote a database identifier (table name, column name, etc.).
-	 *
-	 * @param string $name
-	 *
-	 * @return string
 	 */
 	#[Override]
 	public function quoteIdentifier(string $name): string
@@ -662,11 +642,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		return $this->quoteIdentifier($table) . '.' . $this->quoteIdentifier($col_name);
 	}
 
-	/**
-	 * @param DBCharsetChanged $action
-	 *
-	 * @return string
-	 */
 	protected function getDBCharsetChangeString(DBCharsetChanged $action): string
 	{
 		$db_name = $action->getDb()
@@ -677,11 +652,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		return 'ALTER DATABASE ' . $this->quoteIdentifier($db_name) . ' CHARACTER SET ' . $charset . ';';
 	}
 
-	/**
-	 * @param DBCollateChanged $action
-	 *
-	 * @return string
-	 */
 	protected function getDBCollateChangeString(DBCollateChanged $action): string
 	{
 		$db_name   = $action->getDb()
@@ -692,11 +662,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		return 'ALTER DATABASE ' . $this->quoteIdentifier($db_name) . ' COLLATE ' . $collation . ';';
 	}
 
-	/**
-	 * @param TableCharsetChanged $action
-	 *
-	 * @return string
-	 */
 	protected function getTableCharsetChangeString(TableCharsetChanged $action): string
 	{
 		$table_name = $action->getTable()
@@ -706,11 +671,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		return 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' CONVERT TO CHARACTER SET ' . $charset . ';';
 	}
 
-	/**
-	 * @param TableCollateChanged $action
-	 *
-	 * @return string
-	 */
 	protected function getTableCollateChangeString(TableCollateChanged $action): string
 	{
 		$table_name = $action->getTable()
@@ -720,11 +680,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		return 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' DEFAULT COLLATE ' . $collation . ';';
 	}
 
-	/**
-	 * @param TableRenamed $action
-	 *
-	 * @return string
-	 */
 	protected function getTableRenamedString(TableRenamed $action): string
 	{
 		$old_table_name = $action->getOldTable()
@@ -746,10 +701,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 * foreign-key constraints are appended after the `CREATE TABLE` block (used by drivers that
 	 * cannot declare FK/UK inline).
 	 *
-	 * @param Table $table
-	 * @param bool  $include_fq_or_uq_alter when `true`, appends deferred FK/UK ALTER TABLE statements
-	 *
-	 * @return string
+	 * @param bool $include_fq_or_uq_alter when `true`, appends deferred FK/UK ALTER TABLE statements
 	 *
 	 * @throws DBALException
 	 */
@@ -806,10 +758,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 * When `$table_for_alter` is provided, wraps the result in an `ALTER TABLE ... ADD ...` statement
 	 * suitable for adding a new column to an existing table.
 	 *
-	 * @param Column     $column
 	 * @param null|Table $table_for_alter when set, wraps result as ALTER TABLE ... ADD statement
-	 *
-	 * @return string
 	 *
 	 * @throws DBALException
 	 */
@@ -843,10 +792,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	/**
 	 * Gets string column definition query string.
-	 *
-	 * @param Column $column
-	 *
-	 * @return string
 	 */
 	protected function getStringColumnDefinition(Column $column): string
 	{
@@ -894,10 +839,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 * The base implementation falls back to TEXT when native JSON is disabled or the
 	 * RDBMS does not support a dedicated JSON type.  Driver subclasses that support
 	 * native JSON (MySQL >= 5.7, PostgreSQL) should override this method.
-	 *
-	 * @param Column $column
-	 *
-	 * @return string
 	 */
 	protected function getJSONColumnDefinition(Column $column): string
 	{
@@ -933,10 +874,8 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 * When `$force_no_default` is `true` (e.g. TEXT/BLOB on MySQL), the DEFAULT clause is
 	 * omitted entirely.
 	 *
-	 * @param Column $column
-	 * @param array  &$sql_parts
-	 * @param bool   $force_no_default skip DEFAULT generation (e.g. for TEXT/BLOB columns)
-	 * @param bool   $quote_default    whether to quote the default value as a SQL literal
+	 * @param bool $force_no_default skip DEFAULT generation (e.g. for TEXT/BLOB columns)
+	 * @param bool $quote_default    whether to quote the default value as a SQL literal
 	 */
 	protected function defaultAndNullChunks(
 		Column $column,
@@ -1004,10 +943,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	/**
 	 * Gets bool column definition query string.
-	 *
-	 * @param Column $column
-	 *
-	 * @return string
 	 */
 	protected function getBoolColumnDefinition(Column $column): string
 	{
@@ -1022,10 +957,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	/**
 	 * Gets int column definition query string.
-	 *
-	 * @param Column $column
-	 *
-	 * @return string
 	 */
 	protected function getIntColumnDefinition(Column $column): string
 	{
@@ -1067,10 +998,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	/**
 	 * Gets bigint column definition query string.
-	 *
-	 * @param Column $column
-	 *
-	 * @return string
 	 */
 	protected function getBigintColumnDefinition(Column $column): string
 	{
@@ -1096,10 +1023,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	/**
 	 * Gets float column definition query string.
-	 *
-	 * @param Column $column
-	 *
-	 * @return string
 	 *
 	 * @throws DBALException
 	 */
@@ -1135,8 +1058,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	/**
 	 * Checks float column.
 	 *
-	 * @param Column $column
-	 *
 	 * @throws DBALException
 	 */
 	protected function checkFloatColumn(Column $column): void
@@ -1162,10 +1083,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	/**
 	 * Gets decimal column definition query string.
-	 *
-	 * @param Column $column
-	 *
-	 * @return string
 	 *
 	 * @throws DBALException
 	 */
@@ -1243,11 +1160,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	/**
 	 * Gets table primary keys definition query string.
-	 *
-	 * @param Table $table
-	 * @param bool  $alter
-	 *
-	 * @return string
 	 */
 	protected function getTablePrimaryKeysDefinitionString(Table $table, bool $alter): string
 	{
@@ -1273,8 +1185,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 *
 	 * @param PrimaryKey $pk    the primary key constraint
 	 * @param bool       $alter use alter syntax
-	 *
-	 * @return string
 	 */
 	protected function getPrimaryKeySQL(PrimaryKey $pk, bool $alter): string
 	{
@@ -1289,10 +1199,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	/**
 	 * Quote columns name in a given list.
-	 *
-	 * @param array $list
-	 *
-	 * @return string
 	 */
 	protected function quoteCols(array $list): string
 	{
@@ -1301,11 +1207,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	/**
 	 * Gets table unique key constraints definition query string.
-	 *
-	 * @param Table $table
-	 * @param bool  $alter
-	 *
-	 * @return string
 	 */
 	protected function getTableUniqueKeyConstraintsDefinitionString(Table $table, bool $alter): string
 	{
@@ -1335,8 +1236,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 *
 	 * @param UniqueKey $uc    the unique constraint
 	 * @param bool      $alter use alter syntax
-	 *
-	 * @return string
 	 */
 	protected function getUniqueKeySQL(UniqueKey $uc, bool $alter): string
 	{
@@ -1351,10 +1250,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	/**
 	 * Gets all indexes definition query strings for a table (CREATE INDEX statements).
-	 *
-	 * @param Table $table
-	 *
-	 * @return string
 	 */
 	protected function getTableIndexesDefinitionString(Table $table): string
 	{
@@ -1384,17 +1279,11 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 * Gets index CREATE statement.
 	 *
 	 * @param Index $index the index
-	 *
-	 * @return string
 	 */
 	abstract protected function getIndexSQL(Index $index): string;
 
 	/**
 	 * Gets the SQL for adding an index (CREATE INDEX).
-	 *
-	 * @param IndexAdded $action
-	 *
-	 * @return string
 	 */
 	protected function getIndexAddedString(IndexAdded $action): string
 	{
@@ -1403,10 +1292,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	/**
 	 * Gets the SQL for dropping an index (DROP INDEX).
-	 *
-	 * @param IndexDeleted $action
-	 *
-	 * @return string
 	 */
 	protected function getIndexDeletedString(IndexDeleted $action): string
 	{
@@ -1415,11 +1300,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	/**
 	 * Gets table foreign keys definition query string.
-	 *
-	 * @param Table $table
-	 * @param bool  $alter
-	 *
-	 * @return string
 	 */
 	protected function getTableForeignKeysDefinitionString(Table $table, bool $alter): string
 	{
@@ -1449,8 +1329,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 *
 	 * @param ForeignKey $fk    the foreign key constraint
 	 * @param bool       $alter use alter syntax
-	 *
-	 * @return string
 	 */
 	protected function getForeignKeySQL(ForeignKey $fk, bool $alter): string
 	{
@@ -1478,10 +1356,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	/**
 	 * Gets foreign key action sql.
-	 *
-	 * @param ForeignKeyAction $action
-	 *
-	 * @return string
 	 */
 	protected function getForeignKeyActionSQL(ForeignKeyAction $action): string
 	{
@@ -1496,16 +1370,9 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	/**
 	 * Should return the create table query template.
-	 *
-	 * @return string
 	 */
 	abstract protected function createTableQueryTemplate(): string;
 
-	/**
-	 * @param TableDeleted $action
-	 *
-	 * @return string
-	 */
 	protected function getTableDeletedString(TableDeleted $action): string
 	{
 		$table_name = $action->getTable()
@@ -1532,10 +1399,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	}
 
 	/**
-	 * @param ColumnAdded $action
-	 *
-	 * @return string
-	 *
 	 * @throws DBALException
 	 */
 	protected function getColumnAddedString(ColumnAdded $action): string
@@ -1547,11 +1410,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		return 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' ADD ' . $sql . ';';
 	}
 
-	/**
-	 * @param ColumnRenamed $action
-	 *
-	 * @return string
-	 */
 	protected function getColumnRenamedString(ColumnRenamed $action): string
 	{
 		$table_name      = $action->getTable()
@@ -1564,11 +1422,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		return 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' RENAME COLUMN ' . $this->quoteIdentifier($old_column_name) . ' TO ' . $this->quoteIdentifier($new_column_name) . ';';
 	}
 
-	/**
-	 * @param ColumnTypeChanged $action
-	 *
-	 * @return string
-	 */
 	protected function getColumnTypeChangedString(ColumnTypeChanged $action): string
 	{
 		$new_column = $action->getNewColumn();
@@ -1579,21 +1432,11 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		return 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' ALTER COLUMN ' . $column_definition . ';';
 	}
 
-	/**
-	 * @param PrimaryKeyConstraintAdded $action
-	 *
-	 * @return string
-	 */
 	protected function getPrimaryKeyConstraintAddedString(PrimaryKeyConstraintAdded $action): string
 	{
 		return $this->getPrimaryKeySQL($action->getConstraint(), true);
 	}
 
-	/**
-	 * @param PrimaryKeyConstraintDeleted $action
-	 *
-	 * @return string
-	 */
 	protected function getPrimaryKeyConstraintDeletedString(PrimaryKeyConstraintDeleted $action): string
 	{
 		$constraint      = $action->getConstraint();
@@ -1604,21 +1447,11 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		return 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' DROP CONSTRAINT ' . $constraint_name . ';';
 	}
 
-	/**
-	 * @param ForeignKeyConstraintAdded $action
-	 *
-	 * @return string
-	 */
 	protected function getForeignKeyConstraintAddedString(ForeignKeyConstraintAdded $action): string
 	{
 		return $this->getForeignKeySQL($action->getConstraint(), true);
 	}
 
-	/**
-	 * @param ForeignKeyConstraintDeleted $action
-	 *
-	 * @return string
-	 */
 	protected function getForeignKeyConstraintDeletedString(ForeignKeyConstraintDeleted $action): string
 	{
 		$constraint      = $action->getConstraint();
@@ -1629,21 +1462,11 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		return 'ALTER TABLE ' . $this->quoteIdentifier($table_name) . ' DROP CONSTRAINT ' . $constraint_name . ';';
 	}
 
-	/**
-	 * @param UniqueKeyConstraintAdded $action
-	 *
-	 * @return string
-	 */
 	protected function getUniqueKeyConstraintAddedString(UniqueKeyConstraintAdded $action): string
 	{
 		return $this->getUniqueKeySQL($action->getConstraint(), true);
 	}
 
-	/**
-	 * @param UniqueKeyConstraintDeleted $action
-	 *
-	 * @return string
-	 */
 	protected function getUniqueKeyConstraintDeletedString(UniqueKeyConstraintDeleted $action): string
 	{
 		$constraint      = $action->getConstraint();
@@ -1656,10 +1479,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	/**
 	 * Create a comment query.
-	 *
-	 * @param string $comment
-	 *
-	 * @return string
 	 */
 	protected function getCommentQuery(string $comment): string
 	{
@@ -1668,10 +1487,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	/**
 	 * Returns sql SELECT query.
-	 *
-	 * @param QBSelect $qb
-	 *
-	 * @return string
 	 */
 	protected function getSelectQuery(QBSelect $qb): string
 	{
@@ -1689,10 +1504,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	/**
 	 * Returns sql selected columns.
-	 *
-	 * @param QBSelect $qb
-	 *
-	 * @return string
 	 */
 	protected function getSelectedColumnsQuery(QBSelect $qb): string
 	{
@@ -1707,10 +1518,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	/**
 	 * Returns sql WHERE query part.
-	 *
-	 * @param QBDelete|QBSelect|QBUpdate $qb
-	 *
-	 * @return string
 	 */
 	protected function getWhereQuery(QBDelete|QBSelect|QBUpdate $qb): string
 	{
@@ -1728,10 +1535,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 *
 	 * By overriding this method you can change the way this kind of
 	 * filters are converted to sql expressions when using another database engine.
-	 *
-	 * @param Filter $filter
-	 *
-	 * @return string
 	 */
 	protected function operatorFilterToExpression(Filter $filter): string
 	{
@@ -1771,10 +1574,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	/**
 	 * Returns sql FROM query part.
-	 *
-	 * @param QBDelete|QBSelect $qb
-	 *
-	 * @return string
 	 */
 	protected function getFromQuery(QBDelete|QBSelect $qb): string
 	{
@@ -1797,8 +1596,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 *
 	 * @param QBDelete|QBSelect $qb          the query builder
 	 * @param string            $table_alias the table alias
-	 *
-	 * @return string
 	 */
 	protected function getJoinQueryFor(QBDelete|QBSelect $qb, string $table_alias): string
 	{
@@ -1807,10 +1604,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	/**
 	 * Returns sql GROUP BY query part.
-	 *
-	 * @param QBSelect $qb
-	 *
-	 * @return string
 	 */
 	protected function getGroupByQuery(QBSelect $qb): string
 	{
@@ -1825,10 +1618,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	/**
 	 * Returns sql HAVING query part.
-	 *
-	 * @param QBSelect $qb
-	 *
-	 * @return string
 	 */
 	protected function getHavingQuery(QBSelect $qb): string
 	{
@@ -1843,10 +1632,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	/**
 	 * Returns sql ORDER BY query part.
-	 *
-	 * @param QBDelete|QBSelect|QBUpdate $qb
-	 *
-	 * @return string
 	 */
 	protected function getOrderByQuery(QBDelete|QBSelect|QBUpdate $qb): string
 	{
@@ -1861,10 +1646,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	/**
 	 * Returns sql LIMIT query part.
-	 *
-	 * @param QBDelete|QBSelect|QBUpdate $qb
-	 *
-	 * @return string
 	 */
 	protected function getLimitQuery(QBDelete|QBSelect|QBUpdate $qb): string
 	{
@@ -1887,10 +1668,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 * Returns the INSERT keyword (e.g. `INSERT`, `INSERT IGNORE`).
 	 *
 	 * Drivers may override this to emit dialect-specific insert modes.
-	 *
-	 * @param QBInsert $qb
-	 *
-	 * @return string
 	 */
 	protected function getInsertKeyword(QBInsert $qb): string
 	{
@@ -1901,10 +1678,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 * Returns the ON CONFLICT clause appended after VALUES in INSERT queries.
 	 *
 	 * Base returns `''`. Drivers override for upsert / ignore-on-conflict support.
-	 *
-	 * @param QBInsert $qb
-	 *
-	 * @return string
 	 */
 	protected function getOnConflictClause(QBInsert $qb): string
 	{
@@ -1917,10 +1690,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 * The default implementation throws when RETURNING was requested, because MySQL
 	 * does not support this clause. Drivers that do support RETURNING (PostgreSQL,
 	 * SQLite >= 3.35.0) should override this method to emit the proper SQL fragment.
-	 *
-	 * @param QBDelete|QBInsert|QBUpdate $qb
-	 *
-	 * @return string
 	 *
 	 * @throws DBALRuntimeException when RETURNING is requested but not supported by the driver
 	 */
@@ -1937,10 +1706,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	/**
 	 * Returns sql INSERT query.
-	 *
-	 * @param QBInsert $qb
-	 *
-	 * @return string
 	 */
 	protected function getInsertQuery(QBInsert $qb): string
 	{
@@ -1976,10 +1741,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	/**
 	 * Returns sql UPDATE query.
-	 *
-	 * @param QBUpdate $qb
-	 *
-	 * @return string
 	 */
 	protected function getUpdateQuery(QBUpdate $qb): string
 	{
@@ -2011,10 +1772,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	/**
 	 * Returns sql DELETE query.
-	 *
-	 * @param QBDelete $qb
-	 *
-	 * @return string
 	 */
 	protected function getDeleteQuery(QBDelete $qb): string
 	{
@@ -2057,8 +1814,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 	/**
 	 * Should return the db query template.
-	 *
-	 * @return string
 	 */
 	abstract protected function dbQueryTemplate(): string;
 
@@ -2168,8 +1923,6 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 * @param QBDelete|QBSelect   $qb          the query builder
 	 * @param string              $table_alias alias whose joins are being expanded
 	 * @param array<string, bool> $visited     aliases already processed in this chain
-	 *
-	 * @return string
 	 */
 	private function buildJoinSql(QBDelete|QBSelect $qb, string $table_alias, array $visited): string
 	{

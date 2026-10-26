@@ -70,8 +70,6 @@ enum DiffActionType: string
 	 * Lower values run first. Destructive operations (e.g. dropping foreign keys)
 	 * are ordered before structural changes, which are in turn ordered before
 	 * additive operations (e.g. adding constraints/indexes).
-	 *
-	 * @return int
 	 */
 	public function getPriority(): int
 	{

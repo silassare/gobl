@@ -59,7 +59,6 @@ final class TypeEnum extends Type
 	 * TypeEnum constructor.
 	 *
 	 * @param null|class-string<BackedEnum> $enum_class
-	 * @param null|string                   $message
 	 *
 	 * @throws TypesException
 	 */
@@ -80,9 +79,6 @@ final class TypeEnum extends Type
 	 * Sets the enum class.
 	 *
 	 * @param class-string<BackedEnum> $enum_class
-	 * @param null|string              $message
-	 *
-	 * @return static
 	 *
 	 * @throws TypesException
 	 */
@@ -120,8 +116,6 @@ final class TypeEnum extends Type
 	 * @param string                    $enum_class the name of the missing class
 	 * @param array<string, int|string> $cases      the cases, name => value
 	 * @param null|string               $backing    `int` or `string`, from the values when null
-	 *
-	 * @return static
 	 *
 	 * @throws TypesException
 	 */
@@ -181,8 +175,6 @@ final class TypeEnum extends Type
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws TypesException
 	 */
 	#[Override]
@@ -247,8 +239,6 @@ final class TypeEnum extends Type
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws Throwable
 	 */
 	#[Override]
@@ -278,8 +268,6 @@ final class TypeEnum extends Type
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws TypesException
 	 */
 	#[Override]
@@ -294,8 +282,6 @@ final class TypeEnum extends Type
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws TypesException
 	 */
 	#[Override]
@@ -310,8 +296,6 @@ final class TypeEnum extends Type
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws TypesInvalidValueException
 	 * @throws TypesException
 	 */
@@ -343,8 +327,6 @@ final class TypeEnum extends Type
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws TypesInvalidValueException
 	 * @throws TypesException
 	 */
@@ -408,8 +390,6 @@ final class TypeEnum extends Type
 
 	/**
 	 * Returns the enum value instance from string.
-	 *
-	 * @param int|string $value
 	 *
 	 * @return BackedEnum|int|string the frozen backing value when detached
 	 *

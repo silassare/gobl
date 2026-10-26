@@ -25,8 +25,6 @@ interface QBInterface
 {
 	/**
 	 * Gets query type.
-	 *
-	 * @return QBType
 	 */
 	public function getType(): QBType;
 
@@ -42,15 +40,11 @@ interface QBInterface
 	 * | `UPDATE`     | `int` - number of affected rows                            |
 	 * | `DELETE`     | `int` - number of affected rows                            |
 	 * | DDL / other  | `bool` - `true` on success                                 |
-	 *
-	 * @return bool|int|PDOStatement|string
 	 */
 	public function execute(): bool|int|PDOStatement|string;
 
 	/**
 	 * Returns query string to be executed by the rdbms.
-	 *
-	 * @return string
 	 */
 	public function getSqlQuery(): string;
 
@@ -69,22 +63,16 @@ interface QBInterface
 
 	/**
 	 * Returns the RDBMS.
-	 *
-	 * @return RDBMSInterface
 	 */
 	public function getRDBMS(): RDBMSInterface;
 
 	/**
 	 * Returns bound values.
-	 *
-	 * @return array
 	 */
 	public function getBoundValues(): array;
 
 	/**
 	 * Returns bound values types.
-	 *
-	 * @return array
 	 */
 	public function getBoundValuesTypes(): array;
 
@@ -98,8 +86,6 @@ interface QBInterface
 	 *
 	 * @param array $params The params to bind
 	 * @param array $types  The params types
-	 *
-	 * @return static
 	 */
 	public function bindArray(array $params, array $types = []): static;
 
@@ -109,8 +95,6 @@ interface QBInterface
 	 * @param string   $name  The param name to bind
 	 * @param mixed    $value The param value
 	 * @param null|int $type  Any \PDO::PARAM_* constants
-	 *
-	 * @return static
 	 */
 	public function bindNamed(string $name, mixed $value, ?int $type = null): static;
 
@@ -120,8 +104,6 @@ interface QBInterface
 	 * @param int      $offset The param offset
 	 * @param mixed    $value  The param value
 	 * @param null|int $type   Any \PDO::PARAM_* constants
-	 *
-	 * @return static
 	 */
 	public function bindPositional(int $offset, mixed $value, ?int $type = null): static;
 
@@ -143,10 +125,6 @@ interface QBInterface
 
 	/**
 	 * Checks if a parameter name is bound.
-	 *
-	 * @param string $name
-	 *
-	 * @return bool
 	 */
 	public function isBoundParam(string $name): bool;
 
@@ -160,8 +138,6 @@ interface QBInterface
 	 * Merging a query builder into itself is a no-op.
 	 *
 	 * @param self $qb the source query builder whose parameters are merged in
-	 *
-	 * @return static
 	 */
 	public function bindMergeFrom(self $qb): static;
 
@@ -179,8 +155,6 @@ interface QBInterface
 	 *
 	 * @param string|Table $table the target table (name, full name, or `Table` instance)
 	 * @param string       $alias an alias that was already declared for this table
-	 *
-	 * @return static
 	 */
 	public function setMainAlias(string|Table $table, string $alias): static;
 
@@ -203,11 +177,6 @@ interface QBInterface
 
 	/**
 	 * Returns the fully qualified name of a column.
-	 *
-	 * @param string|Table $table_name_or_alias
-	 * @param string       $column
-	 *
-	 * @return string
 	 */
 	public function fullyQualifiedName(string|Table $table_name_or_alias, string $column): string;
 
@@ -246,19 +215,11 @@ interface QBInterface
 
 	/**
 	 * Check if a given string is a declared alias.
-	 *
-	 * @param string $str
-	 *
-	 * @return bool
 	 */
 	public function isDeclaredAlias(string $str): bool;
 
 	/**
 	 * Gets table name for a given alias.
-	 *
-	 * @param string $alias
-	 *
-	 * @return null|string
 	 */
 	public function getAliasTable(string $alias): ?string;
 
@@ -273,8 +234,6 @@ interface QBInterface
 	 * @param string       $alias alias string (must match {@see Table::ALIAS_PATTERN})
 	 * @param bool         $main  when `true`, also marks this alias as the main alias
 	 *                            for the table (equivalent to calling {@see setMainAlias()} afterwards)
-	 *
-	 * @return static
 	 */
 	public function alias(string|Table $table, string $alias, bool $main = false): static;
 }

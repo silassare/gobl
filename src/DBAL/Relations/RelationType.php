@@ -28,8 +28,6 @@ enum RelationType: string
 
 	/**
 	 * Checks if the relation returns multiple items.
-	 *
-	 * @return bool
 	 */
 	public function isMultiple(): bool
 	{

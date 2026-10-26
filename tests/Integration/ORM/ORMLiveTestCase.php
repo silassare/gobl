@@ -769,8 +769,6 @@ abstract class ORMLiveTestCase extends BaseTestCase
 
 	/**
 	 * Human-readable driver name used in skip/failure messages.
-	 *
-	 * @return string
 	 */
 	abstract protected static function getDriverName(): string;
 
@@ -781,10 +779,6 @@ abstract class ORMLiveTestCase extends BaseTestCase
 	/**
 	 * Builds a DROP TABLE SQL string for all test tables in reverse FK order.
 	 * Syntax is adjusted per driver type.
-	 *
-	 * @param RDBMSInterface $db
-	 *
-	 * @return string
 	 */
 	protected static function buildDropAllSql(RDBMSInterface $db): string
 	{

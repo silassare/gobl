@@ -30,8 +30,6 @@ trait QBWhereTrait
 	 * Adds a where condition.
 	 *
 	 * @param (callable(Filters):void)|FilterInterface|Filters|string $condition
-	 *
-	 * @return static
 	 */
 	public function where(callable|FilterInterface|Filters|string $condition): static
 	{
@@ -42,8 +40,6 @@ trait QBWhereTrait
 	 * Adds a where condition with an AND chaining condition.
 	 *
 	 * @param (callable(Filters):void)|FilterInterface|Filters|string $condition
-	 *
-	 * @return static
 	 */
 	public function andWhere(callable|FilterInterface|Filters|string $condition): static
 	{
@@ -54,17 +50,12 @@ trait QBWhereTrait
 	 * Adds a where condition with an OR chaining condition.
 	 *
 	 * @param (callable(Filters):void)|FilterInterface|Filters|string $condition
-	 *
-	 * @return static
 	 */
 	public function orWhere(callable|FilterInterface|Filters|string $condition): static
 	{
 		return $this->ensureWhere(false, $condition);
 	}
 
-	/**
-	 * @return null|FilterGroup
-	 */
 	public function getOptionsWhere(): ?FilterGroup
 	{
 		return $this->options_where;
@@ -76,10 +67,7 @@ trait QBWhereTrait
 	 * If not, it creates a new one.
 	 * If yes, it ensures the chaining condition is the same as the given one.
 	 *
-	 * @param bool                                                    $is_and
 	 * @param (callable(Filters):void)|FilterInterface|Filters|string $condition
-	 *
-	 * @return static
 	 */
 	private function ensureWhere(bool $is_and, callable|FilterInterface|Filters|string $condition): static
 	{

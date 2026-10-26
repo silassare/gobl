@@ -24,8 +24,6 @@ trait HasRelationContext
 
 	/**
 	 * Returns the relation.
-	 *
-	 * @return null|Relation
 	 */
 	public function getRelation(): ?Relation
 	{

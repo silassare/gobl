@@ -514,10 +514,7 @@ final class DiffSnapshotTest extends BaseTestCase
 	/**
 	 * Builds and locks a DB of the given $driver with a single namespace configured by $setup.
 	 *
-	 * @param string                          $driver
 	 * @param callable(NamespaceBuilder):void $setup
-	 *
-	 * @return RDBMSInterface
 	 */
 	private function buildDb(string $driver, callable $setup): RDBMSInterface
 	{
@@ -534,11 +531,6 @@ final class DiffSnapshotTest extends BaseTestCase
 	 *
 	 * The migration PHP file is written to tests/tmp/output/ using a name derived
 	 * from $driver and $snapshotName to avoid opcode-cache collisions between tests.
-	 *
-	 * @param string         $driver
-	 * @param string         $snapshotName
-	 * @param RDBMSInterface $from
-	 * @param RDBMSInterface $to
 	 */
 	private function assertDiffSnapshot(
 		string $driver,

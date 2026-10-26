@@ -26,9 +26,6 @@ use Throwable;
  */
 final class Gobl
 {
-	/**
-	 * @var string
-	 */
 	private static string $def_output_dir = GOBL_ROOT . '.gobl';
 
 	/**
@@ -36,20 +33,12 @@ final class Gobl
 	 */
 	private static array $templates = [];
 
-	/**
-	 * @var bool
-	 */
 	private static bool $generated_at_enabled = true;
 
-	/**
-	 * @var null|string
-	 */
 	private static ?string $default_schema_url = 'https://raw.githubusercontent.com/silassare/gobl/main/docs/public/schema.json';
 
 	/**
 	 * Returns the default JSON Schema URL embedded in exported schema files.
-	 *
-	 * @return null|string
 	 */
 	public static function getDefaultSchemaUrl(): ?string
 	{
@@ -78,8 +67,6 @@ final class Gobl
 
 	/**
 	 * Returns default output directory path.
-	 *
-	 * @return string
 	 */
 	public static function getDefaultOutputDir(): string
 	{
@@ -88,8 +75,6 @@ final class Gobl
 
 	/**
 	 * Sets default output directory path.
-	 *
-	 * @param string $dir
 	 */
 	public static function setDefaultOutputDir(string $dir): void
 	{
@@ -136,10 +121,6 @@ final class Gobl
 
 	/**
 	 * Gets template file path for a given template name.
-	 *
-	 * @param string $name
-	 *
-	 * @return string
 	 */
 	public static function getTemplateFilePath(string $name): string
 	{
@@ -186,11 +167,6 @@ final class Gobl
 
 	/**
 	 * Parse and run a given template with a given inject data.
-	 *
-	 * @param string $name
-	 * @param array  $inject
-	 *
-	 * @return string
 	 */
 	public static function runTemplate(string $name, array $inject): string
 	{
@@ -206,8 +182,6 @@ final class Gobl
 	 * Gets template compiler instance for a given template name.
 	 *
 	 * @param string $name the template name
-	 *
-	 * @return Blate
 	 */
 	public static function getTemplateCompiler(string $name): Blate
 	{
@@ -271,10 +245,6 @@ final class Gobl
 
 	/**
 	 * Checks if a given column name is allowed.
-	 *
-	 * @param string $name
-	 *
-	 * @return bool
 	 */
 	public static function isAllowedColumnName(string $name): bool
 	{
@@ -285,10 +255,6 @@ final class Gobl
 
 	/**
 	 * Checks if a given relation name is allowed.
-	 *
-	 * @param string $name
-	 *
-	 * @return bool
 	 */
 	public static function isAllowedRelationName(string $name): bool
 	{
@@ -302,8 +268,6 @@ final class Gobl
 	 *
 	 * Disabled, a file generated again from an unchanged schema is identical to the previous one, so a
 	 * regeneration only rewrites the files whose content changed.
-	 *
-	 * @param bool $enabled
 	 */
 	public static function enableGeneratedAtDate(bool $enabled = true): void
 	{
@@ -322,8 +286,6 @@ final class Gobl
 
 	/**
 	 * Gets the queries logger instance.
-	 *
-	 * @return QueriesLogger
 	 */
 	public static function ql(): QueriesLogger
 	{

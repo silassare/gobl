@@ -29,10 +29,6 @@ final class BeforeUpdateFlush extends CRUDEvent
 
 	/**
 	 * BeforeUpdateFlush constructor.
-	 *
-	 * @param Table         $table
-	 * @param ORMTableQuery $filters
-	 * @param array         $form
 	 */
 	public function __construct(Table $table, ORMTableQuery $filters, array $form)
 	{

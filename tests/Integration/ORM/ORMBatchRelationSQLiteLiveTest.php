@@ -32,9 +32,6 @@ use Gobl\DBAL\Drivers\SQLite\SQLite;
  */
 final class ORMBatchRelationSQLiteLiveTest extends ORMLiveBatchRelationTestCase
 {
-	/**
-	 * {@inheritDoc}
-	 */
 	protected static function getDriverName(): string
 	{
 		return SQLite::NAME;

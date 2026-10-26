@@ -159,10 +159,6 @@ class ORMOptions implements ORMOptionsInterface
 	/**
 	 * Creates scoped instance.
 	 *
-	 * @param string $scope
-	 *
-	 * @return static
-	 *
 	 * @throws ORMQueryException
 	 */
 	public function createScopedInstance(string $scope): static
@@ -178,8 +174,6 @@ class ORMOptions implements ORMOptionsInterface
 	 * @param null|int                         $max      maximum number of items per page, or null for no limit
 	 * @param null|int                         $page     1-based page number, or null to disable pagination (ignored if $max is null)
 	 * @param null|array<string, 'ASC'|'DESC'> $order_by optional column sort order
-	 *
-	 * @return static
 	 */
 	public static function makePaginated(?int $max, ?int $page = null, ?array $order_by = null): static
 	{
@@ -194,8 +188,6 @@ class ORMOptions implements ORMOptionsInterface
 	 * This bypasses HTTP payload parsing; useful when building queries programmatically.
 	 *
 	 * @param array $filters the filters to apply
-	 *
-	 * @return static
 	 */
 	public static function makeFromFilters(array $filters): static
 	{
@@ -213,8 +205,6 @@ class ORMOptions implements ORMOptionsInterface
 	 * @param int             $max           maximum number of items per page
 	 * @param null|int|string $cursor        the cursor value from the previous page, or null to start from the beginning
 	 * @param string          $direction     sort direction: 'ASC' or 'DESC'
-	 *
-	 * @return static
 	 *
 	 * @throws ORMQueryException when the direction is invalid
 	 */
@@ -234,8 +224,6 @@ class ORMOptions implements ORMOptionsInterface
 
 	/**
 	 * Returns parsed request data.
-	 *
-	 * @return array
 	 */
 	public function getParsedRequest(): array
 	{
@@ -293,18 +281,12 @@ class ORMOptions implements ORMOptionsInterface
 		return $r;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function isCursorBased(): bool
 	{
 		return isset($this->cursor) || isset($this->cursor_column) || isset($this->cursor_dir);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getFormData(?Table $table = null): array
 	{
@@ -320,9 +302,6 @@ class ORMOptions implements ORMOptionsInterface
 		);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function setFormData(array $form_data): static
 	{
@@ -331,18 +310,12 @@ class ORMOptions implements ORMOptionsInterface
 		return $this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getFormField(string $name, $default = null): mixed
 	{
 		return $this->form_data[$name] ?? $default;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function setFormField(string $name, mixed $value): static
 	{
@@ -351,9 +324,6 @@ class ORMOptions implements ORMOptionsInterface
 		return $this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function unsetFormField(string $name): static
 	{
@@ -370,18 +340,12 @@ class ORMOptions implements ORMOptionsInterface
 		return $this->unsetFormField($name);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getPage(): ?int
 	{
 		return $this->page;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function setPage(?int $page = null): static
 	{
@@ -400,18 +364,12 @@ class ORMOptions implements ORMOptionsInterface
 		return $this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getMax(): ?int
 	{
 		return $this->ignore_max ? null : $this->max;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function ignoreMax(bool $ignore_max = true): static
 	{
@@ -420,9 +378,6 @@ class ORMOptions implements ORMOptionsInterface
 		return $this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function setMax(?int $max = null): static
 	{
@@ -431,9 +386,6 @@ class ORMOptions implements ORMOptionsInterface
 		return $this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getOffset(): ?int
 	{
@@ -452,9 +404,6 @@ class ORMOptions implements ORMOptionsInterface
 		return 0;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function setRawOffset(?int $offset): static
 	{
@@ -467,18 +416,12 @@ class ORMOptions implements ORMOptionsInterface
 		return $this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getCursor(): int|string|null
 	{
 		return $this->cursor;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function setCursor(int|string|null $cursor): static
 	{
@@ -487,18 +430,12 @@ class ORMOptions implements ORMOptionsInterface
 		return $this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getCursorColumn(): ?string
 	{
 		return $this->cursor_column;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function setCursorColumn(?string $cursor_column): static
 	{
@@ -507,18 +444,12 @@ class ORMOptions implements ORMOptionsInterface
 		return $this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getCursorDirection(): ?string
 	{
 		return $this->cursor_dir;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function setCursorDirection(?string $direction): static
 	{
@@ -534,18 +465,12 @@ class ORMOptions implements ORMOptionsInterface
 		return $this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getOrderBy(): ?array
 	{
 		return $this->order_by;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function setOrderBy(?array $order_by): static
 	{
@@ -554,9 +479,6 @@ class ORMOptions implements ORMOptionsInterface
 		return $this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getFilters(): ?array
 	{
@@ -571,9 +493,6 @@ class ORMOptions implements ORMOptionsInterface
 		return $this->filters;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function setFilters(?array $filters): static
 	{
@@ -590,10 +509,6 @@ class ORMOptions implements ORMOptionsInterface
 	 * conditions (e.g. `user_id = current_user`) are always present regardless of user input.
 	 *
 	 * Calling this method multiple times accumulates filters (all are AND-combined).
-	 *
-	 * @param array $filters
-	 *
-	 * @return static
 	 */
 	public function ensureOnlyFilters(array $filters): static
 	{
@@ -607,18 +522,12 @@ class ORMOptions implements ORMOptionsInterface
 		return $this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getExpectedColumns(): ?array
 	{
 		return $this->expected_columns;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function setExpectedColumns(?array $expected_columns): static
 	{
@@ -627,18 +536,12 @@ class ORMOptions implements ORMOptionsInterface
 		return $this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getRequestedRelations(): ?array
 	{
 		return \array_keys($this->relations);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function addRequestedRelation(string $name): static
 	{
@@ -651,18 +554,12 @@ class ORMOptions implements ORMOptionsInterface
 		return $this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getRequestedCollection(): ?string
 	{
 		return $this->collection;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function setRequestedCollection(?string $name): static
 	{
@@ -677,8 +574,6 @@ class ORMOptions implements ORMOptionsInterface
 
 	/**
 	 * Parse the request.
-	 *
-	 * @param array $options
 	 *
 	 * @throws ORMQueryException
 	 */
@@ -803,10 +698,6 @@ class ORMOptions implements ORMOptionsInterface
 	/**
 	 * Decode request collection.
 	 *
-	 * @param array $options
-	 *
-	 * @return null|string
-	 *
 	 * @throws ORMQueryException
 	 */
 	private static function collectionDecode(array $options): ?string
@@ -832,10 +723,6 @@ class ORMOptions implements ORMOptionsInterface
 
 	/**
 	 * Checks for valid collection name.
-	 *
-	 * @param mixed $name
-	 *
-	 * @return bool
 	 */
 	private static function isValidCollectionName(mixed $name): bool
 	{
@@ -844,10 +731,6 @@ class ORMOptions implements ORMOptionsInterface
 
 	/**
 	 * Decode request relations.
-	 *
-	 * @param array $options
-	 *
-	 * @return array
 	 *
 	 * @throws ORMQueryException
 	 */
@@ -896,8 +779,6 @@ class ORMOptions implements ORMOptionsInterface
 	 * Encode request relations.
 	 *
 	 * @param list<string> $relations
-	 *
-	 * @return string
 	 */
 	private static function relationsEncode(array $relations): string
 	{
@@ -906,10 +787,6 @@ class ORMOptions implements ORMOptionsInterface
 
 	/**
 	 * Checks for valid relation name.
-	 *
-	 * @param mixed $name
-	 *
-	 * @return bool
 	 */
 	private static function isValidRelationName(mixed $name): bool
 	{
@@ -925,8 +802,6 @@ class ORMOptions implements ORMOptionsInterface
 	 * - `name:asc` (explicit ASC)
 	 * - `name:DESC` (case-insensitive)
 	 * - `name|created_at:desc` (multiple orders separated by `|`) => `['name' => 'ASC', 'created_at' => 'DESC']`
-	 *
-	 * @param array $options
 	 *
 	 * @return array<string, 'ASC'|'DESC'>
 	 *
@@ -988,8 +863,6 @@ class ORMOptions implements ORMOptionsInterface
 	 * Encode request order by.
 	 *
 	 * @param array<string, 'ASC'|'DESC'> $order_by
-	 *
-	 * @return string
 	 */
 	private static function orderByEncode(array $order_by): string
 	{

@@ -53,16 +53,12 @@ final class Column implements ArrayCapableInterface, MetaCapableInterface, DiffC
 
 	/**
 	 * The column diff key.
-	 *
-	 * @var null|string
 	 */
 	private ?string $diff_key = null;
 
 	/**
 	 * The old column name used to compute the diff key during rename migration.
 	 * Not serialized in toArray() - remove after the migration has run.
-	 *
-	 * @var null|string
 	 */
 	private ?string $old_name = null;
 
@@ -70,50 +66,36 @@ final class Column implements ArrayCapableInterface, MetaCapableInterface, DiffC
 	 * The old column prefix used together with old_name to compute the diff key.
 	 * null means "use the current prefix" when old_name is set.
 	 * Not serialized in toArray() - remove after the migration has run.
-	 *
-	 * @var null|string
 	 */
 	private ?string $old_prefix = null;
 
 	/**
 	 * The column name.
-	 *
-	 * @var string
 	 */
 	private string $name;
 
 	/**
 	 * The column prefix.
-	 *
-	 * @var string
 	 */
 	private string $prefix = '';
 
 	/**
 	 * Column private state.
-	 *
-	 * @var bool
 	 */
 	private bool $private = false;
 
 	/**
 	 * Column sensitive state.
-	 *
-	 * @var bool
 	 */
 	private bool $sensitive = false;
 
 	/**
 	 * Redacted value.
-	 *
-	 * @var mixed
 	 */
 	private mixed $sensitive_redacted_value = null;
 
 	/**
 	 * The column type instance.
-	 *
-	 * @var TypeInterface
 	 */
 	private TypeInterface $type;
 	private ?string $reference = null;
@@ -172,8 +154,6 @@ final class Column implements ArrayCapableInterface, MetaCapableInterface, DiffC
 
 	/**
 	 * Help var_dump().
-	 *
-	 * @return array
 	 */
 	public function __debugInfo(): array
 	{
@@ -182,8 +162,6 @@ final class Column implements ArrayCapableInterface, MetaCapableInterface, DiffC
 
 	/**
 	 * Sets type from type array options.
-	 *
-	 * @param array $options
 	 *
 	 * @return $this
 	 */
@@ -210,8 +188,6 @@ final class Column implements ArrayCapableInterface, MetaCapableInterface, DiffC
 
 	/**
 	 * Gets column name.
-	 *
-	 * @return string
 	 */
 	public function getName(): string
 	{
@@ -220,8 +196,6 @@ final class Column implements ArrayCapableInterface, MetaCapableInterface, DiffC
 
 	/**
 	 * Sets the column name.
-	 *
-	 * @param string $name
 	 *
 	 * @return $this
 	 */
@@ -342,8 +316,6 @@ final class Column implements ArrayCapableInterface, MetaCapableInterface, DiffC
 
 	/**
 	 * Gets column reference.
-	 *
-	 * @return null|string
 	 */
 	public function getReference(): ?string
 	{
@@ -414,8 +386,6 @@ final class Column implements ArrayCapableInterface, MetaCapableInterface, DiffC
 
 	/**
 	 * Gets the table in which the column is locked.
-	 *
-	 * @return null|Table
 	 */
 	public function getTable(): ?Table
 	{
@@ -424,8 +394,6 @@ final class Column implements ArrayCapableInterface, MetaCapableInterface, DiffC
 
 	/**
 	 * Checks if the column is private.
-	 *
-	 * @return bool
 	 */
 	public function isPrivate(): bool
 	{
@@ -448,8 +416,6 @@ final class Column implements ArrayCapableInterface, MetaCapableInterface, DiffC
 
 	/**
 	 * Checks if the column is sensitive.
-	 *
-	 * @return bool
 	 */
 	public function isSensitive(): bool
 	{
@@ -476,8 +442,6 @@ final class Column implements ArrayCapableInterface, MetaCapableInterface, DiffC
 
 	/**
 	 * Gets sensitive redacted value.
-	 *
-	 * @return mixed
 	 */
 	public function getSensitiveRedactedValue(): mixed
 	{
@@ -486,8 +450,6 @@ final class Column implements ArrayCapableInterface, MetaCapableInterface, DiffC
 
 	/**
 	 * Gets type object.
-	 *
-	 * @return TypeInterface
 	 */
 	public function getType(): TypeInterface
 	{
@@ -496,8 +458,6 @@ final class Column implements ArrayCapableInterface, MetaCapableInterface, DiffC
 
 	/**
 	 * Sets the column type.
-	 *
-	 * @param TypeInterface $type
 	 *
 	 * @return $this
 	 */
@@ -514,8 +474,6 @@ final class Column implements ArrayCapableInterface, MetaCapableInterface, DiffC
 
 	/**
 	 * Gets column prefix.
-	 *
-	 * @return string
 	 */
 	public function getPrefix(): string
 	{
@@ -524,8 +482,6 @@ final class Column implements ArrayCapableInterface, MetaCapableInterface, DiffC
 
 	/**
 	 * Sets the column prefix.
-	 *
-	 * @param string $prefix
 	 *
 	 * @return $this
 	 */
@@ -677,8 +633,6 @@ final class Column implements ArrayCapableInterface, MetaCapableInterface, DiffC
 
 	/**
 	 * Gets column full name.
-	 *
-	 * @return string
 	 */
 	public function getFullName(): string
 	{

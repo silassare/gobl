@@ -40,33 +40,23 @@ abstract class ORMResults implements PaginationAwareListInterface, Countable, It
 {
 	use ArrayCapableTrait;
 
-	/** @var RDBMSInterface */
 	protected RDBMSInterface $db;
 
-	/** @var Table */
 	protected Table $table;
 
-	/** @var QBSelect */
 	protected QBSelect $query;
 
-	/** @var int */
 	protected int $index = 0;
 
-	/** @var null|int */
 	protected ?int $limited_count_cache = null;
 
-	/** @var null|int */
 	protected ?int $total_count_cache = null;
 
-	/** @var bool */
 	protected bool $trust_row_count = true;
 
-	/** @var null|PDOStatement */
 	protected ?PDOStatement $statement = null;
 
 	/**
-	 * @var null|ORMEntity
-	 *
 	 * @psalm-var null|TEntity
 	 */
 	protected ?ORMEntity $current = null;
@@ -101,8 +91,6 @@ abstract class ORMResults implements PaginationAwareListInterface, Countable, It
 
 	/**
 	 * Help var_dump().
-	 *
-	 * @return array
 	 */
 	public function __debugInfo(): array
 	{
@@ -113,8 +101,6 @@ abstract class ORMResults implements PaginationAwareListInterface, Countable, It
 	 * Returns new instance.
 	 *
 	 * @param QBSelect $query the select query builder instance
-	 *
-	 * @return static
 	 */
 	abstract public static function new(QBSelect $query): static;
 
@@ -196,10 +182,6 @@ abstract class ORMResults implements PaginationAwareListInterface, Countable, It
 	 *
 	 * The db type to php type conversion will be applied to fetched result
 	 * only if the fetch style style options contains `\PDO::FETCH_ASSOC`
-	 *
-	 * @param int $fetch_style
-	 *
-	 * @return mixed
 	 */
 	public function fetch(int $fetch_style = PDO::FETCH_ASSOC): mixed
 	{
@@ -238,9 +220,6 @@ abstract class ORMResults implements PaginationAwareListInterface, Countable, It
 		return $out;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getItems(bool $strict = true): iterable
 	{
@@ -304,8 +283,6 @@ abstract class ORMResults implements PaginationAwareListInterface, Countable, It
 	 *
 	 * @param null|WithPaginationInterface $options the pagination options; when null, a default non-cursor-based context is used
 	 * @param bool                         $force   whether to force a refresh of the total count
-	 *
-	 * @return int
 	 */
 	#[Override]
 	public function getTotal(?WithPaginationInterface $options = null, bool $force = false): int
@@ -342,10 +319,6 @@ abstract class ORMResults implements PaginationAwareListInterface, Countable, It
 	 *
 	 * The db type to php type conversion will be applied to fetched result
 	 * only if `$fetch_style` options contains `\PDO::FETCH_ASSOC`
-	 *
-	 * @param int $fetch_style
-	 *
-	 * @return array
 	 */
 	public function fetchAll(int $fetch_style = PDO::FETCH_ASSOC): array
 	{
@@ -453,8 +426,6 @@ abstract class ORMResults implements PaginationAwareListInterface, Countable, It
 
 	/**
 	 * Returns the underlying QBSelect instance.
-	 *
-	 * @return QBSelect
 	 */
 	public function getSelect(): QBSelect
 	{
@@ -490,9 +461,6 @@ abstract class ORMResults implements PaginationAwareListInterface, Countable, It
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function toArray(): array
 	{
@@ -507,8 +475,6 @@ abstract class ORMResults implements PaginationAwareListInterface, Countable, It
 	 * modifying the QB between calls, though this is generally not recommended).
 	 *
 	 * @param bool $force re-execute even when a cached statement already exists
-	 *
-	 * @return PDOStatement
 	 */
 	protected function getStatement(bool $force = false): PDOStatement
 	{

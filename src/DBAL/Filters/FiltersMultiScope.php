@@ -66,8 +66,6 @@ final class FiltersMultiScope implements FiltersScopeInterface
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws DBALRuntimeException when the column is found but blocked by private/sensitive
 	 *                              rules, or when a bare column name is not found in any registered table
 	 */

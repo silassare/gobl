@@ -23,7 +23,6 @@ use PHPUtils\Exceptions\RuntimeException;
  */
 final class ForeignKey extends Constraint
 {
-	/** @var Table */
 	private Table $reference_table;
 
 	private ForeignKeyAction $update_action = ForeignKeyAction::NO_ACTION;
@@ -73,8 +72,6 @@ final class ForeignKey extends Constraint
 
 	/**
 	 * Gets the foreign keys reference table.
-	 *
-	 * @return Table
 	 */
 	public function getReferenceTable(): Table
 	{
@@ -83,8 +80,6 @@ final class ForeignKey extends Constraint
 
 	/**
 	 * Gets on update action.
-	 *
-	 * @return ForeignKeyAction
 	 */
 	public function getUpdateAction(): ForeignKeyAction
 	{
@@ -93,8 +88,6 @@ final class ForeignKey extends Constraint
 
 	/**
 	 * Gets on delete action.
-	 *
-	 * @return ForeignKeyAction
 	 */
 	public function getDeleteAction(): ForeignKeyAction
 	{
@@ -115,8 +108,6 @@ final class ForeignKey extends Constraint
 
 	/**
 	 * Sets on update action.
-	 *
-	 * @param ForeignKeyAction $action
 	 *
 	 * @return $this
 	 *
@@ -193,8 +184,6 @@ final class ForeignKey extends Constraint
 
 	/**
 	 * Sets on delete action.
-	 *
-	 * @param ForeignKeyAction $action
 	 *
 	 * @return $this
 	 *
@@ -278,8 +267,6 @@ final class ForeignKey extends Constraint
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws RuntimeException
 	 */
 	#[Override]

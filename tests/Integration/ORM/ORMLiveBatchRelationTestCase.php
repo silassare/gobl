@@ -640,10 +640,6 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 	/**
 	 * Builds a DROP TABLE SQL string for all batch-relation test tables in reverse FK order.
 	 * Syntax is adjusted per driver type.
-	 *
-	 * @param RDBMSInterface $db
-	 *
-	 * @return string
 	 */
 	protected static function buildDropAllSql(RDBMSInterface $db): string
 	{
@@ -697,8 +693,6 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 	 * Inserts the shared fixture data into the live database.
 	 *
 	 * All tests in this class are read-only and share these entities.
-	 *
-	 * @param RDBMSInterface $db
 	 */
 	private static function insertFixture(RDBMSInterface $db): void
 	{

@@ -54,8 +54,6 @@ final class Helpers
 	/**
 	 * Assert if relatives can be retrieved using the expected target table and host entities.
 	 *
-	 * @param Table           $expected_target_table
-	 * @param Relation        $relation
 	 * @param list<ORMEntity> $host_entities
 	 *
 	 * @internal

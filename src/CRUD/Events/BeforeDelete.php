@@ -28,9 +28,6 @@ final class BeforeDelete extends CRUDAction
 
 	/**
 	 * BeforeDelete constructor.
-	 *
-	 * @param Table         $table
-	 * @param ORMTableQuery $filters
 	 */
 	public function __construct(Table $table, ORMTableQuery $filters)
 	{

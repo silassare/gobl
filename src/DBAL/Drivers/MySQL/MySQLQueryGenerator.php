@@ -46,9 +46,6 @@ final class MySQLQueryGenerator extends SQLQueryGeneratorBase
 
 	/**
 	 * MySQLQueryGenerator constructor.
-	 *
-	 * @param RDBMSInterface $db
-	 * @param DbConfig       $config
 	 */
 	public function __construct(RDBMSInterface $db, DbConfig $config)
 	{
@@ -95,8 +92,6 @@ SQL;
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws DBALException
 	 */
 	#[Override]

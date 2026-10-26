@@ -44,8 +44,6 @@ final class QueriesLogger
 
 	/**
 	 * Creates a new instance of {@see QueriesLogger}.
-	 *
-	 * @return self
 	 */
 	public static function get(): self
 	{
@@ -54,10 +52,6 @@ final class QueriesLogger
 
 	/**
 	 * Enables or disables the logger.
-	 *
-	 * @param bool $enabled
-	 *
-	 * @return static
 	 */
 	public function enable(bool $enabled = true): static
 	{
@@ -69,8 +63,6 @@ final class QueriesLogger
 
 	/**
 	 * Checks if the logger is enabled.
-	 *
-	 * @return bool
 	 */
 	public function isEnabled(): bool
 	{
@@ -98,8 +90,6 @@ final class QueriesLogger
 
 	/**
 	 * Resets the logger.
-	 *
-	 * @return static
 	 */
 	public function reset(): static
 	{
@@ -110,10 +100,6 @@ final class QueriesLogger
 
 	/**
 	 * Marks the start of a query.
-	 *
-	 * @param string     $query
-	 * @param null|array $params
-	 * @param null|array $params_types
 	 *
 	 * @return Closure('end'|'executed'|'fetched' $step): QueriesLogger A closure to mark the end of the query or a specific step (prepared, fetched)
 	 */
@@ -137,10 +123,7 @@ final class QueriesLogger
 	/**
 	 * Updates a query log entry with a specific step.
 	 *
-	 * @param int                        $index
 	 * @param 'end'|'executed'|'fetched' $step
-	 *
-	 * @return static
 	 */
 	private function update(int $index, string $step = 'end'): static
 	{

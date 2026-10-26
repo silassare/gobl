@@ -33,8 +33,6 @@ final class BeforeSensitiveColumnWrite extends CRUDAction
 
 	/**
 	 * Returns the column that is being written.
-	 *
-	 * @return Column
 	 */
 	public function getColumn(): Column
 	{

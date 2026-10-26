@@ -26,9 +26,6 @@ use Gobl\DBAL\Drivers\SQLite\SQLite;
  */
 final class JsonPatchUpdateSQLiteTest extends JsonPatchUpdateTestCase
 {
-	/**
-	 * {@inheritDoc}
-	 */
 	protected static function getDriverName(): string
 	{
 		return SQLite::NAME;

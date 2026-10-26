@@ -56,8 +56,6 @@ final class ORMTypeHint
 	/**
 	 * Adds a universal type.
 	 *
-	 * @param ORMUniversalType ...$types
-	 *
 	 * @return $this
 	 */
 	public function addUniversalTypes(ORMUniversalType ...$types): static
@@ -73,11 +71,6 @@ final class ORMTypeHint
 
 	/**
 	 * Returns the type hint for the given operator right operand.
-	 *
-	 * @param TypeInterface $type
-	 * @param Operator      $operator
-	 *
-	 * @return ORMTypeHint
 	 *
 	 * @internal
 	 */
@@ -95,8 +88,6 @@ final class ORMTypeHint
 
 	/**
 	 * Creates string type hint instance.
-	 *
-	 * @return self
 	 */
 	public static function string(): self
 	{
@@ -105,8 +96,6 @@ final class ORMTypeHint
 
 	/**
 	 * Creates null type hint instance.
-	 *
-	 * @return self
 	 */
 	public static function null(): self
 	{
@@ -117,8 +106,6 @@ final class ORMTypeHint
 	 * Creates list type hint instance.
 	 *
 	 * @param null|ORMUniversalType $of element type for the list (defaults to UNKNOWN)
-	 *
-	 * @return self
 	 */
 	public static function list(?ORMUniversalType $of = null): self
 	{
@@ -130,8 +117,6 @@ final class ORMTypeHint
 
 	/**
 	 * Creates boolean type hint instance.
-	 *
-	 * @return self
 	 */
 	public static function bool(): self
 	{
@@ -140,8 +125,6 @@ final class ORMTypeHint
 
 	/**
 	 * Creates integer type hint instance.
-	 *
-	 * @return self
 	 */
 	public static function int(): self
 	{
@@ -150,8 +133,6 @@ final class ORMTypeHint
 
 	/**
 	 * Creates float type hint instance.
-	 *
-	 * @return self
 	 */
 	public static function float(): self
 	{
@@ -160,8 +141,6 @@ final class ORMTypeHint
 
 	/**
 	 * Creates any type hint instance (permissive, disables type checking).
-	 *
-	 * @return self
 	 */
 	public static function any(): self
 	{
@@ -170,8 +149,6 @@ final class ORMTypeHint
 
 	/**
 	 * Creates unknown type hint instance (safe unknown, forces narrowing in TS).
-	 *
-	 * @return self
 	 */
 	public static function unknown(): self
 	{
@@ -180,8 +157,6 @@ final class ORMTypeHint
 
 	/**
 	 * Creates decimal type hint instance.
-	 *
-	 * @return self
 	 */
 	public static function decimal(): self
 	{
@@ -190,8 +165,6 @@ final class ORMTypeHint
 
 	/**
 	 * Creates bigint type hint instance.
-	 *
-	 * @return self
 	 */
 	public static function bigint(): self
 	{
@@ -202,8 +175,6 @@ final class ORMTypeHint
 	 * Creates map type hint instance.
 	 *
 	 * @param null|ORMUniversalType $of value type for the map (defaults to UNKNOWN)
-	 *
-	 * @return self
 	 */
 	public static function map(?ORMUniversalType $of = null): self
 	{
@@ -215,8 +186,6 @@ final class ORMTypeHint
 
 	/**
 	 * Gets the universal type for the list element when this hint carries LIST.
-	 *
-	 * @return ORMUniversalType
 	 */
 	public function getListOfUniversalType(): ORMUniversalType
 	{
@@ -225,8 +194,6 @@ final class ORMTypeHint
 
 	/**
 	 * Gets the universal type for the map value when this hint carries MAP.
-	 *
-	 * @return ORMUniversalType
 	 */
 	public function getMapOfUniversalType(): ORMUniversalType
 	{
@@ -285,8 +252,6 @@ final class ORMTypeHint
 
 	/**
 	 * Gets the PHP type.
-	 *
-	 * @return null|PHPType
 	 */
 	public function getPHPType(): ?PHPType
 	{
@@ -295,8 +260,6 @@ final class ORMTypeHint
 
 	/**
 	 * Sets the PHP type.
-	 *
-	 * @param null|PHPType $php_type
 	 *
 	 * @return $this
 	 */

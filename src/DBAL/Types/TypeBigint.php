@@ -73,11 +73,6 @@ final class TypeBigint extends BaseType
 	/**
 	 * Sets min value.
 	 *
-	 * @param int|string  $min
-	 * @param null|string $message
-	 *
-	 * @return static
-	 *
 	 * @throws TypesException
 	 */
 	public function min(int|string $min, ?string $message = null): static
@@ -98,11 +93,6 @@ final class TypeBigint extends BaseType
 	/**
 	 * Sets max value.
 	 *
-	 * @param int|string  $max
-	 * @param null|string $message
-	 *
-	 * @return static
-	 *
 	 * @throws TypesException
 	 */
 	public function max(int|string $max, ?string $message = null): static
@@ -122,11 +112,6 @@ final class TypeBigint extends BaseType
 
 	/**
 	 * Sets as unsigned.
-	 *
-	 * @param bool        $unsigned
-	 * @param null|string $message
-	 *
-	 * @return static
 	 */
 	public function unsigned(bool $unsigned = true, ?string $message = null): static
 	{
@@ -137,8 +122,6 @@ final class TypeBigint extends BaseType
 
 	/**
 	 * Checks if this is unsigned.
-	 *
-	 * @return bool
 	 */
 	public function isUnsigned(): bool
 	{
@@ -152,8 +135,6 @@ final class TypeBigint extends BaseType
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws TypesException
 	 */
 	#[Override]
@@ -206,8 +187,6 @@ final class TypeBigint extends BaseType
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws TypesException
 	 */
 	#[Override]
@@ -223,8 +202,6 @@ final class TypeBigint extends BaseType
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws TypesInvalidValueException
 	 */
 	#[Override]
@@ -295,9 +272,6 @@ final class TypeBigint extends BaseType
 
 	/**
 	 * Checks if a given value is a valid bigint.
-	 *
-	 * @param mixed $value
-	 * @param bool  $unsigned
 	 *
 	 * @throws TypesException
 	 */

@@ -26,9 +26,6 @@ use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
  */
 final class JsonPatchUpdatePostgreSQLTest extends JsonPatchUpdateTestCase
 {
-	/**
-	 * {@inheritDoc}
-	 */
 	protected static function getDriverName(): string
 	{
 		return PostgreSQL::NAME;

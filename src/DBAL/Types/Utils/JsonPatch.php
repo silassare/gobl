@@ -94,8 +94,6 @@ final class JsonPatch
 	 *
 	 * @param string                                            $path  dot-notation path (e.g. `'user.name'`, `'tags.0'`)
 	 * @param null|array|bool|float|int|JsonSerializable|string $value the value to store
-	 *
-	 * @return static
 	 */
 	public function set(string $path, array|bool|float|int|JsonSerializable|string|null $value): static
 	{
@@ -108,10 +106,7 @@ final class JsonPatch
 	 * For a caller that has the segments already, and for a key a path string cannot hold: one with
 	 * a dot or a bracket in it is a single segment here, where `set()` would read it as a path.
 	 *
-	 * @param list<string>                                      $segments
-	 * @param null|array|bool|float|int|JsonSerializable|string $value
-	 *
-	 * @return static
+	 * @param list<string> $segments
 	 */
 	public function setAt(array $segments, array|bool|float|int|JsonSerializable|string|null $value): static
 	{
@@ -130,8 +125,6 @@ final class JsonPatch
 	 * Silently does nothing when the path or any intermediate key does not exist.
 	 *
 	 * @param string $path dot-notation path (e.g. `'temp'`, `'meta.cache_key'`)
-	 *
-	 * @return static
 	 */
 	public function remove(string $path): static
 	{
@@ -144,8 +137,6 @@ final class JsonPatch
 	 * The counterpart of {@see self::setAt()}.
 	 *
 	 * @param list<string> $segments
-	 *
-	 * @return static
 	 */
 	public function removeAt(array $segments): static
 	{
@@ -181,10 +172,6 @@ final class JsonPatch
 	 *
 	 * How successive patches of one column become one patch: the operations are what the UPDATE
 	 * sends, so dropping the earlier ones would leave their paths unwritten.
-	 *
-	 * @param JsonPatch $other
-	 *
-	 * @return static
 	 */
 	public function append(self $other): static
 	{
@@ -203,8 +190,6 @@ final class JsonPatch
 
 	/**
 	 * Returns the patched data as a plain PHP array.
-	 *
-	 * @return array
 	 */
 	public function toArray(): array
 	{
@@ -213,8 +198,6 @@ final class JsonPatch
 
 	/**
 	 * Returns the patched data as a {@see Map} instance.
-	 *
-	 * @return Map
 	 */
 	public function toMap(): Map
 	{
@@ -248,8 +231,6 @@ final class JsonPatch
 	 * Empty segments (e.g. from consecutive dots `a..b`) throw an exception.
 	 * Plain segments must be [a-zA-Z0-9_]+ only; anything else requires bracket notation.
 	 *
-	 * @param string $path
-	 *
 	 * @return list<string>
 	 */
 	private static function parsePath(string $path): array
@@ -260,9 +241,7 @@ final class JsonPatch
 	/**
 	 * Recursively navigates to the target location and sets the value.
 	 *
-	 * @param array    $data
 	 * @param string[] $keys
-	 * @param mixed    $value
 	 */
 	private static function doSet(array &$data, array $keys, mixed $value): void
 	{
@@ -282,7 +261,6 @@ final class JsonPatch
 	/**
 	 * Recursively navigates to the target location and unsets the key.
 	 *
-	 * @param array    $data
 	 * @param string[] $keys
 	 */
 	private static function doRemove(array &$data, array $keys): void

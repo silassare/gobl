@@ -55,8 +55,6 @@ trait QBBindTrait
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws DBALException
 	 */
 	public function bindNamed(string $name, mixed $value, ?int $type = null): static
@@ -67,8 +65,6 @@ trait QBBindTrait
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws DBALException
 	 */
 	public function bindPositional(int $offset, mixed $value, ?int $type = null): static
@@ -88,8 +84,6 @@ trait QBBindTrait
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws DBALException
 	 */
 	public function bindArrayForInList(array $list, array $types = [], bool $return_placeholders = false): array

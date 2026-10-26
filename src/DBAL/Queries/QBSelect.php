@@ -46,8 +46,6 @@ final class QBSelect implements QBInterface
 
 	/**
 	 * QBSelect constructor.
-	 *
-	 * @param RDBMSInterface $db
 	 */
 	public function __construct(protected RDBMSInterface $db) {}
 
@@ -62,8 +60,6 @@ final class QBSelect implements QBInterface
 	 *
 	 * Each entry is a pre-qualified SQL column expression such as `u.user_id`,
 	 * `u.user_id as uid`, or `u.*`.
-	 *
-	 * @return array
 	 */
 	public function getOptionsSelect(): array
 	{
@@ -82,8 +78,6 @@ final class QBSelect implements QBInterface
 	 *
 	 * @param bool $preserve_limit `false` strips pagination (default use-case for total count);
 	 *                             `true` keeps the current LIMIT/OFFSET in the count query
-	 *
-	 * @return int
 	 */
 	public function runTotalRowsCount(bool $preserve_limit): int
 	{
@@ -107,11 +101,6 @@ final class QBSelect implements QBInterface
 		return $req->fetchColumn();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @return PDOStatement
-	 */
 	#[Override]
 	public function execute(): PDOStatement
 	{
@@ -133,8 +122,6 @@ final class QBSelect implements QBInterface
 	 * @param bool              $auto_prefix         when `true` (default), bare column names are
 	 *                                               prefixed with the resolved table alias;
 	 *                                               when `false`, the raw table name is used as prefix
-	 *
-	 * @return static
 	 */
 	public function select(string|Table|null $table_name_or_alias = null, array $columns = [], bool $auto_prefix = true): static
 	{
@@ -196,8 +183,6 @@ final class QBSelect implements QBInterface
 	 *
 	 * @param string $var_name   logical name, without the `_gobl_` prefix
 	 * @param string $expression raw SQL expression (e.g. a fully-qualified column reference such as `_a1_.pivot_fk`)
-	 *
-	 * @return static
 	 */
 	public function selectComputed(string $var_name, string $expression): static
 	{

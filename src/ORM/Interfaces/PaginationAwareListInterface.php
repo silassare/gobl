@@ -36,8 +36,6 @@ interface PaginationAwareListInterface extends ArrayCapableInterface
 	/**
 	 * Returns items with cursor metadata.
 	 *
-	 * @param WithPaginationInterface $options
-	 *
 	 * @return array{items: T[], next_cursor: null|int|string, cursor_column: null|string, has_more: bool}
 	 */
 	public function getItemsWithCursorMeta(WithPaginationInterface $options, bool $strict = true): array;

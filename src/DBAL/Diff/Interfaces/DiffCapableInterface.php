@@ -20,17 +20,11 @@ interface DiffCapableInterface
 {
 	/**
 	 * Returns the diff key used to track changes.
-	 *
-	 * @return string
 	 */
 	public function getDiffKey(): string;
 
 	/**
 	 * Sets a diff key used to track changes.
-	 *
-	 * @param string $diff_key
-	 *
-	 * @return static
 	 */
 	public function setDiffKey(string $diff_key): static;
 }

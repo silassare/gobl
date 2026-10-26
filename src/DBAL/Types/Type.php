@@ -415,8 +415,6 @@ abstract class Type implements TypeInterface
 	 *
 	 * @param string|TypeValidatorInterface $validator a validator instance or its FQCN
 	 *
-	 * @return static
-	 *
 	 * @throws TypesException when a FQCN is given that does not implement TypeValidatorInterface
 	 */
 	public function preValidator(string|TypeValidatorInterface $validator): static
@@ -446,8 +444,6 @@ abstract class Type implements TypeInterface
 	 * Attaches a post-validator to run after this type's own {@see runValidation()}.
 	 *
 	 * @param string|TypeValidatorInterface $validator a validator instance or its FQCN
-	 *
-	 * @return static
 	 *
 	 * @throws TypesException when a FQCN is given that does not implement TypeValidatorInterface
 	 */
@@ -581,11 +577,6 @@ abstract class Type implements TypeInterface
 	/**
 	 * Checks if min & max value are in a given int range.
 	 *
-	 * @param mixed $min
-	 * @param mixed $max
-	 * @param int   $range_min
-	 * @param int   $range_max
-	 *
 	 * @throws TypesException
 	 */
 	final protected static function assertSafeIntRange(
@@ -623,12 +614,6 @@ abstract class Type implements TypeInterface
 	 * `sprintf('%F', ...)` first, which turns a value into a float and keeps six places: a bigint max of
 	 * `9007199254740992` then accepted `9007199254740993`, and a decimal min of `0.0000005` accepted
 	 * `0.0000001`.
-	 *
-	 * @param bool  $or_equal
-	 * @param mixed $a
-	 * @param mixed $b
-	 *
-	 * @return bool
 	 */
 	final protected static function isLt(mixed $a, mixed $b, bool $or_equal): bool
 	{
@@ -649,8 +634,6 @@ abstract class Type implements TypeInterface
 	 *
 	 * @param string      $key     the error key
 	 * @param null|string $message the error message
-	 *
-	 * @return string
 	 */
 	protected function msg(string $key, ?string $message = null): string
 	{
@@ -691,10 +674,6 @@ abstract class Type implements TypeInterface
 	 *
 	 * `null` when the value is not a number, or when its exponent is so large that writing it out would
 	 * cost more than it is worth: the caller then compares natively, which orders it correctly anyway.
-	 *
-	 * @param mixed $value
-	 *
-	 * @return null|string
 	 */
 	private static function toExactDecimal(mixed $value): ?string
 	{
@@ -754,10 +733,6 @@ abstract class Type implements TypeInterface
 
 	/**
 	 * The number of places after the point of an exact decimal string.
-	 *
-	 * @param string $decimal
-	 *
-	 * @return int
 	 */
 	private static function decimalPlaces(string $decimal): int
 	{

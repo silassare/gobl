@@ -36,8 +36,6 @@ interface VirtualRelationInterface extends RelationInterface
 	 *
 	 * This is useful for ORM generated getters/setters.
 	 * And for generated API documentation.
-	 *
-	 * @return Table|TypeInterface
 	 */
 	public function getRelativeType(): Table|TypeInterface;
 }

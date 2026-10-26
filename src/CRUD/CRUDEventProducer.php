@@ -53,9 +53,6 @@ class CRUDEventProducer
 
 	/**
 	 * CRUDEventProducer constructor.
-	 *
-	 * @param string $namespace
-	 * @param string $table_name
 	 */
 	public function __construct(string $namespace, string $table_name)
 	{
@@ -67,10 +64,6 @@ class CRUDEventProducer
 
 	/**
 	 * Register a listener for an event.
-	 *
-	 * @param CRUDEventListenerInterface $listener
-	 *
-	 * @return static
 	 */
 	public function listen(CRUDEventListenerInterface $listener): static
 	{
@@ -342,7 +335,6 @@ class CRUDEventProducer
 	 * Register a listener for an event.
 	 *
 	 * @param class-string<EventInterface> $event
-	 * @param callable                     $listener
 	 */
 	protected function addListener(string $event, callable $listener): void
 	{

@@ -22,8 +22,6 @@ trait QBGroupByTrait
 
 	/**
 	 * Returns the raw GROUP BY expression list accumulated by {@see groupBy()} calls.
-	 *
-	 * @return array
 	 */
 	public function getOptionsGroupBy(): array
 	{
@@ -37,8 +35,6 @@ trait QBGroupByTrait
 	 * (e.g. a column reference like `u.user_type`). Empty strings are silently skipped.
 	 *
 	 * @param array $group_by list of SQL GROUP BY expressions
-	 *
-	 * @return static
 	 */
 	public function groupBy(array $group_by): static
 	{

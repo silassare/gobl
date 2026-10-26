@@ -28,9 +28,6 @@ final class ForeignKeyConstraintDeleted extends DiffAction
 		parent::__construct(DiffActionType::FOREIGN_KEY_CONSTRAINT_DELETED, $reason);
 	}
 
-	/**
-	 * @return ForeignKey
-	 */
 	public function getConstraint(): ForeignKey
 	{
 		return $this->constraint;

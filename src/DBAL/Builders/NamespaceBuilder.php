@@ -53,8 +53,6 @@ final class NamespaceBuilder
 	 * @param string                           $name    the table name (without prefix)
 	 * @param null|callable(TableBuilder):void $factory optional inline factory for declaring columns/relations
 	 *
-	 * @return TableBuilder
-	 *
 	 * @throws DBALRuntimeException when the table exists in a different namespace
 	 */
 	public function table(string $name, ?callable $factory = null): TableBuilder
@@ -91,8 +89,6 @@ final class NamespaceBuilder
 
 	/**
 	 * Loads a schema to this namespace.
-	 *
-	 * @param array $schema
 	 *
 	 * @return $this
 	 */

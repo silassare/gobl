@@ -31,10 +31,6 @@ final class BeforeRead extends CRUDAction
 
 	/**
 	 * BeforeRead constructor.
-	 *
-	 * @param Table         $table
-	 * @param ORMTableQuery $filters
-	 * @param null|Relation $relation
 	 */
 	public function __construct(Table $table, ORMTableQuery $filters, ?Relation $relation = null)
 	{

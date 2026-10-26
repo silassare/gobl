@@ -30,7 +30,6 @@ final class MigrationSchema
 	/**
 	 * Throws when the data holds anything but null, scalars and arrays of them.
 	 *
-	 * @param array  $data
 	 * @param string $path where the data is, for the message
 	 */
 	public static function assertPureData(array $data, string $path = 'schema'): void

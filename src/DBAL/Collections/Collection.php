@@ -29,15 +29,10 @@ abstract class Collection
 
 	public const string NAME_REG = '~^' . self::NAME_PATTERN . '$~';
 
-	/**
-	 * @var string
-	 */
 	protected string $name;
 
 	/**
 	 * Collection constructor.
-	 *
-	 * @param string $name
 	 */
 	public function __construct(string $name)
 	{
@@ -54,8 +49,6 @@ abstract class Collection
 
 	/**
 	 * Gets collection name.
-	 *
-	 * @return string
 	 */
 	public function getName(): string
 	{
@@ -64,8 +57,6 @@ abstract class Collection
 
 	/**
 	 * Returns the collection items.
-	 *
-	 * @param ORMOptionsInterface $options
 	 *
 	 * @return ORMResults<TEntity>
 	 */

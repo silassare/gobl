@@ -29,11 +29,6 @@ trait FiltersOperatorsHelpersTrait
 	 * Adds an equals condition.
 	 *
 	 * When `$right` is `null`, automatically promotes to `IS NULL` instead of `= NULL`.
-	 *
-	 * @param string                                           $left
-	 * @param null|bool|float|int|QBExpression|QBSelect|string $right
-	 *
-	 * @return static
 	 */
 	public function eq(string $left, bool|float|int|QBExpression|QBSelect|string|null $right): static
 	{
@@ -48,11 +43,6 @@ trait FiltersOperatorsHelpersTrait
 	 * Adds a not-equals condition.
 	 *
 	 * When `$right` is `null`, automatically promotes to `IS NOT NULL` instead of `<> NULL`.
-	 *
-	 * @param string                                           $left
-	 * @param null|bool|float|int|QBExpression|QBSelect|string $right
-	 *
-	 * @return static
 	 */
 	public function neq(string $left, bool|float|int|QBExpression|QBSelect|string|null $right): static
 	{
@@ -65,11 +55,6 @@ trait FiltersOperatorsHelpersTrait
 
 	/**
 	 * Adds like condition.
-	 *
-	 * @param string $left
-	 * @param string $right
-	 *
-	 * @return static
 	 */
 	public function like(string $left, string $right): static
 	{
@@ -78,11 +63,6 @@ trait FiltersOperatorsHelpersTrait
 
 	/**
 	 * Adds not like condition.
-	 *
-	 * @param string $left
-	 * @param string $right
-	 *
-	 * @return static
 	 */
 	public function notLike(string $left, string $right): static
 	{
@@ -91,11 +71,6 @@ trait FiltersOperatorsHelpersTrait
 
 	/**
 	 * Adds less than condition.
-	 *
-	 * @param string                                 $left
-	 * @param float|int|QBExpression|QBSelect|string $right
-	 *
-	 * @return static
 	 */
 	public function lt(string $left, float|int|QBExpression|QBSelect|string $right): static
 	{
@@ -104,11 +79,6 @@ trait FiltersOperatorsHelpersTrait
 
 	/**
 	 * Adds less than or equal condition.
-	 *
-	 * @param string                                 $left
-	 * @param float|int|QBExpression|QBSelect|string $right
-	 *
-	 * @return static
 	 */
 	public function lte(string $left, float|int|QBExpression|QBSelect|string $right): static
 	{
@@ -117,11 +87,6 @@ trait FiltersOperatorsHelpersTrait
 
 	/**
 	 * Adds greater than condition.
-	 *
-	 * @param string                                 $left
-	 * @param float|int|QBExpression|QBSelect|string $right
-	 *
-	 * @return static
 	 */
 	public function gt(string $left, float|int|QBExpression|QBSelect|string $right): static
 	{
@@ -130,11 +95,6 @@ trait FiltersOperatorsHelpersTrait
 
 	/**
 	 * Adds greater than or equal condition.
-	 *
-	 * @param string                                 $left
-	 * @param float|int|QBExpression|QBSelect|string $right
-	 *
-	 * @return static
 	 */
 	public function gte(string $left, float|int|QBExpression|QBSelect|string $right): static
 	{
@@ -143,10 +103,6 @@ trait FiltersOperatorsHelpersTrait
 
 	/**
 	 * Adds IS NULL condition.
-	 *
-	 * @param string $left
-	 *
-	 * @return static
 	 */
 	public function isNull(string $left): static
 	{
@@ -155,10 +111,6 @@ trait FiltersOperatorsHelpersTrait
 
 	/**
 	 * Adds IS NOT NULL condition.
-	 *
-	 * @param string $left
-	 *
-	 * @return static
 	 */
 	public function isNotNull(string $left): static
 	{
@@ -167,11 +119,6 @@ trait FiltersOperatorsHelpersTrait
 
 	/**
 	 * Adds IN list condition.
-	 *
-	 * @param string                      $left
-	 * @param array|QBExpression|QBSelect $right
-	 *
-	 * @return static
 	 *
 	 * @throws DBALException
 	 */
@@ -191,11 +138,6 @@ trait FiltersOperatorsHelpersTrait
 	/**
 	 * Adds NOT IN list condition.
 	 *
-	 * @param string                      $left
-	 * @param array|QBExpression|QBSelect $right
-	 *
-	 * @return static
-	 *
 	 * @throws DBALException
 	 */
 	public function notIn(string $left, array|QBExpression|QBSelect $right): static
@@ -213,10 +155,6 @@ trait FiltersOperatorsHelpersTrait
 
 	/**
 	 * Adds IS TRUE condition.
-	 *
-	 * @param string $left
-	 *
-	 * @return static
 	 */
 	public function isTrue(string $left): static
 	{
@@ -225,10 +163,6 @@ trait FiltersOperatorsHelpersTrait
 
 	/**
 	 * Adds IS FALSE condition.
-	 *
-	 * @param string $left
-	 *
-	 * @return static
 	 */
 	public function isFalse(string $left): static
 	{
@@ -250,8 +184,6 @@ trait FiltersOperatorsHelpersTrait
 	 *
 	 * @param string                                       $left  Column or JSON expression (e.g. `t.data`)
 	 * @param null|array|float|int|JsonSerializable|string $right Value to check containment of
-	 *
-	 * @return static
 	 */
 	public function contains(string $left, array|float|int|JsonSerializable|string|null $right): static
 	{
@@ -271,8 +203,6 @@ trait FiltersOperatorsHelpersTrait
 	 *
 	 * @param string                                       $left_with_path Column+path in `table.column#path.to.key` notation (e.g. `accounts.data#user.tags`)
 	 * @param null|array|float|int|JsonSerializable|string $value          Value to check containment of; arrays and \JsonSerializable are auto-serialized to JSON
-	 *
-	 * @return static
 	 */
 	public function containsAtPath(string $left_with_path, array|float|int|JsonSerializable|string|null $value): static
 	{
@@ -294,8 +224,6 @@ trait FiltersOperatorsHelpersTrait
 	 *
 	 * @param string $left The column or JSON expression (e.g. `t.data`)
 	 * @param string $key  The top-level key name to check
-	 *
-	 * @return static
 	 */
 	public function hasKey(string $left, string $key): static
 	{

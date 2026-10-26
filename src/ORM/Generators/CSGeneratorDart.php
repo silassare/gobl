@@ -24,14 +24,9 @@ use Override;
  */
 final class CSGeneratorDart extends CSGenerator
 {
-	/**
-	 * @var bool
-	 */
 	protected static bool $templates_registered = false;
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws Exception
 	 */
 	#[Override]

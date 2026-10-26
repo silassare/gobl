@@ -47,8 +47,6 @@ final class LinkMorphBuilder extends LinkBuilder
 	 * When omitted, the engine defaults to the parent table's full name.
 	 *
 	 * @param string $type parent-type discriminator value stored in the child-type column
-	 *
-	 * @return static
 	 */
 	public function parentType(string $type): static
 	{
@@ -63,8 +61,6 @@ final class LinkMorphBuilder extends LinkBuilder
 	 * When omitted, the engine auto-detects the parent table's PK column.
 	 *
 	 * @param string $column parent PK column name
-	 *
-	 * @return static
 	 */
 	public function parentKey(string $column): static
 	{

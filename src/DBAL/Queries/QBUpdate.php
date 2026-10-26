@@ -55,16 +55,9 @@ final class QBUpdate implements QBInterface
 
 	/**
 	 * QBUpdate constructor.
-	 *
-	 * @param RDBMSInterface $db
 	 */
 	public function __construct(protected RDBMSInterface $db) {}
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @return int
-	 */
 	#[Override]
 	public function execute(): int
 	{
@@ -91,8 +84,6 @@ final class QBUpdate implements QBInterface
 	 *
 	 * @param string      $table table name or full name
 	 * @param null|string $alias optional alias for the table in the generated SQL
-	 *
-	 * @return static
 	 */
 	public function update(string $table, ?string $alias = null): static
 	{
@@ -109,8 +100,6 @@ final class QBUpdate implements QBInterface
 
 	/**
 	 * Gets the table to update alias.
-	 *
-	 * @return null|string
 	 */
 	public function getOptionsUpdateTableAlias(): ?string
 	{
@@ -119,8 +108,6 @@ final class QBUpdate implements QBInterface
 
 	/**
 	 * Gets the table to update.
-	 *
-	 * @return null|string
 	 */
 	public function getOptionsTable(): ?string
 	{
@@ -143,8 +130,6 @@ final class QBUpdate implements QBInterface
 	 * MySQL does not support RETURNING; calling this method on a MySQL connection will throw at query-generation time.
 	 *
 	 * @param string|string[] $columns Column names, or `'*'` for all columns. Defaults to `['*']`.
-	 *
-	 * @return static
 	 */
 	public function returning(array|string $columns = ['*']): static
 	{
@@ -170,8 +155,6 @@ final class QBUpdate implements QBInterface
 	 * Executes the query and returns a {@see PDOStatement} for iterating the updated rows.
 	 *
 	 * Call this instead of {@see execute()} when you want to read back the affected rows via RETURNING.
-	 *
-	 * @return PDOStatement
 	 */
 	public function executeReturning(): PDOStatement
 	{
@@ -194,8 +177,6 @@ final class QBUpdate implements QBInterface
 	 * @param array $values      the column -> value map (or column -> `QBExpression` for raw SQL)
 	 * @param bool  $auto_prefix when `true`, column names are automatically prefixed with
 	 *                           the table's column prefix before binding
-	 *
-	 * @return static
 	 *
 	 * @throws LogicException when `update()` has not been called first
 	 */

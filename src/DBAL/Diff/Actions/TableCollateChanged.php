@@ -28,17 +28,11 @@ final class TableCollateChanged extends DiffAction
 		parent::__construct(DiffActionType::TABLE_COLLATE_CHANGED, $reason);
 	}
 
-	/**
-	 * @return string
-	 */
 	public function getCollate(): string
 	{
 		return $this->collate;
 	}
 
-	/**
-	 * @return Table
-	 */
 	public function getTable(): Table
 	{
 		return $this->table;

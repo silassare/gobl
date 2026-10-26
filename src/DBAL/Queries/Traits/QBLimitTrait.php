@@ -25,8 +25,6 @@ trait QBLimitTrait
 
 	/**
 	 * Returns the current LIMIT max value, or `null` when no limit is set.
-	 *
-	 * @return null|int
 	 */
 	public function getOptionsLimitMax(): ?int
 	{
@@ -35,8 +33,6 @@ trait QBLimitTrait
 
 	/**
 	 * Returns the current OFFSET value, or `null` when no limit is set.
-	 *
-	 * @return null|int
 	 */
 	public function getOptionsLimitOffset(): ?int
 	{
@@ -52,8 +48,6 @@ trait QBLimitTrait
 	 *
 	 * @param null|int $max    maximum number of rows to return; `null` leaves the current limit unchanged
 	 * @param int      $offset zero-based offset of the first row to return
-	 *
-	 * @return static
 	 *
 	 * @throws DBALRuntimeException when `$max <= 0` or `$offset < 0`
 	 */

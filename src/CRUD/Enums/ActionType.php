@@ -32,8 +32,6 @@ enum ActionType: string
 
 	/**
 	 * Gets default success message.
-	 *
-	 * @return string
 	 */
 	public function getDefaultSuccessMessage(): string
 	{
@@ -48,8 +46,6 @@ enum ActionType: string
 
 	/**
 	 * Gets default error message.
-	 *
-	 * @return string
 	 */
 	public function getDefaultErrorMessage(): string
 	{

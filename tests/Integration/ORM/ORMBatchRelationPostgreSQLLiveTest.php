@@ -32,9 +32,6 @@ use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
  */
 final class ORMBatchRelationPostgreSQLLiveTest extends ORMLiveBatchRelationTestCase
 {
-	/**
-	 * {@inheritDoc}
-	 */
 	protected static function getDriverName(): string
 	{
 		return PostgreSQL::NAME;

@@ -102,8 +102,6 @@ final class FilterFieldNotation
 
 	/**
 	 * Factory method to create an instance from a string notation.
-	 *
-	 * @return static
 	 */
 	public static function fromString(string $notation, ?QBInterface $qb = null, ?FiltersScopeInterface $scope = null): static
 	{
@@ -148,8 +146,6 @@ final class FilterFieldNotation
 	/**
 	 * Get the resolved column name for this field, or null if it cannot be resolved
 	 * (e.g. if the field is a custom name that couldn't be resolved to a real column).
-	 *
-	 * @return null|string
 	 */
 	public function getColumnName(): ?string
 	{
@@ -169,8 +165,6 @@ final class FilterFieldNotation
 	 * @param string            $table_or_alias The resolved table name or alias
 	 * @param string            $column_name    The resolved real column name corresponding to the field
 	 * @param array<int,string> $path_segments  The resolved path segments if this field includes a JSON path (useful for shortcut field: stats => tabla.data#stats)
-	 *
-	 * @return static
 	 *
 	 * @throws DBALRuntimeException if the table/alias cannot be resolved in the provided query builder context,
 	 *                              or if the column does not exist in the resolved table

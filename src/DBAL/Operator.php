@@ -72,10 +72,6 @@ enum Operator: string
 
 	/**
 	 * Gets operand filter suffix used in ORM.
-	 *
-	 * @param Column $column
-	 *
-	 * @return string
 	 */
 	public function getFilterSuffix(Column $column): string
 	{
@@ -121,8 +117,6 @@ enum Operator: string
 
 	/**
 	 * Checks if this is an unary operator.
-	 *
-	 * @return bool
 	 */
 	public function isUnary(): bool
 	{

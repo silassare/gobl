@@ -28,9 +28,6 @@ final class IndexAdded extends DiffAction
 		parent::__construct(DiffActionType::INDEX_ADDED, $reason);
 	}
 
-	/**
-	 * @return Index
-	 */
 	public function getIndex(): Index
 	{
 		return $this->index;

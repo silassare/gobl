@@ -29,25 +29,16 @@ final class ColumnTypeChanged extends DiffAction
 		parent::__construct(DiffActionType::COLUMN_TYPE_CHANGED, $reason);
 	}
 
-	/**
-	 * @return Table
-	 */
 	public function getTable(): Table
 	{
 		return $this->table;
 	}
 
-	/**
-	 * @return Column
-	 */
 	public function getOldColumn(): Column
 	{
 		return $this->old_column;
 	}
 
-	/**
-	 * @return Column
-	 */
 	public function getNewColumn(): Column
 	{
 		return $this->new_column;

@@ -581,8 +581,6 @@ final class MigrationRunnerTest extends BaseTestCase
 	 * Builds a locked DB with tables configured by $setup.
 	 *
 	 * @param callable(NamespaceBuilder):void $setup
-	 *
-	 * @return RDBMSInterface
 	 */
 	private function runWithTestDb(string $type, callable $setup): RDBMSInterface
 	{
@@ -595,13 +593,6 @@ final class MigrationRunnerTest extends BaseTestCase
 
 	/**
 	 * Builds a simple anonymous MigrationInterface with the given version and SQL.
-	 *
-	 * @param int    $version
-	 * @param string $up_sql
-	 * @param string $down_sql
-	 * @param string $label
-	 *
-	 * @return MigrationInterface
 	 */
 	private function makeMigration(
 		int $version,

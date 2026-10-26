@@ -24,9 +24,6 @@ final class BeforeCreate extends CRUDAction
 {
 	/**
 	 * BeforeCreate constructor.
-	 *
-	 * @param Table $table
-	 * @param array $form
 	 */
 	public function __construct(Table $table, array $form)
 	{

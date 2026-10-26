@@ -28,9 +28,6 @@ final class UniqueKeyConstraintDeleted extends DiffAction
 		parent::__construct(DiffActionType::UNIQUE_KEY_CONSTRAINT_DELETED, $reason);
 	}
 
-	/**
-	 * @return UniqueKey
-	 */
 	public function getConstraint(): UniqueKey
 	{
 		return $this->constraint;

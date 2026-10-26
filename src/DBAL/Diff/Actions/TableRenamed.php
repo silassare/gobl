@@ -28,17 +28,11 @@ final class TableRenamed extends DiffAction
 		parent::__construct(DiffActionType::TABLE_RENAMED, $reason);
 	}
 
-	/**
-	 * @return Table
-	 */
 	public function getOldTable(): Table
 	{
 		return $this->old_table;
 	}
 
-	/**
-	 * @return Table
-	 */
 	public function getNewTable(): Table
 	{
 		return $this->new_table;

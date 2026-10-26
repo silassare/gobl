@@ -26,10 +26,6 @@ class CRUDAction extends CRUDEvent
 
 	/**
 	 * CRUDAction constructor.
-	 *
-	 * @param ActionType $type
-	 * @param Table      $table
-	 * @param array      $form
 	 */
 	protected function __construct(
 		protected ActionType $type,
@@ -41,8 +37,6 @@ class CRUDAction extends CRUDEvent
 
 	/**
 	 * Gets error message.
-	 *
-	 * @return string
 	 */
 	public function getErrorMessage(): string
 	{
@@ -51,10 +45,6 @@ class CRUDAction extends CRUDEvent
 
 	/**
 	 * Sets error message.
-	 *
-	 * @param string $message
-	 *
-	 * @return static
 	 */
 	public function setErrorMessage(string $message): static
 	{
@@ -65,8 +55,6 @@ class CRUDAction extends CRUDEvent
 
 	/**
 	 * Gets success message.
-	 *
-	 * @return string
 	 */
 	public function getSuccessMessage(): string
 	{
@@ -75,10 +63,6 @@ class CRUDAction extends CRUDEvent
 
 	/**
 	 * Sets success message.
-	 *
-	 * @param string $message
-	 *
-	 * @return static
 	 */
 	public function setSuccessMessage(string $message): static
 	{

@@ -48,9 +48,6 @@ final class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 
 	/**
 	 * PostgreSQLQueryGenerator constructor.
-	 *
-	 * @param RDBMSInterface $db
-	 * @param DbConfig       $config
 	 */
 	public function __construct(RDBMSInterface $db, DbConfig $config)
 	{
@@ -152,18 +149,12 @@ final class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 			. $this->getJsonValueExpression($this->quoteLiteral('{}')) . ')';
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	protected function getJsonTypeExpression(string $expression): string
 	{
 		return 'jsonb_typeof(' . $expression . ')';
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	protected function getJsonObjectTypeName(): string
 	{
@@ -184,18 +175,12 @@ final class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		return 'ARRAY[' . \implode(', ', $bound) . ']::text[]';
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	protected function getJsonExtractPathExpression(string $expression, array $segments, callable $bind): string
 	{
 		return '(' . $expression . ' #> ' . $this->getJsonPathArgument($segments, $bind) . ')';
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	protected function getJsonSetPathExpression(
 		string $expression,
@@ -207,9 +192,6 @@ final class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 			. ', ' . $value . ', true)';
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	protected function getJsonRemovePathExpression(string $expression, array $segments, callable $bind): string
 	{
@@ -354,8 +336,6 @@ final class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws DBALException
 	 */
 	#[Override]
@@ -381,8 +361,6 @@ final class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws DBALException
 	 */
 	#[Override]
@@ -793,8 +771,6 @@ final class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	 * the underlying integer type (integer / bigint) is returned because serial and bigserial
 	 * are pseudo-types not accepted by the TYPE clause in ALTER COLUMN.
 	 *
-	 * @param Column $column
-	 *
 	 * @return string e.g. 'bigint', 'varchar(20)', 'jsonb', 'boolean', 'integer'
 	 */
 	private function extractPostgresTypeExpression(Column $column): string
@@ -833,8 +809,6 @@ final class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	 * Delegates to defaultAndNullChunks() and picks the first part starting with
 	 * "DEFAULT ".  Returns null when there is no default for the column.
 	 *
-	 * @param Column $column
-	 *
 	 * @return null|string e.g. "DEFAULT '{}'" or "DEFAULT NULL" or null
 	 */
 	private function getColumnDefaultChunk(Column $column): ?string
@@ -855,8 +829,6 @@ final class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	 * Recursively collects JOIN tables and ON conditions from the given host alias
 	 * for use in a PostgreSQL USING clause.
 	 *
-	 * @param QBDelete $qb
-	 * @param string   $host_alias
 	 * @param string[] $using_parts     accumulates `table AS alias` strings
 	 * @param string[] $join_conditions accumulates ON condition strings
 	 */

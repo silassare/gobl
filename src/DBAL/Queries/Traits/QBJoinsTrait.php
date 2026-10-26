@@ -93,11 +93,6 @@ trait QBJoinsTrait
 	 * Inner join.
 	 *
 	 * Selects records that have matching values in both tables.
-	 *
-	 * @param string|Table $table
-	 * @param null|string  $alias
-	 *
-	 * @return JoinBuilder
 	 */
 	public function innerJoin(
 		string|Table $table,
@@ -110,11 +105,6 @@ trait QBJoinsTrait
 	 * Left join.
 	 *
 	 * Selects all records from the left table, and the matched records from the right table.
-	 *
-	 * @param string|Table $table
-	 * @param null|string  $alias
-	 *
-	 * @return JoinBuilder
 	 */
 	public function leftJoin(
 		string|Table $table,
@@ -127,11 +117,6 @@ trait QBJoinsTrait
 	 * Right join.
 	 *
 	 * Selects all records from the right table, and the matched records from the left table.
-	 *
-	 * @param string|Table $table
-	 * @param null|string  $alias
-	 *
-	 * @return JoinBuilder
 	 */
 	public function rightJoin(
 		string|Table $table,

@@ -31,9 +31,6 @@ use Gobl\DBAL\Drivers\MySQL\MySQL;
  */
 final class ORMBatchRelationMySQLLiveTest extends ORMLiveBatchRelationTestCase
 {
-	/**
-	 * {@inheritDoc}
-	 */
 	protected static function getDriverName(): string
 	{
 		return MySQL::NAME;

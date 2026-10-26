@@ -23,9 +23,6 @@ abstract class CRUDEvent extends Event
 {
 	/**
 	 * CRUDEvent constructor.
-	 *
-	 * @param Table $table
-	 * @param array $form
 	 */
 	public function __construct(
 		protected Table $table,
@@ -34,8 +31,6 @@ abstract class CRUDEvent extends Event
 
 	/**
 	 * Returns target table.
-	 *
-	 * @return Table
 	 */
 	public function getTable(): Table
 	{
@@ -44,8 +39,6 @@ abstract class CRUDEvent extends Event
 
 	/**
 	 * Gets form.
-	 *
-	 * @return array
 	 */
 	public function getForm(): array
 	{
@@ -54,10 +47,6 @@ abstract class CRUDEvent extends Event
 
 	/**
 	 * Gets field value.
-	 *
-	 * @param string $field
-	 *
-	 * @return mixed
 	 */
 	public function getField(string $field): mixed
 	{

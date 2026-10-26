@@ -31,8 +31,6 @@ final class LinkMorph extends Link
 	 * The morph parent key column.
 	 *
 	 * Usually the primary key of the parent table.
-	 *
-	 * @var string
 	 */
 	private string $morph_parent_key_column;
 
@@ -40,29 +38,21 @@ final class LinkMorph extends Link
 	 * The morph parent type.
 	 *
 	 * Usually the parent table name.
-	 *
-	 * @var string
 	 */
 	private string $morph_parent_type;
 
 	/**
 	 * The morph child key column.
-	 *
-	 * @var string
 	 */
 	private string $morph_child_key_column;
 
 	/**
 	 * The morph child type column.
-	 *
-	 * @var string
 	 */
 	private string $morph_child_type_column;
 
 	/**
 	 * If the host table is the parent.
-	 *
-	 * @var bool
 	 */
 	private bool $host_is_parent;
 
@@ -79,9 +69,6 @@ final class LinkMorph extends Link
 	 *
 	 * The parent table **must be soft-deletable** to avoid orphaned child rows.
 	 *
-	 * @param RDBMSInterface $rdbms
-	 * @param Table          $host_table
-	 * @param Table          $target_table
 	 * @param array{
 	 *        filters?: null|array,
 	 *        prefix?: null|string,
@@ -186,8 +173,6 @@ final class LinkMorph extends Link
 
 	/**
 	 * Get the morph parent table key column.
-	 *
-	 * @return string
 	 */
 	public function getMorphParentKeyColumn(): string
 	{
@@ -196,8 +181,6 @@ final class LinkMorph extends Link
 
 	/**
 	 * Get the morph parent table type.
-	 *
-	 * @return string
 	 */
 	public function getMorphParentType(): string
 	{
@@ -206,8 +189,6 @@ final class LinkMorph extends Link
 
 	/**
 	 * Get the morph child table key column.
-	 *
-	 * @return string
 	 */
 	public function getMorphChildKeyColumn(): string
 	{
@@ -216,8 +197,6 @@ final class LinkMorph extends Link
 
 	/**
 	 * Get the morph child table type column.
-	 *
-	 * @return string
 	 */
 	public function getMorphChildTypeColumn(): string
 	{
@@ -230,8 +209,6 @@ final class LinkMorph extends Link
 	 * When `true`, the host owns the primary key (`morph_parent_key_column`) and the
 	 * target carries the child columns (`morph_child_key_column`, `morph_child_type_column`).
 	 * When `false`, the roles are reversed.
-	 *
-	 * @return bool
 	 */
 	public function isHostParent(): bool
 	{

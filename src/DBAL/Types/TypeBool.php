@@ -42,9 +42,6 @@ final class TypeBool extends BaseType
 		'false' => false,
 	];
 
-	/**
-	 * @var array
-	 */
 	private static array $map_extended = [
 		'1'     => true,
 		'0'     => false,
@@ -77,10 +74,6 @@ final class TypeBool extends BaseType
 	 * Sets this type as (non-)strict.
 	 *
 	 * whether to limit bool value to (true,false,1,0)
-	 *
-	 * @param bool $strict
-	 *
-	 * @return static
 	 */
 	public function strict(bool $strict = true): static
 	{
@@ -162,8 +155,6 @@ final class TypeBool extends BaseType
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws TypesInvalidValueException
 	 */
 	#[Override]
@@ -190,8 +181,6 @@ final class TypeBool extends BaseType
 
 	/**
 	 * Checks if this is strict.
-	 *
-	 * @return bool
 	 */
 	public function isStrict(): bool
 	{
@@ -199,8 +188,6 @@ final class TypeBool extends BaseType
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws TypesInvalidValueException
 	 */
 	#[Override]

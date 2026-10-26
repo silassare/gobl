@@ -22,9 +22,6 @@ final class OneToMany extends Relation
 {
 	/**
 	 * OneToMany constructor.
-	 *
-	 * @param string        $name
-	 * @param LinkInterface $link
 	 */
 	public function __construct(string $name, LinkInterface $link)
 	{

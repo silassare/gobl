@@ -32,22 +32,16 @@ interface RelationInterface
 
 	/**
 	 * Gets the relation name.
-	 *
-	 * @return string
 	 */
 	public function getName(): string;
 
 	/**
 	 * Gets the relation host table.
-	 *
-	 * @return Table
 	 */
 	public function getHostTable(): Table;
 
 	/**
 	 * Is the relation private?
-	 *
-	 * @return bool
 	 */
 	public function isPrivate(): bool;
 
@@ -55,8 +49,6 @@ interface RelationInterface
 	 * Checks if the relation returns paginated items.
 	 *
 	 * ie: all relation items can't be retrieved at once.
-	 *
-	 * @return bool
 	 */
 	public function isPaginated(): bool;
 

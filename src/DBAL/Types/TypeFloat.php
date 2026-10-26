@@ -63,11 +63,6 @@ final class TypeFloat extends BaseType
 	/**
 	 * Sets min value.
 	 *
-	 * @param float       $min
-	 * @param null|string $message
-	 *
-	 * @return static
-	 *
 	 * @throws TypesException
 	 */
 	public function min(float $min, ?string $message = null): static
@@ -90,11 +85,6 @@ final class TypeFloat extends BaseType
 	/**
 	 * Sets max value.
 	 *
-	 * @param float       $max
-	 * @param null|string $message
-	 *
-	 * @return static
-	 *
 	 * @throws TypesException
 	 */
 	public function max(float $max, ?string $message = null): static
@@ -116,11 +106,6 @@ final class TypeFloat extends BaseType
 
 	/**
 	 * Sets as unsigned.
-	 *
-	 * @param bool        $unsigned
-	 * @param null|string $message
-	 *
-	 * @return static
 	 */
 	public function unsigned(bool $unsigned = true, ?string $message = null): static
 	{
@@ -131,8 +116,6 @@ final class TypeFloat extends BaseType
 
 	/**
 	 * Checks if this is unsigned.
-	 *
-	 * @return bool
 	 */
 	public function isUnsigned(): bool
 	{
@@ -146,8 +129,6 @@ final class TypeFloat extends BaseType
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws TypesException
 	 */
 	#[Override]
@@ -176,8 +157,6 @@ final class TypeFloat extends BaseType
 	 * Sets the number of digits following the floating point.
 	 *
 	 * @param int $mantissa the mantissa
-	 *
-	 * @return static
 	 *
 	 * @throws TypesException
 	 */
@@ -224,8 +203,6 @@ final class TypeFloat extends BaseType
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws TypesInvalidValueException
 	 */
 	#[Override]
@@ -241,8 +218,6 @@ final class TypeFloat extends BaseType
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws TypesInvalidValueException
 	 */
 	#[Override]

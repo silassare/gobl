@@ -67,11 +67,6 @@ final class TypeDecimal extends BaseType
 	/**
 	 * Sets min value.
 	 *
-	 * @param float|string $min
-	 * @param null|string  $message
-	 *
-	 * @return static
-	 *
 	 * @throws TypesException
 	 */
 	public function min(float|string $min, ?string $message = null): static
@@ -94,11 +89,6 @@ final class TypeDecimal extends BaseType
 	/**
 	 * Sets max value.
 	 *
-	 * @param float|string $max
-	 * @param null|string  $message
-	 *
-	 * @return static
-	 *
 	 * @throws TypesException
 	 */
 	public function max(float|string $max, ?string $message = null): static
@@ -120,11 +110,6 @@ final class TypeDecimal extends BaseType
 
 	/**
 	 * Sets as unsigned.
-	 *
-	 * @param bool        $unsigned
-	 * @param null|string $message
-	 *
-	 * @return static
 	 */
 	public function unsigned(bool $unsigned = true, ?string $message = null): static
 	{
@@ -135,8 +120,6 @@ final class TypeDecimal extends BaseType
 
 	/**
 	 * Checks if this is unsigned.
-	 *
-	 * @return bool
 	 */
 	public function isUnsigned(): bool
 	{
@@ -150,8 +133,6 @@ final class TypeDecimal extends BaseType
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws TypesException
 	 */
 	#[Override]
@@ -185,8 +166,6 @@ final class TypeDecimal extends BaseType
 	 *
 	 * @param int      $precision the number of digits before the fixed point
 	 * @param null|int $scale     the number of digits following the fixed point
-	 *
-	 * @return static
 	 *
 	 * @throws TypesException
 	 */
@@ -247,8 +226,6 @@ final class TypeDecimal extends BaseType
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws TypesInvalidValueException
 	 */
 	#[Override]
@@ -264,8 +241,6 @@ final class TypeDecimal extends BaseType
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws TypesInvalidValueException
 	 */
 	#[Override]

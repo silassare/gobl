@@ -52,21 +52,12 @@ abstract class BaseTestCase extends TestCase
 
 	/**
 	 * Returns an empty db instance.
-	 *
-	 * @param string $driver
-	 *
-	 * @return RDBMSInterface
 	 */
 	protected static function getNewDbInstance(string $driver = self::DEFAULT_RDBMS): RDBMSInterface
 	{
 		return Db::newInstanceOf($driver, self::getDbConfig($driver));
 	}
 
-	/**
-	 * @param string $type
-	 *
-	 * @return RDBMSInterface
-	 */
 	protected static function getNewDbInstanceWithSchema(string $type = self::DEFAULT_RDBMS): RDBMSInterface
 	{
 		if (!isset(self::$rdbms[$type])) {
@@ -90,8 +81,6 @@ abstract class BaseTestCase extends TestCase
 	 * parameters from environment variables.
 	 *
 	 * @param string $type Driver type (MySQL, PostgreSQL, SQLite)
-	 *
-	 * @return DbConfig
 	 */
 	protected static function getDbConfig(string $type): DbConfig
 	{
@@ -288,8 +277,6 @@ abstract class BaseTestCase extends TestCase
 	 * - Replaces Gobl version comments (e.g. `gobl v2.0.0`) with a fixed placeholder.
 	 *
 	 * @param string $content Raw output to normalize
-	 *
-	 * @return string
 	 */
 	protected static function normalizeGeneratedContent(string $content): string
 	{

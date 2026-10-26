@@ -27,9 +27,6 @@ final class BeforeDeleteAllFlush extends CRUDEvent
 
 	/**
 	 * BeforeDeleteAllFlush constructor.
-	 *
-	 * @param Table         $table
-	 * @param ORMTableQuery $filters
 	 */
 	public function __construct(Table $table, ORMTableQuery $filters)
 	{

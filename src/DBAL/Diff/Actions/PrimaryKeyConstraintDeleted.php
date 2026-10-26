@@ -28,9 +28,6 @@ final class PrimaryKeyConstraintDeleted extends DiffAction
 		parent::__construct(DiffActionType::PRIMARY_KEY_CONSTRAINT_DELETED, $reason);
 	}
 
-	/**
-	 * @return PrimaryKey
-	 */
 	public function getConstraint(): PrimaryKey
 	{
 		return $this->constraint;

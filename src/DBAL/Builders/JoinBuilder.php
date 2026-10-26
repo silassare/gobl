@@ -68,9 +68,6 @@ final class JoinBuilder
 	/**
 	 * Sets the table to join.
 	 *
-	 * @param string|Table $table_to_join
-	 * @param null|string  $alias
-	 *
 	 * @return $this
 	 */
 	public function to(string|Table $table_to_join, ?string $alias = null): static
@@ -90,8 +87,6 @@ final class JoinBuilder
 	/**
 	 * Sets the join condition.
 	 *
-	 * @param Filters|string $condition
-	 *
 	 * @return $this
 	 */
 	public function on(Filters|string $condition): static
@@ -103,8 +98,6 @@ final class JoinBuilder
 
 	/**
 	 * Returns the join type.
-	 *
-	 * @return JoinType
 	 */
 	public function getType(): JoinType
 	{

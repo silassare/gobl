@@ -44,10 +44,6 @@ final class MigrationRunner
 
 	/**
 	 * Registers one or more migration instances with this runner.
-	 *
-	 * @param MigrationInterface ...$migrations
-	 *
-	 * @return static
 	 */
 	public function add(MigrationInterface ...$migrations): static
 	{
@@ -66,8 +62,6 @@ final class MigrationRunner
 	 * Each file is expected to return a {@see MigrationInterface} instance when included.
 	 *
 	 * @param string ...$paths Absolute paths to migration PHP files
-	 *
-	 * @return static
 	 */
 	public function addFromFile(string ...$paths): static
 	{
@@ -236,9 +230,6 @@ final class MigrationRunner
 
 	/**
 	 * Executes a single migration in the requested direction.
-	 *
-	 * @param MigrationInterface $m
-	 * @param MigrationMode      $mode
 	 *
 	 * @throws DBALException
 	 */

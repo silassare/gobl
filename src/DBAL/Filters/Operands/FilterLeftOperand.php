@@ -38,8 +38,6 @@ final class FilterLeftOperand extends FilterOperand
 
 	/**
 	 * Get user defined operand value.
-	 *
-	 * @return string
 	 */
 	#[Override]
 	public function getValueAsDefined(): string

@@ -20,15 +20,11 @@ final class QBExpression
 {
 	/**
 	 * QBExpression constructor.
-	 *
-	 * @param string $expression
 	 */
 	public function __construct(private string $expression) {}
 
 	/**
 	 * Magic method __toString.
-	 *
-	 * @return string
 	 */
 	public function __toString(): string
 	{

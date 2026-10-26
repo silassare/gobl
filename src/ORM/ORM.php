@@ -40,10 +40,6 @@ final class ORM
 	 *
 	 * Throws `ORMRuntimeException` if the namespace is already declared or if
 	 * `$out_dir` is not a writable directory.
-	 *
-	 * @param string         $namespace
-	 * @param RDBMSInterface $db
-	 * @param string         $out_dir
 	 */
 	public static function declareNamespace(string $namespace, RDBMSInterface $db, string $out_dir): void
 	{
@@ -78,8 +74,6 @@ final class ORM
 	 *
 	 * @param string $namespace  the database namespace
 	 * @param string $table_name the table name
-	 *
-	 * @return Table
 	 */
 	public static function table(string $namespace, string $table_name): Table
 	{
@@ -91,8 +85,6 @@ final class ORM
 	 * Returns the db instance for the given namespace.
 	 *
 	 * @param string $namespace the database namespace
-	 *
-	 * @return RDBMSInterface
 	 */
 	public static function getDatabase(string $namespace): RDBMSInterface
 	{
@@ -148,8 +140,6 @@ final class ORM
 	 * Returns the output directory for the given namespace.
 	 *
 	 * @param string $namespace the database namespace
-	 *
-	 * @return string
 	 */
 	public static function getOutputDir(string $namespace): string
 	{
@@ -162,10 +152,6 @@ final class ORM
 
 	/**
 	 * Returns a new entity controller instance for a given table.
-	 *
-	 * @param Table $table
-	 *
-	 * @return ORMController
 	 */
 	public static function ctrl(Table $table): ORMController
 	{
@@ -182,8 +168,6 @@ final class ORM
 	 * @param bool  $is_new true for new entity, false for entity fetched
 	 *                      from the database, default is true
 	 * @param bool  $strict enable/disable strict mode
-	 *
-	 * @return ORMEntity
 	 */
 	public static function entity(Table $table, bool $is_new = true, bool $strict = true): ORMEntity
 	{
@@ -198,8 +182,6 @@ final class ORM
 	 *
 	 * @param Table    $table the table instance
 	 * @param QBSelect $qb    the query builder instance with the query to execute for fetching results
-	 *
-	 * @return ORMResults
 	 */
 	public static function results(Table $table, QBSelect $qb): ORMResults
 	{
@@ -245,8 +227,6 @@ final class ORM
 	 * Returns a new table query instance for a given table.
 	 *
 	 * @param Table $table the table instance
-	 *
-	 * @return ORMTableQuery
 	 */
 	public static function query(Table $table): ORMTableQuery
 	{

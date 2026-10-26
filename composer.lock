@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/oliup-io/code-generator.git",
-                "reference": "e2cd49415f7572389eb62a9675a8d876359de24f"
+                "reference": "9c5e1585c3f3f89c10244a975f378ed058060310"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/oliup-io/code-generator/zipball/e2cd49415f7572389eb62a9675a8d876359de24f",
-                "reference": "e2cd49415f7572389eb62a9675a8d876359de24f",
+                "url": "https://api.github.com/repos/oliup-io/code-generator/zipball/9c5e1585c3f3f89c10244a975f378ed058060310",
+                "reference": "9c5e1585c3f3f89c10244a975f378ed058060310",
                 "shasum": ""
             },
             "require": {
@@ -57,7 +57,7 @@
                 "issues": "https://github.com/oliup-io/code-generator/issues",
                 "source": "https://github.com/oliup-io/code-generator/tree/main"
             },
-            "time": "2026-10-25T23:21:05+00:00"
+            "time": "2026-10-26T06:24:01+00:00"
         },
         {
             "name": "psr/http-message",

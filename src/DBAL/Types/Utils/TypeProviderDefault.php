@@ -35,8 +35,6 @@ class TypeProviderDefault implements TypeProviderInterface
 {
 	/**
 	 * Maps available type names to type class names.
-	 *
-	 * @var array
 	 */
 	private static array $types = [
 		// base types

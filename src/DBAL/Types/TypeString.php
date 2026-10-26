@@ -79,11 +79,6 @@ final class TypeString extends BaseType
 	/**
 	 * Sets string min length.
 	 *
-	 * @param int         $min
-	 * @param null|string $message
-	 *
-	 * @return static
-	 *
 	 * @throws TypesException
 	 */
 	public function min(int $min, ?string $message = null): static
@@ -97,11 +92,6 @@ final class TypeString extends BaseType
 
 	/**
 	 * Sets string max length.
-	 *
-	 * @param int         $max
-	 * @param null|string $message
-	 *
-	 * @return static
 	 *
 	 * @throws TypesException
 	 */
@@ -119,11 +109,6 @@ final class TypeString extends BaseType
 	 *
 	 * Written as PHP writes one (`~^[a-z]+$~i`), in the subset JavaScript reads the same way
 	 * ({@see PortablePattern}); it runs in Unicode mode, `$` matching only at the end of the value.
-	 *
-	 * @param string      $pattern
-	 * @param null|string $message
-	 *
-	 * @return static
 	 *
 	 * @throws TypesException
 	 */
@@ -144,10 +129,7 @@ final class TypeString extends BaseType
 	/**
 	 * Sets the allowed string list.
 	 *
-	 * @param string[]    $list
-	 * @param null|string $message
-	 *
-	 * @return static
+	 * @param string[] $list
 	 */
 	public function oneOf(array $list, ?string $message = null): static
 	{
@@ -163,8 +145,6 @@ final class TypeString extends BaseType
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws TypesException
 	 */
 	#[Override]
@@ -234,8 +214,6 @@ final class TypeString extends BaseType
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws TypesInvalidValueException
 	 */
 	#[Override]
@@ -246,10 +224,6 @@ final class TypeString extends BaseType
 
 	/**
 	 * Enable truncating when string length greater than max.
-	 *
-	 * @param bool $truncate
-	 *
-	 * @return static
 	 */
 	public function truncate(bool $truncate = true): static
 	{
@@ -258,10 +232,6 @@ final class TypeString extends BaseType
 
 	/**
 	 * Multiline string.
-	 *
-	 * @param bool $multiline
-	 *
-	 * @return static
 	 */
 	public function multiline(bool $multiline = true): static
 	{
@@ -273,10 +243,6 @@ final class TypeString extends BaseType
 	 *
 	 * Signals that this column should use `MEDIUMTEXT` storage in MySQL (up to ~16 MB)
 	 * instead of the default `VARCHAR` / `TEXT`. Has no effect on validation logic.
-	 *
-	 * @param bool $medium
-	 *
-	 * @return static
 	 */
 	public function medium(bool $medium = true): static
 	{
@@ -288,10 +254,6 @@ final class TypeString extends BaseType
 	 *
 	 * Signals that this column should use `LONGTEXT` storage in MySQL (up to ~4 GB)
 	 * instead of the default `VARCHAR` / `TEXT`. Has no effect on validation logic.
-	 *
-	 * @param bool $long
-	 *
-	 * @return static
 	 */
 	public function long(bool $long = true): static
 	{
@@ -300,10 +262,6 @@ final class TypeString extends BaseType
 
 	/**
 	 * Trim string.
-	 *
-	 * @param bool $trim
-	 *
-	 * @return static
 	 */
 	public function trim(bool $trim = true): static
 	{
@@ -312,8 +270,6 @@ final class TypeString extends BaseType
 
 	/**
 	 * Checks if truncate is enabled.
-	 *
-	 * @return bool
 	 */
 	public function canTruncate(): bool
 	{
@@ -322,10 +278,6 @@ final class TypeString extends BaseType
 
 	/**
 	 * One line string.
-	 *
-	 * @param bool $one_line
-	 *
-	 * @return static
 	 */
 	public function oneLine(bool $one_line = true): static
 	{
@@ -333,8 +285,6 @@ final class TypeString extends BaseType
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws TypesInvalidValueException
 	 */
 	#[Override]

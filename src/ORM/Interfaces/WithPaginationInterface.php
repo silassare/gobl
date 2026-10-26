@@ -74,15 +74,11 @@ interface WithPaginationInterface
 	 * Sets whether to ignore the max limit and load all items.
 	 *
 	 * @param bool $ignore_max whether to ignore the max limit and load all items
-	 *
-	 * @return static
 	 */
 	public function ignoreMax(bool $ignore_max = true): static;
 
 	/**
 	 * Gets the cursor value when using cursor-based pagination.
-	 *
-	 * @return null|int|string
 	 */
 	public function getCursor(): int|string|null;
 
@@ -97,8 +93,6 @@ interface WithPaginationInterface
 
 	/**
 	 * Gets the cursor column name when using cursor-based pagination.
-	 *
-	 * @return null|string
 	 */
 	public function getCursorColumn(): ?string;
 

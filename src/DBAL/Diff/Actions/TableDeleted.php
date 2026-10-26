@@ -28,9 +28,6 @@ final class TableDeleted extends DiffAction
 		parent::__construct(DiffActionType::TABLE_DELETED, $reason);
 	}
 
-	/**
-	 * @return Table
-	 */
 	public function getTable(): Table
 	{
 		return $this->table;

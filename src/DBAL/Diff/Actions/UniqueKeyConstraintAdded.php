@@ -28,9 +28,6 @@ final class UniqueKeyConstraintAdded extends DiffAction
 		parent::__construct(DiffActionType::UNIQUE_KEY_CONSTRAINT_ADDED, $reason);
 	}
 
-	/**
-	 * @return UniqueKey
-	 */
 	public function getConstraint(): UniqueKey
 	{
 		return $this->constraint;

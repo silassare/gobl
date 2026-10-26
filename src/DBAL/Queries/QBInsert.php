@@ -62,16 +62,9 @@ final class QBInsert implements QBInterface
 
 	/**
 	 * QBInsert constructor.
-	 *
-	 * @param RDBMSInterface $db
 	 */
 	public function __construct(protected RDBMSInterface $db) {}
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @return false|string
-	 */
 	#[Override]
 	public function execute(): false|string
 	{
@@ -90,11 +83,6 @@ final class QBInsert implements QBInterface
 
 	/**
 	 * Specify the table to insert into.
-	 *
-	 * @param string|Table $table
-	 * @param bool         $auto_prefix
-	 *
-	 * @return static
 	 */
 	public function into(string|Table $table, bool $auto_prefix = true): static
 	{
@@ -116,8 +104,6 @@ final class QBInsert implements QBInterface
 	 *   is forwarded as a separate row to {@see singleValue()}.
 	 *
 	 * @param array<int, array<string, mixed>>|array<string, mixed> $values single row map or list of row maps for multi insert
-	 *
-	 * @return static
 	 */
 	public function values(array $values): static
 	{
@@ -149,8 +135,6 @@ final class QBInsert implements QBInterface
 	 * Throws `LogicException` if {@see into()} has not been called yet.
 	 *
 	 * @param array<string, mixed> $value column -> value map for a single row
-	 *
-	 * @return static
 	 *
 	 * @throws InvalidArgumentException when the column set differs from previous rows
 	 * @throws LogicException           when `into()` has not been called first
@@ -188,8 +172,6 @@ final class QBInsert implements QBInterface
 
 	/**
 	 * Gets the table to insert into.
-	 *
-	 * @return null|string
 	 */
 	public function getOptionsTable(): ?string
 	{
@@ -202,8 +184,6 @@ final class QBInsert implements QBInterface
 	 * - MySQL:      emits `INSERT IGNORE INTO ...`
 	 * - PostgreSQL: appends `ON CONFLICT DO NOTHING`
 	 * - SQLite:     emits `INSERT OR IGNORE INTO ...`
-	 *
-	 * @return static
 	 */
 	public function ignoreOnConflict(): static
 	{
@@ -222,8 +202,6 @@ final class QBInsert implements QBInterface
 	 * - MySQL:      appends `ON DUPLICATE KEY UPDATE col = VALUES(col) ...`
 	 * - PostgreSQL: appends `ON CONFLICT (cols) DO UPDATE SET col = EXCLUDED.col ...`
 	 * - SQLite:     appends `ON CONFLICT (cols) DO UPDATE SET col = EXCLUDED.col ...` (requires SQLite >= 3.24.0)
-	 *
-	 * @return static
 	 */
 	public function doUpdateOnConflict(array $conflict_columns = [], array $update_columns = []): static
 	{
@@ -252,8 +230,6 @@ final class QBInsert implements QBInterface
 	 * MySQL does not support RETURNING; calling this method on a MySQL connection will throw at query-generation time.
 	 *
 	 * @param string|string[] $columns Column names, or `'*'` for all columns. Defaults to `['*']`.
-	 *
-	 * @return static
 	 */
 	public function returning(array|string $columns = ['*']): static
 	{
@@ -279,8 +255,6 @@ final class QBInsert implements QBInterface
 	 * Executes the query and returns a {@see PDOStatement} for iterating the inserted rows.
 	 *
 	 * Call this instead of {@see execute()} when you want to read back the affected rows via RETURNING.
-	 *
-	 * @return PDOStatement
 	 */
 	public function executeReturning(): PDOStatement
 	{

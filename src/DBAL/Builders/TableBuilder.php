@@ -98,8 +98,6 @@ final class TableBuilder
 
 	/**
 	 * Returns the table.
-	 *
-	 * @return Table
 	 */
 	public function getTable(): Table
 	{
@@ -108,8 +106,6 @@ final class TableBuilder
 
 	/**
 	 * Sets the table plural name.
-	 *
-	 * @param string $plural_name
 	 *
 	 * @return $this
 	 */
@@ -123,8 +119,6 @@ final class TableBuilder
 	/**
 	 * Sets the value used to identify the table in relations using morph link.
 	 *
-	 * @param string $type
-	 *
 	 * @return $this
 	 */
 	public function morphType(string $type): static
@@ -136,8 +130,6 @@ final class TableBuilder
 
 	/**
 	 * Sets the table singular name.
-	 *
-	 * @param string $singular_name
 	 *
 	 * @return $this
 	 */
@@ -169,8 +161,6 @@ final class TableBuilder
 	/**
 	 * Sets the table columns prefix.
 	 *
-	 * @param string $prefix
-	 *
 	 * @return $this
 	 */
 	public function columnPrefix(string $prefix): static
@@ -183,10 +173,6 @@ final class TableBuilder
 	/**
 	 * Creates a new column of type int.
 	 *
-	 * @param string $column_name
-	 *
-	 * @return TypeInt
-	 *
 	 * @throws DBALException
 	 */
 	public function int(string $column_name): TypeInt
@@ -198,11 +184,6 @@ final class TableBuilder
 
 	/**
 	 * Adds a new column to the table.
-	 *
-	 * @param string                   $column_name
-	 * @param null|array|TypeInterface $type
-	 *
-	 * @return Column
 	 *
 	 * @throws DBALException
 	 */
@@ -224,8 +205,6 @@ final class TableBuilder
 	 *
 	 * @param string $column_name the logical (short) column name
 	 *
-	 * @return Column
-	 *
 	 * @throws DBALRuntimeException when the column does not exist
 	 */
 	public function useColumn(string $column_name): Column
@@ -235,10 +214,6 @@ final class TableBuilder
 
 	/**
 	 * Creates a new column of type decimal.
-	 *
-	 * @param string $column_name
-	 *
-	 * @return TypeDecimal
 	 *
 	 * @throws DBALException
 	 */
@@ -252,10 +227,6 @@ final class TableBuilder
 	/**
 	 * Creates a new column of type float.
 	 *
-	 * @param string $column_name
-	 *
-	 * @return TypeFloat
-	 *
 	 * @throws DBALException
 	 */
 	public function float(string $column_name): TypeFloat
@@ -268,10 +239,7 @@ final class TableBuilder
 	/**
 	 * Creates a new column of type enum.
 	 *
-	 * @param string                   $column_name
 	 * @param class-string<BackedEnum> $enum_class
-	 *
-	 * @return TypeEnum
 	 *
 	 * @throws DBALException
 	 */
@@ -285,10 +253,6 @@ final class TableBuilder
 	/**
 	 * Creates a new column of type date.
 	 *
-	 * @param string $column_name
-	 *
-	 * @return TypeDate
-	 *
 	 * @throws DBALException
 	 */
 	public function date(string $column_name): TypeDate
@@ -301,11 +265,8 @@ final class TableBuilder
 	/**
 	 * Creates a new column of type list.
 	 *
-	 * @param string $column_name
-	 * @param bool   $native      Whether to use a native JSON column type (MySQL >= 5.7, PostgreSQL)
-	 *                            or a TEXT column with JSON serialization. (default: true)
-	 *
-	 * @return TypeList
+	 * @param bool $native Whether to use a native JSON column type (MySQL >= 5.7, PostgreSQL)
+	 *                     or a TEXT column with JSON serialization. (default: true)
 	 *
 	 * @throws DBALException
 	 */
@@ -321,12 +282,9 @@ final class TableBuilder
 	 *
 	 * Shorthand for `$t->list('col')->listOf($of)`.
 	 *
-	 * @param string                                         $column_name
 	 * @param class-string<JsonOfInterface>|ORMUniversalType $of
-	 * @param bool                                           $native      Whether to use a native JSON column type (MySQL >= 5.7, PostgreSQL)
-	 *                                                                    or a TEXT column with JSON serialization. (default: true)
-	 *
-	 * @return TypeList
+	 * @param bool                                           $native Whether to use a native JSON column type (MySQL >= 5.7, PostgreSQL)
+	 *                                                               or a TEXT column with JSON serialization. (default: true)
 	 *
 	 * @throws DBALException
 	 */
@@ -338,11 +296,8 @@ final class TableBuilder
 	/**
 	 * Creates a new column of type map.
 	 *
-	 * @param string $column_name
-	 * @param bool   $native      Whether to use a native JSON column type (MySQL >= 5.7, PostgreSQL)
-	 *                            or a TEXT column with JSON serialization. (default: true)
-	 *
-	 * @return TypeMap
+	 * @param bool $native Whether to use a native JSON column type (MySQL >= 5.7, PostgreSQL)
+	 *                     or a TEXT column with JSON serialization. (default: true)
 	 *
 	 * @throws DBALException
 	 */
@@ -358,12 +313,9 @@ final class TableBuilder
 	 *
 	 * Shorthand for `$t->map('col')->mapOf($of)`.
 	 *
-	 * @param string                                         $column_name
 	 * @param class-string<JsonOfInterface>|ORMUniversalType $of
-	 * @param bool                                           $native      Whether to use a native JSON column type (MySQL >= 5.7, PostgreSQL)
-	 *                                                                    or a TEXT column with JSON serialization. (default: true)
-	 *
-	 * @return TypeMap
+	 * @param bool                                           $native Whether to use a native JSON column type (MySQL >= 5.7, PostgreSQL)
+	 *                                                               or a TEXT column with JSON serialization. (default: true)
 	 *
 	 * @throws DBALException
 	 */
@@ -375,11 +327,8 @@ final class TableBuilder
 	/**
 	 * Creates a new column of type json.
 	 *
-	 * @param string $column_name
-	 * @param bool   $native      Whether to use a native JSON column type (MySQL >= 5.7, PostgreSQL)
-	 *                            or a TEXT column with JSON serialization. (default: true)
-	 *
-	 * @return TypeJson
+	 * @param bool $native Whether to use a native JSON column type (MySQL >= 5.7, PostgreSQL)
+	 *                     or a TEXT column with JSON serialization. (default: true)
 	 *
 	 * @throws DBALException
 	 */
@@ -395,12 +344,9 @@ final class TableBuilder
 	 *
 	 * Shortcut for `$t->json('col')->jsonOf($of)`.
 	 *
-	 * @param string                                         $column_name
 	 * @param class-string<JsonOfInterface>|ORMUniversalType $of
-	 * @param bool                                           $native      Whether to use a native JSON column type (MySQL >= 5.7, PostgreSQL)
-	 *                                                                    or a TEXT column with JSON serialization. (default: true)
-	 *
-	 * @return TypeJson
+	 * @param bool                                           $native Whether to use a native JSON column type (MySQL >= 5.7, PostgreSQL)
+	 *                                                               or a TEXT column with JSON serialization. (default: true)
 	 *
 	 * @throws DBALException
 	 */
@@ -415,13 +361,7 @@ final class TableBuilder
 	 * If the column already exists, it will be updated with the reference type.
 	 * A foreign key constraint will be added to the table.
 	 *
-	 * @param string                     $column_name
-	 * @param string                     $foreign_table
-	 * @param string                     $foreign_column
-	 * @param null|bool                  $nullable
 	 * @param null|callable(Column):void $callable
-	 *
-	 * @return ForeignKey
 	 *
 	 * @throws DBALException
 	 */
@@ -483,10 +423,6 @@ final class TableBuilder
 	/**
 	 * Adds a unique constraint to the table.
 	 *
-	 * @param Column|string ...$columns
-	 *
-	 * @return UniqueKey
-	 *
 	 * @throws DBALException
 	 */
 	public function unique(Column|string ...$columns): UniqueKey
@@ -499,8 +435,6 @@ final class TableBuilder
 	 *
 	 * @param array<Column|string> $columns    the columns
 	 * @param null|IndexType       $index_type the RDBMS-specific index type, or null for the default B-Tree index
-	 *
-	 * @return Index
 	 *
 	 * @throws DBALException
 	 */
@@ -533,11 +467,6 @@ final class TableBuilder
 
 	/**
 	 * Creates a new column of type date formatted as timestamp.
-	 *
-	 * @param string      $column_name
-	 * @param null|string $format
-	 *
-	 * @return TypeDate
 	 *
 	 * @throws DBALException
 	 */
@@ -577,10 +506,6 @@ final class TableBuilder
 	/**
 	 * Creates a new column of type bool.
 	 *
-	 * @param string $column_name
-	 *
-	 * @return TypeBool
-	 *
 	 * @throws DBALException
 	 */
 	public function bool(string $column_name): TypeBool
@@ -594,8 +519,6 @@ final class TableBuilder
 	 * Adds an identifier column.
 	 *
 	 * A primary key constraint will be added to the table.
-	 *
-	 * @param string $column_name
 	 *
 	 * @return $this
 	 *
@@ -615,10 +538,6 @@ final class TableBuilder
 	/**
 	 * Creates a new column of type bigint.
 	 *
-	 * @param string $column_name
-	 *
-	 * @return TypeBigint
-	 *
 	 * @throws DBALException
 	 */
 	public function bigint(string $column_name): TypeBigint
@@ -630,10 +549,6 @@ final class TableBuilder
 
 	/**
 	 * Adds a primary key constraint to the table.
-	 *
-	 * @param Column|string ...$columns
-	 *
-	 * @return PrimaryKey
 	 *
 	 * @throws DBALException
 	 */
@@ -688,10 +603,6 @@ final class TableBuilder
 	/**
 	 * Creates a new column of type string.
 	 *
-	 * @param string $column_name
-	 *
-	 * @return TypeString
-	 *
 	 * @throws DBALException
 	 */
 	public function string(string $column_name): TypeString
@@ -703,10 +614,6 @@ final class TableBuilder
 
 	/**
 	 * Creates a one to many relation.
-	 *
-	 * @param string $relation_name
-	 *
-	 * @return RelationBuilder
 	 */
 	public function hasMany(string $relation_name): RelationBuilder
 	{
@@ -720,10 +627,6 @@ final class TableBuilder
 
 	/**
 	 * Creates a one to one relation.
-	 *
-	 * @param string $relation_name
-	 *
-	 * @return RelationBuilder
 	 */
 	public function hasOne(string $relation_name): RelationBuilder
 	{
@@ -737,10 +640,6 @@ final class TableBuilder
 
 	/**
 	 * Creates a many to one relation.
-	 *
-	 * @param string $relation_name
-	 *
-	 * @return RelationBuilder
 	 */
 	public function belongsTo(string $relation_name): RelationBuilder
 	{
@@ -754,10 +653,6 @@ final class TableBuilder
 
 	/**
 	 * Creates a many to many relation.
-	 *
-	 * @param string $relation_name
-	 *
-	 * @return RelationBuilder
 	 */
 	public function belongsToMany(string $relation_name): RelationBuilder
 	{
@@ -784,8 +679,6 @@ final class TableBuilder
 	 *
 	 * @param array<string, string> $host_to_target_map host column -> target column;
 	 *                                                  omit for auto-detection
-	 *
-	 * @return LinkColumnsBuilder
 	 */
 	public static function linkColumns(array $host_to_target_map = []): LinkColumnsBuilder
 	{
@@ -801,8 +694,6 @@ final class TableBuilder
 	 * to set the optional parent constraints.
 	 *
 	 * @param string $prefix prefix for the child-key and child-type columns
-	 *
-	 * @return LinkMorphBuilder
 	 */
 	public static function linkMorph(string $prefix): LinkMorphBuilder
 	{
@@ -819,8 +710,6 @@ final class TableBuilder
 	 *
 	 * @param string $child_key_column  column on the child table holding the parent PK value
 	 * @param string $child_type_column column on the child table holding the parent type string
-	 *
-	 * @return LinkMorphBuilder
 	 */
 	public static function linkMorphExplicit(
 		string $child_key_column,
@@ -986,13 +875,6 @@ final class TableBuilder
 	 *
 	 * If the column already exists, it will be updated with the reference type.
 	 * Otherwise, a new column will be created with the reference type.
-	 *
-	 * @param string $column_name
-	 * @param string $source_table
-	 * @param string $source_column
-	 * @param bool   $is_copy
-	 *
-	 * @return Column
 	 *
 	 * @throws DBALException
 	 */

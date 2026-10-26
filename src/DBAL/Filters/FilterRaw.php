@@ -28,15 +28,11 @@ final class FilterRaw implements FilterInterface
 	 * FilterRaw constructor.
 	 *
 	 * This class is used to add raw sql filter query string to a query builder.
-	 *
-	 * @param string $filter_query_string
 	 */
 	public function __construct(protected string $filter_query_string) {}
 
 	/**
 	 * Returns the raw SQL filter query string.
-	 *
-	 * @return string
 	 */
 	public function __toString(): string
 	{

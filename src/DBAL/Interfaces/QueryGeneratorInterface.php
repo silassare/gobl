@@ -30,27 +30,16 @@ interface QueryGeneratorInterface
 {
 	/**
 	 * QueryGeneratorInterface constructor.
-	 *
-	 * @param RDBMSInterface $db
-	 * @param DbConfig       $config
 	 */
 	public function __construct(RDBMSInterface $db, DbConfig $config);
 
 	/**
 	 * Converts query object into the rdbms query language.
-	 *
-	 * @param QBInterface $qb
-	 *
-	 * @return string
 	 */
 	public function buildQuery(QBInterface $qb): string;
 
 	/**
 	 * Converts diff action object into the rdbms query language.
-	 *
-	 * @param DiffAction $action
-	 *
-	 * @return string
 	 */
 	public function buildDiffActionQuery(DiffAction $action): string;
 
@@ -61,17 +50,11 @@ interface QueryGeneratorInterface
 	 * only tables with the given namespace should be generated.
 	 *
 	 * @param null|string $namespace the table namespace to generate
-	 *
-	 * @return string
 	 */
 	public function buildDatabase(?string $namespace = null): string;
 
 	/**
 	 * Gets total row count query with a given select query object.
-	 *
-	 * @param QBSelect $qb
-	 *
-	 * @return string
 	 */
 	public function buildTotalRowCountQuery(QBSelect $qb): string;
 
@@ -130,29 +113,16 @@ interface QueryGeneratorInterface
 
 	/**
 	 * Converts filters to sql expression.
-	 *
-	 * @param FilterInterface|Filters $filter
-	 *
-	 * @return string
 	 */
 	public function filterToExpression(FilterInterface|Filters $filter): string;
 
 	/**
 	 * Checks if two given columns has the same type definition.
-	 *
-	 * @param Column $a
-	 * @param Column $b
-	 *
-	 * @return bool
 	 */
 	public function hasSameColumnTypeDefinition(Column $a, Column $b): bool;
 
 	/**
 	 * Wraps a database definition query.
-	 *
-	 * @param string $query
-	 *
-	 * @return string
 	 */
 	public function wrapDatabaseDefinitionQuery(string $query): string;
 
@@ -161,8 +131,6 @@ interface QueryGeneratorInterface
 	 * quote characters for this RDBMS dialect.
 	 *
 	 * @param string $name The raw identifier to quote
-	 *
-	 * @return string
 	 */
 	public function quoteIdentifier(string $name): string;
 

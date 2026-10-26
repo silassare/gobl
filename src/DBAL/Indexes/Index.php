@@ -45,13 +45,10 @@ final class Index implements ArrayCapableInterface, LockableInterface
 
 	public const int MAX_INDEX_NAME_LENGTH = 64;
 
-	/** @var null|IndexType */
 	protected ?IndexType $type = null;
 
-	/** @var string */
 	protected string $name;
 
-	/** @var Table */
 	protected Table $host_table;
 
 	/** @var array<int,string> */
@@ -96,8 +93,6 @@ final class Index implements ArrayCapableInterface, LockableInterface
 
 	/**
 	 * Gets index name.
-	 *
-	 * @return string
 	 */
 	public function getName(): string
 	{
@@ -106,8 +101,6 @@ final class Index implements ArrayCapableInterface, LockableInterface
 
 	/**
 	 * Returns index's host table.
-	 *
-	 * @return Table
 	 */
 	public function getHostTable(): Table
 	{
@@ -116,8 +109,6 @@ final class Index implements ArrayCapableInterface, LockableInterface
 
 	/**
 	 * Locks this index to prevent further changes.
-	 *
-	 * @return static
 	 */
 	#[Override]
 	public function lock(): static
@@ -135,8 +126,6 @@ final class Index implements ArrayCapableInterface, LockableInterface
 	 * Adds a column to the index.
 	 *
 	 * @param string $name the column name
-	 *
-	 * @return static
 	 *
 	 * @throws RuntimeException when the index is locked
 	 */
@@ -162,8 +151,6 @@ final class Index implements ArrayCapableInterface, LockableInterface
 
 	/**
 	 * Gets the RDBMS-specific index type, or null for the default (B-Tree) index.
-	 *
-	 * @return null|IndexType
 	 */
 	public function getType(): ?IndexType
 	{
@@ -171,8 +158,6 @@ final class Index implements ArrayCapableInterface, LockableInterface
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws DBALException
 	 */
 	public function assertIsValid(): void

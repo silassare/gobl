@@ -28,9 +28,6 @@ use Gobl\DBAL\Drivers\MySQL\MySQL;
  */
 final class NativeJsonMigrationMySQLTest extends NativeJsonMigrationTestCase
 {
-	/**
-	 * {@inheritDoc}
-	 */
 	protected static function getDriverName(): string
 	{
 		return MySQL::NAME;

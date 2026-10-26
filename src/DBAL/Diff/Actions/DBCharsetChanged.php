@@ -28,17 +28,11 @@ final class DBCharsetChanged extends DiffAction
 		parent::__construct(DiffActionType::DB_CHARSET_CHANGED, $reason);
 	}
 
-	/**
-	 * @return string
-	 */
 	public function getCharset(): string
 	{
 		return $this->charset;
 	}
 
-	/**
-	 * @return RDBMSInterface
-	 */
 	public function getDb(): RDBMSInterface
 	{
 		return $this->db;

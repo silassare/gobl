@@ -37,14 +37,8 @@ use Gobl\ORM\Interfaces\ORMUpdateOptionsInterface;
  */
 abstract class ORMController
 {
-	/**
-	 * @var array
-	 */
 	protected array $form_fields = [];
 
-	/**
-	 * @var RDBMSInterface
-	 */
 	protected RDBMSInterface $db;
 
 	protected CRUD $crud;
@@ -53,8 +47,6 @@ abstract class ORMController
 
 	/**
 	 * The auto_increment column full name.
-	 *
-	 * @var null|string
 	 */
 	protected ?string $ai_column_full_name = null;
 
@@ -100,8 +92,6 @@ abstract class ORMController
 
 	/**
 	 * Help var_dump().
-	 *
-	 * @return array
 	 */
 	public function __debugInfo(): array
 	{
@@ -110,15 +100,11 @@ abstract class ORMController
 
 	/**
 	 * Returns new instance.
-	 *
-	 * @return static
 	 */
 	abstract public static function new(): static;
 
 	/**
 	 * Returns CRUD.
-	 *
-	 * @return CRUD
 	 */
 	public function getCRUD(): CRUD
 	{
@@ -179,8 +165,6 @@ abstract class ORMController
 	/**
 	 * Updates one item in the table.
 	 *
-	 * @param ORMUpdateOptionsInterface $options
-	 *
 	 * @return null|TEntity
 	 *
 	 * @throws GoblException
@@ -215,8 +199,6 @@ abstract class ORMController
 	/**
 	 * Updates all items in the table that match the given item filters.
 	 *
-	 * @param ORMUpdateOptionsInterface $options
-	 *
 	 * @return int affected row count
 	 *
 	 * @throws GoblException
@@ -240,8 +222,7 @@ abstract class ORMController
 	/**
 	 * Deletes one item from the table.
 	 *
-	 * @param null|ORMDeleteOptionsInterface $options
-	 * @param null|bool                      $soft    soft delete
+	 * @param null|bool $soft soft delete
 	 *
 	 * @return null|TEntity
 	 *
@@ -291,8 +272,7 @@ abstract class ORMController
 	/**
 	 * Deletes all items in the table that match the given item filters.
 	 *
-	 * @param null|ORMDeleteOptionsInterface $options
-	 * @param null|bool                      $soft    soft delete
+	 * @param null|bool $soft soft delete
 	 *
 	 * @return int affected row count
 	 *
@@ -316,8 +296,6 @@ abstract class ORMController
 
 	/**
 	 * Gets item from the table that match the given filters.
-	 *
-	 * @param null|ORMSelectOptionsInterface $options
 	 *
 	 * @return null|TEntity
 	 *
@@ -345,8 +323,6 @@ abstract class ORMController
 
 	/**
 	 * Gets all items from the table that match the given filters.
-	 *
-	 * @param null|ORMSelectOptionsInterface $options
 	 *
 	 * @return TResults
 	 *
@@ -386,10 +362,6 @@ abstract class ORMController
 	/**
 	 * Gets a given item relative.
 	 *
-	 * @param ORMEntity                      $host_entity
-	 * @param Relation                       $relation
-	 * @param null|ORMSelectOptionsInterface $options
-	 *
 	 * @return null|TEntity
 	 *
 	 * @throws GoblException
@@ -426,10 +398,6 @@ abstract class ORMController
 	/**
 	 * Gets all relatives for a given host entity.
 	 *
-	 * @param ORMEntity                      $host_entity
-	 * @param Relation                       $relation
-	 * @param null|ORMSelectOptionsInterface $options
-	 *
 	 * @return ?TResults
 	 *
 	 * @throws GoblException
@@ -456,9 +424,7 @@ abstract class ORMController
 	 *
 	 * The returned map is keyed by {@see ORMEntity::toIdentityKey()} of each host entity.
 	 *
-	 * @param ORMEntity[]                    $host_entities
-	 * @param Relation                       $relation
-	 * @param null|ORMSelectOptionsInterface $options
+	 * @param ORMEntity[] $host_entities
 	 *
 	 * @return array<string, null|TEntity>
 	 *
@@ -525,9 +491,7 @@ abstract class ORMController
 	 *
 	 * The returned map is keyed by {@see ORMEntity::toIdentityKey()} of each host entity.
 	 *
-	 * @param ORMEntity[]                    $host_entities
-	 * @param Relation                       $relation
-	 * @param null|ORMSelectOptionsInterface $options
+	 * @param ORMEntity[] $host_entities
 	 *
 	 * @return array<string, TEntity[]>
 	 *
@@ -585,12 +549,6 @@ abstract class ORMController
 	/**
 	 * Counts the relatives of a single host entity.
 	 *
-	 * @param ORMEntity                      $host_entity
-	 * @param Relation                       $relation
-	 * @param null|ORMSelectOptionsInterface $options
-	 *
-	 * @return int
-	 *
 	 * @throws GoblException
 	 */
 	public function countRelatives(
@@ -619,9 +577,7 @@ abstract class ORMController
 	 *
 	 * The returned map is keyed by {@see ORMEntity::toIdentityKey()} of each host entity.
 	 *
-	 * @param ORMEntity[]                    $host_entities
-	 * @param Relation                       $relation
-	 * @param null|ORMSelectOptionsInterface $options
+	 * @param ORMEntity[] $host_entities
 	 *
 	 * @return array<string, int>
 	 *
@@ -694,8 +650,6 @@ abstract class ORMController
 
 	/**
 	 * Gets required forms fields.
-	 *
-	 * @return array
 	 */
 	protected function getRequiredFields(): array
 	{

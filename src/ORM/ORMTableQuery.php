@@ -62,13 +62,10 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 */
 	protected const array FILTER_METHODS = [];
 
-	/** @var RDBMSInterface */
 	protected RDBMSInterface $db;
 
-	/** @var QBInterface */
 	protected QBInterface $qb;
 
-	/** @var Filters */
 	protected Filters $filters;
 
 	protected bool $include_soft_deleted_rows = false;
@@ -109,8 +106,6 @@ abstract class ORMTableQuery extends FiltersTableScope
 
 	/**
 	 * Help var_dump().
-	 *
-	 * @return array
 	 */
 	public function __debugInfo(): array
 	{
@@ -128,9 +123,6 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 * by table name -- for the life of the process, which is one request under PHP-FPM.
 	 *
 	 * Throws `BadMethodCallException` for any method name not in the whitelist.
-	 *
-	 * @param string $name
-	 * @param array  $arguments
 	 *
 	 * @return ORMTableQuery|static
 	 */
@@ -178,8 +170,6 @@ abstract class ORMTableQuery extends FiltersTableScope
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws ORMQueryException
 	 */
 	#[Override]
@@ -196,8 +186,6 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 * Exclude soft deleted rows in select/update query.
 	 *
 	 * Soft deleted rows are excluded by default.
-	 *
-	 * @return static
 	 */
 	public function excludeSoftDeletedRows(): static
 	{
@@ -210,8 +198,6 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 * Alias of {@see Filters::and}.
 	 *
 	 * @param array|(callable(static):void)|static ...$filters
-	 *
-	 * @return static
 	 */
 	public function and(array|callable|self ...$filters): static
 	{
@@ -231,8 +217,6 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 * - **`array`** - forwarded as-is to `Filters::where()`.
 	 *
 	 * @param array|(callable(static):void)|static ...$filters
-	 *
-	 * @return static
 	 */
 	public function where(array|callable|self ...$filters): static
 	{
@@ -277,8 +261,6 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 * The returned instance **shares the same `QBSelect`** as the parent (same bindings, same
 	 * alias map) but gets its own `Filters` sub-group instance so its conditions are nested
 	 * separately. Pass the returned instance to `where()` or a callable to add grouped conditions.
-	 *
-	 * @return static
 	 */
 	public function subGroup(): static
 	{
@@ -292,8 +274,6 @@ abstract class ORMTableQuery extends FiltersTableScope
 
 	/**
 	 * Returns new instance.
-	 *
-	 * @return static
 	 */
 	abstract public static function new(): static;
 
@@ -301,8 +281,6 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 * Alias of {@see Filters::or}.
 	 *
 	 * @param array|(callable(static):void)|static ...$filters
-	 *
-	 * @return static
 	 */
 	public function or(array|callable|self ...$filters): static
 	{
@@ -313,8 +291,6 @@ abstract class ORMTableQuery extends FiltersTableScope
 
 	/**
 	 * Resets this instance filters.
-	 *
-	 * @return static
 	 */
 	public function reset(): static
 	{
@@ -328,8 +304,6 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 * Create a {@see QBInsert} instance for single row insertion.
 	 *
 	 * @param array $values the column => value map
-	 *
-	 * @return QBInsert
 	 */
 	public function insert(array $values): QBInsert
 	{
@@ -344,8 +318,6 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 * Create a {@see QBInsert} instance for multiple rows insertion.
 	 *
 	 * @param array<array> $values a two dimensional array of column => value map
-	 *
-	 * @return QBInsert
 	 */
 	public function insertMulti(array $values): QBInsert
 	{
@@ -361,8 +333,6 @@ abstract class ORMTableQuery extends FiltersTableScope
 
 	/**
 	 * Delete rows in the table.
-	 *
-	 * @return QBDelete
 	 */
 	public function delete(?ORMDeleteOptionsInterface $options = null): QBDelete
 	{
@@ -378,8 +348,6 @@ abstract class ORMTableQuery extends FiltersTableScope
 
 	/**
 	 * Gets table alias.
-	 *
-	 * @return string
 	 */
 	public function getTableAlias(): string
 	{
@@ -388,8 +356,6 @@ abstract class ORMTableQuery extends FiltersTableScope
 
 	/**
 	 * Gets a copy of the current filters.
-	 *
-	 * @return Filters
 	 */
 	public function getFilters(): Filters
 	{
@@ -406,8 +372,6 @@ abstract class ORMTableQuery extends FiltersTableScope
 
 	/**
 	 * Soft delete rows in the table.
-	 *
-	 * @return QBUpdate
 	 *
 	 * @throws DBALException
 	 */
@@ -434,8 +398,6 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 * Update rows in the table.
 	 *
 	 * @param array $values new values
-	 *
-	 * @return QBUpdate
 	 */
 	public function update(array $values, ?ORMUpdateOptionsInterface $options = null): QBUpdate
 	{
@@ -460,8 +422,7 @@ abstract class ORMTableQuery extends FiltersTableScope
 	/**
 	 * Finds rows in the table and returns a new instance of the table's result iterator.
 	 *
-	 * @param null|ORMDeleteOptionsInterface|ORMSelectOptionsInterface|ORMUpdateOptionsInterface $options
-	 * @param null|list<string>                                                                  $restrict_to_columns optional list of column names to scope the expected columns to (e.g. for relations); if provided, only columns in this list are allowed to be selected even if present in `$options->getExpectedColumns()`
+	 * @param null|list<string> $restrict_to_columns optional list of column names to scope the expected columns to (e.g. for relations); if provided, only columns in this list are allowed to be selected even if present in `$options->getExpectedColumns()`
 	 *
 	 * @return ORMResults<TEntity>
 	 */
@@ -475,10 +436,7 @@ abstract class ORMTableQuery extends FiltersTableScope
 	/**
 	 * Create a {@see QBSelect} and apply the options.
 	 *
-	 * @param null|ORMDeleteOptionsInterface|ORMSelectOptionsInterface|ORMUpdateOptionsInterface $options
-	 * @param null|list<string>                                                                  $restrict_to_columns optional list of column names to scope the expected columns to (e.g. for relations); if provided, only columns in this list are allowed to be selected even if present in `$options->getExpectedColumns()`
-	 *
-	 * @return QBSelect
+	 * @param null|list<string> $restrict_to_columns optional list of column names to scope the expected columns to (e.g. for relations); if provided, only columns in this list are allowed to be selected even if present in `$options->getExpectedColumns()`
 	 */
 	public function select(ORMDeleteOptionsInterface|ORMSelectOptionsInterface|ORMUpdateOptionsInterface|null $options = null, ?array $restrict_to_columns = []): QBSelect
 	{
@@ -598,9 +556,8 @@ abstract class ORMTableQuery extends FiltersTableScope
 	/**
 	 * Finds relatives and returns a result set.
 	 *
-	 * @param Relation                       $relation    the relation to use for fetching relatives
-	 * @param null|ORMEntity                 $host_entity the host entity, or null to skip host filtering
-	 * @param null|ORMSelectOptionsInterface $options
+	 * @param Relation       $relation    the relation to use for fetching relatives
+	 * @param null|ORMEntity $host_entity the host entity, or null to skip host filtering
 	 *
 	 * @return null|ORMResults<TEntity>
 	 */
@@ -621,9 +578,8 @@ abstract class ORMTableQuery extends FiltersTableScope
 	/**
 	 * Finds relatives for multiple host entities in a single batch query and returns a result set.
 	 *
-	 * @param Relation                       $relation      the relation to use for fetching relatives
-	 * @param ORMEntity[]                    $host_entities the host entities
-	 * @param null|ORMSelectOptionsInterface $options
+	 * @param Relation    $relation      the relation to use for fetching relatives
+	 * @param ORMEntity[] $host_entities the host entities
 	 *
 	 * @return null|ORMResults<TEntity>
 	 */
@@ -645,8 +601,6 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 * Include soft deleted rows in select/update/delete query.
 	 *
 	 * Soft deleted rows are excluded by default.
-	 *
-	 * @return static
 	 */
 	public function includeSoftDeletedRows(): static
 	{
@@ -662,8 +616,6 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 * @param Operator    $operator the operator to use
 	 * @param mixed       $value    the filter value
 	 * @param null|string $at_path  optional JSON path for JSON column filters
-	 *
-	 * @return static
 	 */
 	public function filterBy(string $column, Operator $operator, mixed $value = null, ?string $at_path = null): static
 	{
@@ -796,8 +748,7 @@ abstract class ORMTableQuery extends FiltersTableScope
 	 *
 	 * Called automatically by `select()`, `update()`, etc. so callers rarely need this directly.
 	 *
-	 * @param QBSelect|QBUpdate $qb
-	 * @param bool              $force_exclude bypass `$include_soft_deleted_rows` and always exclude
+	 * @param bool $force_exclude bypass `$include_soft_deleted_rows` and always exclude
 	 */
 	protected function applySoftDeletedLogic(QBSelect|QBUpdate $qb, bool $force_exclude = false): void
 	{

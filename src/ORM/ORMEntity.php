@@ -51,23 +51,17 @@ abstract class ORMEntity implements ArrayCapableInterface
 {
 	use ArrayCapableTrait;
 
-	/** @var Table */
 	private Table $_oeb_table;
 
-	/** @var bool */
 	private bool $_oeb_is_new;
 
 	/**
 	 * To enable/disable strict mode.
-	 *
-	 * @var bool
 	 */
 	private bool $_oeb_strict;
 
-	/** @var RDBMSInterface */
 	private RDBMSInterface $_oeb_db;
 
-	/** @var array */
 	private array $_oeb_row = [];
 
 	/**
@@ -113,8 +107,6 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 *
 	 * When true, accessing a column that was not in the projection throws
 	 * {@see ORMRuntimeException} instead of silently returning a default value.
-	 *
-	 * @var bool
 	 */
 	private bool $_oeb_is_partial = false;
 
@@ -177,8 +169,6 @@ abstract class ORMEntity implements ArrayCapableInterface
 
 	/**
 	 * Magic isset for column.
-	 *
-	 * @param string $name
 	 *
 	 * @return bool
 	 */
@@ -268,114 +258,11 @@ abstract class ORMEntity implements ArrayCapableInterface
 	}
 
 	/**
-	 * Reads a column value, for the magic getter and for a generated property's `get` hook.
-	 *
-	 * Resolution order when the stored value is `null`:
-	 * 1. If the column is auto-incremented and the entity is new -> returns `null` (ID not yet assigned).
-	 * 2. If the column is non-nullable -> tries `Type::getDefault()`, then `Type::getEmptyValueOfType()`;
-	 *    if both return `null`, throws `ORMRuntimeException` (programming error: required value was never set).
-	 * 3. Otherwise (nullable column) -> returns `null`.
-	 *
-	 * For partially-loaded entities (see {@see markAsPartial()}) a column that was not included in the
-	 * projection always throws `ORMRuntimeException`. Use {@see isColumnLoaded()} to check first.
-	 *
-	 * @param string $name the column full name or name
-	 *
-	 * @throws ORMRuntimeException
+	 * Help var_dump().
 	 */
-	final protected function _oebRead(string $name): mixed
+	public function __debugInfo(): array
 	{
-		$column    = $this->_oeb_table->getColumnOrFail($name);
-		$full_name = $column->getFullName();
-
-		// Partial-load guard: throw clearly when the column was not fetched.
-		if ($this->_oeb_is_partial && !isset($this->_oeb_partial_columns[$full_name])) {
-			throw new ORMRuntimeException(
-				\sprintf(
-					'Column "%s" was not included in the partial projection for table "%s". Use isColumnLoaded() to check before accessing.',
-					$name,
-					$this->_oeb_table->getName()
-				)
-			);
-		}
-
-		$value = $this->_oeb_row[$full_name] ?? null;
-		$type  = $column->getType();
-
-		if (null === $value) {
-			if ($this->isNew() && $type->isAutoIncremented()) {
-				return null;
-			}
-
-			if (!$type->isNullable()) {
-				// this is an attempt to prevent returning null
-				// as the property is supposed to not have null value
-				$value = $type->getDefault();
-				if (null === $value) {
-					$value = $type->getEmptyValueOfType();
-				}
-
-				if (null === $value) {
-					throw new ORMRuntimeException(
-						\sprintf(
-							'Missing required value for column "%s" defined in table "%s".',
-							$name,
-							$this->_oeb_table->getName()
-						)
-					);
-				}
-			}
-		}
-
-		return $value;
-	}
-
-	/**
-	 * Writes a column value, for the magic setter and for a generated property's `set` hook.
-	 *
-	 * Validates through `doValidation()`, compares the hash against `_oeb_saved_hashes` and marks the
-	 * column dirty only when it changed. A {@see JsonPatch} is appended to the column's pending patch
-	 * instead of replacing the value, so the UPDATE sends the paths that changed.
-	 *
-	 * @param string $name  the column full name or name
-	 * @param mixed  $value the column value
-	 *
-	 * @throws TypesInvalidValueException
-	 */
-	final protected function _oebWrite(string $name, mixed $value): void
-	{
-		$column    = $this->_oeb_table->getColumnOrFail($name);
-		$full_name = $column->getFullName();
-		$type      = $column->getType();
-
-		if ($value instanceof JsonPatch) {
-			// A patch says what changed, the entity says what it changed from: the column's
-			// new value is the one applied to the other, so the entity reads back what the
-			// row will hold. The paths are kept apart, for the UPDATE to send.
-			$current = $this->_oeb_row[$full_name] ?? null;
-
-			$patch = $this->_oeb_patches[$full_name]
-				?? new JsonPatch($current instanceof Map || \is_array($current) ? $current : []);
-
-			$this->_oeb_patches[$full_name] = $patch->append($value);
-
-			$value = $patch->toArray();
-		} else {
-			// A whole value answers for the column on its own.
-			unset($this->_oeb_patches[$full_name]);
-		}
-
-		$clean      = $this->doValidation($full_name, $value);
-		$clean_hash = $type->hash($clean);
-
-		if (
-			!\array_key_exists($full_name, $this->_oeb_row)
-			|| !\array_key_exists($full_name, $this->_oeb_saved_hashes)
-			|| $this->_oeb_saved_hashes[$full_name] !== $clean_hash
-		) {
-			$this->_oeb_row[$full_name]   = $clean;
-			$this->_oeb_dirty[$full_name] = true;
-		}
+		return ['instance_of' => static::class, 'data' => $this->toRow()];
 	}
 
 	/**
@@ -430,37 +317,21 @@ abstract class ORMEntity implements ArrayCapableInterface
 	}
 
 	/**
-	 * Help var_dump().
-	 *
-	 * @return array
-	 */
-	public function __debugInfo(): array
-	{
-		return ['instance_of' => static::class, 'data' => $this->toRow()];
-	}
-
-	/**
 	 * Returns new instance.
 	 *
 	 * @param bool $is_new true for new entity, false for entity fetched
 	 *                     from the database, default is true
 	 * @param bool $strict enable/disable strict mode
-	 *
-	 * @return static
 	 */
 	abstract public static function new(bool $is_new = true, bool $strict = true): static;
 
 	/**
 	 * Returns the table instance.
-	 *
-	 * @return Table
 	 */
 	abstract public static function table(): Table;
 
 	/**
 	 * Returns the table query builder instance.
-	 *
-	 * @return ORMTableQuery
 	 */
 	abstract public static function qb(): ORMTableQuery;
 
@@ -468,15 +339,11 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 * Returns the table results instance.
 	 *
 	 * @param QBSelect $query the query builder instance
-	 *
-	 * @return ORMResults
 	 */
 	abstract public static function results(QBSelect $query): ORMResults;
 
 	/**
 	 * Returns the table crud event producer instance.
-	 *
-	 * @return ORMEntityCRUD
 	 */
 	abstract public static function crud(): ORMEntityCRUD;
 
@@ -501,8 +368,6 @@ abstract class ORMEntity implements ArrayCapableInterface
 	/**
 	 * Returns true for entities not yet persisted to the DB.
 	 * Becomes false after the first successful `save()`.
-	 *
-	 * @return bool
 	 */
 	public function isNew(): bool
 	{
@@ -638,8 +503,6 @@ abstract class ORMEntity implements ArrayCapableInterface
 
 	/**
 	 * Returns the table controller instance.
-	 *
-	 * @return ORMController
 	 */
 	abstract public static function ctrl(): ORMController;
 
@@ -652,8 +515,6 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 * - clears `_oeb_dirty` and the `isNew` flag.
 	 *
 	 * @param bool $set_as_saved mark the entity as persisted
-	 *
-	 * @return bool
 	 */
 	public function isSaved(bool $set_as_saved = false): bool
 	{
@@ -684,8 +545,6 @@ abstract class ORMEntity implements ArrayCapableInterface
 
 	/**
 	 * Returns filters that uniquely identify the current entity.
-	 *
-	 * @return array
 	 *
 	 * @throws ORMException
 	 */
@@ -734,8 +593,6 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 * The resulting key is opaque and must be treated as an implementation detail
 	 * (do not persist or compare across different entity types).
 	 *
-	 * @return string
-	 *
 	 * @throws ORMException
 	 */
 	public function toIdentityKey(): string
@@ -756,8 +613,6 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 * Hydrate this entity with values from an array.
 	 *
 	 * @param array $row map column name to column value
-	 *
-	 * @return static
 	 */
 	public function hydrate(array $row): static
 	{
@@ -780,8 +635,6 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 *    (e.g. a getter that promises to return an int but returns null instead because the column was not loaded).
 	 *
 	 * @param list<string> $partial_columns set of column names that were loaded
-	 *
-	 * @return static
 	 */
 	public function markAsPartial(array $partial_columns): static
 	{
@@ -803,8 +656,6 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 *
 	 * When true, only columns returned by {@see isColumnLoaded()} are accessible
 	 * via {@see __get()}.
-	 *
-	 * @return bool
 	 */
 	public function isPartial(): bool
 	{
@@ -818,8 +669,6 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 * For partially-loaded entities returns true only when the column was part of the projection.
 	 *
 	 * @param string $name column short name or full name
-	 *
-	 * @return bool
 	 */
 	public function isColumnLoaded(string $name): bool
 	{
@@ -841,8 +690,6 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 * distinguish "not set" from a value that is genuinely `null`.
 	 *
 	 * @param string $var_name the variable name used in the SELECT alias (without the `_gobl_` prefix)
-	 *
-	 * @return mixed
 	 */
 	final public function getComputedValue(string $var_name): mixed
 	{
@@ -855,8 +702,6 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 * Returns whether a computed value was set during PDO hydration.
 	 *
 	 * @param string $var_name the variable name (without the `_gobl_` prefix)
-	 *
-	 * @return bool
 	 */
 	final public function hasComputedValue(string $var_name): bool
 	{
@@ -866,10 +711,6 @@ abstract class ORMEntity implements ArrayCapableInterface
 	}
 
 	/**
-	 * @param null|bool $soft
-	 *
-	 * @return static
-	 *
 	 * @throws ORMException
 	 * @throws GoblException
 	 */
@@ -881,6 +722,117 @@ abstract class ORMEntity implements ArrayCapableInterface
 		static::ctrl()->deleteOneItem($options, $soft);
 
 		return $this;
+	}
+
+	/**
+	 * Reads a column value, for the magic getter and for a generated property's `get` hook.
+	 *
+	 * Resolution order when the stored value is `null`:
+	 * 1. If the column is auto-incremented and the entity is new -> returns `null` (ID not yet assigned).
+	 * 2. If the column is non-nullable -> tries `Type::getDefault()`, then `Type::getEmptyValueOfType()`;
+	 *    if both return `null`, throws `ORMRuntimeException` (programming error: required value was never set).
+	 * 3. Otherwise (nullable column) -> returns `null`.
+	 *
+	 * For partially-loaded entities (see {@see markAsPartial()}) a column that was not included in the
+	 * projection always throws `ORMRuntimeException`. Use {@see isColumnLoaded()} to check first.
+	 *
+	 * @param string $name the column full name or name
+	 *
+	 * @throws ORMRuntimeException
+	 */
+	final protected function _oebRead(string $name): mixed
+	{
+		$column    = $this->_oeb_table->getColumnOrFail($name);
+		$full_name = $column->getFullName();
+
+		// Partial-load guard: throw clearly when the column was not fetched.
+		if ($this->_oeb_is_partial && !isset($this->_oeb_partial_columns[$full_name])) {
+			throw new ORMRuntimeException(
+				\sprintf(
+					'Column "%s" was not included in the partial projection for table "%s". Use isColumnLoaded() to check before accessing.',
+					$name,
+					$this->_oeb_table->getName()
+				)
+			);
+		}
+
+		$value = $this->_oeb_row[$full_name] ?? null;
+		$type  = $column->getType();
+
+		if (null === $value) {
+			if ($this->isNew() && $type->isAutoIncremented()) {
+				return null;
+			}
+
+			if (!$type->isNullable()) {
+				// this is an attempt to prevent returning null
+				// as the property is supposed to not have null value
+				$value = $type->getDefault();
+				if (null === $value) {
+					$value = $type->getEmptyValueOfType();
+				}
+
+				if (null === $value) {
+					throw new ORMRuntimeException(
+						\sprintf(
+							'Missing required value for column "%s" defined in table "%s".',
+							$name,
+							$this->_oeb_table->getName()
+						)
+					);
+				}
+			}
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Writes a column value, for the magic setter and for a generated property's `set` hook.
+	 *
+	 * Validates through `doValidation()`, compares the hash against `_oeb_saved_hashes` and marks the
+	 * column dirty only when it changed. A {@see JsonPatch} is appended to the column's pending patch
+	 * instead of replacing the value, so the UPDATE sends the paths that changed.
+	 *
+	 * @param string $name  the column full name or name
+	 * @param mixed  $value the column value
+	 *
+	 * @throws TypesInvalidValueException
+	 */
+	final protected function _oebWrite(string $name, mixed $value): void
+	{
+		$column    = $this->_oeb_table->getColumnOrFail($name);
+		$full_name = $column->getFullName();
+		$type      = $column->getType();
+
+		if ($value instanceof JsonPatch) {
+			// A patch says what changed, the entity says what it changed from: the column's
+			// new value is the one applied to the other, so the entity reads back what the
+			// row will hold. The paths are kept apart, for the UPDATE to send.
+			$current = $this->_oeb_row[$full_name] ?? null;
+
+			$patch = $this->_oeb_patches[$full_name]
+				?? new JsonPatch($current instanceof Map || \is_array($current) ? $current : []);
+
+			$this->_oeb_patches[$full_name] = $patch->append($value);
+
+			$value = $patch->toArray();
+		} else {
+			// A whole value answers for the column on its own.
+			unset($this->_oeb_patches[$full_name]);
+		}
+
+		$clean      = $this->doValidation($full_name, $value);
+		$clean_hash = $type->hash($clean);
+
+		if (
+			!\array_key_exists($full_name, $this->_oeb_row)
+			|| !\array_key_exists($full_name, $this->_oeb_saved_hashes)
+			|| $this->_oeb_saved_hashes[$full_name] !== $clean_hash
+		) {
+			$this->_oeb_row[$full_name]   = $clean;
+			$this->_oeb_dirty[$full_name] = true;
+		}
 	}
 
 	/**
@@ -986,8 +938,6 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 *
 	 * @param string[]      $columns
 	 * @param null|string[] $missing
-	 *
-	 * @return array
 	 */
 	private function _toIdentityFilters(array $columns, ?array &$missing = []): array
 	{

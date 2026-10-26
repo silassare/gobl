@@ -53,9 +53,6 @@ final class Diff
 {
 	/**
 	 * Diff constructor.
-	 *
-	 * @param RDBMSInterface $db_from
-	 * @param RDBMSInterface $db_to
 	 */
 	public function __construct(private RDBMSInterface $db_from, private RDBMSInterface $db_to) {}
 
@@ -88,8 +85,6 @@ final class Diff
 	 *
 	 * @param int         $version the migration version
 	 * @param null|string $label   the migration label
-	 *
-	 * @return PHPFile
 	 */
 	public function generateMigrationFile(int $version, ?string $label = 'Auto generated.'): PHPFile
 	{
@@ -221,8 +216,6 @@ final class Diff
 	 *
 	 * @param int         $version the migration version
 	 * @param null|string $label   the migration label
-	 *
-	 * @return MigrationInterface
 	 */
 	public function makeMigrationInstance(int $version, ?string $label = 'Auto generated.'): MigrationInterface
 	{
@@ -400,8 +393,6 @@ final class Diff
 
 	/**
 	 * Check if db has changes.
-	 *
-	 * @return bool
 	 */
 	public function hasChanges(): bool
 	{
@@ -413,8 +404,6 @@ final class Diff
 	 *
 	 * @param Constraint $constraint the constraint that was deleted
 	 * @param string     $reason     optional human-readable reason for the deletion
-	 *
-	 * @return ForeignKeyConstraintDeleted|PrimaryKeyConstraintDeleted|UniqueKeyConstraintDeleted
 	 */
 	private function getConstraintDeletedClassInstance(Constraint $constraint, string $reason = ''): ForeignKeyConstraintDeleted|PrimaryKeyConstraintDeleted|UniqueKeyConstraintDeleted
 	{
@@ -466,10 +455,6 @@ final class Diff
 
 	/**
 	 * Diff tables columns.
-	 *
-	 * @param Table $from_table
-	 * @param Table $to_table
-	 * @param array $diff
 	 */
 	private function diffTableColumns(Table $from_table, Table $to_table, array &$diff): void
 	{
@@ -560,8 +545,6 @@ final class Diff
 	 *
 	 * @param Constraint $constraint the constraint that was added
 	 * @param string     $reason     optional human-readable reason for the addition
-	 *
-	 * @return ForeignKeyConstraintAdded|PrimaryKeyConstraintAdded|UniqueKeyConstraintAdded
 	 */
 	private function getConstraintAddedClassInstance(Constraint $constraint, string $reason = ''): ForeignKeyConstraintAdded|PrimaryKeyConstraintAdded|UniqueKeyConstraintAdded
 	{
@@ -760,8 +743,6 @@ final class Diff
 	 *
 	 * @param RDBMSInterface $db           the target database (determines the SQL dialect)
 	 * @param DiffAction[]   $diff_actions
-	 *
-	 * @return string
 	 */
 	private function diffSql(RDBMSInterface $db, array $diff_actions): string
 	{
@@ -781,8 +762,6 @@ final class Diff
 	 * The diff key is obtained from `Table::getDiffKey()` and is used to match tables
 	 * across the two schemas even when their names have changed (renames are tracked
 	 * separately).
-	 *
-	 * @param RDBMSInterface $db
 	 *
 	 * @return array<string, Table>
 	 */

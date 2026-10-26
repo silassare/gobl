@@ -26,8 +26,6 @@ interface TypeProviderInterface
 	 * @param string $name    the type name
 	 * @param array  $options the options
 	 *
-	 * @return null|TypeInterface
-	 *
 	 * @throws TypesException when a type with the given name was found
 	 *                        but options is invalid
 	 */
@@ -37,8 +35,6 @@ interface TypeProviderInterface
 	 * Checks if a given type name exists.
 	 *
 	 * @param string $name the type name
-	 *
-	 * @return bool
 	 */
 	public function hasType(string $name): bool;
 }

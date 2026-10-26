@@ -184,8 +184,6 @@ final class DiffTest extends BaseTestCase
 	 * - Applies the standard content normalizer (ISO datetimes, version strings).
 	 *
 	 * @param string $content Raw migration file content
-	 *
-	 * @return string
 	 */
 	private static function normalizeMigrationContent(string $content): string
 	{

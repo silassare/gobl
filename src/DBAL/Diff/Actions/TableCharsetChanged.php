@@ -28,17 +28,11 @@ final class TableCharsetChanged extends DiffAction
 		parent::__construct(DiffActionType::TABLE_CHARSET_CHANGED, $reason);
 	}
 
-	/**
-	 * @return string
-	 */
 	public function getCharset(): string
 	{
 		return $this->charset;
 	}
 
-	/**
-	 * @return Table
-	 */
 	public function getTable(): Table
 	{
 		return $this->table;

@@ -54,8 +54,6 @@ interface JsonOfInterface extends JsonSerializable
 	 * Revives an instance from a decoded JSON payload.
 	 *
 	 * @param mixed $payload the decoded JSON value `json_decode($json, true)`
-	 *
-	 * @return static
 	 */
 	public static function revive(mixed $payload): static;
 }

@@ -44,11 +44,6 @@ enum ORMClassKind: string
 
 	/**
 	 * Returns FQN class name for a given table.
-	 *
-	 * @param Table $table
-	 * @param bool  $use
-	 *
-	 * @return string
 	 */
 	public function getClassFQN(Table $table, bool $use = false): string
 	{
@@ -61,8 +56,6 @@ enum ORMClassKind: string
 
 	/**
 	 * Checks if this class kind is base class.
-	 *
-	 * @return bool
 	 */
 	public function isBaseClass(): bool
 	{
@@ -71,10 +64,6 @@ enum ORMClassKind: string
 
 	/**
 	 * Returns class name for a given table.
-	 *
-	 * @param Table $table
-	 *
-	 * @return string
 	 */
 	public function getClassName(Table $table): string
 	{

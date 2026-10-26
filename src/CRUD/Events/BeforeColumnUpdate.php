@@ -25,10 +25,6 @@ final class BeforeColumnUpdate extends CRUDAction
 {
 	/**
 	 * BeforeColumnUpdate constructor.
-	 *
-	 * @param Table  $table
-	 * @param Column $column
-	 * @param array  $form
 	 */
 	public function __construct(Table $table, protected Column $column, array $form)
 	{
@@ -37,8 +33,6 @@ final class BeforeColumnUpdate extends CRUDAction
 
 	/**
 	 * Returns the column that is being updated.
-	 *
-	 * @return Column
 	 */
 	public function getColumn(): Column
 	{

@@ -93,8 +93,6 @@ class LinkBuilder implements ArrayCapableInterface
 	 *
 	 * @param array<string, string> $host_to_target_map host column -> target column;
 	 *                                                  omit to use auto-detection
-	 *
-	 * @return LinkColumnsBuilder
 	 */
 	public static function columns(array $host_to_target_map = []): LinkColumnsBuilder
 	{
@@ -118,8 +116,6 @@ class LinkBuilder implements ArrayCapableInterface
 	 * to set the optional parent constraints.
 	 *
 	 * @param string $prefix prefix for the child-key and child-type columns
-	 *
-	 * @return LinkMorphBuilder
 	 */
 	public static function morph(string $prefix): LinkMorphBuilder
 	{
@@ -140,8 +136,6 @@ class LinkBuilder implements ArrayCapableInterface
 	 *
 	 * @param string $child_key_column  column on the child table that holds the parent PK value
 	 * @param string $child_type_column column on the child table that holds the parent type string
-	 *
-	 * @return LinkMorphBuilder
 	 */
 	public static function morphExplicit(
 		string $child_key_column,
@@ -174,8 +168,6 @@ class LinkBuilder implements ArrayCapableInterface
 	 * @param string $column   left operand (column name or FQN)
 	 * @param string $operator filter operator (e.g. `'eq'`, `'neq'`, `'lt'`, `'gt'`)
 	 * @param mixed  $value    right operand value
-	 *
-	 * @return static
 	 */
 	public function filter(string $column, string $operator, mixed $value): static
 	{
@@ -197,8 +189,6 @@ class LinkBuilder implements ArrayCapableInterface
 	 * directly instead of building it up with individual {@see filter()} calls.
 	 *
 	 * @param array $filters raw filters array (same format accepted by `Filters::fromArray()`)
-	 *
-	 * @return static
 	 */
 	public function filters(array $filters): static
 	{
@@ -216,8 +206,6 @@ class LinkBuilder implements ArrayCapableInterface
 	 *
 	 * Pass the result directly to `Relation::createLink()`, or use via
 	 * {@see RelationBuilder::through()} / {@see RelationBuilder::usingJoin()}.
-	 *
-	 * @return array
 	 */
 	#[Override]
 	public function toArray(): array

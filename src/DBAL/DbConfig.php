@@ -27,13 +27,10 @@ final class DbConfig implements ArrayCapableInterface
 {
 	use ArrayCapableTrait;
 
-	/** @var array */
 	private array $config;
 
 	/**
 	 * DbConfig constructor.
-	 *
-	 * @param array $config
 	 */
 	public function __construct(array $config)
 	{
@@ -50,9 +47,6 @@ final class DbConfig implements ArrayCapableInterface
 		], $config);
 	}
 
-	/**
-	 * @return string
-	 */
 	public function getDbHost(): string
 	{
 		return $this->config['db_host'];
@@ -66,41 +60,26 @@ final class DbConfig implements ArrayCapableInterface
 		return $this->config['db_port'];
 	}
 
-	/**
-	 * @return string
-	 */
 	public function getDbName(): string
 	{
 		return $this->config['db_name'];
 	}
 
-	/**
-	 * @return string
-	 */
 	public function getDbUser(): string
 	{
 		return $this->config['db_user'];
 	}
 
-	/**
-	 * @return string
-	 */
 	public function getDbPass(): string
 	{
 		return $this->config['db_pass'];
 	}
 
-	/**
-	 * @return string
-	 */
 	public function getDbCharset(): string
 	{
 		return $this->config['db_charset'];
 	}
 
-	/**
-	 * @return string
-	 */
 	public function getDbCollate(): string
 	{
 		return $this->config['db_collate'];
@@ -110,8 +89,6 @@ final class DbConfig implements ArrayCapableInterface
 	 * Returns the server version string (e.g. '8.0.13'),
 	 * first check configured value, falling back to querying the database
 	 * if not set, or null if it cannot be determined.
-	 *
-	 * @return null|string
 	 */
 	public function getDbServerVersion(?RDBMSInterface $db): ?string
 	{
@@ -129,9 +106,6 @@ final class DbConfig implements ArrayCapableInterface
 		return $version;
 	}
 
-	/**
-	 * @return string
-	 */
 	public function getDbTablePrefix(): string
 	{
 		return $this->config['db_table_prefix'];
@@ -139,8 +113,6 @@ final class DbConfig implements ArrayCapableInterface
 
 	/**
 	 * Returns a safe array.
-	 *
-	 * @return array
 	 */
 	public function toSafeArray(): array
 	{

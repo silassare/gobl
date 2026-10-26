@@ -41,9 +41,6 @@ final class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 
 	/**
 	 * SQLiteQueryGenerator constructor.
-	 *
-	 * @param RDBMSInterface $db
-	 * @param DbConfig       $config
 	 */
 	public function __construct(RDBMSInterface $db, DbConfig $config)
 	{
@@ -199,36 +196,24 @@ final class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 		return 'json(' . $value . ')';
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	protected function getJsonTypeExpression(string $expression): string
 	{
 		return 'json_type(' . $expression . ')';
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	protected function getJsonObjectTypeName(): string
 	{
 		return 'object';
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	protected function getJsonExtractPathExpression(string $expression, array $segments, callable $bind): string
 	{
 		return 'json_extract(' . $expression . ', ' . $this->getJsonPathArgument($segments, $bind) . ')';
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	protected function getJsonSetPathExpression(
 		string $expression,
@@ -240,9 +225,6 @@ final class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 			. ', ' . $value . ')';
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	protected function getJsonRemovePathExpression(string $expression, array $segments, callable $bind): string
 	{
@@ -769,8 +751,6 @@ final class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 	/**
 	 * Recursively walks the join sub-tree of `$alias` and throws if any RIGHT JOIN is found.
 	 *
-	 * @param QBDelete|QBSelect   $qb
-	 * @param string              $alias
 	 * @param array<string, bool> $visited cycle-guard
 	 *
 	 * @throws DBALRuntimeException when a RIGHT JOIN is found at sub-join level

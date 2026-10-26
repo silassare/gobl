@@ -61,8 +61,6 @@ final class Filter implements FilterInterface
 
 	/**
 	 * Get filter left operand.
-	 *
-	 * @return FilterLeftOperand
 	 */
 	public function getLeftOperand(): FilterLeftOperand
 	{
@@ -71,8 +69,6 @@ final class Filter implements FilterInterface
 
 	/**
 	 * Get filter right operand.
-	 *
-	 * @return null|FilterRightOperand
 	 */
 	public function getRightOperand(): ?FilterRightOperand
 	{
@@ -81,10 +77,6 @@ final class Filter implements FilterInterface
 
 	/**
 	 * Sets the left operand for query.
-	 *
-	 * @param string $left_for_query
-	 *
-	 * @return static
 	 */
 	public function setLeftOperandForQuery(string $left_for_query): static
 	{
@@ -95,10 +87,6 @@ final class Filter implements FilterInterface
 
 	/**
 	 * Sets the right operand for query.
-	 *
-	 * @param null|string $right_for_query
-	 *
-	 * @return static
 	 */
 	public function setRightOperandForQuery(?string $right_for_query): static
 	{
@@ -113,8 +101,6 @@ final class Filter implements FilterInterface
 
 	/**
 	 * Get filter operator.
-	 *
-	 * @return Operator
 	 */
 	public function getOperator(): Operator
 	{

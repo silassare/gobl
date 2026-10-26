@@ -28,10 +28,6 @@ final class BeforeUpdateAll extends CRUDAction
 
 	/**
 	 * BeforeUpdateAll constructor.
-	 *
-	 * @param Table         $table
-	 * @param ORMTableQuery $filters
-	 * @param array         $form
 	 */
 	public function __construct(Table $table, ORMTableQuery $filters, array $form)
 	{

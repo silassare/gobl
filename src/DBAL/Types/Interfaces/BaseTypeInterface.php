@@ -34,8 +34,6 @@ interface BaseTypeInterface extends TypeInterface
 	 * this by default; it exists as an extension point for custom type providers.
 	 *
 	 * @param RDBMSInterface $rdbms the RDBMS
-	 *
-	 * @return bool
 	 */
 	public function shouldCastExpressionForQuery(RDBMSInterface $rdbms): bool;
 
@@ -48,8 +46,6 @@ interface BaseTypeInterface extends TypeInterface
 	 *
 	 * @param string         $expression the SQL placeholder or expression to wrap
 	 * @param RDBMSInterface $rdbms      the RDBMS
-	 *
-	 * @return string
 	 */
 	public function castExpressionForQuery(string $expression, RDBMSInterface $rdbms): string;
 }

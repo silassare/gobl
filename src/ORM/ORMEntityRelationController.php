@@ -52,8 +52,6 @@ class ORMEntityRelationController implements RelationControllerInterface
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws GoblException
 	 */
 	#[Override]
@@ -63,8 +61,6 @@ class ORMEntityRelationController implements RelationControllerInterface
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws GoblException
 	 */
 	#[Override]
@@ -74,8 +70,6 @@ class ORMEntityRelationController implements RelationControllerInterface
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws DBALException
 	 * @throws GoblException
 	 */
@@ -97,8 +91,6 @@ class ORMEntityRelationController implements RelationControllerInterface
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws GoblException
 	 * @throws ORMException
 	 * @throws CRUDException
@@ -120,8 +112,6 @@ class ORMEntityRelationController implements RelationControllerInterface
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws ORMException
 	 * @throws GoblException
 	 */
@@ -136,8 +126,6 @@ class ORMEntityRelationController implements RelationControllerInterface
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws ORMException
 	 * @throws GoblException
 	 */
@@ -148,8 +136,6 @@ class ORMEntityRelationController implements RelationControllerInterface
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws GoblException
 	 */
 	#[Override]
@@ -191,8 +177,6 @@ class ORMEntityRelationController implements RelationControllerInterface
 	 * Try to extract the relative identity filters from the payload.
 	 *
 	 * @param mixed $payload
-	 *
-	 * @return array
 	 *
 	 * @throws ORMException
 	 */

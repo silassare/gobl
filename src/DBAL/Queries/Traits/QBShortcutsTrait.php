@@ -44,8 +44,6 @@ trait QBShortcutsTrait
 	 * ```
 	 *
 	 * @param string $expr raw SQL fragment
-	 *
-	 * @return QBExpression
 	 */
 	public function expr(string $expr): QBExpression
 	{
@@ -71,8 +69,6 @@ trait QBShortcutsTrait
 	 *
 	 * @param string              $function SQL function name (e.g. `'COUNT'`, `'COALESCE'`, `'NOW'`)
 	 * @param QBExpression|string ...$args  `string` -> quoted literal; `QBExpression` -> raw SQL
-	 *
-	 * @return QBExpression
 	 */
 	public function fn(string $function, QBExpression|string ...$args): QBExpression
 	{
@@ -103,8 +99,6 @@ trait QBShortcutsTrait
 	 *
 	 * @param string|Table $table_or_alias table name or declared alias
 	 * @param string       $column         column name (without prefix)
-	 *
-	 * @return QBExpression
 	 */
 	public function col(string|Table $table_or_alias, string $column): QBExpression
 	{
@@ -117,8 +111,6 @@ trait QBShortcutsTrait
 	 * ```php
 	 * $qb->set('deleted_at', $qb->sqlNull());  // SET deleted_at = NULL
 	 * ```
-	 *
-	 * @return QBExpression
 	 */
 	public function sqlNull(): QBExpression
 	{
@@ -131,8 +123,6 @@ trait QBShortcutsTrait
 	 * ```php
 	 * $qb->set('is_active', $qb->sqlTrue());  // SET is_active = TRUE
 	 * ```
-	 *
-	 * @return QBExpression
 	 */
 	public function sqlTrue(): QBExpression
 	{
@@ -145,8 +135,6 @@ trait QBShortcutsTrait
 	 * ```php
 	 * $qb->set('is_active', $qb->sqlFalse());  // SET is_active = FALSE
 	 * ```
-	 *
-	 * @return QBExpression
 	 */
 	public function sqlFalse(): QBExpression
 	{
@@ -194,8 +182,6 @@ trait QBShortcutsTrait
 	 * must return it (or void - the instance is returned regardless).
 	 *
 	 * @param null|callable(QBSelect):mixed $factory optional factory to configure the sub-select inline
-	 *
-	 * @return QBSelect
 	 */
 	public function sub(?callable $factory = null): QBSelect
 	{

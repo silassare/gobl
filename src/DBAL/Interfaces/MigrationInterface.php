@@ -22,58 +22,43 @@ interface MigrationInterface
 {
 	/**
 	 * Returns migration label.
-	 *
-	 * @return string
 	 */
 	public function getLabel(): string;
 
 	/**
 	 * Returns migration version.
-	 *
-	 * @return int
 	 */
 	public function getVersion(): int;
 
 	/**
 	 * Returns migration timestamp.
-	 *
-	 * @return int
 	 */
 	public function getTimestamp(): int;
 
 	/**
 	 * Returns migration schema.
-	 *
-	 * @return array
 	 */
 	public function getSchema(): array;
 
 	/**
 	 * Returns configs.
-	 *
-	 * @return array
 	 */
 	public function getConfigs(): array;
 
 	/**
 	 * Returns up query.
-	 *
-	 * @return string
 	 */
 	public function up(): string;
 
 	/**
 	 * Returns down query.
-	 *
-	 * @return string
 	 */
 	public function down(): string;
 
 	/**
 	 * Called before a migration query is run.
 	 *
-	 * @param MigrationMode $mode
-	 * @param string        $query the query to be run
+	 * @param string $query the query to be run
 	 *
 	 * @return bool|string if the query should be run or not, or a new query to be run
 	 */
@@ -81,8 +66,6 @@ interface MigrationInterface
 
 	/**
 	 * Called after a migration query is run.
-	 *
-	 * @param MigrationMode $mode
 	 */
 	public function afterRun(MigrationMode $mode): void;
 }

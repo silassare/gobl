@@ -27,9 +27,6 @@ final class SampleJsonOf implements JsonOfInterface
 		public readonly int $score = 0,
 	) {}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public static function revive(mixed $payload): static
 	{
 		$data = \is_array($payload) ? $payload : [];
@@ -37,9 +34,6 @@ final class SampleJsonOf implements JsonOfInterface
 		return new self((string) ($data['name'] ?? ''), (int) ($data['score'] ?? 0));
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function jsonSerialize(): mixed
 	{
 		return ['name' => $this->name, 'score' => $this->score];

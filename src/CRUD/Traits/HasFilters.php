@@ -24,8 +24,6 @@ trait HasFilters
 
 	/**
 	 * Returns the filters.
-	 *
-	 * @return ORMTableQuery
 	 */
 	public function getFilters(): ORMTableQuery
 	{

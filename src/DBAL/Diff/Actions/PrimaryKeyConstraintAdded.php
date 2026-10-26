@@ -28,9 +28,6 @@ final class PrimaryKeyConstraintAdded extends DiffAction
 		parent::__construct(DiffActionType::PRIMARY_KEY_CONSTRAINT_ADDED, $reason);
 	}
 
-	/**
-	 * @return PrimaryKey
-	 */
 	public function getConstraint(): PrimaryKey
 	{
 		return $this->constraint;

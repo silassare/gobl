@@ -117,9 +117,6 @@ final class SQLite extends SQLDriverBase
 		return true;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	protected function rollBackOuterTransaction(PDO $con): bool
 	{

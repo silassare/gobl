@@ -52,9 +52,6 @@ final class CollectionFactory extends Collection
 		unset($this->factory);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getItems(ORMOptionsInterface $options): ORMResults
 	{

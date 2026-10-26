@@ -151,8 +151,6 @@ final class FiltersExpressionParser implements FilterInterface
 	 *
 	 * @param QBInterface                $qb    The query builder to use for bindings and table/column resolution
 	 * @param null|FiltersScopeInterface $scope Optional filters scope for validating and resolving columns
-	 *
-	 * @return Filters
 	 */
 	public function toFilters(QBInterface $qb, ?FiltersScopeInterface $scope = null): Filters
 	{
@@ -421,8 +419,6 @@ final class FiltersExpressionParser implements FilterInterface
 	 *
 	 * @param array{type: string, value: string} $token
 	 *
-	 * @return mixed
-	 *
 	 * @throws DBALRuntimeException when a `:binding` name is not in `$bindings`
 	 */
 	private function resolveRightTokenValue(array $token): mixed
@@ -472,8 +468,6 @@ final class FiltersExpressionParser implements FilterInterface
 
 	/**
 	 * Asserts the current token is of the expected type, advances, and returns it.
-	 *
-	 * @param string $type
 	 *
 	 * @return array{type: string, value: string}
 	 */

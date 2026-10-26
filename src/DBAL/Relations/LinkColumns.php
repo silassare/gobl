@@ -37,9 +37,6 @@ final class LinkColumns extends Link
 	 * If no columns are given, it will try to auto detect using the foreign key.
 	 * If no foreign key is found, an exception will be thrown.
 	 *
-	 * @param RDBMSInterface $rdbms
-	 * @param Table          $host_table
-	 * @param Table          $target_table
 	 * @param array{
 	 *         columns?: null|array<string,string>,
 	 *         filters?: null|array

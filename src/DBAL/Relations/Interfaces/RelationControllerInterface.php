@@ -97,8 +97,6 @@ interface RelationControllerInterface
 	 * @param ORMEntity $parent_entity the parent entity
 	 * @param ORMEntity $child_entity  the child entity
 	 * @param bool      $auto_save     should the modified entity be saved automatically?
-	 *
-	 * @return static
 	 */
 	public function link(ORMEntity $parent_entity, ORMEntity $child_entity, bool $auto_save = true): static;
 

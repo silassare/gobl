@@ -29,17 +29,11 @@ final class ColumnAdded extends DiffAction
 		parent::__construct(DiffActionType::COLUMN_ADDED, $reason);
 	}
 
-	/**
-	 * @return Table
-	 */
 	public function getTable(): Table
 	{
 		return $this->table;
 	}
 
-	/**
-	 * @return Column
-	 */
 	public function getColumn(): Column
 	{
 		return $this->column;

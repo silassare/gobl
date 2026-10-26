@@ -52,8 +52,6 @@ abstract class CSGenerator
 
 	/**
 	 * CSGenerator constructor.
-	 *
-	 * @param RDBMSInterface $db
 	 */
 	public function __construct(
 		RDBMSInterface $db,
@@ -63,10 +61,6 @@ abstract class CSGenerator
 
 	/**
 	 * Ignores private table.
-	 *
-	 * @param bool $ignore
-	 *
-	 * @return static
 	 */
 	public function ignorePrivateTables(bool $ignore = true): static
 	{
@@ -77,10 +71,6 @@ abstract class CSGenerator
 
 	/**
 	 * Ignores sensitive column.
-	 *
-	 * @param bool $ignore
-	 *
-	 * @return static
 	 */
 	public function ignoreSensitiveColumns(bool $ignore = true): static
 	{
@@ -91,10 +81,6 @@ abstract class CSGenerator
 
 	/**
 	 * Ignores private column.
-	 *
-	 * @param bool $ignore
-	 *
-	 * @return static
 	 */
 	public function ignorePrivateColumns(bool $ignore = true): static
 	{
@@ -105,10 +91,6 @@ abstract class CSGenerator
 
 	/**
 	 * Returns array that can be used to generate file.
-	 *
-	 * @param Table $table
-	 *
-	 * @return array
 	 */
 	public function describeTable(Table $table): array
 	{
@@ -123,8 +105,6 @@ abstract class CSGenerator
 	 * Gets data to be used in template file for a given table.
 	 *
 	 * @param Table $table the table object
-	 *
-	 * @return array
 	 */
 	public function getTableInject(Table $table): array
 	{
@@ -165,10 +145,6 @@ abstract class CSGenerator
 
 	/**
 	 * Gets column data to be used in template file.
-	 *
-	 * @param Column $column
-	 *
-	 * @return array
 	 */
 	public function describeColumn(Column $column): array
 	{
@@ -223,30 +199,17 @@ abstract class CSGenerator
 
 	/**
 	 * Map type to custom type string.
-	 *
-	 * @param ORMTypeHint $type_hint
-	 *
-	 * @return string
 	 */
 	abstract public function toTypeHintString(ORMTypeHint $type_hint): string;
 
 	/**
 	 * Returns column name constants name.
-	 *
-	 * @param Column $column
-	 *
-	 * @return string
 	 */
 	public static function toColumnNameConst(Column $column): string
 	{
 		return 'COL_' . \strtoupper($column->getName());
 	}
 
-	/**
-	 * @param TypeInterface $type
-	 *
-	 * @return string
-	 */
 	public function getWriteTypeHintString(TypeInterface $type): string
 	{
 		$type_hint = $type->getWriteTypeHint();
@@ -258,12 +221,6 @@ abstract class CSGenerator
 		return $this->toTypeHintString($type_hint);
 	}
 
-	/**
-	 * @param TypeInterface $type
-	 * @param bool          $saved
-	 *
-	 * @return string
-	 */
 	public function getReadTypeHintString(TypeInterface $type, bool $saved = false): string
 	{
 		$type_hint   = $type->getReadTypeHint();
@@ -284,8 +241,6 @@ abstract class CSGenerator
 	 * Gets columns data to be used in template file for a given table.
 	 *
 	 * @param Table $table the table object
-	 *
-	 * @return array
 	 */
 	public function describeTableColumns(Table $table): array
 	{
@@ -310,8 +265,6 @@ abstract class CSGenerator
 	 * Gets relations data to be used in template file for a given table.
 	 *
 	 * @param Table $table the table object
-	 *
-	 * @return array
 	 */
 	public function describeTableRelations(Table $table): array
 	{
@@ -355,8 +308,6 @@ abstract class CSGenerator
 	 * @param Table[]     $tables the tables list
 	 * @param null|string $path   the destination folder path
 	 * @param string      $header the source header to use
-	 *
-	 * @return static
 	 */
 	abstract public function generate(array $tables, ?string $path = null, string $header = ''): static;
 
@@ -377,7 +328,6 @@ abstract class CSGenerator
 
 	/**
 	 * @param class-string<BackedEnum> $enum_class
-	 * @param string                   $table_name
 	 */
 	protected function declareEnum(string $enum_class, string $table_name): void
 	{
@@ -402,8 +352,6 @@ abstract class CSGenerator
 
 	/**
 	 * Returns file header doc.
-	 *
-	 * @return string
 	 */
 	protected static function getHeaderDoc(): string
 	{

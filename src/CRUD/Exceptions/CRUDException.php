@@ -24,11 +24,6 @@ final class CRUDException extends GoblException
 {
 	/**
 	 * CRUDException constructor.
-	 *
-	 * @param CRUDAction|string $message
-	 * @param null|array        $data
-	 * @param null|Throwable    $previous
-	 * @param int               $code
 	 */
 	public function __construct(CRUDAction|string $message, ?array $data = null, ?Throwable $previous = null, int $code = 0)
 	{

@@ -25,7 +25,6 @@ use Override;
  */
 class FiltersTableScope implements FiltersScopeInterface
 {
-	/** @var string */
 	protected string $table_alias;
 
 	protected bool $allow_private_column_in_filters   = false;
@@ -33,9 +32,6 @@ class FiltersTableScope implements FiltersScopeInterface
 
 	/**
 	 * FiltersTableScope constructor.
-	 *
-	 * @param Table       $table
-	 * @param null|string $table_alias
 	 */
 	public function __construct(protected Table $table, ?string $table_alias = null)
 	{
@@ -102,10 +98,6 @@ class FiltersTableScope implements FiltersScopeInterface
 
 	/**
 	 * Enable or disable filtering on private columns.
-	 *
-	 * @param bool $allow
-	 *
-	 * @return static
 	 */
 	public function allowPrivateColumnInFilters(bool $allow = true): static
 	{
@@ -116,10 +108,6 @@ class FiltersTableScope implements FiltersScopeInterface
 
 	/**
 	 * Enable or disable filtering on sensitive columns.
-	 *
-	 * @param bool $allow
-	 *
-	 * @return static
 	 */
 	public function allowSensitiveColumnInFilters(bool $allow = true): static
 	{

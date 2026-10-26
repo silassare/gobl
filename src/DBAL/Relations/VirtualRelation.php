@@ -34,13 +34,10 @@ use Override;
  */
 abstract class VirtualRelation implements VirtualRelationInterface
 {
-	/** @var string */
 	protected string $name;
 
-	/** @var Table */
 	protected Table $host_table;
 
-	/** @var bool */
 	protected bool $paginated;
 
 	/**

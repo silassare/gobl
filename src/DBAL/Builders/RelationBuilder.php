@@ -37,11 +37,6 @@ final class RelationBuilder
 
 	/**
 	 * RelationBuilder constructor.
-	 *
-	 * @param RelationType   $type
-	 * @param string         $name
-	 * @param Table          $host_table
-	 * @param RDBMSInterface $rdbms
 	 */
 	public function __construct(
 		private readonly RelationType $type,
@@ -52,8 +47,6 @@ final class RelationBuilder
 
 	/**
 	 * Gets the relation.
-	 *
-	 * @return Relation
 	 *
 	 * @throws DBALException
 	 */
@@ -73,8 +66,6 @@ final class RelationBuilder
 	 *                                                          empty string triggers auto-detection
 	 * @param array                 $filters                    optional extra filter conditions on the relation
 	 *
-	 * @return Relation
-	 *
 	 * @throws DBALException
 	 */
 	public function usingColumns(array $host_to_target_columns_map = [], array $filters = []): Relation
@@ -88,10 +79,6 @@ final class RelationBuilder
 
 	/**
 	 * Specify a relation link of type "join".
-	 *
-	 * @param array $link_options
-	 *
-	 * @return Relation
 	 *
 	 * @throws DBALException
 	 */
@@ -113,8 +100,6 @@ final class RelationBuilder
 	 * (no target table set).
 	 *
 	 * @param array|LinkBuilder $link_options link definition array or a fluent `LinkBuilder` instance
-	 *
-	 * @return Relation
 	 *
 	 * @throws DBALRuntimeException when no target table is set
 	 * @throws DBALException
@@ -239,12 +224,9 @@ final class RelationBuilder
 	 * );
 	 * ```
 	 *
-	 * @param string|Table           $pivot_table
 	 * @param null|array|LinkBuilder $host_to_pivot   sub-link: host to pivot (null = auto)
 	 * @param null|array|LinkBuilder $pivot_to_target sub-link: pivot to target (null = auto)
 	 * @param array                  $filters         optional extra filters on the through relation
-	 *
-	 * @return Relation
 	 *
 	 * @throws DBALException
 	 */
@@ -277,8 +259,6 @@ final class RelationBuilder
 	 * the link has been configured (i.e. after `from()` + `using*()`).
 	 *
 	 * @param string ...$columns short column names (without prefix) to include in the SELECT
-	 *
-	 * @return Relation
 	 *
 	 * @throws DBALException
 	 */

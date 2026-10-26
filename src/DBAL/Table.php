@@ -71,91 +71,64 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 
 	/**
 	 * The table diff key.
-	 *
-	 * @var null|string
 	 */
 	private ?string $diff_key = null;
 
 	/**
 	 * The old table name used to compute the diff key during rename migration.
 	 * Not serialized in toArray() - remove after the migration has run.
-	 *
-	 * @var null|string
 	 */
 	private ?string $old_name = null;
 
 	/**
 	 * The table name.
-	 *
-	 * @var string
 	 */
 	private string $name;
 
 	/**
 	 * The value used to identify the table in relations using morph link.
-	 *
-	 * @var null|string
 	 */
 	private ?string $morph_type = null;
 
 	/**
 	 * The table singular name.
-	 *
-	 * @var string
 	 */
 	private string $singular_name;
 
 	/**
 	 * The table plural name.
-	 *
-	 * @var string
 	 */
 	private string $plural_name;
 
 	/**
 	 * The column prefix.
-	 *
-	 * @var string
 	 */
 	private string $column_prefix = '';
 
-	/**
-	 * @var bool
-	 */
 	private bool $column_prefix_override = false;
 
 	/**
 	 * The table namespace.
-	 *
-	 * @var string
 	 */
 	private string $namespace = self::TABLE_DEFAULT_NAMESPACE;
 
 	/**
 	 * The table prefix.
-	 *
-	 * @var string
 	 */
 	private string $prefix = '';
 
 	/**
 	 * The table charset.
-	 *
-	 * @var null|string
 	 */
 	private ?string $charset = null;
 
 	/**
 	 * The table collate.
-	 *
-	 * @var null|string
 	 */
 	private ?string $collate = null;
 
 	/**
 	 * Table private state.
-	 *
-	 * @var bool
 	 */
 	private bool $private = false;
 
@@ -168,9 +141,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 */
 	private array $columns = [];
 
-	/**
-	 * @var array
-	 */
 	private array $col_full_name_map = [];
 
 	/**
@@ -182,8 +152,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 
 	/**
 	 * Primary key constraint.
-	 *
-	 * @var null|PrimaryKey
 	 */
 	private ?PrimaryKey $pk_constraint = null;
 
@@ -258,8 +226,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 
 	/**
 	 * Help var_dump().
-	 *
-	 * @return array
 	 */
 	public function __debugInfo(): array
 	{
@@ -273,8 +239,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 
 	/**
 	 * Gets table name.
-	 *
-	 * @return string
 	 */
 	public function getName(): string
 	{
@@ -283,8 +247,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 
 	/**
 	 * Sets table name.
-	 *
-	 * @param string $name
 	 *
 	 * @return $this
 	 */
@@ -304,8 +266,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 
 	/**
 	 * Sets the value used to identify the table in relations using morph link.
-	 *
-	 * @param string $value
 	 *
 	 * @return $this
 	 */
@@ -385,10 +345,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 
 	/**
 	 * Checks if a given column is in a morph relation.
-	 *
-	 * @param string $column
-	 *
-	 * @return bool
 	 */
 	public function isMorphColumn(string $column): bool
 	{
@@ -531,8 +487,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 
 	/**
 	 * Gets the plural name.
-	 *
-	 * @return string
 	 */
 	public function getPluralName(): string
 	{
@@ -543,8 +497,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 * Sets table plural name.
 	 *
 	 * Table name rules also apply to plural and singular names
-	 *
-	 * @param string $plural_name
 	 *
 	 * @return $this
 	 */
@@ -570,8 +522,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 
 	/**
 	 * Gets the singular name.
-	 *
-	 * @return string
 	 */
 	public function getSingularName(): string
 	{
@@ -582,8 +532,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 * Sets table singular name.
 	 *
 	 * Table name rules also apply to plural and singular names
-	 *
-	 * @param string $singular_name
 	 *
 	 * @return $this
 	 */
@@ -609,8 +557,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 
 	/**
 	 * Gets table columns prefix.
-	 *
-	 * @return string
 	 */
 	public function getColumnPrefix(): string
 	{
@@ -667,8 +613,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 
 	/**
 	 * Gets table collate.
-	 *
-	 * @return null|string
 	 */
 	public function getCollate(): ?string
 	{
@@ -677,8 +621,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 
 	/**
 	 * Sets table collate.
-	 *
-	 * @param null|string $collate
 	 *
 	 * @return $this
 	 */
@@ -691,8 +633,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 
 	/**
 	 * Gets table charset.
-	 *
-	 * @return null|string
 	 */
 	public function getCharset(): ?string
 	{
@@ -701,8 +641,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 
 	/**
 	 * Sets table charset.
-	 *
-	 * @param null|string $charset
 	 *
 	 * @return $this
 	 */
@@ -715,8 +653,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 
 	/**
 	 * Gets table namespace.
-	 *
-	 * @return string
 	 */
 	public function getNamespace(): string
 	{
@@ -725,8 +661,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 
 	/**
 	 * Sets table namespace.
-	 *
-	 * @param string $namespace
 	 *
 	 * @return $this
 	 */
@@ -761,8 +695,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 *                                Default is true.
 	 * @param bool $include_sensitive if false sensitive column will not be included.
 	 *                                Default is true.
-	 *
-	 * @return array
 	 */
 	public function getColumnsFullNameList(bool $include_private = true, bool $include_sensitive = true): array
 	{
@@ -784,8 +716,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 
 	/**
 	 * Checks if the table is private.
-	 *
-	 * @return bool
 	 */
 	public function isPrivate(): bool
 	{
@@ -808,8 +738,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 
 	/**
 	 * Gets table full name.
-	 *
-	 * @return string
 	 */
 	public function getFullName(): string
 	{
@@ -842,8 +770,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 *                                Default is true.
 	 * @param bool $include_sensitive if false sensitive column will not be included.
 	 *                                Default is true.
-	 *
-	 * @return array
 	 */
 	public function getColumnsNameList(bool $include_private = true, bool $include_sensitive = true): array
 	{
@@ -916,8 +842,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	/**
 	 * Adds relation to this table.
 	 *
-	 * @param Relation $relation
-	 *
 	 * @return $this
 	 *
 	 * @throws DBALException
@@ -937,8 +861,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 * Checks if a given column is defined.
 	 *
 	 * @param string $name the column name or full name
-	 *
-	 * @return bool
 	 */
 	public function hasColumn(string $name): bool
 	{
@@ -949,8 +871,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 * Checks if a given relation is defined.
 	 *
 	 * @param string $name the relation name
-	 *
-	 * @return bool
 	 */
 	public function hasRelation(string $name): bool
 	{
@@ -963,8 +883,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 * Checks if a given virtual relation is defined.
 	 *
 	 * @param string $name the virtual relation name
-	 *
-	 * @return bool
 	 */
 	public function hasVirtualRelation(string $name): bool
 	{
@@ -975,8 +893,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 * Checks if a given collection is defined.
 	 *
 	 * @param string $name the collection name
-	 *
-	 * @return bool
 	 */
 	public function hasCollection(string $name): bool
 	{
@@ -1002,8 +918,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 
 	/**
 	 * Checks if the table entities are soft deletable.
-	 *
-	 * @return bool
 	 */
 	public function isSoftDeletable(): bool
 	{
@@ -1012,8 +926,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 
 	/**
 	 * Adds virtual relation to this table.
-	 *
-	 * @param VirtualRelation $virtual_relation
 	 *
 	 * @return $this
 	 *
@@ -1031,8 +943,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 
 	/**
 	 * Adds collection to this table.
-	 *
-	 * @param Collection $collection
 	 *
 	 * @return $this
 	 *
@@ -1052,8 +962,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 * Adds a unique key constraint on columns.
 	 *
 	 * @param array<Column|string> $columns the columns
-	 *
-	 * @return UniqueKey
 	 *
 	 * @throws DBALException
 	 */
@@ -1108,8 +1016,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 *
 	 * @param array<Column|string> $columns    the columns
 	 * @param null|IndexType       $index_type the RDBMS-specific index type, or null for the default B-Tree index
-	 *
-	 * @return Index
 	 *
 	 * @throws DBALException
 	 */
@@ -1202,8 +1108,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 
 	/**
 	 * Gets table prefix.
-	 *
-	 * @return string
 	 */
 	public function getPrefix(): string
 	{
@@ -1212,8 +1116,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 
 	/**
 	 * Sets table prefix.
-	 *
-	 * @param string $prefix
 	 *
 	 * @return $this
 	 */
@@ -1255,8 +1157,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 *
 	 * @param array<Column|string> $columns the columns
 	 *
-	 * @return PrimaryKey
-	 *
 	 * @throws DBALException
 	 */
 	public function addPrimaryKeyConstraint(array $columns): PrimaryKey
@@ -1296,8 +1196,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 * @param array                 $columns         the columns
 	 * @param null|ForeignKeyAction $update_action   the reference column update action
 	 * @param null|ForeignKeyAction $delete_action   the reference column delete action
-	 *
-	 * @return ForeignKey
 	 *
 	 * @throws DBALException
 	 */
@@ -1384,10 +1282,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 * unique per database on MySQL, not per table, so two prefixed schemas of the same shape in one
 	 * database would otherwise claim the same name and only the first could be installed. Without a
 	 * table prefix a full name is the name, and so is the constraint's.
-	 *
-	 * @param Table $reference
-	 *
-	 * @return string
 	 */
 	public function defaultForeignKeyName(self $reference): string
 	{
@@ -1400,8 +1294,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 * Gets a relation by name.
 	 *
 	 * @param string $name the relation name
-	 *
-	 * @return null|Relation
 	 */
 	public function getRelation(string $name): ?Relation
 	{
@@ -1434,8 +1326,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 * Gets a virtual relation by name.
 	 *
 	 * @param string $name the virtual relation name
-	 *
-	 * @return null|VirtualRelation
 	 */
 	public function getVirtualRelation(string $name): ?VirtualRelation
 	{
@@ -1466,8 +1356,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 * Gets a collection by name.
 	 *
 	 * @param string $name the collection name
-	 *
-	 * @return null|Collection
 	 */
 	public function getCollection(string $name): ?Collection
 	{
@@ -1502,8 +1390,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 
 	/**
 	 * Gets primary key constraint.
-	 *
-	 * @return null|PrimaryKey
 	 */
 	public function getPrimaryKeyConstraint(): ?PrimaryKey
 	{
@@ -1542,8 +1428,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 *
 	 * @param Table $reference the reference table
 	 * @param array $columns   the foreign columns
-	 *
-	 * @return bool
 	 */
 	public function hasForeignColumns(self $reference, array $columns): bool
 	{
@@ -1584,8 +1468,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 *
 	 * @param Table $reference the reference table
 	 *
-	 * @return ForeignKey
-	 *
 	 * @throws DBALException
 	 */
 	public function getDefaultForeignKeyConstraintFrom(self $reference): ForeignKey
@@ -1611,8 +1493,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 * Checks if the table has a default foreign key constraint with column from a given reference table.
 	 *
 	 * @param Table $reference the reference table
-	 *
-	 * @return bool
 	 */
 	public function hasDefaultForeignKeyConstraint(self $reference): bool
 	{
@@ -1623,8 +1503,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 
 	/**
 	 * Checks if the table has unique key constraint.
-	 *
-	 * @return bool
 	 */
 	public function hasUniqueKeyConstraint(): bool
 	{
@@ -1637,8 +1515,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 * Checks if a given columns list are the primary key of this table.
 	 *
 	 * @param array $columns_full_names columns full name list
-	 *
-	 * @return bool
 	 */
 	public function isPrimaryKey(array $columns_full_names): bool
 	{
@@ -1658,8 +1534,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 
 	/**
 	 * Checks if the table has primary key constraint.
-	 *
-	 * @return bool
 	 */
 	public function hasPrimaryKeyConstraint(): bool
 	{
@@ -1670,10 +1544,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 
 	/**
 	 * Checks if a given column is part of the primary key of this table.
-	 *
-	 * @param Column $column
-	 *
-	 * @return bool
 	 */
 	public function isPartOfPrimaryKey(Column $column): bool
 	{
@@ -1692,8 +1562,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 * Checks if a given columns list are foreign key in this table.
 	 *
 	 * @param array $columns columns full name list
-	 *
-	 * @return bool
 	 */
 	public function isForeignKey(array $columns): bool
 	{
@@ -1720,8 +1588,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 * Checks if a given columns list are unique key in this table.
 	 *
 	 * @param array $columns columns full name list
-	 *
-	 * @return bool
 	 */
 	public function isUniqueKey(array $columns): bool
 	{
@@ -1776,8 +1642,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 * Gets column with a given name.
 	 *
 	 * @param string $name the column name or full name
-	 *
-	 * @return null|Column
 	 */
 	public function getColumn(string $name): ?Column
 	{
@@ -1796,8 +1660,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 * Gets column with a given name or fail.
 	 *
 	 * @param string $name the column name or full name
-	 *
-	 * @return Column
 	 */
 	public function getColumnOrFail(string $name): Column
 	{
@@ -2040,8 +1902,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 * - The relation name conflicts with an existing collection name
 	 * - The relation name is on the Gobl forbidden names list
 	 *
-	 * @param Relation $relation
-	 *
 	 * @throws DBALException
 	 */
 	private function assertCanAddRelation(Relation $relation): void
@@ -2106,8 +1966,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	/**
 	 * Asserts if we can add the virtual relation to this table.
 	 *
-	 * @param VirtualRelation $virtual_relation
-	 *
 	 * @throws DBALException
 	 */
 	private function assertCanAddVirtualRelation(VirtualRelation $virtual_relation): void
@@ -2171,8 +2029,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	/**
 	 * Asserts if we can add the collection to this table.
 	 *
-	 * @param Collection $collection
-	 *
 	 * @throws DBALException
 	 */
 	private function assertCanAddCollection(Collection $collection): void
@@ -2223,8 +2079,6 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 
 	/**
 	 * Asserts if we can add the column to this table.
-	 *
-	 * @param Column $column
 	 *
 	 * @throws DBALException
 	 */

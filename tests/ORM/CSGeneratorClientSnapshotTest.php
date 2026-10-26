@@ -74,10 +74,6 @@ final class CSGeneratorClientSnapshotTest extends BaseTestCase
 	/**
 	 * Generates all files into $outDir (after wiping it) using $generator,
 	 * then snapshots each file under the snapshot prefix $prefix.
-	 *
-	 * @param CSGenerator $generator
-	 * @param string      $outDir
-	 * @param string      $prefix
 	 */
 	private function assertGeneratorSnapshot(
 		CSGenerator $generator,

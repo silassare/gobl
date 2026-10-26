@@ -45,8 +45,6 @@ final class LinkColumnsBuilder extends LinkBuilder
 	 * Pass an empty array to revert to FK auto-detection.
 	 *
 	 * @param array<string, string> $host_to_target_map host column -> target column
-	 *
-	 * @return static
 	 */
 	public function map(array $host_to_target_map): static
 	{

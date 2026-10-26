@@ -34,15 +34,11 @@ interface RDBMSInterface extends LockableInterface
 
 	/**
 	 * Gets PDO connection.
-	 *
-	 * @return PDO
 	 */
 	public function getConnection(): PDO;
 
 	/**
 	 * Gets db config.
-	 *
-	 * @return DbConfig
 	 */
 	public function getConfig(): DbConfig;
 
@@ -58,8 +54,6 @@ interface RDBMSInterface extends LockableInterface
 	 * Adds table.
 	 *
 	 * @param Table $table The table to add
-	 *
-	 * @return static
 	 */
 	public function addTable(Table $table): static;
 
@@ -70,8 +64,6 @@ interface RDBMSInterface extends LockableInterface
 	 *
 	 * @param array<string, array|Table> $schema            The schema definition
 	 * @param null|string                $desired_namespace The desired namespace
-	 *
-	 * @return static
 	 */
 	public function loadSchema(array $schema, ?string $desired_namespace = null): static;
 
@@ -84,16 +76,12 @@ interface RDBMSInterface extends LockableInterface
 	 * An invalid definition is then reported when its table is first used rather than by
 	 * {@see loadSchema()}: meant for a schema known to be valid, such as one a migration recorded.
 	 *
-	 * @param bool $lazy
-	 *
 	 * @return $this
 	 */
 	public function setLazySchema(bool $lazy = true): static;
 
 	/**
 	 * Whether {@see loadSchema()} declares the tables it is given as arrays instead of building them.
-	 *
-	 * @return bool
 	 */
 	public function isLazySchema(): bool;
 
@@ -111,26 +99,16 @@ interface RDBMSInterface extends LockableInterface
 	 *
 	 * @param null|string $namespace when provided, only exports tables in that namespace
 	 * @param int         $flags     flags forwarded to json_encode() (default: JSON_PRETTY_PRINT)
-	 *
-	 * @return string
 	 */
 	public function toSchemaJson(?string $namespace = null, int $flags = \JSON_PRETTY_PRINT): string;
 
 	/**
 	 * Returns db namespace builder for a given namespace.
-	 *
-	 * @param string $namespace
-	 *
-	 * @return NamespaceBuilder
 	 */
 	public function namespace(string $namespace): NamespaceBuilder;
 
 	/**
 	 * Alias of {@see namespace()}.
-	 *
-	 * @param string $namespace
-	 *
-	 * @return NamespaceBuilder
 	 */
 	public function ns(string $namespace): NamespaceBuilder;
 
@@ -138,8 +116,6 @@ interface RDBMSInterface extends LockableInterface
 	 * Checks if a given table is defined.
 	 *
 	 * @param string $name the table name or full name
-	 *
-	 * @return bool
 	 */
 	public function hasTable(string $name): bool;
 
@@ -154,8 +130,6 @@ interface RDBMSInterface extends LockableInterface
 	 * Gets table with a given name.
 	 *
 	 * @param string $name the table name or table full name
-	 *
-	 * @return null|Table
 	 */
 	public function getTable(string $name): ?Table;
 
@@ -163,8 +137,6 @@ interface RDBMSInterface extends LockableInterface
 	 * Gets table with a given name or fail.
 	 *
 	 * @param string $name the table name or table full name
-	 *
-	 * @return Table
 	 */
 	public function getTableOrFail(string $name): Table;
 
@@ -181,15 +153,11 @@ interface RDBMSInterface extends LockableInterface
 	 * Gets table with a given morph type.
 	 *
 	 * @param string $morph_type the table morph type
-	 *
-	 * @return null|Table
 	 */
 	public function getTableByMorphType(string $morph_type): ?Table;
 
 	/**
 	 * Gets tables.
-	 *
-	 * @param null|string $namespace
 	 *
 	 * @return array<string, Table>
 	 */
@@ -197,17 +165,11 @@ interface RDBMSInterface extends LockableInterface
 
 	/**
 	 * Returns the rdbms type.
-	 *
-	 * @return string
 	 */
 	public function getType(): string;
 
 	/**
 	 * Runs a given callable in a transaction and return the value returned by the callable.
-	 *
-	 * @param Closure $callable
-	 *
-	 * @return mixed
 	 *
 	 * @throws GoblException
 	 */
@@ -215,22 +177,16 @@ interface RDBMSInterface extends LockableInterface
 
 	/**
 	 * Begin a new transaction.
-	 *
-	 * @return bool
 	 */
 	public function beginTransaction(): bool;
 
 	/**
 	 * Commit current transaction.
-	 *
-	 * @return bool
 	 */
 	public function commit(): bool;
 
 	/**
 	 * Rollback current transaction.
-	 *
-	 * @return bool
 	 */
 	public function rollBack(): bool;
 
@@ -247,8 +203,6 @@ interface RDBMSInterface extends LockableInterface
 	 *                                           automatically commits on success or rolls back on
 	 *                                           failure; when `false`, the caller retains full
 	 *                                           control and **must** commit or roll back manually
-	 *
-	 * @return PDOStatement
 	 */
 	public function execute(
 		string $sql,
@@ -265,8 +219,6 @@ interface RDBMSInterface extends LockableInterface
 	 * Suitable for sql file content.
 	 *
 	 * @param string $sql the sql query string
-	 *
-	 * @return PDOStatement
 	 */
 	public function executeMulti(string $sql): PDOStatement;
 
@@ -276,8 +228,6 @@ interface RDBMSInterface extends LockableInterface
 	 * @param string     $sql          Your sql select query
 	 * @param null|array $params       Your sql select params
 	 * @param array      $params_types Your sql params types
-	 *
-	 * @return PDOStatement
 	 */
 	public function select(string $sql, ?array $params = null, array $params_types = []): PDOStatement;
 
@@ -316,8 +266,6 @@ interface RDBMSInterface extends LockableInterface
 
 	/**
 	 * Gets this rdbms query generator.
-	 *
-	 * @return QueryGeneratorInterface
 	 */
 	public function getGenerator(): QueryGeneratorInterface;
 }

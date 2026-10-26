@@ -59,10 +59,6 @@ class TypeUtils
 	/**
 	 * Builds type instance from options or fails.
 	 *
-	 * @param array $options
-	 *
-	 * @return TypeInterface
-	 *
 	 * @throws InvalidArgumentException
 	 * @throws TypesException
 	 */
@@ -100,11 +96,6 @@ class TypeUtils
 
 	/**
 	 * Tries to get type instance by name with options.
-	 *
-	 * @param string $name
-	 * @param array  $options
-	 *
-	 * @return null|TypeInterface
 	 *
 	 * @throws TypesException
 	 */
@@ -192,8 +183,6 @@ class TypeUtils
 	 * @param mixed          $value    the single PHP value to convert
 	 * @param Operator       $operator the filter operator being applied
 	 * @param RDBMSInterface $rdbms    the current RDBMS
-	 *
-	 * @return null|float|int|string
 	 */
 	public static function runCastValueForFilter(
 		Column $column,
@@ -234,8 +223,6 @@ class TypeUtils
 	 * @param Column         $column     the resolved column whose type drives the cast
 	 * @param string         $expression the SQL placeholder or expression to wrap
 	 * @param RDBMSInterface $rdbms      the current RDBMS
-	 *
-	 * @return string
 	 */
 	public static function runCastExpressionForQuery(
 		Column $column,
@@ -253,11 +240,6 @@ class TypeUtils
 
 	/**
 	 * Merge two type options.
-	 *
-	 * @param array $options
-	 * @param array $overrides
-	 *
-	 * @return array
 	 */
 	public static function mergeOptions(array $options, array $overrides): array
 	{

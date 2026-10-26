@@ -66,11 +66,6 @@ final class TypeInt extends BaseType
 	/**
 	 * Sets min value.
 	 *
-	 * @param int         $min
-	 * @param null|string $message
-	 *
-	 * @return static
-	 *
 	 * @throws TypesException
 	 */
 	public function min(int $min, ?string $message = null): static
@@ -91,11 +86,6 @@ final class TypeInt extends BaseType
 	/**
 	 * Sets max value.
 	 *
-	 * @param int         $max
-	 * @param null|string $message
-	 *
-	 * @return static
-	 *
 	 * @throws TypesException
 	 */
 	public function max(int $max, ?string $message = null): static
@@ -115,11 +105,6 @@ final class TypeInt extends BaseType
 
 	/**
 	 * Sets as unsigned.
-	 *
-	 * @param bool        $unsigned
-	 * @param null|string $message
-	 *
-	 * @return static
 	 */
 	public function unsigned(bool $unsigned = true, ?string $message = null): static
 	{
@@ -130,8 +115,6 @@ final class TypeInt extends BaseType
 
 	/**
 	 * Checks if this is unsigned.
-	 *
-	 * @return bool
 	 */
 	public function isUnsigned(): bool
 	{
@@ -151,8 +134,6 @@ final class TypeInt extends BaseType
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws TypesException
 	 */
 	#[Override]
@@ -198,8 +179,6 @@ final class TypeInt extends BaseType
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws TypesInvalidValueException
 	 */
 	#[Override]
@@ -215,8 +194,6 @@ final class TypeInt extends BaseType
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws TypesInvalidValueException
 	 */
 	#[Override]
@@ -318,9 +295,6 @@ final class TypeInt extends BaseType
 	}
 
 	/**
-	 * @param int  $value
-	 * @param bool $unsigned
-	 *
 	 * @throws TypesException
 	 */
 	private static function assertValidInt(int $value, bool $unsigned): void

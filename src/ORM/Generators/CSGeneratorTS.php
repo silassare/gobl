@@ -26,14 +26,9 @@ use Override;
  */
 final class CSGeneratorTS extends CSGenerator
 {
-	/**
-	 * @var bool
-	 */
 	protected static bool $templates_registered = false;
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws Exception
 	 */
 	#[Override]
@@ -157,8 +152,6 @@ final class CSGeneratorTS extends CSGenerator
 	 * {@see CSGenerator::describeTableColumns()} does), so that nothing is imported and left unused,
 	 * which TypeScript reports under `noUnusedLocals`.
 	 *
-	 * @param Table $table
-	 *
 	 * @return string[]
 	 */
 	private function enumsUsedBy(Table $table): array
@@ -190,10 +183,6 @@ final class CSGeneratorTS extends CSGenerator
 
 	/**
 	 * The name of the generated TS enum a type hint refers to, if it refers to one.
-	 *
-	 * @param ORMTypeHint $type_hint
-	 *
-	 * @return null|string
 	 */
 	private function enumNameOf(ORMTypeHint $type_hint): ?string
 	{

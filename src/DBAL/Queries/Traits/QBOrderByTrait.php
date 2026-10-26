@@ -50,10 +50,6 @@ trait QBOrderByTrait
 	 *    'client_created_at' => true, // truthy value treated as ASC
 	 * ]);
 	 * ```
-	 *
-	 * @param array $order_by
-	 *
-	 * @return static
 	 */
 	public function orderBy(array $order_by): static
 	{

@@ -39,8 +39,6 @@ abstract class SQLDriverBase extends Db
 
 	/**
 	 * SQLDriverBase constructor.
-	 *
-	 * @param DbConfig $config
 	 */
 	protected function __construct(protected DbConfig $config) {}
 
@@ -148,8 +146,6 @@ abstract class SQLDriverBase extends Db
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws DBALException
 	 */
 	#[Override]
@@ -227,8 +223,6 @@ abstract class SQLDriverBase extends Db
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws Exception
 	 */
 	#[Override]
@@ -261,8 +255,6 @@ abstract class SQLDriverBase extends Db
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws DBALException
 	 */
 	#[Override]
@@ -272,8 +264,6 @@ abstract class SQLDriverBase extends Db
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws DBALException
 	 */
 	#[Override]
@@ -283,8 +273,6 @@ abstract class SQLDriverBase extends Db
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws DBALException
 	 */
 	#[Override]
@@ -308,8 +296,6 @@ abstract class SQLDriverBase extends Db
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws DBALException
 	 */
 	#[Override]
@@ -323,10 +309,6 @@ abstract class SQLDriverBase extends Db
 	 *
 	 * Delegates to `execute()` with default options (no explicit transaction) and returns
 	 * the statement's `rowCount()` value.
-	 *
-	 * @param string     $sql
-	 * @param null|array $params
-	 * @param array      $params_types
 	 *
 	 * @return int number of rows affected
 	 *

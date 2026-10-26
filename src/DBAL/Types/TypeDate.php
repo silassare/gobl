@@ -62,8 +62,6 @@ final class TypeDate extends Type
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws TypesException
 	 */
 	#[Override]
@@ -94,8 +92,6 @@ final class TypeDate extends Type
 
 	/**
 	 * Sets the date precision to microseconds.
-	 *
-	 * @return static
 	 *
 	 * @throws TypesException
 	 */
@@ -130,11 +126,6 @@ final class TypeDate extends Type
 	/**
 	 * Sets min date.
 	 *
-	 * @param int|string  $min
-	 * @param null|string $message
-	 *
-	 * @return static
-	 *
 	 * @throws TypesException
 	 */
 	public function min(int|string $min, ?string $message = null): static
@@ -157,11 +148,6 @@ final class TypeDate extends Type
 
 	/**
 	 * Sets max date.
-	 *
-	 * @param int|string  $max
-	 * @param null|string $message
-	 *
-	 * @return static
 	 *
 	 * @throws TypesException
 	 */
@@ -189,10 +175,6 @@ final class TypeDate extends Type
 	 * This is equivalent to `DEFAULT CURRENT_TIMESTAMP` / `ON UPDATE CURRENT_TIMESTAMP`
 	 * in SQL - the actual enforcement happens in PHP before the query is sent.
 	 * Typically used for `created_at` and `updated_at` columns.
-	 *
-	 * @param bool $auto
-	 *
-	 * @return static
 	 */
 	public function auto(bool $auto = true): static
 	{
@@ -206,10 +188,6 @@ final class TypeDate extends Type
 	 *  - `'timestamp'`   - stores/returns a Unix timestamp integer (default for `auto` columns)
 	 *  - `DATE_ATOM`     - ISO 8601 string, e.g. `2024-01-15T20:30:00+00:00` (library default)
 	 *  - any PHP `date()` format string, e.g. `'Y-m-d H:i:s'`, `'Y-m-d'`
-	 *
-	 * @param string $format
-	 *
-	 * @return static
 	 */
 	public function format(string $format): static
 	{
@@ -256,8 +234,6 @@ final class TypeDate extends Type
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws TypesInvalidValueException
 	 */
 	#[Override]
@@ -276,8 +252,6 @@ final class TypeDate extends Type
 
 	/**
 	 * Checks if the date precision is microseconds.
-	 *
-	 * @return bool
 	 */
 	public function isMicroseconds(): bool
 	{
@@ -313,8 +287,6 @@ final class TypeDate extends Type
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws TypesInvalidValueException
 	 */
 	#[Override]
@@ -389,8 +361,6 @@ final class TypeDate extends Type
 
 	/**
 	 * Returns the current date.
-	 *
-	 * @return string
 	 */
 	protected function now(): string
 	{
@@ -399,10 +369,6 @@ final class TypeDate extends Type
 
 	/**
 	 * Convert value to timestamp.
-	 *
-	 * @param mixed $value
-	 *
-	 * @return null|string
 	 */
 	private static function toTimestamp(mixed $value): ?string
 	{

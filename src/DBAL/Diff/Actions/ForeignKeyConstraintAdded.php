@@ -28,9 +28,6 @@ final class ForeignKeyConstraintAdded extends DiffAction
 		parent::__construct(DiffActionType::FOREIGN_KEY_CONSTRAINT_ADDED, $reason);
 	}
 
-	/**
-	 * @return ForeignKey
-	 */
 	public function getConstraint(): ForeignKey
 	{
 		return $this->constraint;

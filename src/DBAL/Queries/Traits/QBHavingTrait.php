@@ -24,8 +24,6 @@ trait QBHavingTrait
 
 	/**
 	 * Returns the current HAVING condition, or `null` when none has been set.
-	 *
-	 * @return null|Filters|string
 	 */
 	public function getOptionsHaving(): Filters|string|null
 	{
@@ -38,8 +36,6 @@ trait QBHavingTrait
 	 * Pass `null` to clear the clause. Accepts a `Filters` instance or a raw SQL string.
 	 *
 	 * @param null|Filters|string $condition the HAVING condition, or `null` to clear
-	 *
-	 * @return static
 	 */
 	public function having(Filters|string|null $condition): static
 	{

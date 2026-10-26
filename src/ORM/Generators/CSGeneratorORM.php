@@ -60,8 +60,6 @@ final class CSGeneratorORM extends CSGenerator
 
 	/**
 	 * CSGeneratorORM constructor.
-	 *
-	 * @param RDBMSInterface $db
 	 */
 	public function __construct(
 		RDBMSInterface $db
@@ -91,8 +89,6 @@ Proudly With: {$version}{$time}";
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws Exception
 	 */
 	#[Override]
@@ -498,10 +494,6 @@ Proudly With: {$version}{$time}";
 
 	/**
 	 * Returns property getter name.
-	 *
-	 * @param string $column_name
-	 *
-	 * @return string
 	 */
 	private static function propertyGetterName(string $column_name): string
 	{

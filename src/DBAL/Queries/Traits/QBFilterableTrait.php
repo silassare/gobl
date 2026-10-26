@@ -23,10 +23,6 @@ trait QBFilterableTrait
 {
 	/**
 	 * Gets query filters instance.
-	 *
-	 * @param null|FiltersScopeInterface $scope
-	 *
-	 * @return Filters
 	 */
 	public function filters(?FiltersScopeInterface $scope = null): Filters
 	{

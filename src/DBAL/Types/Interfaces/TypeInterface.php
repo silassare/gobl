@@ -40,76 +40,51 @@ interface TypeInterface extends ArrayCapableInterface, MetaCapableInterface, Loc
 	 *
 	 * @param array $options the options
 	 *
-	 * @return static
-	 *
 	 * @throws TypesException when options is invalid
 	 */
 	public static function getInstance(array $options): static;
 
-	/**
-	 * @return BaseTypeInterface
-	 */
 	public function getBaseType(): BaseTypeInterface;
 
 	/**
 	 * Gets type name.
-	 *
-	 * @return string
 	 */
 	public function getName(): string;
 
 	/**
 	 * Enable null value.
-	 *
-	 * @param bool $nullable
-	 *
-	 * @return static
 	 */
 	public function nullable(bool $nullable = true): static;
 
 	/**
 	 * This is used to prevent returning empty value when the column
 	 * is supposed to be not null and no value is specified yet on the entity instance.
-	 *
-	 * @return mixed
 	 */
 	public function getEmptyValueOfType(): mixed;
 
 	/**
 	 * Checks if the type allow null value.
-	 *
-	 * @return bool
 	 */
 	public function isNullable(): bool;
 
 	/**
 	 * Auto-increment allows a unique number to be generated,
 	 * when a new record is inserted.
-	 *
-	 * @param bool $auto_increment
-	 *
-	 * @return static
 	 */
 	public function autoIncrement(bool $auto_increment = true): static;
 
 	/**
 	 * Checks if the type is auto-incremented.
-	 *
-	 * @return bool
 	 */
 	public function isAutoIncremented(): bool;
 
 	/**
 	 * Gets the default value.
-	 *
-	 * @return mixed
 	 */
 	public function getDefault(): mixed;
 
 	/**
 	 * Checks if this type has default value.
-	 *
-	 * @return bool
 	 */
 	public function hasDefault(): bool;
 
@@ -117,8 +92,6 @@ interface TypeInterface extends ArrayCapableInterface, MetaCapableInterface, Loc
 	 * Explicitly set the default value.
 	 *
 	 * @param mixed $default the value to use as default
-	 *
-	 * @return static
 	 */
 	public function default(mixed $default): static;
 
@@ -174,8 +147,6 @@ interface TypeInterface extends ArrayCapableInterface, MetaCapableInterface, Loc
 	 *
 	 * @param null|mixed     $value the value to convert
 	 * @param RDBMSInterface $rdbms the RDBMS
-	 *
-	 * @return mixed
 	 */
 	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): mixed;
 
@@ -189,8 +160,6 @@ interface TypeInterface extends ArrayCapableInterface, MetaCapableInterface, Loc
 	 *
 	 * @param null|mixed     $value the value to convert
 	 * @param RDBMSInterface $rdbms the RDBMS
-	 *
-	 * @return null|float|int|string
 	 */
 	public function phpToDb(mixed $value, RDBMSInterface $rdbms): float|int|string|null;
 
@@ -231,34 +200,22 @@ interface TypeInterface extends ArrayCapableInterface, MetaCapableInterface, Loc
 	 *
 	 * @param Operator       $operator the filter operator being applied
 	 * @param RDBMSInterface $rdbms    the current RDBMS
-	 *
-	 * @return bool
 	 */
 	public function shouldCastValueForFilter(Operator $operator, RDBMSInterface $rdbms): bool;
 
 	/**
 	 * Should we enforce default value at the database level.
-	 *
-	 * @param RDBMSInterface $rdbms
-	 *
-	 * @return bool
 	 */
 	public function shouldEnforceDefaultValue(RDBMSInterface $rdbms): bool;
 
 	/**
 	 * This is used to make sure that when the base type does not have a default value
 	 * we use a default value provided by the type.
-	 *
-	 * @param RDBMSInterface $rdbms
-	 *
-	 * @return null|string
 	 */
 	public function dbQueryDefault(RDBMSInterface $rdbms): ?string;
 
 	/**
 	 * Asserts operator and value are allowed for this type.
-	 *
-	 * @param Filter $filter
 	 */
 	public function assertFilterAllowed(Filter $filter): void;
 
@@ -284,21 +241,11 @@ interface TypeInterface extends ArrayCapableInterface, MetaCapableInterface, Loc
 
 	/**
 	 * Adds option key value pair.
-	 *
-	 * @param string $key
-	 * @param mixed  $value
-	 *
-	 * @return static
 	 */
 	public function setOption(string $key, mixed $value): static;
 
 	/**
 	 * Gets a given option key value.
-	 *
-	 * @param string     $key
-	 * @param null|mixed $default
-	 *
-	 * @return mixed
 	 */
 	public function getOption(string $key, mixed $default = null): mixed;
 
@@ -306,8 +253,6 @@ interface TypeInterface extends ArrayCapableInterface, MetaCapableInterface, Loc
 	 * Gets return Read/Getter type hint.
 	 *
 	 * Useful for the ORM class generator.
-	 *
-	 * @return ORMTypeHint
 	 */
 	public function getReadTypeHint(): ORMTypeHint;
 
@@ -315,17 +260,11 @@ interface TypeInterface extends ArrayCapableInterface, MetaCapableInterface, Loc
 	 * Gets allowed Write/Setter type hint.
 	 *
 	 * Useful for the ORM class generator.
-	 *
-	 * @return ORMTypeHint
 	 */
 	public function getWriteTypeHint(): ORMTypeHint;
 
 	/**
 	 * Apply default, null and auto_increment options.
-	 *
-	 * @param array $options
-	 *
-	 * @return static
 	 */
 	public function configure(array $options): static;
 
@@ -341,8 +280,6 @@ interface TypeInterface extends ArrayCapableInterface, MetaCapableInterface, Loc
 	 * Override only when the default serialization is insufficient for your type.
 	 *
 	 * @param TClean $v a clean value produced by this type's validate()
-	 *
-	 * @return string
 	 */
 	public function hash(mixed $v): string;
 }

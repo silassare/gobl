@@ -38,8 +38,6 @@ trait QBCommonTrait
 
 	/**
 	 * Magic method __toString.
-	 *
-	 * @return string
 	 */
 	public function __toString(): string
 	{
@@ -95,8 +93,6 @@ trait QBCommonTrait
 
 	/**
 	 * Returns the RDBMS.
-	 *
-	 * @return RDBMSInterface
 	 */
 	public function getRDBMS(): RDBMSInterface
 	{
@@ -105,8 +101,6 @@ trait QBCommonTrait
 
 	/**
 	 * Returns query string to be executed by the rdbms.
-	 *
-	 * @return string
 	 */
 	public function getSqlQuery(): string
 	{

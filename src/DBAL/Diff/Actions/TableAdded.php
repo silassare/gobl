@@ -28,9 +28,6 @@ final class TableAdded extends DiffAction
 		parent::__construct(DiffActionType::TABLE_ADDED, $reason);
 	}
 
-	/**
-	 * @return Table
-	 */
 	public function getTable(): Table
 	{
 		return $this->table;

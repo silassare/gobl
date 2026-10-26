@@ -62,8 +62,6 @@ class NamedToPositionalParams
 
 	/**
 	 * Returns the original query string.
-	 *
-	 * @return string
 	 */
 	public function getQuery(): string
 	{
@@ -72,8 +70,6 @@ class NamedToPositionalParams
 
 	/**
 	 * Returns the original parameters.
-	 *
-	 * @return array
 	 */
 	public function getParams(): array
 	{
@@ -82,8 +78,6 @@ class NamedToPositionalParams
 
 	/**
 	 * Returns the original parameters types.
-	 *
-	 * @return array
 	 */
 	public function getParamsTypes(): array
 	{
@@ -92,8 +86,6 @@ class NamedToPositionalParams
 
 	/**
 	 * Returns the new query string.
-	 *
-	 * @return null|string
 	 */
 	public function getNewQuery(): ?string
 	{
@@ -102,8 +94,6 @@ class NamedToPositionalParams
 
 	/**
 	 * Returns the new parameters.
-	 *
-	 * @return array
 	 */
 	public function getNewParams(): array
 	{
@@ -112,8 +102,6 @@ class NamedToPositionalParams
 
 	/**
 	 * Returns the new parameters types.
-	 *
-	 * @return array
 	 */
 	public function getNewParamsTypes(): array
 	{
@@ -122,8 +110,6 @@ class NamedToPositionalParams
 
 	/**
 	 * Returns the tokens list.
-	 *
-	 * @return array
 	 */
 	public function getTokens(): array
 	{

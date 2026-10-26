@@ -46,9 +46,6 @@ final class Filters
 
 	/**
 	 * FiltersBuilder constructor.
-	 *
-	 * @param QBInterface                $qb
-	 * @param null|FiltersScopeInterface $scope
 	 */
 	public function __construct(protected QBInterface $qb, protected ?FiltersScopeInterface $scope = null)
 	{
@@ -57,8 +54,6 @@ final class Filters
 
 	/**
 	 * Help var_dump().
-	 *
-	 * @return array
 	 */
 	public function __debugInfo(): array
 	{
@@ -72,8 +67,6 @@ final class Filters
 
 	/**
 	 * Magic string helper.
-	 *
-	 * @return string
 	 */
 	public function __toString(): string
 	{
@@ -151,8 +144,6 @@ final class Filters
 	 * @param array                      $filters flat filter array (see format above)
 	 * @param QBInterface                $qb      the query builder this filter is attached to
 	 * @param null|FiltersScopeInterface $scope   optional scope for column access control
-	 *
-	 * @return self
 	 */
 	public static function fromArray(array $filters, QBInterface $qb, ?FiltersScopeInterface $scope = null): self
 	{
@@ -170,8 +161,6 @@ final class Filters
 	 * $sub->eq('user_role', 'admin')->or()->eq('user_role', 'superadmin');
 	 * $filters->or($sub);
 	 * ```
-	 *
-	 * @return self
 	 */
 	public function subGroup(): self
 	{
@@ -201,8 +190,6 @@ final class Filters
 	 * ```
 	 *
 	 * @param array|(callable(Filters):void)|self ...$filters
-	 *
-	 * @return self
 	 */
 	public function and(array|callable|self ...$filters): self
 	{
@@ -226,8 +213,6 @@ final class Filters
 	 *    column access from leaking in through merged filters.
 	 *
 	 * @param array|(callable(Filters):void)|Filters ...$filters
-	 *
-	 * @return self
 	 */
 	public function where(array|callable|self ...$filters): self
 	{
@@ -309,8 +294,6 @@ final class Filters
 	 * ```
 	 *
 	 * @param array|(callable(Filters):void)|self ...$filters
-	 *
-	 * @return self
 	 */
 	public function or(array|callable|self ...$filters): self
 	{
@@ -329,13 +312,6 @@ final class Filters
 	 * @param Operator                   $operator the comparison or unary operator to apply
 	 * @param FilterFieldNotation|string $left     the left operand: column name, FQN, alias-qualified reference,
 	 *                                             or an explicit FilterFieldNotation for typed/pre-parsed references
-	 * @param null|mixed                 $right    the right operand; must be `null` for unary operators;
-	 *                                             pass a FilterFieldNotation for column-to-column comparisons
-	 *                                             (plain strings are NEVER auto-resolved as column refs for security);
-	 *                                             arrays and `\JsonSerializable` are auto-serialized to JSON for `CONTAINS`;
-	 *                                             arrays are also valid for `IN` and `NOT_IN`
-	 *
-	 * @return self
 	 */
 	public function add(
 		Operator $operator,
@@ -499,8 +475,6 @@ final class Filters
 
 	/**
 	 * Checks if the filters is empty.
-	 *
-	 * @return bool
 	 */
 	public function isEmpty(): bool
 	{
@@ -535,8 +509,6 @@ final class Filters
 	 * @param bool                       $strict     When `true` (default), only `:binding` references are
 	 *                                               accepted as right operands. Set to `false` to also allow
 	 *                                               inline numeric and quoted-string literals.
-	 *
-	 * @return Filters
 	 */
 	public static function fromString(
 		string $expression,
@@ -846,12 +818,6 @@ final class Filters
 	 *   [['baz', 'eq', value], 'or', ['baz', 'lt', value]]
 	 * ]
 	 * ```
-	 *
-	 * @param array                      $filters
-	 * @param QBInterface                $qb
-	 * @param null|FiltersScopeInterface $scope
-	 *
-	 * @return Filters
 	 */
 	private static function fromOldFiltersArray(
 		array $filters,

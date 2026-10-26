@@ -34,12 +34,6 @@ abstract class Link implements LinkInterface
 
 	/**
 	 * Link constructor.
-	 *
-	 * @param LinkType       $type
-	 * @param RDBMSInterface $rdbms
-	 * @param Table          $host_table
-	 * @param Table          $target_table
-	 * @param array          $options
 	 */
 	public function __construct(
 		protected readonly LinkType $type,
@@ -130,10 +124,7 @@ abstract class Link implements LinkInterface
 	 * - `LinkColumns` maps FK columns directly and generates no extra joins.
 	 * - `LinkMorph` adds a single polymorphic constraint, also without extra joins.
 	 *
-	 * @param Table $host_table
-	 * @param Table $target_table
-	 * @param array $options
-	 * @param int   $max_depth    maximum allowed composite nesting depth (0 = simple links only)
+	 * @param int $max_depth maximum allowed composite nesting depth (0 = simple links only)
 	 *
 	 * @throws DBALException when a composite link type is used at depth 0
 	 */
