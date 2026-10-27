@@ -255,7 +255,10 @@ abstract class FilterOperand
 			[$uv, $resolved] = $this->notationToSqlExpr($dfn);
 		} elseif ($uv instanceof BackedEnum) {
 			$uv = $uv->value;
-		} elseif (\is_string($uv) && \strlen($uv) > 2 && ':' !== $uv[0] && '(' !== $uv[0]) {
+		} elseif (\is_string($uv) && '' !== $uv && ':' !== $uv[0] && '(' !== $uv[0]) {
+			// A bare column name is a notation of its own, so there is no length below which a string
+			// cannot be one: a table with no column prefix names its key `id`. What is excluded here is
+			// a value that is already a binding (`:name`) or a sub-query the caller built (`(SELECT ...)`).
 			if ($this->shouldResolveFieldNotation()) {
 				$rethrow = false;
 

@@ -43,6 +43,18 @@
   without a prefix, and it costs one magic dispatch less per column on every row read. `__set`
   keeps its computed-alias mode and its column mode; it no longer has a PDO mode.
 
+- **A column named in two characters or fewer is a column again.** A left
+  operand was only read as a field notation when it was longer than two
+  characters, which made the key of a table that declares no column prefix --
+  named `id` -- a value rather than a column. Unscoped that produced an
+  unqualified reference; under a `FiltersScopeInterface` it was a refusal, "No
+  resolved column for this operand", and `save()` filters on the key, so an
+  entity of such a table could be inserted and never updated. A bare column
+  name is a notation of its own and no length separates one from a value: what
+  the guard excludes now is a string that is already a binding (`:name`) or a
+  sub-query the caller built. Right operands are unchanged -- a plain string
+  there is still never resolved as a column.
+
 - **Every class constant a value types beyond doubt is typed** (`private const
   array`, `public const string`, ...), which PHP 8.3 allows: a constant says
   what it is, and a subclass redeclaring it as something else is refused. The
