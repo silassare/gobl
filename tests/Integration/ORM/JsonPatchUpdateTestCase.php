@@ -143,6 +143,15 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 		parent::tearDownAfterClass();
 	}
 
+	protected function setUp(): void
+	{
+		parent::setUp();
+
+		if (static::$setupFailed || null === static::$db) {
+			self::markTestSkipped(\sprintf('Live DB not available for %s.', static::getDriverName()));
+		}
+	}
+
 	/**
 	 * Two entities of one row, each patching a path of its own: both writes are kept.
 	 */
