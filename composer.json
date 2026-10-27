@@ -26,7 +26,7 @@
 	"require-dev": {
 		"oliup/oliup-cs-php": "dev-main",
 		"roave/security-advisories": "dev-latest",
-		"phpunit/phpunit": "^9.5.9",
+		"phpunit/phpunit": "^13.4",
 		"vimeo/psalm": "^6.0"
 	},
 	"suggest": {
