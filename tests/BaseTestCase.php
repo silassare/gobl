@@ -83,26 +83,6 @@ abstract class BaseTestCase extends TestCase
 	}
 
 	/**
-	 * Returns MySQL and PostgreSQL drivers only, excluding SQLite.
-	 *
-	 * Use this provider for features that SQLite does not support
-	 * (e.g. RIGHT JOIN, RETURNING clause, certain JSON operators).
-	 *
-	 * Usage: #[DataProviderExternal(BaseTestCase::class, 'mysqlAndPostgresDrivers')]
-	 *
-	 * @return array<string, array{0: string}>
-	 */
-	public static function mysqlAndPostgresDrivers(): array
-	{
-		$all = self::allDrivers();
-
-		return [
-			MySQL::NAME      => $all[MySQL::NAME],
-			PostgreSQL::NAME => $all[PostgreSQL::NAME],
-		];
-	}
-
-	/**
 	 * Returns an empty db instance.
 	 */
 	protected static function getNewDbInstance(string $driver = self::DEFAULT_RDBMS): RDBMSInterface
