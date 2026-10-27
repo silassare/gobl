@@ -898,10 +898,14 @@ abstract class Db implements RDBMSInterface
 		}
 
 		$table = $this->tables[$name];
+
+		if (null === $table) {
+			throw new DBALException(\sprintf('The table "%s" could not be built.', $name));
+		}
+
 		$state = $this->lazy_partial[$name] ?? null;
 
 		if (null === $state || $state[1] >= $stage) {
-			/** @var Table $table */
 			return $table;
 		}
 

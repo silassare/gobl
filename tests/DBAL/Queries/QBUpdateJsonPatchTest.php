@@ -15,25 +15,31 @@ namespace Gobl\Tests\DBAL\Queries;
 
 use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
+use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQLQueryGenerator;
 use Gobl\DBAL\Drivers\SQLite\SQLite;
+use Gobl\DBAL\Drivers\SQLite\SQLiteQueryGenerator;
+use Gobl\DBAL\Drivers\SQLQueryGeneratorBase;
 use Gobl\DBAL\Queries\NamedToPositionalParams;
 use Gobl\DBAL\Queries\QBInsert;
 use Gobl\DBAL\Queries\QBUpdate;
+use Gobl\DBAL\Queries\Traits\QBSetColumnsValuesTrait;
 use Gobl\DBAL\Types\Utils\JsonPatch;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\CoversTrait;
 use PHPUtils\Store\Map;
 
 /**
  * What an UPDATE sends for a JSON column given a patch: the paths, for the database to apply to the
  * row it holds, so that two transactions patching different paths keep each other's writes.
  *
- * @covers \Gobl\DBAL\Drivers\PostgreSQL\PostgreSQLQueryGenerator
- * @covers \Gobl\DBAL\Drivers\SQLite\SQLiteQueryGenerator
- * @covers \Gobl\DBAL\Drivers\SQLQueryGeneratorBase::getJsonPatchUpdateExpression
- * @covers \Gobl\DBAL\Queries\Traits\QBSetColumnsValuesTrait
- *
  * @internal
  */
+#[CoversClass(PostgreSQLQueryGenerator::class)]
+#[CoversClass(SQLiteQueryGenerator::class)]
+#[CoversMethod(SQLQueryGeneratorBase::class, 'getJsonPatchUpdateExpression')]
+#[CoversTrait(QBSetColumnsValuesTrait::class)]
 final class QBUpdateJsonPatchTest extends BaseTestCase
 {
 	public function testMySQLSendsThePaths(): void

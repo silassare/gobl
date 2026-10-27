@@ -18,15 +18,15 @@ use Gobl\DBAL\Table;
 use Gobl\ORM\Utils\ORMClassKind;
 use Gobl\Tests\BaseTestCase;
 use LogicException;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUtils\Str;
 
 /**
  * Class ORMClassKindTest.
  *
- * @covers \Gobl\ORM\Utils\ORMClassKind
- *
  * @internal
  */
+#[CoversClass(ORMClassKind::class)]
 final class ORMClassKindTest extends BaseTestCase
 {
 	// -------------------------------------------------------------------

@@ -17,6 +17,8 @@ use Gobl\DBAL\Db;
 use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Drivers\SQLite\SQLite;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Processes writing one SQLite file at once, each transaction reading then writing: each waits its
@@ -24,11 +26,9 @@ use Gobl\Tests\BaseTestCase;
  * failed one at once with "database is locked".
  *
  * @internal
- *
- * @coversNothing
- *
- * @group sqlite
  */
+#[CoversNothing]
+#[Group('sqlite')]
 final class SQLiteConcurrentWritersTest extends BaseTestCase
 {
 	private const int WRITERS      = 4;

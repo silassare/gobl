@@ -16,6 +16,7 @@ namespace Gobl\Tests\DBAL\Types;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\TypeString;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use PHPUtils\PortablePattern;
 
@@ -24,15 +25,14 @@ use PHPUtils\PortablePattern;
  *
  * A string pattern is portable ({@see PortablePattern}, php-utils) and runs as JavaScript runs it.
  *
- * @covers \Gobl\DBAL\Types\TypeString
- *
  * @internal
  */
+#[CoversClass(TypeString::class)]
 final class TypeStringPatternTest extends TestCase
 {
 	public function testAPortablePatternIsAccepted(): void
 	{
-		$type = (new TypeString())->pattern('~^[a-z]+$~i');
+		$type = new TypeString()->pattern('~^[a-z]+$~i');
 
 		self::assertSame('Abc', $type->validate('Abc')->getCleanValue());
 	}
@@ -42,19 +42,19 @@ final class TypeStringPatternTest extends TestCase
 		$this->expectException(TypesException::class);
 		$this->expectExceptionMessage('possessive');
 
-		(new TypeString())->pattern('~a++~');
+		new TypeString()->pattern('~a++~');
 	}
 
 	public function testASchemaOptionIsCheckedToo(): void
 	{
 		$this->expectException(TypesException::class);
 
-		(new TypeString())->configure(['pattern' => '~\Aa~']);
+		new TypeString()->configure(['pattern' => '~\Aa~']);
 	}
 
 	public function testDollarIsTheEndOfTheValueAsInJavaScript(): void
 	{
-		$type = (new TypeString())->pattern('~^abc$~');
+		$type = new TypeString()->pattern('~^abc$~');
 
 		self::assertSame('abc', $type->validate('abc')->getCleanValue());
 
@@ -66,7 +66,7 @@ final class TypeStringPatternTest extends TestCase
 
 	public function testAPatternRunsOnCharactersNotBytes(): void
 	{
-		$type = (new TypeString())->pattern('~^.{2}$~');
+		$type = new TypeString()->pattern('~^.{2}$~');
 
 		// Two characters, four bytes: without Unicode mode PCRE would count bytes.
 		self::assertSame('éé', $type->validate('éé')->getCleanValue());
@@ -74,7 +74,7 @@ final class TypeStringPatternTest extends TestCase
 
 	public function testInvalidUtf8DoesNotMatch(): void
 	{
-		$type = (new TypeString())->pattern('~^.+$~');
+		$type = new TypeString()->pattern('~^.+$~');
 
 		$this->expectException(TypesInvalidValueException::class);
 

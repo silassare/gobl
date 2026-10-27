@@ -21,15 +21,15 @@ use Gobl\DBAL\Indexes\IndexType;
 use Gobl\DBAL\Table;
 use Gobl\Tests\BaseTestCase;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUtils\Exceptions\RuntimeException;
 
 /**
  * Class IndexTest.
  *
- * @covers \Gobl\DBAL\Indexes\Index
- *
  * @internal
  */
+#[CoversClass(Index::class)]
 final class IndexTest extends BaseTestCase
 {
 	public function testBasicConstruction(): void

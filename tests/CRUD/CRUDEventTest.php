@@ -14,10 +14,12 @@ declare(strict_types=1);
 namespace Gobl\Tests\CRUD;
 
 use Gobl\CRUD\CRUDAction;
+use Gobl\CRUD\CRUDEvent;
 use Gobl\CRUD\Enums\ActionType;
 use Gobl\CRUD\Events\BeforeCreate;
 use Gobl\DBAL\Table;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Class CRUDEventTest.
@@ -25,12 +27,11 @@ use Gobl\Tests\BaseTestCase;
  * Tests the CRUD event hierarchy: event construction, data accessors,
  * and message customisation on CRUDAction subclasses.
  *
- * @covers \Gobl\CRUD\CRUDAction
- * @covers \Gobl\CRUD\CRUDEvent
- * @covers \Gobl\CRUD\Events\BeforeCreate
- *
  * @internal
  */
+#[CoversClass(CRUDAction::class)]
+#[CoversClass(CRUDEvent::class)]
+#[CoversClass(BeforeCreate::class)]
 final class CRUDEventTest extends BaseTestCase
 {
 	// ------------------------------------------------------------------

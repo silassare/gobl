@@ -15,6 +15,8 @@ namespace Gobl\Tests\DBAL\Queries;
 
 use Gobl\DBAL\Queries\QBDelete;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProviderExternal;
 
 /**
  * Class QBDeleteSnapshotTest.
@@ -24,17 +26,15 @@ use Gobl\Tests\BaseTestCase;
  *
  * Snapshots are stored under tests/assets/snapshots/{driver}/qb_delete_{scenario}.txt
  *
- * @covers \Gobl\DBAL\Queries\QBDelete
- *
  * @internal
  */
+#[CoversClass(QBDelete::class)]
 final class QBDeleteSnapshotTest extends BaseTestCase
 {
 	/**
 	 * DELETE with simple equality WHERE.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testDeleteSimple(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -47,9 +47,8 @@ final class QBDeleteSnapshotTest extends BaseTestCase
 
 	/**
 	 * DELETE with an IN list WHERE.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testDeleteWhereIn(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -62,9 +61,8 @@ final class QBDeleteSnapshotTest extends BaseTestCase
 
 	/**
 	 * DELETE with a complex WHERE (AND + comparison).
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testDeleteComplexWhere(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -81,9 +79,8 @@ final class QBDeleteSnapshotTest extends BaseTestCase
 
 	/**
 	 * DELETE with a nested OR condition.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testDeleteNestedOr(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -100,9 +97,8 @@ final class QBDeleteSnapshotTest extends BaseTestCase
 
 	/**
 	 * DELETE all rows (no WHERE clause).
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testDeleteAll(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -118,9 +114,8 @@ final class QBDeleteSnapshotTest extends BaseTestCase
 	 * - MySQL     : appends `LIMIT n` directly.
 	 * - SQLite    : rewrites WHERE as `rowid IN (SELECT rowid ... LIMIT n)`.
 	 * - PostgreSQL: rewrites WHERE as `ctid IN (SELECT ctid ... LIMIT n)`.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testDeleteWithLimit(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -139,9 +134,8 @@ final class QBDeleteSnapshotTest extends BaseTestCase
 	 * - MySQL     : appends `ORDER BY ... LIMIT n` directly.
 	 * - SQLite    : both go into the rowid subquery `SELECT rowid ... ORDER BY ... LIMIT n`.
 	 * - PostgreSQL: both go into the ctid subquery `SELECT ctid ... ORDER BY ... LIMIT n`.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testDeleteWithLimitAndOrderBy(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);

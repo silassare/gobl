@@ -51,6 +51,58 @@ abstract class BaseTestCase extends TestCase
 	}
 
 	/**
+	 * Returns the name of every registered RDBMS driver as a PHPUnit data-provider array.
+	 *
+	 * Usage: #[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
+	 *
+	 * @return array<string, array{0: string}>
+	 */
+	public static function allDrivers(): array
+	{
+		return [
+			MySQL::NAME      => [MySQL::NAME],
+			PostgreSQL::NAME => [PostgreSQL::NAME],
+			SQLite::NAME     => [SQLite::NAME],
+		];
+	}
+
+	/**
+	 * The same, with each driver's class beside its name, for a test that instantiates it.
+	 *
+	 * Usage: #[DataProviderExternal(BaseTestCase::class, 'allDriversWithClass')]
+	 *
+	 * @return array<string, array{0: string, 1: class-string}>
+	 */
+	public static function allDriversWithClass(): array
+	{
+		return [
+			MySQL::NAME      => [MySQL::NAME, MySQL::class],
+			PostgreSQL::NAME => [PostgreSQL::NAME, PostgreSQL::class],
+			SQLite::NAME     => [SQLite::NAME, SQLite::class],
+		];
+	}
+
+	/**
+	 * Returns MySQL and PostgreSQL drivers only, excluding SQLite.
+	 *
+	 * Use this provider for features that SQLite does not support
+	 * (e.g. RIGHT JOIN, RETURNING clause, certain JSON operators).
+	 *
+	 * Usage: #[DataProviderExternal(BaseTestCase::class, 'mysqlAndPostgresDrivers')]
+	 *
+	 * @return array<string, array{0: string}>
+	 */
+	public static function mysqlAndPostgresDrivers(): array
+	{
+		$all = self::allDrivers();
+
+		return [
+			MySQL::NAME      => $all[MySQL::NAME],
+			PostgreSQL::NAME => $all[PostgreSQL::NAME],
+		];
+	}
+
+	/**
 	 * Returns an empty db instance.
 	 */
 	protected static function getNewDbInstance(string $driver = self::DEFAULT_RDBMS): RDBMSInterface
@@ -210,42 +262,6 @@ abstract class BaseTestCase extends TestCase
 	protected static function getTablesDiffDefinitions(): array
 	{
 		return require GOBL_TEST_ASSETS . \DIRECTORY_SEPARATOR . 'schema.with.changes.php';
-	}
-
-	/**
-	 * Returns all registered RDBMS drivers as a PHPUnit data-provider array.
-	 *
-	 * Usage: @dataProvider Gobl\Tests\BaseTestCase::allDrivers
-	 *
-	 * @return array<string, array{0: string}>
-	 */
-	protected static function allDrivers(): array
-	{
-		return [
-			MySQL::NAME      => [MySQL::NAME, MySQL::class],
-			PostgreSQL::NAME => [PostgreSQL::NAME, PostgreSQL::class],
-			SQLite::NAME     => [SQLite::NAME, SQLite::class],
-		];
-	}
-
-	/**
-	 * Returns MySQL and PostgreSQL drivers only, excluding SQLite.
-	 *
-	 * Use this provider for features that SQLite does not support
-	 * (e.g. RIGHT JOIN, RETURNING clause, certain JSON operators).
-	 *
-	 * Usage: @dataProvider Gobl\Tests\BaseTestCase::mysqlAndPostgresDrivers
-	 *
-	 * @return array<string, array{0: string}>
-	 */
-	protected static function mysqlAndPostgresDrivers(): array
-	{
-		$all = self::allDrivers();
-
-		return [
-			MySQL::NAME      => $all[MySQL::NAME],
-			PostgreSQL::NAME => $all[PostgreSQL::NAME],
-		];
 	}
 
 	/**

@@ -15,6 +15,8 @@ namespace Gobl\Tests\DBAL\Queries;
 
 use Gobl\DBAL\Queries\QBInsert;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProviderExternal;
 
 /**
  * Class QBInsertSnapshotTest.
@@ -24,17 +26,15 @@ use Gobl\Tests\BaseTestCase;
  *
  * Snapshots are stored under tests/assets/snapshots/{driver}/qb_insert_{scenario}.txt
  *
- * @covers \Gobl\DBAL\Queries\QBInsert
- *
  * @internal
  */
+#[CoversClass(QBInsert::class)]
 final class QBInsertSnapshotTest extends BaseTestCase
 {
 	/**
 	 * INSERT single row with all columns.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testInsertSingleRow(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -52,9 +52,8 @@ final class QBInsertSnapshotTest extends BaseTestCase
 
 	/**
 	 * INSERT multiple rows in one statement.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testInsertMultipleRows(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -82,9 +81,8 @@ final class QBInsertSnapshotTest extends BaseTestCase
 
 	/**
 	 * INSERT with only a subset of columns (omitting optional fields).
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testInsertPartialColumns(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -104,9 +102,8 @@ final class QBInsertSnapshotTest extends BaseTestCase
 	 * - MySQL     : emits `INSERT IGNORE INTO ...`
 	 * - SQLite    : emits `INSERT OR IGNORE INTO ...`
 	 * - PostgreSQL: appends `ON CONFLICT DO NOTHING`
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testInsertIgnoreOnConflict(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -128,9 +125,8 @@ final class QBInsertSnapshotTest extends BaseTestCase
 	 * - MySQL     : appends `ON DUPLICATE KEY UPDATE col = VALUES(col) ...`
 	 * - SQLite    : appends `ON CONFLICT (cols) DO UPDATE SET col = EXCLUDED.col ...`
 	 * - PostgreSQL: appends `ON CONFLICT (cols) DO UPDATE SET col = EXCLUDED.col ...`
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testInsertUpsert(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);

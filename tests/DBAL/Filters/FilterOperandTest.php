@@ -17,10 +17,15 @@ use Gobl\DBAL\Builders\TableBuilder;
 use Gobl\DBAL\Filters\FilterFieldNotation;
 use Gobl\DBAL\Filters\Filters;
 use Gobl\DBAL\Filters\FiltersTableScope;
+use Gobl\DBAL\Filters\Operands\FilterLeftOperand;
+use Gobl\DBAL\Filters\Operands\FilterOperand;
+use Gobl\DBAL\Filters\Operands\FilterRightOperand;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Class FilterOperandTest.
@@ -31,12 +36,11 @@ use Gobl\Tests\BaseTestCase;
  *  - SECURITY: plain strings on the right are NEVER auto-resolved as column references,
  *    regardless of whether a matching table/column exists in the current QB context.
  *
- * @covers \Gobl\DBAL\Filters\Operands\FilterLeftOperand
- * @covers \Gobl\DBAL\Filters\Operands\FilterOperand
- * @covers \Gobl\DBAL\Filters\Operands\FilterRightOperand
- *
  * @internal
  */
+#[CoversClass(FilterLeftOperand::class)]
+#[CoversClass(FilterOperand::class)]
+#[CoversClass(FilterRightOperand::class)]
 final class FilterOperandTest extends BaseTestCase
 {
 	// =========================================================================
@@ -189,9 +193,8 @@ final class FilterOperandTest extends BaseTestCase
 	 * carries, so a rule that reads a short string as a value rather than a column makes the key of
 	 * such a table unfilterable: a scope has to be told which column a filter names before it can
 	 * allow it, and `save()` filters on the key.
-	 *
-	 * @dataProvider shortColumns
 	 */
+	#[DataProvider('provideAShortColumnNameIsResolvedUnderAScopeCases')]
 	public function testAShortColumnNameIsResolvedUnderAScope(string $column, int|string $value): void
 	{
 		[, $filters, $alias] = $this->makeUnprefixedQB(true);
@@ -199,6 +202,17 @@ final class FilterOperandTest extends BaseTestCase
 		$filters->add(Operator::EQ, $column, $value);
 
 		self::assertStringContainsString($alias . '.' . $column, (string) $filters);
+	}
+
+	/**
+	 * @return array<string, array{0: string, 1: int|string}>
+	 */
+	public static function provideAShortColumnNameIsResolvedUnderAScopeCases(): iterable
+	{
+		return [
+			'two characters' => ['id', 1],
+			'one character'  => ['n', 'a value'],
+		];
 	}
 
 	/**
@@ -215,9 +229,8 @@ final class FilterOperandTest extends BaseTestCase
 
 	/**
 	 * A short string on the right is still a value: being short resolves nothing.
-	 *
-	 * @dataProvider shortColumns
 	 */
+	#[DataProvider('provideAShortStringOnRightStaysALiteralCases')]
 	public function testAShortStringOnRightStaysALiteral(string $column): void
 	{
 		[$qb, $filters] = $this->makeUnprefixedQB();
@@ -230,13 +243,15 @@ final class FilterOperandTest extends BaseTestCase
 	}
 
 	/**
-	 * @return array<string, array{0: string, 1: int|string}>
+	 * The same columns without their values, for a test that only names one.
+	 *
+	 * @return array<string, array{0: string}>
 	 */
-	public static function shortColumns(): array
+	public static function provideAShortStringOnRightStaysALiteralCases(): iterable
 	{
 		return [
-			'two characters' => ['id', 1],
-			'one character'  => ['n', 'a value'],
+			'two characters' => ['id'],
+			'one character'  => ['n'],
 		];
 	}
 

@@ -15,15 +15,21 @@ namespace Gobl\Tests\DBAL;
 
 use Gobl\DBAL\Builders\TableBuilder;
 use Gobl\DBAL\Drivers\MySQL\MySQL;
+use Gobl\DBAL\Drivers\MySQL\MySQLQueryGenerator;
+use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQLQueryGenerator;
+use Gobl\DBAL\Drivers\SQLite\SQLiteQueryGenerator;
+use Gobl\DBAL\Drivers\SQLQueryGeneratorBase;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProviderExternal;
 
 /**
  * Class SchemaSnapshotTest.
  *
  * Cross-driver CREATE TABLE / buildDatabase() snapshot tests.
  *
- * Every test marked with @dataProvider Gobl\Tests\BaseTestCase::allDrivers runs identically
+ * Every test marked with #[DataProviderExternal(BaseTestCase::class, 'allDrivers')] runs identically
  * for MySQL, PostgreSQL, and SQLite showing at a glance how each driver maps
  * the same schema definition to different DDL syntax.
  *
@@ -31,13 +37,12 @@ use Gobl\Tests\BaseTestCase;
  *
  * To regenerate a snapshot, delete the corresponding .txt file and re-run the suite once.
  *
- * @covers \Gobl\DBAL\Drivers\MySQL\MySQLQueryGenerator
- * @covers \Gobl\DBAL\Drivers\PostgreSQL\PostgreSQLQueryGenerator
- * @covers \Gobl\DBAL\Drivers\SQLite\SQLiteQueryGenerator
- * @covers \Gobl\DBAL\Drivers\SQLQueryGeneratorBase
- *
  * @internal
  */
+#[CoversClass(MySQLQueryGenerator::class)]
+#[CoversClass(PostgreSQLQueryGenerator::class)]
+#[CoversClass(SQLiteQueryGenerator::class)]
+#[CoversClass(SQLQueryGeneratorBase::class)]
 final class SchemaSnapshotTest extends BaseTestCase
 {
 	// -------------------------------------------------------------------------
@@ -46,9 +51,8 @@ final class SchemaSnapshotTest extends BaseTestCase
 
 	/**
 	 * Integer and bigint column variants: auto-increment PK, plain, with default, nullable.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testIntAndBigintVariants(string $driver): void
 	{
 		$db = $this->singleTableDb($driver, static function (TableBuilder $t): void {
@@ -70,9 +74,8 @@ final class SchemaSnapshotTest extends BaseTestCase
 
 	/**
 	 * String column variants: fixed-width, unbounded text, default values, nullable.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testStringVariants(string $driver): void
 	{
 		$db = $this->singleTableDb($driver, static function (TableBuilder $t): void {
@@ -114,9 +117,8 @@ final class SchemaSnapshotTest extends BaseTestCase
 
 	/**
 	 * Bool, float, and decimal column variants in a single table.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testBoolFloatDecimalVariants(string $driver): void
 	{
 		$db = $this->singleTableDb($driver, static function (TableBuilder $t): void {
@@ -143,9 +145,8 @@ final class SchemaSnapshotTest extends BaseTestCase
 
 	/**
 	 * Date / timestamp column variants: auto-timestamp, plain, nullable, microseconds.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testDateVariants(string $driver): void
 	{
 		$db = $this->singleTableDb($driver, static function (TableBuilder $t): void {
@@ -168,9 +169,8 @@ final class SchemaSnapshotTest extends BaseTestCase
 
 	/**
 	 * Map and list columns (stored as serialized text / JSON strings).
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testMapAndListColumns(string $driver): void
 	{
 		$db = $this->singleTableDb($driver, static function (TableBuilder $t): void {
@@ -193,9 +193,8 @@ final class SchemaSnapshotTest extends BaseTestCase
 
 	/**
 	 * Tables with Primary Key, Unique Key, and Foreign Key constraints.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testConstraints(string $driver): void
 	{
 		$db = self::getNewDbInstance($driver);
@@ -230,9 +229,8 @@ final class SchemaSnapshotTest extends BaseTestCase
 
 	/**
 	 * buildDatabase() on the full production-like test schema (clients/accounts/transactions/currencies).
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testFullTestSchema(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -242,9 +240,8 @@ final class SchemaSnapshotTest extends BaseTestCase
 
 	/**
 	 * buildDatabase() on the TableBuilder-based sample DB (users/roles/tags/taggables/articles).
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testSampleDbSchema(string $driver): void
 	{
 		$db = self::getSampleDB($driver);

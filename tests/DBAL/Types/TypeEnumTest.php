@@ -18,6 +18,9 @@ use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\TypeEnum;
 use Gobl\ORM\ORMUniversalType;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\DataProviderExternal;
 use stdClass;
 
 /** Fixture backed enum used only in these tests. */
@@ -39,10 +42,9 @@ enum TestPriority: int
 /**
  * Class TypeEnumTest.
  *
- * @covers \Gobl\DBAL\Types\TypeEnum
- *
  * @internal
  */
+#[CoversClass(TypeEnum::class)]
 final class TypeEnumTest extends BaseTestCase
 {
 	// -------------------------------------------------------------------------
@@ -66,7 +68,7 @@ final class TypeEnumTest extends BaseTestCase
 	{
 		$this->expectException(TypesException::class);
 		// stdClass is not a BackedEnum subclass
-		(new TypeEnum())->enumClass(stdClass::class);
+		new TypeEnum()->enumClass(stdClass::class);
 	}
 
 	// -------------------------------------------------------------------------
@@ -132,7 +134,7 @@ final class TypeEnumTest extends BaseTestCase
 
 	public function testValidateNullWithNullable(): void
 	{
-		$t = (new TypeEnum(TestStatus::class))->nullable();
+		$t = new TypeEnum(TestStatus::class)->nullable();
 		self::assertNull($t->validate(null)->getCleanValue());
 	}
 
@@ -145,7 +147,7 @@ final class TypeEnumTest extends BaseTestCase
 
 	public function testValidateNullUsesDefault(): void
 	{
-		$t = (new TypeEnum(TestStatus::class))->default(TestStatus::Pending->value);
+		$t = new TypeEnum(TestStatus::class)->default(TestStatus::Pending->value);
 		self::assertSame(TestStatus::Pending, $t->validate(null)->getCleanValue());
 	}
 
@@ -153,9 +155,7 @@ final class TypeEnumTest extends BaseTestCase
 	// phpToDb / dbToPhp
 	// -------------------------------------------------------------------------
 
-	/**
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
-	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testPhpToDbReturnsEnumValue(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -163,9 +163,7 @@ final class TypeEnumTest extends BaseTestCase
 		self::assertSame('active', $t->phpToDb(TestStatus::Active, $db));
 	}
 
-	/**
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
-	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testPhpToDbAcceptsRawString(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -173,19 +171,15 @@ final class TypeEnumTest extends BaseTestCase
 		self::assertSame('pending', $t->phpToDb('pending', $db));
 	}
 
-	/**
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
-	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testPhpToDbNullableReturnsNull(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
-		$t  = (new TypeEnum(TestStatus::class))->nullable();
+		$t  = new TypeEnum(TestStatus::class)->nullable();
 		self::assertNull($t->phpToDb(null, $db));
 	}
 
-	/**
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
-	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testDbToPhpReturnsEnumInstance(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -193,9 +187,7 @@ final class TypeEnumTest extends BaseTestCase
 		self::assertSame(TestStatus::Active, $t->dbToPhp('active', $db));
 	}
 
-	/**
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
-	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testDbToPhpNullReturnsNull(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -203,9 +195,7 @@ final class TypeEnumTest extends BaseTestCase
 		self::assertNull($t->dbToPhp(null, $db));
 	}
 
-	/**
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
-	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testDbToPhpIntBackedReturnsEnumInstance(string $driver): void
 	{
 		// DB stores int-backed enum values as integers; pass int directly
@@ -214,9 +204,7 @@ final class TypeEnumTest extends BaseTestCase
 		self::assertSame(TestPriority::High, $t->dbToPhp(3, $db));
 	}
 
-	/**
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
-	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testDbToPhpIntBackedFromStringReturnsEnumInstance(string $driver): void
 	{
 		// PDO returns VARCHAR columns as PHP strings even for int-backed enums.
@@ -233,7 +221,7 @@ final class TypeEnumTest extends BaseTestCase
 
 	public function testGetName(): void
 	{
-		self::assertSame('enum', (new TypeEnum(TestStatus::class))->getName());
+		self::assertSame('enum', new TypeEnum(TestStatus::class)->getName());
 	}
 
 	public function testGetEmptyValueOfTypeIsNull(): void
@@ -255,13 +243,12 @@ final class TypeEnumTest extends BaseTestCase
 
 	/**
 	 * Only a plain integer: anything that is not written as one stays refused.
-	 *
-	 * @dataProvider provideIntBackedEnumRefusesWhatIsNotAPlainIntegerCases
 	 */
+	#[DataProvider('provideIntBackedEnumRefusesWhatIsNotAPlainIntegerCases')]
 	public function testIntBackedEnumRefusesWhatIsNotAPlainInteger(string $value): void
 	{
 		$this->expectException(TypesInvalidValueException::class);
-		(new TypeEnum(TestPriority::class))->validate($value);
+		new TypeEnum(TestPriority::class)->validate($value);
 	}
 
 	/** @return iterable<string, array{string}> */
@@ -282,7 +269,7 @@ final class TypeEnumTest extends BaseTestCase
 	public function testStringBackedEnumStillRefusesACaseName(): void
 	{
 		$this->expectException(TypesInvalidValueException::class);
-		(new TypeEnum(TestStatus::class))->validate('Active');
+		new TypeEnum(TestStatus::class)->validate('Active');
 	}
 
 	// -------------------------------------------------------------------------
@@ -291,14 +278,14 @@ final class TypeEnumTest extends BaseTestCase
 
 	public function testToArrayFreezesTheCasesAndWritesTheDefaultAsItsValue(): void
 	{
-		$a = (new TypeEnum(TestStatus::class))->default(TestStatus::Pending)->toArray();
+		$a = new TypeEnum(TestStatus::class)->default(TestStatus::Pending)->toArray();
 
 		self::assertSame(TestStatus::class, $a['enum_class']);
 		self::assertSame(['Active' => 'active', 'Inactive' => 'inactive', 'Pending' => 'pending'], $a['enum_cases']);
 		self::assertSame('string', $a['enum_backing']);
 		self::assertSame('pending', $a['default']);
 
-		$b = (new TypeEnum(TestPriority::class))->toArray();
+		$b = new TypeEnum(TestPriority::class)->toArray();
 
 		self::assertSame(['Low' => 1, 'Medium' => 2, 'High' => 3], $b['enum_cases']);
 		self::assertSame('int', $b['enum_backing']);
@@ -310,7 +297,7 @@ final class TypeEnumTest extends BaseTestCase
 
 		self::assertSame(TestPriority::Medium, $t->getDefault());
 		self::assertSame(2, $t->toArray()['default']);
-		self::assertSame(TestStatus::Pending, (new TypeEnum(TestStatus::class))->default('pending')->getDefault());
+		self::assertSame(TestStatus::Pending, new TypeEnum(TestStatus::class)->default('pending')->getDefault());
 	}
 
 	public function testAnExistingClassWinsOverTheFrozenCases(): void
@@ -394,13 +381,11 @@ final class TypeEnumTest extends BaseTestCase
 		self::assertSame([ORMUniversalType::INT], $int->getWriteTypeHint()->getUniversalTypes());
 	}
 
-	/**
-	 * @dataProvider provideInvalidFrozenCasesAreRefusedCases
-	 */
+	#[DataProvider('provideInvalidFrozenCasesAreRefusedCases')]
 	public function testInvalidFrozenCasesAreRefused(array $cases, ?string $backing): void
 	{
 		$this->expectException(TypesException::class);
-		(new TypeEnum())->detachedEnum('Gobl\Tests\Missing\NoSuchEnum', $cases, $backing);
+		new TypeEnum()->detachedEnum('Gobl\Tests\Missing\NoSuchEnum', $cases, $backing);
 	}
 
 	/** @return iterable<string, array{array, null|string}> */

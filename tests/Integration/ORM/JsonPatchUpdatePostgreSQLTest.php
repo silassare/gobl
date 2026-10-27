@@ -14,16 +14,20 @@ declare(strict_types=1);
 namespace Gobl\Tests\Integration\ORM;
 
 use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
+use Gobl\DBAL\Drivers\SQLQueryGeneratorBase;
+use Gobl\DBAL\Types\Utils\JsonPatch;
+use Gobl\ORM\ORMEntity;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Runs the JSON patch tests against a real PostgreSQL database.
  *
  * @internal
- *
- * @covers \Gobl\DBAL\Drivers\SQLQueryGeneratorBase::getJsonPatchUpdateExpression
- * @covers \Gobl\DBAL\Types\Utils\JsonPatch
- * @covers \Gobl\ORM\ORMEntity
  */
+#[CoversMethod(SQLQueryGeneratorBase::class, 'getJsonPatchUpdateExpression')]
+#[CoversClass(JsonPatch::class)]
+#[CoversClass(ORMEntity::class)]
 final class JsonPatchUpdatePostgreSQLTest extends JsonPatchUpdateTestCase
 {
 	protected static function getDriverName(): string

@@ -71,7 +71,7 @@ final class JsonPatch
 	/**
 	 * The operations, in the order they were asked for.
 	 *
-	 * @var list<array{op: 'remove'|'set', path: list<string>, value?: mixed}>
+	 * @var list<array{op: 'remove'|'set', path: non-empty-list<string>, value?: mixed}>
 	 */
 	private array $operations = [];
 
@@ -208,6 +208,8 @@ final class JsonPatch
 	 * Asserts that a path is addressable: at least one segment, none of them empty.
 	 *
 	 * @param list<string> $segments
+	 *
+	 * @psalm-assert non-empty-list<string> $segments
 	 */
 	private static function assertSegments(array $segments): void
 	{
@@ -241,7 +243,7 @@ final class JsonPatch
 	/**
 	 * Recursively navigates to the target location and sets the value.
 	 *
-	 * @param string[] $keys
+	 * @param non-empty-list<string> $keys
 	 */
 	private static function doSet(array &$data, array $keys, mixed $value): void
 	{
@@ -261,7 +263,7 @@ final class JsonPatch
 	/**
 	 * Recursively navigates to the target location and unsets the key.
 	 *
-	 * @param string[] $keys
+	 * @param non-empty-list<string> $keys
 	 */
 	private static function doRemove(array &$data, array $keys): void
 	{

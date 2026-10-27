@@ -17,6 +17,7 @@ use Gobl\ORM\Generators\CSGenerator;
 use Gobl\ORM\Generators\CSGeneratorDart;
 use Gobl\ORM\Generators\CSGeneratorTS;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Class CSGeneratorClientSnapshotTest.
@@ -32,11 +33,10 @@ use Gobl\Tests\BaseTestCase;
  *
  * To regenerate a snapshot, delete the corresponding .txt fixture and re-run.
  *
- * @covers \Gobl\ORM\Generators\CSGeneratorDart
- * @covers \Gobl\ORM\Generators\CSGeneratorTS
- *
  * @internal
  */
+#[CoversClass(CSGeneratorDart::class)]
+#[CoversClass(CSGeneratorTS::class)]
 final class CSGeneratorClientSnapshotTest extends BaseTestCase
 {
 	// ------------------------------------------------------------------

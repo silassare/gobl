@@ -16,14 +16,14 @@ namespace Gobl\Tests\DBAL\Types;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\TypeFloat;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Class TypeFloatTest.
  *
- * @covers \Gobl\DBAL\Types\TypeFloat
- *
  * @internal
  */
+#[CoversClass(TypeFloat::class)]
 final class TypeFloatTest extends BaseTestCase
 {
 	public function testFloatValid(): void
@@ -43,46 +43,46 @@ final class TypeFloatTest extends BaseTestCase
 
 	public function testFloatUnsignedRejectsNegative(): void
 	{
-		$t = (new TypeFloat())->unsigned();
+		$t = new TypeFloat()->unsigned();
 		$this->expectException(TypesInvalidValueException::class);
 		$t->validate(-1.5)->getCleanValue();
 	}
 
 	public function testFloatUnsignedAcceptsZero(): void
 	{
-		$t = (new TypeFloat())->unsigned();
+		$t = new TypeFloat()->unsigned();
 		self::assertSame(0.0, $t->validate(0)->getCleanValue());
 	}
 
 	public function testFloatNullWithNullable(): void
 	{
-		$t = (new TypeFloat())->nullable();
+		$t = new TypeFloat()->nullable();
 		self::assertNull($t->validate(null)->getCleanValue());
 	}
 
 	public function testFloatNullThrowsWithoutNullableOrDefault(): void
 	{
 		$this->expectException(TypesInvalidValueException::class);
-		(new TypeFloat())->validate(null)->getCleanValue();
+		new TypeFloat()->validate(null)->getCleanValue();
 	}
 
 	public function testFloatMinConstraint(): void
 	{
-		$t = (new TypeFloat())->min(1.0);
+		$t = new TypeFloat()->min(1.0);
 		$this->expectException(TypesInvalidValueException::class);
 		$t->validate(0.5)->getCleanValue();
 	}
 
 	public function testFloatMaxConstraint(): void
 	{
-		$t = (new TypeFloat())->max(100.0);
+		$t = new TypeFloat()->max(100.0);
 		$this->expectException(TypesInvalidValueException::class);
 		$t->validate(100.1)->getCleanValue();
 	}
 
 	public function testFloatMinMaxAccepted(): void
 	{
-		$t = (new TypeFloat())->min(0.0)->max(1.0);
+		$t = new TypeFloat()->min(0.0)->max(1.0);
 		self::assertSame(0.0, $t->validate(0.0)->getCleanValue());
 		self::assertSame(0.5, $t->validate(0.5)->getCleanValue());
 		self::assertSame(1.0, $t->validate(1.0)->getCleanValue());

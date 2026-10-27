@@ -107,7 +107,7 @@ final class CRUD
 
 		$this->checkFormColumnsForCreate($action);
 
-		return (new BeforeCreateFlush($this->table, $form))->dispatch(null, $this->event_channel);
+		return new BeforeCreateFlush($this->table, $form)->dispatch(null, $this->event_channel);
 	}
 
 	/**
@@ -193,7 +193,7 @@ final class CRUD
 
 		$this->checkFormColumnsForUpdate($action);
 
-		return (new BeforeUpdateFlush($this->table, $filters, $form))->dispatch(null, $this->event_channel);
+		return new BeforeUpdateFlush($this->table, $filters, $form)->dispatch(null, $this->event_channel);
 	}
 
 	/**
@@ -213,7 +213,7 @@ final class CRUD
 
 		$this->checkFormColumnsForUpdate($action);
 
-		return (new BeforeUpdateAllFlush($this->table, $filters, $form))->dispatch(null, $this->event_channel);
+		return new BeforeUpdateAllFlush($this->table, $filters, $form)->dispatch(null, $this->event_channel);
 	}
 
 	/**
@@ -231,7 +231,7 @@ final class CRUD
 
 		$this->message = $action->getSuccessMessage();
 
-		return (new BeforeDeleteFlush($this->table, $filters))->dispatch(null, $this->event_channel);
+		return new BeforeDeleteFlush($this->table, $filters)->dispatch(null, $this->event_channel);
 	}
 
 	/**
@@ -249,7 +249,7 @@ final class CRUD
 
 		$this->message = $action->getSuccessMessage();
 
-		return (new BeforeDeleteAllFlush($this->table, $filters))->dispatch(null, $this->event_channel);
+		return new BeforeDeleteAllFlush($this->table, $filters)->dispatch(null, $this->event_channel);
 	}
 
 	/**

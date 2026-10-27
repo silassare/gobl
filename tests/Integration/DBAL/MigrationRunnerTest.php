@@ -27,6 +27,8 @@ use Gobl\DBAL\MigrationRunner;
 use Gobl\DBAL\Types\TypeEnum;
 use Gobl\Tests\BaseTestCase;
 use Gobl\Tests\Fixtures\SampleKind;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Throwable;
 
 /**
@@ -35,10 +37,9 @@ use Throwable;
  * Tests the MigrationRunner against an in-memory SQLite database.
  * No external server or environment variables are required.
  *
- * @covers \Gobl\DBAL\MigrationRunner
- *
  * @internal
  */
+#[CoversClass(MigrationRunner::class)]
 final class MigrationRunnerTest extends BaseTestCase
 {
 	/**
@@ -97,9 +98,7 @@ final class MigrationRunnerTest extends BaseTestCase
 	// bookkeeping table
 	// ------------------------------------------------------------------
 
-	/**
-	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
-	 */
+	#[DataProvider('availableDrivers')]
 	public function testMigrationsTableIsCreatedAutomatically(string $driver): void
 	{
 		$db     = $this->getNewDbInstance($driver);
@@ -118,9 +117,7 @@ final class MigrationRunnerTest extends BaseTestCase
 	// migrate()
 	// ------------------------------------------------------------------
 
-	/**
-	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
-	 */
+	#[DataProvider('availableDrivers')]
 	public function testMigrateReturnsPendingVersions(string $driver): void
 	{
 		$runner  = new MigrationRunner($this->getNewDbInstance($driver));
@@ -132,9 +129,7 @@ final class MigrationRunnerTest extends BaseTestCase
 		self::assertSame([1, 2], $applied);
 	}
 
-	/**
-	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
-	 */
+	#[DataProvider('availableDrivers')]
 	public function testMigrateIsIdempotent(string $driver): void
 	{
 		$runner = new MigrationRunner($this->getNewDbInstance($driver));
@@ -146,9 +141,7 @@ final class MigrationRunnerTest extends BaseTestCase
 		self::assertSame([], $second, 'Second migrate() should apply nothing');
 	}
 
-	/**
-	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
-	 */
+	#[DataProvider('availableDrivers')]
 	public function testMigrateWithTargetVersionOnlyAppliesUpToThat(string $driver): void
 	{
 		$runner = new MigrationRunner($this->getNewDbInstance($driver));
@@ -172,9 +165,7 @@ final class MigrationRunnerTest extends BaseTestCase
 	// rollback()
 	// ------------------------------------------------------------------
 
-	/**
-	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
-	 */
+	#[DataProvider('availableDrivers')]
 	public function testRollbackRemovesLastApplied(string $driver): void
 	{
 		$runner = new MigrationRunner($this->getNewDbInstance($driver));
@@ -194,9 +185,7 @@ final class MigrationRunnerTest extends BaseTestCase
 		self::assertSame(1, \array_values($applied)[0]['version']);
 	}
 
-	/**
-	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
-	 */
+	#[DataProvider('availableDrivers')]
 	public function testRollbackMultipleSteps(string $driver): void
 	{
 		$runner = new MigrationRunner($this->getNewDbInstance($driver));
@@ -212,9 +201,7 @@ final class MigrationRunnerTest extends BaseTestCase
 		self::assertSame([3, 2], $rolled);
 	}
 
-	/**
-	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
-	 */
+	#[DataProvider('availableDrivers')]
 	public function testRollbackNothingWhenNoneApplied(string $driver): void
 	{
 		$runner = new MigrationRunner($this->getNewDbInstance($driver));
@@ -229,9 +216,7 @@ final class MigrationRunnerTest extends BaseTestCase
 	// status()
 	// ------------------------------------------------------------------
 
-	/**
-	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
-	 */
+	#[DataProvider('availableDrivers')]
 	public function testStatusReturnsPendingAndApplied(string $driver): void
 	{
 		$runner = new MigrationRunner($this->getNewDbInstance($driver));
@@ -252,9 +237,7 @@ final class MigrationRunnerTest extends BaseTestCase
 		self::assertNull($status[1]['applied_at']);
 	}
 
-	/**
-	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
-	 */
+	#[DataProvider('availableDrivers')]
 	public function testStatusLabelsArePersisted(string $driver): void
 	{
 		$runner = new MigrationRunner($this->getNewDbInstance($driver));
@@ -269,9 +252,7 @@ final class MigrationRunnerTest extends BaseTestCase
 	// beforeRun() hooks
 	// ------------------------------------------------------------------
 
-	/**
-	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
-	 */
+	#[DataProvider('availableDrivers')]
 	public function testBeforeRunFalseSkipsMigration(string $driver): void
 	{
 		$db     = $this->getNewDbInstance($driver);
@@ -328,9 +309,7 @@ final class MigrationRunnerTest extends BaseTestCase
 		self::assertFalse($this->tableExists($db, 'must_not_exist'), 'Table must_not_exist should NOT have been created');
 	}
 
-	/**
-	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
-	 */
+	#[DataProvider('availableDrivers')]
 	public function testBeforeRunStringReplacesQuery(string $driver): void
 	{
 		$db     = $this->getNewDbInstance($driver);
@@ -395,9 +374,7 @@ final class MigrationRunnerTest extends BaseTestCase
 	// add() / getMigrations()
 	// ------------------------------------------------------------------
 
-	/**
-	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
-	 */
+	#[DataProvider('availableDrivers')]
 	public function testAddSortsByVersion(string $driver): void
 	{
 		$runner = new MigrationRunner($this->getNewDbInstance($driver));
@@ -414,9 +391,7 @@ final class MigrationRunnerTest extends BaseTestCase
 	// Diff::buildMigration()
 	// ------------------------------------------------------------------
 
-	/**
-	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
-	 */
+	#[DataProvider('availableDrivers')]
 	public function testDiffBuildMigrationReturnsMigrationInterface(string $driver): void
 	{
 		$db_from = $this->runWithTestDb($driver, static function (NamespaceBuilder $ns): void {});
@@ -439,9 +414,7 @@ final class MigrationRunnerTest extends BaseTestCase
 		self::assertNotEmpty($migration->up(), 'UP SQL should not be empty for a schema diff');
 	}
 
-	/**
-	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
-	 */
+	#[DataProvider('availableDrivers')]
 	public function testDiffMakeMigrationInstanceIsRunnable(string $driver): void
 	{
 		$db_from = $this->runWithTestDb($driver, static function (NamespaceBuilder $ns): void {});
@@ -465,9 +438,8 @@ final class MigrationRunnerTest extends BaseTestCase
 
 	/**
 	 * A migration file whose enum class is gone runs, and its default reaches the database.
-	 *
-	 * @dataProvider Gobl\Tests\Integration\DBAL\MigrationRunnerTest::availableDrivers
 	 */
+	#[DataProvider('availableDrivers')]
 	public function testAMigrationRunsWhenItsEnumClassIsGone(string $driver): void
 	{
 		$db_from = $this->runWithTestDb($driver, static function (NamespaceBuilder $ns): void {});
@@ -479,7 +451,7 @@ final class MigrationRunnerTest extends BaseTestCase
 			});
 		});
 
-		$code = (string) (new Diff($db_from, $db_to))->generateMigrationFile(1);
+		$code = (string) new Diff($db_from, $db_to)->generateMigrationFile(1);
 		$code = \str_replace(\addslashes(SampleKind::class), \addslashes('Gobl\Tests\Missing\RemovedKind'), $code);
 		$dir  = GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'migration_runner';
 
@@ -491,7 +463,7 @@ final class MigrationRunnerTest extends BaseTestCase
 		\file_put_contents($file, $code);
 
 		$db     = $this->getNewDbInstance($driver);
-		$runner = (new MigrationRunner($db))->addFromFile($file);
+		$runner = new MigrationRunner($db)->addFromFile($file);
 
 		self::assertSame([1], $runner->migrate());
 
@@ -528,7 +500,7 @@ final class MigrationRunnerTest extends BaseTestCase
 	 *
 	 * @return array<string, array{0: string, 1: class-string}>
 	 */
-	public static function availableDrivers(): array
+	public static function availableDrivers(): iterable
 	{
 		return \array_filter(parent::allDrivers(), static function (array $row): bool {
 			$driver = $row[0];

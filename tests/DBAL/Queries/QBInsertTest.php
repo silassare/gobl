@@ -16,14 +16,14 @@ namespace Gobl\Tests\DBAL\Queries;
 use Gobl\DBAL\Queries\NamedToPositionalParams;
 use Gobl\DBAL\Queries\QBInsert;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Class QBInsertTest.
  *
- * @covers \Gobl\DBAL\Queries\QBInsert
- *
  * @internal
  */
+#[CoversClass(QBInsert::class)]
 final class QBInsertTest extends BaseTestCase
 {
 	public function testInsert(): void

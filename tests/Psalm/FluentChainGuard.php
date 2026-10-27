@@ -61,7 +61,7 @@ final class FluentChainGuard
 	 */
 	public function columnType(): TypeString
 	{
-		return (new TypeString())
+		return new TypeString()
 			->nullable()
 			->max(32)
 			->default('x')

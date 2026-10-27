@@ -17,7 +17,9 @@ use Gobl\DBAL\Builders\TableBuilder;
 use Gobl\DBAL\Queries\QBExpression;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Queries\Traits\QBCommonTrait;
+use Gobl\DBAL\Queries\Traits\QBShortcutsTrait;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversTrait;
 
 /**
  * Class QBShortcutsTest.
@@ -25,10 +27,9 @@ use Gobl\Tests\BaseTestCase;
  * Tests for the shorthand expression helpers defined in {@see QBCommonTrait}:
  * expr(), fn(), col(), sqlNull(), sqlTrue(), sqlFalse(), sub(), and quote().
  *
- * @covers \Gobl\DBAL\Queries\Traits\QBShortcutsTrait
- *
  * @internal
  */
+#[CoversTrait(QBShortcutsTrait::class)]
 final class QBShortcutsTest extends BaseTestCase
 {
 	// -------------------------------------------------------------------------

@@ -16,14 +16,14 @@ namespace Gobl\Tests\DBAL\Types;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\TypeBool;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Class TypeBoolTest.
  *
- * @covers \Gobl\DBAL\Types\TypeBool
- *
  * @internal
  */
+#[CoversClass(TypeBool::class)]
 final class TypeBoolTest extends BaseTestCase
 {
 	public function testBoolValidBooleans(): void
@@ -37,7 +37,7 @@ final class TypeBoolTest extends BaseTestCase
 
 	public function testBoolStringInputsNonStrict(): void
 	{
-		$t = (new TypeBool())->strict(false);
+		$t = new TypeBool()->strict(false);
 		self::assertTrue($t->validate('true')->getCleanValue());
 		self::assertFalse($t->validate('false')->getCleanValue());
 		self::assertTrue($t->validate('yes')->getCleanValue());
@@ -55,19 +55,19 @@ final class TypeBoolTest extends BaseTestCase
 
 	public function testBoolNullWithNullable(): void
 	{
-		$t = (new TypeBool())->nullable();
+		$t = new TypeBool()->nullable();
 		self::assertNull($t->validate(null)->getCleanValue());
 	}
 
 	public function testBoolNullWithDefault(): void
 	{
-		$t = (new TypeBool())->default(true);
+		$t = new TypeBool()->default(true);
 		self::assertTrue($t->validate(null)->getCleanValue());
 	}
 
 	public function testBoolNullThrowsWithoutNullableOrDefault(): void
 	{
 		$this->expectException(TypesInvalidValueException::class);
-		(new TypeBool())->validate(null)->getCleanValue();
+		new TypeBool()->validate(null)->getCleanValue();
 	}
 }

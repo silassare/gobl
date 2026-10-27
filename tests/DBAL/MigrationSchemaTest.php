@@ -23,6 +23,8 @@ use Gobl\DBAL\MigrationSchema;
 use Gobl\DBAL\Types\TypeEnum;
 use Gobl\Tests\BaseTestCase;
 use Gobl\Tests\Fixtures\SampleKind;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProviderExternal;
 use stdClass;
 
 /**
@@ -30,12 +32,11 @@ use stdClass;
  *
  * A migration is history: loading it must not depend on an enum class that has moved on since.
  *
- * @covers \Gobl\DBAL\Diff\Diff
- * @covers \Gobl\DBAL\MigrationSchema
- * @covers \Gobl\DBAL\Types\TypeEnum
- *
  * @internal
  */
+#[CoversClass(Diff::class)]
+#[CoversClass(MigrationSchema::class)]
+#[CoversClass(TypeEnum::class)]
 final class MigrationSchemaTest extends BaseTestCase
 {
 	private const string MISSING_ENUM = 'Gobl\Tests\Missing\RemovedKind';
@@ -50,13 +51,11 @@ final class MigrationSchemaTest extends BaseTestCase
 		MigrationSchema::assertPureData(['a' => ['b' => [1, new stdClass()]]]);
 	}
 
-	/**
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
-	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testAMigrationFileIsPureDataAndLoadsWithoutItsEnumClass(string $driver): void
 	{
 		$db_to = self::dbWithEnum($driver);
-		$code  = (string) (new Diff(self::getNewDbInstance($driver)->lock(), $db_to))->generateMigrationFile(1);
+		$code  = (string) new Diff(self::getNewDbInstance($driver)->lock(), $db_to)->generateMigrationFile(1);
 
 		self::assertStringNotContainsString('SampleKind::', $code);
 		self::assertStringContainsString("'default' => 'video'", $code);
@@ -78,7 +77,7 @@ final class MigrationSchemaTest extends BaseTestCase
 
 		// The SQL does not depend on the class: a full build is the same, and so a diff finds nothing.
 		self::assertSame($db_to->getGenerator()->buildDatabase(), $db_old->getGenerator()->buildDatabase());
-		self::assertSame([], (new Diff($db_old, $db_to))->getDiff());
+		self::assertSame([], new Diff($db_old, $db_to)->getDiff());
 	}
 
 	private static function dbWithEnum(string $driver): RDBMSInterface

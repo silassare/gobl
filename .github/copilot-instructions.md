@@ -374,4 +374,6 @@ Tests requiring a real DB connection live under `tests/Integration/` and follow 
 - One concrete final subclass per driver, implementing only `getDriverName(): string`.
 - PHPUnit `Unit` testsuite excludes `tests/Integration/`; `Integration` testsuite covers it exclusively.
 - Reference: `tests/Integration/ORM/ORMLiveTestCase.php`.
-- Do NOT use `@dataProvider` across drivers. Use one class per driver.
+- Do NOT use a data provider across drivers. Use one class per driver. Providers are declared with
+  `#[DataProvider]` / `#[DataProviderExternal]`: PHPUnit ignores a doc-comment `@dataProvider`
+  without reporting it, and the test then runs with no arguments.

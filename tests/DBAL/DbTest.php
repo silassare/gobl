@@ -20,22 +20,22 @@ use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Table;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProviderExternal;
 
 /**
  * Class DbTest.
  *
- * @covers \Gobl\DBAL\Db
- *
  * @internal
  */
+#[CoversClass(Db::class)]
 final class DbTest extends BaseTestCase
 {
 	/**
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
-	 *
 	 * @param string                       $driver the driver type to test
 	 * @param class-string<RDBMSInterface> $class  the expected class name for the driver instance
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDriversWithClass')]
 	public function testInstantiate(string $driver, string $class): void
 	{
 		self::assertInstanceOf($class, self::getNewDbInstance($driver));
@@ -132,13 +132,13 @@ final class DbTest extends BaseTestCase
 		$tbl_prefix = $db->getConfig()
 			->getDbTablePrefix();
 
-		$db->addTable((new Table('users', 'pr'))->addColumn(new Column('id')));
+		$db->addTable(new Table('users', 'pr')->addColumn(new Column('id')));
 
 		self::assertTrue($db->hasTable('users'));
 		self::assertTrue($db->hasTable('pr_users'));
 		self::assertFalse($db->hasTable($tbl_prefix . '_users'));
 
-		$db->addTable($member = (new Table('members'))->addColumn(new Column('id')));
+		$db->addTable($member = new Table('members')->addColumn(new Column('id')));
 
 		self::assertTrue($db->hasTable('members'));
 		self::assertTrue($db->hasTable($tbl_prefix . '_members'));
@@ -148,7 +148,7 @@ final class DbTest extends BaseTestCase
 		$this->expectException(DBALException::class);
 		$this->expectExceptionMessage('The table name conflict with an existing table name or full name: "members".');
 
-		$db->addTable((new Table('members'))->addColumn(new Column('id')));
+		$db->addTable(new Table('members')->addColumn(new Column('id')));
 	}
 
 	/**
@@ -165,9 +165,9 @@ final class DbTest extends BaseTestCase
 
 		// without desired namespace
 		$db->loadSchema([
-			'users'   => (new Table('users', 'ur'))->addColumn(new Column('id'))
+			'users'   => new Table('users', 'ur')->addColumn(new Column('id'))
 				->setNamespace($custom_namespace),
-			'members' => (new Table('members'))->addColumn(new Column('id')),
+			'members' => new Table('members')->addColumn(new Column('id')),
 		]);
 
 		// with desired namespace
@@ -184,7 +184,7 @@ final class DbTest extends BaseTestCase
 					],
 				],
 			],
-			'posts' => (new Table('posts'))->addColumn(new Column('id'))
+			'posts' => new Table('posts')->addColumn(new Column('id'))
 				->setNamespace($foo_bar_namespace),
 		], $foo_bar_namespace);
 
@@ -223,8 +223,8 @@ final class DbTest extends BaseTestCase
 	public function testGetTables(): void
 	{
 		$db = self::getNewDbInstance();
-		$db->addTable((new Table('users', 'pr'))->addColumn(new Column('id')));
-		$db->addTable((new Table('members'))->addColumn(new Column('id')));
+		$db->addTable(new Table('users', 'pr')->addColumn(new Column('id')));
+		$db->addTable(new Table('members')->addColumn(new Column('id')));
 
 		$expected = [
 			'users',

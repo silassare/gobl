@@ -15,14 +15,14 @@ namespace Gobl\Tests\DBAL;
 
 use Gobl\DBAL\Operator;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Class OperatorTest.
  *
- * @covers \Gobl\DBAL\Operator
- *
  * @internal
  */
+#[CoversClass(Operator::class)]
 final class OperatorTest extends BaseTestCase
 {
 	public function testIsUnaryMatches(): void

@@ -16,15 +16,16 @@ namespace Gobl\Tests\DBAL\Types;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\TypeList;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProviderExternal;
 use stdClass;
 
 /**
  * Class TypeListTest.
  *
- * @covers \Gobl\DBAL\Types\TypeList
- *
  * @internal
  */
+#[CoversClass(TypeList::class)]
 final class TypeListTest extends BaseTestCase
 {
 	// -------------------------------------------------------------------------
@@ -95,7 +96,7 @@ final class TypeListTest extends BaseTestCase
 
 	public function testValidateNullWithNullable(): void
 	{
-		$t = (new TypeList())->nullable();
+		$t = new TypeList()->nullable();
 		self::assertNull($t->validate(null)->getCleanValue());
 	}
 
@@ -108,7 +109,7 @@ final class TypeListTest extends BaseTestCase
 
 	public function testValidateNullUsesDefault(): void
 	{
-		$t      = (new TypeList())->default(['default_item']);
+		$t      = new TypeList()->default(['default_item']);
 		$result = $t->validate(null)->getCleanValue();
 		self::assertSame(['default_item'], $result);
 	}
@@ -121,7 +122,7 @@ final class TypeListTest extends BaseTestCase
 
 	public function testGetEmptyValueOfTypeNullable(): void
 	{
-		$t = (new TypeList())->nullable();
+		$t = new TypeList()->nullable();
 		self::assertNull($t->getEmptyValueOfType());
 	}
 
@@ -129,9 +130,7 @@ final class TypeListTest extends BaseTestCase
 	// phpToDb / dbToPhp
 	// -------------------------------------------------------------------------
 
-	/**
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
-	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testPhpToDbSerializesToJson(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -139,9 +138,7 @@ final class TypeListTest extends BaseTestCase
 		self::assertSame('[1,"two",true]', $t->phpToDb([1, 'two', true], $db));
 	}
 
-	/**
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
-	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testPhpToDbEmptyArraySerializesAsEmptyJsonArray(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -149,19 +146,15 @@ final class TypeListTest extends BaseTestCase
 		self::assertSame('[]', $t->phpToDb([], $db));
 	}
 
-	/**
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
-	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testPhpToDbNullableReturnsNull(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
-		$t  = (new TypeList())->nullable();
+		$t  = new TypeList()->nullable();
 		self::assertNull($t->phpToDb(null, $db));
 	}
 
-	/**
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
-	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testDbToPhpDeserializesFromJson(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -169,9 +162,7 @@ final class TypeListTest extends BaseTestCase
 		self::assertSame([1, 'two', true], $t->dbToPhp('[1,"two",true]', $db));
 	}
 
-	/**
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
-	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testDbToPhpNullReturnsNull(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -179,9 +170,7 @@ final class TypeListTest extends BaseTestCase
 		self::assertNull($t->dbToPhp(null, $db));
 	}
 
-	/**
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
-	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testDbToPhpEmptyStringReturnsNull(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -189,9 +178,7 @@ final class TypeListTest extends BaseTestCase
 		self::assertNull($t->dbToPhp('', $db));
 	}
 
-	/**
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
-	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testPhpToDbRoundtrip(string $driver): void
 	{
 		$db      = self::getNewDbInstanceWithSchema($driver);
@@ -207,6 +194,6 @@ final class TypeListTest extends BaseTestCase
 
 	public function testGetName(): void
 	{
-		self::assertSame('list', (new TypeList())->getName());
+		self::assertSame('list', new TypeList()->getName());
 	}
 }

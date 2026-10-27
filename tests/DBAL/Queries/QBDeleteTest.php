@@ -16,14 +16,14 @@ namespace Gobl\Tests\DBAL\Queries;
 use Gobl\DBAL\Queries\NamedToPositionalParams;
 use Gobl\DBAL\Queries\QBDelete;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Class QBDeleteTest.
  *
- * @covers \Gobl\DBAL\Queries\QBDelete
- *
  * @internal
  */
+#[CoversClass(QBDelete::class)]
 final class QBDeleteTest extends BaseTestCase
 {
 	public function testDelete(): void

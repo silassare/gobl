@@ -17,14 +17,14 @@ use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Filters\FilterFieldNotation;
 use Gobl\Tests\BaseTestCase;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Class FilterFieldNotationTest.
  *
- * @covers \Gobl\DBAL\Filters\FilterFieldNotation
- *
  * @internal
  */
+#[CoversClass(FilterFieldNotation::class)]
 final class FilterFieldNotationTest extends BaseTestCase
 {
 	// -------------------------------------------------------------------

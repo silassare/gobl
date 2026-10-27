@@ -16,14 +16,14 @@ namespace Gobl\Tests\DBAL\Types;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\TypeDate;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Class TypeDateTest.
  *
- * @covers \Gobl\DBAL\Types\TypeDate
- *
  * @internal
  */
+#[CoversClass(TypeDate::class)]
 final class TypeDateTest extends BaseTestCase
 {
 	public function testDateAcceptsNumericTimestamp(): void
@@ -57,25 +57,25 @@ final class TypeDateTest extends BaseTestCase
 
 	public function testDateNullWithNullable(): void
 	{
-		$t = (new TypeDate())->nullable();
+		$t = new TypeDate()->nullable();
 		self::assertNull($t->validate(null)->getCleanValue());
 	}
 
 	public function testDateNullThrowsWithoutNullableOrDefault(): void
 	{
 		$this->expectException(TypesInvalidValueException::class);
-		(new TypeDate())->validate(null)->getCleanValue();
+		new TypeDate()->validate(null)->getCleanValue();
 	}
 
 	public function testDateEmptyNullableReturnsNull(): void
 	{
-		$t = (new TypeDate())->nullable();
+		$t = new TypeDate()->nullable();
 		self::assertNull($t->validate('')->getCleanValue());
 	}
 
 	public function testDateAutoGeneratesTimestamp(): void
 	{
-		$t      = (new TypeDate())->auto();
+		$t      = new TypeDate()->auto();
 		$result = $t->validate(null)->getCleanValue();   // empty + auto => generates current time
 		self::assertIsString($result);
 		self::assertNotEmpty($result);
@@ -87,7 +87,7 @@ final class TypeDateTest extends BaseTestCase
 	 */
 	public function testMicrosecondsKeepsTheBoundsSetBeforeIt(): void
 	{
-		$t = (new TypeDate())->min(10)->max(20)->microseconds();
+		$t = new TypeDate()->min(10)->max(20)->microseconds();
 
 		self::assertSame('15', $t->validate('15')->getCleanValue());
 
@@ -98,13 +98,13 @@ final class TypeDateTest extends BaseTestCase
 	public function testMicrosecondsKeepsTheUpperBoundSetBeforeIt(): void
 	{
 		$this->expectException(TypesInvalidValueException::class);
-		(new TypeDate())->min(10)->max(20)->microseconds()->validate('99');
+		new TypeDate()->min(10)->max(20)->microseconds()->validate('99');
 	}
 
 	/** A custom message given with a bound survives the base being replaced. */
 	public function testMicrosecondsKeepsTheMessageOfABound(): void
 	{
-		$t = (new TypeDate())->min(10, 'too_early')->microseconds();
+		$t = new TypeDate()->min(10, 'too_early')->microseconds();
 
 		try {
 			$t->validate('5');
@@ -116,6 +116,6 @@ final class TypeDateTest extends BaseTestCase
 
 	public function testMicrosecondsKeepsNullableSetBeforeIt(): void
 	{
-		self::assertNull((new TypeDate())->nullable()->microseconds()->validate(null)->getCleanValue());
+		self::assertNull(new TypeDate()->nullable()->microseconds()->validate(null)->getCleanValue());
 	}
 }

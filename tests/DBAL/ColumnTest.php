@@ -22,14 +22,17 @@ use Gobl\DBAL\Types\TypeString;
 use Gobl\Tests\BaseTestCase;
 use InvalidArgumentException;
 use LogicException;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Class ColumnTest.
  *
- * @covers \Gobl\DBAL\Column
- *
  * @internal
  */
+#[CoversClass(Column::class)]
+#[CoversMethod(Column::class, 'getName')]
+#[CoversMethod(Column::class, 'setName')]
 final class ColumnTest extends BaseTestCase
 {
 	public function testConstructor(): void
@@ -58,10 +61,6 @@ final class ColumnTest extends BaseTestCase
 		self::assertInstanceOf(TypeInt::class, $column->getType());
 	}
 
-	/**
-	 * @covers \Gobl\DBAL\Column::getName
-	 * @covers \Gobl\DBAL\Column::setName
-	 */
 	public function testSetGetName(): void
 	{
 		$name = 'name';

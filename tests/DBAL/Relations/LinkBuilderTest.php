@@ -14,15 +14,19 @@ declare(strict_types=1);
 namespace Gobl\Tests\DBAL\Relations;
 
 use Gobl\DBAL\Builders\LinkBuilder;
+use Gobl\DBAL\Builders\RelationBuilder;
 use Gobl\DBAL\Builders\TableBuilder;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
+use Gobl\DBAL\Filters\FiltersMultiScope;
 use Gobl\DBAL\Queries\QBSelect;
+use Gobl\DBAL\Relations\Link;
 use Gobl\DBAL\Relations\LinkThrough;
 use Gobl\DBAL\Relations\LinkType;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\ORM\ORMEntity;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Class LinkBuilderTest.
@@ -31,13 +35,12 @@ use Gobl\Tests\BaseTestCase;
  * arguments, the `FiltersMultiScope` pivot-column filter bug fix, and the
  * corrected `Link::subLink()` nesting guard.
  *
- * @covers \Gobl\DBAL\Builders\LinkBuilder
- * @covers \Gobl\DBAL\Builders\RelationBuilder
- * @covers \Gobl\DBAL\Filters\FiltersMultiScope
- * @covers \Gobl\DBAL\Relations\Link
- *
  * @internal
  */
+#[CoversClass(LinkBuilder::class)]
+#[CoversClass(RelationBuilder::class)]
+#[CoversClass(FiltersMultiScope::class)]
+#[CoversClass(Link::class)]
 final class LinkBuilderTest extends BaseTestCase
 {
 	// =========================================================================
@@ -506,8 +509,8 @@ final class LinkBuilderTest extends BaseTestCase
 		$data = [];
 		// fillRelation on a THROUGH link is always false
 		self::assertFalse($relation->getLink()->fillRelation(
-			$this->createMock(ORMEntity::class),
-			$this->createMock(ORMEntity::class),
+			self::createStub(ORMEntity::class),
+			self::createStub(ORMEntity::class),
 		));
 	}
 }

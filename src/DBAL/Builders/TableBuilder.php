@@ -90,7 +90,7 @@ final class TableBuilder
 
 			$this->registerCollectedRelations();
 		} catch (Throwable $t) {
-			throw (new DBALRuntimeException('Failed to build table', null, $t))->suspectCallable($factory);
+			throw new DBALRuntimeException('Failed to build table', null, $t)->suspectCallable($factory);
 		}
 
 		return $this;

@@ -23,6 +23,7 @@ use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\ORM\ORM;
 use Gobl\ORM\ORMOptions;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUtils\Events\Event;
 use PHPUtils\Events\EventManager;
 use Throwable;
@@ -44,9 +45,8 @@ use Throwable;
  *   2. Undeclare the ORM namespace so the next driver can re-declare it
  *
  * @internal
- *
- * @coversNothing
  */
+#[CoversNothing]
 abstract class ORMLiveTestCase extends BaseTestCase
 {
 	/** @var null|RDBMSInterface Shared live-DB connection for all tests in the class */
@@ -102,7 +102,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 				->schema(self::getTablesDefinitions())
 				->enableORM($ormOutDir);
 
-			(new CSGeneratorORM($db))->generate($db->getTables(), $ormOutDir);
+			new CSGeneratorORM($db)->generate($db->getTables(), $ormOutDir);
 
 			// Lock the schema and create all tables in the live database
 			$db->lock();

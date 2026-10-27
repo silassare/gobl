@@ -20,16 +20,16 @@ use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\ORM\Generators\CSGeneratorTS;
 use Gobl\Tests\BaseTestCase;
 use Override;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Class CSGeneratorGeneratedAtTest.
  *
  * With the generation time disabled, a header no longer changes from one run to the next.
  *
- * @covers \Gobl\Gobl::enableGeneratedAtDate
- *
  * @internal
  */
+#[CoversMethod(Gobl::class, 'enableGeneratedAtDate')]
 final class CSGeneratorGeneratedAtTest extends BaseTestCase
 {
 	#[Override]

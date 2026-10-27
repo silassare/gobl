@@ -107,7 +107,7 @@ Proudly With: {$version}{$time}";
 				$files[$kind->value] = $this->getClassFile($table, $kind);
 			}
 
-			(new ORMTableFilesGenerated($table, $files))->dispatch();
+			new ORMTableFilesGenerated($table, $files)->dispatch();
 
 			foreach (ORMClassKind::cases() as $kind) {
 				$code = (string) $files[$kind->value];

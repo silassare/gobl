@@ -22,6 +22,8 @@ use Gobl\ORM\ORM;
 use Gobl\ORM\ORMOptions;
 use Gobl\ORM\ORMTableQuery;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Throwable;
 
 /**
@@ -33,10 +35,9 @@ use Throwable;
  * Only validation and SQL-structure tests are covered here; live-DB tests
  * (which actually iterate rows) live under tests/Integration/.
  *
- * @covers \Gobl\ORM\ORMTableQuery::find
- *
  * @internal
  */
+#[CoversMethod(ORMTableQuery::class, 'find')]
 final class ORMTableQueryCursorTest extends BaseTestCase
 {
 	/** @var bool Whether ORM setup completed successfully */
@@ -68,7 +69,7 @@ final class ORMTableQueryCursorTest extends BaseTestCase
 			->schema(self::getTablesDefinitions())
 			->enableORM($ormOutDir);
 
-		(new CSGeneratorORM($db))->generate($db->getTables(), $ormOutDir);
+		new CSGeneratorORM($db)->generate($db->getTables(), $ormOutDir);
 
 		$db->lock();
 
@@ -138,9 +139,7 @@ final class ORMTableQueryCursorTest extends BaseTestCase
 		ORMOptions::makeCursorBased('id', 10, null, 'invalid');
 	}
 
-	/**
-	 * @dataProvider provideCursorFindAcceptsValidDirectionsCases
-	 */
+	#[DataProvider('provideCursorFindAcceptsValidDirectionsCases')]
 	public function testCursorFindAcceptsValidDirections(string $direction): void
 	{
 		// Accepted directions should not throw during SQL construction.

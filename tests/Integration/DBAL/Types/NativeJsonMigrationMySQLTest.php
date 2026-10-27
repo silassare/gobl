@@ -13,7 +13,11 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\Integration\DBAL\Types;
 
+use Gobl\DBAL\Diff\Diff;
 use Gobl\DBAL\Drivers\MySQL\MySQL;
+use Gobl\DBAL\MigrationRunner;
+use Gobl\DBAL\Types\TypeJson;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Class NativeJsonMigrationMySQLTest.
@@ -21,11 +25,10 @@ use Gobl\DBAL\Drivers\MySQL\MySQL;
  * Runs the native JSON migration test suite against a real MySQL database.
  *
  * @internal
- *
- * @covers \Gobl\DBAL\Diff\Diff
- * @covers \Gobl\DBAL\MigrationRunner
- * @covers \Gobl\DBAL\Types\TypeJson
  */
+#[CoversClass(Diff::class)]
+#[CoversClass(MigrationRunner::class)]
+#[CoversClass(TypeJson::class)]
 final class NativeJsonMigrationMySQLTest extends NativeJsonMigrationTestCase
 {
 	protected static function getDriverName(): string

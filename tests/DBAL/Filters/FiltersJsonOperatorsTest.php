@@ -17,6 +17,7 @@ use Gobl\DBAL\Builders\TableBuilder;
 use Gobl\DBAL\Column;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Filters\Filters;
+use Gobl\DBAL\Filters\Traits\FiltersOperatorsHelpersTrait;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\TypeJson;
@@ -24,6 +25,8 @@ use Gobl\Tests\BaseTestCase;
 use Gobl\Tests\DBAL\Types\Utils\JsonPathTest;
 use JsonSerializable;
 use OLIUP\CG\PHPMethod;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversTrait;
 
 /**
  * Class FiltersJsonOperatorsTest.
@@ -36,12 +39,11 @@ use OLIUP\CG\PHPMethod;
  * - TypeJson::queryBuilderEnhanceFilterMethod() arg order: ($value, $path) for non-unary,
  *   ($path) for unary and HAS_KEY
  *
- * @covers \Gobl\DBAL\Filters\Filters
- * @covers \Gobl\DBAL\Filters\Traits\FiltersOperatorsHelpersTrait
- * @covers \Gobl\DBAL\Types\TypeJson
- *
  * @internal
  */
+#[CoversClass(Filters::class)]
+#[CoversTrait(FiltersOperatorsHelpersTrait::class)]
+#[CoversClass(TypeJson::class)]
 final class FiltersJsonOperatorsTest extends BaseTestCase
 {
 	// =========================================================================
@@ -213,7 +215,7 @@ final class FiltersJsonOperatorsTest extends BaseTestCase
 	/** native_json=false (explicit opt-out): CONTAINS and HAS_KEY are excluded; EQ/LIKE still present. */
 	public function testNativeJsonFalseAllowedOperatorsExcludeJsonOps(): void
 	{
-		$type = (new TypeJson())->nativeJson(false); // explicit opt-out
+		$type = new TypeJson()->nativeJson(false); // explicit opt-out
 		$ops  = $type->getAllowedFilterOperators();
 
 		self::assertNotContains(Operator::CONTAINS, $ops, 'CONTAINS must not be allowed when native_json=false');
@@ -225,7 +227,7 @@ final class FiltersJsonOperatorsTest extends BaseTestCase
 	/** IS_NULL / IS_NOT_NULL only appear when the type is nullable. */
 	public function testNullableJsonTypeAllowsNullChecks(): void
 	{
-		$nullable     = (new TypeJson())->nullable();
+		$nullable     = new TypeJson()->nullable();
 		$non_nullable = new TypeJson();
 
 		self::assertContains(Operator::IS_NULL, $nullable->getAllowedFilterOperators());
@@ -241,7 +243,7 @@ final class FiltersJsonOperatorsTest extends BaseTestCase
 	/** native_json=false: enhance does nothing - no arguments are added to the method. */
 	public function testEnhanceNativeJsonFalseDoesNothing(): void
 	{
-		$type   = (new TypeJson())->nativeJson(false); // explicit opt-out
+		$type   = new TypeJson()->nativeJson(false); // explicit opt-out
 		$method = new PHPMethod('testMethod');
 		$type->queryBuilderEnhanceFilterMethod($this->makeTable(), $this->makeDataColumn(), Operator::EQ, $method);
 

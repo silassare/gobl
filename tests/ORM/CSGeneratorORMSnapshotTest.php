@@ -15,6 +15,7 @@ namespace Gobl\Tests\ORM;
 
 use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Class CSGeneratorORMSnapshotTest.
@@ -28,10 +29,9 @@ use Gobl\Tests\BaseTestCase;
  *
  * To regenerate a snapshot, delete the corresponding .txt fixture and re-run.
  *
- * @covers \Gobl\ORM\Generators\CSGeneratorORM
- *
  * @internal
  */
+#[CoversClass(CSGeneratorORM::class)]
 final class CSGeneratorORMSnapshotTest extends BaseTestCase
 {
 	/**
@@ -49,7 +49,7 @@ final class CSGeneratorORMSnapshotTest extends BaseTestCase
 		self::rmDirRecursive($outDir);
 		\mkdir($outDir, 0755, true);
 
-		(new CSGeneratorORM($db))->generate($db->getTables(), $outDir);
+		new CSGeneratorORM($db)->generate($db->getTables(), $outDir);
 
 		$baseDir = $outDir . \DIRECTORY_SEPARATOR . 'Base';
 		$files   = self::scanFiles($baseDir);

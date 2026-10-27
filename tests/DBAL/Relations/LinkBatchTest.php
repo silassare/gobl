@@ -22,6 +22,7 @@ use Gobl\ORM\ORM;
 use Gobl\ORM\ORMEntity;
 use Gobl\ORM\ORMTableQuery;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversMethod;
 use Throwable;
 
 /**
@@ -35,10 +36,9 @@ use Throwable;
  * can create entity instances without a live DB.
  * Assertions are made against the generated SQL string.
  *
- * @covers \Gobl\ORM\ORMTableQuery::selectRelativesBatch
- *
  * @internal
  */
+#[CoversMethod(ORMTableQuery::class, 'selectRelativesBatch')]
 final class LinkBatchTest extends BaseTestCase
 {
 	/** The sample DB namespace (articles/tags/taggables) used for morph-through tests. */
@@ -83,7 +83,7 @@ final class LinkBatchTest extends BaseTestCase
 			->schema(self::getTablesDefinitions())
 			->enableORM($ormOutDir);
 
-		(new CSGeneratorORM($db))->generate($db->getTables(), $ormOutDir);
+		new CSGeneratorORM($db)->generate($db->getTables(), $ormOutDir);
 
 		$db->lock();
 
@@ -96,7 +96,7 @@ final class LinkBatchTest extends BaseTestCase
 			\mkdir($sampleOrmDir . \DIRECTORY_SEPARATOR . 'Base', 0o755, true);
 		}
 
-		(new CSGeneratorORM($sampleDb))->generate($sampleDb->getTables(), $sampleOrmDir);
+		new CSGeneratorORM($sampleDb)->generate($sampleDb->getTables(), $sampleOrmDir);
 
 		// Register a PSR-like autoloader for the `test\` namespace so PHP can find
 		// the generated entity classes without a composer dump-autoload cycle.

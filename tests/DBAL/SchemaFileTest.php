@@ -19,6 +19,7 @@ use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\Gobl;
 use Gobl\Tests\BaseTestCase;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Class SchemaFileTest.
@@ -26,14 +27,13 @@ use InvalidArgumentException;
  * Tests for {@see NamespaceBuilder::schemaFile()}, {@see Db::toSchemaArray()},
  * {@see Db::toSchemaJson()}, and {@see Gobl::setDefaultSchemaUrl()}.
  *
- * @covers \Gobl\DBAL\Builders\NamespaceBuilder::schemaFile
- * @covers \Gobl\DBAL\Db::toSchemaArray
- * @covers \Gobl\DBAL\Db::toSchemaJson
- * @covers \Gobl\Gobl::getDefaultSchemaUrl
- * @covers \Gobl\Gobl::setDefaultSchemaUrl
- *
  * @internal
  */
+#[CoversMethod(NamespaceBuilder::class, 'schemaFile')]
+#[CoversMethod(Db::class, 'toSchemaArray')]
+#[CoversMethod(Db::class, 'toSchemaJson')]
+#[CoversMethod(Gobl::class, 'getDefaultSchemaUrl')]
+#[CoversMethod(Gobl::class, 'setDefaultSchemaUrl')]
 final class SchemaFileTest extends BaseTestCase
 {
 	/** @var string[] */

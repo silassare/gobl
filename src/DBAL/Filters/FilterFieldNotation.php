@@ -290,11 +290,11 @@ final class FilterFieldNotation
 					));
 				}
 			} catch (DBALRuntimeException $e) {
-				throw (new DBALRuntimeException(\sprintf(
+				throw new DBALRuntimeException(\sprintf(
 					"Failed to resolve field '%s' via scope: %s",
 					$name,
 					$e->getMessage()
-				), null, $e))->suspectCallable([$this->scope, 'tryResolveFieldNotation']);
+				), null, $e)->suspectCallable([$this->scope, 'tryResolveFieldNotation']);
 			}
 
 			$this->table_or_alias = $tmp->table_or_alias;

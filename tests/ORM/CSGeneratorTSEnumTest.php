@@ -19,6 +19,7 @@ use Gobl\ORM\Generators\CSGeneratorTS;
 use Gobl\Tests\BaseTestCase;
 use Gobl\Tests\Fixtures\SampleKind;
 use OLIUP\CG\PHPEnum;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Class CSGeneratorTSEnumTest.
@@ -26,10 +27,9 @@ use OLIUP\CG\PHPEnum;
  * An enum column must reach TypeScript as the enum that `enums.ts` generates, not as a bare
  * `string`: the enum class travels on the PHP type hint, which only the PHP generator used to read.
  *
- * @covers \Gobl\ORM\Generators\CSGeneratorTS
- *
  * @internal
  */
+#[CoversClass(CSGeneratorTS::class)]
 final class CSGeneratorTSEnumTest extends BaseTestCase
 {
 	public function testEnumColumnIsTypedWithItsEnum(): void
@@ -44,7 +44,7 @@ final class CSGeneratorTSEnumTest extends BaseTestCase
 	public function testNullableEnumColumnKeepsItsNull(): void
 	{
 		$generator = new CSGeneratorTS(self::getNewDbInstanceWithSchema());
-		$type      = (new TypeEnum(SampleKind::class))->nullable();
+		$type      = new TypeEnum(SampleKind::class)->nullable();
 
 		self::assertSame('SampleKind|null', $generator->getReadTypeHintString($type));
 	}
@@ -63,6 +63,6 @@ final class CSGeneratorTSEnumTest extends BaseTestCase
 		$generator = new CSGeneratorTS(self::getNewDbInstanceWithSchema());
 		$name      = $generator->getReadTypeHintString(new TypeEnum(SampleKind::class));
 
-		self::assertSame((new PHPEnum(SampleKind::class))->getName(), $name);
+		self::assertSame(new PHPEnum(SampleKind::class)->getName(), $name);
 	}
 }

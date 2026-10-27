@@ -23,6 +23,7 @@ use Gobl\ORM\ORM;
 use Gobl\ORM\ORMOptions;
 use Gobl\ORM\ORMTableQuery;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use Throwable;
 
 /**
@@ -34,9 +35,8 @@ use Throwable;
  * (which actually iterate rows) live under tests/Integration/.
  *
  * @internal
- *
- * @coversNothing
  */
+#[CoversNothing]
 final class ORMTableQuerySelectWithColumnsTest extends BaseTestCase
 {
 	/** @var bool Whether ORM setup completed successfully */
@@ -80,7 +80,7 @@ final class ORMTableQuerySelectWithColumnsTest extends BaseTestCase
 
 			$ns->enableORM($ormOutDir);
 
-			(new CSGeneratorORM($db))->generate($db->getTables(), $ormOutDir);
+			new CSGeneratorORM($db)->generate($db->getTables(), $ormOutDir);
 
 			$db->lock();
 

@@ -17,14 +17,14 @@ use Gobl\DBAL\Db;
 use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
 /**
  * Class MySQLDbTest.
  *
  * @internal
- *
- * @coversNothing
  */
+#[CoversNothing]
 final class MySQLDbTest extends BaseTestCase
 {
 	/**

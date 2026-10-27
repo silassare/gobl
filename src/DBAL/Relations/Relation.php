@@ -229,6 +229,7 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface, Loc
 	#[Override]
 	public function toArray(): array
 	{
+		$options           = [];
 		$options['type']   = $this->type->value;
 		$options['target'] = $this->getTargetTable()
 			->getName();

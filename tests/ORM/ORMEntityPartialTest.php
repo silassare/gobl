@@ -20,6 +20,7 @@ use Gobl\ORM\ORM;
 use Gobl\ORM\ORMEntity;
 use Gobl\ORM\Utils\ORMClassKind;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Class ORMEntityPartialTest.
@@ -30,12 +31,11 @@ use Gobl\Tests\BaseTestCase;
  *
  * Uses the standard clients table (column prefix: client).
  *
- * @covers \Gobl\ORM\ORMEntity::isColumnLoaded
- * @covers \Gobl\ORM\ORMEntity::isPartial
- * @covers \Gobl\ORM\ORMEntity::markAsPartial
- *
  * @internal
  */
+#[CoversMethod(ORMEntity::class, 'isColumnLoaded')]
+#[CoversMethod(ORMEntity::class, 'isPartial')]
+#[CoversMethod(ORMEntity::class, 'markAsPartial')]
 final class ORMEntityPartialTest extends BaseTestCase
 {
 	public static function setUpBeforeClass(): void

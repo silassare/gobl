@@ -35,7 +35,7 @@ PHPCS_JOBS  ?= $(shell nproc 2>/dev/null || echo 1)
 PHPCS_CACHE ?= --cache=.phpcs.cache
 PSALM_CACHE ?=
 
-PHPUNIT = vendor/bin/phpunit --testdox --do-not-cache-result
+PHPUNIT = vendor/bin/phpunit --testdox --do-not-record-test-run-history
 # FILE is a path and wins over the suite a target selects; FILTER is a class or method pattern.
 NARROW  = $(if $(FILTER),--filter '$(FILTER)',) $(FILE)
 

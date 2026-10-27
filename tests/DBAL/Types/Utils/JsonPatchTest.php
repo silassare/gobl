@@ -19,15 +19,15 @@ use Gobl\DBAL\Types\TypeMap;
 use Gobl\DBAL\Types\Utils\JsonPatch;
 use Gobl\Tests\BaseTestCase;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUtils\Store\Map;
 
 /**
  * Class JsonPatchTest.
  *
- * @covers \Gobl\DBAL\Types\Utils\JsonPatch
- *
  * @internal
  */
+#[CoversClass(JsonPatch::class)]
 final class JsonPatchTest extends BaseTestCase
 {
 	// =========================================================================
@@ -196,26 +196,26 @@ final class JsonPatchTest extends BaseTestCase
 	{
 		$this->expectException(InvalidArgumentException::class);
 		$this->expectExceptionMessage('Invalid dot path: path cannot be empty');
-		(new JsonPatch())->set('', 'val');
+		new JsonPatch()->set('', 'val');
 	}
 
 	public function testRemoveEmptyPathThrows(): void
 	{
 		$this->expectException(InvalidArgumentException::class);
 		$this->expectExceptionMessage('Invalid dot path: path cannot be empty');
-		(new JsonPatch())->remove('');
+		new JsonPatch()->remove('');
 	}
 
 	public function testSetPathWithEmptySegmentThrows(): void
 	{
 		$this->expectException(InvalidArgumentException::class);
-		(new JsonPatch())->set('a..b', 'val');
+		new JsonPatch()->set('a..b', 'val');
 	}
 
 	public function testRemovePathWithEmptySegmentThrows(): void
 	{
 		$this->expectException(InvalidArgumentException::class);
-		(new JsonPatch(['a' => ['b' => 1]]))->remove('a..b');
+		new JsonPatch(['a' => ['b' => 1]])->remove('a..b');
 	}
 
 	// =========================================================================
@@ -274,19 +274,19 @@ final class JsonPatchTest extends BaseTestCase
 	public function testParsePathTrailingDotThrows(): void
 	{
 		$this->expectException(InvalidArgumentException::class);
-		(new JsonPatch())->set('foo.', 'val');
+		new JsonPatch()->set('foo.', 'val');
 	}
 
 	public function testParsePathUnclosedBracketThrows(): void
 	{
 		$this->expectException(InvalidArgumentException::class);
-		(new JsonPatch())->set('foo[0', 'val');
+		new JsonPatch()->set('foo[0', 'val');
 	}
 
 	public function testParsePathInvalidBracketContentThrows(): void
 	{
 		$this->expectException(InvalidArgumentException::class);
-		(new JsonPatch())->set('foo[bar]', 'val');
+		new JsonPatch()->set('foo[bar]', 'val');
 	}
 
 	// =========================================================================
@@ -295,7 +295,7 @@ final class JsonPatchTest extends BaseTestCase
 
 	public function testTypeJsonAcceptsJsonPatch(): void
 	{
-		$patch  = (new JsonPatch())->set('name', 'Bob')->set('age', 25);
+		$patch  = new JsonPatch()->set('name', 'Bob')->set('age', 25);
 		$type   = new TypeJson();
 		$result = $type->validate($patch)->getCleanValue();
 		self::assertSame(['name' => 'Bob', 'age' => 25], $result);
@@ -303,7 +303,7 @@ final class JsonPatchTest extends BaseTestCase
 
 	public function testTypeMapAcceptsJsonPatch(): void
 	{
-		$patch  = (new JsonPatch())->set('key', 'value');
+		$patch  = new JsonPatch()->set('key', 'value');
 		$type   = new TypeMap();
 		$result = $type->validate($patch)->getCleanValue();
 		self::assertInstanceOf(Map::class, $result);
@@ -312,7 +312,7 @@ final class JsonPatchTest extends BaseTestCase
 
 	public function testTypeListAcceptsJsonPatch(): void
 	{
-		$patch  = (new JsonPatch())->set('0', 'first')->set('1', 'second');
+		$patch  = new JsonPatch()->set('0', 'first')->set('1', 'second');
 		$type   = new TypeList();
 		$result = $type->validate($patch)->getCleanValue();
 		self::assertIsArray($result);
@@ -323,7 +323,7 @@ final class JsonPatchTest extends BaseTestCase
 	{
 		$initialData = ['existing' => 'val'];
 		$initial     = new Map($initialData);
-		$patch       = (new JsonPatch($initial))->set('new', 'added');
+		$patch       = new JsonPatch($initial)->set('new', 'added');
 		$type        = new TypeMap();
 		$result      = $type->validate($patch)->getCleanValue();
 		self::assertInstanceOf(Map::class, $result);

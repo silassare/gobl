@@ -15,16 +15,16 @@ namespace Gobl\Tests\Integration\ORM;
 
 use Gobl\DBAL\Drivers\SQLite\SQLite;
 use Override;
+use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * {@see ORMHydrationTestCase} on SQLite.
  *
  * @internal
- *
- * @coversNothing
- *
- * @group sqlite
  */
+#[CoversNothing]
+#[Group('sqlite')]
 final class ORMHydrationSQLiteTest extends ORMHydrationTestCase
 {
 	#[Override]

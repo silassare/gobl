@@ -13,9 +13,13 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\DBAL\Relations;
 
+use Gobl\DBAL\Relations\ManyToOne;
+use Gobl\DBAL\Relations\OneToMany;
+use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Relations\RelationType;
 use Gobl\DBAL\Table;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Class RelationsTest.
@@ -25,12 +29,11 @@ use Gobl\Tests\BaseTestCase;
  *
  * Uses getSampleDB() which defines users, roles, tags, taggables, articles.
  *
- * @covers \Gobl\DBAL\Relations\ManyToOne
- * @covers \Gobl\DBAL\Relations\OneToMany
- * @covers \Gobl\DBAL\Relations\Relation
- *
  * @internal
  */
+#[CoversClass(ManyToOne::class)]
+#[CoversClass(OneToMany::class)]
+#[CoversClass(Relation::class)]
 final class RelationsTest extends BaseTestCase
 {
 	// ----------------------------------------------------------------------

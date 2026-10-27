@@ -129,7 +129,7 @@ final class TypeDecimal extends BaseType
 	#[Override]
 	public static function getInstance(array $options): static
 	{
-		return (new self())->configure($options);
+		return new self()->configure($options);
 	}
 
 	/**

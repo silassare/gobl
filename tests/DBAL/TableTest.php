@@ -18,15 +18,15 @@ use Gobl\DBAL\Indexes\IndexType;
 use Gobl\DBAL\Table;
 use Gobl\Tests\BaseTestCase;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUtils\Exceptions\RuntimeException;
 
 /**
  * Class TableTest.
  *
- * @covers \Gobl\DBAL\Table
- *
  * @internal
  */
+#[CoversClass(Table::class)]
 final class TableTest extends BaseTestCase
 {
 	public function testConstructor(): void
@@ -103,8 +103,8 @@ final class TableTest extends BaseTestCase
 	{
 		$table = new Table('users', 'u');
 		$table->addColumn(new Column('id', 'u', ['type' => 'bigint', 'auto_increment' => true]));
-		$table->addColumn((new Column('secret', 'u'))->setPrivate());
-		$table->addColumn((new Column('token', 'u'))->setSensitive());
+		$table->addColumn(new Column('secret', 'u')->setPrivate());
+		$table->addColumn(new Column('token', 'u')->setSensitive());
 		$table->addColumn(new Column('name', 'u'));
 
 		// By default all columns are included
@@ -125,8 +125,8 @@ final class TableTest extends BaseTestCase
 	{
 		$table = new Table('users', 'u');
 		$table->addColumn(new Column('id', 'u', ['type' => 'bigint', 'auto_increment' => true]));
-		$table->addColumn((new Column('password', 'u'))->setPrivate());
-		$table->addColumn((new Column('token', 'u'))->setSensitive());
+		$table->addColumn(new Column('password', 'u')->setPrivate());
+		$table->addColumn(new Column('token', 'u')->setSensitive());
 
 		$private   = $table->getPrivateColumns();
 		$sensitive = $table->getSensitiveColumns();

@@ -45,7 +45,8 @@ final class Helpers
 					'_reason' => 'The table does not have a single primary key column, so a cursor column must be explicitly provided in the pagination options.',
 				]);
 			}
-			$cursor_column = $table->getPrimaryKeyConstraint()->getColumns()[0];
+
+			return $table->getSinglePKColumnOrFail();
 		}
 
 		return $table->getColumnOrFail($cursor_column);

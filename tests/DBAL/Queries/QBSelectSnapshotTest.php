@@ -16,6 +16,8 @@ namespace Gobl\Tests\DBAL\Queries;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProviderExternal;
 use SQLite3;
 
 /**
@@ -28,10 +30,9 @@ use SQLite3;
  *
  * Snapshots are stored under tests/assets/snapshots/{driver}/qb_select_{scenario}.txt
  *
- * @covers \Gobl\DBAL\Queries\QBSelect
- *
  * @internal
  */
+#[CoversClass(QBSelect::class)]
 final class QBSelectSnapshotTest extends BaseTestCase
 {
 	// -------------------------------------------------------------------------
@@ -40,9 +41,8 @@ final class QBSelectSnapshotTest extends BaseTestCase
 
 	/**
 	 * SELECT * FROM table (no alias).
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testSelectAll(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -54,9 +54,8 @@ final class QBSelectSnapshotTest extends BaseTestCase
 
 	/**
 	 * SELECT specific columns using table alias.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testSelectSpecificColumns(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -69,9 +68,8 @@ final class QBSelectSnapshotTest extends BaseTestCase
 
 	/**
 	 * SELECT columns with custom aliases (AS).
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testSelectAliasedColumns(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -88,9 +86,8 @@ final class QBSelectSnapshotTest extends BaseTestCase
 
 	/**
 	 * WHERE single equality condition.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testSelectWhereEq(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -104,9 +101,8 @@ final class QBSelectSnapshotTest extends BaseTestCase
 
 	/**
 	 * WHERE with AND/OR combination and nested group.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testSelectWhereComplex(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -128,9 +124,8 @@ final class QBSelectSnapshotTest extends BaseTestCase
 
 	/**
 	 * WHERE ... IN (...) list.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testSelectWhereIn(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -144,9 +139,8 @@ final class QBSelectSnapshotTest extends BaseTestCase
 
 	/**
 	 * WHERE IS NULL / IS NOT NULL.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testSelectWhereNull(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -164,9 +158,8 @@ final class QBSelectSnapshotTest extends BaseTestCase
 
 	/**
 	 * WHERE with comparison operators: gt, gte, lt, lte, neq.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testSelectWhereComparisons(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -189,9 +182,8 @@ final class QBSelectSnapshotTest extends BaseTestCase
 
 	/**
 	 * LIMIT without offset.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testSelectLimit(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -205,9 +197,8 @@ final class QBSelectSnapshotTest extends BaseTestCase
 
 	/**
 	 * LIMIT with OFFSET.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testSelectLimitOffset(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -225,9 +216,8 @@ final class QBSelectSnapshotTest extends BaseTestCase
 
 	/**
 	 * ORDER BY single column ASC.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testSelectOrderByAsc(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -241,9 +231,8 @@ final class QBSelectSnapshotTest extends BaseTestCase
 
 	/**
 	 * ORDER BY single column DESC.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testSelectOrderByDesc(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -257,9 +246,8 @@ final class QBSelectSnapshotTest extends BaseTestCase
 
 	/**
 	 * ORDER BY multiple columns with mixed directions.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testSelectOrderByMulti(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -273,9 +261,8 @@ final class QBSelectSnapshotTest extends BaseTestCase
 
 	/**
 	 * ORDER BY multiple columns with mixed directions, mixed associative and indexed syntax.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testSelectOrderByMultiMixed(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -299,9 +286,8 @@ final class QBSelectSnapshotTest extends BaseTestCase
 
 	/**
 	 * GROUP BY with raw HAVING string.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testSelectGroupByHaving(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -324,9 +310,8 @@ final class QBSelectSnapshotTest extends BaseTestCase
 
 	/**
 	 * INNER JOIN two tables on a foreign key.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testSelectInnerJoin(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -345,9 +330,8 @@ final class QBSelectSnapshotTest extends BaseTestCase
 
 	/**
 	 * LEFT JOIN clients with their linked accounts, including clients with no accounts.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testSelectLeftJoin(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -372,9 +356,8 @@ final class QBSelectSnapshotTest extends BaseTestCase
 	 *   FROM host AS h RIGHT JOIN target AS t ON cond
 	 * becomes:
 	 *   FROM target AS t LEFT JOIN host AS h ON cond
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testSelectRightJoin(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -437,9 +420,8 @@ final class QBSelectSnapshotTest extends BaseTestCase
 	 *   FROM clients AS c
 	 *     INNER JOIN accounts AS a ON ...   <= anchored at 'c'
 	 *       INNER JOIN transactions AS t ON ...  <= anchored at 'a'
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testSelectMultiJoin(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -468,9 +450,8 @@ final class QBSelectSnapshotTest extends BaseTestCase
 
 	/**
 	 * SELECT from an inline sub-query.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testSelectSubquery(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -495,9 +476,8 @@ final class QBSelectSnapshotTest extends BaseTestCase
 
 	/**
 	 * WHERE + ORDER BY + LIMIT + OFFSET combined.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testSelectCombined(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);

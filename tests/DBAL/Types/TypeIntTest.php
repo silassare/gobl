@@ -17,14 +17,15 @@ use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\TypeInt;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Class TypeIntTest.
  *
- * @covers \Gobl\DBAL\Types\TypeInt
- *
  * @internal
  */
+#[CoversClass(TypeInt::class)]
 final class TypeIntTest extends BaseTestCase
 {
 	public function testIntValid(): void
@@ -67,13 +68,13 @@ final class TypeIntTest extends BaseTestCase
 
 	public function testIntNullWithNullable(): void
 	{
-		$t = (new TypeInt())->nullable();
+		$t = new TypeInt()->nullable();
 		self::assertNull($t->validate(null)->getCleanValue());
 	}
 
 	public function testIntNullWithDefault(): void
 	{
-		$t = (new TypeInt())->default(99);
+		$t = new TypeInt()->default(99);
 		self::assertSame(99, $t->validate(null)->getCleanValue());
 	}
 
@@ -86,34 +87,34 @@ final class TypeIntTest extends BaseTestCase
 
 	public function testIntUnsignedRejectsNegative(): void
 	{
-		$t = (new TypeInt())->unsigned();
+		$t = new TypeInt()->unsigned();
 		$this->expectException(TypesInvalidValueException::class);
 		$t->validate(-1)->getCleanValue();
 	}
 
 	public function testIntUnsignedAcceptsZero(): void
 	{
-		$t = (new TypeInt())->unsigned();
+		$t = new TypeInt()->unsigned();
 		self::assertSame(0, $t->validate(0)->getCleanValue());
 	}
 
 	public function testIntMinConstraint(): void
 	{
-		$t = (new TypeInt())->min(10);
+		$t = new TypeInt()->min(10);
 		$this->expectException(TypesInvalidValueException::class);
 		$t->validate(5)->getCleanValue();
 	}
 
 	public function testIntMaxConstraint(): void
 	{
-		$t = (new TypeInt())->max(10);
+		$t = new TypeInt()->max(10);
 		$this->expectException(TypesInvalidValueException::class);
 		$t->validate(15)->getCleanValue();
 	}
 
 	public function testIntMinMaxAccepted(): void
 	{
-		$t = (new TypeInt())->min(-5)->max(5);
+		$t = new TypeInt()->min(-5)->max(5);
 		self::assertSame(-5, $t->validate(-5)->getCleanValue());
 		self::assertSame(0, $t->validate(0)->getCleanValue());
 		self::assertSame(5, $t->validate(5)->getCleanValue());
@@ -121,25 +122,24 @@ final class TypeIntTest extends BaseTestCase
 
 	public function testIntAutoIncrementNullReturnsNull(): void
 	{
-		$t = (new TypeInt())->autoIncrement();
+		$t = new TypeInt()->autoIncrement();
 		self::assertNull($t->validate(null)->getCleanValue());
 	}
 
 	public function testIntMinGreaterThanMaxThrows(): void
 	{
 		$this->expectException(TypesException::class);
-		(new TypeInt())->min(10)->max(5);
+		new TypeInt()->min(10)->max(5);
 	}
 
 	/**
 	 * A fractional value is refused, not cut. `(int)` used to turn 3.9 into 3 without a word.
-	 *
-	 * @dataProvider provideIntRefusesAFractionalValueCases
 	 */
+	#[DataProvider('provideIntRefusesAFractionalValueCases')]
 	public function testIntRefusesAFractionalValue(mixed $value): void
 	{
 		$this->expectException(TypesInvalidValueException::class);
-		(new TypeInt())->validate($value);
+		new TypeInt()->validate($value);
 	}
 
 	/** @return iterable<string, array{mixed}> */
@@ -165,12 +165,12 @@ final class TypeIntTest extends BaseTestCase
 	public function testUnsignedIntRefusesANegativeFraction(): void
 	{
 		$this->expectException(TypesInvalidValueException::class);
-		(new TypeInt())->unsigned()->validate('-0.5');
+		new TypeInt()->unsigned()->validate('-0.5');
 	}
 
 	public function testIntRefusesAValuePastTheSignedMax(): void
 	{
 		$this->expectException(TypesInvalidValueException::class);
-		(new TypeInt())->validate('2147483648');
+		new TypeInt()->validate('2147483648');
 	}
 }

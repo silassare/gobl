@@ -304,7 +304,15 @@ abstract class FilterOperand
 		$resolved = $dfn->getResolvedColumnOrFail();
 
 		if ($dfn->hasPathSegments()) {
-			$tbl       = $this->qb->resolveTable($resolved->getTableOrAlias());
+			$tbl = $this->qb->resolveTable($resolved->getTableOrAlias());
+
+			if (null === $tbl) {
+				throw new DBALRuntimeException(\sprintf(
+					'Unable to resolve the table or alias "%s" of this operand.',
+					$resolved->getTableOrAlias()
+				));
+			}
+
 			$col       = $tbl->getColumnOrFail($resolved->getColumnName());
 			$base_type = $col->getType()->getBaseType();
 

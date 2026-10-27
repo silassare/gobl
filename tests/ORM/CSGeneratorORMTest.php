@@ -15,14 +15,14 @@ namespace Gobl\Tests\ORM;
 
 use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Class CSGeneratorORMTest.
  *
- * @covers \Gobl\ORM\Generators\CSGeneratorORM
- *
  * @internal
  */
+#[CoversClass(CSGeneratorORM::class)]
 final class CSGeneratorORMTest extends BaseTestCase
 {
 	public function testClassFiles(): void

@@ -21,6 +21,7 @@ use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\ORM\ORM;
 use Gobl\ORM\ORMEntity;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use Throwable;
 
 /**
@@ -53,9 +54,8 @@ use Throwable;
  *   Reviews:  Excellent! (->SQL Guide), Very helpful! (->Linux Primer), Comprehensive! (->Linux Primer)
  *
  * @internal
- *
- * @coversNothing
  */
+#[CoversNothing]
 abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 {
 	protected const string BATCH_REL_DB_NAMESPACE = 'Gobl\Tests\BatchRelDb';
@@ -194,7 +194,7 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 
 			// Register namespace with ORM and generate entity/controller/query classes.
 			$ns->enableORM($ormOutDir);
-			(new CSGeneratorORM($db))->generate($db->getTables(self::BATCH_REL_DB_NAMESPACE), $ormOutDir);
+			new CSGeneratorORM($db)->generate($db->getTables(self::BATCH_REL_DB_NAMESPACE), $ormOutDir);
 
 			// Lock schema and create all tables in the live database.
 			$db->lock();

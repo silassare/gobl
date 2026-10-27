@@ -1,8 +1,10 @@
 <?xml version="1.0"?>
 <psalm
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xi="http://www.w3.org/2001/XInclude"
 	errorLevel="4"
 	resolveFromConfigFile="true"
+	phpVersion="8.5"
 	xmlns="https://getpsalm.org/schema/config"
 	xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
 >
@@ -17,16 +19,7 @@
 			<directory name="tests/tmp"/>
 		</ignoreFiles>
 	</projectFiles>
-	<issueHandlers>
-		<!-- Public API methods not called within the library itself (consumed externally) -->
-		<PossiblyUnusedMethod errorLevel="suppress"/>
-		<!-- Fluent builder methods whose return values are chained by callers externally -->
-		<PossiblyUnusedReturnValue errorLevel="suppress"/>
-		<!-- Public API classes and properties used externally, not within the library -->
-		<UnusedClass errorLevel="suppress"/>
-		<PossiblyUnusedParam errorLevel="suppress"/>
-		<PossiblyUnusedProperty errorLevel="suppress"/>
-		<!-- Initial null assignments for typed variables are a valid pattern; suppress false positives -->
-		<UnusedVariable errorLevel="suppress"/>
-	</issueHandlers>
+
+	<!-- The levels every Oliup package analyses at. Nothing here is repeated below. -->
+	<xi:include href="vendor/oliup/oliup-cs-php/src/psalm/handlers.xml"/>
 </psalm>

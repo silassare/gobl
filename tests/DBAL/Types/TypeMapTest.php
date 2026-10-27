@@ -16,16 +16,17 @@ namespace Gobl\Tests\DBAL\Types;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\TypeMap;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProviderExternal;
 use PHPUtils\Store\Map;
 use stdClass;
 
 /**
  * Class TypeMapTest.
  *
- * @covers \Gobl\DBAL\Types\TypeMap
- *
  * @internal
  */
+#[CoversClass(TypeMap::class)]
 final class TypeMapTest extends BaseTestCase
 {
 	// -------------------------------------------------------------------------
@@ -96,7 +97,7 @@ final class TypeMapTest extends BaseTestCase
 
 	public function testValidateNullWithNullable(): void
 	{
-		$t = (new TypeMap())->nullable();
+		$t = new TypeMap()->nullable();
 		self::assertNull($t->validate(null)->getCleanValue());
 	}
 
@@ -109,7 +110,7 @@ final class TypeMapTest extends BaseTestCase
 
 	public function testValidateNullUsesDefaultArray(): void
 	{
-		$t      = (new TypeMap())->default(['status' => 'new']);
+		$t      = new TypeMap()->default(['status' => 'new']);
 		$result = $t->validate(null)->getCleanValue();
 		self::assertInstanceOf(Map::class, $result);
 		self::assertSame('new', $result->getData()['status']);
@@ -117,7 +118,7 @@ final class TypeMapTest extends BaseTestCase
 
 	public function testGetDefaultReturnsMapWhenDefaultSet(): void
 	{
-		$t = (new TypeMap())->default(['x' => 1]);
+		$t = new TypeMap()->default(['x' => 1]);
 		$d = $t->getDefault();
 		self::assertInstanceOf(Map::class, $d);
 		self::assertSame(['x' => 1], $d->getData());
@@ -139,7 +140,7 @@ final class TypeMapTest extends BaseTestCase
 
 	public function testGetEmptyValueOfTypeNullableReturnsNull(): void
 	{
-		$t = (new TypeMap())->nullable();
+		$t = new TypeMap()->nullable();
 		self::assertNull($t->getEmptyValueOfType());
 	}
 
@@ -147,9 +148,7 @@ final class TypeMapTest extends BaseTestCase
 	// phpToDb / dbToPhp
 	// -------------------------------------------------------------------------
 
-	/**
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
-	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testPhpToDbSerializesToJson(string $driver): void
 	{
 		$db     = self::getNewDbInstanceWithSchema($driver);
@@ -159,9 +158,7 @@ final class TypeMapTest extends BaseTestCase
 		self::assertSame(['foo' => 'bar', 'n' => 42], \json_decode($result, true));
 	}
 
-	/**
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
-	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testPhpToDbEmptyArraySerializesAsEmptyJsonObject(string $driver): void
 	{
 		// phpToDb empty array => {}
@@ -171,19 +168,15 @@ final class TypeMapTest extends BaseTestCase
 		self::assertSame('{}', $result);
 	}
 
-	/**
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
-	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testPhpToDbNullableReturnsNull(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
-		$t  = (new TypeMap())->nullable();
+		$t  = new TypeMap()->nullable();
 		self::assertNull($t->phpToDb(null, $db));
 	}
 
-	/**
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
-	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testDbToPhpDeserializesFromJson(string $driver): void
 	{
 		$db     = self::getNewDbInstanceWithSchema($driver);
@@ -194,9 +187,7 @@ final class TypeMapTest extends BaseTestCase
 		self::assertSame(2161000, $result->get('pop'));
 	}
 
-	/**
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
-	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testDbToPhpNullReturnsNull(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -204,9 +195,7 @@ final class TypeMapTest extends BaseTestCase
 		self::assertNull($t->dbToPhp(null, $db));
 	}
 
-	/**
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
-	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testDbToPhpEmptyStringReturnsNull(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -214,9 +203,7 @@ final class TypeMapTest extends BaseTestCase
 		self::assertNull($t->dbToPhp('', $db));
 	}
 
-	/**
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
-	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testDbToPhpInvalidJsonFallsBackToEmptyMap(string $driver): void
 	{
 		$db     = self::getNewDbInstanceWithSchema($driver);
@@ -227,9 +214,7 @@ final class TypeMapTest extends BaseTestCase
 		self::assertSame([], $result->getData());
 	}
 
-	/**
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
-	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testPhpToDbRoundtrip(string $driver): void
 	{
 		$db      = self::getNewDbInstanceWithSchema($driver);
@@ -247,6 +232,6 @@ final class TypeMapTest extends BaseTestCase
 
 	public function testGetName(): void
 	{
-		self::assertSame('map', (new TypeMap())->getName());
+		self::assertSame('map', new TypeMap()->getName());
 	}
 }

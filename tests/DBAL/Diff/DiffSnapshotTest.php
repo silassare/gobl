@@ -20,6 +20,8 @@ use Gobl\DBAL\Indexes\IndexType;
 use Gobl\DBAL\Interfaces\MigrationInterface;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProviderExternal;
 
 /**
  * Class DiffSnapshotTest.
@@ -32,10 +34,9 @@ use Gobl\Tests\BaseTestCase;
  *
  * To regenerate a snapshot, delete the corresponding .txt file and re-run the suite once.
  *
- * @covers \Gobl\DBAL\Diff\Diff
- *
  * @internal
  */
+#[CoversClass(Diff::class)]
 final class DiffSnapshotTest extends BaseTestCase
 {
 	// -------------------------------------------------------------------------
@@ -44,9 +45,8 @@ final class DiffSnapshotTest extends BaseTestCase
 
 	/**
 	 * Identical DBs produce an empty diff and no migration SQL.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testIdenticalDbs(string $driver): void
 	{
 		$db = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
@@ -61,9 +61,8 @@ final class DiffSnapshotTest extends BaseTestCase
 
 	/**
 	 * A brand-new table in $to => up() creates it, down() drops it.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testTableAdded(string $driver): void
 	{
 		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
@@ -83,9 +82,8 @@ final class DiffSnapshotTest extends BaseTestCase
 
 	/**
 	 * A table present in $from but absent in $to => up() drops it, down() recreates it.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testTableDeleted(string $driver): void
 	{
 		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
@@ -104,9 +102,8 @@ final class DiffSnapshotTest extends BaseTestCase
 
 	/**
 	 * A new column appears in $to => up() ALTERs to add it, down() drops it.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testColumnAdded(string $driver): void
 	{
 		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
@@ -129,9 +126,8 @@ final class DiffSnapshotTest extends BaseTestCase
 
 	/**
 	 * A column present in $from is absent in $to => up() drops it, down() re-adds it.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testColumnDeleted(string $driver): void
 	{
 		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
@@ -155,9 +151,8 @@ final class DiffSnapshotTest extends BaseTestCase
 
 	/**
 	 * A column's type changes (int => bigint) => up() ALTERs type, down() reverts.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testColumnTypeChanged(string $driver): void
 	{
 		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
@@ -187,9 +182,8 @@ final class DiffSnapshotTest extends BaseTestCase
 	 * PostgreSQL must emit a USING to_jsonb(col::text) clause because it cannot
 	 * implicitly cast TEXT/VARCHAR to JSONB. MySQL uses its native JSON type.
 	 * SQLite does not distinguish column types, so it produces no changes.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testColumnTypeChangedStringToNativeJson(string $driver): void
 	{
 		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
@@ -217,9 +211,8 @@ final class DiffSnapshotTest extends BaseTestCase
 	 * PostgreSQL must emit a USING to_jsonb(col::text) clause because TEXT-stored JSON
 	 * cannot be implicitly cast to JSONB. MySQL switches to its native JSON column type.
 	 * SQLite produces no changes because it does not enforce column types.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testColumnTypeChangedNonNativeJsonToNativeJson(string $driver): void
 	{
 		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
@@ -243,9 +236,8 @@ final class DiffSnapshotTest extends BaseTestCase
 
 	/**
 	 * A column gains a default value it did not have before.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testColumnDefaultAdded(string $driver): void
 	{
 		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
@@ -267,9 +259,8 @@ final class DiffSnapshotTest extends BaseTestCase
 
 	/**
 	 * A non-nullable column becomes nullable.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testColumnNullableChanged(string $driver): void
 	{
 		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
@@ -291,9 +282,8 @@ final class DiffSnapshotTest extends BaseTestCase
 
 	/**
 	 * A FK-less schema gains a foreign key constraint.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testForeignKeyAdded(string $driver): void
 	{
 		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
@@ -331,9 +321,8 @@ final class DiffSnapshotTest extends BaseTestCase
 
 	/**
 	 * An existing FK constraint is dropped.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testForeignKeyDeleted(string $driver): void
 	{
 		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
@@ -371,9 +360,8 @@ final class DiffSnapshotTest extends BaseTestCase
 
 	/**
 	 * A unique key constraint is added to an existing column.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testUniqueKeyAdded(string $driver): void
 	{
 		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
@@ -398,9 +386,8 @@ final class DiffSnapshotTest extends BaseTestCase
 
 	/**
 	 * A plain index (no index type) is added to an existing column.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testIndexAdded(string $driver): void
 	{
 		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
@@ -425,9 +412,8 @@ final class DiffSnapshotTest extends BaseTestCase
 
 	/**
 	 * A plain index is removed from an existing column.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testIndexDeleted(string $driver): void
 	{
 		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
@@ -453,9 +439,8 @@ final class DiffSnapshotTest extends BaseTestCase
 
 	/**
 	 * Index with explicit type: shared BTREE, MySQL FULLTEXT, PostgreSQL GIN.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testIndexWithType(string $driver): void
 	{
 		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
@@ -491,9 +476,8 @@ final class DiffSnapshotTest extends BaseTestCase
 	/**
 	 * Full real-world diff: the production test schema (assets/schemas.php) migrated to
 	 * the modified schema (assets/schema.with.changes.php). Heaviest integration scenario.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testFullTablesDiff(string $driver): void
 	{
 		$from = self::getNewDbInstanceWithSchema($driver);

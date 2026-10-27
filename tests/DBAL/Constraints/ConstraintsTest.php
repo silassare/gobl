@@ -21,17 +21,17 @@ use Gobl\DBAL\Constraints\UniqueKey;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Table;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUtils\Exceptions\RuntimeException;
 
 /**
  * Class ConstraintsTest.
  *
- * @covers \Gobl\DBAL\Constraints\ForeignKey
- * @covers \Gobl\DBAL\Constraints\PrimaryKey
- * @covers \Gobl\DBAL\Constraints\UniqueKey
- *
  * @internal
  */
+#[CoversClass(ForeignKey::class)]
+#[CoversClass(PrimaryKey::class)]
+#[CoversClass(UniqueKey::class)]
 final class ConstraintsTest extends BaseTestCase
 {
 	// -------------------------------------------------------------------

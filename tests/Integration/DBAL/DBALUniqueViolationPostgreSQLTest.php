@@ -15,16 +15,16 @@ namespace Gobl\Tests\Integration\DBAL;
 
 use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
 use Override;
+use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * {@see DBALUniqueViolationTestCase} on PostgreSQL.
  *
  * @internal
- *
- * @coversNothing
- *
- * @group postgresql
  */
+#[CoversNothing]
+#[Group('postgresql')]
 final class DBALUniqueViolationPostgreSQLTest extends DBALUniqueViolationTestCase
 {
 	#[Override]

@@ -23,6 +23,7 @@ use Gobl\ORM\ORM;
 use Gobl\ORM\ORMEntity;
 use Gobl\Tests\BaseTestCase;
 use Gobl\Tests\Fixtures\LegacyShapedEntity;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUtils\Store\Map;
 use ReflectionClass;
 use Throwable;
@@ -39,11 +40,10 @@ use TypeError;
  * property names and its DB column names differ; `bare` carries none, so they are the same word, and
  * a row read from the database would reach the hooks if anything still wrote entity properties.
  *
- * @covers \Gobl\ORM\Generators\CSGeneratorORM
- * @covers \Gobl\ORM\ORMEntity
- *
  * @internal
  */
+#[CoversClass(CSGeneratorORM::class)]
+#[CoversClass(ORMEntity::class)]
 final class ORMEntityPropertyHooksTest extends BaseTestCase
 {
 	/** Separate namespace so this class does not conflict with other ORM test setups. */
@@ -97,7 +97,7 @@ final class ORMEntityPropertyHooksTest extends BaseTestCase
 			});
 
 			$ns->enableORM($orm_out_dir);
-			(new CSGeneratorORM($db))->generate($db->getTables(self::HOOKS_NS), $orm_out_dir);
+			new CSGeneratorORM($db)->generate($db->getTables(self::HOOKS_NS), $orm_out_dir);
 			$db->lock();
 
 			$prefix           = self::HOOKS_NS . '\\';
@@ -243,7 +243,7 @@ final class ORMEntityPropertyHooksTest extends BaseTestCase
 		$entity = $this->makeHooked();
 
 		$entity->data = ['a' => 1];
-		$entity->data = (new JsonPatch())->set('b', 2);
+		$entity->data = new JsonPatch()->set('b', 2);
 
 		self::assertSame(1, $entity->data->get('a'), 'the patch did not replace the whole value');
 		self::assertSame(2, $entity->data->get('b'));
@@ -285,7 +285,7 @@ final class ORMEntityPropertyHooksTest extends BaseTestCase
 	 */
 	public function testTheClassDocblockHasNoPropertyLine(): void
 	{
-		$comment = (string) (new ReflectionClass($this->makeHooked()))->getParentClass()?->getDocComment();
+		$comment = (string) new ReflectionClass($this->makeHooked())->getParentClass()?->getDocComment();
 
 		self::assertStringNotContainsString('@property', $comment, 'the generator writes no @property line any more');
 	}

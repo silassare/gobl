@@ -13,7 +13,10 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\ORM;
 
+use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * A framework may declare an ORM namespace lazily, when its first class is asked for, and attach
@@ -22,10 +25,9 @@ use Gobl\Tests\BaseTestCase;
  * cycle back to the class being loaded (the entity's `qb()` returns the query class), which PHP
  * reports as a compile error no handler can catch. Each case runs in a process of its own.
  *
- * @covers \Gobl\ORM\Generators\CSGeneratorORM
- *
  * @internal
  */
+#[CoversClass(CSGeneratorORM::class)]
 final class ORMAutoloadCycleTest extends BaseTestCase
 {
 	private static string $dir;
@@ -44,9 +46,7 @@ final class ORMAutoloadCycleTest extends BaseTestCase
 		self::assertSame(0, $code, $output);
 	}
 
-	/**
-	 * @dataProvider provideAnyGeneratedClassMayBeTheFirstOneLoadedCases
-	 */
+	#[DataProvider('provideAnyGeneratedClassMayBeTheFirstOneLoadedCases')]
 	public function testAnyGeneratedClassMayBeTheFirstOneLoaded(string $first, string $listen): void
 	{
 		[$code, $output] = self::runFixture('use', $first, $listen);

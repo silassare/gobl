@@ -126,7 +126,7 @@ abstract class NativeJsonMigrationTestCase extends BaseTestCase
 		// Step 1: create the table with TEXT-backed json/map/list columns
 		$runner = new MigrationRunner($live_db);
 		$runner->add(
-			(new Diff($this->emptyDb(), $db_text))->makeMigrationInstance(1, 'Create table')
+			new Diff($this->emptyDb(), $db_text)->makeMigrationInstance(1, 'Create table')
 		)->migrate();
 
 		// Step 2: insert a row with valid JSON, bypassing Gobl ORM validation
@@ -141,7 +141,7 @@ abstract class NativeJsonMigrationTestCase extends BaseTestCase
 
 		// Step 3: migrate TEXT columns to native JSON
 		$runner->add(
-			(new Diff($db_text, $db_native))->makeMigrationInstance(2, 'Text to native JSON')
+			new Diff($db_text, $db_native)->makeMigrationInstance(2, 'Text to native JSON')
 		)->migrate();
 
 		// Step 4: read back and verify the data survived unchanged (JSON-decoded to
@@ -179,7 +179,7 @@ abstract class NativeJsonMigrationTestCase extends BaseTestCase
 
 		$runner = new MigrationRunner($live_db);
 		$runner->add(
-			(new Diff($this->emptyDb(), $db_text))->makeMigrationInstance(1, 'Create table')
+			new Diff($this->emptyDb(), $db_text)->makeMigrationInstance(1, 'Create table')
 		)->migrate();
 
 		$qb_ins = new QBInsert($db_text);
@@ -187,7 +187,7 @@ abstract class NativeJsonMigrationTestCase extends BaseTestCase
 		$live_db->insert($qb_ins->getSqlQuery(), $qb_ins->getBoundValues(), $qb_ins->getBoundValuesTypes());
 
 		$runner->add(
-			(new Diff($db_text, $db_native))->makeMigrationInstance(2, 'Text to native JSON')
+			new Diff($db_text, $db_native)->makeMigrationInstance(2, 'Text to native JSON')
 		)->migrate();
 
 		$qb_sel = new QBSelect($db_native);
@@ -224,7 +224,7 @@ abstract class NativeJsonMigrationTestCase extends BaseTestCase
 
 		$runner = new MigrationRunner($live_db);
 		$runner->add(
-			(new Diff($this->emptyDb(), $db_text))->makeMigrationInstance(1, 'Create table')
+			new Diff($this->emptyDb(), $db_text)->makeMigrationInstance(1, 'Create table')
 		)->migrate();
 
 		// Insert a row whose `payload` column contains an invalid JSON string.
@@ -242,7 +242,7 @@ abstract class NativeJsonMigrationTestCase extends BaseTestCase
 		$this->expectException(PDOException::class);
 
 		$runner->add(
-			(new Diff($db_text, $db_native))->makeMigrationInstance(2, 'Text to native JSON')
+			new Diff($db_text, $db_native)->makeMigrationInstance(2, 'Text to native JSON')
 		)->migrate();
 	}
 

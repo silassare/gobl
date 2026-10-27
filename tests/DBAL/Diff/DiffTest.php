@@ -18,6 +18,8 @@ use Gobl\DBAL\Db;
 use Gobl\DBAL\Diff\Diff;
 use Gobl\DBAL\Diff\DiffActionType;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProviderExternal;
 
 /**
  * Class DiffTest.
@@ -30,21 +32,18 @@ use Gobl\Tests\BaseTestCase;
  *
  * To regenerate a snapshot, delete its file and re-run the suite once.
  *
- * @covers \Gobl\DBAL\Diff\Diff
- *
  * @internal
  */
+#[CoversClass(Diff::class)]
 final class DiffTest extends BaseTestCase
 {
-	/**
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
-	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testDiff(string $driver): void
 	{
 		$db_a = self::getNewDbInstanceWithSchema($driver);
 
 		// identical DB must produce no diff
-		self::assertSame([], (new Diff($db_a, $db_a))->getDiff());
+		self::assertSame([], new Diff($db_a, $db_a)->getDiff());
 
 		$db_b = Db::newInstanceOf($db_a->getType(), $db_a->getConfig());
 		$db_b->ns('Test')->schema(self::getTablesDiffDefinitions());
@@ -92,9 +91,8 @@ final class DiffTest extends BaseTestCase
 	 *
 	 * Regression test for: array_diff($a_pk->getColumns(), $b_pk->getColumns())
 	 * only detects removals -- an added PK column was silently ignored.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testPKColumnAddedIsDetected(string $driver): void
 	{
 		// from: PK on [id] only
@@ -115,7 +113,7 @@ final class DiffTest extends BaseTestCase
 		});
 		$db_to->lock();
 
-		$diff_actions = (new Diff($db_from, $db_to))->getDiff();
+		$diff_actions = new Diff($db_from, $db_to)->getDiff();
 
 		$types = \array_map(static fn ($a) => $a->getType(), $diff_actions);
 
@@ -136,9 +134,8 @@ final class DiffTest extends BaseTestCase
 	 *
 	 * This was already working (array_diff catches removals), but we keep it as a
 	 * complementary regression guard alongside testPKColumnAddedIsDetected.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testPKColumnRemovedIsDetected(string $driver): void
 	{
 		// from: composite PK [id, type_id]
@@ -159,7 +156,7 @@ final class DiffTest extends BaseTestCase
 		});
 		$db_to->lock();
 
-		$diff_actions = (new Diff($db_from, $db_to))->getDiff();
+		$diff_actions = new Diff($db_from, $db_to)->getDiff();
 
 		$types = \array_map(static fn ($a) => $a->getType(), $diff_actions);
 

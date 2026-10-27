@@ -22,14 +22,15 @@ use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Types\Utils\JsonPath;
 use Gobl\Tests\BaseTestCase;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Class JsonPathTest.
  *
- * @covers \Gobl\DBAL\Types\Utils\JsonPath
- *
  * @internal
  */
+#[CoversClass(JsonPath::class)]
 final class JsonPathTest extends BaseTestCase
 {
 	// =========================================================================
@@ -152,10 +153,9 @@ final class JsonPathTest extends BaseTestCase
 	// =========================================================================
 
 	/**
-	 * @dataProvider provideBuildParseRoundTripCases
-	 *
 	 * @param string $path_str The original path string to parse and then rebuild
 	 */
+	#[DataProvider('provideBuildParseRoundTripCases')]
 	public function testBuildParseRoundTrip(string $path_str): void
 	{
 		$p   = JsonPath::fromString($path_str);

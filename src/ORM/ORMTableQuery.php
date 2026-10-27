@@ -243,12 +243,12 @@ abstract class ORMTableQuery extends FiltersTableScope
 				$entry($sub);
 
 				if ($sub->filters->isEmpty()) {
-					throw (new ORMRuntimeException(
+					throw new ORMRuntimeException(
 						\sprintf(
 							'The sub-filters group callable should add at least one filter to the provided %s instance, got empty group from callable.',
 							static::class
 						)
-					))
+					)
 						->suspectCallable($entry);
 				}
 
@@ -545,7 +545,9 @@ abstract class ORMTableQuery extends FiltersTableScope
 		$l   = $relation->getLink();
 
 		if ($l->apply($sel)) {
-			$key_col     = $relation->getHostTable()->getPrimaryKeyConstraint()->getColumns()[0];
+			$key_col     = $relation->getHostTable()
+				->getSinglePKColumnOrFail()
+				->getName();
 			$key_col_fqn = $sel->fullyQualifiedName($relation->getHostTable(), $key_col);
 
 			$sel->selectComputed(self::BATCH_HOST_IDENTITY_KEY, $key_col_fqn);

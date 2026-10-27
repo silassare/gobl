@@ -19,6 +19,7 @@ use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\ORM\ORM;
 use Gobl\ORM\ORMEntity;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUtils\Store\Map;
 use Throwable;
 
@@ -29,10 +30,9 @@ use Throwable;
  * connection. The ORM namespace is declared with a schema-only in-memory MySQL db instance,
  * and PHP entity classes are generated once into tests/Db/ (the PSR-4 output directory).
  *
- * @covers \Gobl\ORM\ORMEntity
- *
  * @internal
  */
+#[CoversClass(ORMEntity::class)]
 final class ORMEntityTest extends BaseTestCase
 {
 	/** @var bool Whether ORM setup completed successfully */
@@ -67,7 +67,7 @@ final class ORMEntityTest extends BaseTestCase
 			->schema(self::getTablesDefinitions())
 			->enableORM($ormOutDir);
 
-		(new CSGeneratorORM($db))->generate($db->getTables(), $ormOutDir);
+		new CSGeneratorORM($db)->generate($db->getTables(), $ormOutDir);
 
 		$db->lock();
 

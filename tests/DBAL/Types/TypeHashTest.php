@@ -13,12 +13,14 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\DBAL\Types;
 
+use Gobl\DBAL\Types\Type;
 use Gobl\DBAL\Types\TypeBigint;
 use Gobl\DBAL\Types\TypeEnum;
 use Gobl\DBAL\Types\TypeJson;
 use Gobl\DBAL\Types\TypeMap;
 use Gobl\DBAL\Types\TypeString;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUtils\Store\Map;
 
 /** Fixture string-backed enum. */
@@ -40,10 +42,9 @@ enum HashTestPriority: int
  *
  * Tests for the TypeInterface::hash() contract and its default implementation in Type.
  *
- * @covers \Gobl\DBAL\Types\Type::hash
- *
  * @internal
  */
+#[CoversMethod(Type::class, 'hash')]
 final class TypeHashTest extends BaseTestCase
 {
 	// -------------------------------------------------------------------------

@@ -1853,9 +1853,16 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 */
 	public function getSinglePKColumnOrFail(): Column
 	{
-		$pk                   = $this->getPrimaryKeyConstraint();
-		$pk_columns_list      = $pk->getColumns();
-		$pk_col_count         = \count($pk_columns_list);
+		$pk = $this->getPrimaryKeyConstraint();
+
+		if (null === $pk) {
+			throw new GoblRuntimeException(
+				\sprintf('Table "%s" has no primary key constraint while expecting 1 column.', $this->getName())
+			);
+		}
+
+		$pk_columns_list = $pk->getColumns();
+		$pk_col_count    = \count($pk_columns_list);
 
 		if (1 !== $pk_col_count) {
 			throw new GoblRuntimeException(
@@ -1877,7 +1884,7 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 */
 	public function hasSinglePKColumn(): bool
 	{
-		return 1 === \count($this->getPrimaryKeyConstraint()->getColumns());
+		return 1 === \count($this->getPrimaryKeyConstraint()?->getColumns() ?? []);
 	}
 
 	/**

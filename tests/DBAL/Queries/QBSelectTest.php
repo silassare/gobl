@@ -17,14 +17,14 @@ use Gobl\DBAL\Builders\TableBuilder;
 use Gobl\DBAL\Filters\Filters;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Class QBSelectTest.
  *
- * @covers \Gobl\DBAL\Queries\QBSelect
- *
  * @internal
  */
+#[CoversClass(QBSelect::class)]
 final class QBSelectTest extends BaseTestCase
 {
 	public function testFullyQualifiedNameArray(): void

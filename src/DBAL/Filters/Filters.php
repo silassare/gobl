@@ -228,12 +228,12 @@ final class Filters
 				}
 
 				if ($this->qb !== $entry->qb) {
-					throw (new DBALRuntimeException(
+					throw new DBALRuntimeException(
 						\sprintf(
 							'Provided filters instance does not share the same "%s" instance as the current filters instance.',
 							QBInterface::class
 						)
-					))->suspectObject($entry->qb);
+					)->suspectObject($entry->qb);
 				}
 
 				if ($this->scope && $this->scope !== $entry->scope && (!$entry->scope || !$this->scope->shouldAllowFiltersScope($entry->scope))) {
@@ -252,12 +252,12 @@ final class Filters
 				$entry($sub);
 
 				if ($sub->isEmpty()) {
-					throw (new DBALRuntimeException(
+					throw new DBALRuntimeException(
 						\sprintf(
 							'The sub-filters group callable should add at least one filter to the provided %s instance, got empty group from callable.',
 							self::class
 						)
-					))
+					)
 						->suspectCallable($entry);
 				}
 

@@ -14,6 +14,13 @@ declare(strict_types=1);
 namespace Gobl\Tests\Integration\ORM;
 
 use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
+use Gobl\DBAL\Relations\LinkColumns;
+use Gobl\DBAL\Relations\LinkJoin;
+use Gobl\DBAL\Relations\LinkMorph;
+use Gobl\DBAL\Relations\LinkThrough;
+use Gobl\ORM\ORMController;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Class ORMBatchRelationPostgreSQLLiveTest.
@@ -21,15 +28,14 @@ use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
  * Runs the batch-relation integration tests against a real PostgreSQL database.
  *
  * @internal
- *
- * @covers \Gobl\DBAL\Relations\LinkColumns
- * @covers \Gobl\DBAL\Relations\LinkJoin
- * @covers \Gobl\DBAL\Relations\LinkMorph
- * @covers \Gobl\DBAL\Relations\LinkThrough
- * @covers \Gobl\ORM\ORMController::countRelativesBatch
- * @covers \Gobl\ORM\ORMController::getAllRelativesBatch
- * @covers \Gobl\ORM\ORMController::getRelativeBatch
  */
+#[CoversClass(LinkColumns::class)]
+#[CoversClass(LinkJoin::class)]
+#[CoversClass(LinkMorph::class)]
+#[CoversClass(LinkThrough::class)]
+#[CoversMethod(ORMController::class, 'countRelativesBatch')]
+#[CoversMethod(ORMController::class, 'getAllRelativesBatch')]
+#[CoversMethod(ORMController::class, 'getRelativeBatch')]
 final class ORMBatchRelationPostgreSQLLiveTest extends ORMLiveBatchRelationTestCase
 {
 	protected static function getDriverName(): string

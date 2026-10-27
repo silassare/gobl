@@ -19,14 +19,14 @@ use Gobl\DBAL\Filters\Filters;
 use Gobl\DBAL\Filters\FiltersExpressionParser;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Class FiltersExpressionParserTest.
  *
- * @covers \Gobl\DBAL\Filters\FiltersExpressionParser
- *
  * @internal
  */
+#[CoversClass(FiltersExpressionParser::class)]
 final class FiltersExpressionParserTest extends BaseTestCase
 {
 	// -------------------------------------------------------------------------

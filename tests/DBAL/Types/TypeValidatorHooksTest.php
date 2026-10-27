@@ -20,18 +20,18 @@ use Gobl\DBAL\Types\Type;
 use Gobl\DBAL\Types\TypeString;
 use Gobl\DBAL\Types\Validation\ValidationStatus;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Class TypeValidatorHooksTest.
  *
  * Tests for the pre- and post-validator hook pipeline in {@see Type::validate()}.
  *
- * @covers \Gobl\DBAL\Types\Type::postValidator
- * @covers \Gobl\DBAL\Types\Type::preValidator
- * @covers \Gobl\DBAL\Types\Type::validate
- *
  * @internal
  */
+#[CoversMethod(Type::class, 'postValidator')]
+#[CoversMethod(Type::class, 'preValidator')]
+#[CoversMethod(Type::class, 'validate')]
 final class TypeValidatorHooksTest extends BaseTestCase
 {
 	// =========================================================================
@@ -55,7 +55,7 @@ final class TypeValidatorHooksTest extends BaseTestCase
 			public function postValidate(ValidationSubjectInterface $subject): void {}
 		};
 
-		$t      = (new TypeString())->preValidator($pre);
+		$t      = new TypeString()->preValidator($pre);
 		$result = $t->validate('hello')->getCleanValue();
 
 		self::assertTrue($called);
@@ -79,7 +79,7 @@ final class TypeValidatorHooksTest extends BaseTestCase
 			public function postValidate(ValidationSubjectInterface $subject): void {}
 		};
 
-		$t = (new TypeString())->preValidator($pre);
+		$t = new TypeString()->preValidator($pre);
 		// TypeString normally requires min-length >= 1, but the pre-validator short-circuits.
 		$result = $t->validate('')->getCleanValue();
 
@@ -97,7 +97,7 @@ final class TypeValidatorHooksTest extends BaseTestCase
 			public function postValidate(ValidationSubjectInterface $subject): void {}
 		};
 
-		$t = (new TypeString())->preValidator($pre);
+		$t = new TypeString()->preValidator($pre);
 		$this->expectException(TypesInvalidValueException::class);
 		$t->validate('hello')->getCleanValue();
 	}
@@ -117,7 +117,7 @@ final class TypeValidatorHooksTest extends BaseTestCase
 			public function postValidate(ValidationSubjectInterface $subject): void {}
 		};
 
-		$t       = (new TypeString())->preValidator($pre);
+		$t       = new TypeString()->preValidator($pre);
 		$subject = $t->createValidationSubject('hello');
 		$subject->accept('already-clean'); // terminal before validate()
 
@@ -146,7 +146,7 @@ final class TypeValidatorHooksTest extends BaseTestCase
 			}
 		};
 
-		$t = (new TypeString())->postValidator($post);
+		$t = new TypeString()->postValidator($post);
 		$t->validate('hello')->getCleanValue();
 		self::assertTrue($called);
 	}
@@ -166,7 +166,7 @@ final class TypeValidatorHooksTest extends BaseTestCase
 			}
 		};
 
-		$t = (new TypeString())->postValidator($post);
+		$t = new TypeString()->postValidator($post);
 
 		try {
 			$t->validate(null)->getCleanValue(); // null without nullable -> will be rejected by TypeString
@@ -190,7 +190,7 @@ final class TypeValidatorHooksTest extends BaseTestCase
 			}
 		};
 
-		$t      = (new TypeString())->postValidator($post);
+		$t      = new TypeString()->postValidator($post);
 		$result = $t->validate('original')->getCleanValue();
 		self::assertSame('post-override', $result);
 	}
@@ -201,7 +201,7 @@ final class TypeValidatorHooksTest extends BaseTestCase
 
 	public function testPreValidatorRegisteredByFqcn(): void
 	{
-		$t = (new TypeString())->configure([
+		$t = new TypeString()->configure([
 			'validator:pre' => SpyPreValidator::class,
 		]);
 
@@ -212,7 +212,7 @@ final class TypeValidatorHooksTest extends BaseTestCase
 
 	public function testPostValidatorRegisteredByFqcn(): void
 	{
-		$t = (new TypeString())->configure([
+		$t = new TypeString()->configure([
 			'validator:post' => SpyPostValidator::class,
 		]);
 
@@ -252,7 +252,7 @@ final class TypeValidatorHooksTest extends BaseTestCase
 			}
 		};
 
-		$t = (new TypeString())->preValidator($pre)->postValidator($post);
+		$t = new TypeString()->preValidator($pre)->postValidator($post);
 		$t->validate('test')->getCleanValue();
 
 		self::assertSame('pre:' . ValidationStatus::UNCHECKED->value, $statuses[0]);

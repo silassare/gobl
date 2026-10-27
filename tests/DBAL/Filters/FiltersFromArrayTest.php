@@ -18,16 +18,16 @@ use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Filters\Filters;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Class FiltersFromArrayTest.
  *
  * Tests for {@see Filters::fromArray()} with the '_$filter' / '_$bindings' string-expression format.
  *
- * @covers \Gobl\DBAL\Filters\Filters::fromArray
- *
  * @internal
  */
+#[CoversMethod(Filters::class, 'fromArray')]
 final class FiltersFromArrayTest extends BaseTestCase
 {
 	// -------------------------------------------------------------------------

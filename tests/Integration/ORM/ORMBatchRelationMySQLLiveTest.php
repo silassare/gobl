@@ -14,6 +14,13 @@ declare(strict_types=1);
 namespace Gobl\Tests\Integration\ORM;
 
 use Gobl\DBAL\Drivers\MySQL\MySQL;
+use Gobl\DBAL\Relations\LinkColumns;
+use Gobl\DBAL\Relations\LinkJoin;
+use Gobl\DBAL\Relations\LinkMorph;
+use Gobl\DBAL\Relations\LinkThrough;
+use Gobl\ORM\ORMController;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Class ORMBatchRelationMySQLLiveTest.
@@ -21,14 +28,13 @@ use Gobl\DBAL\Drivers\MySQL\MySQL;
  * Runs the batch-relation integration tests against a real MySQL database.
  *
  * @internal
- *
- * @covers \Gobl\DBAL\Relations\LinkColumns
- * @covers \Gobl\DBAL\Relations\LinkJoin
- * @covers \Gobl\DBAL\Relations\LinkMorph
- * @covers \Gobl\DBAL\Relations\LinkThrough
- * @covers \Gobl\ORM\ORMController::getAllRelativesBatch
- * @covers \Gobl\ORM\ORMController::getRelativeBatch
  */
+#[CoversClass(LinkColumns::class)]
+#[CoversClass(LinkJoin::class)]
+#[CoversClass(LinkMorph::class)]
+#[CoversClass(LinkThrough::class)]
+#[CoversMethod(ORMController::class, 'getAllRelativesBatch')]
+#[CoversMethod(ORMController::class, 'getRelativeBatch')]
 final class ORMBatchRelationMySQLLiveTest extends ORMLiveBatchRelationTestCase
 {
 	protected static function getDriverName(): string

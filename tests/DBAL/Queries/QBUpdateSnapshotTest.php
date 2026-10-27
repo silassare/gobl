@@ -15,6 +15,8 @@ namespace Gobl\Tests\DBAL\Queries;
 
 use Gobl\DBAL\Queries\QBUpdate;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProviderExternal;
 
 /**
  * Class QBUpdateSnapshotTest.
@@ -24,17 +26,15 @@ use Gobl\Tests\BaseTestCase;
  *
  * Snapshots are stored under tests/assets/snapshots/{driver}/qb_update_{scenario}.txt
  *
- * @covers \Gobl\DBAL\Queries\QBUpdate
- *
  * @internal
  */
+#[CoversClass(QBUpdate::class)]
 final class QBUpdateSnapshotTest extends BaseTestCase
 {
 	/**
 	 * UPDATE with simple equality WHERE.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testUpdateSimple(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -51,9 +51,8 @@ final class QBUpdateSnapshotTest extends BaseTestCase
 
 	/**
 	 * UPDATE with a complex WHERE (AND + OR).
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testUpdateComplexWhere(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -75,9 +74,8 @@ final class QBUpdateSnapshotTest extends BaseTestCase
 
 	/**
 	 * UPDATE a single boolean/flag column on all rows matching a range.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testUpdateWithComparison(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -94,9 +92,8 @@ final class QBUpdateSnapshotTest extends BaseTestCase
 
 	/**
 	 * UPDATE using a raw SQL expression as a value (e.g. increment a column).
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testUpdateWithExpression(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -112,9 +109,8 @@ final class QBUpdateSnapshotTest extends BaseTestCase
 
 	/**
 	 * UPDATE multiple columns, no WHERE (affects all rows).
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testUpdateAllRows(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -131,9 +127,8 @@ final class QBUpdateSnapshotTest extends BaseTestCase
 	 * - MySQL     : appends `LIMIT n` directly.
 	 * - SQLite    : rewrites WHERE as `rowid IN (SELECT rowid ... LIMIT n)`.
 	 * - PostgreSQL: rewrites WHERE as `ctid IN (SELECT ctid ... LIMIT n)`.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testUpdateWithLimit(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
@@ -153,9 +148,8 @@ final class QBUpdateSnapshotTest extends BaseTestCase
 	 * - MySQL     : appends `ORDER BY ... LIMIT n` directly.
 	 * - SQLite    : both go into the rowid subquery `SELECT rowid ... ORDER BY ... LIMIT n`.
 	 * - PostgreSQL: both go into the ctid subquery `SELECT ctid ... ORDER BY ... LIMIT n`.
-	 *
-	 * @dataProvider Gobl\Tests\BaseTestCase::allDrivers
 	 */
+	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testUpdateWithLimitAndOrderBy(string $driver): void
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);

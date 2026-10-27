@@ -18,6 +18,7 @@ use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\ORM\ORM;
 use Gobl\ORM\ORMController;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversMethod;
 use Throwable;
 
 /**
@@ -31,13 +32,12 @@ use Throwable;
  * Full e2e behaviour (actual SQL execution, grouping, fallback) is tested via
  * integration tests under tests/Integration/.
  *
- * @covers \Gobl\ORM\ORMController::countRelatives
- * @covers \Gobl\ORM\ORMController::countRelativesBatch
- * @covers \Gobl\ORM\ORMController::getAllRelativesBatch
- * @covers \Gobl\ORM\ORMController::getRelativeBatch
- *
  * @internal
  */
+#[CoversMethod(ORMController::class, 'countRelatives')]
+#[CoversMethod(ORMController::class, 'countRelativesBatch')]
+#[CoversMethod(ORMController::class, 'getAllRelativesBatch')]
+#[CoversMethod(ORMController::class, 'getRelativeBatch')]
 final class ORMControllerBatchTest extends BaseTestCase
 {
 	/** @var bool Whether ORM setup completed successfully */
@@ -69,7 +69,7 @@ final class ORMControllerBatchTest extends BaseTestCase
 			->schema(self::getTablesDefinitions())
 			->enableORM($ormOutDir);
 
-		(new CSGeneratorORM($db))->generate($db->getTables(), $ormOutDir);
+		new CSGeneratorORM($db)->generate($db->getTables(), $ormOutDir);
 
 		$db->lock();
 

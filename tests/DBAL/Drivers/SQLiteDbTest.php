@@ -18,14 +18,14 @@ use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Drivers\SQLite\SQLite;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
 /**
  * Class SQLiteDbTest.
  *
  * @internal
- *
- * @coversNothing
  */
+#[CoversNothing]
 final class SQLiteDbTest extends BaseTestCase
 {
 	/**

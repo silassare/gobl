@@ -60,7 +60,7 @@ $schema = static function (): RDBMSInterface {
 if ('generate' === $mode) {
 	$db = $schema();
 
-	(new CSGeneratorORM($db))->generate($db->getTables(CYCLE_NAMESPACE), $dir);
+	new CSGeneratorORM($db)->generate($db->getTables(CYCLE_NAMESPACE), $dir);
 
 	exit(0);
 }

@@ -15,16 +15,16 @@ namespace Gobl\Tests\Integration\ORM;
 
 use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
 use Override;
+use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * {@see ORMEntitySaveRevalidationTestCase} on PostgreSQL.
  *
  * @internal
- *
- * @coversNothing
- *
- * @group postgresql
  */
+#[CoversNothing]
+#[Group('postgresql')]
 final class ORMEntitySaveRevalidationPostgreSQLTest extends ORMEntitySaveRevalidationTestCase
 {
 	#[Override]

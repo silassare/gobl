@@ -1,5 +1,34 @@
 ### Unreleased (3.0.x-dev)
 
+- **Ten crash paths where the code contradicted its own docblock.** The static analysis levels are
+  now one shared file every Oliup package includes, instead of a set each package kept its own copy
+  of and edited separately; the strictest of those sets was in use in two packages only, and
+  adopting it here surfaced fourteen places where a value that can be null was dereferenced
+  anyway. Two were plain contradictions of what was written above them:
+
+  - `Table::hasSinglePKColumn()` documented `false` for a table with no primary key and raised a
+    `TypeError` instead. It answers `false`.
+  - `Table::getSinglePKColumnOrFail()` documented a throw when there is no primary key constraint
+    and raised a `TypeError` instead. It throws `GoblRuntimeException`, as it says.
+
+  The rest replace a fatal with a diagnostic that names what was wrong: an unbuildable table in
+  `Db`'s lazy stage (which an `@var` had asserted rather than checked), a table or alias a filter
+  operand names and the query does not, a SQLite `DELETE` with a `LIMIT` and no table, and a
+  generated enum whose column is attached to no table. `Relation::toArray()` builds its array
+  before writing to it.
+
+  **Breaking.** `ORMTableQuery`'s batch identity key asked the host table's primary key constraint
+  for its first column. On a composite primary key that column alone does not identify a row, so
+  the grouping was wrong and silent; it now throws. A batch relation on a composite-keyed host
+  table needs its key named explicitly.
+
+- **The test suite declares its metadata in attributes.** PHPUnit 13 does not read doc-comment
+  metadata and does not warn about it, so a left-behind `@dataProvider` makes a test run with no
+  arguments rather than fail. Every `@dataProvider`, `@covers` and `@group` is an attribute, and
+  `BaseTestCase::allDrivers()` returns the one argument its docblock always claimed -- it returned
+  two, and a hundred and one tests took one and silently discarded the other. The test that wants
+  the driver class has `allDriversWithClass()`.
+
 - **A generated column is a typed property, not a docblock line.** Per column the generator wrote
   an `@property` line and two accessors, and both ends of the pair went through `__get` / `__set`:
   the column's type was something a comment claimed and nothing enforced. Each column is now a

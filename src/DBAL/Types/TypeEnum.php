@@ -102,7 +102,7 @@ final class TypeEnum extends Type
 			$cases[$case->name] = $case->value;
 		}
 
-		$this->is_int_backed = 'int' === (string) (new ReflectionEnum($enum_class))->getBackingType();
+		$this->is_int_backed = 'int' === (string) new ReflectionEnum($enum_class)->getBackingType();
 		$this->detached      = false;
 
 		return $this->setOption(self::OPTION_ENUM_CLASS, $enum_class)
@@ -171,7 +171,7 @@ final class TypeEnum extends Type
 	#[Override]
 	public static function getInstance(array $options): static
 	{
-		return (new self())->configure($options);
+		return new self()->configure($options);
 	}
 
 	/**
@@ -416,7 +416,7 @@ final class TypeEnum extends Type
 		// only be submitted as JSON. Only a plain integer is read; `1.0`, ` 1` or `01` are not.
 		if (
 			\is_string($value)
-			&& 'int' === (string) (new ReflectionEnum($cls))->getBackingType()
+			&& 'int' === (string) new ReflectionEnum($cls)->getBackingType()
 			&& \preg_match('~^-?(?:0|[1-9]\d*)$~D', $value)
 		) {
 			$value = (int) $value;

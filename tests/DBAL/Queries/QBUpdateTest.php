@@ -16,14 +16,14 @@ namespace Gobl\Tests\DBAL\Queries;
 use Gobl\DBAL\Queries\NamedToPositionalParams;
 use Gobl\DBAL\Queries\QBUpdate;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Class QBUpdateTest.
  *
- * @covers \Gobl\DBAL\Queries\QBUpdate
- *
  * @internal
  */
+#[CoversClass(QBUpdate::class)]
 final class QBUpdateTest extends BaseTestCase
 {
 	public function testUpdate(): void

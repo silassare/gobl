@@ -99,7 +99,7 @@ abstract class DBALUniqueViolationTestCase extends BaseTestCase
 
 			$db->ns(static::NAMESPACE)->enableORM($out_dir);
 
-			(new CSGeneratorORM($db))->generate($db->getTables(static::NAMESPACE), $out_dir);
+			new CSGeneratorORM($db)->generate($db->getTables(static::NAMESPACE), $out_dir);
 
 			$db->lock();
 			$db->executeMulti($db->getGenerator()->buildDatabase());

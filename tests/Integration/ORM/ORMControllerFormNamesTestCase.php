@@ -22,6 +22,7 @@ use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\ORM\ORM;
 use Gobl\ORM\ORMOptions;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Throwable;
 
 /**
@@ -103,7 +104,7 @@ abstract class ORMControllerFormNamesTestCase extends BaseTestCase
 
 			$db->ns(static::NAMESPACE)->enableORM($out_dir);
 
-			(new CSGeneratorORM($db))->generate($db->getTables(static::NAMESPACE), $out_dir);
+			new CSGeneratorORM($db)->generate($db->getTables(static::NAMESPACE), $out_dir);
 
 			$db->lock();
 			$db->executeMulti($db->getGenerator()->buildDatabase());
@@ -175,9 +176,7 @@ abstract class ORMControllerFormNamesTestCase extends BaseTestCase
 		$ctrl->addItem(['code' => 'one', 'probe_code' => 'two']);
 	}
 
-	/**
-	 * @dataProvider provideAPrivateColumnIsGuardedByEitherNameCases
-	 */
+	#[DataProvider('provideAPrivateColumnIsGuardedByEitherNameCases')]
 	public function testAPrivateColumnIsGuardedByEitherName(string $name): void
 	{
 		$ctrl = ORM::ctrl(static::$db->getTableOrFail('named_probes'));
@@ -276,9 +275,8 @@ abstract class ORMControllerFormNamesTestCase extends BaseTestCase
 
 	/**
 	 * Filtering, sorting or paging on a column tells its values: a request may not on a private one.
-	 *
-	 * @dataProvider provideARequestCannotUseAPrivateColumnCases
 	 */
+	#[DataProvider('provideARequestCannotUseAPrivateColumnCases')]
 	public function testARequestCannotUseAPrivateColumn(ORMOptions $options, string $message): void
 	{
 		$ctrl = ORM::ctrl(static::$db->getTableOrFail('named_probes'));

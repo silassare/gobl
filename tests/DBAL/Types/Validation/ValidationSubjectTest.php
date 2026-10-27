@@ -18,15 +18,15 @@ use Gobl\DBAL\Types\Validation\ValidationStatus;
 use Gobl\DBAL\Types\Validation\ValidationSubject;
 use Gobl\Tests\BaseTestCase;
 use LogicException;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUtils\Exceptions\RuntimeException;
 
 /**
  * Class ValidationSubjectTest.
  *
- * @covers \Gobl\DBAL\Types\Validation\ValidationSubject
- *
  * @internal
  */
+#[CoversClass(ValidationSubject::class)]
 final class ValidationSubjectTest extends BaseTestCase
 {
 	// =========================================================================

@@ -15,15 +15,15 @@ namespace Gobl\Tests\DBAL\Queries;
 
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Queries\NamedToPositionalParams;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Class NamedToPositionalParamsTest.
  *
- * @covers \Gobl\DBAL\Queries\NamedToPositionalParams
- *
  * @internal
  */
+#[CoversClass(NamedToPositionalParams::class)]
 final class NamedToPositionalParamsTest extends TestCase
 {
 	public function testEachParameterBecomesAPlaceholder(): void

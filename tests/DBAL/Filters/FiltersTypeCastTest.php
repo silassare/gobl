@@ -18,7 +18,16 @@ use Gobl\DBAL\Filters\Filters;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
+use Gobl\DBAL\Types\Type;
+use Gobl\DBAL\Types\TypeBigint;
+use Gobl\DBAL\Types\TypeBool;
+use Gobl\DBAL\Types\TypeDate;
+use Gobl\DBAL\Types\TypeDecimal;
+use Gobl\DBAL\Types\TypeFloat;
+use Gobl\DBAL\Types\TypeInt;
+use Gobl\DBAL\Types\Utils\TypeUtils;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Class FiltersTypeCastTest.
@@ -31,18 +40,17 @@ use Gobl\Tests\BaseTestCase;
  * that joins it under an alias so the left operand can be resolved, applies a filter
  * and then inspects the raw bound PDO values.
  *
- * @covers \Gobl\DBAL\Filters\Filters::add
- * @covers \Gobl\DBAL\Types\Type::castValueForFilter
- * @covers \Gobl\DBAL\Types\TypeBigint::castValueForFilter
- * @covers \Gobl\DBAL\Types\TypeBool::castValueForFilter
- * @covers \Gobl\DBAL\Types\TypeDate::castValueForFilter
- * @covers \Gobl\DBAL\Types\TypeDecimal::castValueForFilter
- * @covers \Gobl\DBAL\Types\TypeFloat::castValueForFilter
- * @covers \Gobl\DBAL\Types\TypeInt::castValueForFilter
- * @covers \Gobl\DBAL\Types\Utils\TypeUtils::runCastValueForFilter
- *
  * @internal
  */
+#[CoversMethod(Filters::class, 'add')]
+#[CoversMethod(Type::class, 'castValueForFilter')]
+#[CoversMethod(TypeBigint::class, 'castValueForFilter')]
+#[CoversMethod(TypeBool::class, 'castValueForFilter')]
+#[CoversMethod(TypeDate::class, 'castValueForFilter')]
+#[CoversMethod(TypeDecimal::class, 'castValueForFilter')]
+#[CoversMethod(TypeFloat::class, 'castValueForFilter')]
+#[CoversMethod(TypeInt::class, 'castValueForFilter')]
+#[CoversMethod(TypeUtils::class, 'runCastValueForFilter')]
 final class FiltersTypeCastTest extends BaseTestCase
 {
 	// =========================================================================

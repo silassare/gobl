@@ -18,18 +18,19 @@ use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Filters\Filters;
 use Gobl\DBAL\Filters\FiltersTableScope;
 use Gobl\DBAL\Queries\QBSelect;
+use Gobl\DBAL\Types\TypeBool;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Class FiltersFromArrayRefusalTest.
  *
  * A refused flat filter says which item was refused and why, in its message and in its public data.
  *
- * @covers \Gobl\DBAL\Filters\Filters::fromArray
- * @covers \Gobl\DBAL\Types\TypeBool::castValueForFilter
- *
  * @internal
  */
+#[CoversMethod(Filters::class, 'fromArray')]
+#[CoversMethod(TypeBool::class, 'castValueForFilter')]
 final class FiltersFromArrayRefusalTest extends BaseTestCase
 {
 	public function testMissingGlueBetweenTwoConditionsNamesItsPosition(): void

@@ -15,14 +15,14 @@ namespace Gobl\Tests\DBAL;
 
 use Gobl\DBAL\DbConfig;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Class DbConfigTest.
  *
- * @covers \Gobl\DBAL\DBConfig
- *
  * @internal
  */
+#[CoversClass(DbConfig::class)]
 final class DbConfigTest extends BaseTestCase
 {
 	private DbConfig $config;

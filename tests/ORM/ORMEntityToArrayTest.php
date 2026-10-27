@@ -19,6 +19,7 @@ use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\ORM\ORM;
 use Gobl\ORM\ORMEntity;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversMethod;
 use Throwable;
 
 /**
@@ -27,10 +28,9 @@ use Throwable;
  * Tests for {@see ORMEntity::toArray()} covering full and partial entities,
  * private column exclusion, and sensitive column redaction.
  *
- * @covers \Gobl\ORM\ORMEntity::toArray
- *
  * @internal
  */
+#[CoversMethod(ORMEntity::class, 'toArray')]
 final class ORMEntityToArrayTest extends BaseTestCase
 {
 	/** Separate namespace so this class does not conflict with other ORM test setups. */
@@ -82,7 +82,7 @@ final class ORMEntityToArrayTest extends BaseTestCase
 			});
 
 			$ns->enableORM($ormOutDir);
-			(new CSGeneratorORM($db))->generate($db->getTables(), $ormOutDir);
+			new CSGeneratorORM($db)->generate($db->getTables(), $ormOutDir);
 			$db->lock();
 
 			// Register a PSR-like autoloader for the TOARRAY_NS namespace.

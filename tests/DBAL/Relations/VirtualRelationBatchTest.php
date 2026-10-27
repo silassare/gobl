@@ -21,6 +21,7 @@ use Gobl\ORM\ORM;
 use Gobl\ORM\ORMEntityRelationController;
 use Gobl\ORM\ORMOptions;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversMethod;
 use ReflectionMethod;
 use ReflectionNamedType;
 use Throwable;
@@ -36,10 +37,9 @@ use Throwable;
  *   - getBatch() exists on both the interface and the concrete class
  *   - getBatch([]) returns an empty array without touching the DB
  *
- * @covers \Gobl\ORM\ORMEntityRelationController::getBatch
- *
  * @internal
  */
+#[CoversMethod(ORMEntityRelationController::class, 'getBatch')]
 final class VirtualRelationBatchTest extends BaseTestCase
 {
 	/** @var bool Whether ORM setup completed successfully */
@@ -71,7 +71,7 @@ final class VirtualRelationBatchTest extends BaseTestCase
 			->schema(self::getTablesDefinitions())
 			->enableORM($ormOutDir);
 
-		(new CSGeneratorORM($db))->generate($db->getTables(), $ormOutDir);
+		new CSGeneratorORM($db)->generate($db->getTables(), $ormOutDir);
 
 		$db->lock();
 

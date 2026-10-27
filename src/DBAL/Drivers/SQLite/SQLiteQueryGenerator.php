@@ -533,7 +533,12 @@ final class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 
 		if (null !== $max) {
 			// LIMIT: rewrite as rowid subquery so ORDER BY + LIMIT work correctly.
-			$table  = \array_key_first($from_map);
+			$table = \array_key_first($from_map);
+
+			if (null === $table) {
+				throw new DBALRuntimeException('A DELETE statement names no table.');
+			}
+
 			$alias  = $from_map[$table][0] ?? '';
 			$qt     = $this->quoteIdentifier($table);
 			$qta    = empty($alias) ? $qt : $qt . ' AS ' . $alias;

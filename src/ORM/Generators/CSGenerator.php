@@ -157,7 +157,15 @@ abstract class CSGenerator
 		if ($type instanceof TypeEnum && !$type->isDetached()) {
 			try {
 				$enum_class = $type->getEnumClass();
-				$this->declareEnum($enum_class, $column->getTable()->getName());
+				$table      = $column->getTable();
+
+				if (null === $table) {
+					throw new GoblRuntimeException(
+						'Column "' . $column->getFullName() . '" is attached to no table.'
+					);
+				}
+
+				$this->declareEnum($enum_class, $table->getName());
 			} catch (TypesException $t) {
 				throw new GoblRuntimeException('Enum class not found for column "' . $column->getFullName() . '".', null, $t);
 			}
@@ -332,7 +340,7 @@ abstract class CSGenerator
 	protected function declareEnum(string $enum_class, string $table_name): void
 	{
 		if (!isset($this->enums_checked[$enum_class])) {
-			$name = (new PHPEnum($enum_class))->getName();
+			$name = new PHPEnum($enum_class)->getName();
 
 			if (isset($this->enums_infos[$name])) {
 				$name = Str::toClassName($table_name . '_' . $name);

@@ -17,14 +17,14 @@ use Gobl\DBAL\Builders\TableBuilder;
 use Gobl\DBAL\Column;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
 /**
  * Class TableBuilderTest.
  *
  * @internal
- *
- * @coversNothing
  */
+#[CoversNothing]
 final class TableBuilderTest extends BaseTestCase
 {
 	public function testTableBuilder(): void

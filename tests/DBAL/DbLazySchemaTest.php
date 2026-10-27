@@ -14,22 +14,23 @@ declare(strict_types=1);
 namespace Gobl\Tests\DBAL;
 
 use Gobl\CRUD\CRUDEventProducer;
+use Gobl\DBAL\Db;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Table;
 use Gobl\ORM\ORM;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Throwable;
 
 /**
  * Class DbLazySchemaTest.
  *
- * @covers \Gobl\DBAL\Db
- * @covers \Gobl\DBAL\Table
- *
  * @internal
  */
+#[CoversClass(Db::class)]
+#[CoversClass(Table::class)]
 final class DbLazySchemaTest extends BaseTestCase
 {
 	public function testEagerByDefault(): void

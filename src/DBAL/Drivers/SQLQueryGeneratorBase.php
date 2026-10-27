@@ -852,7 +852,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 		$n_col = clone $column; // to allow edit
 
-		$n_col->setType((new TypeString())->medium($big)->nullable($nullable));
+		$n_col->setType(new TypeString()->medium($big)->nullable($nullable));
 
 		return $this->getStringColumnDefinition($n_col);
 	}

@@ -89,7 +89,7 @@ final class Diff
 	public function generateMigrationFile(int $version, ?string $label = 'Auto generated.'): PHPFile
 	{
 		$up       = $this->getDiff();
-		$down     = (new self($this->db_to, $this->db_from))->getDiff();
+		$down     = new self($this->db_to, $this->db_from)->getDiff();
 		$up_sql   = $this->diffSql($this->db_to, $up);
 		$down_sql = $this->diffSql($this->db_from, $down);
 
@@ -220,7 +220,7 @@ final class Diff
 	public function makeMigrationInstance(int $version, ?string $label = 'Auto generated.'): MigrationInterface
 	{
 		$up       = $this->getDiff();
-		$down     = (new self($this->db_to, $this->db_from))->getDiff();
+		$down     = new self($this->db_to, $this->db_from)->getDiff();
 		$up_sql   = $this->diffSql($this->db_to, $up);
 		$down_sql = $this->diffSql($this->db_from, $down);
 

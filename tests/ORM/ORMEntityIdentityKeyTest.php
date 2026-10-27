@@ -19,6 +19,7 @@ use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\ORM\ORM;
 use Gobl\ORM\ORMEntity;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversMethod;
 use Throwable;
 
 /**
@@ -26,10 +27,9 @@ use Throwable;
  *
  * Tests for {@see ORMEntity::toIdentityKey()}.
  *
- * @covers \Gobl\ORM\ORMEntity::toIdentityKey
- *
  * @internal
  */
+#[CoversMethod(ORMEntity::class, 'toIdentityKey')]
 final class ORMEntityIdentityKeyTest extends BaseTestCase
 {
 	private static bool $setupOk = false;
@@ -55,7 +55,7 @@ final class ORMEntityIdentityKeyTest extends BaseTestCase
 			->schema(self::getTablesDefinitions())
 			->enableORM($ormOutDir);
 
-		(new CSGeneratorORM($db))->generate($db->getTables(), $ormOutDir);
+		new CSGeneratorORM($db)->generate($db->getTables(), $ormOutDir);
 
 		$db->lock();
 

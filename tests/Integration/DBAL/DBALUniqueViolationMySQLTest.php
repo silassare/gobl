@@ -15,16 +15,16 @@ namespace Gobl\Tests\Integration\DBAL;
 
 use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Override;
+use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * {@see DBALUniqueViolationTestCase} on MySQL.
  *
  * @internal
- *
- * @coversNothing
- *
- * @group mysql
  */
+#[CoversNothing]
+#[Group('mysql')]
 final class DBALUniqueViolationMySQLTest extends DBALUniqueViolationTestCase
 {
 	#[Override]

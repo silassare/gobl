@@ -23,6 +23,7 @@ use Gobl\ORM\Utils\ORMClassKind;
 use Gobl\Tests\BaseTestCase;
 use Gobl\Tests\Db\Base\CurrenciesQueryBase;
 use Gobl\Tests\Db\CurrenciesQuery;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUtils\Str;
 use ReflectionClassConstant;
 use Throwable;
@@ -31,11 +32,10 @@ use Throwable;
  * Generated query classes list their filter methods, which {@see ORMTableQuery::__call()}
  * serves without building the name of every filter of the table.
  *
- * @covers \Gobl\ORM\Generators\CSGeneratorORM
- * @covers \Gobl\ORM\ORMTableQuery
- *
  * @internal
  */
+#[CoversClass(CSGeneratorORM::class)]
+#[CoversClass(ORMTableQuery::class)]
 final class ORMTableQueryFilterMethodsTest extends BaseTestCase
 {
 	public static function setUpBeforeClass(): void
@@ -58,7 +58,7 @@ final class ORMTableQueryFilterMethodsTest extends BaseTestCase
 			->schema(self::getTablesDefinitions())
 			->enableORM(GOBL_TEST_ORM_OUTPUT);
 
-		(new CSGeneratorORM($db))->generate($db->getTables(), GOBL_TEST_ORM_OUTPUT);
+		new CSGeneratorORM($db)->generate($db->getTables(), GOBL_TEST_ORM_OUTPUT);
 
 		$db->lock();
 	}
@@ -90,7 +90,7 @@ final class ORMTableQueryFilterMethodsTest extends BaseTestCase
 
 			$class = self::TEST_DB_NAMESPACE . '\Base\\' . ORMClassKind::BASE_QUERY->getClassName($table);
 
-			self::assertSame($expected, (new ReflectionClassConstant($class, 'FILTER_METHODS'))->getValue(), $class);
+			self::assertSame($expected, new ReflectionClassConstant($class, 'FILTER_METHODS')->getValue(), $class);
 		}
 	}
 
@@ -110,9 +110,9 @@ final class ORMTableQueryFilterMethodsTest extends BaseTestCase
 			// As a class generated before the list: __call() builds the table-wide one. The type is
 			// the parent's, which a generated class now declares too.
 			QBUtils::resetIdentifierCounter();
-			$built = (new class extends CurrenciesQueryBase {
+			$built = new class extends CurrenciesQueryBase {
 				protected const array FILTER_METHODS = [];
-			})->{$method}(...$args);
+			}->{$method}(...$args);
 
 			self::assertSame((string) $built->getFilters(), (string) $listed->getFilters(), $method);
 			self::assertSame(

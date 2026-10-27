@@ -17,6 +17,7 @@ use Gobl\DBAL\Builders\TableBuilder;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversMethod;
 use ReflectionProperty;
 
 /**
@@ -25,12 +26,11 @@ use ReflectionProperty;
  * Tests for per-relation field projection via {@see Relation::getSelect()} and
  * {@see Relation::setSelect()} (Feature 5).
  *
- * @covers \Gobl\DBAL\Relations\Relation::getSelect
- * @covers \Gobl\DBAL\Relations\Relation::resolveSelectColumns
- * @covers \Gobl\DBAL\Relations\Relation::setSelect
- *
  * @internal
  */
+#[CoversMethod(Relation::class, 'getSelect')]
+#[CoversMethod(Relation::class, 'resolveSelectColumns')]
+#[CoversMethod(Relation::class, 'setSelect')]
 final class RelationSelectTest extends BaseTestCase
 {
 	// -------------------------------------------------------------------------

@@ -14,6 +14,12 @@ declare(strict_types=1);
 namespace Gobl\Tests\Integration\ORM;
 
 use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
+use Gobl\ORM\ORM;
+use Gobl\ORM\ORMController;
+use Gobl\ORM\ORMEntity;
+use Gobl\ORM\ORMResults;
+use Gobl\ORM\ORMTableQuery;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Class ORMPostgreSQLLiveTest.
@@ -21,13 +27,12 @@ use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
  * Runs the full ORM live-DB test suite against a real PostgreSQL database.
  *
  * @internal
- *
- * @covers \Gobl\ORM\ORM
- * @covers \Gobl\ORM\ORMController
- * @covers \Gobl\ORM\ORMEntity
- * @covers \Gobl\ORM\ORMResults
- * @covers \Gobl\ORM\ORMTableQuery
  */
+#[CoversClass(ORM::class)]
+#[CoversClass(ORMController::class)]
+#[CoversClass(ORMEntity::class)]
+#[CoversClass(ORMResults::class)]
+#[CoversClass(ORMTableQuery::class)]
 final class ORMPostgreSQLLiveTest extends ORMLiveTestCase
 {
 	protected static function getDriverName(): string

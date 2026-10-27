@@ -17,14 +17,15 @@ use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\TypeBigint;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Class TypeBigintTest.
  *
- * @covers \Gobl\DBAL\Types\TypeBigint
- *
  * @internal
  */
+#[CoversClass(TypeBigint::class)]
 final class TypeBigintTest extends BaseTestCase
 {
 	public function testBigintValid(): void
@@ -45,44 +46,44 @@ final class TypeBigintTest extends BaseTestCase
 
 	public function testBigintUnsignedAcceptsZero(): void
 	{
-		$t = (new TypeBigint())->unsigned();
+		$t = new TypeBigint()->unsigned();
 		self::assertSame('0', $t->validate('0')->getCleanValue());
 	}
 
 	public function testBigintNullWithNullable(): void
 	{
-		$t = (new TypeBigint())->nullable();
+		$t = new TypeBigint()->nullable();
 		self::assertNull($t->validate(null)->getCleanValue());
 	}
 
 	public function testBigintNullWithDefault(): void
 	{
-		$t = (new TypeBigint())->default('100');
+		$t = new TypeBigint()->default('100');
 		self::assertSame('100', $t->validate(null)->getCleanValue());
 	}
 
 	public function testBigintNullThrowsWithoutNullableOrDefault(): void
 	{
 		$this->expectException(TypesInvalidValueException::class);
-		(new TypeBigint())->validate(null)->getCleanValue();
+		new TypeBigint()->validate(null)->getCleanValue();
 	}
 
 	public function testBigintAutoIncrementNullReturnsNull(): void
 	{
-		$t = (new TypeBigint())->autoIncrement();
+		$t = new TypeBigint()->autoIncrement();
 		self::assertNull($t->validate(null)->getCleanValue());
 	}
 
 	public function testBigintMinConstraint(): void
 	{
-		$t = (new TypeBigint())->min('10');
+		$t = new TypeBigint()->min('10');
 		$this->expectException(TypesInvalidValueException::class);
 		$t->validate('5')->getCleanValue();
 	}
 
 	public function testBigintMaxConstraint(): void
 	{
-		$t = (new TypeBigint())->max('100');
+		$t = new TypeBigint()->max('100');
 		$this->expectException(TypesInvalidValueException::class);
 		$t->validate('200')->getCleanValue();
 	}
@@ -90,13 +91,12 @@ final class TypeBigintTest extends BaseTestCase
 	/**
 	 * A bigint is a whole integer and nothing else. The pattern was unanchored, so any value that
 	 * merely contained digits matched.
-	 *
-	 * @dataProvider provideBigintRejectsWhatIsNotAWholeIntegerCases
 	 */
+	#[DataProvider('provideBigintRejectsWhatIsNotAWholeIntegerCases')]
 	public function testBigintRejectsWhatIsNotAWholeInteger(string $value): void
 	{
 		$this->expectException(TypesInvalidValueException::class);
-		(new TypeBigint())->validate($value);
+		new TypeBigint()->validate($value);
 	}
 
 	/** @return iterable<string, array{string}> */
@@ -115,7 +115,7 @@ final class TypeBigintTest extends BaseTestCase
 	public function testUnsignedBigintRejectsANegative(): void
 	{
 		$this->expectException(TypesInvalidValueException::class);
-		(new TypeBigint())->unsigned()->validate('-5');
+		new TypeBigint()->unsigned()->validate('-5');
 	}
 
 	/**
@@ -124,10 +124,10 @@ final class TypeBigintTest extends BaseTestCase
 	 */
 	public function testBigintBoundsHoldPastTwoToTheFiftyThree(): void
 	{
-		$max = (new TypeBigint())->max('9007199254740992');
+		$max = new TypeBigint()->max('9007199254740992');
 		self::assertSame('9007199254740992', $max->validate('9007199254740992')->getCleanValue());
 
-		$min = (new TypeBigint())->min('9007199254740993');
+		$min = new TypeBigint()->min('9007199254740993');
 		self::assertSame('9007199254740993', $min->validate('9007199254740993')->getCleanValue());
 
 		$this->expectException(TypesInvalidValueException::class);
@@ -137,13 +137,13 @@ final class TypeBigintTest extends BaseTestCase
 	public function testBigintMinPastTwoToTheFiftyThreeRefusesTheValueBelow(): void
 	{
 		$this->expectException(TypesInvalidValueException::class);
-		(new TypeBigint())->min('9007199254740993')->validate('9007199254740992');
+		new TypeBigint()->min('9007199254740993')->validate('9007199254740992');
 	}
 
 	/** A schema cannot declare a bound that is not a whole integer either. */
 	public function testBigintRefusesAFractionalBoundInItsDeclaration(): void
 	{
 		$this->expectException(TypesException::class);
-		(new TypeBigint())->min('1.5');
+		new TypeBigint()->min('1.5');
 	}
 }

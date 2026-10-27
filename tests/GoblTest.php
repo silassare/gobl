@@ -15,14 +15,14 @@ namespace Gobl\Tests;
 
 use Gobl\Exceptions\GoblRuntimeException;
 use Gobl\Gobl;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Class GoblTest.
  *
- * @covers \Gobl\Gobl
- *
  * @internal
  */
+#[CoversClass(Gobl::class)]
 final class GoblTest extends BaseTestCase
 {
 	public function testAddTemplate(): void

@@ -17,14 +17,14 @@ use Gobl\DBAL\Db;
 use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
 /**
  * Class PostgreSQLDbTest.
  *
  * @internal
- *
- * @coversNothing
  */
+#[CoversNothing]
 final class PostgreSQLDbTest extends BaseTestCase
 {
 	/**

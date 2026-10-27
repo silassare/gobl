@@ -16,6 +16,7 @@ namespace Gobl\Tests\ORM;
 use Gobl\ORM\Exceptions\ORMQueryException;
 use Gobl\ORM\ORMOptions;
 use Gobl\Tests\BaseTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Class ORMRequestTest.
@@ -24,10 +25,9 @@ use Gobl\Tests\BaseTestCase;
  * Tests cover payload parsing, pagination, filters, form data,
  * relations, order_by, collections, and scoped instances.
  *
- * @covers \Gobl\ORM\ORMOptions
- *
  * @internal
  */
+#[CoversClass(ORMOptions::class)]
 final class ORMOptionsTest extends BaseTestCase
 {
 	// -------------------------------------------------------------------------

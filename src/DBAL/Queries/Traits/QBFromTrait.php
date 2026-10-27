@@ -83,13 +83,13 @@ trait QBFromTrait
 			$query = $table;
 			$sql   = $query->getSqlQuery();
 			if (empty($sql)) {
-				throw (new DBALRuntimeException(
+				throw new DBALRuntimeException(
 					\sprintf(
 						'Derived table query is empty in "from" clause for query type "%s" provided in "%s".',
 						$this->getType()->name,
 						static::class
 					)
-				))->suspectObject($query);
+				)->suspectObject($query);
 			}
 
 			$this->bindMergeFrom($query);
