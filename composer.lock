@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/oliup-io/code-generator.git",
-                "reference": "047c09c26969f7bd48a450250aaf89759aa8b354"
+                "reference": "c6ee9d5cd6dd3e4f03df9958fe49f8f3383b2636"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/oliup-io/code-generator/zipball/047c09c26969f7bd48a450250aaf89759aa8b354",
-                "reference": "047c09c26969f7bd48a450250aaf89759aa8b354",
+                "url": "https://api.github.com/repos/oliup-io/code-generator/zipball/c6ee9d5cd6dd3e4f03df9958fe49f8f3383b2636",
+                "reference": "c6ee9d5cd6dd3e4f03df9958fe49f8f3383b2636",
                 "shasum": ""
             },
             "require": {
@@ -57,7 +57,7 @@
                 "issues": "https://github.com/oliup-io/code-generator/issues",
                 "source": "https://github.com/oliup-io/code-generator/tree/main"
             },
-            "time": "2026-10-27T15:34:58+00:00"
+            "time": "2026-10-27T16:55:09+00:00"
         },
         {
             "name": "psr/http-message",
@@ -118,12 +118,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/silassare/blate.git",
-                "reference": "2892c8022d128bac291227f9ff3b11472dc15084"
+                "reference": "774227acf07c57dd21794b59f93b4be56a785ccc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/silassare/blate/zipball/2892c8022d128bac291227f9ff3b11472dc15084",
-                "reference": "2892c8022d128bac291227f9ff3b11472dc15084",
+                "url": "https://api.github.com/repos/silassare/blate/zipball/774227acf07c57dd21794b59f93b4be56a785ccc",
+                "reference": "774227acf07c57dd21794b59f93b4be56a785ccc",
                 "shasum": ""
             },
             "require": {
@@ -171,7 +171,7 @@
                 "issues": "https://github.com/silassare/blate/issues",
                 "source": "https://github.com/silassare/blate/tree/main"
             },
-            "time": "2026-10-27T15:34:54+00:00"
+            "time": "2026-10-27T16:55:06+00:00"
         },
         {
             "name": "silassare/php-utils",
@@ -179,12 +179,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/silassare/php-utils.git",
-                "reference": "de87eca493fd49aab4d7dd6d54292e091082108f"
+                "reference": "5e55cc11b6251f91e057ff23ffafc7697d27e9b9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/silassare/php-utils/zipball/de87eca493fd49aab4d7dd6d54292e091082108f",
-                "reference": "de87eca493fd49aab4d7dd6d54292e091082108f",
+                "url": "https://api.github.com/repos/silassare/php-utils/zipball/5e55cc11b6251f91e057ff23ffafc7697d27e9b9",
+                "reference": "5e55cc11b6251f91e057ff23ffafc7697d27e9b9",
                 "shasum": ""
             },
             "require": {
@@ -232,7 +232,7 @@
                 "issues": "https://github.com/silassare/php-utils/issues",
                 "source": "https://github.com/silassare/php-utils/tree/main"
             },
-            "time": "2026-10-27T15:33:57+00:00"
+            "time": "2026-10-27T16:54:24+00:00"
         }
     ],
     "packages-dev": [
@@ -2366,12 +2366,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/oliup-io/oliup-cs-php.git",
-                "reference": "f9d2c51a23eb2246d278e0ed4961748dc46aefbc"
+                "reference": "1bee45e36df125ef1da5aa2c96e3babef031112c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/oliup-io/oliup-cs-php/zipball/f9d2c51a23eb2246d278e0ed4961748dc46aefbc",
-                "reference": "f9d2c51a23eb2246d278e0ed4961748dc46aefbc",
+                "url": "https://api.github.com/repos/oliup-io/oliup-cs-php/zipball/1bee45e36df125ef1da5aa2c96e3babef031112c",
+                "reference": "1bee45e36df125ef1da5aa2c96e3babef031112c",
                 "shasum": ""
             },
             "require": {
