@@ -16,8 +16,10 @@ namespace Gobl\Tests\DBAL\Filters;
 use Gobl\DBAL\Builders\TableBuilder;
 use Gobl\DBAL\Filters\FilterFieldNotation;
 use Gobl\DBAL\Filters\Filters;
+use Gobl\DBAL\Filters\FiltersTableScope;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Queries\QBSelect;
+use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\Tests\BaseTestCase;
 
 /**
@@ -177,6 +179,68 @@ final class FilterOperandTest extends BaseTestCase
 	}
 
 	// =========================================================================
+	// Short column names
+	// =========================================================================
+
+	/**
+	 * A column named in two characters or fewer is a column like any other.
+	 *
+	 * A table that declares no column prefix names its key `id`, which is what the left operand
+	 * carries, so a rule that reads a short string as a value rather than a column makes the key of
+	 * such a table unfilterable: a scope has to be told which column a filter names before it can
+	 * allow it, and `save()` filters on the key.
+	 *
+	 * @dataProvider shortColumns
+	 */
+	public function testAShortColumnNameIsResolvedUnderAScope(string $column, int|string $value): void
+	{
+		[, $filters, $alias] = $this->makeUnprefixedQB(true);
+
+		$filters->add(Operator::EQ, $column, $value);
+
+		self::assertStringContainsString($alias . '.' . $column, (string) $filters);
+	}
+
+	/**
+	 * Resolved means the column's own type reads the value: a word is not a key.
+	 */
+	public function testAShortColumnNameTypeChecksItsValue(): void
+	{
+		[, $filters] = $this->makeUnprefixedQB(true);
+
+		$this->expectException(TypesInvalidValueException::class);
+
+		$filters->add(Operator::EQ, 'id', 'not a number');
+	}
+
+	/**
+	 * A short string on the right is still a value: being short resolves nothing.
+	 *
+	 * @dataProvider shortColumns
+	 */
+	public function testAShortStringOnRightStaysALiteral(string $column): void
+	{
+		[$qb, $filters] = $this->makeUnprefixedQB();
+
+		$filters->add(Operator::EQ, 'name', $column);
+
+		$bound = \array_values($qb->getBoundValues());
+
+		self::assertSame($column, $bound[0], 'a short right operand must be bound verbatim');
+	}
+
+	/**
+	 * @return array<string, array{0: string, 1: int|string}>
+	 */
+	public static function shortColumns(): array
+	{
+		return [
+			'two characters' => ['id', 1],
+			'one character'  => ['n', 'a value'],
+		];
+	}
+
+	// =========================================================================
 	// Helpers
 	// =========================================================================
 
@@ -204,5 +268,34 @@ final class FilterOperandTest extends BaseTestCase
 		$qb->from('things', 'th');
 
 		return [$qb, new Filters($qb)];
+	}
+
+	/**
+	 * The same, for a table that declares no column prefix, so its key is named `id`.
+	 *
+	 * @param bool $scoped whether the filters are built under a table scope
+	 *
+	 * @return array{0: QBSelect, 1: Filters, 2: string}
+	 */
+	private function makeUnprefixedQB(bool $scoped = false): array
+	{
+		static $counter = 0;
+		++$counter;
+		$alias = 'ut';
+		$db    = self::getNewDbInstance();
+		$db->ns('UnprefixedOperandTest' . $counter)->table('units', static function (TableBuilder $t): void {
+			$t->id();
+			$t->string('name');
+			$t->string('n');
+		});
+		$db->lock();
+
+		$qb = new QBSelect($db);
+		$qb->from('units', $alias);
+
+		$table = $db->getTableOrFail('units');
+		$scope = $scoped ? new FiltersTableScope($table, $alias) : null;
+
+		return [$qb, new Filters($qb, $scope), $alias];
 	}
 }
