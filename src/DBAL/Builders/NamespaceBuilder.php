@@ -19,6 +19,7 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Table;
 use Gobl\ORM\ORM;
 use InvalidArgumentException;
+use JsonException;
 
 /**
  * Class NamespaceBuilder.
@@ -125,11 +126,19 @@ final class NamespaceBuilder
 
 		if ('json' === $ext) {
 			$contents = \file_get_contents($path);
-			$schema   = \json_decode($contents, true);
 
-			if (\JSON_ERROR_NONE !== \json_last_error()) {
+			if (false === $contents) {
 				throw new DBALException(
-					\sprintf('Failed to parse JSON schema file "%s": %s.', $path, \json_last_error_msg())
+					\sprintf('Schema file "%s" exists but could not be read.', $path)
+				);
+			}
+
+			try {
+				$schema = \json_decode($contents, true, 512, \JSON_THROW_ON_ERROR);
+			} catch (JsonException $e) {
+				throw new DBALException(
+					\sprintf('Failed to parse JSON schema file "%s": %s.', $path, $e->getMessage()),
+					previous: $e
 				);
 			}
 		} elseif ('php' === $ext) {

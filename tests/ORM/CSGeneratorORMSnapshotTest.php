@@ -47,7 +47,7 @@ final class CSGeneratorORMSnapshotTest extends BaseTestCase
 
 		// Always wipe so we get a clean generation
 		self::rmDirRecursive($outDir);
-		\mkdir($outDir, 0755, true);
+		\mkdir($outDir, 0o755, true);
 
 		new CSGeneratorORM($db)->generate($db->getTables(), $outDir);
 

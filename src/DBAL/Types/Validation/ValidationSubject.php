@@ -109,7 +109,7 @@ class ValidationSubject implements ValidationSubjectInterface
 			$this->rejectionException = $reason;
 		} else {
 			$reject_from             = FuncUtils::getCallerLocation();
-			$debug                   = $debug ?? [];
+			$debug ??= [];
 			$debug['_rejected_from'] = $reject_from;
 
 			$this->rejectionException = new TypesInvalidValueException($reason, $debug);

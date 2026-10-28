@@ -236,9 +236,7 @@ final class QBShortcutsTest extends BaseTestCase
 	public function testSubWithFactoryReturnsSameInstance(): void
 	{
 		$qb  = self::makeQB();
-		$sub = $qb->sub(static function (QBSelect $s): QBSelect {
-			return $s;
-		});
+		$sub = $qb->sub(static fn (QBSelect $s): QBSelect => $s);
 
 		self::assertInstanceOf(QBSelect::class, $sub);
 	}

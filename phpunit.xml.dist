@@ -4,6 +4,14 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/13.4/phpunit.xsd"
 	failOnWarning="true"
+	failOnNotice="true"
+	failOnDeprecation="true"
+	failOnRisky="true"
+	displayDetailsOnTestsThatTriggerDeprecations="true"
+	displayDetailsOnTestsThatTriggerWarnings="true"
+	displayDetailsOnTestsThatTriggerNotices="true"
+	displayDetailsOnTestsThatTriggerErrors="true"
+	colors="true"
 	stopOnError="false"
 	stopOnFailure="false"
 	stopOnIncomplete="false"
@@ -40,5 +48,13 @@
             <directory>tests/Integration/</directory>
         </testsuite>
     </testsuites>
+
+	<!-- The code this suite answers for. Deprecations are deliberately left unrestricted: one raised
+	     in `tests/` is as much ours to fix as one raised in `src/`, and `failOnDeprecation` fails on both. -->
+	<source restrictNotices="true" restrictWarnings="true">
+		<include>
+			<directory>src</directory>
+		</include>
+	</source>
 
 </phpunit>

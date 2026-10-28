@@ -53,7 +53,7 @@ class TypeUtils
 	 */
 	public static function addTypeProvider(TypeProviderInterface $provider): void
 	{
-		self::$type_providers[\get_class($provider)] = $provider;
+		self::$type_providers[$provider::class] = $provider;
 	}
 
 	/**
@@ -120,7 +120,7 @@ class TypeUtils
 			&& $found_in
 		) {
 			$found_bt = $found->getBaseType();
-			$checked  = \get_class($found) . '>' . \get_class($found_bt);
+			$checked  = $found::class . '>' . $found_bt::class;
 
 			if (!isset(self::$checked_base_types[$checked])) {
 				$base_types = self::getBaseTypes();
@@ -139,10 +139,10 @@ class TypeUtils
 				if (!$type_ok) {
 					throw new TypesException(\sprintf(
 						'Custom column type "%s" provided by "%s" for type "%s" returned "%s" as base type while expecting one of allowed base type: %s',
-						\get_class($found),
-						\get_class($found_in),
+						$found::class,
+						$found_in::class,
 						$name,
-						\get_class($found_bt),
+						$found_bt::class,
 						\implode('|', $base_types)
 					));
 				}

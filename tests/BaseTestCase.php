@@ -314,14 +314,14 @@ abstract class BaseTestCase extends TestCase
 			. \str_replace('/', \DIRECTORY_SEPARATOR, $snapshotName) . '.' . $extension;
 
 		if (!\is_dir($actual_dir)) {
-			\mkdir($actual_dir, 0755, true);
+			\mkdir($actual_dir, 0o755, true);
 		}
 
 		\file_put_contents($actual_file, $normalized);
 
 		if (!\file_exists($expected_file)) {
 			if (!\is_dir($expected_dir)) {
-				\mkdir($expected_dir, 0755, true);
+				\mkdir($expected_dir, 0o755, true);
 			}
 
 			\file_put_contents($expected_file, $normalized);
@@ -370,14 +370,14 @@ abstract class BaseTestCase extends TestCase
 			. \str_replace('/', \DIRECTORY_SEPARATOR, $snapshotName) . '.txt';
 
 		if (!\is_dir($actual_dir)) {
-			\mkdir($actual_dir, 0755, true);
+			\mkdir($actual_dir, 0o755, true);
 		}
 
 		\file_put_contents($actual_file, $content);
 
 		if (!\file_exists($expected_file)) {
 			if (!\is_dir($expected_dir)) {
-				\mkdir($expected_dir, 0755, true);
+				\mkdir($expected_dir, 0o755, true);
 			}
 
 			\file_put_contents($expected_file, $content);

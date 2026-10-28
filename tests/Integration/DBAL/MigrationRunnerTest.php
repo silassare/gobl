@@ -456,7 +456,7 @@ final class MigrationRunnerTest extends BaseTestCase
 		$dir  = GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'migration_runner';
 
 		if (!\is_dir($dir)) {
-			\mkdir($dir, 0755, true);
+			\mkdir($dir, 0o755, true);
 		}
 
 		$file = $dir . \DIRECTORY_SEPARATOR . $driver . '_' . \uniqid() . '.php';

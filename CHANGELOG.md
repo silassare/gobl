@@ -1,5 +1,44 @@
 ### Unreleased (3.0.x-dev)
 
+- **The suite fails on a deprecation, and the three answers to an unknown column are one.** The
+  PHPUnit config carried `failOnWarning` alone, so a deprecation, a notice or a risky test passed
+  unseen: PHP 8.5 deprecates a null array offset in every form (`isset()`, `??` and `empty()`
+  included), which is exactly the kind of thing a suite has to fail on to find. The gate is on
+  (`failOnDeprecation`, `failOnNotice`, `failOnRisky`, with the details displayed), and the full
+  suite passes it against live MySQL, PostgreSQL and SQLite with no deprecation.
+
+  The one notice it did find was the entity's non-strict answer to an unknown column, raised by
+  `__get()`, `__set()` and `_oebHydrate()` from three copies of the same message and the same
+  strict / non-strict choice. The three now call one private `_oebUnknownColumn()`, and each of
+  them has a test that asserts the notice it raises; before, only the read path was covered, and it
+  asserted the returned `null` while letting the notice through.
+
+- **A table with a single column reached TypeScript and Dart with no column prefix.** The client
+  generators took the prefix every column of a table shares by reading one of them with
+  `next($inject['columns'])`, which answers the **second** entry. With two columns or more the
+  prefix is the same either way, so only a single-column table was affected: `columns_prefix` was
+  never set and the templates wrote `PREFIX = ''`, which in TypeScript also types the row as
+  `GoblRowOf<..., ''>`. They read the first column (`array_first()`), with a test per generator.
+
+- **A `json` column holding something that is not JSON now raises instead of reading as `null`.**
+  `TypeJson::dbToPhp()` decoded without `JSON_THROW_ON_ERROR` while `map` and `list` decoded with
+  it, so a broken row read as an empty one, and a `json_of` class was handed the `null`. It raises
+  `JsonException`; `null` and an empty string still read as `null`, which is what an empty column
+  holds. **Breaking** for code that relied on the silent `null`.
+
+- **A schema file that cannot be read says so.** `NamespaceBuilder::schemaFile()` passed
+  `file_get_contents()` straight into `json_decode()`, so a file that exists and fails to read gave
+  `false` to a string parameter and a `TypeError` under `strict_types`. The read is checked, and the
+  decode uses `JSON_THROW_ON_ERROR` like the rest of the codebase instead of inspecting
+  `json_last_error()` afterwards. `TypeEnum` reads the first case with `array_first()` rather than
+  moving the array's internal pointer with `reset()`.
+
+- **The 8.5 syntax, written by the shared coding standard.** The floor moved to PHP 8.5 and the
+  fixer carried no version migration set, so each file kept the syntax of the year it was written.
+  The standard now applies the 8.5 migration: `$x::class` over `get_class($x)`, `0o755` over
+  `0755`, an arrow function over a closure that only returns, a heredoc indented with its code.
+  Fourteen files here.
+
 - **Ten crash paths where the code contradicted its own docblock.** The static analysis levels are
   now one shared file every Oliup package includes, instead of a set each package kept its own copy
   of and edited separately; the strictest of those sets was in use in two packages only, and

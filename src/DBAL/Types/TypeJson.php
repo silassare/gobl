@@ -25,6 +25,7 @@ use Gobl\ORM\ORMTableQuery;
 use Gobl\ORM\ORMTypeHint;
 use Gobl\ORM\ORMUniversalType;
 use InvalidArgumentException;
+use JsonException;
 use JsonSerializable;
 use OLIUP\CG\PHPMethod;
 use OLIUP\CG\PHPType;
@@ -245,18 +246,24 @@ final class TypeJson extends BaseType
 	 *    so the getter returns a typed object.
 	 *  - Otherwise, decodes and returns the PHP value directly: JSON objects/arrays become
 	 *    PHP arrays; JSON scalars (numbers, booleans, strings) become their PHP equivalents.
+	 *
+	 * A stored value that is not JSON raises, as it does for `map` and `list`: a column whose
+	 * content cannot be decoded is a broken row, not an empty one. An empty string reads as null,
+	 * which is what an empty column holds.
+	 *
+	 * @throws JsonException
 	 */
 	#[Override]
 	public function dbToPhp(mixed $value, RDBMSInterface $rdbms): mixed
 	{
-		if (null === $value) {
+		if (null === $value || '' === $value) {
 			return null;
 		}
 
 		$str           = (string) $value;
 		$json_of_class = $this->getJsonOfClass();
 
-		$decoded = \json_decode($str, true);
+		$decoded = \json_decode($str, true, 512, \JSON_THROW_ON_ERROR);
 
 		if (null !== $json_of_class) {
 			return $json_of_class::revive($decoded);

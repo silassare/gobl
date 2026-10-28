@@ -89,7 +89,7 @@ final class Helpers
 						$relation->getName(),
 						$index,
 						$expected_entity_class,
-						\get_class($entry)
+						$entry::class
 					)
 				);
 			}

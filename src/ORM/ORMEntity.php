@@ -203,13 +203,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 			return $this->_oebRead($name);
 		}
 
-		$error = \sprintf('Column "%s" not defined in table "%s".', $name, $this->_oeb_table->getName());
-
-		if ($this->_oeb_strict) {
-			throw new ORMRuntimeException($error);
-		}
-
-		\trigger_error($error  /* , \E_USER_NOTICE */);
+		$this->_oebUnknownColumn($name);
 
 		return null;
 	}
@@ -248,13 +242,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 			return;
 		}
 
-		$error = \sprintf('Column "%s" not defined in table "%s".', $name, $this->_oeb_table->getName());
-
-		if ($this->_oeb_strict) {
-			throw new ORMRuntimeException($error);
-		}
-
-		\trigger_error($error /* , \E_USER_NOTICE */);
+		$this->_oebUnknownColumn($name);
 	}
 
 	/**
@@ -292,13 +280,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 			}
 
 			if (!$this->_oeb_table->hasColumn((string) $name)) {
-				$error = \sprintf('Column "%s" not defined in table "%s".', $name, $this->_oeb_table->getName());
-
-				if ($this->_oeb_strict) {
-					throw new ORMRuntimeException($error);
-				}
-
-				\trigger_error($error /* , \E_USER_NOTICE */);
+				$this->_oebUnknownColumn((string) $name);
 
 				continue;
 			}
@@ -904,6 +886,25 @@ abstract class ORMEntity implements ArrayCapableInterface
 		}
 
 		return $subject->getCleanValue();
+	}
+
+	/**
+	 * Refuses a name the table has no column for: an exception in strict mode, a notice otherwise.
+	 *
+	 * The three readers and writers that can be handed an unknown name answer the same way, so the
+	 * message and the strict / non-strict choice are written once.
+	 *
+	 * @throws ORMRuntimeException
+	 */
+	private function _oebUnknownColumn(string $name): void
+	{
+		$error = \sprintf('Column "%s" not defined in table "%s".', $name, $this->_oeb_table->getName());
+
+		if ($this->_oeb_strict) {
+			throw new ORMRuntimeException($error);
+		}
+
+		\trigger_error($error);
 	}
 
 	/**

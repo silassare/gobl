@@ -75,12 +75,14 @@ final class CSGeneratorTS extends CSGenerator
 			$inject['columns_list'] = \implode('|', \array_keys($inject['columns']));
 			$inject['enums_used']   = $this->enumsUsedBy($table);
 
-			$column = \next($inject['columns']);
+			// The first column, for the prefix every column of the table shares. `next()` answered
+			// the second one, so a table with a single column left `columns_prefix` unset and the
+			// template rendered an empty prefix.
+			$column = \array_first($inject['columns']);
 
-			if ($column) {
+			if (null !== $column) {
 				$inject['columns_prefix'] = $column['prefix'];
 			}
-			\reset($inject['columns']);
 
 			$entity_content                           = $ts_entity_class_tpl->runGet($inject);
 			$entity_base_content                      = $ts_entity_base_class_tpl->runGet($inject);

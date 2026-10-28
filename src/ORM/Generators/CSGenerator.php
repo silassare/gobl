@@ -365,15 +365,15 @@ abstract class CSGenerator
 	{
 		$date    = Gobl::getGeneratedAtDate();
 		$comment = <<<'COMMENT'
-/**
- * Auto generated file,
- *
- * INFO: you are free to edit it,
- * but make sure to know what you are doing.
- *
- * Proudly With: {gobl_version}{gobl_time}
- */
-COMMENT;
+			/**
+			 * Auto generated file,
+			 *
+			 * INFO: you are free to edit it,
+			 * but make sure to know what you are doing.
+			 *
+			 * Proudly With: {gobl_version}{gobl_time}
+			 */
+			COMMENT;
 
 		return Str::interpolate($comment, [
 			'gobl_version' => GOBL_VERSION,

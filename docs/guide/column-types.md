@@ -286,6 +286,10 @@ Stores any JSON-serialisable PHP value (scalars, arrays, objects). Base type for
 `phpToDb()` runs `json_encode()` and `dbToPhp()` runs `json_decode()`, so the decoded PHP value is returned on read.
 When `json_of` is set, shape or type constraints are applied (see option table).
 
+A stored value that is not JSON raises a `JsonException` on read, as it already did for `map` and
+`list`: a column whose content cannot be decoded is a broken row, not an empty one. `null` and an
+empty string read as `null`.
+
 | Option        | Type     | Default  | Description                                                                                                                                                                                                                                                                                     |
 | ------------- | -------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `native_json` | `bool`   | `true`   | Use native `JSON` column type (MySQL >= 5.7, PostgreSQL). Enables JSON path operators in filters.                                                                                                                                                                                               |

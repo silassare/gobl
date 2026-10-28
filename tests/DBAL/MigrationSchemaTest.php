@@ -97,7 +97,7 @@ final class MigrationSchemaTest extends BaseTestCase
 		$dir = GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'migration_schema';
 
 		if (!\is_dir($dir)) {
-			\mkdir($dir, 0755, true);
+			\mkdir($dir, 0o755, true);
 		}
 
 		$file = $dir . \DIRECTORY_SEPARATOR . $name . '_' . \uniqid() . '.php';

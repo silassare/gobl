@@ -186,16 +186,58 @@ final class ORMEntityTest extends BaseTestCase
 	}
 
 	/**
-	 * In non-strict mode, accessing an unknown property returns null silently.
+	 * In non-strict mode, reading an unknown property raises a notice and reads as null.
 	 */
 	public function testNonStrictModeReturnsNullOnUnknownColumn(): void
 	{
 		$table  = ORM::getDatabase(self::TEST_DB_NAMESPACE)->getTableOrFail('clients');
 		$entity = ORM::entity($table, true, false); // strict = false
+		$value  = 'untouched';
 
-		/** @noinspection PhpUndefinedFieldInspection */
-		$value = $entity->totally_unknown_column;
+		$notices = self::captureNotices(static function () use ($entity, &$value): void {
+			/** @noinspection PhpUndefinedFieldInspection */
+			$value = $entity->totally_unknown_column;
+		});
+
 		self::assertNull($value);
+		self::assertUnknownColumnNotice($notices, 'totally_unknown_column');
+	}
+
+	/**
+	 * In non-strict mode, writing an unknown property raises a notice and stores nothing.
+	 */
+	public function testNonStrictModeNoticesOnUnknownColumnWrite(): void
+	{
+		$table  = ORM::getDatabase(self::TEST_DB_NAMESPACE)->getTableOrFail('clients');
+		$entity = ORM::entity($table, true, false); // strict = false
+
+		$notices = self::captureNotices(static function () use ($entity): void {
+			/** @noinspection PhpUndefinedFieldInspection */
+			$entity->totally_unknown_column = 'value';
+		});
+
+		self::assertUnknownColumnNotice($notices, 'totally_unknown_column');
+		self::assertArrayNotHasKey('totally_unknown_column', $entity->toRow());
+	}
+
+	/**
+	 * In non-strict mode, a row holding an unknown column raises a notice and the column is skipped.
+	 */
+	public function testNonStrictHydrateNoticesOnUnknownColumn(): void
+	{
+		$table  = ORM::getDatabase(self::TEST_DB_NAMESPACE)->getTableOrFail('clients');
+		$entity = ORM::entity($table, true, false); // strict = false
+
+		$notices = self::captureNotices(static function () use ($entity): void {
+			$entity->_oebHydrate([
+				'client_first_name'      => 'Carol',
+				'totally_unknown_column' => 'value',
+			]);
+		});
+
+		self::assertUnknownColumnNotice($notices, 'totally_unknown_column');
+		self::assertSame('Carol', (string) $entity->first_name);
+		self::assertArrayNotHasKey('totally_unknown_column', $entity->toRow());
 	}
 
 	/**
@@ -425,5 +467,45 @@ final class ORMEntityTest extends BaseTestCase
 		$entity->isSaved(true);
 
 		self::assertTrue($entity->isSaved(), 'Entity must be clean after isSaved(true)');
+	}
+
+	/**
+	 * Runs a callable with the user notices it raises captured instead of reaching the runner.
+	 *
+	 * An unasserted notice fails the suite (`failOnNotice`) and says nothing about what the entity
+	 * answered, which is what each caller asserts next.
+	 *
+	 * @return list<array{0: int, 1: string}>
+	 */
+	private static function captureNotices(callable $fn): array
+	{
+		$notices = [];
+
+		\set_error_handler(static function (int $severity, string $message) use (&$notices): bool {
+			$notices[] = [$severity, $message];
+
+			return true;
+		}, \E_USER_NOTICE);
+
+		try {
+			$fn();
+		} finally {
+			\restore_error_handler();
+		}
+
+		return $notices;
+	}
+
+	/**
+	 * @param list<array{0: int, 1: string}> $notices
+	 */
+	private static function assertUnknownColumnNotice(array $notices, string $column): void
+	{
+		self::assertCount(1, $notices);
+		self::assertSame(\E_USER_NOTICE, $notices[0][0]);
+		self::assertStringContainsString(
+			\sprintf('Column "%s" not defined in table "clients".', $column),
+			$notices[0][1]
+		);
 	}
 }

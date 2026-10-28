@@ -121,7 +121,7 @@ final class TypeEnum extends Type
 	 */
 	public function detachedEnum(string $enum_class, array $cases, ?string $backing = null): static
 	{
-		$backing ??= \is_int(\reset($cases)) ? 'int' : 'string';
+		$backing ??= \is_int(\array_first($cases)) ? 'int' : 'string';
 
 		if ('int' !== $backing && 'string' !== $backing) {
 			throw new TypesException(\sprintf(

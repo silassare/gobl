@@ -20,6 +20,7 @@ use Gobl\DBAL\Types\TypeList;
 use Gobl\DBAL\Types\TypeMap;
 use Gobl\ORM\ORMUniversalType;
 use Gobl\Tests\BaseTestCase;
+use JsonException;
 use JsonSerializable;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUtils\Exceptions\RuntimeException as PHPUtilsRuntimeException;
@@ -321,5 +322,37 @@ final class TypeJsonTest extends BaseTestCase
 		self::assertTrue(ORMUniversalType::BIGINT->isValidValue('-42'));
 		self::assertTrue(ORMUniversalType::BIGINT->isValidValue(42));
 		self::assertFalse(ORMUniversalType::BIGINT->isValidValue('1.5'));
+	}
+
+	// =========================================================================
+	// TypeJson dbToPhp
+	// =========================================================================
+
+	public function testDbToPhpDecodesTheStoredValue(): void
+	{
+		$db = self::getNewDbInstanceWithSchema();
+
+		self::assertSame(['city' => 'Paris'], new TypeJson()->dbToPhp('{"city":"Paris"}', $db));
+		self::assertSame(42, new TypeJson()->dbToPhp('42', $db));
+	}
+
+	public function testDbToPhpNullAndEmptyStringReadAsNull(): void
+	{
+		$db = self::getNewDbInstanceWithSchema();
+
+		self::assertNull(new TypeJson()->dbToPhp(null, $db));
+		self::assertNull(new TypeJson()->dbToPhp('', $db));
+	}
+
+	/**
+	 * A stored value that is not JSON is a broken row: it raises rather than reading as null, which
+	 * is how `map` and `list` already answer.
+	 */
+	public function testDbToPhpRaisesOnAStoredValueThatIsNotJson(): void
+	{
+		$db = self::getNewDbInstanceWithSchema();
+
+		$this->expectException(JsonException::class);
+		new TypeJson()->dbToPhp('{not json', $db);
 	}
 }

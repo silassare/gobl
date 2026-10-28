@@ -83,7 +83,7 @@ final class CSGeneratorClientSnapshotTest extends BaseTestCase
 		$db = self::getNewDbInstanceWithSchema();
 
 		self::rmDirRecursive($outDir);
-		\mkdir($outDir, 0755, true);
+		\mkdir($outDir, 0o755, true);
 
 		$generator->generate($db->getTables(), $outDir);
 

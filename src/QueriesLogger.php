@@ -38,16 +38,27 @@ final class QueriesLogger
 	private bool $enabled = false;
 
 	/**
+	 * The one logger the drivers log into.
+	 */
+	private static ?self $instance = null;
+
+	/**
 	 * QueriesLogger constructor.
 	 */
 	private function __construct() {}
 
 	/**
-	 * Creates a new instance of {@see QueriesLogger}.
+	 * The logger the drivers log into.
+	 *
+	 * One instance, deliberately: a driver logs through this accessor and so does whoever enables
+	 * the logging and reads the queries back. Answering with a new instance each time left every
+	 * query logged into an object that was discarded on the next line, and a logger that could not
+	 * be enabled from outside at all, since the one the driver reached was always a fresh disabled
+	 * one.
 	 */
 	public static function get(): self
 	{
-		return new self();
+		return self::$instance ??= new self();
 	}
 
 	/**

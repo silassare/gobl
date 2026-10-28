@@ -63,14 +63,14 @@ final class DiffTest extends BaseTestCase
 		$actual_snap_dir = GOBL_TEST_OUTPUT . '/snapshots/' . $driver . '/diff';
 
 		if (!\is_dir($actual_snap_dir)) {
-			\mkdir($actual_snap_dir, 0755, true);
+			\mkdir($actual_snap_dir, 0o755, true);
 		}
 
 		\file_put_contents($actual_snap_dir . '/schema.diff.php', $normalized);
 
 		if (!\file_exists($expected_file)) {
 			if (!\is_dir($expected_dir)) {
-				\mkdir($expected_dir, 0755, true);
+				\mkdir($expected_dir, 0o755, true);
 			}
 
 			\file_put_contents($expected_file, $normalized);

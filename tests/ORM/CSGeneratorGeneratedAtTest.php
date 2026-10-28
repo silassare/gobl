@@ -125,7 +125,7 @@ final class CSGeneratorGeneratedAtTest extends BaseTestCase
 				. \DIRECTORY_SEPARATOR . $kind;
 
 			self::rmDirRecursive($dir);
-			\mkdir($dir, 0755, true);
+			\mkdir($dir, 0o755, true);
 
 			$generator->generate($db->getTables(), $dir);
 
