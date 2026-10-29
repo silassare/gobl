@@ -34,6 +34,7 @@ use Gobl\DBAL\Queries\QBUpdate;
 use Gobl\DBAL\Types\TypeBigint;
 use Gobl\DBAL\Types\TypeJson;
 use Gobl\DBAL\Types\TypeString;
+use Gobl\DBAL\Types\Utils\JsonContainerKind;
 use Gobl\DBAL\Types\Utils\JsonPath;
 use Gobl\Gobl;
 use Override;
@@ -143,10 +144,10 @@ final class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	 * The column may hold `jsonb`, `json` or text: `::jsonb` reads all three.
 	 */
 	#[Override]
-	protected function getJsonDocumentOrEmptyExpression(string $expression): string
+	protected function getJsonDocumentOrEmptyExpression(string $expression, JsonContainerKind $kind): string
 	{
 		return 'COALESCE(' . $this->getJsonValueExpression($expression) . ', '
-			. $this->getJsonValueExpression($this->quoteLiteral('{}')) . ')';
+			. $this->getJsonValueExpression($this->quoteLiteral($kind->emptyJson())) . ')';
 	}
 
 	#[Override]
@@ -155,10 +156,15 @@ final class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		return 'jsonb_typeof(' . $expression . ')';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * `jsonb_typeof()` answers in lower case, which the kind already is.
+	 */
 	#[Override]
-	protected function getJsonObjectTypeName(): string
+	protected function getJsonTypeName(JsonContainerKind $kind): string
 	{
-		return 'object';
+		return $kind->value;
 	}
 
 	/**
@@ -166,19 +172,30 @@ final class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	 *
 	 * PostgreSQL addresses a path with a `text[]`, which is bound and not written as a literal: an
 	 * array literal would be two layers of escaping inside one string.
+	 *
+	 * One form serves both kinds of segment, unlike MySQL and SQLite: PostgreSQL reads `'0'` as a
+	 * position or as a member's name from the type of the value it finds there, and the container is
+	 * made of the kind the patch asks for before anything is written into it.
 	 */
 	#[Override]
 	protected function getJsonPathArgument(array $segments, callable $bind): string
 	{
-		$bound = \array_map(static fn (string $segment): string => $bind($segment), $segments);
+		$bound = \array_map(static fn (int|string $segment): string => $bind((string) $segment), $segments);
 
 		return 'ARRAY[' . \implode(', ', $bound) . ']::text[]';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * `#>` reads a `jsonb` and nothing else, so the operand is cast: the column may hold `json` or
+	 * text, and a text column would otherwise be an undefined operator rather than a path read.
+	 */
 	#[Override]
 	protected function getJsonExtractPathExpression(string $expression, array $segments, callable $bind): string
 	{
-		return '(' . $expression . ' #> ' . $this->getJsonPathArgument($segments, $bind) . ')';
+		return '(' . $this->getJsonValueExpression($expression) . ' #> '
+			. $this->getJsonPathArgument($segments, $bind) . ')';
 	}
 
 	#[Override]

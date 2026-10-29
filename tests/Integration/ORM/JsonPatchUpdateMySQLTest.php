@@ -34,4 +34,9 @@ final class JsonPatchUpdateMySQLTest extends JsonPatchUpdateTestCase
 	{
 		return MySQL::NAME;
 	}
+
+	protected static function getJsonSetFunctionName(): string
+	{
+		return 'JSON_SET';
+	}
 }

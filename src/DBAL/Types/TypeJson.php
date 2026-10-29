@@ -213,6 +213,28 @@ final class TypeJson extends BaseType
 		return $this->getOption('native_json', true);
 	}
 
+	/**
+	 * Refuses an UPDATE of this column that cannot be sent as a patch's paths.
+	 *
+	 * For a column several requests write at once, each owning part of the document: writing it
+	 * whole would carry every key as the request that writes it read them, so a key another request
+	 * wrote meanwhile is undone by whichever of the two answers last. A column declared this way
+	 * raises instead of losing that write, and the caller is told which operations could not be
+	 * expressed. A column nobody writes concurrently has no use for it.
+	 */
+	public function patchOnly(bool $patch_only = true): static
+	{
+		return $this->setOption('patch_only', $patch_only);
+	}
+
+	/**
+	 * Returns whether an UPDATE of this column must be sent as a patch's paths.
+	 */
+	public function isPatchOnly(): bool
+	{
+		return (bool) $this->getOption('patch_only', false);
+	}
+
 	#[Override]
 	public function configure(array $options): static
 	{
@@ -233,6 +255,10 @@ final class TypeJson extends BaseType
 
 		if (isset($options['big'])) {
 			$this->big((bool) $options['big']);
+		}
+
+		if (isset($options['patch_only'])) {
+			$this->patchOnly((bool) $options['patch_only']);
 		}
 
 		return parent::configure($options);

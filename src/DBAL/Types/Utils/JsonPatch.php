@@ -52,7 +52,6 @@ use PHPUtils\Store\Map;
  *
  * Path syntax:
  *   - Segments are separated by `'.'` (e.g. `'user.profile.name'`).
- *   - Numeric segments address indexed array entries (e.g. `'tags.0'`).
  *   - Intermediate arrays are created automatically on `set()`.
  *   - An intermediate key that exists but is not an array is overwritten by `set()`.
  *   - `remove()` on a non-existent path is a silent no-op.
@@ -63,6 +62,23 @@ use PHPUtils\Store\Map;
  * document is still what an INSERT writes, what the entity reads back, and what an UPDATE falls
  * back to when the operations cannot be expressed as paths (see
  * {@see QueryGeneratorInterface::getJsonPatchUpdateExpression()}).
+ *
+ * ## An object member named `12` is not an array entry at index 12
+ *
+ * JSON tells the two apart and PHP does not: `$a['12']` and `$a[12]` are one slot. The engines tell
+ * them apart too, and are unforgiving about it -- MySQL and SQLite address a member as `$.b."12"`
+ * and an entry as `$.b[12]`, and a path that asks for the wrong one **writes nothing at all**,
+ * without an error. So a segment carries which it is:
+ *
+ *   - a **string** segment is an object member: `['blocks', '12']` is `$.blocks."12"`;
+ *   - an **int** segment is an array entry: `['tags', 0]` is `$.tags[0]`.
+ *
+ * {@see self::set()} and {@see self::remove()} take a path string, which cannot say which is meant,
+ * so they decide it from the document the patch holds: a digit segment is a member when what is
+ * already there is a map (a non-empty array that is not a list), and an entry otherwise -- missing,
+ * empty, or a list. That is the reading under which the path expression and {@see self::toArray()}
+ * always agree, whichever the engine is asked. A caller that wants to say so itself uses
+ * {@see self::setAt()} or {@see self::removeAt()} with an int segment.
  */
 final class JsonPatch
 {
@@ -71,7 +87,9 @@ final class JsonPatch
 	/**
 	 * The operations, in the order they were asked for.
 	 *
-	 * @var list<array{op: 'remove'|'set', path: non-empty-list<string>, value?: mixed}>
+	 * A path segment is an object member when it is a string and an array entry when it is an int.
+	 *
+	 * @var list<array{op: 'remove'|'set', path: non-empty-list<int|string>, value?: mixed}>
 	 */
 	private array $operations = [];
 
@@ -92,12 +110,15 @@ final class JsonPatch
 	 * Intermediate objects/arrays are created as needed.
 	 * If an intermediate key exists but is not an array it is overwritten.
 	 *
+	 * A digit segment addresses an object member or an array entry depending on what the document
+	 * already holds there; see the class docblock.
+	 *
 	 * @param string                                            $path  dot-notation path (e.g. `'user.name'`, `'tags.0'`)
 	 * @param null|array|bool|float|int|JsonSerializable|string $value the value to store
 	 */
 	public function set(string $path, array|bool|float|int|JsonSerializable|string|null $value): static
 	{
-		return $this->setAt(self::parsePath($path), $value);
+		return $this->setAt($this->resolvePath($path), $value);
 	}
 
 	/**
@@ -106,7 +127,10 @@ final class JsonPatch
 	 * For a caller that has the segments already, and for a key a path string cannot hold: one with
 	 * a dot or a bracket in it is a single segment here, where `set()` would read it as a path.
 	 *
-	 * @param list<string> $segments
+	 * A string segment is an object member and an int segment an array entry, which is how a caller
+	 * says which it means rather than leaving it to be read off the document.
+	 *
+	 * @param list<int|string> $segments
 	 */
 	public function setAt(array $segments, array|bool|float|int|JsonSerializable|string|null $value): static
 	{
@@ -128,7 +152,7 @@ final class JsonPatch
 	 */
 	public function remove(string $path): static
 	{
-		return $this->removeAt(self::parsePath($path));
+		return $this->removeAt($this->resolvePath($path));
 	}
 
 	/**
@@ -136,7 +160,7 @@ final class JsonPatch
 	 *
 	 * The counterpart of {@see self::setAt()}.
 	 *
-	 * @param list<string> $segments
+	 * @param list<int|string> $segments
 	 */
 	public function removeAt(array $segments): static
 	{
@@ -152,7 +176,9 @@ final class JsonPatch
 	/**
 	 * The operations this patch holds, in the order they were asked for.
 	 *
-	 * @return list<array{op: 'remove'|'set', path: list<string>, value?: mixed}>
+	 * A path segment is an object member when it is a string and an array entry when it is an int.
+	 *
+	 * @return list<array{op: 'remove'|'set', path: non-empty-list<int|string>, value?: mixed}>
 	 */
 	public function getOperations(): array
 	{
@@ -205,11 +231,11 @@ final class JsonPatch
 	}
 
 	/**
-	 * Asserts that a path is addressable: at least one segment, none of them empty.
+	 * Asserts that a path is addressable: at least one segment, no empty member, no negative entry.
 	 *
-	 * @param list<string> $segments
+	 * @param list<int|string> $segments
 	 *
-	 * @psalm-assert non-empty-list<string> $segments
+	 * @psalm-assert non-empty-list<int|string> $segments
 	 */
 	private static function assertSegments(array $segments): void
 	{
@@ -221,7 +247,44 @@ final class JsonPatch
 			if ('' === $segment) {
 				throw new InvalidArgumentException('A JSON patch path segment cannot be empty.');
 			}
+
+			if (\is_int($segment) && $segment < 0) {
+				throw new InvalidArgumentException(
+					\sprintf('A JSON patch array entry cannot be at a negative index, got %d.', $segment)
+				);
+			}
 		}
+	}
+
+	/**
+	 * Reads a path string, saying of each digit segment whether it names a member or an entry.
+	 *
+	 * The document the patch holds answers it: a digit segment names a member when a map is already
+	 * there, and an entry when what is there is missing, empty or a list. See the class docblock for
+	 * why the question has to be answered at all.
+	 *
+	 * @return list<int|string>
+	 */
+	private function resolvePath(string $path): array
+	{
+		$node     = $this->data;
+		$resolved = [];
+
+		foreach (self::parsePath($path) as $segment) {
+			$resolved[] = \ctype_digit($segment) && !self::isMap($node) ? (int) $segment : $segment;
+			$node       = \is_array($node) ? ($node[$segment] ?? null) : null;
+		}
+
+		return $resolved;
+	}
+
+	/**
+	 * Whether a value is a JSON object rather than a JSON array: named keys, so a digit among them
+	 * is a member's name and not a position.
+	 */
+	private static function isMap(mixed $value): bool
+	{
+		return \is_array($value) && [] !== $value && !\array_is_list($value);
 	}
 
 	/**
@@ -243,7 +306,7 @@ final class JsonPatch
 	/**
 	 * Recursively navigates to the target location and sets the value.
 	 *
-	 * @param non-empty-list<string> $keys
+	 * @param non-empty-list<int|string> $keys
 	 */
 	private static function doSet(array &$data, array $keys, mixed $value): void
 	{
@@ -263,7 +326,7 @@ final class JsonPatch
 	/**
 	 * Recursively navigates to the target location and unsets the key.
 	 *
-	 * @param non-empty-list<string> $keys
+	 * @param non-empty-list<int|string> $keys
 	 */
 	private static function doRemove(array &$data, array $keys): void
 	{

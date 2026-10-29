@@ -28,7 +28,6 @@ use Gobl\Tests\BaseTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\CoversTrait;
-use PHPUtils\Store\Map;
 
 /**
  * What an UPDATE sends for a JSON column given a patch: the paths, for the database to apply to the
@@ -69,7 +68,7 @@ final class QBUpdateJsonPatchTest extends BaseTestCase
 		self::assertSame(
 			'UPDATE "gObL_clients" SET client_data = json_set(json_set('
 				. "COALESCE(client_data, json('{}')), '$.oz', "
-				. "json(CASE WHEN json_type(json_extract(client_data, '$.oz')) = 'object' "
+				. "json(CASE WHEN json_type(client_data, '$.oz') = 'object' "
 				. "THEN json_extract(client_data, '$.oz') ELSE '{}' END)), "
 				. "'$.oz.lang', json(?)) WHERE ((id = ?))",
 			$sql
@@ -88,8 +87,8 @@ final class QBUpdateJsonPatchTest extends BaseTestCase
 		self::assertSame(
 			'UPDATE "gObL_clients" SET client_data = jsonb_set(jsonb_set('
 				. "COALESCE((client_data)::jsonb, ('{}')::jsonb), ARRAY[?]::text[], "
-				. "(CASE WHEN jsonb_typeof((client_data #> ARRAY[?]::text[])) = 'object' "
-				. "THEN (client_data #> ARRAY[?]::text[]) ELSE '{}' END)::jsonb, true), "
+				. "(CASE WHEN jsonb_typeof(((client_data)::jsonb #> ARRAY[?]::text[])) = 'object' "
+				. "THEN ((client_data)::jsonb #> ARRAY[?]::text[]) ELSE '{}' END)::jsonb, true), "
 				. 'ARRAY[?, ?]::text[], (?)::jsonb, true) WHERE ((id = ?))',
 			$sql
 		);
@@ -108,21 +107,118 @@ final class QBUpdateJsonPatchTest extends BaseTestCase
 		});
 
 		self::assertSame('UPDATE `gObL_clients` SET client_data = ? WHERE ((id = ?))', $sql);
-		self::assertSame(['a' => ['b' => 9, 'c' => 3]], $params[0]->getData());
+		self::assertSame(['a' => ['b' => 9, 'c' => 3]], \json_decode((string) $params[0], true));
 	}
 
 	/**
-	 * A segment that reads as an array index addresses an entry in PHP and a member named `0` in a
-	 * JSON path expression: the document is written instead of guessing which was meant.
+	 * A digit segment where nothing is yet: an entry, since that is what PHP makes of it too, so the
+	 * path expression and {@see JsonPatch::toArray()} agree.
 	 */
-	public function testAnIndexSegmentSendsTheDocument(): void
+	public function testADigitSegmentOnNothingAddressesAnEntry(): void
 	{
 		[$sql, $params] = $this->patchQuery(MySQL::NAME, static function (JsonPatch $patch): void {
 			$patch->set('tags.0', 'first');
 		});
 
+		self::assertSame(
+			'UPDATE `gObL_clients` SET client_data = JSON_SET(JSON_SET('
+				. "COALESCE(client_data, CAST('{}' AS JSON)), '$.tags', "
+				. "CAST(CASE WHEN JSON_TYPE(JSON_EXTRACT(client_data, '$.tags')) = 'ARRAY' "
+				. "THEN JSON_EXTRACT(client_data, '$.tags') ELSE '[]' END AS JSON)), "
+				. "'$.tags[0]', CAST(? AS JSON)) WHERE ((id = ?))",
+			$sql
+		);
+		self::assertSame(['"first"', 1], $params);
+	}
+
+	/**
+	 * A digit segment where a map already is: a member, whose name is quoted so the engine does not
+	 * read it as a position. This is the shape a store keeping entries under numeric ids writes, and
+	 * the one that used to send the whole document and undo every concurrent write with it.
+	 */
+	public function testADigitSegmentOnAMapAddressesAMember(): void
+	{
+		[$sql, $params] = $this->patchQuery(
+			MySQL::NAME,
+			static function (JsonPatch $patch): void {
+				$patch->set('blocks.12.title', 'Hi');
+			},
+			['blocks' => ['12' => ['title' => 'Ho']]]
+		);
+
+		self::assertStringContainsString('\'$.blocks."12".title\'', $sql);
+		self::assertStringContainsString('\'$.blocks."12"\', CAST(CASE WHEN JSON_TYPE', $sql);
+		self::assertStringNotContainsString('[12]', $sql);
+		self::assertSame(['"Hi"', 1], $params);
+	}
+
+	/**
+	 * A caller that does not want the document asked: an int segment is a position, a string
+	 * segment is a member, whatever the document holds.
+	 */
+	public function testASegmentSaysWhichItIsWhenTheCallerGivesIt(): void
+	{
+		[$by_index] = $this->patchQuery(MySQL::NAME, static function (JsonPatch $patch): void {
+			$patch->setAt(['tags', 0], 'first');
+		});
+		[$by_member] = $this->patchQuery(MySQL::NAME, static function (JsonPatch $patch): void {
+			$patch->setAt(['tags', '0'], 'first');
+		});
+
+		self::assertStringContainsString("'\$.tags[0]'", $by_index);
+		self::assertStringContainsString('\'$.tags."0"\'', $by_member);
+	}
+
+	/**
+	 * A container cannot be made an object and an array at once, and an engine asked for the wrong
+	 * one writes nothing without saying so: the document is written instead, with the reason.
+	 */
+	public function testAContainerAddressedBothWaysSendsTheDocument(): void
+	{
+		[$sql, $params] = $this->patchQuery(MySQL::NAME, static function (JsonPatch $patch): void {
+			$patch->setAt(['a', 0], 'entry')
+				->setAt(['a', 'b'], 'member');
+		});
+
 		self::assertSame('UPDATE `gObL_clients` SET client_data = ? WHERE ((id = ?))', $sql);
-		self::assertSame(['tags' => ['first']], $params[0]->getData());
+		self::assertSame(['a' => ['0' => 'entry', 'b' => 'member']], \json_decode((string) $params[0], true));
+	}
+
+	/**
+	 * SQLite addresses a member and a position the same way MySQL does.
+	 */
+	public function testSQLiteTellsAMemberFromAPosition(): void
+	{
+		[$by_index] = $this->patchQuery(SQLite::NAME, static function (JsonPatch $patch): void {
+			$patch->setAt(['tags', 0], 'first');
+		});
+		[$by_member] = $this->patchQuery(SQLite::NAME, static function (JsonPatch $patch): void {
+			$patch->setAt(['tags', '0'], 'first');
+		});
+
+		self::assertStringContainsString("'\$.tags[0]'", $by_index);
+		self::assertStringContainsString("json_type(client_data, '\$.tags') = 'array'", $by_index);
+		self::assertStringContainsString('\'$.tags."0"\'', $by_member);
+		self::assertStringContainsString("json_type(client_data, '\$.tags') = 'object'", $by_member);
+	}
+
+	/**
+	 * PostgreSQL reads one path form as a position or as a member from the value it finds, so a
+	 * segment binds as text either way; what the kind decides is the container made for it.
+	 */
+	public function testPostgreSQLBindsBothKindsAsTextAndMakesTheContainer(): void
+	{
+		[$by_index, $index_params] = $this->patchQuery(PostgreSQL::NAME, static function (JsonPatch $patch): void {
+			$patch->setAt(['tags', 0], 'first');
+		});
+		[$by_member, $member_params] = $this->patchQuery(PostgreSQL::NAME, static function (JsonPatch $patch): void {
+			$patch->setAt(['tags', '0'], 'first');
+		});
+
+		self::assertStringContainsString("jsonb_typeof(((client_data)::jsonb #> ARRAY[?]::text[])) = 'array'", $by_index);
+		self::assertStringContainsString("jsonb_typeof(((client_data)::jsonb #> ARRAY[?]::text[])) = 'object'", $by_member);
+		self::assertSame(['tags', 'tags', 'tags', 'tags', '0', '"first"', 1], $index_params);
+		self::assertSame(['tags', 'tags', 'tags', 'tags', '0', '"first"', 1], $member_params);
 	}
 
 	/**
@@ -141,12 +237,11 @@ final class QBUpdateJsonPatchTest extends BaseTestCase
 
 		self::assertStringNotContainsString('JSON_SET', $qb->getSqlQuery());
 
-		$bound = \array_values($qb->getBoundValues());
-		$data  = [];
+		$data = [];
 
-		foreach ($bound as $value) {
-			if ($value instanceof Map) {
-				$data = $value->getData();
+		foreach (\array_values($qb->getBoundValues()) as $value) {
+			if (\is_string($value) && \str_contains($value, 'lang')) {
+				$data = (array) \json_decode($value, true);
 			}
 		}
 
@@ -156,13 +251,15 @@ final class QBUpdateJsonPatchTest extends BaseTestCase
 	/**
 	 * Builds the UPDATE a patch of the `data` column produces.
 	 *
+	 * @param array $initial what the row holds, which decides what a digit segment addresses
+	 *
 	 * @return array{0: string, 1: array}
 	 */
-	private function patchQuery(string $driver, callable $operations): array
+	private function patchQuery(string $driver, callable $operations, array $initial = []): array
 	{
 		$db = self::getNewDbInstanceWithSchema($driver);
 
-		$patch = new JsonPatch();
+		$patch = new JsonPatch($initial);
 
 		$operations($patch);
 

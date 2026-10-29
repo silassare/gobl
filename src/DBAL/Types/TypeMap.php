@@ -127,6 +127,23 @@ final class TypeMap extends Type
 	}
 
 	/**
+	 * Refuses an UPDATE of this column that cannot be sent as a patch's paths.
+	 *
+	 * For a column several requests write at once, each owning part of the document: writing it
+	 * whole would undo whatever another request wrote meanwhile. See
+	 * {@see TypeJson::patchOnly()}.
+	 */
+	public function patchOnly(bool $patch_only = true): static
+	{
+		/** @var TypeJson $bt */
+		$bt = $this->base_type;
+
+		$bt->patchOnly($patch_only);
+
+		return $this->setOption('patch_only', $patch_only);
+	}
+
+	/**
 	 * Sets the value type of the map for code generation type hints and runtime revival.
 	 *
 	 * Accepts either:
@@ -211,6 +228,10 @@ final class TypeMap extends Type
 
 		if (isset($options['big'])) {
 			$this->big((bool) $options['big']);
+		}
+
+		if (isset($options['patch_only'])) {
+			$this->patchOnly((bool) $options['patch_only']);
 		}
 
 		return parent::configure($options);

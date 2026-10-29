@@ -28,6 +28,7 @@ use Gobl\DBAL\Indexes\IndexType;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Relations\VirtualRelation;
+use Gobl\DBAL\Types\Utils\JsonPatch;
 use Gobl\Exceptions\GoblRuntimeException;
 use InvalidArgumentException;
 use OLIUP\CG\PHPNamespace;
@@ -1615,6 +1616,11 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	 * Only columns whose name is found in this table are converted; unknown keys are passed
 	 * through unchanged. The returned array preserves all original keys.
 	 *
+	 * A {@see JsonPatch} is passed through untouched, because converting it here is what a UPDATE
+	 * sending the whole document looks like: `phpToDb()` answers the patched document, and the
+	 * paths -- the whole point of a patch -- are gone before the query builder ever sees them. The
+	 * builder takes the patch and converts it itself when it writes the document instead.
+	 *
 	 * @param array          $row   associative array of column name/full-name -> PHP value
 	 * @param RDBMSInterface $rdbms the current RDBMS instance (passed to the type converter)
 	 *
@@ -1627,7 +1633,7 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 		foreach ($row as $column => $value) {
 			$col = $this->getColumn($column);
 
-			if ($col) {
+			if ($col && !$value instanceof JsonPatch) {
 				$value = $col->getType()
 					->phpToDb($value, $rdbms);
 			}

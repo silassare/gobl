@@ -28,6 +28,7 @@ use Gobl\DBAL\Queries\QBInsert;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Queries\QBUpdate;
 use Gobl\DBAL\Table;
+use Gobl\DBAL\Types\Utils\JsonContainerKind;
 use Gobl\DBAL\Types\Utils\JsonPath;
 use Gobl\Gobl;
 use Override;
@@ -202,10 +203,29 @@ final class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 		return 'json_type(' . $expression . ')';
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * `json_type()` answers in lower case, which the kind already is.
+	 */
 	#[Override]
-	protected function getJsonObjectTypeName(): string
+	protected function getJsonTypeName(JsonContainerKind $kind): string
 	{
-		return 'object';
+		return $kind->value;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * `json_extract()` unwraps a scalar into plain text, so the type of what it answers for a string
+	 * member is asked of `a string` and SQLite refuses it as malformed JSON. The two-argument
+	 * `json_type(X, P)` reads the type at the path instead, and answers null for a path the document
+	 * does not have -- which is not the kind asked for either way.
+	 */
+	#[Override]
+	protected function getJsonTypeAtPathExpression(string $column_ref, array $path, callable $bind): string
+	{
+		return 'json_type(' . $column_ref . ', ' . $this->getJsonPathArgument($path, $bind) . ')';
 	}
 
 	#[Override]

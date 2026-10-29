@@ -66,7 +66,9 @@ use Gobl\DBAL\Types\TypeFloat;
 use Gobl\DBAL\Types\TypeInt;
 use Gobl\DBAL\Types\TypeJson;
 use Gobl\DBAL\Types\TypeString;
+use Gobl\DBAL\Types\Utils\JsonContainerKind;
 use Gobl\DBAL\Types\Utils\JsonPatch;
+use Gobl\DBAL\Types\Utils\JsonPatchExpression;
 use Gobl\DBAL\Types\Utils\JsonPath;
 use Gobl\Gobl;
 use JsonException;
@@ -397,26 +399,46 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		string $column_ref,
 		JsonPatch $patch,
 		callable $bind
-	): ?string {
+	): JsonPatchExpression {
 		$operations = $patch->getOperations();
 
-		if (!self::canExpressJsonPatchAsPaths($operations)) {
-			return null;
+		if ([] === $operations) {
+			return JsonPatchExpression::notExpressible('it holds no operation');
+		}
+
+		$nested = self::jsonPatchNestedPaths($operations);
+
+		if (null !== $nested) {
+			return JsonPatchExpression::notExpressible(\sprintf(
+				'the paths "%s" and "%s" are inside one another, so the order they are applied in decides the result',
+				self::jsonPathAsText($nested[0]),
+				self::jsonPathAsText($nested[1])
+			));
+		}
+
+		$kinds = self::jsonPatchContainerKinds($operations);
+
+		if (\is_string($kinds)) {
+			return JsonPatchExpression::notExpressible($kinds);
 		}
 
 		try {
-			$expression = $this->getJsonDocumentOrEmptyExpression($column_ref);
+			$expression = $this->getJsonDocumentOrEmptyExpression($column_ref, $kinds['']);
 
-			// The engines write a path's last segment and no more: every ancestor of it has to be an
-			// object already. They are made here, shallowest first, each read from the column itself
-			// rather than from the expression being built -- so a path costs the query a fixed size,
-			// and no ancestor is put back the way the row had it after an operation wrote into it.
+			// The engines write a path's last segment and no more: every container above it has to
+			// already be there, and be of the kind the segment addresses. They are made here,
+			// shallowest first, each read from the column itself rather than from the expression
+			// being built -- so a path costs the query a fixed size, and no container is put back the
+			// way the row had it after an operation wrote into it.
 			foreach (self::jsonPatchAncestorPaths($operations) as $ancestor) {
 				$expression = $this->getJsonSetPathExpression(
 					$expression,
 					$ancestor,
-					$this->getJsonObjectOrEmptyExpression(
-						$this->getJsonExtractPathExpression($column_ref, $ancestor, $bind)
+					$this->getJsonContainerOrEmptyExpression(
+						$column_ref,
+						$ancestor,
+						$kinds[self::jsonPathKey($ancestor)],
+						$bind
 					),
 					$bind
 				);
@@ -438,12 +460,13 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 					$bind
 				);
 			}
-		} catch (JsonException) {
-			// A value the patch cannot be asked of the database: the document is written instead.
-			return null;
+		} catch (JsonException $e) {
+			return JsonPatchExpression::notExpressible(
+				'a value it writes cannot be encoded as JSON: ' . $e->getMessage()
+			);
 		}
 
-		return $this->getJsonPatchResultExpression($column, $expression);
+		return JsonPatchExpression::paths($this->getJsonPatchResultExpression($column, $expression));
 	}
 
 	/**
@@ -473,28 +496,54 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 *
 	 * Default implementation: MySQL-compatible.
 	 */
-	protected function getJsonDocumentOrEmptyExpression(string $expression): string
+	protected function getJsonDocumentOrEmptyExpression(string $expression, JsonContainerKind $kind): string
 	{
-		return 'COALESCE(' . $expression . ', ' . $this->getJsonValueExpression($this->quoteLiteral('{}')) . ')';
+		return 'COALESCE(' . $expression . ', '
+			. $this->getJsonValueExpression($this->quoteLiteral($kind->emptyJson())) . ')';
 	}
 
 	/**
-	 * An expression's value when it is an object, an empty object when it is anything else.
+	 * An expression's value when it is a container of the given kind, an empty one when it is not.
 	 *
-	 * Anything else includes the absence of a value: a path the row does not have. A value that is
-	 * not an object is replaced, as `set()` on such an intermediate does in PHP.
+	 * Anything else includes the absence of a value: a path the row does not have. A value of the
+	 * other kind is replaced, as `set()` on such an intermediate does in PHP -- and it has to be,
+	 * because a path addressing a member of an array, or a position of an object, writes nothing at
+	 * all and says nothing about it.
 	 *
 	 * Default implementation: MySQL-compatible. The whole `CASE` goes through
 	 * {@see self::getJsonValueExpression()} because an engine loses what a branch's type was.
+	 *
+	 * @param list<int|string> $path
 	 */
-	protected function getJsonObjectOrEmptyExpression(string $expression): string
-	{
+	protected function getJsonContainerOrEmptyExpression(
+		string $column_ref,
+		array $path,
+		JsonContainerKind $kind,
+		callable $bind
+	): string {
+		$extract = $this->getJsonExtractPathExpression($column_ref, $path, $bind);
+
 		return $this->getJsonValueExpression(
-			'CASE WHEN ' . $this->getJsonTypeExpression($expression)
-				. ' = ' . $this->quoteLiteral($this->getJsonObjectTypeName())
-				. ' THEN ' . $expression
-				. ' ELSE ' . $this->quoteLiteral('{}') . ' END'
+			'CASE WHEN ' . $this->getJsonTypeAtPathExpression($column_ref, $path, $bind)
+				. ' = ' . $this->quoteLiteral($this->getJsonTypeName($kind))
+				. ' THEN ' . $extract
+				. ' ELSE ' . $this->quoteLiteral($kind->emptyJson()) . ' END'
 		);
+	}
+
+	/**
+	 * The name of the type of the value a JSON document holds at a path.
+	 *
+	 * Default implementation: the type of what reading that path answers, which is what MySQL and
+	 * PostgreSQL give back -- a JSON value, whose type their type function reads. An engine whose
+	 * read unwraps a scalar into plain text says so by overriding this, since asking a type
+	 * function for the type of `a string` is asking it to parse malformed JSON.
+	 *
+	 * @param list<int|string> $path
+	 */
+	protected function getJsonTypeAtPathExpression(string $column_ref, array $path, callable $bind): string
+	{
+		return $this->getJsonTypeExpression($this->getJsonExtractPathExpression($column_ref, $path, $bind));
 	}
 
 	/**
@@ -518,13 +567,13 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	}
 
 	/**
-	 * What this engine's type function answers for an object.
+	 * What this engine's type function answers for a container of the given kind.
 	 *
-	 * Default implementation: MySQL-compatible.
+	 * Default implementation: MySQL-compatible, which answers in upper case.
 	 */
-	protected function getJsonObjectTypeName(): string
+	protected function getJsonTypeName(JsonContainerKind $kind): string
 	{
-		return 'OBJECT';
+		return \strtoupper($kind->value);
 	}
 
 	/**
@@ -532,7 +581,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 *
 	 * Default implementation: MySQL-compatible `JSON_EXTRACT()`.
 	 *
-	 * @param list<string> $segments
+	 * @param list<int|string> $segments
 	 */
 	protected function getJsonExtractPathExpression(string $expression, array $segments, callable $bind): string
 	{
@@ -544,7 +593,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 *
 	 * Default implementation: MySQL-compatible `JSON_SET()`.
 	 *
-	 * @param list<string> $segments
+	 * @param list<int|string> $segments
 	 */
 	protected function getJsonSetPathExpression(
 		string $expression,
@@ -560,7 +609,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 *
 	 * Default implementation: MySQL-compatible `JSON_REMOVE()`.
 	 *
-	 * @param list<string> $segments
+	 * @param list<int|string> $segments
 	 */
 	protected function getJsonRemovePathExpression(string $expression, array $segments, callable $bind): string
 	{
@@ -573,7 +622,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 * Default implementation: MySQL-compatible path string, a literal and never a bound parameter,
 	 * because MySQL and SQLite only accept a constant there.
 	 *
-	 * @param list<string> $segments
+	 * @param list<int|string> $segments
 	 */
 	protected function getJsonPathArgument(array $segments, callable $bind): string
 	{
@@ -602,28 +651,31 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	/**
 	 * Converts path segments into a properly escaped JSON path string for use in SQL expressions.
 	 *
-	 * @param list<string> $path_segments
+	 * @param list<int|string> $path_segments
 	 */
 	protected function getJsonPathStringFromSegments(array $path_segments): string
 	{
-		// Segments that are valid unquoted identifiers (`[a-zA-Z_][a-zA-Z0-9_]*`)
-		// are used as-is.  All other segments are wrapped in double-quotes with
-		// internal `"` escaped as `\"` and `\` escaped as `\\` (MySQL JSON path
-		// syntax inside the path expression string).
+		// An int segment is a position, written `[0]` and joined without a dot. A string segment is
+		// a member: used as it is when it is a valid unquoted identifier
+		// (`[a-zA-Z_][a-zA-Z0-9_]*`), double-quoted otherwise with `"` and `\` escaped as the JSON
+		// path syntax asks. A member whose name is a number is therefore `."12"`, which is what
+		// tells it apart from the position `[12]`.
 
-		$parts = \array_map(static function (string $seg): string {
-			// Safe identifier: starts with letter or underscore, rest alphanumeric/underscore
-			if (\preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $seg)) {
-				return $seg;
+		$path = '$';
+
+		foreach ($path_segments as $segment) {
+			if (\is_int($segment)) {
+				$path .= '[' . $segment . ']';
+
+				continue;
 			}
 
-			// Double-quote the segment; escape backslash and double-quote per JSON path spec
-			$escaped = \str_replace(['\\', '"'], ['\\\\', '\"'], $seg);
+			$path .= '.' . (\preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $segment)
+				? $segment
+				: '"' . \str_replace(['\\', '"'], ['\\\\', '\"'], $segment) . '"');
+		}
 
-			return '"' . $escaped . '"';
-		}, $path_segments);
-
-		return '$.' . \implode('.', $parts);
+		return $path;
 	}
 
 	/**
@@ -1827,52 +1879,104 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 * - two operations whose paths are the same or one inside the other, whose result would then
 	 *   depend on an order the expression does not keep.
 	 *
-	 * @param list<array{op: 'remove'|'set', path: list<string>, value?: mixed}> $operations
+	 * @param list<array{op: 'remove'|'set', path: non-empty-list<int|string>, value?: mixed}> $operations
 	 */
-	private static function canExpressJsonPatchAsPaths(array $operations): bool
+	private static function jsonPatchNestedPaths(array $operations): ?array
 	{
-		if ([] === $operations) {
-			return false;
+		foreach ($operations as $i => $operation) {
+			foreach ($operations as $j => $other) {
+				if ($i !== $j && self::isJsonPathWithin($operation['path'], $other['path'])) {
+					return [$operation['path'], $other['path']];
+				}
+			}
 		}
 
-		$paths = [];
+		return null;
+	}
+
+	/**
+	 * The kind every container a patch writes through has to be, keyed by its path.
+	 *
+	 * The document itself is at the empty key. A container addressed both as an object and as an
+	 * array cannot be made either way, and the reason is answered in place of the kinds.
+	 *
+	 * @param list<array{op: 'remove'|'set', path: non-empty-list<int|string>, value?: mixed}> $operations
+	 *
+	 * @return array<string, JsonContainerKind>|string the kinds, or why there are none
+	 */
+	private static function jsonPatchContainerKinds(array $operations): array|string
+	{
+		$kinds = [];
 
 		foreach ($operations as $operation) {
 			$path = $operation['path'];
 
-			if ([] === $path) {
-				return false;
-			}
+			foreach ($path as $i => $segment) {
+				$container = self::jsonPathKey(\array_slice($path, 0, $i));
+				$kind      = JsonContainerKind::of($segment);
+				$seen      = $kinds[$container] ?? null;
 
-			foreach ($path as $segment) {
-				if (\ctype_digit($segment)) {
-					return false;
-				}
-			}
-
-			$paths[] = $path;
-		}
-
-		foreach ($paths as $i => $path) {
-			foreach ($paths as $j => $other) {
-				if ($i === $j) {
-					continue;
+				if (null !== $seen && $seen !== $kind) {
+					return \sprintf(
+						'"%s" is addressed both as an object and as an array',
+						'' === $container ? 'the document' : self::jsonPathAsText(\array_slice($path, 0, $i))
+					);
 				}
 
-				if (self::isJsonPathWithin($path, $other)) {
-					return false;
-				}
+				$kinds[$container] = $kind;
 			}
 		}
 
-		return true;
+		return $kinds;
+	}
+
+	/**
+	 * A path as the key that identifies its container among the others.
+	 *
+	 * The kind of a segment is part of it: `tags.0` and `tags."0"` are not the same container, and
+	 * reading them as one would make a conflict look like agreement.
+	 *
+	 * @param list<int|string> $path
+	 */
+	private static function jsonPathKey(array $path): string
+	{
+		if ([] === $path) {
+			// The document itself, which is every path's first container.
+			return '';
+		}
+
+		$key = '';
+
+		foreach ($path as $segment) {
+			// The length prefix is what keeps two different paths from writing the same key, as
+			// `['a.b']` and `['a', 'b']` would with a separator alone.
+			$key .= (\is_int($segment) ? 'i' : 's') . \strlen((string) $segment) . ':' . $segment;
+		}
+
+		return $key;
+	}
+
+	/**
+	 * A path as it reads in a message.
+	 *
+	 * @param list<int|string> $path
+	 */
+	private static function jsonPathAsText(array $path): string
+	{
+		$text = '';
+
+		foreach ($path as $segment) {
+			$text .= \is_int($segment) ? '[' . $segment . ']' : ('' === $text ? '' : '.') . $segment;
+		}
+
+		return $text;
 	}
 
 	/**
 	 * Whether a path is the same as another or inside it.
 	 *
-	 * @param list<string> $path
-	 * @param list<string> $other
+	 * @param list<int|string> $path
+	 * @param list<int|string> $other
 	 */
 	private static function isJsonPathWithin(array $path, array $other): bool
 	{
@@ -1886,9 +1990,9 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	/**
 	 * Every ancestor of every path written to, each once, shallowest first.
 	 *
-	 * @param list<array{op: 'remove'|'set', path: list<string>, value?: mixed}> $operations
+	 * @param list<array{op: 'remove'|'set', path: non-empty-list<int|string>, value?: mixed}> $operations
 	 *
-	 * @return list<list<string>>
+	 * @return list<list<int|string>>
 	 */
 	private static function jsonPatchAncestorPaths(array $operations): array
 	{
@@ -1905,7 +2009,7 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 			for ($i = 1; $i < $depth; ++$i) {
 				$ancestor = \array_slice($path, 0, $i);
 
-				$ancestors[\json_encode($ancestor)] = $ancestor;
+				$ancestors[self::jsonPathKey($ancestor)] = $ancestor;
 			}
 		}
 

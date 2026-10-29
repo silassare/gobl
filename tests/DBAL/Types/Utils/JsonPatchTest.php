@@ -20,6 +20,7 @@ use Gobl\DBAL\Types\Utils\JsonPatch;
 use Gobl\Tests\BaseTestCase;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUtils\Store\Map;
 
 /**
@@ -328,5 +329,86 @@ final class JsonPatchTest extends BaseTestCase
 		$result      = $type->validate($patch)->getCleanValue();
 		self::assertInstanceOf(Map::class, $result);
 		self::assertSame(['existing' => 'val', 'new' => 'added'], $result?->getData());
+	}
+
+	// =========================================================================
+	// What a digit segment addresses
+	// =========================================================================
+
+	/**
+	 * The reading has to be the one under which the recorded path and the patched document agree,
+	 * because the UPDATE sends the first and the entity reads back the second.
+	 *
+	 * @param array            $initial  what the document holds before the write
+	 * @param list<int|string> $expected the path as it is recorded
+	 */
+	#[DataProvider('digitSegmentCases')]
+	public function testWhatADigitSegmentAddresses(array $initial, array $expected, array $document): void
+	{
+		$patch = new JsonPatch($initial)->set('c.1', 'v');
+
+		self::assertSame([['op' => 'set', 'path' => $expected, 'value' => 'v']], $patch->getOperations());
+		self::assertSame($document, $patch->toArray());
+	}
+
+	public static function digitSegmentCases(): iterable
+	{
+		yield 'a map already there: a member' => [
+			['c' => ['1' => 'was', 'keep' => 'me']],
+			['c', '1'],
+			['c' => ['1' => 'v', 'keep' => 'me']],
+		];
+
+		yield 'a list already there: a position' => [
+			['c' => ['zero', 'one']],
+			['c', 1],
+			['c' => ['zero', 'v']],
+		];
+
+		yield 'nothing there: a position, as PHP makes one' => [
+			[],
+			['c', 1],
+			['c' => [1 => 'v']],
+		];
+
+		yield 'an empty array there: a position' => [
+			['c' => []],
+			['c', 1],
+			['c' => [1 => 'v']],
+		];
+	}
+
+	public function testRemoveReadsADigitSegmentTheSameWay(): void
+	{
+		$map  = new JsonPatch(['c' => ['1' => 'a', 'b' => 'c']])->remove('c.1');
+		$list = new JsonPatch(['c' => ['zero', 'one']])->remove('c.1');
+
+		self::assertSame([['op' => 'remove', 'path' => ['c', '1']]], $map->getOperations());
+		self::assertSame([['op' => 'remove', 'path' => ['c', 1]]], $list->getOperations());
+	}
+
+	public function testACallerSaysWhichItMeansWithSetAt(): void
+	{
+		$member = new JsonPatch()->setAt(['c', '1'], 'v');
+		$entry  = new JsonPatch()->setAt(['c', 1], 'v');
+
+		self::assertSame(['c', '1'], $member->getOperations()[0]['path']);
+		self::assertSame(['c', 1], $entry->getOperations()[0]['path']);
+	}
+
+	public function testANegativeEntryIndexIsRefused(): void
+	{
+		$this->expectException(InvalidArgumentException::class);
+
+		new JsonPatch()->setAt(['c', -1], 'v');
+	}
+
+	public function testAppendKeepsEachOperationKind(): void
+	{
+		$patch = new JsonPatch()->setAt(['c', 1], 'entry');
+
+		$patch->append(new JsonPatch()->setAt(['d', '1'], 'member'));
+
+		self::assertSame([['c', 1], ['d', '1']], \array_column($patch->getOperations(), 'path'));
 	}
 }

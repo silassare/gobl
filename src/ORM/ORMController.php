@@ -700,6 +700,7 @@ abstract class ORMController
 	 *   - after a successful insert, fetches `lastInsertId()` and hydrates the entity with it,
 	 *     then marks it saved via `isSaved(true)`.
 	 * - **UPDATE path** (entity exists and is not saved):
+	 *   - writes the columns the entity changed ({@see ORMEntity::toRowChanges()}) and no others.
 	 *   - builds an identity filter via `toIdentityFilters()` and updates with `limit(1)`.
 	 *   - marks the entity saved after a successful update.
 	 *
@@ -711,10 +712,9 @@ abstract class ORMController
 	 */
 	private function persistItem(ORMEntity $entity): void
 	{
-		$values = $entity->toRow();
-
 		if ($entity->isNew()) {
-			// it is a creation
+			// The whole row: there is none yet for anything to be left to.
+			$values        = $entity->toRow();
 			$aic_full_name = $this->ai_column_full_name;
 
 			if (!empty($aic_full_name) && null !== $values[$aic_full_name]) {
@@ -749,13 +749,16 @@ abstract class ORMController
 				$entity->hydrate([$aic_full_name => $last_insert_id])
 					->isSaved(true);
 			}
-		} elseif (!empty($values) && !$entity->isSaved()) {
-			// its an update
-			// A column dirtied through a patch is written as its paths, which the database applies to
-			// the row it holds: the value in hand was read before another transaction may have
-			// written to the column, and would undo what it wrote.
-			foreach ($entity->toRowPatches() as $column_full_name => $patch) {
-				$values[$column_full_name] = $patch;
+		} elseif (!$entity->isSaved()) {
+			// An update writes the columns this entity changed and no others. Writing the whole row
+			// back would carry every column as it was read, so a column another request wrote
+			// meanwhile is undone by whichever of the two answers last -- and a column dirtied
+			// through a patch is written as its paths, which the database applies to the row it
+			// holds rather than to the document this one read.
+			$values = $entity->toRowChanges();
+
+			if (empty($values)) {
+				return;
 			}
 
 			/** @var TQuery $tq */

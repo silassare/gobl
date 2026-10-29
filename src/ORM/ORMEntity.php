@@ -91,6 +91,16 @@ abstract class ORMEntity implements ArrayCapableInterface
 	private array $_oeb_patches = [];
 
 	/**
+	 * The columns given a whole value since the entity was last saved, keyed by full column name.
+	 *
+	 * A patch that follows one cannot be sent as paths on its own: the row holds none of that value
+	 * yet, so the paths would be applied to what the row had before it. See {@see self::_oebWrite()}.
+	 *
+	 * @var array<string, true>
+	 */
+	private array $_oeb_whole_writes = [];
+
+	/**
 	 * Hash snapshots frozen at the last save (or PDO load), keyed by full column name.
 	 * Baseline for dirty detection; captures content before any in-place mutation
 	 * of mutable values (e.g. Map) can change what `_oeb_row` points to.
@@ -164,7 +174,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 */
 	public function __destruct()
 	{
-		unset($this->_oeb_db, $this->_oeb_table, $this->_oeb_row, $this->_oeb_from_db, $this->_oeb_dirty, $this->_oeb_patches, $this->_oeb_saved_hashes, $this->_oeb_partial_columns, $this->_oeb_computed);
+		unset($this->_oeb_db, $this->_oeb_table, $this->_oeb_row, $this->_oeb_from_db, $this->_oeb_dirty, $this->_oeb_patches, $this->_oeb_whole_writes, $this->_oeb_saved_hashes, $this->_oeb_partial_columns, $this->_oeb_computed);
 	}
 
 	/**
@@ -437,6 +447,27 @@ abstract class ORMEntity implements ArrayCapableInterface
 	}
 
 	/**
+	 * What this entity changed since it was last saved, keyed by full column name.
+	 *
+	 * A column dirtied through a patch answers with the patch, so the UPDATE sends its paths rather
+	 * than the document. This is what an UPDATE writes, and nothing else: a column nobody changed
+	 * is left to the row, because writing it back would carry the value as this entity read it and
+	 * undo whatever another request wrote to it meanwhile.
+	 *
+	 * @return array<string, mixed>
+	 */
+	final public function toRowChanges(): array
+	{
+		$changes = [];
+
+		foreach ($this->_oeb_dirty as $full_name => $_) {
+			$changes[$full_name] = $this->_oeb_patches[$full_name] ?? $this->_oeb_row[$full_name];
+		}
+
+		return $changes;
+	}
+
+	/**
 	 * Save modifications to database.
 	 *
 	 * @return bool `true` when an insert or update occur,
@@ -459,13 +490,8 @@ abstract class ORMEntity implements ArrayCapableInterface
 		}
 
 		if (!empty($this->_oeb_from_db) && !$this->isSaved()) {
-			$to_update = [];
-
-			foreach ($this->_oeb_dirty as $column_name => $_) {
-				// The patch of a column dirtied through one, so that the paths reach the UPDATE and
-				// the row the database holds is what they are applied to.
-				$to_update[$column_name] = $this->_oeb_patches[$column_name] ?? $this->_oeb_row[$column_name];
-			}
+			// The changed columns only, a patched one as its paths: see toRowChanges().
+			$to_update = $this->toRowChanges();
 
 			if (!empty($to_update)) {
 				$options = new ORMOptions();
@@ -517,9 +543,10 @@ abstract class ORMEntity implements ArrayCapableInterface
 				$this->_oeb_from_db[$full_name]      = true;
 			}
 
-			$this->_oeb_dirty   = [];
-			$this->_oeb_patches = [];
-			$this->_oeb_is_new  = false;
+			$this->_oeb_dirty         = [];
+			$this->_oeb_patches       = [];
+			$this->_oeb_whole_writes  = [];
+			$this->_oeb_is_new        = false;
 		}
 
 		return empty($this->_oeb_dirty) && !$this->_oeb_is_new;
@@ -799,9 +826,18 @@ abstract class ORMEntity implements ArrayCapableInterface
 			$this->_oeb_patches[$full_name] = $patch->append($value);
 
 			$value = $patch->toArray();
+
+			if (isset($this->_oeb_whole_writes[$full_name])) {
+				// The column was already given a whole value this round, which no path of this
+				// patch carries: the row has none of it yet, so sending the paths alone would drop
+				// it. The document answers for both.
+				unset($this->_oeb_patches[$full_name]);
+			}
 		} else {
 			// A whole value answers for the column on its own.
 			unset($this->_oeb_patches[$full_name]);
+
+			$this->_oeb_whole_writes[$full_name] = true;
 		}
 
 		$clean      = $this->doValidation($full_name, $value);
@@ -928,7 +964,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 				->getType()
 				->hash($value);
 
-			unset($this->_oeb_dirty[$full_name], $this->_oeb_subjects[$full_name], $this->_oeb_patches[$full_name]);
+			unset($this->_oeb_dirty[$full_name], $this->_oeb_subjects[$full_name], $this->_oeb_patches[$full_name], $this->_oeb_whole_writes[$full_name]);
 		}
 
 		return $this;

@@ -1,5 +1,57 @@
 ### Unreleased (3.0.x-dev)
 
+- **A JSON column's patch never reached the database as paths.** `JsonPatch` exists so an UPDATE
+  sends the paths a request changed and the engine applies them to the row it holds, which is what
+  keeps two requests writing different keys of one document from undoing each other. On the ORM path
+  it never happened: `Table::doPhpToDbConversion()` ran `phpToDb()` over every value on its way to
+  the query builder, and for a patch that answers the **patched document** -- so the paths were gone
+  before the builder could express them, and every save wrote the whole document from the copy the
+  request had read. A patch is passed through untouched now, and the builder encodes the document
+  itself in the one case it writes one.
+
+  The tests did not catch it because `ORMController::updateOneItem()` re-reads the row at save time
+  and applies the patch to what it finds, which narrows the race to the gap between that read and
+  the UPDATE: wide enough to lose writes under real concurrency, narrow enough that a test holding a
+  request open for a second and a half still passed. The patch integration suite now runs against
+  all three engines with the paths genuinely in the SQL, which is how the two bugs below surfaced.
+
+- **An UPDATE wrote every column of the row, not the ones that changed.**
+  `ORMController::persistItem()` built its UPDATE from `$entity->toRow()`, so a save carried every
+  column as the entity had read it and undid a concurrent write to any other column -- a sign-in
+  landing on a session another request was saving, for instance. It writes
+  `ORMEntity::toRowChanges()`: the dirty columns, a patched one as its paths. `ORMEntity::save()`
+  computed the same list inline and now shares it.
+
+- **An object member whose name is a number can be patched.** A path segment of all digits was
+  refused outright, so one numeric key anywhere in a document sent the whole thing -- reachable from
+  ordinary request data, a page editor keeping blocks under their numeric ids among it. The two
+  readings are now told apart: a **string** segment is an object member (`$.blocks."12"`), an **int**
+  segment is an array entry (`$.tags[0]`), and `set()` / `remove()` read a digit segment off the
+  document -- a member when a map is already there, an entry when what is there is missing, empty or
+  a list, which is the reading under which the SQL and `toArray()` agree. The container above a path
+  is made of the kind that path addresses, because an engine asked for a member of an array writes
+  nothing and does not say so. **Breaking**: `set('tags.0', v)` addressed nothing before and
+  addresses an entry now; a caller that means a member named `0` says so with `setAt(['tags', '0'], v)`.
+
+- **A patch that cannot be sent as paths says so.** Falling back to the whole document gives back
+  the lost update the paths exist to prevent, and it was silent. The generator answers a
+  `JsonPatchExpression` carrying the reason, the fallback dispatches `JsonPatchNotExpressible` with
+  the column and the paths, and a column declared `patchOnly()` raises instead -- for a column
+  several requests write at once, each owning part of it. A patch-only column also refuses a whole
+  value in an UPDATE, since that is the same lost update by another route.
+
+- **A whole value written before a patch of the same column was dropped.** `_oebWrite()` seeded the
+  pending patch from the row it had just modified, so `setData(['a' => 1])` then
+  `setDataKey('b', 2)` sent only `$.b` and the row never got `a`: the entity read back the right
+  document and the database held another. The column is written whole when a value preceded a patch.
+
+- **Two engine-specific path bugs, found once the paths were really being sent.** SQLite's
+  `json_extract()` unwraps a scalar into plain text, so reading the type of a string member asked
+  `json_type()` to parse `a string` and it refused the statement as malformed JSON; SQLite reads the
+  type at the path instead (`json_type(X, P)`). On PostgreSQL, `#>` reads a `jsonb` and nothing
+  else, so a column storing JSON as text raised `operator does not exist: text #> text[]`; the
+  operand is cast.
+
 - **The suite fails on a deprecation, and the three answers to an unknown column are one.** The
   PHPUnit config carried `failOnWarning` alone, so a deprecation, a notice or a risky test passed
   unseen: PHP 8.5 deprecates a null array offset in every form (`isset()`, `??` and `empty()`

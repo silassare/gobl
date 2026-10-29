@@ -34,4 +34,9 @@ final class JsonPatchUpdatePostgreSQLTest extends JsonPatchUpdateTestCase
 	{
 		return PostgreSQL::NAME;
 	}
+
+	protected static function getJsonSetFunctionName(): string
+	{
+		return 'jsonb_set';
+	}
 }

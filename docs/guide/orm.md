@@ -197,18 +197,48 @@ the row will hold.
 The whole document is written instead of the paths when:
 
 - the write is an INSERT -- there is no row to apply a patch to;
-- a path is empty, or a segment reads as an array index (`tags.0`), which a JSON path expression
-  cannot tell from a member named `0`;
 - two of the patch's paths are the same or one is inside the other, so the result would depend on
   the order they are applied in;
+- one container is addressed both as an object and as an array, which it cannot be made;
 - a value does not encode as JSON.
 
-The result is the same in each case; what is lost is only the merge the database would have done.
+The result is the same in each case; what is lost is the merge the database would have done -- which
+is the lost update the paths exist to prevent, so it is never silent: the fallback dispatches
+`Gobl\DBAL\Events\JsonPatchNotExpressible` with the column, the reason and the paths. A column
+that may not take the risk is declared `patchOnly()` and raises instead:
+
+```php
+// Several requests write this column at once, each owning part of the document.
+$tb->map('data')->patchOnly();
+```
+
+Such a column also refuses a whole value in an UPDATE, since that is the same lost update by
+another route. An INSERT still writes the document.
+
 MySQL and PostgreSQL keep an object's members in an order of their own, so a patched document may
 come back with its keys in another order than it was written in.
 
-Use `JsonPatch::setAt()` / `removeAt()` to address a key that holds a dot or a bracket: they take
-the path as segments, where `set()` and `remove()` read it as a dot path.
+#### A member named `12` is not the entry at index 12
+
+JSON tells an object's members from an array's entries and PHP does not: `$a['12']` and `$a[12]` are
+one slot. The engines are strict about it and unforgiving -- MySQL and SQLite write `$.b."12"` for
+the member and `$.b[12]` for the entry, and a path asking for the wrong one **writes nothing at all
+and reports no error**. So a segment carries which it is:
+
+```php
+$patch->setAt(['blocks', '12'], $block);  // member:  $.blocks."12"
+$patch->setAt(['tags', 0], 'first');      // entry:   $.tags[0]
+```
+
+`set()` and `remove()` take a path string, which cannot say which is meant, so they read it off the
+document the patch holds: a digit segment is a **member** when a map is already there, and an
+**entry** when what is there is missing, empty or a list. That is the reading under which the path
+expression and `toArray()` always agree. A caller that does not want the question asked uses
+`setAt()` / `removeAt()`, which also address a key holding a dot or a bracket -- they take the path
+as segments, where `set()` and `remove()` read it as a dot path.
+
+The container above a written path is made of the kind that path addresses, so a document that held
+an object where an entry is written gets an array, as `set()` on such an intermediate does in PHP.
 
 ---
 

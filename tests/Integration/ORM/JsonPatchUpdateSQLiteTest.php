@@ -34,4 +34,9 @@ final class JsonPatchUpdateSQLiteTest extends JsonPatchUpdateTestCase
 	{
 		return SQLite::NAME;
 	}
+
+	protected static function getJsonSetFunctionName(): string
+	{
+		return 'json_set';
+	}
 }

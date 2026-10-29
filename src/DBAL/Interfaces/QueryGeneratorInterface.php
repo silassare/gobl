@@ -21,6 +21,7 @@ use Gobl\DBAL\Filters\Interfaces\FilterInterface;
 use Gobl\DBAL\Queries\Interfaces\QBInterface;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Types\Utils\JsonPatch;
+use Gobl\DBAL\Types\Utils\JsonPatchExpression;
 use Gobl\DBAL\Types\Utils\JsonPath;
 
 /**
@@ -78,28 +79,29 @@ interface QueryGeneratorInterface
 	public function getJsonContainsExpression(string $left, string $right): string;
 
 	/**
-	 * Returns the SET expression that applies a patch's paths to a JSON column, or null to send the
-	 * whole document instead.
+	 * Returns the SET expression that applies a patch's paths to a JSON column, or the reason it
+	 * cannot be expressed that way.
 	 *
 	 * The expression reads the column and writes it back with the paths applied, so the row the
 	 * database holds is what the patch is applied to: two transactions patching different paths of
 	 * one column keep each other's writes, where a document written from either one's copy would
-	 * not. Null is the answer whenever the operations cannot be expressed as paths, and the caller
-	 * then writes {@see JsonPatch::toMap()} as before.
+	 * not. When the operations cannot be expressed as paths the answer carries why, and the caller
+	 * writes {@see JsonPatch::toMap()} instead -- which gives back the lost update the paths exist
+	 * to prevent, so it is reported and not done quietly.
 	 *
 	 * @param Column    $column     the column being patched
 	 * @param string    $column_ref the column reference as the SET clause names it
 	 * @param JsonPatch $patch      the patch to express
 	 * @param callable  $bind       binds a value and returns its placeholder: `fn (mixed): string`
 	 *
-	 * @return null|string the dialect-specific SET expression, or null when the patch cannot be expressed
+	 * @return JsonPatchExpression the dialect-specific SET expression, or why there is none
 	 */
 	public function getJsonPatchUpdateExpression(
 		Column $column,
 		string $column_ref,
 		JsonPatch $patch,
 		callable $bind
-	): ?string;
+	): JsonPatchExpression;
 
 	/**
 	 * Returns the dialect-specific SQL expression that checks for top-level key existence.

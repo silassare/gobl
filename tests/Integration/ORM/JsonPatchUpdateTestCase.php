@@ -14,11 +14,14 @@ declare(strict_types=1);
 namespace Gobl\Tests\Integration\ORM;
 
 use Gobl\DBAL\Builders\TableBuilder;
+use Gobl\DBAL\Events\JsonPatchNotExpressible;
+use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Types\Utils\JsonPatch;
 use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\ORM\ORM;
 use Gobl\ORM\ORMEntity;
+use Gobl\Gobl;
 use Gobl\ORM\ORMOptions;
 use Gobl\Tests\BaseTestCase;
 use Throwable;
@@ -96,6 +99,8 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 					// The same column stored as text instead of the engine's JSON type: the patch is
 					// written back as text, where a native column takes the JSON value as it is.
 					$tb->map('plain')->nativeJson(false)->default([]);
+					// A column that may not be written whole: several requests own part of it.
+					$tb->map('guarded')->patchOnly()->default([]);
 					$tb->string('label')->max(60)->nullable();
 				});
 
@@ -359,7 +364,249 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 		self::assertSame('fr', $data['oz']['lang'] ?? null, 'the other write was lost');
 	}
 
+
+	/**
+	 * A member whose name is a number, patched in place while another request writes elsewhere.
+	 *
+	 * This is the shape that cost a partner their uploads: a page editor keeping blocks under their
+	 * numeric ids made every path of its patch unexpressible, so the request wrote the whole
+	 * document and undid the upload reference another request had just written. Both survive now.
+	 */
+	public function testAMemberNamedLikeANumberDoesNotTakeTheDocumentWithIt(): void
+	{
+		$id = $this->addBox([
+			'blocks' => ['12' => ['title' => 'before']],
+			'refs'   => ['first' => true],
+		]);
+
+		$editor   = $this->getBox($id);
+		$uploader = $this->getBox($id);
+
+		$this->patch($editor, static fn (JsonPatch $patch) => $patch->set('blocks.12.title', 'after'));
+		$this->patch($uploader, static fn (JsonPatch $patch) => $patch->set('refs.second', true));
+
+		$data = $this->storedData($id);
+
+		self::assertSame('after', $data['blocks']['12']['title'] ?? null, 'the editor write was lost');
+		self::assertTrue($data['refs']['first'] ?? false, 'the reference already there was lost');
+		self::assertTrue($data['refs']['second'] ?? false, 'the concurrent reference was lost');
+	}
+
+	/**
+	 * An entry of an array, addressed as a position, with a concurrent write kept.
+	 */
+	public function testAnArrayEntryIsWrittenInPlace(): void
+	{
+		$id = $this->addBox(['tags' => ['zero', 'one'], 'keep' => true]);
+
+		$first  = $this->getBox($id);
+		$second = $this->getBox($id);
+
+		$this->patch($first, static fn (JsonPatch $patch) => $patch->set('tags.1', 'ONE'));
+		$this->patch($second, static fn (JsonPatch $patch) => $patch->set('other', 'written'));
+
+		$data = $this->storedData($id);
+
+		self::assertSame(['zero', 'ONE'], $data['tags'] ?? null, 'the entry was not written in place');
+		self::assertTrue($data['keep'] ?? false);
+		self::assertSame('written', $data['other'] ?? null, 'the concurrent write was lost');
+	}
+
+	/**
+	 * A patch that makes an array where the row has nothing, and one that makes an object: the
+	 * container is made of the kind the path addresses, which is the only way the engines write it.
+	 */
+	public function testAPatchMakesTheContainerOfTheKindItAddresses(): void
+	{
+		$id = $this->addBox([]);
+
+		$entity = $this->getBox($id);
+
+		$patch = new JsonPatch($entity->data);
+		$patch->setAt(['list', 0], 'entry')
+			->setAt(['map', '0'], 'member');
+		$entity->data = $patch;
+
+		self::assertTrue($entity->save());
+
+		$data = $this->storedData($id);
+
+		self::assertSame(['entry'], $data['list'] ?? null, 'the array was not made');
+		self::assertSame(['0' => 'member'], $data['map'] ?? null, 'the object was not made');
+	}
+
+	/**
+	 * A whole value, then a patch of the same column before the save: the row holds none of the
+	 * value yet, so the paths alone would drop it and the document is written instead.
+	 */
+	public function testAWholeValueBeforeAPatchIsKept(): void
+	{
+		$id = $this->addBox(['old' => true]);
+
+		$entity       = $this->getBox($id);
+		$entity->data = ['a' => 1];
+		$entity->setDataKey('b', 2);
+
+		self::assertTrue($entity->save());
+		self::assertSameDocument(['a' => 1, 'b' => 2], $this->storedData($id));
+	}
+
+	/**
+	 * A patch the paths cannot carry says so, rather than writing the document in silence.
+	 */
+	public function testAPatchThatCannotBeSentAsPathsIsReported(): void
+	{
+		$id = $this->addBox(['a' => ['b' => 1]]);
+
+		$entity = $this->getBox($id);
+
+		$reported = [];
+		$detach   = JsonPatchNotExpressible::listen(
+			static function (JsonPatchNotExpressible $ev) use (&$reported): void {
+				$reported[] = $ev;
+			}
+		);
+
+		try {
+			$patch = new JsonPatch($entity->data);
+			$patch->set('a', ['b' => 9])
+				->set('a.c', 3);
+			$entity->data = $patch;
+
+			self::assertTrue($entity->save());
+		} finally {
+			$detach();
+		}
+
+		self::assertCount(1, $reported, 'the fallback to the document was not reported');
+		self::assertSame('gObL_boxes', $reported[0]->table_name);
+		self::assertSame('box_data', $reported[0]->column_name);
+		self::assertStringContainsString('inside one another', $reported[0]->reason);
+		self::assertSame(['set a', 'set a.c'], $reported[0]->paths);
+	}
+
+	/**
+	 * A column declared patch-only refuses the write instead of losing another request's.
+	 */
+	public function testAPatchOnlyColumnRefusesToBeWrittenWhole(): void
+	{
+		$id = $this->addBox([]);
+
+		$entity = $this->getBox($id);
+
+		$patch = new JsonPatch($entity->guarded);
+		$patch->set('a', ['b' => 9])
+			->set('a.c', 3);
+
+		$this->expectException(DBALRuntimeException::class);
+		$this->expectExceptionMessageMatches('~box_guarded.+inside one another~');
+
+		$entity->guarded = $patch;
+		$entity->save();
+	}
+
+	/**
+	 * A patch-only column takes a patch that can be sent as paths, which is the point of declaring
+	 * it: only the write that would lose another is refused.
+	 */
+	public function testAPatchOnlyColumnTakesAPatchItCanSendAsPaths(): void
+	{
+		$id = $this->addBox([]);
+
+		$first  = $this->getBox($id);
+		$second = $this->getBox($id);
+
+		// A store keeping entries under a name says so, rather than leaving a digit to be read
+		// off a document that has nothing there yet: a string segment is a member, always.
+		$patch = new JsonPatch($first->guarded);
+		$patch->setAt(['refs', '12'], 'a');
+		$first->guarded = $patch;
+		self::assertTrue($first->save());
+
+		$patch = new JsonPatch($second->guarded);
+		$patch->setAt(['refs', '13'], 'b');
+		$second->guarded = $patch;
+		self::assertTrue($second->save());
+
+		$data = $this->getBox($id)->guarded->getData();
+
+		self::assertSame(['12' => 'a', '13' => 'b'], $data['refs'] ?? null);
+	}
+
+
+	/**
+	 * The paths reach the database.
+	 *
+	 * The guard for the defect under all of the above: every value on its way to the query builder
+	 * went through `phpToDb()`, which for a patch answers the patched **document** -- so the paths
+	 * were gone before they could be expressed, and every save wrote the whole document from the
+	 * copy the request had read. Nothing in the result showed it, because the row ends up holding
+	 * the same thing; what was lost was only the other request's write.
+	 *
+	 * Asserting on the result cannot catch that, so this asserts on the statement.
+	 */
+	public function testTheUpdateCarriesThePathsAndNotTheDocument(): void
+	{
+		$id = $this->addBox(['a' => 1]);
+
+		$entity = $this->getBox($id);
+
+		Gobl::ql()->enable();
+
+		try {
+			$this->patch($entity, static fn (JsonPatch $patch) => $patch->set('b.c', 2));
+
+			$updates = \array_filter(
+				Gobl::ql()->getLogs(),
+				static fn (array $log): bool => \str_contains(\strtoupper((string) ($log['query'] ?? '')), 'UPDATE')
+			);
+		} finally {
+			Gobl::ql()->enable(false);
+		}
+
+		self::assertNotEmpty($updates, 'the save ran no UPDATE');
+
+		$sql = (string) \reset($updates)['query'];
+
+		self::assertStringContainsStringIgnoringCase(
+			static::getJsonSetFunctionName(),
+			$sql,
+			'the UPDATE wrote a document instead of the paths: ' . $sql
+		);
+	}
+
+	/**
+	 * An UPDATE writes the columns the entity changed and no others.
+	 *
+	 * It used to write the whole row, so a save carried every column as the entity had read it and
+	 * undid a concurrent write to any other one -- nothing to do with JSON, and the same lost update
+	 * on a plain column.
+	 */
+	public function testASaveLeavesTheColumnsItDidNotChangeAlone(): void
+	{
+		$id = $this->addBox(['a' => 1]);
+
+		$first  = $this->getBox($id);
+		$second = $this->getBox($id);
+
+		// One request renames the box; the other, which read the old name, patches the document.
+		$first->label = 'renamed';
+		self::assertTrue($first->save());
+
+		$this->patch($second, static fn (JsonPatch $patch) => $patch->set('b', 2));
+
+		$stored = $this->getBox($id);
+
+		self::assertSame('renamed', $stored->label, 'the rename was undone by a save of another column');
+		self::assertSameDocument(['a' => 1, 'b' => 2], $stored->data->getData());
+	}
+
 	abstract protected static function getDriverName(): string;
+
+	/**
+	 * The name of the function this engine writes a path with, as the UPDATE spells it.
+	 */
+	abstract protected static function getJsonSetFunctionName(): string;
 
 	/**
 	 * Two documents hold the same thing, whatever order their keys are in.
@@ -398,7 +645,12 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 	{
 		$ctrl = ORM::ctrl(static::$db->getTableOrFail('boxes'));
 
-		$created = $ctrl->addItem(['box_data' => $data, 'box_plain' => $data, 'box_label' => 'probe']);
+		$created = $ctrl->addItem([
+			'box_data'    => $data,
+			'box_plain'   => $data,
+			'box_guarded' => $data,
+			'box_label'   => 'probe',
+		]);
 
 		return (int) $created->id;
 	}

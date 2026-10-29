@@ -13,10 +13,14 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Queries\Traits;
 
+use Gobl\DBAL\Column;
+use Gobl\DBAL\Events\JsonPatchNotExpressible;
+use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Queries\QBExpression;
 use Gobl\DBAL\Queries\QBType;
 use Gobl\DBAL\Queries\QBUtils;
 use Gobl\DBAL\Table;
+use Gobl\DBAL\Types\TypeJson;
 use Gobl\DBAL\Types\Utils\JsonPatch;
 use Gobl\DBAL\Types\Utils\TypeUtils;
 
@@ -72,10 +76,30 @@ trait QBSetColumnsValuesTrait
 		foreach ($values as $column_full_name => $value) {
 			$col = $table->getColumnOrFail($column_full_name);
 
+			if (
+				QBType::UPDATE === $this->getType()
+				&& !$value instanceof JsonPatch
+				&& !$value instanceof QBExpression
+				&& self::isPatchOnlyColumn($col)
+			) {
+				// A whole value is every key as this caller read them, so it undoes whatever another
+				// request wrote meanwhile. A column declared patch-only is written by its paths or
+				// not at all; an INSERT is the document either way, since there is no row yet.
+				throw new DBALRuntimeException(\sprintf(
+					'The column "%s"."%s" is declared patch-only and cannot be written whole by an'
+					. ' UPDATE: write it through a JsonPatch, so the paths reach the row.',
+					$table->getFullName(),
+					$col->getFullName()
+				), [
+					'_table'  => $table->getFullName(),
+					'_column' => $col->getFullName(),
+				]);
+			}
+
 			if ($value instanceof JsonPatch) {
-				$patch_params = [];
-				$expression   = QBType::UPDATE === $this->getType()
-					? $this->db->getGenerator()
+				if (QBType::UPDATE === $this->getType()) {
+					$patch_params = [];
+					$expression   = $this->db->getGenerator()
 						->getJsonPatchUpdateExpression(
 							$col,
 							$column_full_name,
@@ -86,19 +110,27 @@ trait QBSetColumnsValuesTrait
 
 								return ':' . $param_key;
 							}
-						)
-					: null;
+						);
 
-				if (null !== $expression) {
-					// The expression is already of the column's type, so it skips the cast a value
-					// goes through. An INSERT gets the document: there is no row to patch yet.
-					$params                     = \array_merge($params, $patch_params);
-					$columns[$column_full_name] = $expression;
+					if ($expression->isExpressible()) {
+						// The expression is already of the column's type, so it skips the cast a
+						// value goes through.
+						$params                     = \array_merge($params, $patch_params);
+						$columns[$column_full_name] = $expression->sql;
 
-					continue;
+						continue;
+					}
+
+					// Writing the document gives back the lost update the paths exist to prevent, so
+					// it is reported, and refused on a column that may not take it.
+					$this->reportJsonPatchFallback($table, $col, $value, (string) $expression->reason);
 				}
 
-				$value = $value->toMap();
+				// An INSERT gets the document: there is no row to patch yet. The conversion the
+				// patch was spared on its way here (see Table::doPhpToDbConversion()) happens now,
+				// since what goes out is a value and no longer a set of paths.
+				$value = $col->getType()
+					->phpToDb($value->toMap(), $this->db);
 			}
 
 			if ($value instanceof QBExpression) {
@@ -115,5 +147,54 @@ trait QBSetColumnsValuesTrait
 		$this->bindArray($params);
 
 		return $columns;
+	}
+
+	/**
+	 * Says that a patch went out as the whole document, and refuses it when the column may not.
+	 *
+	 * @throws DBALRuntimeException when the column is declared patch-only
+	 */
+	private function reportJsonPatchFallback(Table $table, Column $col, JsonPatch $patch, string $reason): void
+	{
+		$paths = [];
+
+		foreach ($patch->getOperations() as $operation) {
+			$path = '';
+
+			foreach ($operation['path'] as $segment) {
+				$path .= \is_int($segment) ? '[' . $segment . ']' : ('' === $path ? '' : '.') . $segment;
+			}
+
+			$paths[] = $operation['op'] . ' ' . $path;
+		}
+
+		$event = new JsonPatchNotExpressible(
+			$table->getFullName(),
+			$col->getFullName(),
+			$this->db->getType(),
+			$reason,
+			$paths
+		);
+
+		if (self::isPatchOnlyColumn($col)) {
+			throw new DBALRuntimeException($event->message(), [
+				'_table'  => $event->table_name,
+				'_column' => $event->column_name,
+				'_reason' => $event->reason,
+				'_paths'  => $event->paths,
+			]);
+		}
+
+		$event->dispatch();
+	}
+
+	/**
+	 * Whether the column may only be written by a patch's paths.
+	 */
+	private static function isPatchOnlyColumn(Column $col): bool
+	{
+		$base = $col->getType()->getBaseType();
+
+		return $base instanceof TypeJson && $base->isPatchOnly();
 	}
 }

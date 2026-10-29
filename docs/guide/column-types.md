@@ -218,6 +218,11 @@ Stores an associative array (JSON object) in the database. Returns a `Map` wrapp
 
 > **Fluent builder default:** `$t->map('col')` uses `native_json=true` by default.
 > Use `$t->map('col', false)` or `->nativeJson(false)` to opt out and store as TEXT.
+
+> A column several requests write at once, each owning part of the document, is declared
+> `->patchOnly()`: an UPDATE that cannot be sent as a patch's paths raises instead of writing the
+> document and undoing whatever another request wrote meanwhile. See
+> [Patching a JSON column](orm.md#patching-a-json-column).
 >
 > **Array schema default:** `native_json` defaults to `true` as well. Use `'native_json' => false` to opt out.
 
@@ -263,6 +268,11 @@ Returns `array` in PHP.
 
 > **Fluent builder default:** `$t->list('col')` uses `native_json=true` by default.
 > Use `$t->list('col', false)` or `->nativeJson(false)` to opt out and store as TEXT.
+
+> A column several requests write at once, each owning part of the document, is declared
+> `->patchOnly()`: an UPDATE that cannot be sent as a patch's paths raises instead of writing the
+> document and undoing whatever another request wrote meanwhile. See
+> [Patching a JSON column](orm.md#patching-a-json-column).
 >
 > **Array schema default:** `native_json` defaults to `true` as well. Use `'native_json' => false` to opt out.
 
@@ -298,6 +308,11 @@ empty string read as `null`.
 
 > **Fluent builder default:** `$t->json('col')` uses `native_json=true` by default.
 > Use `$t->json('col', false)` or `->nativeJson(false)` to opt out and store as TEXT.
+
+> A column several requests write at once, each owning part of the document, is declared
+> `->patchOnly()`: an UPDATE that cannot be sent as a patch's paths raises instead of writing the
+> document and undoing whatever another request wrote meanwhile. See
+> [Patching a JSON column](orm.md#patching-a-json-column).
 >
 > **Array schema default:** `native_json` defaults to `true` as well. Use `'native_json' => false` to opt out.
 
