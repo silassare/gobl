@@ -481,7 +481,7 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 		self::assertCount(1, $reported, 'the fallback to the document was not reported');
 		self::assertSame('gObL_boxes', $reported[0]->table_name);
 		self::assertSame('box_data', $reported[0]->column_name);
-		self::assertStringContainsString('inside one another', $reported[0]->reason);
+		self::assertStringContainsString('writes "a.c" inside "a"', $reported[0]->reason);
 		self::assertSame(['set a', 'set a.c'], $reported[0]->paths);
 	}
 
@@ -499,7 +499,7 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 			->set('a.c', 3);
 
 		$this->expectException(DBALRuntimeException::class);
-		$this->expectExceptionMessageMatches('~box_guarded.+inside one another~');
+		$this->expectExceptionMessageMatches('~box_guarded.+writes "a\.c" inside "a"~');
 
 		$entity->guarded = $patch;
 		$entity->save();
@@ -599,6 +599,34 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 
 		self::assertSame('renamed', $stored->label, 'the rename was undone by a save of another column');
 		self::assertSameDocument(['a' => 1, 'b' => 2], $stored->data->getData());
+	}
+
+	/**
+	 * One path written twice in a patch: the engine applies the operations in the order they were
+	 * asked for, so the last one answers for the path -- and the keys another request wrote are
+	 * still there, which is what sending the document would have cost.
+	 */
+	public function testOnePathWrittenTwiceEndsAsTheLastWriteSaid(): void
+	{
+		$id = $this->addBox(['keep' => true]);
+
+		$first  = $this->getBox($id);
+		$second = $this->getBox($id);
+
+		// The two-factor shape: a flag set and cleared in one request.
+		$this->patch($first, static function (JsonPatch $patch): void {
+			$patch->set('oz.2fa.verified', true)
+				->remove('oz.2fa_pending_user')
+				->remove('oz.2fa.verified');
+		});
+
+		$this->patch($second, static fn (JsonPatch $patch) => $patch->set('other', 'written'));
+
+		$data = $this->storedData($id);
+
+		self::assertArrayNotHasKey('verified', $data['oz'] ?? [], 'the removal did not win over the set');
+		self::assertTrue($data['keep'] ?? false);
+		self::assertSame('written', $data['other'] ?? null, 'the concurrent write was lost');
 	}
 
 	abstract protected static function getDriverName(): string;

@@ -410,9 +410,10 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 
 		if (null !== $nested) {
 			return JsonPatchExpression::notExpressible(\sprintf(
-				'the paths "%s" and "%s" are inside one another, so the order they are applied in decides the result',
-				self::jsonPathAsText($nested[0]),
-				self::jsonPathAsText($nested[1])
+				'it writes "%s" inside "%s", which it has already written: the containers a path needs'
+					. ' are made from the row, so the result would depend on an order they cannot carry',
+				self::jsonPathAsText($nested[1]),
+				self::jsonPathAsText($nested[0])
 			));
 		}
 
@@ -1883,10 +1884,16 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 */
 	private static function jsonPatchNestedPaths(array $operations): ?array
 	{
-		foreach ($operations as $i => $operation) {
-			foreach ($operations as $j => $other) {
-				if ($i !== $j && self::isJsonPathWithin($operation['path'], $other['path'])) {
-					return [$operation['path'], $other['path']];
+		$count = \count($operations);
+
+		for ($i = 0; $i < $count; ++$i) {
+			for ($j = $i + 1; $j < $count; ++$j) {
+				// An operation on a container, and a later one writing inside it. Every container is
+				// made before any operation runs, each read from the column, so the later path is
+				// written into what the row held and not into what this operation left there -- into
+				// nothing at all, when this one removed it.
+				if (self::isJsonPathWithin($operations[$j]['path'], $operations[$i]['path'])) {
+					return [$operations[$i]['path'], $operations[$j]['path']];
 				}
 			}
 		}
@@ -1973,14 +1980,18 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	}
 
 	/**
-	 * Whether a path is the same as another or inside it.
+	 * Whether a path is strictly inside another: the other names a container this one writes within.
+	 *
+	 * The same path is not inside itself. Two operations on one path are applied in the order they
+	 * were asked for, as the expression nests them, so the last one answers for it -- which is what
+	 * they mean.
 	 *
 	 * @param list<int|string> $path
 	 * @param list<int|string> $other
 	 */
 	private static function isJsonPathWithin(array $path, array $other): bool
 	{
-		if (\count($other) > \count($path)) {
+		if (\count($other) >= \count($path)) {
 			return false;
 		}
 

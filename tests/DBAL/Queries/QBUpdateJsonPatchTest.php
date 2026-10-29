@@ -170,6 +170,40 @@ final class QBUpdateJsonPatchTest extends BaseTestCase
 	}
 
 	/**
+	 * One path written twice is applied in the order it was asked for: the expression nests the
+	 * operations, so the last one answers for the path. Two-factor verification does exactly this --
+	 * it sets a flag and clears it in the same request -- and refusing it sent the whole session
+	 * document, which is the lost update the paths exist to prevent.
+	 */
+	public function testOnePathWrittenTwiceIsStillSentAsPaths(): void
+	{
+		[$sql, $params] = $this->patchQuery(MySQL::NAME, static function (JsonPatch $patch): void {
+			$patch->set('oz.2fa.verified', true)
+				->remove('oz.2fa_pending_user')
+				->remove('oz.2fa.verified');
+		});
+
+		self::assertStringContainsString('JSON_SET', $sql);
+		self::assertStringContainsString('JSON_REMOVE', $sql);
+		self::assertSame(['true', 1], $params);
+	}
+
+	/**
+	 * A later path inside an earlier one cannot be sent: every container is made from the row before
+	 * any operation runs, so the later write would go into what the row held, or into nothing.
+	 */
+	public function testALaterPathInsideAnEarlierOneSendsTheDocument(): void
+	{
+		[$sql, $params] = $this->patchQuery(MySQL::NAME, static function (JsonPatch $patch): void {
+			$patch->remove('a')
+				->set('a.b', 1);
+		});
+
+		self::assertSame('UPDATE `gObL_clients` SET client_data = ? WHERE ((id = ?))', $sql);
+		self::assertSame(['a' => ['b' => 1]], \json_decode((string) $params[0], true));
+	}
+
+	/**
 	 * A container cannot be made an object and an array at once, and an engine asked for the wrong
 	 * one writes nothing without saying so: the document is written instead, with the reason.
 	 */
