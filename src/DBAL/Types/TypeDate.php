@@ -32,7 +32,16 @@ final class TypeDate extends Type
 	public const string NAME = 'date';
 
 	public const string FORMAT_TIMESTAMP = 'timestamp';
-	public const FORMAT_DEFAULT          = \DATE_ATOM;
+
+	/**
+	 * A date column is stored as the Unix timestamp it validated to, whatever was given
+	 * ({@see self::runValidation()} converts, {@see self::chooseBaseType()} stores a big integer, or
+	 * a decimal with microseconds), so reading one back answers that timestamp unless the column
+	 * asks for something else. Formatting is a presentation choice and belongs to whoever declared
+	 * the column, not to the library: a default that formatted meant code comparing a date as the
+	 * number it stored was reading a string, and casting one gave the year.
+	 */
+	public const string FORMAT_DEFAULT = self::FORMAT_TIMESTAMP;
 
 	/**
 	 * The messages given with the bounds, kept here as well as on the base type, so they survive
@@ -184,9 +193,12 @@ final class TypeDate extends Type
 	/**
 	 * Sets the date format used for storage and output.
 	 *
+	 * A column is stored as a Unix timestamp either way; this is how it is read back.
+	 *
 	 * Accepted values:
-	 *  - `'timestamp'`   - stores/returns a Unix timestamp integer (default for `auto` columns)
-	 *  - `DATE_ATOM`     - ISO 8601 string, e.g. `2024-01-15T20:30:00+00:00` (library default)
+	 *  - `'timestamp'`   - the Unix timestamp the column stores, which is the default
+	 *    ({@see self::FORMAT_DEFAULT})
+	 *  - `DATE_ATOM`     - ISO 8601 string, e.g. `2024-01-15T20:30:00+00:00`
 	 *  - any PHP `date()` format string, e.g. `'Y-m-d H:i:s'`, `'Y-m-d'`
 	 */
 	public function format(string $format): static

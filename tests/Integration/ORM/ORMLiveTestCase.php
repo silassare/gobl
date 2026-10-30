@@ -551,7 +551,10 @@ abstract class ORMLiveTestCase extends BaseTestCase
 
 		$seen = 0;
 
-		foreach (ORM::query($table)->find(ORMOptions::makeFromFilters(['client_last_name' => $open]))->lazy() as $client) {
+		$asked = ORMOptions::makeFromFilters(['client_last_name' => $open])
+			->ignoreMax();
+
+		foreach (ORM::query($table)->find($asked)->lazy() as $client) {
 			++$seen;
 
 			$client->last_name = $done;
@@ -562,7 +565,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 		self::assertSame(
 			0,
 			ORM::query($table)
-				->find(ORMOptions::makeFromFilters(['client_last_name' => $open]))
+				->find(ORMOptions::makeFromFilters(['client_last_name' => $open])->ignoreMax())
 				->getTotal(),
 			'and none is left behind'
 		);
@@ -592,7 +595,12 @@ abstract class ORMLiveTestCase extends BaseTestCase
 			]);
 		}
 
-		$results = ORM::query($table)->find(ORMOptions::makeFromFilters(['client_last_name' => $last]));
+		// Unlimited on purpose: a request that does not ask for a page size is given one
+		// ({@see ORMOptions} defaults to ten), and a read inside a window never reaches a second
+		// chunk, which is where resuming has to be right.
+		$asked   = ORMOptions::makeFromFilters(['client_last_name' => $last])
+			->ignoreMax();
+		$results = ORM::query($table)->find($asked);
 		$items   = \iterator_to_array($results->getItems(), false);
 
 		self::assertCount(150, $items, 'the list holds every row');

@@ -1,5 +1,18 @@
 ### Unreleased (3.0.x-dev)
 
+- **A date column answers the timestamp it stores.** `TypeDate` validated every value to a Unix
+  timestamp and stored it as a big integer, or a decimal with microseconds, and then read it back
+  formatted as an ISO 8601 string, because `FORMAT_DEFAULT` was `DATE_ATOM`. Its own docblock said
+  otherwise -- `'timestamp'`, "default for `auto` columns" -- and nothing implemented that. So
+  `$tb->timestamps()`, whose name says what it holds, gave back `2026-10-30T10:36:12+00:00`, and
+  code comparing one of these columns as the number it stores was comparing a string: cast to an
+  int it became `2026`, the year, half an hour past the epoch. `FORMAT_DEFAULT` is
+  `FORMAT_TIMESTAMP` now. Formatting is a presentation choice and stays with whoever declares the
+  column: `->format(DATE_ATOM)` for an ISO 8601 string, or any `date()` format.
+
+  **Breaking** for a date column that relied on the old default, and visible wherever a row is
+  answered: `toArray()` and anything built on it carry a timestamp where they carried a string.
+
 - **A chunked read stepped over rows, and said nothing.** `ORMResults::lazy()` read in chunks of a
   hundred and reached each one by counting the rows before it, so a body that writes to a column its
   own query filters on moved the set the count was taken against: of 240 pending jobs drained in one
