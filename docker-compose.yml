@@ -9,8 +9,13 @@ services:
         working_dir: /app
         volumes:
             - .:/app
-            # Named volume for vendor/ so Composer cache survives container restarts
-            - gobl_vendor:/app/vendor
+            # The bind mount above covers the vendor/ the image installed, so this puts it back.
+            # Anonymous and not named on purpose: a named volume is seeded from the image once and
+            # then shadows every later build, so a dependency bump left the old install in place --
+            # PHPUnit stayed at 9 under a composer.json asking for 13, and the suite died on an
+            # option that version had never heard of. An anonymous volume is made fresh for each
+            # one-off container, so what runs is what the image installed.
+            - /app/vendor
         depends_on:
             mysql:
                 condition: service_healthy
@@ -59,6 +64,3 @@ services:
             interval: 5s
             timeout: 5s
             retries: 10
-
-volumes:
-    gobl_vendor:
