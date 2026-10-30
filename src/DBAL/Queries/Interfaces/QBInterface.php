@@ -82,6 +82,12 @@ interface QBInterface
 	public function resetParameters(): void;
 
 	/**
+	 * Forgets one bound value, for a reader that had to bind one to a query it was handed and must
+	 * leave that query as it found it.
+	 */
+	public function unbind(int|string $name): static;
+
+	/**
 	 * Binds parameters array to query.
 	 *
 	 * @param array $params The params to bind

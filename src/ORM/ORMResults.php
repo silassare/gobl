@@ -61,6 +61,11 @@ abstract class ORMResults implements PaginationAwareListInterface, Countable, It
 	protected ?ORMEntity $current = null;
 
 	/**
+	 * The name the key a chunked read resumes from is bound under ({@see self::lazy()}).
+	 */
+	private const string LAZY_CURSOR_PARAM = 'gobl_lazy_cursor';
+
+	/**
 	 * ORMResults constructor.
 	 *
 	 * @param string   $namespace  the table namespace
@@ -102,6 +107,18 @@ abstract class ORMResults implements PaginationAwareListInterface, Countable, It
 	/**
 	 * Lazily iterate through large result set.
 	 *
+	 * Each chunk resumes from the key of the last row read, never from a count of the rows before
+	 * it. An offset is counted against the set as it stands at that moment, so a body that writes
+	 * to a column its own query filters on makes the set shrink under the count, and the rows
+	 * between the two are never read: a queue run that drained its pending jobs ran the first
+	 * hundred, then the forty an offset of a hundred still found, and reported itself done with a
+	 * hundred left waiting. An offset over a query that asks for no order is not sound even with
+	 * nobody writing, since nothing obliges the database to answer the rows in the same order twice.
+	 *
+	 * Resuming needs a key and an order; when the query gives neither
+	 * ({@see self::lazyCursorColumn()}) the rows are read from a single statement, which is right
+	 * whatever the body does but holds as much as the driver buffers.
+	 *
 	 * @param bool $strict    enable/disable strict mode on class fetch
 	 * @param int  $chunk_max maximum number of rows to fetch per chunk
 	 *
@@ -109,42 +126,122 @@ abstract class ORMResults implements PaginationAwareListInterface, Countable, It
 	 */
 	public function lazy(bool $strict = true, int $chunk_max = 100): Generator
 	{
+		$cursor = $this->lazyCursorColumn();
+
+		if (null === $cursor) {
+			$this->getStatement(true);
+
+			while ($entry = $this->fetchClass($strict)) {
+				yield $entry;
+			}
+
+			return;
+		}
+
+		[$key_name, $key_ref] = $cursor;
+
 		// The chunks stay inside the window the query asks for: reading in chunks is how the rows are
 		// fetched, not what is fetched. Without this a limited query would answer every row, since each
 		// chunk replaces its LIMIT.
 		$window_max    = $this->query->getOptionsLimitMax();
 		$window_offset = $this->query->getOptionsLimitOffset() ?? 0;
 		$yielded       = 0;
+		$last          = null;
+		$resuming      = false;
 
-		while (true) {
-			$size = $chunk_max;
+		try {
+			$this->query->orderBy([$key_ref => 'ASC']);
 
-			if (null !== $window_max) {
-				$left = $window_max - $yielded;
+			while (true) {
+				$size = $chunk_max;
 
-				if ($left <= 0) {
+				if (null !== $window_max) {
+					$left = $window_max - $yielded;
+
+					if ($left <= 0) {
+						break;
+					}
+
+					$size = \min($chunk_max, $left);
+				}
+
+				// Only the first chunk starts at the window's offset: the ones after it resume from the
+				// last key read, which is where the window has got to.
+				$this->query->limit($size, $resuming ? 0 : $window_offset);
+				$this->getStatement(true);
+
+				$count = 0;
+
+				while ($entry = $this->fetchClass($strict)) {
+					++$count;
+					++$yielded;
+					$last = $entry->toRow()[$key_name] ?? null;
+
+					yield $entry;
+				}
+
+				if ($count < $size || null === $last) {
 					break;
 				}
 
-				$size = \min($chunk_max, $left);
+				if (!$resuming) {
+					$this->query->where($key_ref . ' > :' . self::LAZY_CURSOR_PARAM);
+					$resuming = true;
+				}
+
+				$this->query->bindNamed(self::LAZY_CURSOR_PARAM, $last, PDO::PARAM_STR);
+			}
+		} finally {
+			// The query was handed to us and is read again after this: a list answers its items and
+			// its total from the same one, and the total query keeps the where clause. The order is
+			// cleared rather than put back because a query that asks for one never got here.
+			if ($resuming) {
+				$this->query->dropLastWhere()
+					->unbind(self::LAZY_CURSOR_PARAM);
 			}
 
-			$this->query->limit($size, $window_offset + $yielded);
-			$this->getStatement(true);
+			$this->query->dropOrderBy();
 
-			$count = 0;
-
-			while ($entry = $this->fetchClass($strict)) {
-				++$count;
-				++$yielded;
-
-				yield $entry;
-			}
-
-			if ($count < $size) {
-				break;
+			if (null === $window_max) {
+				$this->query->dropLimit();
+			} else {
+				$this->query->limit($window_max, $window_offset);
 			}
 		}
+	}
+
+	/**
+	 * The key a chunked read can resume from: the row name to read it under, and how to name it in
+	 * the query. Null when this query gives nothing to resume from.
+	 *
+	 * All of this must hold. The table has a single primary key column, so one value says where the
+	 * read has got to. The query asks for no order of its own, since the key's order is imposed over
+	 * it and two orders at once answer a different set. The rows carry the whole table, since a
+	 * projection that leaves the key out leaves nothing to resume from. And the table is in the from
+	 * clause under an alias, which is how the key is named without ambiguity.
+	 *
+	 * @return null|array{string, string}
+	 */
+	private function lazyCursorColumn(): ?array
+	{
+		if (!$this->table->hasSinglePKColumn() || [] !== $this->query->getOptionsOrderBy()) {
+			return null;
+		}
+
+		$select = $this->query->getOptionsSelect();
+
+		if (1 !== \count($select) || !\str_ends_with((string) $select[0], '.*')) {
+			return null;
+		}
+
+		if (!$this->query->inFromClause($this->table)) {
+			return null;
+		}
+
+		$key_name = $this->table->getSinglePKColumnOrFail()
+			->getFullName();
+
+		return [$key_name, $this->query->getMainAlias($this->table) . '.' . $key_name];
 	}
 
 	/**

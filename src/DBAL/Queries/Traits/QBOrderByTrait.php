@@ -34,6 +34,18 @@ trait QBOrderByTrait
 	}
 
 	/**
+	 * Clears the ORDER BY clauses, so the query asks for no order again.
+	 *
+	 * This is how a reader that had to order a query it was handed leaves that query as it found it.
+	 */
+	public function dropOrderBy(): static
+	{
+		$this->options_order_by = [];
+
+		return $this;
+	}
+
+	/**
 	 * Add ORDER BY clauses.
 	 *
 	 * Accepts an array of columns with optional direction.

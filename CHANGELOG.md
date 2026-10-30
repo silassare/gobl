@@ -1,5 +1,30 @@
 ### Unreleased (3.0.x-dev)
 
+- **A chunked read stepped over rows, and said nothing.** `ORMResults::lazy()` read in chunks of a
+  hundred and reached each one by counting the rows before it, so a body that writes to a column its
+  own query filters on moved the set the count was taken against: of 240 pending jobs drained in one
+  pass, the first hundred ran, then the forty an offset of a hundred still found, and the read ended
+  with a hundred never seen. An offset over a query that asks for no order is not sound even with
+  nobody writing, since nothing obliges a database to answer the rows in the same order twice, and
+  `find()` adds no order of its own.
+
+  Each chunk now resumes from the key of the last row read, under an order it imposes, so the rows a
+  chunk steps over are the rows the chunk before it read. That needs a key: a single primary key
+  column, a query asking for no order of its own, and rows carrying the whole table. When any of
+  those is missing the rows are read from one statement instead, which is right whatever the body
+  does but holds as much as the driver buffers -- never an offset page, which can be wrong without
+  saying so. **The order a read answers in changes**: ascending by primary key where it used to be
+  whatever the engine gave. `getItems()`, `toArray()`, `groupBy()` and `groupByKey()` read through
+  `lazy()` and all gain this; a plain `foreach` over the results walks one statement and never had
+  the problem.
+
+  The query is handed back as it was found, because a list answers its items and its total from the
+  same one and the total keeps the where clause: `FilterGroup::pop()`, `dropLastWhere()`,
+  `dropOrderBy()`, `dropLimit()` and `unbind()` are what a reader takes its own additions back off
+  with. The last matters on its own: every bound value is bound onto the statement whether or not
+  the SQL still names it, so one left behind after its placeholder is gone makes the next query
+  raise on an invalid parameter rather than run.
+
 - **A JSON column's patch never reached the database as paths.** `JsonPatch` exists so an UPDATE
   sends the paths a request changed and the engine applies them to the row it holds, which is what
   keeps two requests writing different keys of one document from undoing each other. On the ORM path

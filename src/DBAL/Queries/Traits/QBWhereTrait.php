@@ -62,6 +62,21 @@ trait QBWhereTrait
 	}
 
 	/**
+	 * Removes the condition last added by {@see self::where()}, {@see self::andWhere()} or
+	 * {@see self::orWhere()}.
+	 *
+	 * For a reader that had to add a condition to a query it was handed and must leave that query
+	 * as it found it, the way a total row count puts back the limit it took off.
+	 * An empty where clause is no clause at all, so the group is left in place.
+	 */
+	public function dropLastWhere(): static
+	{
+		$this->options_where?->pop();
+
+		return $this;
+	}
+
+	/**
 	 * Ensures the where condition is set.
 	 *
 	 * If not, it creates a new one.

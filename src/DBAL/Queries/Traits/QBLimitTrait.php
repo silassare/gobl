@@ -40,6 +40,20 @@ trait QBLimitTrait
 	}
 
 	/**
+	 * Clears the limit and the offset, so the query asks for every row again.
+	 *
+	 * {@see self::limit()} with a null max leaves the current limit alone, by design: this is how a
+	 * reader that had to limit a query it was handed leaves that query as it found it.
+	 */
+	public function dropLimit(): static
+	{
+		$this->options_limit_max    = null;
+		$this->options_limit_offset = null;
+
+		return $this;
+	}
+
+	/**
 	 * Sets a limit on the query result.
 	 *
 	 * When `$max` is `null` this call is a **no-op** - the existing limit (if any) is

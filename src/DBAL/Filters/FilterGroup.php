@@ -91,6 +91,18 @@ final class FilterGroup implements FilterInterface
 	}
 
 	/**
+	 * Removes the filter last added to this group and hands it back, or null when there is none.
+	 *
+	 * For a reader that had to add a condition to a query it was handed and must leave that query
+	 * as it found it: a condition left behind is counted by whatever uses the query next, and a
+	 * list answers its items and its total from the same one.
+	 */
+	public function pop(): FilterInterface|Filters|null
+	{
+		return \array_pop($this->filters);
+	}
+
+	/**
 	 * Ensures this group uses the requested chaining operator (AND or OR).
 	 *
 	 * When the requested operator differs from the current one, the existing filters

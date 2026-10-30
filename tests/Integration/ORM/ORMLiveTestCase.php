@@ -525,6 +525,83 @@ abstract class ORMLiveTestCase extends BaseTestCase
 	}
 
 	/**
+	 * A read sees every row, although its body writes to the column its own query filters on.
+	 *
+	 * Each chunk resumes from the key of the last row read. Counted as an offset instead, the rows
+	 * the body has just taken out of the set are rows the count no longer reaches past, and as many
+	 * rows are stepped over as were taken out: of 240 rows read in chunks of 100, the first hundred
+	 * were read, then the forty an offset of a hundred still found, and the read ended with a
+	 * hundred never seen and nothing said.
+	 */
+	public function testALazyReadSeesEveryRowItsBodyTakesOutOfItsOwnFilter(): void
+	{
+		$table = static::$db->getTableOrFail('clients');
+		$ctrl  = ORM::ctrl($table);
+		$open  = 'LazyOpen_' . \uniqid();
+		$done  = 'LazyDone_' . \uniqid();
+
+		for ($i = 0; $i < 240; ++$i) {
+			$ctrl->addItem([
+				'client_first_name' => 'Walk' . $i,
+				'client_last_name'  => $open,
+				'client_given_name' => 'W' . $i,
+				'client_gender'     => 'unknown',
+			]);
+		}
+
+		$seen = 0;
+
+		foreach (ORM::query($table)->find(ORMOptions::makeFromFilters(['client_last_name' => $open]))->lazy() as $client) {
+			++$seen;
+
+			$client->last_name = $done;
+			$client->save();
+		}
+
+		self::assertSame(240, $seen, 'every row is read, however many of them the body takes out of the filter');
+		self::assertSame(
+			0,
+			ORM::query($table)
+				->find(ORMOptions::makeFromFilters(['client_last_name' => $open]))
+				->getTotal(),
+			'and none is left behind'
+		);
+	}
+
+	/**
+	 * The query is handed back as it was found.
+	 *
+	 * A list answers its items and its total from one query, and the total keeps the where clause
+	 * while dropping the limit: the condition a chunked read adds to resume from its last key would
+	 * be counted as the caller's own, and the total would be the tail of the list instead of its
+	 * length.
+	 */
+	public function testALazyReadLeavesTheQueryAsItFoundIt(): void
+	{
+		$table = static::$db->getTableOrFail('clients');
+		$ctrl  = ORM::ctrl($table);
+		$last  = 'LazyQuery_' . \uniqid();
+
+		// More than one chunk, so the read has a key to resume from and a condition to add.
+		for ($i = 0; $i < 150; ++$i) {
+			$ctrl->addItem([
+				'client_first_name' => 'Kept' . $i,
+				'client_last_name'  => $last,
+				'client_given_name' => 'K' . $i,
+				'client_gender'     => 'unknown',
+			]);
+		}
+
+		$results = ORM::query($table)->find(ORMOptions::makeFromFilters(['client_last_name' => $last]));
+		$items   = \iterator_to_array($results->getItems(), false);
+
+		self::assertCount(150, $items, 'the list holds every row');
+		self::assertSame(150, $results->getTotal(), 'the total counts the query asked for, not what the read left on it');
+		self::assertSame([], $results->getSelect()->getOptionsOrderBy(), 'the order the read imposed is off the query again');
+		self::assertNull($results->getSelect()->getOptionsLimitMax(), 'and so is the limit each chunk needed');
+	}
+
+	/**
 	 * getItemsWithCursorMeta() returns the expected shape including cursor_column.
 	 *
 	 * Scenario:

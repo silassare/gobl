@@ -44,6 +44,21 @@ trait QBBindTrait
 		$this->bound_values_types = [];
 	}
 
+	/**
+	 * Forgets one bound value, for a reader that had to bind one to a query it was handed and must
+	 * leave that query as it found it.
+	 *
+	 * Every bound value is bound onto the statement whether or not the SQL still names it, so a
+	 * value left behind once its placeholder is gone makes the next query raise on an invalid
+	 * parameter rather than run.
+	 */
+	public function unbind(int|string $name): static
+	{
+		unset($this->bound_values[$name], $this->bound_values_types[$name]);
+
+		return $this;
+	}
+
 	public function bindArray(array $params, array $types = []): static
 	{
 		foreach ($params as $param => $value) {
