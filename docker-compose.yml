@@ -44,11 +44,18 @@ services:
             MYSQL_DATABASE: gobl_test
             MYSQL_USER: gobl_test
             MYSQL_PASSWORD: g0bl@Test
+        # A test database is thrown away at the end of the run, so it never needs to reach a disk:
+        # the engine's own filesystem fsyncs every commit through to the host, which a suite feels
+        # on every write it makes. It also means each run starts on an empty server.
+        tmpfs:
+            - /var/lib/mysql
         healthcheck:
             test: ["CMD", "mysqladmin", "ping", "--silent"]
-            interval: 5s
+            interval: 2s
             timeout: 5s
-            retries: 10
+            # Generous on purpose: the server initialises from nothing on every run now, and a
+            # health check that gives up first fails the suite with nothing wrong in the code.
+            retries: 60
 
     # ------------------------------------------------------------------
     # PostgreSQL 15
@@ -59,8 +66,11 @@ services:
             POSTGRES_DB: gobl_test
             POSTGRES_USER: gobl_test
             POSTGRES_PASSWORD: g0bl@Test
+        # Thrown away at the end of the run, as above.
+        tmpfs:
+            - /var/lib/postgresql/data
         healthcheck:
             test: ["CMD", "pg_isready", "-U", "gobl_test"]
-            interval: 5s
+            interval: 2s
             timeout: 5s
-            retries: 10
+            retries: 60
