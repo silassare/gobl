@@ -95,7 +95,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 * The columns given a whole value since the entity was last saved, keyed by full column name.
 	 *
 	 * A patch that follows one cannot be sent as paths on its own: the row holds none of that value
-	 * yet, so the paths would be applied to what the row had before it. See {@see self::_oebWrite()}.
+	 * yet, so the paths would be applied to what the row had before it. See {@see self::_write()}.
 	 *
 	 * @var array<string, true>
 	 */
@@ -211,10 +211,10 @@ abstract class ORMEntity implements ArrayCapableInterface
 	final public function __get(string $name)
 	{
 		if ($this->_oeb_table->hasColumn($name)) {
-			return $this->_oebRead($name);
+			return $this->_read($name);
 		}
 
-		$this->_oebUnknownColumn($name);
+		$this->rejectUnknownColumn($name);
 
 		return null;
 	}
@@ -228,10 +228,10 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 *   dirty tracking, never written by save(). Used by batch-routing queries
 	 *   (e.g. `pivot.fk AS _gobl_batch_key`) and any custom computed SELECT
 	 *   expressions added via {@see QBSelect::selectComputed()}.
-	 * - **Column mode**: {@see _oebWrite()}, which validates, hashes and marks dirty.
+	 * - **Column mode**: {@see _write()}, which validates, hashes and marks dirty.
 	 *
 	 * A row the database answered with does not come through here: it goes to
-	 * {@see _oebHydrate()}, which is where `Type::dbToPhp()` runs.
+	 * {@see _hydrate()}, which is where `Type::dbToPhp()` runs.
 	 *
 	 * @param string $name  the column full name, short name, or a `_gobl_*` computed alias
 	 * @param mixed  $value the column value
@@ -248,12 +248,12 @@ abstract class ORMEntity implements ArrayCapableInterface
 		}
 
 		if ($this->_oeb_table->hasColumn($name)) {
-			$this->_oebWrite($name, $value);
+			$this->_write($name, $value);
 
 			return;
 		}
 
-		$this->_oebUnknownColumn($name);
+		$this->rejectUnknownColumn($name);
 	}
 
 	/**
@@ -281,7 +281,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 *
 	 * @throws ORMRuntimeException
 	 */
-	final public function _oebHydrate(array $row): static
+	final public function _hydrate(array $row): static
 	{
 		foreach ($row as $name => $value) {
 			if (\str_starts_with((string) $name, '_gobl_')) {
@@ -291,7 +291,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 			}
 
 			if (!$this->_oeb_table->hasColumn((string) $name)) {
-				$this->_oebUnknownColumn((string) $name);
+				$this->rejectUnknownColumn((string) $name);
 
 				continue;
 			}
@@ -485,7 +485,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 		if ($this->isNew()) {
 			$ctrl = static::ctrl();
 
-			$ctrl->getCRUD()->trusted(fn () => $ctrl->addItem($this));
+			$ctrl->getCRUD()->trusted(fn() => $ctrl->addItem($this));
 
 			return true;
 		}
@@ -500,7 +500,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 				$options->setFormData($to_update);
 
 				$ctrl  = static::ctrl();
-				$saved = $ctrl->getCRUD()->trusted(static fn () => $ctrl->updateOneItem($options));
+				$saved = $ctrl->getCRUD()->trusted(static fn() => $ctrl->updateOneItem($options));
 
 				return $saved && $this->takeSavedRow($saved)
 					->isSaved(true);
@@ -565,7 +565,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 			$pk = $this->_oeb_table->getPrimaryKeyConstraint();
 
 			$columns = $pk->getColumns();
-			$filters = $this->_toIdentityFilters($columns, $missing);
+			$filters = $this->toIdentityFiltersReal($columns, $missing);
 
 			if (!empty($missing)) {
 				throw new ORMException(\sprintf('Required identity column(s) "%s" value was not set.', \implode(', ', $missing)));
@@ -579,7 +579,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 			foreach ($this->_oeb_table->getUniqueKeyConstraints() as $uq) {
 				$columns = $uq->getColumns();
 				$m       = [];
-				$filters = $this->_toIdentityFilters($columns, $m);
+				$filters = $this->toIdentityFiltersReal($columns, $m);
 
 				if (empty($m)) {
 					return $filters;
@@ -750,7 +750,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 *
 	 * @throws ORMRuntimeException
 	 */
-	final protected function _oebRead(string $name): mixed
+	final protected function _read(string $name): mixed
 	{
 		$column    = $this->_oeb_table->getColumnOrFail($name);
 		$full_name = $column->getFullName();
@@ -809,7 +809,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 *
 	 * @throws TypesInvalidValueException
 	 */
-	final protected function _oebWrite(string $name, mixed $value): void
+	final protected function _write(string $name, mixed $value): void
 	{
 		$column    = $this->_oeb_table->getColumnOrFail($name);
 		$full_name = $column->getFullName();
@@ -966,7 +966,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 *
 	 * @throws ORMRuntimeException
 	 */
-	private function _oebUnknownColumn(string $name): void
+	private function rejectUnknownColumn(string $name): void
 	{
 		$error = \sprintf('Column "%s" not defined in table "%s".', $name, $this->_oeb_table->getName());
 
@@ -1010,7 +1010,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 	 * @param string[]      $columns
 	 * @param null|string[] $missing
 	 */
-	private function _toIdentityFilters(array $columns, ?array &$missing = []): array
+	private function toIdentityFiltersReal(array $columns, ?array &$missing = []): array
 	{
 		$filters = [];
 		$head    = true;
@@ -1021,8 +1021,9 @@ abstract class ORMEntity implements ArrayCapableInterface
 			$column_name_fn = $column->getFullName();
 			$value          = $this->{$column_name_fn};
 
-			if (null === $value && !$column->getType()
-				->isNullable()
+			if (
+				null === $value && !$column->getType()
+					->isNullable()
 			) { // unique constraint may be nullable
 				$missing[] = $column_name_fn;
 

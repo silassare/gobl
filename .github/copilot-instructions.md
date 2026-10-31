@@ -104,9 +104,9 @@ generator used to write:
 
 ```php
 public \PHPUtils\Store\Map $data {
-    get => $this->_oebRead(self::COL_DATA);
+    get => $this->_read(self::COL_DATA);
     set(\PHPUtils\Store\Map|array|\Gobl\DBAL\Types\Utils\JsonPatch $value) {
-        $this->_oebWrite(self::COL_DATA, $value);
+        $this->_write(self::COL_DATA, $value);
     }
 }
 ```
@@ -132,11 +132,11 @@ $entity->user_name = 'Alice'; // write (validates via type)
 $entity->save();              // persist
 ```
 
-One implementation per direction, reached by both: `_oebRead()` (`final protected`) holds what
-`__get()` did, `_oebWrite()` (`final protected`) what `__set()` did for a column, and the
+One implementation per direction, reached by both: `_read()` (`final protected`) holds what
+`__get()` did, `_write()` (`final protected`) what `__set()` did for a column, and the
 generated hooks call the same.
 
-- **`_oebHydrate(array $row): static`** (`final public`) — takes a row the database answered with,
+- **`_hydrate(array $row): static`** (`final public`) — takes a row the database answered with,
   column values in DB form: `Type::dbToPhp()` runs, the hash snapshot is taken, `_oeb_from_db` is
   marked, a `_gobl_*` key goes to its computed slot, and anything else is an error (loud in strict
   mode). `ORMResults::fetchClass()` / `fetchAllClass()` read `PDO::FETCH_ASSOC` and call it, rather
@@ -159,7 +159,7 @@ Key contracts (verify exact signatures in `src/ORM/ORMEntity.php`):
 - **`isPartial(): bool`**, **`isColumnLoaded(string $name): bool`** — guards for partial state.
 - **`toArray()`** filters partial columns; **`toRow()`** returns raw row without filtering.
 
-Internal `ORMEntity` properties use `_oeb_*` prefix. Subclass properties must use a single `_` prefix. Custom methods must NOT start with `get` or `set`.
+Internal `ORMEntity` properties use `_oeb_*` prefix. Subclass properties must use a single `_` prefix. Custom methods must NOT start with `get` or `set`, and the three `final` methods a generated entity reaches are the base class's own: `_read()`, `_write()` and `_hydrate()`.
 
 **Computed value slots** (`_gobl_*` protocol):
 

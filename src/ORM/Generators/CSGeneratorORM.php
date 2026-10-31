@@ -416,7 +416,7 @@ Proudly With: {$version}{$time}";
 				->setComment($property_comment);
 
 			$property->newGetHook()
-				->setExpression(Str::interpolate('$this->_oebRead(self::{column_name_const})', $col_inject));
+				->setExpression(Str::interpolate('$this->_read(self::{column_name_const})', $col_inject));
 
 			// A block, not the `set => expr` form: that one assigns the expression to a backing
 			// store, which would give the property a value of its own and assign the setter's void.
@@ -425,7 +425,7 @@ Proudly With: {$version}{$time}";
 			// property type.
 			$property->newSetHook()
 				->setContent(
-					Str::interpolate('$this->_oebWrite(self::{column_name_const}, $value);', $col_inject)
+					Str::interpolate('$this->_write(self::{column_name_const}, $value);', $col_inject)
 				)
 				->newArgument('value')
 				->setType($col_inject['write_type_hint']);

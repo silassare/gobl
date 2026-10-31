@@ -92,9 +92,9 @@ with `get` and `set` hooks over the entity's row, plus the getter and the fluent
 
 ```php
 public \PHPUtils\Store\Map $data {
-    get => $this->_oebRead(self::COL_DATA);
+    get => $this->_read(self::COL_DATA);
     set(\PHPUtils\Store\Map|array|\Gobl\DBAL\Types\Utils\JsonPatch $value) {
-        $this->_oebWrite(self::COL_DATA, $value);
+        $this->_write(self::COL_DATA, $value);
     }
 }
 ```

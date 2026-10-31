@@ -25,45 +25,45 @@ abstract class ClientBase extends \Gobl\ORM\ORMEntity
 	 * Column `clients.id`.
 	 */
 	public string|null $id {
-		get => $this->_oebRead(self::COL_ID);
+		get => $this->_read(self::COL_ID);
 		set(string|int|null $value) {
-			$this->_oebWrite(self::COL_ID, $value);
+			$this->_write(self::COL_ID, $value);
 		}
 	}
 	/**
 	 * Column `clients.first_name`.
 	 */
 	public string $first_name {
-		get => $this->_oebRead(self::COL_FIRST_NAME);
+		get => $this->_read(self::COL_FIRST_NAME);
 		set(string $value) {
-			$this->_oebWrite(self::COL_FIRST_NAME, $value);
+			$this->_write(self::COL_FIRST_NAME, $value);
 		}
 	}
 	/**
 	 * Column `clients.last_name`.
 	 */
 	public string $last_name {
-		get => $this->_oebRead(self::COL_LAST_NAME);
+		get => $this->_read(self::COL_LAST_NAME);
 		set(string $value) {
-			$this->_oebWrite(self::COL_LAST_NAME, $value);
+			$this->_write(self::COL_LAST_NAME, $value);
 		}
 	}
 	/**
 	 * Column `clients.given_name`.
 	 */
 	public string $given_name {
-		get => $this->_oebRead(self::COL_GIVEN_NAME);
+		get => $this->_read(self::COL_GIVEN_NAME);
 		set(string $value) {
-			$this->_oebWrite(self::COL_GIVEN_NAME, $value);
+			$this->_write(self::COL_GIVEN_NAME, $value);
 		}
 	}
 	/**
 	 * Column `clients.gender`.
 	 */
 	public string $gender {
-		get => $this->_oebRead(self::COL_GENDER);
+		get => $this->_read(self::COL_GENDER);
 		set(string $value) {
-			$this->_oebWrite(self::COL_GENDER, $value);
+			$this->_write(self::COL_GENDER, $value);
 		}
 	}
 	/**
@@ -72,36 +72,36 @@ abstract class ClientBase extends \Gobl\ORM\ORMEntity
 	 * @var \PHPUtils\Store\Map<mixed>
 	 */
 	public \PHPUtils\Store\Map $data {
-		get => $this->_oebRead(self::COL_DATA);
+		get => $this->_read(self::COL_DATA);
 		set(\PHPUtils\Store\Map|array|\Gobl\DBAL\Types\Utils\JsonPatch $value) {
-			$this->_oebWrite(self::COL_DATA, $value);
+			$this->_write(self::COL_DATA, $value);
 		}
 	}
 	/**
 	 * Column `clients.created_at`.
 	 */
 	public string $created_at {
-		get => $this->_oebRead(self::COL_CREATED_AT);
+		get => $this->_read(self::COL_CREATED_AT);
 		set(string|int $value) {
-			$this->_oebWrite(self::COL_CREATED_AT, $value);
+			$this->_write(self::COL_CREATED_AT, $value);
 		}
 	}
 	/**
 	 * Column `clients.updated_at`.
 	 */
 	public string $updated_at {
-		get => $this->_oebRead(self::COL_UPDATED_AT);
+		get => $this->_read(self::COL_UPDATED_AT);
 		set(string|int $value) {
-			$this->_oebWrite(self::COL_UPDATED_AT, $value);
+			$this->_write(self::COL_UPDATED_AT, $value);
 		}
 	}
 	/**
 	 * Column `clients.valid`.
 	 */
 	public bool $valid {
-		get => $this->_oebRead(self::COL_VALID);
+		get => $this->_read(self::COL_VALID);
 		set(bool $value) {
-			$this->_oebWrite(self::COL_VALID, $value);
+			$this->_write(self::COL_VALID, $value);
 		}
 	}
 	/**

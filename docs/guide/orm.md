@@ -80,9 +80,9 @@ A column is a **virtual property with hooks**, which is what the generated base 
 
 ```php
 public string $first_name {
-    get => $this->_oebRead(self::COL_FIRST_NAME);
+    get => $this->_read(self::COL_FIRST_NAME);
     set(string $value) {
-        $this->_oebWrite(self::COL_FIRST_NAME, $value);
+        $this->_write(self::COL_FIRST_NAME, $value);
     }
 }
 ```
@@ -116,7 +116,7 @@ and filters a partial projection, which none of those three do.
 ### Reading a row
 
 A row the database answers with carries DB-form values, which `ORMResults` places with
-`_oebHydrate()` -- where `Type::dbToPhp()` runs. It does not write the entity's properties, so a
+`_hydrate()` -- where `Type::dbToPhp()` runs. It does not write the entity's properties, so a
 raw JSON string never meets a column's PHP type. `hydrate()` is the other direction: it assigns
 PHP-form values as a caller would, and is type-checked like any property write.
 

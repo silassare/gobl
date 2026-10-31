@@ -1,5 +1,28 @@
 ### Unreleased (3.0.x-dev)
 
+- **An entity reads and writes a column through `_read()`, `_write()` and `_hydrate()`**, renamed
+  from `_oebRead()`, `_oebWrite()` and `_oebHydrate()`. A generated class is read by people, and
+  three characters of prefix on every hook of every column were noise:
+
+    ```php
+    public \PHPUtils\Store\Map $data {
+        get => $this->_read(self::COL_DATA);
+        set(\PHPUtils\Store\Map|array|\Gobl\DBAL\Types\Utils\JsonPatch $value) {
+            $this->_write(self::COL_DATA, $value);
+        }
+    }
+    ```
+
+    **Breaking**, in two ways. A generated `Base/` class calls the new names, so a project upgrading
+    gobl regenerates its ORM classes; nothing else calls `_read()` or `_write()`, which are
+    `final protected`. `_hydrate()` is `final public` and `ORMResults` calls it, so code hydrating an
+    entity by hand follows the rename.
+
+    These three names are now the base class's, which is the cost: a subclass may still name its
+    **properties** with one leading underscore, as the convention says, but not a method `_read`,
+    `_write` or `_hydrate`. The internal properties keep their `_oeb_*` prefix, since nothing
+    generated reads them.
+
 - **A column can be declared searchable, and then a text search is indexed.** `searchable()` on a
   text or JSON column (`'searchable' => true` in an array schema, with `'prefix'` or `'substring'`
   for the intent and `searchable_text` for what of a document is folded). The table then holds a
@@ -10,18 +33,18 @@
   one. The index is declared as an intent (`IndexType::TEXT_SEARCH_PREFIX`,
   `TEXT_SEARCH_SUBSTRING`), never as an engine's index kind, so one schema still builds on all three.
 
-  Nothing changes at the call site: `matches()` reads the companion when there is one. Two things
-  change because of it. The search **answers the same on every engine**, since the folding happens
-  once in PHP instead of per driver in SQL -- a term typed without its accents finds an accented row
-  on PostgreSQL and SQLite too, which neither can do in the unindexed shape. And it is the folded
-  text that is searched, so a column declared to fold its document's values is no longer matched by
-  one of its key names (`searchable_text: 'document'` keeps the old reading).
+    Nothing changes at the call site: `matches()` reads the companion when there is one. Two things
+    change because of it. The search **answers the same on every engine**, since the folding happens
+    once in PHP instead of per driver in SQL -- a term typed without its accents finds an accented row
+    on PostgreSQL and SQLite too, which neither can do in the unindexed shape. And it is the folded
+    text that is searched, so a column declared to fold its document's values is no longer matched by
+    one of its key names (`searchable_text: 'document'` keeps the old reading).
 
-  The folding is in PHP because that is the only way it is identical on every driver, and the only
-  indexable form: `unaccent()` is `STABLE`, so an index over it is a promise about a rules file
-  nobody checks. A bulk `updateAllItems()` writes the folded column in the same statement, and
-  refuses by name what it cannot fold without reading each row (a JSON patch, a SQL expression)
-  rather than leaving a search quietly wrong.
+    The folding is in PHP because that is the only way it is identical on every driver, and the only
+    indexable form: `unaccent()` is `STABLE`, so an index over it is a promise about a rules file
+    nobody checks. A bulk `updateAllItems()` writes the folded column in the same statement, and
+    refuses by name what it cannot fold without reading each row (a JSON patch, a SQL expression)
+    rather than leaving a search quietly wrong.
 
 - **`Operator::STARTS_WITH`**, written `startsWith()` and generated as `where<Column>StartsWith()`:
   the text search of `MATCHES` anchored at the start of the text. It is the one an index can serve
@@ -35,21 +58,21 @@
   failure mode was an empty answer, which reads as "there is no such row" rather than as a failure,
   so nothing failed and nothing could assert against it.
 
-  It takes a **term and never a pattern**: the operator wraps it and escapes `%`, `_` and the
-  escape character, so a term holding one searches for that character, and an empty term is refused
-  instead of matching every row. The column's type does not cast it, so a date column does not read
-  the term `2026` as a timestamp. On a JSON column a path compares the value at that path, and no
-  path compares the whole document text -- which carries the document's keys, as the guide says.
+    It takes a **term and never a pattern**: the operator wraps it and escapes `%`, `_` and the
+    escape character, so a term holding one searches for that character, and an empty term is refused
+    instead of matching every row. The column's type does not cast it, so a date column does not read
+    the term `2026` as a timestamp. On a JSON column a path compares the value at that path, and no
+    path compares the whole document text -- which carries the document's keys, as the guide says.
 
-  What folds is still not the same on every engine, so it is declared and asserted per driver:
-  MySQL folds case and accents (`CONVERT(expr USING <charset>) COLLATE <collate>`, the table's own
-  charset and collation or the database's), PostgreSQL folds case only (`LIKE` against a
-  nondeterministic ICU collation is refused before PostgreSQL 18), SQLite ASCII case only. `CONVERT`
-  and not `CAST(... AS CHAR)`, which produces a string in the connection's character set: a compiled
-  query must not depend on the client's charset.
+    What folds is still not the same on every engine, so it is declared and asserted per driver:
+    MySQL folds case and accents (`CONVERT(expr USING <charset>) COLLATE <collate>`, the table's own
+    charset and collation or the database's), PostgreSQL folds case only (`LIKE` against a
+    nondeterministic ICU collation is refused before PostgreSQL 18), SQLite ASCII case only. `CONVERT`
+    and not `CAST(... AS CHAR)`, which produces a string in the connection's character set: a compiled
+    query must not depend on the client's charset.
 
-  This is a full scan on every engine, as `LIKE '%term%'` uses no B-tree index anywhere. The guide
-  carries the measurement and says where the operator stops being the right answer.
+    This is a full scan on every engine, as `LIKE '%term%'` uses no B-tree index anywhere. The guide
+    carries the measurement and says where the operator stops being the right answer.
 
 - **A date column answers the timestamp it stores.** `TypeDate` validated every value to a Unix
   timestamp and stored it as a big integer, or a decimal with microseconds, and then read it back
@@ -61,8 +84,8 @@
   `FORMAT_TIMESTAMP` now. Formatting is a presentation choice and stays with whoever declares the
   column: `->format(DATE_ATOM)` for an ISO 8601 string, or any `date()` format.
 
-  **Breaking** for a date column that relied on the old default, and visible wherever a row is
-  answered: `toArray()` and anything built on it carry a timestamp where they carried a string.
+    **Breaking** for a date column that relied on the old default, and visible wherever a row is
+    answered: `toArray()` and anything built on it carry a timestamp where they carried a string.
 
 - **A chunked read stepped over rows, and said nothing.** `ORMResults::lazy()` read in chunks of a
   hundred and reached each one by counting the rows before it, so a body that writes to a column its
@@ -72,22 +95,22 @@
   nobody writing, since nothing obliges a database to answer the rows in the same order twice, and
   `find()` adds no order of its own.
 
-  Each chunk now resumes from the key of the last row read, under an order it imposes, so the rows a
-  chunk steps over are the rows the chunk before it read. That needs a key: a single primary key
-  column, a query asking for no order of its own, and rows carrying the whole table. When any of
-  those is missing the rows are read from one statement instead, which is right whatever the body
-  does but holds as much as the driver buffers -- never an offset page, which can be wrong without
-  saying so. **The order a read answers in changes**: ascending by primary key where it used to be
-  whatever the engine gave. `getItems()`, `toArray()`, `groupBy()` and `groupByKey()` read through
-  `lazy()` and all gain this; a plain `foreach` over the results walks one statement and never had
-  the problem.
+    Each chunk now resumes from the key of the last row read, under an order it imposes, so the rows a
+    chunk steps over are the rows the chunk before it read. That needs a key: a single primary key
+    column, a query asking for no order of its own, and rows carrying the whole table. When any of
+    those is missing the rows are read from one statement instead, which is right whatever the body
+    does but holds as much as the driver buffers -- never an offset page, which can be wrong without
+    saying so. **The order a read answers in changes**: ascending by primary key where it used to be
+    whatever the engine gave. `getItems()`, `toArray()`, `groupBy()` and `groupByKey()` read through
+    `lazy()` and all gain this; a plain `foreach` over the results walks one statement and never had
+    the problem.
 
-  The query is handed back as it was found, because a list answers its items and its total from the
-  same one and the total keeps the where clause: `FilterGroup::pop()`, `dropLastWhere()`,
-  `dropOrderBy()`, `dropLimit()` and `unbind()` are what a reader takes its own additions back off
-  with. The last matters on its own: every bound value is bound onto the statement whether or not
-  the SQL still names it, so one left behind after its placeholder is gone makes the next query
-  raise on an invalid parameter rather than run.
+    The query is handed back as it was found, because a list answers its items and its total from the
+    same one and the total keeps the where clause: `FilterGroup::pop()`, `dropLastWhere()`,
+    `dropOrderBy()`, `dropLimit()` and `unbind()` are what a reader takes its own additions back off
+    with. The last matters on its own: every bound value is bound onto the statement whether or not
+    the SQL still names it, so one left behind after its placeholder is gone makes the next query
+    raise on an invalid parameter rather than run.
 
 - **A JSON column's patch never reached the database as paths.** `JsonPatch` exists so an UPDATE
   sends the paths a request changed and the engine applies them to the row it holds, which is what
@@ -98,11 +121,11 @@
   request had read. A patch is passed through untouched now, and the builder encodes the document
   itself in the one case it writes one.
 
-  The tests did not catch it because `ORMController::updateOneItem()` re-reads the row at save time
-  and applies the patch to what it finds, which narrows the race to the gap between that read and
-  the UPDATE: wide enough to lose writes under real concurrency, narrow enough that a test holding a
-  request open for a second and a half still passed. The patch integration suite now runs against
-  all three engines with the paths genuinely in the SQL, which is how the two bugs below surfaced.
+    The tests did not catch it because `ORMController::updateOneItem()` re-reads the row at save time
+    and applies the patch to what it finds, which narrows the race to the gap between that read and
+    the UPDATE: wide enough to lose writes under real concurrency, narrow enough that a test holding a
+    request open for a second and a half still passed. The patch integration suite now runs against
+    all three engines with the paths genuinely in the SQL, which is how the two bugs below surfaced.
 
 - **An UPDATE wrote every column of the row, not the ones that changed.**
   `ORMController::persistItem()` built its UPDATE from `$entity->toRow()`, so a save carried every
@@ -148,11 +171,11 @@
   (`failOnDeprecation`, `failOnNotice`, `failOnRisky`, with the details displayed), and the full
   suite passes it against live MySQL, PostgreSQL and SQLite with no deprecation.
 
-  The one notice it did find was the entity's non-strict answer to an unknown column, raised by
-  `__get()`, `__set()` and `_oebHydrate()` from three copies of the same message and the same
-  strict / non-strict choice. The three now call one private `_oebUnknownColumn()`, and each of
-  them has a test that asserts the notice it raises; before, only the read path was covered, and it
-  asserted the returned `null` while letting the notice through.
+    The one notice it did find was the entity's non-strict answer to an unknown column, raised by
+    `__get()`, `__set()` and `_oebHydrate()` from three copies of the same message and the same
+    strict / non-strict choice. The three now call one private `rejectUnknownColumn()`, and each of
+    them has a test that asserts the notice it raises; before, only the read path was covered, and it
+    asserted the returned `null` while letting the notice through.
 
 - **A table with a single column reached TypeScript and Dart with no column prefix.** The client
   generators took the prefix every column of a table shares by reading one of them with
@@ -185,22 +208,21 @@
   of and edited separately; the strictest of those sets was in use in two packages only, and
   adopting it here surfaced fourteen places where a value that can be null was dereferenced
   anyway. Two were plain contradictions of what was written above them:
+    - `Table::hasSinglePKColumn()` documented `false` for a table with no primary key and raised a
+      `TypeError` instead. It answers `false`.
+    - `Table::getSinglePKColumnOrFail()` documented a throw when there is no primary key constraint
+      and raised a `TypeError` instead. It throws `GoblRuntimeException`, as it says.
 
-  - `Table::hasSinglePKColumn()` documented `false` for a table with no primary key and raised a
-    `TypeError` instead. It answers `false`.
-  - `Table::getSinglePKColumnOrFail()` documented a throw when there is no primary key constraint
-    and raised a `TypeError` instead. It throws `GoblRuntimeException`, as it says.
+    The rest replace a fatal with a diagnostic that names what was wrong: an unbuildable table in
+    `Db`'s lazy stage (which an `@var` had asserted rather than checked), a table or alias a filter
+    operand names and the query does not, a SQLite `DELETE` with a `LIMIT` and no table, and a
+    generated enum whose column is attached to no table. `Relation::toArray()` builds its array
+    before writing to it.
 
-  The rest replace a fatal with a diagnostic that names what was wrong: an unbuildable table in
-  `Db`'s lazy stage (which an `@var` had asserted rather than checked), a table or alias a filter
-  operand names and the query does not, a SQLite `DELETE` with a `LIMIT` and no table, and a
-  generated enum whose column is attached to no table. `Relation::toArray()` builds its array
-  before writing to it.
-
-  **Breaking.** `ORMTableQuery`'s batch identity key asked the host table's primary key constraint
-  for its first column. On a composite primary key that column alone does not identify a row, so
-  the grouping was wrong and silent; it now throws. A batch relation on a composite-keyed host
-  table needs its key named explicitly.
+    **Breaking.** `ORMTableQuery`'s batch identity key asked the host table's primary key constraint
+    for its first column. On a composite primary key that column alone does not identify a row, so
+    the grouping was wrong and silent; it now throws. A batch relation on a composite-keyed host
+    table needs its key named explicitly.
 
 - **The test suite declares its metadata in attributes.** PHPUnit 13 does not read doc-comment
   metadata and does not warn about it, so a left-behind `@dataProvider` makes a test run with no
@@ -221,23 +243,22 @@
   there is one implementation of a column read and one of a column write. The magic methods stay
   for the **full** column name and for anything with no generated property.
 
-  **Breaking, at the call site.** PHP runs the `get` hook where it used to call `__isset()`, so
-  `isset($entity->col)` answers a question about the value instead of about the schema:
+    **Breaking, at the call site.** PHP runs the `get` hook where it used to call `__isset()`, so
+    `isset($entity->col)` answers a question about the value instead of about the schema:
+    - `isset()` on a nullable column holding null is **false** where it was true, and `??` reaches
+      its fallback where it answered null. `$table->hasColumn()` is the schema question.
+    - `isset()` on a **partially loaded** entity **throws**: `isset()` runs the hook and cannot opt
+      out of its exception. `isColumnLoaded()` is the guard.
+    - `unset($entity->col)` is an **`Error`**, where it was a silent no-op (`ORMEntity` declares no
+      `__unset`).
+    - a column name appears in `get_object_vars()`, `var_dump()` and `json_encode()`, where it used
+      not to. `toArray()` is still what answers with an entity's values: it redacts sensitive
+      columns and filters a partial projection, which none of those three do.
+    - assigning a DB-form value to a short column name through `hydrate()` is type-checked now, as
+      any property write is; a row from the database belongs on `_oebHydrate()`.
 
-  - `isset()` on a nullable column holding null is **false** where it was true, and `??` reaches
-    its fallback where it answered null. `$table->hasColumn()` is the schema question.
-  - `isset()` on a **partially loaded** entity **throws**: `isset()` runs the hook and cannot opt
-    out of its exception. `isColumnLoaded()` is the guard.
-  - `unset($entity->col)` is an **`Error`**, where it was a silent no-op (`ORMEntity` declares no
-    `__unset`).
-  - a column name appears in `get_object_vars()`, `var_dump()` and `json_encode()`, where it used
-    not to. `toArray()` is still what answers with an entity's values: it redacts sensitive
-    columns and filters a partial projection, which none of those three do.
-  - assigning a DB-form value to a short column name through `hydrate()` is type-checked now, as
-    any property write is; a row from the database belongs on `_oebHydrate()`.
-
-  **The generated classes must be rebuilt** (`oz db build --class-only`). Needs
-  `oliup/code-generator` with property-hook support on `PHPProperty`.
+    **The generated classes must be rebuilt** (`oz db build --class-only`). Needs
+    `oliup/code-generator` with property-hook support on `PHPProperty`.
 
 - **A row from the database no longer reaches the entity through its properties.** `ORMResults`
   let PDO write them (`PDO::FETCH_INTO`, `PDO::FETCH_CLASS | PDO::FETCH_PROPS_LATE`), which worked
@@ -265,7 +286,7 @@
   there is still never resolved as a column.
 
 - **Every class constant a value types beyond doubt is typed** (`private const
-  array`, `public const string`, ...), which PHP 8.3 allows: a constant says
+array`, `public const string`, ...), which PHP 8.3 allows: a constant says
   what it is, and a subclass redeclaring it as something else is refused. The
   generator types the constants it writes too (`TABLE_NAME`, `TABLE_NAMESPACE`,
   `COL_*` as `string`, `FILTER_METHODS` as `array`), which needs

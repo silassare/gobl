@@ -29,81 +29,81 @@ abstract class TransactionBase extends \Gobl\ORM\ORMEntity
 	 * Column `transactions.id`.
 	 */
 	public string|null $id {
-		get => $this->_oebRead(self::COL_ID);
+		get => $this->_read(self::COL_ID);
 		set(string|int|null $value) {
-			$this->_oebWrite(self::COL_ID, $value);
+			$this->_write(self::COL_ID, $value);
 		}
 	}
 	/**
 	 * Column `transactions.account_id`.
 	 */
 	public string $account_id {
-		get => $this->_oebRead(self::COL_ACCOUNT_ID);
+		get => $this->_read(self::COL_ACCOUNT_ID);
 		set(string|int $value) {
-			$this->_oebWrite(self::COL_ACCOUNT_ID, $value);
+			$this->_write(self::COL_ACCOUNT_ID, $value);
 		}
 	}
 	/**
 	 * Column `transactions.reference`.
 	 */
 	public string $reference {
-		get => $this->_oebRead(self::COL_REFERENCE);
+		get => $this->_read(self::COL_REFERENCE);
 		set(string $value) {
-			$this->_oebWrite(self::COL_REFERENCE, $value);
+			$this->_write(self::COL_REFERENCE, $value);
 		}
 	}
 	/**
 	 * Column `transactions.source`.
 	 */
 	public string $source {
-		get => $this->_oebRead(self::COL_SOURCE);
+		get => $this->_read(self::COL_SOURCE);
 		set(string $value) {
-			$this->_oebWrite(self::COL_SOURCE, $value);
+			$this->_write(self::COL_SOURCE, $value);
 		}
 	}
 	/**
 	 * Column `transactions.type`.
 	 */
 	public string $type {
-		get => $this->_oebRead(self::COL_TYPE);
+		get => $this->_read(self::COL_TYPE);
 		set(string $value) {
-			$this->_oebWrite(self::COL_TYPE, $value);
+			$this->_write(self::COL_TYPE, $value);
 		}
 	}
 	/**
 	 * Column `transactions.state`.
 	 */
 	public string $state {
-		get => $this->_oebRead(self::COL_STATE);
+		get => $this->_read(self::COL_STATE);
 		set(string $value) {
-			$this->_oebWrite(self::COL_STATE, $value);
+			$this->_write(self::COL_STATE, $value);
 		}
 	}
 	/**
 	 * Column `transactions.amount`.
 	 */
 	public string $amount {
-		get => $this->_oebRead(self::COL_AMOUNT);
+		get => $this->_read(self::COL_AMOUNT);
 		set(string|float|int $value) {
-			$this->_oebWrite(self::COL_AMOUNT, $value);
+			$this->_write(self::COL_AMOUNT, $value);
 		}
 	}
 	/**
 	 * Column `transactions.currency_code`.
 	 */
 	public string $currency_code {
-		get => $this->_oebRead(self::COL_CURRENCY_CODE);
+		get => $this->_read(self::COL_CURRENCY_CODE);
 		set(string $value) {
-			$this->_oebWrite(self::COL_CURRENCY_CODE, $value);
+			$this->_write(self::COL_CURRENCY_CODE, $value);
 		}
 	}
 	/**
 	 * Column `transactions.date`.
 	 */
 	public string $date {
-		get => $this->_oebRead(self::COL_DATE);
+		get => $this->_read(self::COL_DATE);
 		set(string|int $value) {
-			$this->_oebWrite(self::COL_DATE, $value);
+			$this->_write(self::COL_DATE, $value);
 		}
 	}
 	/**
@@ -112,36 +112,36 @@ abstract class TransactionBase extends \Gobl\ORM\ORMEntity
 	 * @var \PHPUtils\Store\Map<mixed>
 	 */
 	public \PHPUtils\Store\Map $data {
-		get => $this->_oebRead(self::COL_DATA);
+		get => $this->_read(self::COL_DATA);
 		set(\PHPUtils\Store\Map|array|\Gobl\DBAL\Types\Utils\JsonPatch $value) {
-			$this->_oebWrite(self::COL_DATA, $value);
+			$this->_write(self::COL_DATA, $value);
 		}
 	}
 	/**
 	 * Column `transactions.created_at`.
 	 */
 	public string $created_at {
-		get => $this->_oebRead(self::COL_CREATED_AT);
+		get => $this->_read(self::COL_CREATED_AT);
 		set(string|int $value) {
-			$this->_oebWrite(self::COL_CREATED_AT, $value);
+			$this->_write(self::COL_CREATED_AT, $value);
 		}
 	}
 	/**
 	 * Column `transactions.updated_at`.
 	 */
 	public string $updated_at {
-		get => $this->_oebRead(self::COL_UPDATED_AT);
+		get => $this->_read(self::COL_UPDATED_AT);
 		set(string|int $value) {
-			$this->_oebWrite(self::COL_UPDATED_AT, $value);
+			$this->_write(self::COL_UPDATED_AT, $value);
 		}
 	}
 	/**
 	 * Column `transactions.valid`.
 	 */
 	public bool $valid {
-		get => $this->_oebRead(self::COL_VALID);
+		get => $this->_read(self::COL_VALID);
 		set(bool $value) {
-			$this->_oebWrite(self::COL_VALID, $value);
+			$this->_write(self::COL_VALID, $value);
 		}
 	}
 	/**

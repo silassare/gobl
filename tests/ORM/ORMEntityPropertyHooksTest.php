@@ -418,7 +418,7 @@ final class ORMEntityPropertyHooksTest extends BaseTestCase
 	// -------------------------------------------------------------------------
 
 	/**
-	 * A row the database answers with carries DB-form values. It is placed by `_oebHydrate()`, where
+	 * A row the database answers with carries DB-form values. It is placed by `_hydrate()`, where
 	 * `Type::dbToPhp()` runs, and not by a property write: a raw JSON string would not satisfy the
 	 * set hook's type, and a raw `'1'` would be coerced by PHP instead of converted by the type.
 	 */
@@ -426,7 +426,7 @@ final class ORMEntityPropertyHooksTest extends BaseTestCase
 	{
 		$entity = $this->makeHooked(false);
 
-		$entity->_oebHydrate([
+		$entity->_hydrate([
 			'hk_id'     => '7',
 			'hk_label'  => 'from the row',
 			'hk_note'   => null,
@@ -451,7 +451,7 @@ final class ORMEntityPropertyHooksTest extends BaseTestCase
 	{
 		$entity = $this->makeBare();
 
-		$entity->_oebHydrate([
+		$entity->_hydrate([
 			'id'    => '3',
 			'label' => 'bare row',
 			'data'  => '{"k":"v"}',
@@ -471,7 +471,7 @@ final class ORMEntityPropertyHooksTest extends BaseTestCase
 	{
 		$entity = $this->makeHooked(false);
 
-		$entity->_oebHydrate(['hk_id' => '1', 'hk_label' => 'x', 'hk_data' => '{}', 'hk_active' => '1']);
+		$entity->_hydrate(['hk_id' => '1', 'hk_label' => 'x', 'hk_data' => '{}', 'hk_active' => '1']);
 
 		self::assertTrue($entity->isSaved(), 'a hydrated entity has nothing to save');
 	}
@@ -483,7 +483,7 @@ final class ORMEntityPropertyHooksTest extends BaseTestCase
 	{
 		$entity = $this->makeHooked(false);
 
-		$entity->_oebHydrate(['hk_id' => '1', '_gobl_batch_key' => '42']);
+		$entity->_hydrate(['hk_id' => '1', '_gobl_batch_key' => '42']);
 
 		self::assertTrue($entity->hasComputedValue('batch_key'));
 		self::assertSame('42', $entity->getComputedValue('batch_key'));
@@ -498,7 +498,7 @@ final class ORMEntityPropertyHooksTest extends BaseTestCase
 
 		$this->expectException(ORMRuntimeException::class);
 
-		$entity->_oebHydrate(['not_a_column' => 'x']);
+		$entity->_hydrate(['not_a_column' => 'x']);
 	}
 
 	// -------------------------------------------------------------------------
@@ -533,7 +533,7 @@ final class ORMEntityPropertyHooksTest extends BaseTestCase
 	{
 		$entity = LegacyShapedEntity::new(false);
 
-		$entity->_oebHydrate(['hk_label' => 'from the row', 'hk_active' => '1']);
+		$entity->_hydrate(['hk_label' => 'from the row', 'hk_active' => '1']);
 
 		self::assertSame('from the row', $entity->label);
 		self::assertTrue($entity->active, 'the raw "1" became a bool');

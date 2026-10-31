@@ -229,7 +229,7 @@ final class ORMEntityTest extends BaseTestCase
 		$entity = ORM::entity($table, true, false); // strict = false
 
 		$notices = self::captureNotices(static function () use ($entity): void {
-			$entity->_oebHydrate([
+			$entity->_hydrate([
 				'client_first_name'      => 'Carol',
 				'totally_unknown_column' => 'value',
 			]);

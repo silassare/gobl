@@ -263,7 +263,7 @@ abstract class ORMResults implements PaginationAwareListInterface, Countable, It
 		/** @var TEntity $entity */
 		$entity = ORM::entity($this->table, false, $strict);
 
-		$entity->_oebHydrate($row)
+		$entity->_hydrate($row)
 			->isSaved(true); // the entity is fetched from the database
 
 		return $entity;
@@ -306,7 +306,7 @@ abstract class ORMResults implements PaginationAwareListInterface, Countable, It
 			/** @var TEntity $entity */
 			$entity = ORM::entity($this->table, false, $strict);
 
-			$out[] = $entity->_oebHydrate($row);
+			$out[] = $entity->_hydrate($row);
 		}
 
 		return $out;
