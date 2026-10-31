@@ -55,6 +55,40 @@ final class TextMatch
 	}
 
 	/**
+	 * The `LIKE` pattern a term the text begins with searches with.
+	 *
+	 * @throws DBALRuntimeException when the term is empty
+	 */
+	public static function prefixPattern(string $term): string
+	{
+		if ('' === $term) {
+			throw new DBALRuntimeException(\sprintf(
+				'operator "%s" requires a non-empty search term: an empty one matches every row, which is never what a search means.',
+				Operator::STARTS_WITH->name
+			));
+		}
+
+		return self::escape($term) . '%';
+	}
+
+	/**
+	 * The pattern an operator searches a term with.
+	 *
+	 * @throws DBALRuntimeException when the operator is not a text search, or the term is empty
+	 */
+	public static function patternFor(Operator $operator, string $term): string
+	{
+		return match ($operator) {
+			Operator::MATCHES     => self::pattern($term),
+			Operator::STARTS_WITH => self::prefixPattern($term),
+			default               => throw new DBALRuntimeException(\sprintf(
+				'operator "%s" is not a text search.',
+				$operator->name
+			)),
+		};
+	}
+
+	/**
 	 * Escapes what `LIKE` would otherwise read as a wildcard.
 	 */
 	public static function escape(string $term): string

@@ -16,6 +16,7 @@ namespace Gobl\ORM;
 use Gobl\CRUD\Exceptions\CRUDException;
 use Gobl\DBAL\Collections\CollectionFactory;
 use Gobl\DBAL\Column;
+use Gobl\DBAL\Search\Searchable;
 use Gobl\DBAL\Constraints\PrimaryKey;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
@@ -850,6 +851,39 @@ abstract class ORMEntity implements ArrayCapableInterface
 		) {
 			$this->_oeb_row[$full_name]   = $clean;
 			$this->_oeb_dirty[$full_name] = true;
+
+			$this->writeSearchText($column, $clean);
+		}
+	}
+
+	/**
+	 * Writes the folded text of a searchable column beside it.
+	 *
+	 * In the same round as the column it folds, so the two reach the database in one statement and
+	 * the folded text cannot be forgotten: that is what makes it a column the ORM owns rather than
+	 * a cache somebody maintains. It is written as a value and not through a column write, because
+	 * it is private -- a request may not write it, and this is not a request.
+	 */
+	private function writeSearchText(Column $column, mixed $value): void
+	{
+		$type = $column->getType();
+
+		if (!$type->isSearchable()) {
+			return;
+		}
+
+		$search_column = $this->_oeb_table->getColumn(Searchable::columnName($column->getName()));
+
+		if (null === $search_column) {
+			return;
+		}
+
+		$name   = $search_column->getFullName();
+		$folded = Searchable::foldValue($value, $type->getSearchText());
+
+		if (($this->_oeb_row[$name] ?? null) !== $folded) {
+			$this->_oeb_row[$name]   = $folded;
+			$this->_oeb_dirty[$name] = true;
 		}
 	}
 

@@ -40,6 +40,15 @@ use Override;
  */
 final class MySQLQueryGenerator extends SQLQueryGeneratorBase
 {
+	/**
+	 * How much of a folded text column a prefix index covers.
+	 *
+	 * MySQL indexes no `TEXT` column without a key length. 255 characters of `utf8mb4` is 1020
+	 * bytes, inside the 3072-byte InnoDB key limit, and is more of a name or a title than a prefix
+	 * search ever reaches.
+	 */
+	public const int TEXT_SEARCH_PREFIX_KEY_LENGTH = 255;
+
 	protected int $decimal_precision_max      = 65;
 	protected int $decimal_scale_max          = 30;
 	private static bool $templates_registered = false;
@@ -201,6 +210,26 @@ final class MySQLQueryGenerator extends SQLQueryGeneratorBase
 
 		if (IndexType::MYSQL_SPATIAL === $index_type) {
 			return 'CREATE SPATIAL INDEX ' . $index_name . ' ON ' . $this->quoteIdentifier($table_name) . ' (' . $columns_list . ');';
+		}
+
+		// A term anywhere in the text: the ngram parser, which is what makes a substring findable
+		// at all. It also ignores the minimum and maximum word length, so a three-letter acronym
+		// stays findable where the default parser would drop it.
+		if (IndexType::TEXT_SEARCH_SUBSTRING === $index_type) {
+			return 'CREATE FULLTEXT INDEX ' . $index_name . ' ON ' . $this->quoteIdentifier($table_name)
+				. ' (' . $columns_list . ') WITH PARSER ngram;';
+		}
+
+		// A term at the start: a key length, because the folded column is TEXT and MySQL indexes no
+		// TEXT column without one. The stored text is not truncated; the index covers its head,
+		// which is all a prefix search reads.
+		if (IndexType::TEXT_SEARCH_PREFIX === $index_type) {
+			$prefixed = \implode(' , ', \array_map(
+				fn (string $col): string => $this->quoteIdentifier($col) . '(' . self::TEXT_SEARCH_PREFIX_KEY_LENGTH . ')',
+				$index->getColumns()
+			));
+
+			return 'CREATE INDEX ' . $index_name . ' ON ' . $this->quoteIdentifier($table_name) . ' (' . $prefixed . ');';
 		}
 
 		$using = match ($index_type) {

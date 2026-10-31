@@ -52,6 +52,7 @@ use Gobl\DBAL\Indexes\Index;
 use Gobl\DBAL\Interfaces\QueryGeneratorInterface;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
+use Gobl\DBAL\Search\SearchMatch;
 use Gobl\DBAL\Queries\Interfaces\QBInterface;
 use Gobl\DBAL\Queries\QBDelete;
 use Gobl\DBAL\Queries\QBInsert;
@@ -83,6 +84,15 @@ use const GOBL_VERSION;
  */
 abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 {
+	/**
+	 * The smallest piece of text a MySQL `FULLTEXT` index with the `ngram` parser holds.
+	 *
+	 * MySQL's own default for `ngram_token_size`, which is server-wide and needs a restart and an
+	 * index rebuild to change. A term shorter than this is read with `LIKE` instead of the index,
+	 * so what a server configured higher costs is speed on terms of this length and not an answer.
+	 */
+	public const int NGRAM_TOKEN_SIZE = 2;
+
 	protected int $decimal_precision_min = 1;
 	protected int $decimal_precision_max = 38;
 	protected int $decimal_scale_min     = 0;
@@ -413,6 +423,36 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	/**
 	 * {@inheritDoc}
 	 *
+	 * Default implementation: MySQL. A substring search reads the `FULLTEXT` index through a phrase
+	 * search, which with the `ngram` parser is how a substring is found at all. A term the parser
+	 * cannot tokenise -- one holding anything but letters, digits and single spaces, or a word
+	 * shorter than the server's `ngram_token_size` -- is read with `LIKE` over the folded column
+	 * instead: slower, and never an empty answer where there are rows.
+	 */
+	#[Override]
+	public function getSearchIndexExpression(
+		Operator $operator,
+		SearchMatch $match,
+		string $column_ref,
+		string $folded_term,
+		callable $bind
+	): string {
+		if (
+			Operator::MATCHES === $operator
+			&& SearchMatch::SUBSTRING === $match
+			&& $this->isFullTextSearchableTerm($folded_term)
+		) {
+			// A phrase, so the n-grams must follow one another: that is a substring and not a bag
+			// of words. The term holds no double quote, which is what makes quoting it safe.
+			return 'MATCH(' . $column_ref . ') AGAINST (' . $bind('"' . $folded_term . '"') . ' IN BOOLEAN MODE)';
+		}
+
+		return $this->getFoldedLikeExpression($operator, $column_ref, $folded_term, $bind);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * Default implementation: MySQL-compatible `JSON_SET` / `JSON_REMOVE` nesting. Drivers say what
 	 * their functions are called through the protected methods below, not by rewriting this one.
 	 */
@@ -513,6 +553,46 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	public function quoteLiteral(string $value): string
 	{
 		return "'" . \str_replace("'", "''", $value) . "'";
+	}
+
+	/**
+	 * Compares a term with a column of folded text, which neither side folds again.
+	 *
+	 * The shape every driver falls back to, and the one PostgreSQL and SQLite always use: a `LIKE`
+	 * whose pattern the term is wrapped into. PostgreSQL's trigram index serves it from three
+	 * consecutive characters on, and a prefix index serves an anchored one; SQLite reads the
+	 * column.
+	 */
+	protected function getFoldedLikeExpression(
+		Operator $operator,
+		string $column_ref,
+		string $folded_term,
+		callable $bind
+	): string {
+		return $column_ref . ' LIKE ' . $bind(TextMatch::patternFor($operator, $folded_term))
+			. ' ESCAPE ' . $this->quoteLiteral(TextMatch::ESCAPE_CHAR);
+	}
+
+	/**
+	 * Whether a folded term is one the `ngram` parser tokenises as the text was tokenised.
+	 *
+	 * Letters, digits and single spaces, every word at least {@see self::NGRAM_TOKEN_SIZE} long.
+	 * Punctuation is not a token, so a term holding any would be searched for something other than
+	 * itself; a word shorter than one token produces no token at all and would answer no rows.
+	 */
+	protected function isFullTextSearchableTerm(string $folded_term): bool
+	{
+		if (!\preg_match('~^[\p{L}\p{N}]+( [\p{L}\p{N}]+)*$~u', $folded_term)) {
+			return false;
+		}
+
+		foreach (\explode(' ', $folded_term) as $word) {
+			if (\mb_strlen($word) < static::NGRAM_TOKEN_SIZE) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**
@@ -1645,8 +1725,9 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 			return $this->getJsonHasKeyExpression($left, $right ?? 'NULL');
 		}
 
-		// Text search: folding, and the escape clause the bound pattern was escaped for.
-		if (Operator::MATCHES === $op) {
+		// Text search: folding, and the escape clause the bound pattern was escaped for. The
+		// anchored one compiles the same way; what differs is the pattern, which is already bound.
+		if (Operator::MATCHES === $op || Operator::STARTS_WITH === $op) {
 			return $this->getTextMatchExpression(
 				$left,
 				$right ?? 'NULL',

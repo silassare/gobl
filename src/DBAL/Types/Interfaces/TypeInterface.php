@@ -17,6 +17,8 @@ use Gobl\DBAL\Column;
 use Gobl\DBAL\Filters\Filter;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
+use Gobl\DBAL\Search\SearchMatch;
+use Gobl\DBAL\Search\SearchText;
 use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
@@ -50,6 +52,25 @@ interface TypeInterface extends ArrayCapableInterface, MetaCapableInterface, Loc
 	 * Gets type name.
 	 */
 	public function getName(): string;
+
+	/**
+	 * Whether this column's text is searched through a folded companion column.
+	 *
+	 * Declared with `searchable()`. The table then holds the companion
+	 * ({@see Gobl\DBAL\Search\Searchable::columnName()}), the ORM writes it in the same statement
+	 * that writes this column, and a search of this column reads it instead.
+	 */
+	public function isSearchable(): bool;
+
+	/**
+	 * What this column's folded text is indexed for, or null when it is not searchable.
+	 */
+	public function getSearchMatch(): ?SearchMatch;
+
+	/**
+	 * What of this column goes into its folded text.
+	 */
+	public function getSearchText(): SearchText;
 
 	/**
 	 * Enable null value.

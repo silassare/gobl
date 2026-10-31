@@ -108,12 +108,19 @@ $filters->matches('p.page_title#fr', 'economie');
 $filters->matches('p.page_title', 'economie');
 ```
 
+`startsWith()` is the same search anchored at the start of the text:
+
+```php
+$filters->startsWith('p.page_name', 'econ');   // a name beginning with "econ"
+```
+
 The generated query methods take the term, and on a JSON column an optional path:
 
 ```php
 PagesQuery::new()->whereNameMatches('economie');
 PagesQuery::new()->whereTitleMatches('economie', 'fr');
 PagesQuery::new()->whereTitleMatches('economie');       // the whole document
+PagesQuery::new()->whereNameStartsWith('econ');
 ```
 
 **It takes a term and not a pattern.** `'economie'`, never `'%economie%'`: `matches()` wraps the
@@ -147,6 +154,50 @@ for a search index beyond that.
 
 With no path the document *text* is searched, which carries the document's keys and any stored
 id: a search for `body` matches a document having a `body` key. With a path it cannot.
+
+---
+
+## Searching at scale
+
+Declaring a column [searchable](./column-types.md#searchable-text-string-enum-map-list-json) is what
+makes the search above indexable -- and, as a side effect, what makes it answer the **same on every
+engine**, since the folding then happens once in PHP instead of per driver in SQL:
+
+```php
+$t->map('title')->searchable();                        // a term anywhere
+$t->string('name')->searchable(SearchMatch::PREFIX);   // a term at the start
+```
+
+Nothing changes at the call site. `matches()` and `startsWith()` read the private companion column
+`<column>__search`, which the ORM writes in the same statement that writes the column it folds:
+
+| engine | a term anywhere | a term at the start |
+| --- | --- | --- |
+| MySQL | `FULLTEXT` with the `ngram` parser, read with `MATCH ... AGAINST` | B-tree over the first 255 characters |
+| PostgreSQL | GIN with `gin_trgm_ops`, read with `LIKE` | B-tree with `text_pattern_ops` |
+| SQLite | no equivalent: a scan of the folded column | a plain index |
+
+What it costs, said plainly:
+
+- **The folded text is stored.** A searchable column roughly doubles the text the row holds, and the
+  folded column is read with the row.
+- **PostgreSQL needs `pg_trgm`.** The generated schema creates the extension beside the index, so a
+  role that may not `CREATE EXTENSION` fails there, at the migration, naming it. `unaccent` is not
+  needed: the folding is done in PHP, which is also why no index here depends on a rules file
+  somebody can edit underneath it.
+- **MySQL's `ngram_token_size` is server-wide** (default 2), needs a restart and an index rebuild.
+  A term shorter than it is searched with `LIKE` over the folded column instead of through the
+  index -- slower, never an empty answer. A server configured *higher* is the one case to know
+  about: a term between the two sizes then finds nothing, so leave it at the default.
+- **MySQL matches n-grams, not a literal substring**, so where the two would disagree the index
+  decides. A term holding anything but letters, digits and single spaces is searched with `LIKE`
+  instead, which is why a term with a `%` in it still means that character.
+- **A JSON path is not served by the index.** `matches('p.page_title#fr', ...)` searches the path
+  where it stands, because the folded column holds the whole column's text and cannot answer for
+  one path of it.
+- **A bulk update refuses what it cannot fold.** `updateAllItems()` writes the folded column in the
+  same statement; handed a JSON patch or a SQL expression for a searchable column it refuses by
+  name, rather than leaving the folded text behind and the search quietly wrong.
 
 ---
 
@@ -268,8 +319,8 @@ $qb->where(fn($f) => $f->in('u.user_created_at', ['2024-01-01', '2024-06-01']));
   of these bypass coercion.
 - `contains()` / `containsAtPath()` / `hasKey()` bypass coercion: their right-operand
   is handled by the JSON-specific serializer.
-- `matches()` bypasses coercion too: its right operand is a search term and not a value of the
-  column's type, so a date column does not turn the term `2026` into a timestamp.
+- `matches()` and `startsWith()` bypass coercion too: the right operand is a search term and not a
+  value of the column's type, so a date column does not turn the term `2026` into a timestamp.
 
 If the value cannot be coerced to the expected type (e.g., `'banana'` on an `int` column),
 a `TypesInvalidValueException` is thrown immediately, before the query is executed.
@@ -295,7 +346,7 @@ $filters = Filters::fromArray(
 
 Supported operator strings map to `Gobl\DBAL\Operator` values:
 `eq`, `neq`, `lt`, `lte`, `gt`, `gte`, `like`, `not_like`, `in`, `not_in`,
-`is_null`, `is_not_null`, `is_true`, `is_false`, `contains`, `has_key`, `matches`.
+`is_null`, `is_not_null`, `is_true`, `is_false`, `contains`, `has_key`, `matches`, `starts_with`.
 
 Two conditions need `'AND'` or `'OR'` between them. A refused item is named by its position, in
 the message and in the exception's public data (`getData()`):

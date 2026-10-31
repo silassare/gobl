@@ -21,6 +21,8 @@ use Gobl\DBAL\Filters\Operands\FilterLeftOperand;
 use Gobl\DBAL\Filters\Operands\FilterRightOperand;
 use Gobl\DBAL\Filters\Traits\FiltersOperatorsHelpersTrait;
 use Gobl\DBAL\Operator;
+use Gobl\DBAL\Search\Searchable;
+use Gobl\DBAL\Search\SearchMatch;
 use Gobl\DBAL\Queries\Interfaces\QBInterface;
 use Gobl\DBAL\Queries\QBExpression;
 use Gobl\DBAL\Queries\QBSelect;
@@ -345,6 +347,10 @@ final class Filters
 			}
 		}
 
+		if (Operator::MATCHES === $operator || Operator::STARTS_WITH === $operator) {
+			return $this->addTextSearch($operator, $left, $u_right);
+		}
+
 		$left_operand  = new FilterLeftOperand($left, $this->qb, $this->scope);
 		$right_operand = null;
 
@@ -404,23 +410,6 @@ final class Filters
 				$try_enforce_query_type = false;
 			} elseif (Operator::HAS_KEY === $operator) {
 				// HAS_KEY right operand is a key path string, not a typed column value.
-				$try_enforce_query_type = false;
-			} elseif (Operator::MATCHES === $operator) {
-				// MATCHES right operand is a search term, not a value of the column's type:
-				// the column's cast would turn '2026' on a date column into a timestamp.
-				// The term becomes the pattern here so every road to the operator escapes it alike.
-				if (!\is_string($u_right) && !\is_int($u_right) && !\is_float($u_right)) {
-					throw new DBALRuntimeException(
-						\sprintf(
-							'operator "%s" right operand should be a search term of type "%s" not: %s',
-							$operator->name,
-							\implode('|', ['string', 'int', 'float']),
-							\get_debug_type($u_right)
-						)
-					);
-				}
-
-				$u_right                = TextMatch::pattern((string) $u_right);
 				$try_enforce_query_type = false;
 			}
 
@@ -488,6 +477,132 @@ final class Filters
 		$this->group->push($filter);
 
 		return $this;
+	}
+
+	/**
+	 * Appends a text search condition.
+	 *
+	 * The right operand is a term and not a value of the column's type, so no cast touches it: a
+	 * date column would otherwise read the term `2026` as a timestamp. The term becomes the pattern
+	 * here, so every road to the operator escapes it alike.
+	 *
+	 * A column declared `searchable()` is searched through its folded companion column, which is
+	 * what an index can serve. The driver is asked for that expression and binds what its own shape
+	 * needs, because the shapes do not agree on the value. Everything else -- a column that is not
+	 * declared, and a JSON path, whose value the companion does not hold on its own -- is compared
+	 * where it stands, folded by the engine.
+	 *
+	 * @throws DBALRuntimeException when the right operand is not a term
+	 */
+	private function addTextSearch(
+		Operator $operator,
+		FilterFieldNotation|string $left,
+		mixed $term
+	): self {
+		if (!\is_string($term) && !\is_int($term) && !\is_float($term)) {
+			throw new DBALRuntimeException(
+				\sprintf(
+					'operator "%s" right operand should be a search term of type "%s" not: %s',
+					$operator->name,
+					\implode('|', ['string', 'int', 'float']),
+					\get_debug_type($term)
+				)
+			);
+		}
+
+		$term          = (string) $term;
+		$left_operand  = new FilterLeftOperand($left, $this->qb, $this->scope);
+		$right_operand = new FilterRightOperand($term, $this->qb, $this->scope);
+		$filter        = new Filter($operator, $left_operand, $right_operand);
+
+		// What the scope judges is the column the caller named, before any of this reads another.
+		$this->scope?->assertFilterAllowed($filter, $this->qb);
+
+		$searchable = $this->searchColumnOf($left_operand);
+
+		if (null === $searchable) {
+			$param_key = QBUtils::newParamKey();
+			$this->qb->bindNamed($param_key, TextMatch::patternFor($operator, $term));
+			$right_operand->setValueNormalized(':' . $param_key);
+
+			$this->group->push($filter);
+
+			return $this;
+		}
+
+		[$column_ref, $match] = $searchable;
+
+		$folded = Searchable::fold($term);
+
+		if ('' === $folded) {
+			throw new DBALRuntimeException(\sprintf(
+				'operator "%s" was given a term holding nothing to search for: %s',
+				$operator->name,
+				\var_export($term, true)
+			));
+		}
+
+		$expression = $this->qb->getRDBMS()
+			->getGenerator()
+			->getSearchIndexExpression(
+				$operator,
+				$match,
+				$column_ref,
+				$folded,
+				function (mixed $value): string {
+					$param_key = QBUtils::newParamKey();
+					$this->qb->bindNamed($param_key, $value);
+
+					return ':' . $param_key;
+				}
+			);
+
+		$this->group->push(new FilterRaw($expression));
+
+		return $this;
+	}
+
+	/**
+	 * The folded companion column a text search reads, and what its index was declared for.
+	 *
+	 * Null when there is none to read: a column that is not declared searchable, a JSON path (the
+	 * companion holds the whole column's text, so it cannot answer for one path of it), or a left
+	 * operand that is an expression rather than a column.
+	 *
+	 * @return null|array{0: string, 1: SearchMatch}
+	 */
+	private function searchColumnOf(FilterLeftOperand $left_operand): ?array
+	{
+		$resolved = $left_operand->getResolvedColumn();
+
+		if (null === $resolved || $resolved->getFieldNotation()->hasPathSegments()) {
+			return null;
+		}
+
+		$table  = $resolved->getTable();
+		$column = $table->getColumn($resolved->getColumnName());
+
+		if (null === $column) {
+			return null;
+		}
+
+		$match = $column->getType()->getSearchMatch();
+
+		if (null === $match) {
+			return null;
+		}
+
+		$search_column = $table->getColumn(Searchable::columnName($column->getName()));
+
+		if (null === $search_column) {
+			// A table built but never locked has no companion column yet.
+			return null;
+		}
+
+		return [
+			$this->qb->fullyQualifiedName($resolved->getTableOrAlias(), $search_column->getFullName()),
+			$match,
+		];
 	}
 
 	/**

@@ -28,6 +28,9 @@ use Gobl\DBAL\Indexes\IndexType;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Relations\VirtualRelation;
+use Gobl\DBAL\Search\Searchable;
+use Gobl\DBAL\Search\SearchMatch;
+use Gobl\DBAL\Types\TypeString;
 use Gobl\DBAL\Types\Utils\JsonPatch;
 use Gobl\Exceptions\GoblRuntimeException;
 use InvalidArgumentException;
@@ -413,6 +416,8 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 		$this->lazyBuild(true);
 
 		if (!$this->isLocked()) {
+			$this->addSearchColumns();
+
 			$this->assertIsValid();
 
 			foreach ($this->columns as $column) {
@@ -1891,6 +1896,48 @@ final class Table implements ArrayCapableInterface, MetaCapableInterface, DiffCa
 	public function hasSinglePKColumn(): bool
 	{
 		return 1 === \count($this->getPrimaryKeyConstraint()?->getColumns() ?? []);
+	}
+
+	/**
+	 * Gives every searchable column the companion column holding its folded text, and its index.
+	 *
+	 * Here, because this is the one road every table is built by: the fluent builder, an array
+	 * schema and a lazily declared table all end up locked. The index is declared as an intent
+	 * ({@see IndexType::TEXT_SEARCH_PREFIX}, {@see IndexType::TEXT_SEARCH_SUBSTRING}) and never as
+	 * an engine's index kind, so the table model carries no driver.
+	 *
+	 * The companion is private: a request may not read it, write it, filter on it or order by it,
+	 * and `toArray()` leaves it out -- it is the ORM's own copy of text the row already holds.
+	 *
+	 * @throws DBALException
+	 */
+	private function addSearchColumns(): void
+	{
+		foreach ($this->columns as $column) {
+			$type = $column->getType();
+
+			$match = $type->getSearchMatch();
+
+			if (null === $match) {
+				continue;
+			}
+
+			$search_name = Searchable::columnName($column->getName());
+
+			if (isset($this->columns[$search_name])) {
+				// Locking a table twice, or a column declared by hand: nothing to add.
+				continue;
+			}
+
+			$search_column = new Column($search_name, null, new TypeString()->nullable());
+
+			$this->addColumn($search_column->setPrivate());
+
+			$this->addIndex([$search_name], match ($match) {
+				SearchMatch::PREFIX    => IndexType::TEXT_SEARCH_PREFIX,
+				SearchMatch::SUBSTRING => IndexType::TEXT_SEARCH_SUBSTRING,
+			});
+		}
 	}
 
 	/**

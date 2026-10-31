@@ -651,6 +651,10 @@
 			"additionalProperties": false,
 			"description": "Variable-length string column (VARCHAR/TEXT). Use 'max' to set the length. Add 'medium: true' or 'long: true' for larger content. Stored as VARCHAR(max) in MySQL (TEXT when max > 255 or unset) and TEXT in PostgreSQL/SQLite.",
 			"properties": {
+				"searchable": {
+					"oneOf": [{ "type": "boolean" }, { "type": "string", "enum": ["substring", "prefix"] }],
+					"description": "Index this column's text for searching: the table then holds a private companion column '<name>__search' of folded text (lower case, no accents, single spaces), written by the ORM in the same statement that writes this column and indexed for the intent declared here. 'substring' (or true) makes a term anywhere in the text fast (MySQL FULLTEXT with the ngram parser, PostgreSQL GIN with gin_trgm_ops, SQLite a scan of the folded column); 'prefix' makes a term at the start fast, which is what the 'starts_with' operator reads. Only on a text or JSON column."
+				},
 				"type": {
 					"const": "string",
 					"type": "string",
@@ -768,6 +772,10 @@
 			"additionalProperties": false,
 			"description": "Enum column backed by a PHP BackedEnum (string or int backing). The column stores the enum's backing value. On read, the stored value is passed to YourEnum::from() to return a typed enum instance. Required: 'enum_class'.",
 			"properties": {
+				"searchable": {
+					"oneOf": [{ "type": "boolean" }, { "type": "string", "enum": ["substring", "prefix"] }],
+					"description": "Index this column's text for searching: the table then holds a private companion column '<name>__search' of folded text (lower case, no accents, single spaces), written by the ORM in the same statement that writes this column and indexed for the intent declared here. 'substring' (or true) makes a term anywhere in the text fast (MySQL FULLTEXT with the ngram parser, PostgreSQL GIN with gin_trgm_ops, SQLite a scan of the folded column); 'prefix' makes a term at the start fast, which is what the 'starts_with' operator reads. Only on a text or JSON column."
+				},
 				"type": {
 					"const": "enum",
 					"type": "string",
@@ -964,6 +972,16 @@
 			"additionalProperties": false,
 			"description": "JSON object column (key-value map). Stored as native JSON by default (MySQL JSON, PostgreSQL JSONB). Set native_json: false to store as TEXT instead. Enables JSON path operators (contains, has_key) in filters. Use 'map_of' for typed code generation and runtime revival of values.",
 			"properties": {
+				"searchable": {
+					"oneOf": [{ "type": "boolean" }, { "type": "string", "enum": ["substring", "prefix"] }],
+					"description": "Index this column's text for searching: the table then holds a private companion column '<name>__search' of folded text (lower case, no accents, single spaces), written by the ORM in the same statement that writes this column and indexed for the intent declared here. 'substring' (or true) makes a term anywhere in the text fast (MySQL FULLTEXT with the ngram parser, PostgreSQL GIN with gin_trgm_ops, SQLite a scan of the folded column); 'prefix' makes a term at the start fast, which is what the 'starts_with' operator reads. Only on a text or JSON column."
+				},
+				"searchable_text": {
+					"type": "string",
+					"enum": ["values", "document"],
+					"default": "values",
+					"description": "What of this JSON column goes into its folded text. 'values' folds the document's values and not its keys, so a term never matches a key name or a stored id. 'document' folds the document as it is written, keys included, which is what an unindexed whole-column search reads."
+				},
 				"type": {
 					"const": "map",
 					"type": "string",
@@ -1058,6 +1076,16 @@
 			"additionalProperties": false,
 			"description": "JSON array column (ordered list). Stored as native JSON by default (MySQL JSON, PostgreSQL JSONB). Set native_json: false to store as TEXT instead. Enables JSON path operators in filters. Use 'list_of' for typed code generation.",
 			"properties": {
+				"searchable": {
+					"oneOf": [{ "type": "boolean" }, { "type": "string", "enum": ["substring", "prefix"] }],
+					"description": "Index this column's text for searching: the table then holds a private companion column '<name>__search' of folded text (lower case, no accents, single spaces), written by the ORM in the same statement that writes this column and indexed for the intent declared here. 'substring' (or true) makes a term anywhere in the text fast (MySQL FULLTEXT with the ngram parser, PostgreSQL GIN with gin_trgm_ops, SQLite a scan of the folded column); 'prefix' makes a term at the start fast, which is what the 'starts_with' operator reads. Only on a text or JSON column."
+				},
+				"searchable_text": {
+					"type": "string",
+					"enum": ["values", "document"],
+					"default": "values",
+					"description": "What of this JSON column goes into its folded text. 'values' folds the document's values and not its keys, so a term never matches a key name or a stored id. 'document' folds the document as it is written, keys included, which is what an unindexed whole-column search reads."
+				},
 				"type": {
 					"const": "list",
 					"type": "string",
@@ -1152,6 +1180,16 @@
 			"additionalProperties": false,
 			"description": "Raw JSON document column (object or array root). Stored as native JSON by default (MySQL JSON, PostgreSQL JSONB). Set native_json: false to store as TEXT instead. Use 'json_of' for typed PHP objects or ORMUniversalType shape enforcement.",
 			"properties": {
+				"searchable": {
+					"oneOf": [{ "type": "boolean" }, { "type": "string", "enum": ["substring", "prefix"] }],
+					"description": "Index this column's text for searching: the table then holds a private companion column '<name>__search' of folded text (lower case, no accents, single spaces), written by the ORM in the same statement that writes this column and indexed for the intent declared here. 'substring' (or true) makes a term anywhere in the text fast (MySQL FULLTEXT with the ngram parser, PostgreSQL GIN with gin_trgm_ops, SQLite a scan of the folded column); 'prefix' makes a term at the start fast, which is what the 'starts_with' operator reads. Only on a text or JSON column."
+				},
+				"searchable_text": {
+					"type": "string",
+					"enum": ["values", "document"],
+					"default": "values",
+					"description": "What of this JSON column goes into its folded text. 'values' folds the document's values and not its keys, so a term never matches a key name or a stored id. 'document' folds the document as it is written, keys included, which is what an unindexed whole-column search reads."
+				},
 				"type": {
 					"const": "json",
 					"type": "string",

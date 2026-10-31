@@ -56,6 +56,7 @@ $db->ns('App\Db')->table('users', function (TableBuilder $t) {
 
 `TableBuilder` column methods (check `src/DBAL/Builders/TableBuilder.php` for full signatures):
 `id()`, `int()`, `bigint()`, `string()`, `bool()`, `float()`, `decimal()`, `date()`, `enum()`, `json()`, `jsonOf()`, `list()`, `listOf()`, `map()`, `mapOf()`, `timestamp()`, `timestamps()`, `softDeletable()`, `morph()`, `foreign()`, `sameAs()`.
+Text and JSON column types also take `searchable(SearchMatch, SearchText)`.
 Constraint/index shortcuts: `unique()`, `primary()`, `index()`.
 Relation methods: `hasMany()`, `hasOne()`, `belongsTo()`, `belongsToMany()`.
 `useColumn($name)` — returns an already-defined `Column` by name (throws `DBALRuntimeException` if not found).
@@ -251,7 +252,15 @@ Operand form: `[table.]column[#path]`. Path uses JS-like notation — see `src/D
 
 Fluent filter helpers (on generated `*Query` class): `eq`, `neq`, `lt`, `lte`, `gt`, `gte`, `like`, `notLike`, `isNull`, `isNotNull`, `in`, `notIn`, `isTrue`, `isFalse`, `contains`, `containsAtPath`, `hasKey`, `matches`. No `jsonContains` method.
 
-`matches()` is the text search: a term and never a pattern (`TextMatch` wraps and escapes it), compiled per driver by `getTextMatchExpression()`. It folds case everywhere and accents on MySQL only, which is asserted per driver and not to be assumed.
+`matches()` is the text search: a term and never a pattern (`TextMatch` wraps and escapes it), compiled per driver by `getTextMatchExpression()`. It folds case everywhere and accents on MySQL only, which is asserted per driver and not to be assumed. `startsWith()` is the same search anchored at the start.
+
+A column declared `searchable()` is searched through a private companion column of folded text
+(`Searchable::columnName()`), which `Table::lock()` adds with an index declared as an intent
+(`IndexType::TEXT_SEARCH_PREFIX` / `TEXT_SEARCH_SUBSTRING`, rendered per driver) and the ORM writes
+in the same statement as the column it folds. Folding is `Searchable::fold()`, in PHP, once: that is
+what makes the answer the same on every driver, and the only indexable form. `getSearchIndexExpression()`
+compiles that search, and binds through a callback because MySQL's `FULLTEXT` takes a phrase where
+the others take a `LIKE` pattern.
 
 Filter values auto-coerced to DB form via `TypeUtils::runCastValueForFilter()`. SQL placeholders optionally wrapped via `TypeUtils::runCastExpressionForQuery()`. Custom types override `castValueForFilter()` / `castExpressionForQuery()` — do not call `runCast*` directly.
 

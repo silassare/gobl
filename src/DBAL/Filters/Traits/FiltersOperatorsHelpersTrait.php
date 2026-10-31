@@ -82,6 +82,20 @@ trait FiltersOperatorsHelpersTrait
 	}
 
 	/**
+	 * Adds a text search condition on what the text begins with.
+	 *
+	 * {@see self::matches()} in every respect but the pattern, which is anchored at the start.
+	 * A column declared `searchable(SearchMatch::PREFIX)` serves this one from its index.
+	 *
+	 * @param string           $left The column, JSON path notation, or expression
+	 * @param float|int|string $term The term the text begins with, never a pattern
+	 */
+	public function startsWith(string $left, float|int|string $term): static
+	{
+		return $this->add(Operator::STARTS_WITH, $left, $term);
+	}
+
+	/**
 	 * Adds not like condition.
 	 */
 	public function notLike(string $left, string $right): static

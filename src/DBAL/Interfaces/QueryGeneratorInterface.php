@@ -18,8 +18,10 @@ use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Diff\DiffAction;
 use Gobl\DBAL\Filters\Filters;
 use Gobl\DBAL\Filters\Interfaces\FilterInterface;
+use Gobl\DBAL\Operator;
 use Gobl\DBAL\Queries\Interfaces\QBInterface;
 use Gobl\DBAL\Queries\QBSelect;
+use Gobl\DBAL\Search\SearchMatch;
 use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\Utils\JsonPatch;
 use Gobl\DBAL\Types\Utils\JsonPatchExpression;
@@ -129,6 +131,34 @@ interface QueryGeneratorInterface
 	 * @return string The dialect-specific text match SQL expression
 	 */
 	public function getTextMatchExpression(string $left, string $right, ?Table $table = null): string;
+
+	/**
+	 * Returns the dialect-specific SQL expression that searches a column's folded text.
+	 *
+	 * Reached only for a column declared `searchable()`, whose companion column
+	 * ({@see Gobl\DBAL\Search\Searchable::columnName()}) holds text already folded by
+	 * {@see Gobl\DBAL\Search\Searchable::fold()} -- so neither side of the comparison folds
+	 * anything here, and what the index holds is what the term is compared against.
+	 *
+	 * The driver binds what its own shape needs through `$bind`, because the shapes do not agree on
+	 * the value: MySQL searches a substring through a `FULLTEXT` index, which takes a phrase and
+	 * not a pattern, where the others take a `LIKE` pattern.
+	 *
+	 * @param Operator    $operator    {@see Operator::MATCHES} or {@see Operator::STARTS_WITH}
+	 * @param SearchMatch $match       what the column's index was declared for
+	 * @param string      $column_ref  the companion column, fully qualified
+	 * @param string      $folded_term the term, folded
+	 * @param callable    $bind        binds a value and returns its placeholder: `fn (mixed): string`
+	 *
+	 * @return string the dialect-specific search expression
+	 */
+	public function getSearchIndexExpression(
+		Operator $operator,
+		SearchMatch $match,
+		string $column_ref,
+		string $folded_term,
+		callable $bind
+	): string;
 
 	/**
 	 * Converts filters to sql expression.

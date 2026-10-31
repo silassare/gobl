@@ -19,6 +19,9 @@ use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Filters\Filter;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
+use Gobl\DBAL\Search\Searchable;
+use Gobl\DBAL\Search\SearchMatch;
+use Gobl\DBAL\Search\SearchText;
 use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\Exceptions\TypesException;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
@@ -167,6 +170,39 @@ abstract class Type implements TypeInterface
 
 		if (isset($options['meta']) && (\is_array($options['meta']) || $options['meta'] instanceof Map)) {
 			$this->mergeMeta($options['meta']);
+		}
+
+		if (isset($options['searchable'])) {
+			$declared = $options['searchable'];
+
+			// `searchable: true` is the common case written short: a term anywhere in the text.
+			$match = true === $declared
+				? SearchMatch::SUBSTRING
+				: (\is_string($declared) ? SearchMatch::tryFrom($declared) : null);
+
+			if (null === $match) {
+				throw new DBALRuntimeException(\sprintf(
+					'"searchable" should be true or one of "%s", not: %s',
+					\implode('", "', \array_column(SearchMatch::cases(), 'value')),
+					\is_scalar($declared) ? \var_export($declared, true) : \get_debug_type($declared)
+				));
+			}
+
+			$text = null;
+
+			if (isset($options['searchable_text'])) {
+				$text = SearchText::tryFrom((string) $options['searchable_text']);
+
+				if (null === $text) {
+					throw new DBALRuntimeException(\sprintf(
+						'"searchable_text" should be one of "%s", not: %s',
+						\implode('", "', \array_column(SearchText::cases(), 'value')),
+						\is_scalar($options['searchable_text']) ? \var_export($options['searchable_text'], true) : \get_debug_type($options['searchable_text'])
+					));
+				}
+			}
+
+			$this->searchable($match, $text ?? SearchText::VALUES);
 		}
 
 		return $this;
@@ -356,6 +392,68 @@ abstract class Type implements TypeInterface
 		$this->traitLock();
 
 		return $this;
+	}
+
+	/**
+	 * Declares that this column's text is searched, and how.
+	 *
+	 * The table then holds a companion column of folded text beside this one
+	 * ({@see Searchable::columnName()}), written by the ORM in the same statement that writes this
+	 * column, and indexed for the intent declared here. A search of this column reads the companion
+	 * instead of the column itself, which is what makes it indexable.
+	 *
+	 * @param SearchMatch $match what the index serves: a term at the start, or a term anywhere
+	 * @param SearchText  $text  for a JSON column, what of the document is folded; it means
+	 *                           nothing on a column holding plain text
+	 *
+	 * @return static enables fluent chaining; returns $this
+	 *
+	 * @throws DBALRuntimeException when the column holds no text to fold
+	 */
+	public function searchable(
+		SearchMatch $match = SearchMatch::SUBSTRING,
+		SearchText $text = SearchText::VALUES
+	): static {
+		if (!Searchable::isSearchableType($this->getName())) {
+			throw new DBALRuntimeException(\sprintf(
+				'a column of type "%s" holds no text to search: "searchable" is for a text or JSON column.',
+				$this->getName()
+			));
+		}
+
+		return $this->setOption('searchable', $match->value)
+			->setOption('searchable_text', $text->value);
+	}
+
+	/**
+	 * Whether this column's text is searched through a folded companion column.
+	 */
+	#[Override]
+	public function isSearchable(): bool
+	{
+		return null !== $this->getSearchMatch();
+	}
+
+	/**
+	 * What this column's folded text is indexed for, or null when it is not searchable.
+	 */
+	#[Override]
+	public function getSearchMatch(): ?SearchMatch
+	{
+		$declared = $this->getOption('searchable');
+
+		return \is_string($declared) ? SearchMatch::tryFrom($declared) : null;
+	}
+
+	/**
+	 * What of this column goes into its folded text.
+	 */
+	#[Override]
+	public function getSearchText(): SearchText
+	{
+		$declared = $this->getOption('searchable_text');
+
+		return (\is_string($declared) ? SearchText::tryFrom($declared) : null) ?? SearchText::VALUES;
 	}
 
 	/**

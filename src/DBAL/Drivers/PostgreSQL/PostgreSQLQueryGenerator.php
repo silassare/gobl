@@ -29,6 +29,7 @@ use Gobl\DBAL\Indexes\Index;
 use Gobl\DBAL\Indexes\IndexType;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
+use Gobl\DBAL\Search\SearchMatch;
 use Gobl\DBAL\Queries\QBDelete;
 use Gobl\DBAL\Queries\QBInsert;
 use Gobl\DBAL\Queries\QBUpdate;
@@ -47,6 +48,14 @@ use RuntimeException;
  */
 final class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 {
+	/**
+	 * The extension a substring search index needs.
+	 *
+	 * `unaccent` is not among them: the text is folded in PHP before it is stored, which is also
+	 * why no index here depends on a rules file somebody can edit under it.
+	 */
+	public const string TEXT_SEARCH_EXTENSION = 'pg_trgm';
+
 	private static bool $templates_registered = false;
 
 	/**
@@ -98,6 +107,25 @@ final class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		$path_content = $this->getJsonPathSegmentsAsString($json_path);
 
 		return $col_expr . '#>>' . $this->quoteLiteral('{' . $path_content . '}');
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * PostgreSQL has one shape for both: a `LIKE` over the folded column. The index decides what it
+	 * costs -- a GIN index of trigrams serves a substring from three consecutive characters on, and
+	 * below that the plan degenerates to reading the index, which is slow and not wrong. A prefix
+	 * index serves an anchored pattern under any collation.
+	 */
+	#[Override]
+	public function getSearchIndexExpression(
+		Operator $operator,
+		SearchMatch $match,
+		string $column_ref,
+		string $folded_term,
+		callable $bind
+	): string {
+		return $this->getFoldedLikeExpression($operator, $column_ref, $folded_term, $bind);
 	}
 
 	/**
@@ -580,6 +608,22 @@ final class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		$index_type   = $index->getType();
 		$index_name   = $this->quoteIdentifier($index->getName());
 
+		// A term anywhere in the text: trigrams, which serve a LIKE '%term%' from three consecutive
+		// characters on. The extension is created here and not once at the head of the schema,
+		// because a migration adding this index is a statement of its own and must carry it too.
+		if (IndexType::TEXT_SEARCH_SUBSTRING === $index_type) {
+			return 'CREATE EXTENSION IF NOT EXISTS ' . self::TEXT_SEARCH_EXTENSION . ';' . \PHP_EOL
+				. 'CREATE INDEX ' . $index_name . ' ON ' . $this->quoteIdentifier($table_name)
+				. ' USING gin (' . $this->operatorClassCols($index->getColumns(), 'gin_trgm_ops') . ');';
+		}
+
+		// A term at the start: text_pattern_ops, so a LIKE 'term%' is served whatever collation the
+		// database runs, which the default operator class does not promise.
+		if (IndexType::TEXT_SEARCH_PREFIX === $index_type) {
+			return 'CREATE INDEX ' . $index_name . ' ON ' . $this->quoteIdentifier($table_name)
+				. ' USING btree (' . $this->operatorClassCols($index->getColumns(), 'text_pattern_ops') . ');';
+		}
+
 		$access_method = match ($index_type) {
 			IndexType::BTREE        => 'btree',
 			IndexType::HASH         => 'hash',
@@ -599,6 +643,19 @@ final class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		$sql .= ' (' . $columns_list . ');';
 
 		return $sql;
+	}
+
+	/**
+	 * The index's columns, each with the operator class the access method needs.
+	 *
+	 * @param list<string> $columns
+	 */
+	protected function operatorClassCols(array $columns, string $operator_class): string
+	{
+		return \implode(' , ', \array_map(
+			fn (string $col): string => $this->quoteIdentifier($col) . ' ' . $operator_class,
+			$columns
+		));
 	}
 
 	/**

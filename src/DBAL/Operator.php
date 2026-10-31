@@ -91,6 +91,18 @@ enum Operator: string
 	case MATCHES = 'matches';
 
 	/**
+	 * Case- and accent-insensitive search for a term the text begins with.
+	 *
+	 * {@see self::MATCHES} in every respect but the pattern, which is anchored at the start:
+	 * the term is a term, the escaping is the compiler's, and what folds depends on the engine.
+	 *
+	 * This is the one text search an index can serve without anything declared, since a B-tree
+	 * reads a prefix -- but only on a column whose stored text is already folded, which is what
+	 * `searchable(SearchMatch::PREFIX)` maintains. Without it this is a full scan too.
+	 */
+	case STARTS_WITH = 'starts_with';
+
+	/**
 	 * Gets operand filter suffix used in ORM.
 	 */
 	public function getFilterSuffix(Column $column): string
@@ -133,6 +145,7 @@ enum Operator: string
 			self::CONTAINS    => 'contains',
 			self::HAS_KEY     => 'has_key',
 			self::MATCHES     => 'matches',
+			self::STARTS_WITH => 'starts_with',
 		};
 	}
 

@@ -21,6 +21,7 @@ use Gobl\Tests\Db\TransactionsQuery;
  * @method static whereIdIsIn(list<mixed> $value) Filters rows with `in` condition on column `transactions.id`.
  * @method static whereIdIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `transactions.id`.
  * @method static whereIdMatches(string|int|float $value) Filters rows with `matches` condition on column `transactions.id`.
+ * @method static whereIdStartsWith(string|int|float $value) Filters rows with `starts_with` condition on column `transactions.id`.
  * @method static whereAccountIdIs(string|int $value) Filters rows with `eq` condition on column `transactions.account_id`.
  * @method static whereAccountIdIsNot(string|int $value) Filters rows with `neq` condition on column `transactions.account_id`.
  * @method static whereAccountIdIsLt(string|int $value) Filters rows with `lt` condition on column `transactions.account_id`.
@@ -32,6 +33,7 @@ use Gobl\Tests\Db\TransactionsQuery;
  * @method static whereAccountIdIsIn(list<mixed> $value) Filters rows with `in` condition on column `transactions.account_id`.
  * @method static whereAccountIdIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `transactions.account_id`.
  * @method static whereAccountIdMatches(string|int|float $value) Filters rows with `matches` condition on column `transactions.account_id`.
+ * @method static whereAccountIdStartsWith(string|int|float $value) Filters rows with `starts_with` condition on column `transactions.account_id`.
  * @method static whereReferenceIs(string $value) Filters rows with `eq` condition on column `transactions.reference`.
  * @method static whereReferenceIsNot(string $value) Filters rows with `neq` condition on column `transactions.reference`.
  * @method static whereReferenceIsLt(string $value) Filters rows with `lt` condition on column `transactions.reference`.
@@ -43,6 +45,7 @@ use Gobl\Tests\Db\TransactionsQuery;
  * @method static whereReferenceIsIn(list<mixed> $value) Filters rows with `in` condition on column `transactions.reference`.
  * @method static whereReferenceIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `transactions.reference`.
  * @method static whereReferenceMatches(string|int|float $value) Filters rows with `matches` condition on column `transactions.reference`.
+ * @method static whereReferenceStartsWith(string|int|float $value) Filters rows with `starts_with` condition on column `transactions.reference`.
  * @method static whereSourceIs(string $value) Filters rows with `eq` condition on column `transactions.source`.
  * @method static whereSourceIsNot(string $value) Filters rows with `neq` condition on column `transactions.source`.
  * @method static whereSourceIsLt(string $value) Filters rows with `lt` condition on column `transactions.source`.
@@ -54,6 +57,7 @@ use Gobl\Tests\Db\TransactionsQuery;
  * @method static whereSourceIsIn(list<mixed> $value) Filters rows with `in` condition on column `transactions.source`.
  * @method static whereSourceIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `transactions.source`.
  * @method static whereSourceMatches(string|int|float $value) Filters rows with `matches` condition on column `transactions.source`.
+ * @method static whereSourceStartsWith(string|int|float $value) Filters rows with `starts_with` condition on column `transactions.source`.
  * @method static whereTypeIs(string $value) Filters rows with `eq` condition on column `transactions.type`.
  * @method static whereTypeIsNot(string $value) Filters rows with `neq` condition on column `transactions.type`.
  * @method static whereTypeIsLt(string $value) Filters rows with `lt` condition on column `transactions.type`.
@@ -65,6 +69,7 @@ use Gobl\Tests\Db\TransactionsQuery;
  * @method static whereTypeIsIn(list<mixed> $value) Filters rows with `in` condition on column `transactions.type`.
  * @method static whereTypeIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `transactions.type`.
  * @method static whereTypeMatches(string|int|float $value) Filters rows with `matches` condition on column `transactions.type`.
+ * @method static whereTypeStartsWith(string|int|float $value) Filters rows with `starts_with` condition on column `transactions.type`.
  * @method static whereStateIs(string $value) Filters rows with `eq` condition on column `transactions.state`.
  * @method static whereStateIsNot(string $value) Filters rows with `neq` condition on column `transactions.state`.
  * @method static whereStateIsLt(string $value) Filters rows with `lt` condition on column `transactions.state`.
@@ -76,6 +81,7 @@ use Gobl\Tests\Db\TransactionsQuery;
  * @method static whereStateIsIn(list<mixed> $value) Filters rows with `in` condition on column `transactions.state`.
  * @method static whereStateIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `transactions.state`.
  * @method static whereStateMatches(string|int|float $value) Filters rows with `matches` condition on column `transactions.state`.
+ * @method static whereStateStartsWith(string|int|float $value) Filters rows with `starts_with` condition on column `transactions.state`.
  * @method static whereAmountIs(string|float|int $value) Filters rows with `eq` condition on column `transactions.amount`.
  * @method static whereAmountIsNot(string|float|int $value) Filters rows with `neq` condition on column `transactions.amount`.
  * @method static whereAmountIsLt(string|float|int $value) Filters rows with `lt` condition on column `transactions.amount`.
@@ -87,6 +93,7 @@ use Gobl\Tests\Db\TransactionsQuery;
  * @method static whereAmountIsIn(list<mixed> $value) Filters rows with `in` condition on column `transactions.amount`.
  * @method static whereAmountIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `transactions.amount`.
  * @method static whereAmountMatches(string|int|float $value) Filters rows with `matches` condition on column `transactions.amount`.
+ * @method static whereAmountStartsWith(string|int|float $value) Filters rows with `starts_with` condition on column `transactions.amount`.
  * @method static whereCurrencyCodeIs(string $value) Filters rows with `eq` condition on column `transactions.currency_code`.
  * @method static whereCurrencyCodeIsNot(string $value) Filters rows with `neq` condition on column `transactions.currency_code`.
  * @method static whereCurrencyCodeIsLt(string $value) Filters rows with `lt` condition on column `transactions.currency_code`.
@@ -98,6 +105,7 @@ use Gobl\Tests\Db\TransactionsQuery;
  * @method static whereCurrencyCodeIsIn(list<mixed> $value) Filters rows with `in` condition on column `transactions.currency_code`.
  * @method static whereCurrencyCodeIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `transactions.currency_code`.
  * @method static whereCurrencyCodeMatches(string|int|float $value) Filters rows with `matches` condition on column `transactions.currency_code`.
+ * @method static whereCurrencyCodeStartsWith(string|int|float $value) Filters rows with `starts_with` condition on column `transactions.currency_code`.
  * @method static whereDateIs(string|int $value) Filters rows with `eq` condition on column `transactions.date`.
  * @method static whereDateIsNot(string|int $value) Filters rows with `neq` condition on column `transactions.date`.
  * @method static whereDateIsLt(string|int $value) Filters rows with `lt` condition on column `transactions.date`.
@@ -109,11 +117,13 @@ use Gobl\Tests\Db\TransactionsQuery;
  * @method static whereDateIsIn(list<mixed> $value) Filters rows with `in` condition on column `transactions.date`.
  * @method static whereDateIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `transactions.date`.
  * @method static whereDateMatches(string|int|float $value) Filters rows with `matches` condition on column `transactions.date`.
+ * @method static whereDateStartsWith(string|int|float $value) Filters rows with `starts_with` condition on column `transactions.date`.
  * @method static whereDataIs(null|string|int|float $value, string $path) Filters rows where $value equals the extracted value of `transactions.data` at dot-notation $path.
  * @method static whereDataIsNot(null|string|int|float $value, string $path) Filters rows where $value does not equal the extracted value of `transactions.data` at dot-notation $path.
  * @method static whereDataIsLike(string $value, string $path) Filters rows where $value matches the extracted value of `transactions.data` at dot-notation $path using LIKE.
  * @method static whereDataIsNotLike(string $value, string $path) Filters rows where $value does not match the extracted value of `transactions.data` at dot-notation $path using LIKE.
- * @method static whereDataMatches(string|int|float $term, ?string $path = null) Filters rows where `transactions.data` holds $term, ignoring case and accents. Optional $path (dot-notation) searches the extracted value; without it the whole document text is searched, keys and stored ids included. Full scan: no index serves it.
+ * @method static whereDataMatches(string|int|float $term, ?string $path = null) Filters rows where `transactions.data` holds $term, ignoring case and accents. Optional $path (dot-notation) searches the extracted value; without it the whole column is searched.
+ * @method static whereDataStartsWith(string|int|float $term, ?string $path = null) Filters rows where `transactions.data` begins with $term, ignoring case and accents. Optional $path (dot-notation) searches the extracted value; without it the whole column is searched.
  * @method static whereDataContains(null|int|float|string|array|\JsonSerializable $value, ?string $path = null) Filters rows where `transactions.data` contains JSON fragment $value. Optional $path (dot-notation) applies the check to the extracted sub-value (e.g. 'user.tags' checks within `$.user.tags`). Not supported on SQLite.
  * @method static whereDataHasKey(string $path) Filters rows where `transactions.data` has the JSON key at $path. A single segment (e.g. 'tag') checks the top-level key; multiple segments (e.g. 'user.role') check existence of the nested key.
  * @method static whereCreatedAtIs(string|int $value) Filters rows with `eq` condition on column `transactions.created_at`.
@@ -127,6 +137,7 @@ use Gobl\Tests\Db\TransactionsQuery;
  * @method static whereCreatedAtIsIn(list<mixed> $value) Filters rows with `in` condition on column `transactions.created_at`.
  * @method static whereCreatedAtIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `transactions.created_at`.
  * @method static whereCreatedAtMatches(string|int|float $value) Filters rows with `matches` condition on column `transactions.created_at`.
+ * @method static whereCreatedAtStartsWith(string|int|float $value) Filters rows with `starts_with` condition on column `transactions.created_at`.
  * @method static whereUpdatedAtIs(string|int $value) Filters rows with `eq` condition on column `transactions.updated_at`.
  * @method static whereUpdatedAtIsNot(string|int $value) Filters rows with `neq` condition on column `transactions.updated_at`.
  * @method static whereUpdatedAtIsLt(string|int $value) Filters rows with `lt` condition on column `transactions.updated_at`.
@@ -138,6 +149,7 @@ use Gobl\Tests\Db\TransactionsQuery;
  * @method static whereUpdatedAtIsIn(list<mixed> $value) Filters rows with `in` condition on column `transactions.updated_at`.
  * @method static whereUpdatedAtIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `transactions.updated_at`.
  * @method static whereUpdatedAtMatches(string|int|float $value) Filters rows with `matches` condition on column `transactions.updated_at`.
+ * @method static whereUpdatedAtStartsWith(string|int|float $value) Filters rows with `starts_with` condition on column `transactions.updated_at`.
  * @method static whereValidIs(bool $value) Filters rows with `eq` condition on column `transactions.valid`.
  * @method static whereValidIsNot(bool $value) Filters rows with `neq` condition on column `transactions.valid`.
  * @method static whereValidIsFalse() Filters rows with `is_false` condition on column `transactions.valid`.
@@ -204,6 +216,11 @@ abstract class TransactionsQueryBase extends \Gobl\ORM\ORMTableQuery
 	    0 => 'id',
 	    1 => 'matches',
 	  ),
+	  'whereIdStartsWith' => 
+	  array (
+	    0 => 'id',
+	    1 => 'starts_with',
+	  ),
 	  'whereAccountIdIs' => 
 	  array (
 	    0 => 'account_id',
@@ -258,6 +275,11 @@ abstract class TransactionsQueryBase extends \Gobl\ORM\ORMTableQuery
 	  array (
 	    0 => 'account_id',
 	    1 => 'matches',
+	  ),
+	  'whereAccountIdStartsWith' => 
+	  array (
+	    0 => 'account_id',
+	    1 => 'starts_with',
 	  ),
 	  'whereReferenceIs' => 
 	  array (
@@ -314,6 +336,11 @@ abstract class TransactionsQueryBase extends \Gobl\ORM\ORMTableQuery
 	    0 => 'reference',
 	    1 => 'matches',
 	  ),
+	  'whereReferenceStartsWith' => 
+	  array (
+	    0 => 'reference',
+	    1 => 'starts_with',
+	  ),
 	  'whereSourceIs' => 
 	  array (
 	    0 => 'source',
@@ -368,6 +395,11 @@ abstract class TransactionsQueryBase extends \Gobl\ORM\ORMTableQuery
 	  array (
 	    0 => 'source',
 	    1 => 'matches',
+	  ),
+	  'whereSourceStartsWith' => 
+	  array (
+	    0 => 'source',
+	    1 => 'starts_with',
 	  ),
 	  'whereTypeIs' => 
 	  array (
@@ -424,6 +456,11 @@ abstract class TransactionsQueryBase extends \Gobl\ORM\ORMTableQuery
 	    0 => 'type',
 	    1 => 'matches',
 	  ),
+	  'whereTypeStartsWith' => 
+	  array (
+	    0 => 'type',
+	    1 => 'starts_with',
+	  ),
 	  'whereStateIs' => 
 	  array (
 	    0 => 'state',
@@ -478,6 +515,11 @@ abstract class TransactionsQueryBase extends \Gobl\ORM\ORMTableQuery
 	  array (
 	    0 => 'state',
 	    1 => 'matches',
+	  ),
+	  'whereStateStartsWith' => 
+	  array (
+	    0 => 'state',
+	    1 => 'starts_with',
 	  ),
 	  'whereAmountIs' => 
 	  array (
@@ -534,6 +576,11 @@ abstract class TransactionsQueryBase extends \Gobl\ORM\ORMTableQuery
 	    0 => 'amount',
 	    1 => 'matches',
 	  ),
+	  'whereAmountStartsWith' => 
+	  array (
+	    0 => 'amount',
+	    1 => 'starts_with',
+	  ),
 	  'whereCurrencyCodeIs' => 
 	  array (
 	    0 => 'currency_code',
@@ -588,6 +635,11 @@ abstract class TransactionsQueryBase extends \Gobl\ORM\ORMTableQuery
 	  array (
 	    0 => 'currency_code',
 	    1 => 'matches',
+	  ),
+	  'whereCurrencyCodeStartsWith' => 
+	  array (
+	    0 => 'currency_code',
+	    1 => 'starts_with',
 	  ),
 	  'whereDateIs' => 
 	  array (
@@ -644,6 +696,11 @@ abstract class TransactionsQueryBase extends \Gobl\ORM\ORMTableQuery
 	    0 => 'date',
 	    1 => 'matches',
 	  ),
+	  'whereDateStartsWith' => 
+	  array (
+	    0 => 'date',
+	    1 => 'starts_with',
+	  ),
 	  'whereDataIs' => 
 	  array (
 	    0 => 'data',
@@ -668,6 +725,11 @@ abstract class TransactionsQueryBase extends \Gobl\ORM\ORMTableQuery
 	  array (
 	    0 => 'data',
 	    1 => 'matches',
+	  ),
+	  'whereDataStartsWith' => 
+	  array (
+	    0 => 'data',
+	    1 => 'starts_with',
 	  ),
 	  'whereDataContains' => 
 	  array (
@@ -734,6 +796,11 @@ abstract class TransactionsQueryBase extends \Gobl\ORM\ORMTableQuery
 	    0 => 'created_at',
 	    1 => 'matches',
 	  ),
+	  'whereCreatedAtStartsWith' => 
+	  array (
+	    0 => 'created_at',
+	    1 => 'starts_with',
+	  ),
 	  'whereUpdatedAtIs' => 
 	  array (
 	    0 => 'updated_at',
@@ -788,6 +855,11 @@ abstract class TransactionsQueryBase extends \Gobl\ORM\ORMTableQuery
 	  array (
 	    0 => 'updated_at',
 	    1 => 'matches',
+	  ),
+	  'whereUpdatedAtStartsWith' => 
+	  array (
+	    0 => 'updated_at',
+	    1 => 'starts_with',
 	  ),
 	  'whereValidIs' => 
 	  array (

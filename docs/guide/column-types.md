@@ -33,6 +33,34 @@ $t->string('email')->setMetaKey('label', 'Email address');
 
 ---
 
+## Searchable text (`string`, `enum`, `map`, `list`, `json`)
+
+A column holding text can be declared searchable, which is what makes a text search indexable:
+
+| Option            | PHP type       | Default    | Description                                                                                     |
+| ----------------- | -------------- | ---------- | ----------------------------------------------------------------------------------------------- |
+| `searchable`      | `bool\|string` | _(none)_   | `true` or `'substring'`: a term anywhere in the text is fast. `'prefix'`: a term at the start is |
+| `searchable_text` | `string`       | `'values'` | JSON columns only: `'values'` folds the document's values, `'document'` folds it keys included   |
+
+```php
+// Fluent builder
+$t->map('title')->searchable();                                  // a term anywhere
+$t->string('name')->searchable(SearchMatch::PREFIX);             // a term at the start
+$t->map('meta')->searchable(SearchMatch::SUBSTRING, SearchText::DOCUMENT);
+
+// Array schema
+'title' => ['type' => 'map', 'searchable' => true],
+'name'  => ['type' => 'string', 'max' => 255, 'searchable' => 'prefix'],
+'meta'  => ['type' => 'map', 'searchable' => 'substring', 'searchable_text' => 'document'],
+```
+
+The table then holds a **private companion column** named `<column>__search` which the ORM keeps in
+step with the column it folds, and an index of the kind the declared intent needs on each engine.
+A search of the column (`matches()`, `startsWith()`) reads the companion instead.
+[What that costs and what it buys](./filters.md#searching-at-scale) is in the filters guide.
+
+---
+
 ## `bigint`
 
 Stores a 64-bit integer as a string (preserves values beyond PHP's `int` range).

@@ -1,5 +1,32 @@
 ### Unreleased (3.0.x-dev)
 
+- **A column can be declared searchable, and then a text search is indexed.** `searchable()` on a
+  text or JSON column (`'searchable' => true` in an array schema, with `'prefix'` or `'substring'`
+  for the intent and `searchable_text` for what of a document is folded). The table then holds a
+  **private companion column** `<column>__search` of folded text -- lower case, no accents, single
+  spaces -- which the ORM writes in the same statement that writes the column it folds, and an index
+  of the kind the intent needs on each engine: MySQL a `FULLTEXT` index with the `ngram` parser,
+  PostgreSQL a GIN index with `gin_trgm_ops` (and the `pg_trgm` extension beside it), SQLite a plain
+  one. The index is declared as an intent (`IndexType::TEXT_SEARCH_PREFIX`,
+  `TEXT_SEARCH_SUBSTRING`), never as an engine's index kind, so one schema still builds on all three.
+
+  Nothing changes at the call site: `matches()` reads the companion when there is one. Two things
+  change because of it. The search **answers the same on every engine**, since the folding happens
+  once in PHP instead of per driver in SQL -- a term typed without its accents finds an accented row
+  on PostgreSQL and SQLite too, which neither can do in the unindexed shape. And it is the folded
+  text that is searched, so a column declared to fold its document's values is no longer matched by
+  one of its key names (`searchable_text: 'document'` keeps the old reading).
+
+  The folding is in PHP because that is the only way it is identical on every driver, and the only
+  indexable form: `unaccent()` is `STABLE`, so an index over it is a promise about a rules file
+  nobody checks. A bulk `updateAllItems()` writes the folded column in the same statement, and
+  refuses by name what it cannot fold without reading each row (a JSON patch, a SQL expression)
+  rather than leaving a search quietly wrong.
+
+- **`Operator::STARTS_WITH`**, written `startsWith()` and generated as `where<Column>StartsWith()`:
+  the text search of `MATCHES` anchored at the start of the text. It is the one an index can serve
+  without n-grams or trigrams, which is what `searchable(SearchMatch::PREFIX)` declares.
+
 - **A text search that answers the same whatever the column stores.** `Operator::MATCHES`, beside
   `CONTAINS` and `HAS_KEY`, generated as `where<Column>Matches()` and written `matches()` on the
   filters. `like` folded case and accents on a plain column and neither on a JSON one, because a

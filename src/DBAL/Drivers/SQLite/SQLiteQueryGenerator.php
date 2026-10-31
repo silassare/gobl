@@ -23,6 +23,7 @@ use Gobl\DBAL\Filters\TextMatch;
 use Gobl\DBAL\Indexes\Index;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
+use Gobl\DBAL\Search\SearchMatch;
 use Gobl\DBAL\Queries\JoinType;
 use Gobl\DBAL\Queries\QBDelete;
 use Gobl\DBAL\Queries\QBInsert;
@@ -288,6 +289,23 @@ final class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 		$this->defaultAndNullChunks($column, $sql);
 
 		return \implode(' ', $sql);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * SQLite has no substring index, so this is a `LIKE` over the folded column: a scan, but of one
+	 * short text column instead of a JSON document, and folded once rather than per row.
+	 */
+	#[Override]
+	public function getSearchIndexExpression(
+		Operator $operator,
+		SearchMatch $match,
+		string $column_ref,
+		string $folded_term,
+		callable $bind
+	): string {
+		return $this->getFoldedLikeExpression($operator, $column_ref, $folded_term, $bind);
 	}
 
 	/**
