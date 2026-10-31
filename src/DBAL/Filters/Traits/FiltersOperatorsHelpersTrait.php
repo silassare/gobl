@@ -62,6 +62,26 @@ trait FiltersOperatorsHelpersTrait
 	}
 
 	/**
+	 * Adds a text search condition.
+	 *
+	 * Takes a term and not a pattern: `matches('t.title', 'economie')`, never `'%economie%'`.
+	 * The compiler wraps it and escapes `%`, `_` and the escape character.
+	 *
+	 * Folds case and accents on MySQL, case only on PostgreSQL (accents need the `unaccent`
+	 * extension), ASCII case only on SQLite. On a JSON column, `t.data#title` compares the value
+	 * at that path and `t.data` the whole document text, keys included.
+	 *
+	 * This is a full scan on every engine: `LIKE '%term%'` cannot use a B-tree index anywhere.
+	 *
+	 * @param string           $left The column, JSON path notation, or expression
+	 * @param float|int|string $term The term to search for, never a pattern
+	 */
+	public function matches(string $left, float|int|string $term): static
+	{
+		return $this->add(Operator::MATCHES, $left, $term);
+	}
+
+	/**
 	 * Adds not like condition.
 	 */
 	public function notLike(string $left, string $right): static

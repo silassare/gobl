@@ -346,6 +346,7 @@ final class TypeJson extends BaseType
 			Operator::NEQ,
 			Operator::LIKE,
 			Operator::NOT_LIKE,
+			Operator::MATCHES,
 		];
 
 		if ($this->isNullable()) {
@@ -378,6 +379,17 @@ final class TypeJson extends BaseType
 			$at_path = isset($args[1]) && \is_string($args[1]) && '' !== $args[1] ? $args[1] : null;
 
 			$qb->filterBy($column->getFullName(), Operator::CONTAINS, $value, $at_path);
+
+			return;
+		}
+
+		if (Operator::MATCHES === $operator) {
+			$term    = $args[0] ?? null;
+			$at_path = isset($args[1]) && \is_string($args[1]) && '' !== $args[1] ? $args[1] : null;
+
+			// No path searches the whole document text, which is how a word in a page's body finds
+			// the page. The document text carries its keys too, which the method's comment says.
+			$qb->filterBy($column->getFullName(), Operator::MATCHES, $term, $at_path);
 
 			return;
 		}
@@ -458,6 +470,7 @@ final class TypeJson extends BaseType
 			Operator::EQ          => "Filters rows where \$value equals the extracted value of {$col_ref} at dot-notation \$path.",
 			Operator::NEQ         => "Filters rows where \$value does not equal the extracted value of {$col_ref} at dot-notation \$path.",
 			Operator::LIKE        => "Filters rows where \$value matches the extracted value of {$col_ref} at dot-notation \$path using LIKE.",
+			Operator::MATCHES     => "Filters rows where {$col_ref} holds \$term, ignoring case and accents. Optional \$path (dot-notation) searches the extracted value; without it the whole document text is searched, keys and stored ids included. Full scan: no index serves it.",
 			Operator::NOT_LIKE    => "Filters rows where \$value does not match the extracted value of {$col_ref} at dot-notation \$path using LIKE.",
 			default               => null,
 		};
@@ -479,6 +492,16 @@ final class TypeJson extends BaseType
 		if (Operator::HAS_KEY === $operator) {
 			// $path: single segment = top-level key; multi-segment = nested key existence
 			$method->newArgument('path')->setType('string');
+
+			return;
+		}
+
+		if (Operator::MATCHES === $operator) {
+			// A term and never a pattern, and the path is optional: no path searches the document.
+			$method->newArgument('term')->setType(new PHPType('string', 'int', 'float'));
+			$method->newArgument('path')
+				->setType(new PHPType('null', 'string'))
+				->setValue(null);
 
 			return;
 		}

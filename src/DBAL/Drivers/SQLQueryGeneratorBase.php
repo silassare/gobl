@@ -47,6 +47,7 @@ use Gobl\DBAL\Filters\FilterGroup;
 use Gobl\DBAL\Filters\FilterRaw;
 use Gobl\DBAL\Filters\Filters;
 use Gobl\DBAL\Filters\Interfaces\FilterInterface;
+use Gobl\DBAL\Filters\TextMatch;
 use Gobl\DBAL\Indexes\Index;
 use Gobl\DBAL\Interfaces\QueryGeneratorInterface;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
@@ -390,6 +391,28 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	/**
 	 * {@inheritDoc}
 	 *
+	 * Default implementation: MySQL. `CONVERT` and not `CAST(... AS CHAR)`, which produces a string
+	 * in the connection's character set: the collation would then apply from a `SET NAMES utf8mb4`
+	 * session and the same compiled SQL would fail from a `latin1` one with `ERROR 1253`. A compiled
+	 * query must not depend on the client's charset, so the target encoding is in the expression.
+	 *
+	 * This is also what gives a JSON value a character set at all: a MySQL JSON column has none, so
+	 * its collation is binary and a comparison straight onto it folds neither case nor accents.
+	 */
+	#[Override]
+	public function getTextMatchExpression(string $left, string $right, ?Table $table = null): string
+	{
+		$charset = $table?->getCharset() ?? $this->config->getDbCharset();
+		$collate = $table?->getCollate() ?? $this->config->getDbCollate();
+
+		return 'CONVERT(' . $left . ' USING ' . $this->assertCharsetWord($charset)
+			. ') COLLATE ' . $this->assertCharsetWord($collate)
+			. ' LIKE ' . $right . ' ESCAPE ' . $this->quoteLiteral(TextMatch::ESCAPE_CHAR);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * Default implementation: MySQL-compatible `JSON_SET` / `JSON_REMOVE` nesting. Drivers say what
 	 * their functions are called through the protected methods below, not by rewriting this one.
 	 */
@@ -490,6 +513,23 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	public function quoteLiteral(string $value): string
 	{
 		return "'" . \str_replace("'", "''", $value) . "'";
+	}
+
+	/**
+	 * Asserts a configured charset or collation name is one word, as both go into SQL unquoted.
+	 *
+	 * @throws DBALRuntimeException when it is not
+	 */
+	protected function assertCharsetWord(string $value): string
+	{
+		if (!\preg_match('~^[a-zA-Z0-9_]+$~', $value)) {
+			throw new DBALRuntimeException(\sprintf(
+				'"%s" is not a usable charset or collation name: expected one word of letters, digits and underscores.',
+				$value
+			));
+		}
+
+		return $value;
 	}
 
 	/**
@@ -1603,6 +1643,15 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		// Function-call style: MySQL JSON_CONTAINS_PATH(col, 'one', CONCAT('$.', key))
 		if (Operator::HAS_KEY === $op) {
 			return $this->getJsonHasKeyExpression($left, $right ?? 'NULL');
+		}
+
+		// Text search: folding, and the escape clause the bound pattern was escaped for.
+		if (Operator::MATCHES === $op) {
+			return $this->getTextMatchExpression(
+				$left,
+				$right ?? 'NULL',
+				$filter->getLeftOperand()->getResolvedColumn()?->getTable()
+			);
 		}
 
 		$sql_op = match ($op) {

@@ -1,5 +1,29 @@
 ### Unreleased (3.0.x-dev)
 
+- **A text search that answers the same whatever the column stores.** `Operator::MATCHES`, beside
+  `CONTAINS` and `HAS_KEY`, generated as `where<Column>Matches()` and written `matches()` on the
+  filters. `like` folded case and accents on a plain column and neither on a JSON one, because a
+  MySQL JSON value carries a binary collation and there is no character set on it for another to
+  attach to. One operator, one name, two comparisons decided by a column's storage type -- and the
+  failure mode was an empty answer, which reads as "there is no such row" rather than as a failure,
+  so nothing failed and nothing could assert against it.
+
+  It takes a **term and never a pattern**: the operator wraps it and escapes `%`, `_` and the
+  escape character, so a term holding one searches for that character, and an empty term is refused
+  instead of matching every row. The column's type does not cast it, so a date column does not read
+  the term `2026` as a timestamp. On a JSON column a path compares the value at that path, and no
+  path compares the whole document text -- which carries the document's keys, as the guide says.
+
+  What folds is still not the same on every engine, so it is declared and asserted per driver:
+  MySQL folds case and accents (`CONVERT(expr USING <charset>) COLLATE <collate>`, the table's own
+  charset and collation or the database's), PostgreSQL folds case only (`LIKE` against a
+  nondeterministic ICU collation is refused before PostgreSQL 18), SQLite ASCII case only. `CONVERT`
+  and not `CAST(... AS CHAR)`, which produces a string in the connection's character set: a compiled
+  query must not depend on the client's charset.
+
+  This is a full scan on every engine, as `LIKE '%term%'` uses no B-tree index anywhere. The guide
+  carries the measurement and says where the operator stops being the right answer.
+
 - **A date column answers the timestamp it stores.** `TypeDate` validated every value to a Unix
   timestamp and stored it as a big integer, or a decimal with microseconds, and then read it back
   formatted as an ISO 8601 string, because `FORMAT_DEFAULT` was `DATE_ATOM`. Its own docblock said

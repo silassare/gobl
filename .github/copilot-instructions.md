@@ -249,7 +249,9 @@ Authorization: listener must return `false` **and** call `$action->stopPropagati
 
 Operand form: `[table.]column[#path]`. Path uses JS-like notation — see `src/DBAL/Filters/FilterFieldNotation.php`.
 
-Fluent filter helpers (on generated `*Query` class): `eq`, `neq`, `lt`, `lte`, `gt`, `gte`, `like`, `notLike`, `isNull`, `isNotNull`, `in`, `notIn`, `isTrue`, `isFalse`, `contains`, `containsAtPath`, `hasKey`. No `jsonContains` method.
+Fluent filter helpers (on generated `*Query` class): `eq`, `neq`, `lt`, `lte`, `gt`, `gte`, `like`, `notLike`, `isNull`, `isNotNull`, `in`, `notIn`, `isTrue`, `isFalse`, `contains`, `containsAtPath`, `hasKey`, `matches`. No `jsonContains` method.
+
+`matches()` is the text search: a term and never a pattern (`TextMatch` wraps and escapes it), compiled per driver by `getTextMatchExpression()`. It folds case everywhere and accents on MySQL only, which is asserted per driver and not to be assumed.
 
 Filter values auto-coerced to DB form via `TypeUtils::runCastValueForFilter()`. SQL placeholders optionally wrapped via `TypeUtils::runCastExpressionForQuery()`. Custom types override `castValueForFilter()` / `castExpressionForQuery()` — do not call `runCast*` directly.
 

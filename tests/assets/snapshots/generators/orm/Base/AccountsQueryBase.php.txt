@@ -20,6 +20,7 @@ use Gobl\Tests\Db\AccountsQuery;
  * @method static whereIdIsNotLike(string $value) Filters rows with `not_like` condition on column `accounts.id`.
  * @method static whereIdIsIn(list<mixed> $value) Filters rows with `in` condition on column `accounts.id`.
  * @method static whereIdIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `accounts.id`.
+ * @method static whereIdMatches(string|int|float $value) Filters rows with `matches` condition on column `accounts.id`.
  * @method static whereClientIdIs(string|int $value) Filters rows with `eq` condition on column `accounts.client_id`.
  * @method static whereClientIdIsNot(string|int $value) Filters rows with `neq` condition on column `accounts.client_id`.
  * @method static whereClientIdIsLt(string|int $value) Filters rows with `lt` condition on column `accounts.client_id`.
@@ -30,6 +31,7 @@ use Gobl\Tests\Db\AccountsQuery;
  * @method static whereClientIdIsNotLike(string $value) Filters rows with `not_like` condition on column `accounts.client_id`.
  * @method static whereClientIdIsIn(list<mixed> $value) Filters rows with `in` condition on column `accounts.client_id`.
  * @method static whereClientIdIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `accounts.client_id`.
+ * @method static whereClientIdMatches(string|int|float $value) Filters rows with `matches` condition on column `accounts.client_id`.
  * @method static whereLabelIs(string $value) Filters rows with `eq` condition on column `accounts.label`.
  * @method static whereLabelIsNot(string $value) Filters rows with `neq` condition on column `accounts.label`.
  * @method static whereLabelIsLt(string $value) Filters rows with `lt` condition on column `accounts.label`.
@@ -40,6 +42,7 @@ use Gobl\Tests\Db\AccountsQuery;
  * @method static whereLabelIsNotLike(string $value) Filters rows with `not_like` condition on column `accounts.label`.
  * @method static whereLabelIsIn(list<mixed> $value) Filters rows with `in` condition on column `accounts.label`.
  * @method static whereLabelIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `accounts.label`.
+ * @method static whereLabelMatches(string|int|float $value) Filters rows with `matches` condition on column `accounts.label`.
  * @method static whereBalanceIs(string|float|int $value) Filters rows with `eq` condition on column `accounts.balance`.
  * @method static whereBalanceIsNot(string|float|int $value) Filters rows with `neq` condition on column `accounts.balance`.
  * @method static whereBalanceIsLt(string|float|int $value) Filters rows with `lt` condition on column `accounts.balance`.
@@ -50,6 +53,7 @@ use Gobl\Tests\Db\AccountsQuery;
  * @method static whereBalanceIsNotLike(string $value) Filters rows with `not_like` condition on column `accounts.balance`.
  * @method static whereBalanceIsIn(list<mixed> $value) Filters rows with `in` condition on column `accounts.balance`.
  * @method static whereBalanceIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `accounts.balance`.
+ * @method static whereBalanceMatches(string|int|float $value) Filters rows with `matches` condition on column `accounts.balance`.
  * @method static whereCurrencyCodeIs(string $value) Filters rows with `eq` condition on column `accounts.currency_code`.
  * @method static whereCurrencyCodeIsNot(string $value) Filters rows with `neq` condition on column `accounts.currency_code`.
  * @method static whereCurrencyCodeIsLt(string $value) Filters rows with `lt` condition on column `accounts.currency_code`.
@@ -60,10 +64,12 @@ use Gobl\Tests\Db\AccountsQuery;
  * @method static whereCurrencyCodeIsNotLike(string $value) Filters rows with `not_like` condition on column `accounts.currency_code`.
  * @method static whereCurrencyCodeIsIn(list<mixed> $value) Filters rows with `in` condition on column `accounts.currency_code`.
  * @method static whereCurrencyCodeIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `accounts.currency_code`.
+ * @method static whereCurrencyCodeMatches(string|int|float $value) Filters rows with `matches` condition on column `accounts.currency_code`.
  * @method static whereDataIs(null|string|int|float $value, string $path) Filters rows where $value equals the extracted value of `accounts.data` at dot-notation $path.
  * @method static whereDataIsNot(null|string|int|float $value, string $path) Filters rows where $value does not equal the extracted value of `accounts.data` at dot-notation $path.
  * @method static whereDataIsLike(string $value, string $path) Filters rows where $value matches the extracted value of `accounts.data` at dot-notation $path using LIKE.
  * @method static whereDataIsNotLike(string $value, string $path) Filters rows where $value does not match the extracted value of `accounts.data` at dot-notation $path using LIKE.
+ * @method static whereDataMatches(string|int|float $term, ?string $path = null) Filters rows where `accounts.data` holds $term, ignoring case and accents. Optional $path (dot-notation) searches the extracted value; without it the whole document text is searched, keys and stored ids included. Full scan: no index serves it.
  * @method static whereDataContains(null|int|float|string|array|\JsonSerializable $value, ?string $path = null) Filters rows where `accounts.data` contains JSON fragment $value. Optional $path (dot-notation) applies the check to the extracted sub-value (e.g. 'user.tags' checks within `$.user.tags`). Not supported on SQLite.
  * @method static whereDataHasKey(string $path) Filters rows where `accounts.data` has the JSON key at $path. A single segment (e.g. 'tag') checks the top-level key; multiple segments (e.g. 'user.role') check existence of the nested key.
  * @method static whereCreatedAtIs(string|int $value) Filters rows with `eq` condition on column `accounts.created_at`.
@@ -76,6 +82,7 @@ use Gobl\Tests\Db\AccountsQuery;
  * @method static whereCreatedAtIsNotLike(string $value) Filters rows with `not_like` condition on column `accounts.created_at`.
  * @method static whereCreatedAtIsIn(list<mixed> $value) Filters rows with `in` condition on column `accounts.created_at`.
  * @method static whereCreatedAtIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `accounts.created_at`.
+ * @method static whereCreatedAtMatches(string|int|float $value) Filters rows with `matches` condition on column `accounts.created_at`.
  * @method static whereUpdatedAtIs(string|int $value) Filters rows with `eq` condition on column `accounts.updated_at`.
  * @method static whereUpdatedAtIsNot(string|int $value) Filters rows with `neq` condition on column `accounts.updated_at`.
  * @method static whereUpdatedAtIsLt(string|int $value) Filters rows with `lt` condition on column `accounts.updated_at`.
@@ -86,6 +93,7 @@ use Gobl\Tests\Db\AccountsQuery;
  * @method static whereUpdatedAtIsNotLike(string $value) Filters rows with `not_like` condition on column `accounts.updated_at`.
  * @method static whereUpdatedAtIsIn(list<mixed> $value) Filters rows with `in` condition on column `accounts.updated_at`.
  * @method static whereUpdatedAtIsNotIn(list<mixed> $value) Filters rows with `not_in` condition on column `accounts.updated_at`.
+ * @method static whereUpdatedAtMatches(string|int|float $value) Filters rows with `matches` condition on column `accounts.updated_at`.
  * @method static whereValidIs(bool $value) Filters rows with `eq` condition on column `accounts.valid`.
  * @method static whereValidIsNot(bool $value) Filters rows with `neq` condition on column `accounts.valid`.
  * @method static whereValidIsFalse() Filters rows with `is_false` condition on column `accounts.valid`.
@@ -147,6 +155,11 @@ abstract class AccountsQueryBase extends \Gobl\ORM\ORMTableQuery
 	    0 => 'id',
 	    1 => 'not_in',
 	  ),
+	  'whereIdMatches' => 
+	  array (
+	    0 => 'id',
+	    1 => 'matches',
+	  ),
 	  'whereClientIdIs' => 
 	  array (
 	    0 => 'client_id',
@@ -196,6 +209,11 @@ abstract class AccountsQueryBase extends \Gobl\ORM\ORMTableQuery
 	  array (
 	    0 => 'client_id',
 	    1 => 'not_in',
+	  ),
+	  'whereClientIdMatches' => 
+	  array (
+	    0 => 'client_id',
+	    1 => 'matches',
 	  ),
 	  'whereLabelIs' => 
 	  array (
@@ -247,6 +265,11 @@ abstract class AccountsQueryBase extends \Gobl\ORM\ORMTableQuery
 	    0 => 'label',
 	    1 => 'not_in',
 	  ),
+	  'whereLabelMatches' => 
+	  array (
+	    0 => 'label',
+	    1 => 'matches',
+	  ),
 	  'whereBalanceIs' => 
 	  array (
 	    0 => 'balance',
@@ -296,6 +319,11 @@ abstract class AccountsQueryBase extends \Gobl\ORM\ORMTableQuery
 	  array (
 	    0 => 'balance',
 	    1 => 'not_in',
+	  ),
+	  'whereBalanceMatches' => 
+	  array (
+	    0 => 'balance',
+	    1 => 'matches',
 	  ),
 	  'whereCurrencyCodeIs' => 
 	  array (
@@ -347,6 +375,11 @@ abstract class AccountsQueryBase extends \Gobl\ORM\ORMTableQuery
 	    0 => 'currency_code',
 	    1 => 'not_in',
 	  ),
+	  'whereCurrencyCodeMatches' => 
+	  array (
+	    0 => 'currency_code',
+	    1 => 'matches',
+	  ),
 	  'whereDataIs' => 
 	  array (
 	    0 => 'data',
@@ -366,6 +399,11 @@ abstract class AccountsQueryBase extends \Gobl\ORM\ORMTableQuery
 	  array (
 	    0 => 'data',
 	    1 => 'not_like',
+	  ),
+	  'whereDataMatches' => 
+	  array (
+	    0 => 'data',
+	    1 => 'matches',
 	  ),
 	  'whereDataContains' => 
 	  array (
@@ -427,6 +465,11 @@ abstract class AccountsQueryBase extends \Gobl\ORM\ORMTableQuery
 	    0 => 'created_at',
 	    1 => 'not_in',
 	  ),
+	  'whereCreatedAtMatches' => 
+	  array (
+	    0 => 'created_at',
+	    1 => 'matches',
+	  ),
 	  'whereUpdatedAtIs' => 
 	  array (
 	    0 => 'updated_at',
@@ -476,6 +519,11 @@ abstract class AccountsQueryBase extends \Gobl\ORM\ORMTableQuery
 	  array (
 	    0 => 'updated_at',
 	    1 => 'not_in',
+	  ),
+	  'whereUpdatedAtMatches' => 
+	  array (
+	    0 => 'updated_at',
+	    1 => 'matches',
 	  ),
 	  'whereValidIs' => 
 	  array (

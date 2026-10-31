@@ -20,6 +20,7 @@ use Gobl\DBAL\Filters\Filters;
 use Gobl\DBAL\Filters\Interfaces\FilterInterface;
 use Gobl\DBAL\Queries\Interfaces\QBInterface;
 use Gobl\DBAL\Queries\QBSelect;
+use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\Utils\JsonPatch;
 use Gobl\DBAL\Types\Utils\JsonPatchExpression;
 use Gobl\DBAL\Types\Utils\JsonPath;
@@ -112,6 +113,22 @@ interface QueryGeneratorInterface
 	 * @return string The dialect-specific key-existence SQL expression
 	 */
 	public function getJsonHasKeyExpression(string $col_sql_expression, string $key_expression): string;
+
+	/**
+	 * Returns the dialect-specific SQL expression for a case- and accent-insensitive text match.
+	 *
+	 * The right operand already carries the pattern: {@see Gobl\DBAL\Filters\TextMatch} wrapped and
+	 * escaped the term before it was bound, so every driver emits an `ESCAPE` clause naming
+	 * {@see Gobl\DBAL\Filters\TextMatch::ESCAPE_CHAR}.
+	 *
+	 * @param string     $left  The left operand (column reference or JSON path expression)
+	 * @param string     $right The bound-parameter placeholder holding the pattern
+	 * @param null|Table $table The table whose charset and collation govern, when the engine has
+	 *                          one to apply; null means the database's own
+	 *
+	 * @return string The dialect-specific text match SQL expression
+	 */
+	public function getTextMatchExpression(string $left, string $right, ?Table $table = null): string;
 
 	/**
 	 * Converts filters to sql expression.

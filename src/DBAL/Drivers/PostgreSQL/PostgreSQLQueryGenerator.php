@@ -24,6 +24,7 @@ use Gobl\DBAL\Drivers\SQLQueryGeneratorBase;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Filters\Filter;
+use Gobl\DBAL\Filters\TextMatch;
 use Gobl\DBAL\Indexes\Index;
 use Gobl\DBAL\Indexes\IndexType;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
@@ -31,6 +32,7 @@ use Gobl\DBAL\Operator;
 use Gobl\DBAL\Queries\QBDelete;
 use Gobl\DBAL\Queries\QBInsert;
 use Gobl\DBAL\Queries\QBUpdate;
+use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\TypeBigint;
 use Gobl\DBAL\Types\TypeJson;
 use Gobl\DBAL\Types\TypeString;
@@ -96,6 +98,24 @@ final class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 		$path_content = $this->getJsonPathSegmentsAsString($json_path);
 
 		return $col_expr . '#>>' . $this->quoteLiteral('{' . $path_content . '}');
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * PostgreSQL folds case with `lower()` and nothing else in this shape: `LIKE` against a
+	 * nondeterministic ICU collation, the one way to have the engine fold accents, is refused
+	 * before PostgreSQL 18. Accent folding needs the `unaccent` extension, which an indexed search
+	 * needs anyway; until a database has it, a term typed without its accents finds nothing here.
+	 *
+	 * The cast is explicit because a native JSON column is `jsonb`, which `lower()` does not take;
+	 * on a text expression it costs nothing.
+	 */
+	#[Override]
+	public function getTextMatchExpression(string $left, string $right, ?Table $table = null): string
+	{
+		return 'lower((' . $left . ')::text) LIKE lower(' . $right . ') ESCAPE '
+			. $this->quoteLiteral(TextMatch::ESCAPE_CHAR);
 	}
 
 	/**

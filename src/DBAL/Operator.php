@@ -71,6 +71,26 @@ enum Operator: string
 	case HAS_KEY = 'has_key';
 
 	/**
+	 * Case- and accent-insensitive text search, whatever the column stores.
+	 *
+	 * Takes a term and never a pattern: the compiler wraps it in `%...%` and escapes `%`, `_` and
+	 * the escape character itself, so a term holding one of them is not a wildcard by accident.
+	 *
+	 * What folds depends on the engine, and the asymmetry is declared rather than discovered:
+	 * - MySQL:      `CONVERT(expr USING <charset>) COLLATE <collate> LIKE ?` -- case and accents
+	 * - PostgreSQL: `lower(expr::text) LIKE lower(?)` -- case only, accents need the unaccent extension
+	 * - SQLite:     `lower(expr) LIKE lower(?)` -- ASCII case only
+	 *
+	 * This is a full table scan on every engine, as `LIKE '%term%'` cannot use a B-tree index
+	 * anywhere. It is the right answer into the tens of thousands of rows and is not a substitute
+	 * for a search index beyond that.
+	 *
+	 * On a JSON column a path compares the extracted value; no path compares the whole document
+	 * text, which also carries the document's keys.
+	 */
+	case MATCHES = 'matches';
+
+	/**
 	 * Gets operand filter suffix used in ORM.
 	 */
 	public function getFilterSuffix(Column $column): string
@@ -112,6 +132,7 @@ enum Operator: string
 			self::IS_FALSE    => 'is_false',
 			self::CONTAINS    => 'contains',
 			self::HAS_KEY     => 'has_key',
+			self::MATCHES     => 'matches',
 		};
 	}
 

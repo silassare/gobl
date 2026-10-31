@@ -19,6 +19,7 @@ use Gobl\DBAL\Drivers\SQLQueryGeneratorBase;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Filters\Filter;
+use Gobl\DBAL\Filters\TextMatch;
 use Gobl\DBAL\Indexes\Index;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
@@ -287,6 +288,19 @@ final class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 		$this->defaultAndNullChunks($column, $sql);
 
 		return \implode(' ', $sql);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * SQLite folds ASCII case and nothing else: its own `lower()` and its `LIKE` are both
+	 * ASCII-only without the ICU extension, so an accented letter is matched only as itself.
+	 */
+	#[Override]
+	public function getTextMatchExpression(string $left, string $right, ?Table $table = null): string
+	{
+		return 'lower(' . $left . ') LIKE lower(' . $right . ') ESCAPE '
+			. $this->quoteLiteral(TextMatch::ESCAPE_CHAR);
 	}
 
 	/**

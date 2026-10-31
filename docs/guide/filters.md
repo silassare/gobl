@@ -90,6 +90,66 @@ $filters->hasKey('u.user_meta', 'preferences');
 
 ---
 
+## Text search
+
+`matches()` searches text, ignoring case and -- where the engine can -- accents. It answers the
+same whatever the column stores, which `like()` does not: a MySQL JSON value carries a binary
+collation, so `like` on a `map` column folds nothing while the same call on a `string` column
+beside it folds both.
+
+```php
+// A term, never a pattern: the wildcards and the escaping are the compiler's.
+$filters->matches('p.page_name', 'economie');
+
+// On a JSON column, a path searches the value at that path.
+$filters->matches('p.page_title#fr', 'economie');
+
+// With no path, the whole document text is searched: a word of a page's body finds the page.
+$filters->matches('p.page_title', 'economie');
+```
+
+The generated query methods take the term, and on a JSON column an optional path:
+
+```php
+PagesQuery::new()->whereNameMatches('economie');
+PagesQuery::new()->whereTitleMatches('economie', 'fr');
+PagesQuery::new()->whereTitleMatches('economie');       // the whole document
+```
+
+**It takes a term and not a pattern.** `'economie'`, never `'%economie%'`: `matches()` wraps the
+term and escapes `%`, `_` and the escape character, so a term holding one of them searches for
+that character instead of being a wildcard by accident. An empty term is refused, since it would
+match every row.
+
+**What folds is not the same on every engine**, so it is written down rather than discovered:
+
+| engine | compiled as | case | accents |
+| --- | --- | --- | --- |
+| MySQL | `CONVERT(expr USING <charset>) COLLATE <collate> LIKE ? ESCAPE '!'` | yes | yes |
+| PostgreSQL | `lower(expr::text) LIKE lower(?) ESCAPE '!'` | yes | no |
+| SQLite | `lower(expr) LIKE lower(?) ESCAPE '!'` | ASCII only | no |
+
+The charset and the collation are the table's own, or the database's when the table declares
+none. PostgreSQL cannot do better in this shape: `LIKE` against a nondeterministic ICU collation
+is refused before PostgreSQL 18, so folding accents there needs the `unaccent` extension and a
+column of folded text to search.
+
+::: warning This is a full table scan
+`LIKE '%term%'` cannot use a B-tree index on any engine, JSON or not. Measured on MySQL 8 over
+262 144 rows holding one small JSON document each, one row matching: 1 104 ms against the JSON
+column, 460 ms against a plain column holding the same text, 0.5 ms with a `FULLTEXT` index on
+it. The first two are both full scans and the difference between them is a constant factor; only
+an index changes the shape.
+
+So `matches()` is the right answer into the tens of thousands of rows, and it is not a substitute
+for a search index beyond that.
+:::
+
+With no path the document *text* is searched, which carries the document's keys and any stored
+id: a search for `body` matches a document having a `body` key. With a path it cannot.
+
+---
+
 ## OR / AND - combining conditions
 
 By default all conditions are ANDed. Use `->or()` to switch the next
@@ -208,6 +268,8 @@ $qb->where(fn($f) => $f->in('u.user_created_at', ['2024-01-01', '2024-06-01']));
   of these bypass coercion.
 - `contains()` / `containsAtPath()` / `hasKey()` bypass coercion: their right-operand
   is handled by the JSON-specific serializer.
+- `matches()` bypasses coercion too: its right operand is a search term and not a value of the
+  column's type, so a date column does not turn the term `2026` into a timestamp.
 
 If the value cannot be coerced to the expected type (e.g., `'banana'` on an `int` column),
 a `TypesInvalidValueException` is thrown immediately, before the query is executed.
@@ -233,7 +295,7 @@ $filters = Filters::fromArray(
 
 Supported operator strings map to `Gobl\DBAL\Operator` values:
 `eq`, `neq`, `lt`, `lte`, `gt`, `gte`, `like`, `not_like`, `in`, `not_in`,
-`is_null`, `is_not_null`, `is_true`, `is_false`, `contains`, `has_key`.
+`is_null`, `is_not_null`, `is_true`, `is_false`, `contains`, `has_key`, `matches`.
 
 Two conditions need `'AND'` or `'OR'` between them. A refused item is named by its position, in
 the message and in the exception's public data (`getData()`):

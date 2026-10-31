@@ -83,6 +83,8 @@ final class ORMTypeHint
 			Operator::IN, Operator::NOT_IN                                                        => self::list(),
 			Operator::IS_TRUE, Operator::IS_FALSE                                                 => self::bool(),
 			Operator::CONTAINS, Operator::HAS_KEY                                                 => self::string(),
+			Operator::MATCHES                                                                     => self::string()
+				->addUniversalTypes(ORMUniversalType::INT, ORMUniversalType::FLOAT),
 		};
 	}
 

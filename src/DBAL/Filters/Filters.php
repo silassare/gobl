@@ -405,6 +405,23 @@ final class Filters
 			} elseif (Operator::HAS_KEY === $operator) {
 				// HAS_KEY right operand is a key path string, not a typed column value.
 				$try_enforce_query_type = false;
+			} elseif (Operator::MATCHES === $operator) {
+				// MATCHES right operand is a search term, not a value of the column's type:
+				// the column's cast would turn '2026' on a date column into a timestamp.
+				// The term becomes the pattern here so every road to the operator escapes it alike.
+				if (!\is_string($u_right) && !\is_int($u_right) && !\is_float($u_right)) {
+					throw new DBALRuntimeException(
+						\sprintf(
+							'operator "%s" right operand should be a search term of type "%s" not: %s',
+							$operator->name,
+							\implode('|', ['string', 'int', 'float']),
+							\get_debug_type($u_right)
+						)
+					);
+				}
+
+				$u_right                = TextMatch::pattern((string) $u_right);
+				$try_enforce_query_type = false;
 			}
 
 			$right_operand = new FilterRightOperand($u_right, $this->qb, $this->scope);
