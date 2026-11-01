@@ -22,6 +22,14 @@
 
     <php>
         <ini name="error_reporting" value="-1"/>
+        <!--
+            A bound, so a runaway allocation fails this suite by name instead of the machine. The
+            CLI runs at `memory_limit = -1`, which means PHP never raises: a test case whose
+            accessor called itself took every byte of RAM and swap and was killed from outside with
+            no output at all, twice, before the cause was read off the fact that the run always
+            stopped at the same test number. The whole suite peaks at 54 MB.
+        -->
+        <ini name="memory_limit" value="512M"/>
         <!-- MySQL test database (gobl_test user / database). -->
         <env name="GOBL_TEST_MYSQL_HOST" value="127.0.0.1"/>
         <env name="GOBL_TEST_MYSQL_PORT" value="3306"/>
