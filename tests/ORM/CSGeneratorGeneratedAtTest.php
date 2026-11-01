@@ -19,6 +19,7 @@ use Gobl\ORM\Generators\CSGeneratorDart;
 use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\ORM\Generators\CSGeneratorTS;
 use Gobl\Tests\BaseTestCase;
+use Gobl\Tests\TestPaths;
 use Override;
 use PHPUnit\Framework\Attributes\CoversMethod;
 
@@ -121,7 +122,7 @@ final class CSGeneratorGeneratedAtTest extends BaseTestCase
 		];
 
 		foreach ($generators as $kind => $generator) {
-			$dir = GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'generated-at' . \DIRECTORY_SEPARATOR . $name
+			$dir = TestPaths::OUTPUT . \DIRECTORY_SEPARATOR . 'generated-at' . \DIRECTORY_SEPARATOR . $name
 				. \DIRECTORY_SEPARATOR . $kind;
 
 			self::rmDirRecursive($dir);

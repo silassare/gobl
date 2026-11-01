@@ -19,6 +19,7 @@ use Gobl\DBAL\Relations\LinkJoin;
 use Gobl\DBAL\Relations\LinkMorph;
 use Gobl\DBAL\Relations\LinkThrough;
 use Gobl\ORM\ORMController;
+use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversMethod;
 
@@ -37,6 +38,7 @@ use PHPUnit\Framework\Attributes\CoversMethod;
 #[CoversMethod(ORMController::class, 'getRelativeBatch')]
 final class ORMBatchRelationMySQLLiveTest extends ORMLiveBatchRelationTestCase
 {
+	#[Override]
 	protected static function getDriverName(): string
 	{
 		return MySQL::NAME;

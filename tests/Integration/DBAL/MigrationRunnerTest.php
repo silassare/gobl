@@ -27,6 +27,8 @@ use Gobl\DBAL\MigrationRunner;
 use Gobl\DBAL\Types\TypeEnum;
 use Gobl\Tests\BaseTestCase;
 use Gobl\Tests\Fixtures\SampleKind;
+use Gobl\Tests\TestPaths;
+use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Throwable;
@@ -46,6 +48,7 @@ final class MigrationRunnerTest extends BaseTestCase
 	 * Drop all tables that tests in this class may have created, so that each
 	 * test starts with a clean state in live databases (MySQL, PostgreSQL, SQLite file).
 	 */
+	#[Override]
 	protected function tearDown(): void
 	{
 		$tables = [MigrationRunner::MIGRATIONS_TABLE, 't1', 't2', 't3', 'must_not_exist', 'intercepted_target', 'products'];
@@ -259,47 +262,56 @@ final class MigrationRunnerTest extends BaseTestCase
 		$runner = new MigrationRunner($db);
 
 		$skippable = new class implements MigrationInterface {
+			#[Override]
 			public function getVersion(): int
 			{
 				return 1;
 			}
 
+			#[Override]
 			public function getLabel(): string
 			{
 				return 'Skippable';
 			}
 
+			#[Override]
 			public function getTimestamp(): int
 			{
 				return 1;
 			}
 
+			#[Override]
 			public function getSchema(): array
 			{
 				return [];
 			}
 
+			#[Override]
 			public function getConfigs(): array
 			{
 				return [];
 			}
 
+			#[Override]
 			public function up(): string
 			{
 				return 'CREATE TABLE must_not_exist (id INTEGER PRIMARY KEY);';
 			}
 
+			#[Override]
 			public function down(): string
 			{
 				return '';
 			}
 
 			/** Always skip. */
+			#[Override]
 			public function beforeRun(MigrationMode $mode, string $query): bool|string
 			{
 				return false;
 			}
 
+			#[Override]
 			public function afterRun(MigrationMode $mode): void {}
 		};
 
@@ -316,43 +328,51 @@ final class MigrationRunnerTest extends BaseTestCase
 		$runner = new MigrationRunner($db);
 
 		$intercepted = new class implements MigrationInterface {
+			#[Override]
 			public function getVersion(): int
 			{
 				return 1;
 			}
 
+			#[Override]
 			public function getLabel(): string
 			{
 				return 'Intercepted';
 			}
 
+			#[Override]
 			public function getTimestamp(): int
 			{
 				return 1;
 			}
 
+			#[Override]
 			public function getSchema(): array
 			{
 				return [];
 			}
 
+			#[Override]
 			public function getConfigs(): array
 			{
 				return [];
 			}
 
 			/** Original query intentionally broken, beforeRun replaces it. */
+			#[Override]
 			public function up(): string
 			{
 				return 'THIS IS INVALID SQL;';
 			}
 
+			#[Override]
 			public function down(): string
 			{
 				return 'DROP TABLE intercepted_target;';
 			}
 
 			/** Replace with a valid query. */
+			#[Override]
 			public function beforeRun(MigrationMode $mode, string $query): bool|string
 			{
 				if (MigrationMode::UP === $mode) {
@@ -362,6 +382,7 @@ final class MigrationRunnerTest extends BaseTestCase
 				return true;
 			}
 
+			#[Override]
 			public function afterRun(MigrationMode $mode): void {}
 		};
 
@@ -394,7 +415,7 @@ final class MigrationRunnerTest extends BaseTestCase
 	#[DataProvider('availableDrivers')]
 	public function testDiffBuildMigrationReturnsMigrationInterface(string $driver): void
 	{
-		$db_from = $this->runWithTestDb($driver, static function (NamespaceBuilder $ns): void {});
+		$db_from = $this->runWithTestDb($driver, static function (): void {});
 
 		$db_to = $this->runWithTestDb($driver, static function (NamespaceBuilder $ns): void {
 			$ns->table('products', static function (TableBuilder $t): void {
@@ -417,7 +438,7 @@ final class MigrationRunnerTest extends BaseTestCase
 	#[DataProvider('availableDrivers')]
 	public function testDiffMakeMigrationInstanceIsRunnable(string $driver): void
 	{
-		$db_from = $this->runWithTestDb($driver, static function (NamespaceBuilder $ns): void {});
+		$db_from = $this->runWithTestDb($driver, static function (): void {});
 
 		$db_to = $this->runWithTestDb($driver, static function (NamespaceBuilder $ns): void {
 			$ns->table('products', static function (TableBuilder $t): void {
@@ -442,7 +463,7 @@ final class MigrationRunnerTest extends BaseTestCase
 	#[DataProvider('availableDrivers')]
 	public function testAMigrationRunsWhenItsEnumClassIsGone(string $driver): void
 	{
-		$db_from = $this->runWithTestDb($driver, static function (NamespaceBuilder $ns): void {});
+		$db_from = $this->runWithTestDb($driver, static function (): void {});
 		$db_to   = $this->runWithTestDb($driver, static function (NamespaceBuilder $ns): void {
 			$ns->table('products', static function (TableBuilder $t): void {
 				$t->id();
@@ -453,7 +474,7 @@ final class MigrationRunnerTest extends BaseTestCase
 
 		$code = (string) new Diff($db_from, $db_to)->generateMigrationFile(1);
 		$code = \str_replace(\addslashes(SampleKind::class), \addslashes('Gobl\Tests\Missing\RemovedKind'), $code);
-		$dir  = GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'migration_runner';
+		$dir  = TestPaths::OUTPUT . \DIRECTORY_SEPARATOR . 'migration_runner';
 
 		if (!\is_dir($dir)) {
 			\mkdir($dir, 0o755, true);
@@ -498,7 +519,7 @@ final class MigrationRunnerTest extends BaseTestCase
 	 * AND whose live-DB credentials are working.
 	 * This prevents test errors when e.g. pdo_pgsql is not installed or credentials are wrong.
 	 *
-	 * @return array<string, array{0: string, 1: class-string}>
+	 * @return iterable<string, array{0: string}>
 	 */
 	public static function availableDrivers(): iterable
 	{
@@ -580,46 +601,55 @@ final class MigrationRunnerTest extends BaseTestCase
 				private string $label,
 			) {}
 
+			#[Override]
 			public function getVersion(): int
 			{
 				return $this->version;
 			}
 
+			#[Override]
 			public function getLabel(): string
 			{
 				return $this->label;
 			}
 
+			#[Override]
 			public function getTimestamp(): int
 			{
 				return 1_000_000 + $this->version;
 			}
 
+			#[Override]
 			public function getSchema(): array
 			{
 				return [];
 			}
 
+			#[Override]
 			public function getConfigs(): array
 			{
 				return [];
 			}
 
+			#[Override]
 			public function up(): string
 			{
 				return $this->up_sql;
 			}
 
+			#[Override]
 			public function down(): string
 			{
 				return $this->down_sql;
 			}
 
+			#[Override]
 			public function beforeRun(MigrationMode $mode, string $query): bool|string
 			{
 				return true;
 			}
 
+			#[Override]
 			public function afterRun(MigrationMode $mode): void {}
 		};
 	}

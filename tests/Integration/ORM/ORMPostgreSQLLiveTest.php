@@ -19,6 +19,7 @@ use Gobl\ORM\ORMController;
 use Gobl\ORM\ORMEntity;
 use Gobl\ORM\ORMResults;
 use Gobl\ORM\ORMTableQuery;
+use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
@@ -35,6 +36,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 #[CoversClass(ORMTableQuery::class)]
 final class ORMPostgreSQLLiveTest extends ORMLiveTestCase
 {
+	#[Override]
 	protected static function getDriverName(): string
 	{
 		return PostgreSQL::NAME;

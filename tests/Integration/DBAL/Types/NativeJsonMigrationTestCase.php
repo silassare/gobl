@@ -20,6 +20,8 @@ use Gobl\DBAL\MigrationRunner;
 use Gobl\DBAL\Queries\QBInsert;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\Tests\BaseTestCase;
+use Gobl\Tests\TestLog;
+use Override;
 use PDOException;
 use Throwable;
 
@@ -55,6 +57,7 @@ abstract class NativeJsonMigrationTestCase extends BaseTestCase
 	// PHPUnit lifecycle
 	// -------------------------------------------------------------------------
 
+	#[Override]
 	public static function setUpBeforeClass(): void
 	{
 		parent::setUpBeforeClass();
@@ -67,16 +70,18 @@ abstract class NativeJsonMigrationTestCase extends BaseTestCase
 			static::$db = $db;
 		} catch (Throwable $t) {
 			static::$setupFailed = true;
-			gobl_log(\sprintf('Error building live DB for %s: %s', static::getDriverName(), $t->getMessage()));
+			TestLog::write(\sprintf('Error building live DB for %s: %s', static::getDriverName(), $t->getMessage()));
 		}
 	}
 
+	#[Override]
 	public static function tearDownAfterClass(): void
 	{
 		static::$db = null;
 		parent::tearDownAfterClass();
 	}
 
+	#[Override]
 	protected function setUp(): void
 	{
 		parent::setUp();
@@ -88,30 +93,27 @@ abstract class NativeJsonMigrationTestCase extends BaseTestCase
 		}
 	}
 
+	#[Override]
 	protected function tearDown(): void
 	{
 		if (null !== static::$db) {
-			$gen = static::$db->getGenerator();
+			$gen = static::db()->getGenerator();
 			$t   = $gen->quoteIdentifier('gObL_' . self::TABLE);
 			$mig = $gen->quoteIdentifier(MigrationRunner::MIGRATIONS_TABLE);
 
 			try {
-				static::$db->execute("DROP TABLE IF EXISTS {$t}");
+				static::db()->execute("DROP TABLE IF EXISTS {$t}");
 			} catch (Throwable) {
 			}
 
 			try {
-				static::$db->execute("DROP TABLE IF EXISTS {$mig}");
+				static::db()->execute("DROP TABLE IF EXISTS {$mig}");
 			} catch (Throwable) {
 			}
 		}
 
 		parent::tearDown();
 	}
-
-	// -------------------------------------------------------------------------
-	// Tests
-	// -------------------------------------------------------------------------
 
 	/**
 	 * Valid JSON objects and arrays stored as TEXT are preserved byte-for-byte
@@ -121,7 +123,7 @@ abstract class NativeJsonMigrationTestCase extends BaseTestCase
 	{
 		$db_text   = $this->buildSchema(false);
 		$db_native = $this->buildSchema(true);
-		$live_db   = static::$db;
+		$live_db   = static::db();
 
 		// Step 1: create the table with TEXT-backed json/map/list columns
 		$runner = new MigrationRunner($live_db);
@@ -175,7 +177,7 @@ abstract class NativeJsonMigrationTestCase extends BaseTestCase
 	{
 		$db_text   = $this->buildSchema(false, nullable: true);
 		$db_native = $this->buildSchema(true, nullable: true);
-		$live_db   = static::$db;
+		$live_db   = static::db();
 
 		$runner = new MigrationRunner($live_db);
 		$runner->add(
@@ -220,7 +222,7 @@ abstract class NativeJsonMigrationTestCase extends BaseTestCase
 	{
 		$db_text   = $this->buildSchema(false, nullable: true);
 		$db_native = $this->buildSchema(true, nullable: true);
-		$live_db   = static::$db;
+		$live_db   = static::db();
 
 		$runner = new MigrationRunner($live_db);
 		$runner->add(
@@ -244,6 +246,25 @@ abstract class NativeJsonMigrationTestCase extends BaseTestCase
 		$runner->add(
 			new Diff($db_text, $db_native)->makeMigrationInstance(2, 'Text to native JSON')
 		)->migrate();
+	}
+
+	// -------------------------------------------------------------------------
+	// Tests
+	// -------------------------------------------------------------------------
+
+	/**
+	 * The live connection this class runs against, which its own setup opened.
+	 *
+	 * Empty until that setup has run, and a test reaching it before then says so here rather than
+	 * as a call on null several frames away.
+	 */
+	protected static function db(): RDBMSInterface
+	{
+		$db = static::$db;
+
+		self::assertNotNull($db, 'the live database connection was not opened');
+
+		return $db;
 	}
 
 	// -------------------------------------------------------------------------

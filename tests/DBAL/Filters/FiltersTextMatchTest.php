@@ -31,6 +31,7 @@ use Gobl\DBAL\Types\TypeJson;
 use Gobl\Tests\BaseTestCase;
 use JsonSerializable;
 use OLIUP\CG\PHPMethod;
+use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversTrait;
 
@@ -106,6 +107,7 @@ final class FiltersTextMatchTest extends BaseTestCase
 			'bool'             => true,
 			'array'            => ['a'],
 			'JsonSerializable' => new class implements JsonSerializable {
+				#[Override]
 				public function jsonSerialize(): mixed
 				{
 					return 'a';

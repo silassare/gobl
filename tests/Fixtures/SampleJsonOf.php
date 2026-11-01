@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Gobl\Tests\Fixtures;
 
 use Gobl\DBAL\Types\Utils\JsonOfInterface;
+use Override;
 
 /**
  * Minimal fixture class implementing JsonOfInterface, used across type tests.
@@ -27,6 +28,7 @@ final class SampleJsonOf implements JsonOfInterface
 		public readonly int $score = 0,
 	) {}
 
+	#[Override]
 	public static function revive(mixed $payload): static
 	{
 		$data = \is_array($payload) ? $payload : [];
@@ -34,6 +36,7 @@ final class SampleJsonOf implements JsonOfInterface
 		return new self((string) ($data['name'] ?? ''), (int) ($data['score'] ?? 0));
 	}
 
+	#[Override]
 	public function jsonSerialize(): mixed
 	{
 		return ['name' => $this->name, 'score' => $this->score];

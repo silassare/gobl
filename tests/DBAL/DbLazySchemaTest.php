@@ -21,6 +21,7 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Table;
 use Gobl\ORM\ORM;
 use Gobl\Tests\BaseTestCase;
+use Gobl\Tests\TestPaths;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Throwable;
 
@@ -33,6 +34,12 @@ use Throwable;
 #[CoversClass(Table::class)]
 final class DbLazySchemaTest extends BaseTestCase
 {
+	/**
+	 * The channel a CRUD event producer is expected to carry, read off the producer in a closure
+	 * bound to it: declared here because that closure reads it as a property of this class.
+	 */
+	private string $event_channel = '';
+
 	public function testEagerByDefault(): void
 	{
 		self::assertFalse(self::getNewDbInstance()->isLazySchema());
@@ -164,8 +171,8 @@ final class DbLazySchemaTest extends BaseTestCase
 	{
 		$db = self::getNewDbInstance()->setLazySchema();
 
-		if (!\is_dir(GOBL_TEST_ORM_OUTPUT)) {
-			\mkdir(GOBL_TEST_ORM_OUTPUT, 0o755, true);
+		if (!\is_dir(TestPaths::ORM_OUTPUT)) {
+			\mkdir(TestPaths::ORM_OUTPUT, 0o755, true);
 		}
 
 		$db->ns('Lazy\Crud')
@@ -173,7 +180,7 @@ final class DbLazySchemaTest extends BaseTestCase
 				'good'   => ['columns' => ['id' => ['type' => 'int']]],
 				'broken' => ['columns' => ['id' => ['type' => 'not-a-type']]],
 			])
-			->enableORM(GOBL_TEST_ORM_OUTPUT);
+			->enableORM(TestPaths::ORM_OUTPUT);
 
 		$channel = static fn (CRUDEventProducer $producer): string => (fn (): string => $this->event_channel)
 			->call($producer);

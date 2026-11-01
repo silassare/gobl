@@ -16,6 +16,7 @@ namespace Gobl\Tests\Integration\ORM;
 use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Drivers\SQLQueryGeneratorBase;
 use Gobl\DBAL\Search\Searchable;
+use Override;
 use PDO;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversMethod;
@@ -39,7 +40,7 @@ final class SearchableTextMySQLTest extends SearchableTextTestCase
 	 */
 	public function testTheServerTokenizesAtTheAssumedSize(): void
 	{
-		$size = static::$db->execute('SELECT @@ngram_token_size AS size;', [])
+		$size = self::db()->execute('SELECT @@ngram_token_size AS size;', [])
 			->fetch(PDO::FETCH_ASSOC);
 
 		self::assertSame(
@@ -49,17 +50,19 @@ final class SearchableTextMySQLTest extends SearchableTextTestCase
 		);
 	}
 
+	#[Override]
 	protected static function getDriverName(): string
 	{
 		return MySQL::NAME;
 	}
 
+	#[Override]
 	protected function indexedColumnsOnServer(): array
 	{
 		$sql = 'SELECT COLUMN_NAME AS col FROM information_schema.STATISTICS
 			WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :table;';
 
-		$rows = static::$db->execute($sql, ['table' => static::$db->getTableOrFail('articles')->getFullName()])
+		$rows = self::db()->execute($sql, ['table' => self::db()->getTableOrFail('articles')->getFullName()])
 			->fetchAll(PDO::FETCH_ASSOC);
 
 		return \array_map(static fn (array $row): string => (string) $row['col'], $rows);

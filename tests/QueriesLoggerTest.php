@@ -15,6 +15,7 @@ namespace Gobl\Tests;
 
 use Gobl\Gobl;
 use Gobl\QueriesLogger;
+use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
@@ -29,6 +30,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 #[CoversClass(QueriesLogger::class)]
 final class QueriesLoggerTest extends BaseTestCase
 {
+	#[Override]
 	protected function tearDown(): void
 	{
 		QueriesLogger::get()->enable(false);

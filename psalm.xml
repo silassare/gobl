@@ -10,16 +10,66 @@
 >
 	<projectFiles>
 		<directory name="src"/>
-		<!-- Checks that a generic class's fluent `static` still resolves to the subclass; see
-		     the file's own docblock for what silently breaks when it does not. -->
-		<file name="tests/Psalm/FluentChainGuard.php"/>
+		<!--
+			The suite is analysed too: it is as much ours as `src/` is, and leaving it out hides the
+			kind of fault only an analyser finds there, a call to a private constructor or a method
+			that does not exist, which no test run reaches until the day it does. One of its files
+			was already listed on its own, for the fluent `static` a generic class must keep.
+		-->
+		<directory name="tests"/>
 		<ignoreFiles>
 			<directory name="vendor"/>
 			<directory name="tests/assets/snapshots"/>
 			<directory name="tests/tmp"/>
+			<!--
+				Programs a test runs as its own process, against classes a run generates into a
+				temporary directory: the names they load exist once the generator has written them
+				and not before, which is the whole point of running them apart.
+			-->
+			<file name="tests/Fixtures/orm_autoload_cycle.php"/>
+			<file name="tests/Fixtures/sqlite_writer.php"/>
 		</ignoreFiles>
 	</projectFiles>
 
 	<!-- The levels every Oliup package analyses at. Nothing here is repeated below. -->
 	<xi:include href="vendor/oliup/oliup-cs-php/src/psalm/handlers.xml"/>
+
+	<issueHandlers>
+		<!--
+			Files where the analyser, not the code, is what cannot be satisfied. Named one by one
+			rather than by issue type, so a new one anywhere else is still an error.
+
+			What a test asks of a signature on purpose, because refusing it is the thing under test:
+			a class that is not a backed enum, a value that is not a string where a hash is asked
+			for, a second value where the subject was built with the first. Psalm reads the expected
+			type from the call it can see and has no way to be told "this one is meant to be wrong".
+
+			`#[CoversTrait(SomeTrait::class)]` is how PHPUnit's attribute is written, and psalm will
+			not read `::class` on a trait as the `trait-string` its own stub asks for.
+		-->
+		<InvalidArgument>
+			<errorLevel type="suppress">
+				<file name="tests/DBAL/Filters/FiltersJsonOperatorsTest.php"/>
+				<file name="tests/DBAL/Filters/FiltersTextMatchTest.php"/>
+				<file name="tests/DBAL/Queries/QBShortcutsTest.php"/>
+				<file name="tests/DBAL/Queries/QBUpdateJsonPatchTest.php"/>
+				<file name="tests/DBAL/Types/TypeEnumTest.php"/>
+				<file name="tests/DBAL/Types/TypeHashTest.php"/>
+				<file name="tests/DBAL/Types/Utils/JsonOfInterfaceTest.php"/>
+				<file name="tests/DBAL/Types/Validation/ValidationSubjectTest.php"/>
+			</errorLevel>
+		</InvalidArgument>
+
+		<!--
+			A generated entity's own methods, called on a value typed as the base `ORMEntity`: the
+			subclass a run writes declares `setDataKey()` and the column setters, and the base class
+			cannot know their names. What it holds at run time is that subclass.
+		-->
+		<UndefinedMethod>
+			<errorLevel type="suppress">
+				<file name="tests/Integration/ORM/JsonPatchUpdateTestCase.php"/>
+				<file name="tests/ORM/ORMEntityPropertyHooksTest.php"/>
+			</errorLevel>
+		</UndefinedMethod>
+	</issueHandlers>
 </psalm>

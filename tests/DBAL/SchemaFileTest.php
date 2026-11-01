@@ -19,6 +19,7 @@ use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\Gobl;
 use Gobl\Tests\BaseTestCase;
 use InvalidArgumentException;
+use Override;
 use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
@@ -39,6 +40,7 @@ final class SchemaFileTest extends BaseTestCase
 	/** @var string[] */
 	private array $temp_files = [];
 
+	#[Override]
 	protected function tearDown(): void
 	{
 		parent::tearDown();
@@ -163,8 +165,8 @@ final class SchemaFileTest extends BaseTestCase
 
 		self::assertTrue($db2->hasTable('items'));
 		self::assertSame(
-			$db1->getTable('items')->getFullName(),
-			$db2->getTable('items')->getFullName()
+			$db1->getTableOrFail('items')->getFullName(),
+			$db2->getTableOrFail('items')->getFullName()
 		);
 	}
 

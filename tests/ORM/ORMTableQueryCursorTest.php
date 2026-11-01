@@ -22,6 +22,8 @@ use Gobl\ORM\ORM;
 use Gobl\ORM\ORMOptions;
 use Gobl\ORM\ORMTableQuery;
 use Gobl\Tests\BaseTestCase;
+use Gobl\Tests\TestPaths;
+use Override;
 use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Throwable;
@@ -47,6 +49,7 @@ final class ORMTableQueryCursorTest extends BaseTestCase
 	// PHPUnit lifecycle
 	// ---------------------------------------------------------------------------
 
+	#[Override]
 	public static function setUpBeforeClass(): void
 	{
 		parent::setUpBeforeClass();
@@ -58,7 +61,7 @@ final class ORMTableQueryCursorTest extends BaseTestCase
 			// not declared yet, expected
 		}
 
-		$ormOutDir = GOBL_TEST_ORM_OUTPUT;
+		$ormOutDir = TestPaths::ORM_OUTPUT;
 
 		if (!\is_dir($ormOutDir . \DIRECTORY_SEPARATOR . 'Base')) {
 			\mkdir($ormOutDir . \DIRECTORY_SEPARATOR . 'Base', 0o755, true);
@@ -76,6 +79,7 @@ final class ORMTableQueryCursorTest extends BaseTestCase
 		self::$setupOk = true;
 	}
 
+	#[Override]
 	public static function tearDownAfterClass(): void
 	{
 		try {
@@ -89,6 +93,7 @@ final class ORMTableQueryCursorTest extends BaseTestCase
 		parent::tearDownAfterClass();
 	}
 
+	#[Override]
 	protected function setUp(): void
 	{
 		parent::setUp();

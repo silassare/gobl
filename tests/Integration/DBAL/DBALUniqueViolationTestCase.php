@@ -19,6 +19,9 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\ORM\ORM;
 use Gobl\Tests\BaseTestCase;
+use Gobl\Tests\TestLog;
+use Gobl\Tests\TestPaths;
+use Override;
 use Throwable;
 
 /**
@@ -39,6 +42,7 @@ abstract class DBALUniqueViolationTestCase extends BaseTestCase
 	/** @var null|callable the PSR-4 autoloader of the generated classes */
 	private static mixed $autoloader = null;
 
+	#[Override]
 	public static function setUpBeforeClass(): void
 	{
 		parent::setUpBeforeClass();
@@ -51,13 +55,13 @@ abstract class DBALUniqueViolationTestCase extends BaseTestCase
 			// not declared, the expected state
 		}
 
-		$out_dir = GOBL_TEST_ORM_OUTPUT . \DIRECTORY_SEPARATOR . 'UniqueViolation';
+		$out_dir = TestPaths::ORM_OUTPUT . \DIRECTORY_SEPARATOR . 'UniqueViolation';
 
 		try {
 			$db = static::getNewDbInstance(static::getDriverName());
 		} catch (Throwable $t) {
 			static::$setupFailed = true;
-			gobl_log(\sprintf('Error building live DB for %s: %s', static::getDriverName(), $t->getMessage()));
+			TestLog::write(\sprintf('Error building live DB for %s: %s', static::getDriverName(), $t->getMessage()));
 
 			return;
 		}
@@ -107,7 +111,7 @@ abstract class DBALUniqueViolationTestCase extends BaseTestCase
 			static::$db = $db;
 		} catch (Throwable $t) {
 			static::$setupFailed = true;
-			gobl_log(\sprintf(
+			TestLog::write(\sprintf(
 				'Error setting up the unique violation DB for %s: %s',
 				static::getDriverName(),
 				$t->getMessage()
@@ -115,11 +119,12 @@ abstract class DBALUniqueViolationTestCase extends BaseTestCase
 		}
 	}
 
+	#[Override]
 	public static function tearDownAfterClass(): void
 	{
 		if (null !== static::$db) {
 			try {
-				static::$db->executeMulti('DROP TABLE IF EXISTS uniq_probes;');
+				static::db()->executeMulti('DROP TABLE IF EXISTS uniq_probes;');
 			} catch (Throwable) {
 				// best effort
 			}
@@ -141,6 +146,7 @@ abstract class DBALUniqueViolationTestCase extends BaseTestCase
 		parent::tearDownAfterClass();
 	}
 
+	#[Override]
 	protected function setUp(): void
 	{
 		parent::setUp();
@@ -152,7 +158,7 @@ abstract class DBALUniqueViolationTestCase extends BaseTestCase
 
 	public function testATakenValueNamesItsKey(): void
 	{
-		$table = static::$db->getTableOrFail('uniq_probes');
+		$table = static::db()->getTableOrFail('uniq_probes');
 		$ctrl  = ORM::ctrl($table);
 
 		$ctrl->addItem(['code' => 'taken', 'zone' => 'a', 'seat' => '1']);
@@ -169,7 +175,7 @@ abstract class DBALUniqueViolationTestCase extends BaseTestCase
 
 	public function testATakenPairNamesBothColumns(): void
 	{
-		$ctrl = ORM::ctrl(static::$db->getTableOrFail('uniq_probes'));
+		$ctrl = ORM::ctrl(static::db()->getTableOrFail('uniq_probes'));
 
 		$ctrl->addItem(['code' => 'first', 'zone' => 'b', 'seat' => '1']);
 
@@ -183,7 +189,7 @@ abstract class DBALUniqueViolationTestCase extends BaseTestCase
 
 	public function testATakenIdNamesThePrimaryKey(): void
 	{
-		$table   = static::$db->getTableOrFail('uniq_probes');
+		$table   = static::db()->getTableOrFail('uniq_probes');
 		$created = ORM::ctrl($table)->addItem(['code' => 'own-id', 'zone' => 'c', 'seat' => '1']);
 
 		try {
@@ -195,6 +201,21 @@ abstract class DBALUniqueViolationTestCase extends BaseTestCase
 			self::assertSame($table->getPrimaryKeyConstraint(), $e->getConstraint());
 			self::assertSame(['probe_id'], $e->getColumns());
 		}
+	}
+
+	/**
+	 * The live connection this class runs against, which its own setup opened.
+	 *
+	 * Empty until that setup has run, and a test reaching it before then says so here rather than
+	 * as a call on null several frames away.
+	 */
+	protected static function db(): RDBMSInterface
+	{
+		$db = static::$db;
+
+		self::assertNotNull($db, 'the live database connection was not opened');
+
+		return $db;
 	}
 
 	abstract protected static function getDriverName(): string;

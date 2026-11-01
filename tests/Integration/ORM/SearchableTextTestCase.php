@@ -25,6 +25,10 @@ use Gobl\ORM\ORM;
 use Gobl\ORM\ORMEntity;
 use Gobl\ORM\ORMOptions;
 use Gobl\Tests\BaseTestCase;
+use Gobl\Tests\TestLog;
+use Gobl\Tests\TestPaths;
+use Override;
+use PDO;
 use Throwable;
 
 /**
@@ -50,6 +54,7 @@ abstract class SearchableTextTestCase extends BaseTestCase
 	/** @var null|callable the PSR-4 autoloader of the generated classes */
 	private static mixed $autoloader = null;
 
+	#[Override]
 	public static function setUpBeforeClass(): void
 	{
 		parent::setUpBeforeClass();
@@ -62,13 +67,13 @@ abstract class SearchableTextTestCase extends BaseTestCase
 			// not declared, the expected state
 		}
 
-		$out_dir = GOBL_TEST_ORM_OUTPUT . \DIRECTORY_SEPARATOR . 'Searchable';
+		$out_dir = TestPaths::ORM_OUTPUT . \DIRECTORY_SEPARATOR . 'Searchable';
 
 		try {
 			$db = static::getNewDbInstance(static::getDriverName());
 		} catch (Throwable $t) {
 			static::$setupFailed = true;
-			gobl_log(\sprintf('Error building live DB for %s: %s', static::getDriverName(), $t->getMessage()));
+			TestLog::write(\sprintf('Error building live DB for %s: %s', static::getDriverName(), $t->getMessage()));
 
 			return;
 		}
@@ -128,7 +133,7 @@ abstract class SearchableTextTestCase extends BaseTestCase
 			static::$db = $db;
 		} catch (Throwable $t) {
 			static::$setupFailed = true;
-			gobl_log(\sprintf(
+			TestLog::write(\sprintf(
 				'Error setting up the searchable DB for %s: %s',
 				static::getDriverName(),
 				$t->getMessage()
@@ -136,11 +141,12 @@ abstract class SearchableTextTestCase extends BaseTestCase
 		}
 	}
 
+	#[Override]
 	public static function tearDownAfterClass(): void
 	{
 		if (null !== static::$db) {
 			try {
-				static::$db->executeMulti('DROP TABLE IF EXISTS ' . self::tableRef(static::$db) . ';');
+				static::db()->executeMulti('DROP TABLE IF EXISTS ' . self::tableRef(static::$db) . ';');
 			} catch (Throwable) {
 				// best effort
 			}
@@ -162,6 +168,7 @@ abstract class SearchableTextTestCase extends BaseTestCase
 		parent::tearDownAfterClass();
 	}
 
+	#[Override]
 	protected function setUp(): void
 	{
 		parent::setUp();
@@ -171,10 +178,11 @@ abstract class SearchableTextTestCase extends BaseTestCase
 		}
 	}
 
+	#[Override]
 	protected function tearDown(): void
 	{
 		if (null !== static::$db) {
-			static::$db->executeMulti('DELETE FROM ' . self::tableRef(static::$db) . ';');
+			static::db()->executeMulti('DELETE FROM ' . self::tableRef(static::$db) . ';');
 		}
 
 		parent::tearDown();
@@ -269,7 +277,7 @@ abstract class SearchableTextTestCase extends BaseTestCase
 	{
 		$this->addArticle(['fr' => self::ACCENTED], self::ACCENTED);
 
-		$updated = ORM::ctrl(static::$db->getTableOrFail('articles'))->updateAllItems(
+		$updated = ORM::ctrl(static::db()->getTableOrFail('articles'))->updateAllItems(
 			ORMOptions::makeFromFilters(['article_name' => self::ACCENTED])
 				->setFormData(['article_title' => ['fr' => 'Agriculture vivrière']])
 		);
@@ -293,7 +301,7 @@ abstract class SearchableTextTestCase extends BaseTestCase
 		$this->expectException(ORMRuntimeException::class);
 		$this->expectExceptionMessageMatches('~article_title.+cannot be folded~');
 
-		ORM::query(static::$db->getTableOrFail('articles'))->update(['article_title' => $patch]);
+		ORM::query(static::db()->getTableOrFail('articles'))->update(['article_title' => $patch]);
 	}
 
 	/**
@@ -303,11 +311,11 @@ abstract class SearchableTextTestCase extends BaseTestCase
 	{
 		$this->addArticle(['fr' => self::ACCENTED], self::ACCENTED);
 
-		$query = ORM::query(static::$db->getTableOrFail('articles'));
+		$query = ORM::query(static::db()->getTableOrFail('articles'));
 		$query->whereNameStartsWith('Écon');
 		self::assertCount(1, \iterator_to_array($query->find()->getItems()), 'the start was not found');
 
-		$query = ORM::query(static::$db->getTableOrFail('articles'));
+		$query = ORM::query(static::db()->getTableOrFail('articles'));
 		$query->whereNameStartsWith('sociale');
 		self::assertCount(0, \iterator_to_array($query->find()->getItems()), 'the middle was found');
 	}
@@ -330,11 +338,26 @@ abstract class SearchableTextTestCase extends BaseTestCase
 	{
 		$this->addArticle(['fr' => self::ACCENTED], self::ACCENTED, ['region' => 'Atlantique']);
 
-		$query = ORM::query(static::$db->getTableOrFail('articles'));
+		$query = ORM::query(static::db()->getTableOrFail('articles'));
 		$query->whereMetaMatches('region');
 		self::assertCount(1, \iterator_to_array($query->find()->getItems()), 'the document text has keys');
 
 		self::assertCount(0, $this->search('fr'), 'the values of a document are not its keys');
+	}
+
+	/**
+	 * The live connection this class runs against, which its own setup opened.
+	 *
+	 * Empty until that setup has run, and a test reaching it before then says so here rather than
+	 * as a call on null several frames away.
+	 */
+	protected static function db(): RDBMSInterface
+	{
+		$db = static::$db;
+
+		self::assertNotNull($db, 'the live database connection was not opened');
+
+		return $db;
 	}
 
 	abstract protected static function getDriverName(): string;
@@ -362,7 +385,7 @@ abstract class SearchableTextTestCase extends BaseTestCase
 	 */
 	private function search(string $term): array
 	{
-		$query = ORM::query(static::$db->getTableOrFail('articles'));
+		$query = ORM::query(static::db()->getTableOrFail('articles'));
 
 		$query->whereTitleMatches($term);
 
@@ -371,7 +394,7 @@ abstract class SearchableTextTestCase extends BaseTestCase
 
 	private function addArticle(array $title, string $name, array $meta = []): int
 	{
-		$created = ORM::ctrl(static::$db->getTableOrFail('articles'))->addItem([
+		$created = ORM::ctrl(static::db()->getTableOrFail('articles'))->addItem([
 			'article_title' => $title,
 			'article_meta'  => $meta,
 			'article_name'  => $name,
@@ -383,7 +406,7 @@ abstract class SearchableTextTestCase extends BaseTestCase
 
 	private function getArticle(int $id): ORMEntity
 	{
-		$entity = ORM::ctrl(static::$db->getTableOrFail('articles'))
+		$entity = ORM::ctrl(static::db()->getTableOrFail('articles'))
 			->getItem(ORMOptions::makeFromFilters(['article_id' => $id]));
 
 		self::assertNotNull($entity);
@@ -397,9 +420,9 @@ abstract class SearchableTextTestCase extends BaseTestCase
 	private function storedRow(int $id): array
 	{
 		$sql  = 'SELECT * FROM ' . self::tableRef(static::$db) . ' WHERE article_id = ' . $id;
-		$stmt = static::$db->execute($sql, []);
+		$stmt = static::db()->execute($sql, []);
 
-		$row = $stmt->fetch(\PDO::FETCH_ASSOC);
+		$row = $stmt->fetch(PDO::FETCH_ASSOC);
 
 		self::assertIsArray($row);
 

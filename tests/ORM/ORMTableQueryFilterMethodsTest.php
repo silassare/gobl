@@ -23,6 +23,8 @@ use Gobl\ORM\Utils\ORMClassKind;
 use Gobl\Tests\BaseTestCase;
 use Gobl\Tests\Db\Base\CurrenciesQueryBase;
 use Gobl\Tests\Db\CurrenciesQuery;
+use Gobl\Tests\TestPaths;
+use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUtils\Str;
 use ReflectionClassConstant;
@@ -38,6 +40,7 @@ use Throwable;
 #[CoversClass(ORMTableQuery::class)]
 final class ORMTableQueryFilterMethodsTest extends BaseTestCase
 {
+	#[Override]
 	public static function setUpBeforeClass(): void
 	{
 		parent::setUpBeforeClass();
@@ -49,20 +52,21 @@ final class ORMTableQueryFilterMethodsTest extends BaseTestCase
 			// not declared yet - expected
 		}
 
-		if (!\is_dir(GOBL_TEST_ORM_OUTPUT . \DIRECTORY_SEPARATOR . 'Base')) {
-			\mkdir(GOBL_TEST_ORM_OUTPUT . \DIRECTORY_SEPARATOR . 'Base', 0o755, true);
+		if (!\is_dir(TestPaths::ORM_OUTPUT . \DIRECTORY_SEPARATOR . 'Base')) {
+			\mkdir(TestPaths::ORM_OUTPUT . \DIRECTORY_SEPARATOR . 'Base', 0o755, true);
 		}
 
 		$db = self::getNewDbInstance(MySQL::NAME);
 		$db->ns(self::TEST_DB_NAMESPACE)
 			->schema(self::getTablesDefinitions())
-			->enableORM(GOBL_TEST_ORM_OUTPUT);
+			->enableORM(TestPaths::ORM_OUTPUT);
 
-		new CSGeneratorORM($db)->generate($db->getTables(), GOBL_TEST_ORM_OUTPUT);
+		new CSGeneratorORM($db)->generate($db->getTables(), TestPaths::ORM_OUTPUT);
 
 		$db->lock();
 	}
 
+	#[Override]
 	public static function tearDownAfterClass(): void
 	{
 		try {

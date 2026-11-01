@@ -16,6 +16,7 @@ namespace Gobl\Tests\Integration\ORM;
 use Gobl\DBAL\Drivers\SQLite\SQLite;
 use Gobl\DBAL\Drivers\SQLite\SQLiteQueryGenerator;
 use Gobl\DBAL\Filters\TextMatch;
+use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversMethod;
 
@@ -31,11 +32,13 @@ use PHPUnit\Framework\Attributes\CoversMethod;
 #[CoversClass(TextMatch::class)]
 final class TextMatchSQLiteTest extends TextMatchTestCase
 {
+	#[Override]
 	protected static function getDriverName(): string
 	{
 		return SQLite::NAME;
 	}
 
+	#[Override]
 	protected static function foldsAccents(): bool
 	{
 		return false;

@@ -18,12 +18,15 @@ use Gobl\DBAL\Events\JsonPatchNotExpressible;
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Types\Utils\JsonPatch;
+use Gobl\Gobl;
 use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\ORM\ORM;
 use Gobl\ORM\ORMEntity;
-use Gobl\Gobl;
 use Gobl\ORM\ORMOptions;
 use Gobl\Tests\BaseTestCase;
+use Gobl\Tests\TestLog;
+use Gobl\Tests\TestPaths;
+use Override;
 use Throwable;
 
 /**
@@ -44,6 +47,7 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 	/** @var null|callable the PSR-4 autoloader of the generated classes */
 	private static mixed $autoloader = null;
 
+	#[Override]
 	public static function setUpBeforeClass(): void
 	{
 		parent::setUpBeforeClass();
@@ -56,13 +60,13 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 			// not declared, the expected state
 		}
 
-		$out_dir = GOBL_TEST_ORM_OUTPUT . \DIRECTORY_SEPARATOR . 'JsonPatch';
+		$out_dir = TestPaths::ORM_OUTPUT . \DIRECTORY_SEPARATOR . 'JsonPatch';
 
 		try {
 			$db = static::getNewDbInstance(static::getDriverName());
 		} catch (Throwable $t) {
 			static::$setupFailed = true;
-			gobl_log(\sprintf('Error building live DB for %s: %s', static::getDriverName(), $t->getMessage()));
+			TestLog::write(\sprintf('Error building live DB for %s: %s', static::getDriverName(), $t->getMessage()));
 
 			return;
 		}
@@ -114,7 +118,7 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 			static::$db = $db;
 		} catch (Throwable $t) {
 			static::$setupFailed = true;
-			gobl_log(\sprintf(
+			TestLog::write(\sprintf(
 				'Error setting up the JSON patch DB for %s: %s',
 				static::getDriverName(),
 				$t->getMessage()
@@ -122,11 +126,12 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 		}
 	}
 
+	#[Override]
 	public static function tearDownAfterClass(): void
 	{
 		if (null !== static::$db) {
 			try {
-				static::$db->executeMulti('DROP TABLE IF EXISTS boxes;');
+				static::db()->executeMulti('DROP TABLE IF EXISTS boxes;');
 			} catch (Throwable) {
 				// best effort
 			}
@@ -148,6 +153,7 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 		parent::tearDownAfterClass();
 	}
 
+	#[Override]
 	protected function setUp(): void
 	{
 		parent::setUp();
@@ -188,7 +194,10 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 
 		$this->patch($entity, static fn (JsonPatch $patch) => $patch->set('b', 3));
 
-		self::assertSameDocument(['a' => 1, 'b' => 3], $entity->data->getData());
+		$document = $entity->data;
+
+		self::assertNotNull($document);
+		self::assertSameDocument(['a' => 1, 'b' => 3], $document->getData());
 		self::assertSameDocument(['a' => 1, 'b' => 3], $this->storedData($id));
 	}
 
@@ -358,12 +367,15 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 		$second->plain = $patch;
 		self::assertTrue($second->save());
 
-		$data = $this->getBox($id)->plain->getData();
+		$column = $this->getBox($id)->plain;
+
+		self::assertNotNull($column);
+
+		$data = $column->getData();
 
 		self::assertArrayNotHasKey('uid', $data, 'the removal was undone by the other write');
 		self::assertSame('fr', $data['oz']['lang'] ?? null, 'the other write was lost');
 	}
-
 
 	/**
 	 * A member whose name is a number, patched in place while another request writes elsewhere.
@@ -528,11 +540,14 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 		$second->guarded = $patch;
 		self::assertTrue($second->save());
 
-		$data = $this->getBox($id)->guarded->getData();
+		$column2 = $this->getBox($id)->guarded;
+
+		self::assertNotNull($column2);
+
+		$data = $column2->getData();
 
 		self::assertSame(['12' => 'a', '13' => 'b'], $data['refs'] ?? null);
 	}
-
 
 	/**
 	 * The paths reach the database.
@@ -598,7 +613,10 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 		$stored = $this->getBox($id);
 
 		self::assertSame('renamed', $stored->label, 'the rename was undone by a save of another column');
-		self::assertSameDocument(['a' => 1, 'b' => 2], $stored->data->getData());
+		$document2 = $stored->data;
+
+		self::assertNotNull($document2);
+		self::assertSameDocument(['a' => 1, 'b' => 2], $document2->getData());
 	}
 
 	/**
@@ -627,6 +645,21 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 		self::assertArrayNotHasKey('verified', $data['oz'] ?? [], 'the removal did not win over the set');
 		self::assertTrue($data['keep'] ?? false);
 		self::assertSame('written', $data['other'] ?? null, 'the concurrent write was lost');
+	}
+
+	/**
+	 * The live connection this class runs against, which its own setup opened.
+	 *
+	 * Empty until that setup has run, and a test reaching it before then says so here rather than
+	 * as a call on null several frames away.
+	 */
+	protected static function db(): RDBMSInterface
+	{
+		$db = static::$db;
+
+		self::assertNotNull($db, 'the live database connection was not opened');
+
+		return $db;
 	}
 
 	abstract protected static function getDriverName(): string;
@@ -671,7 +704,7 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 	 */
 	private function addBox(array $data): int
 	{
-		$ctrl = ORM::ctrl(static::$db->getTableOrFail('boxes'));
+		$ctrl = ORM::ctrl(static::db()->getTableOrFail('boxes'));
 
 		$created = $ctrl->addItem([
 			'box_data'    => $data,
@@ -688,7 +721,7 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 	 */
 	private function getBox(int $id): ORMEntity
 	{
-		$ctrl   = ORM::ctrl(static::$db->getTableOrFail('boxes'));
+		$ctrl   = ORM::ctrl(static::db()->getTableOrFail('boxes'));
 		$entity = $ctrl->getItem(ORMOptions::makeFromFilters(['box_id' => $id]));
 
 		self::assertNotNull($entity);
@@ -715,6 +748,10 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 	 */
 	private function storedData(int $id): array
 	{
-		return $this->getBox($id)->data->getData();
+		$data = $this->getBox($id)->data;
+
+		self::assertNotNull($data, 'the row has no data column');
+
+		return $data->getData();
 	}
 }

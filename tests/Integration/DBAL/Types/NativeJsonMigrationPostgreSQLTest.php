@@ -17,6 +17,7 @@ use Gobl\DBAL\Diff\Diff;
 use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
 use Gobl\DBAL\MigrationRunner;
 use Gobl\DBAL\Types\TypeJson;
+use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
@@ -31,6 +32,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 #[CoversClass(TypeJson::class)]
 final class NativeJsonMigrationPostgreSQLTest extends NativeJsonMigrationTestCase
 {
+	#[Override]
 	protected static function getDriverName(): string
 	{
 		return PostgreSQL::NAME;

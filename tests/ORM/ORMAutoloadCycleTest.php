@@ -15,6 +15,8 @@ namespace Gobl\Tests\ORM;
 
 use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\Tests\BaseTestCase;
+use Gobl\Tests\TestPaths;
+use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 
@@ -32,11 +34,12 @@ final class ORMAutoloadCycleTest extends BaseTestCase
 {
 	private static string $dir;
 
+	#[Override]
 	public static function setUpBeforeClass(): void
 	{
 		parent::setUpBeforeClass();
 
-		self::$dir = GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'autoload-cycle';
+		self::$dir = TestPaths::OUTPUT . \DIRECTORY_SEPARATOR . 'autoload-cycle';
 
 		self::rmDirRecursive(self::$dir);
 		\mkdir(self::$dir . \DIRECTORY_SEPARATOR . 'Base', 0o755, true);

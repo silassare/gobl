@@ -20,6 +20,7 @@ use Gobl\DBAL\Indexes\IndexType;
 use Gobl\DBAL\Interfaces\MigrationInterface;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\Tests\BaseTestCase;
+use Gobl\Tests\TestPaths;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProviderExternal;
 
@@ -65,7 +66,7 @@ final class DiffSnapshotTest extends BaseTestCase
 	#[DataProviderExternal(BaseTestCase::class, 'allDrivers')]
 	public function testTableAdded(string $driver): void
 	{
-		$from = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+		$from = $this->buildDb($driver, static function (): void {
 			// no tables
 		});
 
@@ -93,7 +94,7 @@ final class DiffSnapshotTest extends BaseTestCase
 			});
 		});
 
-		$to = $this->buildDb($driver, static function (NamespaceBuilder $ns): void {
+		$to = $this->buildDb($driver, static function (): void {
 			// table removed
 		});
 
@@ -536,7 +537,7 @@ final class DiffSnapshotTest extends BaseTestCase
 
 		// Use driver-prefixed filename to avoid opcode-cache collisions between tests and drivers
 		$safe_name = \preg_replace('/[^a-zA-Z0-9_]/', '_', $driver . '_' . $snapshotName);
-		$temp_file = GOBL_TEST_OUTPUT . '/migration_' . $safe_name . '.php';
+		$temp_file = TestPaths::OUTPUT . '/migration_' . $safe_name . '.php';
 		\file_put_contents($temp_file, (string) $diff->generateMigrationFile(1));
 
 		/** @var MigrationInterface $migration */

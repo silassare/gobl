@@ -16,6 +16,7 @@ namespace Gobl\Tests\Integration\ORM;
 use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
 use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQLQueryGenerator;
 use Gobl\DBAL\Filters\TextMatch;
+use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversMethod;
 
@@ -32,11 +33,13 @@ use PHPUnit\Framework\Attributes\CoversMethod;
 #[CoversClass(TextMatch::class)]
 final class TextMatchPostgreSQLTest extends TextMatchTestCase
 {
+	#[Override]
 	protected static function getDriverName(): string
 	{
 		return PostgreSQL::NAME;
 	}
 
+	#[Override]
 	protected static function foldsAccents(): bool
 	{
 		return false;

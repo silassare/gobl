@@ -181,7 +181,7 @@ final class JsonPathTest extends BaseTestCase
 	{
 		[$filters, $qb]  = $this->makeFiltersOnNativeJsonTable();
 		$jp              = $this->makeFiltersNativeJsonColumnJsonPath(['user', 'name']);
-		$filters->add(Operator::EQ, (string) $jp, 'alice');
+		$filters->add(Operator::EQ, $jp, 'alice');
 
 		$bound = \array_values($qb->getBoundValues());
 		self::assertCount(1, $bound, 'EQ must bind exactly one value');
@@ -198,7 +198,7 @@ final class JsonPathTest extends BaseTestCase
 	{
 		[$filters, $qb]  = $this->makeFiltersOnNativeJsonTable();
 		$jp              = $this->makeFiltersNativeJsonColumnJsonPath(['status']);
-		$filters->add(Operator::EQ, (string) $jp, null);
+		$filters->add(Operator::EQ, $jp, null);
 
 		self::assertEmpty($qb->getBoundValues(), 'IS_NULL must not bind any value');
 
@@ -211,7 +211,7 @@ final class JsonPathTest extends BaseTestCase
 	{
 		[$filters, $qb]  = $this->makeFiltersOnNativeJsonTable();
 		$jp              = $this->makeFiltersNativeJsonColumnJsonPath(['status']);
-		$filters->add(Operator::NEQ, (string) $jp, null);
+		$filters->add(Operator::NEQ, $jp, null);
 
 		self::assertEmpty($qb->getBoundValues(), 'IS_NOT_NULL must not bind any value');
 
@@ -224,7 +224,7 @@ final class JsonPathTest extends BaseTestCase
 	{
 		[$filters, $qb]  = $this->makeFiltersOnNativeJsonTable();
 		$jp              = $this->makeFiltersNativeJsonColumnJsonPath(['tags']);
-		$filters->add(Operator::CONTAINS, (string) $jp, '"admin"');
+		$filters->add(Operator::CONTAINS, $jp, '"admin"');
 
 		$bound = \array_values($qb->getBoundValues());
 		self::assertCount(1, $bound);
@@ -241,7 +241,7 @@ final class JsonPathTest extends BaseTestCase
 	{
 		[$filters, $qb]  = $this->makeFiltersOnNativeJsonTable();
 		$jp              = $this->makeFiltersNativeJsonColumnJsonPath(['email']);
-		$filters->add(Operator::LIKE, (string) $jp, '%@example.com');
+		$filters->add(Operator::LIKE, $jp, '%@example.com');
 
 		$bound = \array_values($qb->getBoundValues());
 		self::assertCount(1, $bound);
@@ -258,7 +258,7 @@ final class JsonPathTest extends BaseTestCase
 	{
 		[$filters, $qb]  = $this->makeFiltersOnNativeJsonTable();
 		$jp              = $this->makeFiltersNativeJsonColumnJsonPath(['optional']);
-		$filters->add(Operator::IS_NULL, (string) $jp);
+		$filters->add(Operator::IS_NULL, $jp);
 
 		self::assertEmpty($qb->getBoundValues(), 'IS_NULL must not bind any value');
 
@@ -273,7 +273,7 @@ final class JsonPathTest extends BaseTestCase
 	{
 		[$filters, $qb]  = $this->makeFiltersOnNativeJsonTable();
 		$jp              = $this->makeFiltersNativeJsonColumnJsonPath(['required']);
-		$filters->add(Operator::IS_NOT_NULL, (string) $jp);
+		$filters->add(Operator::IS_NOT_NULL, $jp);
 
 		self::assertEmpty($qb->getBoundValues(), 'IS_NOT_NULL must not bind any value');
 
@@ -288,7 +288,7 @@ final class JsonPathTest extends BaseTestCase
 	{
 		[$filters]  = $this->makeFiltersOnNativeJsonTable();
 		$jp         = $this->makeFiltersNativeJsonColumnJsonPath(['role'], true);
-		$filters->add(Operator::EQ, (string) $jp, 'admin');
+		$filters->add(Operator::EQ, $jp, 'admin');
 
 		$sql = (string) $filters;
 		// The quoted alias must appear, and the full column name must be included
@@ -304,7 +304,7 @@ final class JsonPathTest extends BaseTestCase
 		$jp              = $this->makeFiltersNativeJsonColumnJsonPath(['k']);
 
 		// String form using full column name must resolve to a JSON path extraction and bind value.
-		$filters->add(Operator::EQ, (string) $jp, 'v');
+		$filters->add(Operator::EQ, $jp, 'v');
 
 		$bound = \array_values($qb->getBoundValues());
 		self::assertCount(1, $bound, 'JSON path EQ must bind exactly one value');

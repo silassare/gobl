@@ -88,8 +88,11 @@ final class QBSelectTest extends BaseTestCase
 		$qb_a->select()
 			->from('tags');
 
-		$articles->getRelation('tags')
-			->getLink()
+		$tags = $articles->getRelation('tags');
+
+		self::assertNotNull($tags);
+
+		$tags->getLink()
 			->apply($qb_a);
 
 		self::assertSame('SELECT * FROM `gObL_tags` AS _a_  INNER JOIN `gObL_taggables` AS _b_ ON (_a_.id = _b_.tag_id) INNER JOIN `gObL_articles` AS _c_ ON (_b_.taggable_id = _c_.id AND _b_.taggable_type = :_val_d) WHERE 1 = 1', $qb_a->getSqlQuery());
@@ -99,8 +102,11 @@ final class QBSelectTest extends BaseTestCase
 		$qb_b->select()
 			->from('tags');
 
-		$articles->getRelation('recently_added_tags')
-			->getLink()
+		$recent = $articles->getRelation('recently_added_tags');
+
+		self::assertNotNull($recent);
+
+		$recent->getLink()
 			->apply($qb_b);
 
 		self::assertSame('SELECT * FROM `gObL_tags` AS _e_  INNER JOIN `gObL_taggables` AS _f_ ON (_e_.id = _f_.tag_id) INNER JOIN `gObL_articles` AS _g_ ON (_f_.taggable_id = _g_.id AND _f_.taggable_type = :_val_h) WHERE ((_f_.created_at > :_val_i))', $qb_b->getSqlQuery());

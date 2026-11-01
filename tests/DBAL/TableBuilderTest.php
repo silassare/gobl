@@ -39,7 +39,7 @@ final class TableBuilderTest extends BaseTestCase
 			'articles',
 		], \array_keys($db->getTables()));
 
-		$tbl_users = $db->getTable('users');
+		$tbl_users = $db->getTableOrFail('users');
 
 		self::assertSame([
 			'id',
@@ -48,7 +48,7 @@ final class TableBuilderTest extends BaseTestCase
 			'deleted_at',
 		], \array_keys($tbl_users->getColumns()));
 
-		$tbl_roles = $db->getTable('roles');
+		$tbl_roles = $db->getTableOrFail('roles');
 
 		self::assertSame([
 			'id',
@@ -56,7 +56,7 @@ final class TableBuilderTest extends BaseTestCase
 			'user_id',
 		], \array_keys($tbl_roles->getColumns()));
 
-		$role_user_id_column = $tbl_roles->getColumn('user_id');
+		$role_user_id_column = $tbl_roles->getColumnOrFail('user_id');
 
 		self::assertSame([
 			'type'     => 'bigint',

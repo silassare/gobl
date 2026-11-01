@@ -23,6 +23,8 @@ use Gobl\ORM\ORM;
 use Gobl\ORM\ORMEntity;
 use Gobl\Tests\BaseTestCase;
 use Gobl\Tests\Fixtures\LegacyShapedEntity;
+use Gobl\Tests\TestPaths;
+use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUtils\Store\Map;
 use ReflectionClass;
@@ -58,6 +60,7 @@ final class ORMEntityPropertyHooksTest extends BaseTestCase
 	// PHPUnit lifecycle
 	// -------------------------------------------------------------------------
 
+	#[Override]
 	public static function setUpBeforeClass(): void
 	{
 		parent::setUpBeforeClass();
@@ -69,7 +72,7 @@ final class ORMEntityPropertyHooksTest extends BaseTestCase
 			// not declared yet - expected
 		}
 
-		$orm_out_dir = GOBL_TEST_ORM_OUTPUT . \DIRECTORY_SEPARATOR . 'Hooks';
+		$orm_out_dir = TestPaths::ORM_OUTPUT . \DIRECTORY_SEPARATOR . 'Hooks';
 
 		if (!\is_dir($orm_out_dir . \DIRECTORY_SEPARATOR . 'Base')) {
 			\mkdir($orm_out_dir . \DIRECTORY_SEPARATOR . 'Base', 0o755, true);
@@ -119,6 +122,7 @@ final class ORMEntityPropertyHooksTest extends BaseTestCase
 		}
 	}
 
+	#[Override]
 	public static function tearDownAfterClass(): void
 	{
 		try {
@@ -136,6 +140,7 @@ final class ORMEntityPropertyHooksTest extends BaseTestCase
 		parent::tearDownAfterClass();
 	}
 
+	#[Override]
 	protected function setUp(): void
 	{
 		parent::setUp();
@@ -245,8 +250,11 @@ final class ORMEntityPropertyHooksTest extends BaseTestCase
 		$entity->data = ['a' => 1];
 		$entity->data = new JsonPatch()->set('b', 2);
 
-		self::assertSame(1, $entity->data->get('a'), 'the patch did not replace the whole value');
-		self::assertSame(2, $entity->data->get('b'));
+		$data = $entity->data;
+
+		self::assertNotNull($data);
+		self::assertSame(1, $data->get('a'), 'the patch did not replace the whole value');
+		self::assertSame(2, $data->get('b'));
 	}
 
 	// -------------------------------------------------------------------------

@@ -22,6 +22,9 @@ use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\ORM\ORM;
 use Gobl\ORM\ORMOptions;
 use Gobl\Tests\BaseTestCase;
+use Gobl\Tests\TestLog;
+use Gobl\Tests\TestPaths;
+use Override;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Throwable;
 
@@ -44,6 +47,7 @@ abstract class ORMControllerFormNamesTestCase extends BaseTestCase
 	/** @var null|callable the PSR-4 autoloader of the generated classes */
 	private static mixed $autoloader = null;
 
+	#[Override]
 	public static function setUpBeforeClass(): void
 	{
 		parent::setUpBeforeClass();
@@ -56,13 +60,13 @@ abstract class ORMControllerFormNamesTestCase extends BaseTestCase
 			// not declared, the expected state
 		}
 
-		$out_dir = GOBL_TEST_ORM_OUTPUT . \DIRECTORY_SEPARATOR . 'FormNames';
+		$out_dir = TestPaths::ORM_OUTPUT . \DIRECTORY_SEPARATOR . 'FormNames';
 
 		try {
 			$db = static::getNewDbInstance(static::getDriverName());
 		} catch (Throwable $t) {
 			static::$setupFailed = true;
-			gobl_log(\sprintf('Error building live DB for %s: %s', static::getDriverName(), $t->getMessage()));
+			TestLog::write(\sprintf('Error building live DB for %s: %s', static::getDriverName(), $t->getMessage()));
 
 			return;
 		}
@@ -112,7 +116,7 @@ abstract class ORMControllerFormNamesTestCase extends BaseTestCase
 			static::$db = $db;
 		} catch (Throwable $t) {
 			static::$setupFailed = true;
-			gobl_log(\sprintf(
+			TestLog::write(\sprintf(
 				'Error setting up the form names DB for %s: %s',
 				static::getDriverName(),
 				$t->getMessage()
@@ -120,11 +124,12 @@ abstract class ORMControllerFormNamesTestCase extends BaseTestCase
 		}
 	}
 
+	#[Override]
 	public static function tearDownAfterClass(): void
 	{
 		if (null !== static::$db) {
 			try {
-				static::$db->executeMulti('DROP TABLE IF EXISTS named_probes;');
+				static::db()->executeMulti('DROP TABLE IF EXISTS named_probes;');
 			} catch (Throwable) {
 				// best effort
 			}
@@ -146,6 +151,7 @@ abstract class ORMControllerFormNamesTestCase extends BaseTestCase
 		parent::tearDownAfterClass();
 	}
 
+	#[Override]
 	protected function setUp(): void
 	{
 		parent::setUp();
@@ -157,7 +163,7 @@ abstract class ORMControllerFormNamesTestCase extends BaseTestCase
 
 	public function testAFormByColumnNamesCreatesTheRow(): void
 	{
-		$ctrl    = ORM::ctrl(static::$db->getTableOrFail('named_probes'));
+		$ctrl    = ORM::ctrl(static::db()->getTableOrFail('named_probes'));
 		$created = $ctrl->addItem(['code' => 'by-name', 'label' => 'short']);
 		$entity  = $ctrl->getItem(ORMOptions::makeFromFilters(['probe_id' => $created->id]));
 
@@ -168,7 +174,7 @@ abstract class ORMControllerFormNamesTestCase extends BaseTestCase
 
 	public function testAColumnNamedTwiceIsRefused(): void
 	{
-		$ctrl = ORM::ctrl(static::$db->getTableOrFail('named_probes'));
+		$ctrl = ORM::ctrl(static::db()->getTableOrFail('named_probes'));
 
 		$this->expectException(ORMQueryException::class);
 		$this->expectExceptionMessage('GOBL_ORM_REQUEST_FIELD_GIVEN_TWICE');
@@ -179,7 +185,7 @@ abstract class ORMControllerFormNamesTestCase extends BaseTestCase
 	#[DataProvider('provideAPrivateColumnIsGuardedByEitherNameCases')]
 	public function testAPrivateColumnIsGuardedByEitherName(string $name): void
 	{
-		$ctrl = ORM::ctrl(static::$db->getTableOrFail('named_probes'));
+		$ctrl = ORM::ctrl(static::db()->getTableOrFail('named_probes'));
 
 		try {
 			$ctrl->addItem(['code' => 'guarded', $name => true]);
@@ -201,7 +207,7 @@ abstract class ORMControllerFormNamesTestCase extends BaseTestCase
 
 	public function testAFormCannotCreateADeletedRow(): void
 	{
-		$ctrl = ORM::ctrl(static::$db->getTableOrFail('named_probes'));
+		$ctrl = ORM::ctrl(static::db()->getTableOrFail('named_probes'));
 
 		try {
 			$ctrl->addItem(['code' => 'born-deleted', 'deleted' => true]);
@@ -213,7 +219,7 @@ abstract class ORMControllerFormNamesTestCase extends BaseTestCase
 
 	public function testTheSoftDeleteStillWritesItsColumns(): void
 	{
-		$ctrl    = ORM::ctrl(static::$db->getTableOrFail('named_probes'));
+		$ctrl    = ORM::ctrl(static::db()->getTableOrFail('named_probes'));
 		$created = $ctrl->addItem(['code' => 'to-delete']);
 		$filters = ['probe_id' => $created->id];
 		$deleted = $ctrl->deleteOneItem(ORMOptions::makeFromFilters($filters), true);
@@ -225,7 +231,7 @@ abstract class ORMControllerFormNamesTestCase extends BaseTestCase
 
 	public function testAnEntityWritesItsPrivateColumns(): void
 	{
-		$table  = static::$db->getTableOrFail('named_probes');
+		$table  = static::db()->getTableOrFail('named_probes');
 		$entity = ORM::entity($table);
 
 		// The server's own write: a new row of a soft-deletable table holds `deleted`, and the
@@ -248,7 +254,7 @@ abstract class ORMControllerFormNamesTestCase extends BaseTestCase
 
 	public function testTheServerFiltersOnAPrivateColumn(): void
 	{
-		$table = static::$db->getTableOrFail('named_probes');
+		$table = static::db()->getTableOrFail('named_probes');
 
 		ORM::ctrl($table)->addItem(['code' => 'server-side']);
 
@@ -264,7 +270,7 @@ abstract class ORMControllerFormNamesTestCase extends BaseTestCase
 
 	public function testARequestUsesAPublicColumn(): void
 	{
-		$ctrl = ORM::ctrl(static::$db->getTableOrFail('named_probes'));
+		$ctrl = ORM::ctrl(static::db()->getTableOrFail('named_probes'));
 
 		$ctrl->addItem(['code' => 'shown']);
 
@@ -279,7 +285,7 @@ abstract class ORMControllerFormNamesTestCase extends BaseTestCase
 	#[DataProvider('provideARequestCannotUseAPrivateColumnCases')]
 	public function testARequestCannotUseAPrivateColumn(ORMOptions $options, string $message): void
 	{
-		$ctrl = ORM::ctrl(static::$db->getTableOrFail('named_probes'));
+		$ctrl = ORM::ctrl(static::db()->getTableOrFail('named_probes'));
 
 		$ctrl->addItem(['code' => 'hidden']);
 
@@ -303,7 +309,7 @@ abstract class ORMControllerFormNamesTestCase extends BaseTestCase
 
 	public function testAnUpdateByColumnNamesWritesTheRow(): void
 	{
-		$ctrl    = ORM::ctrl(static::$db->getTableOrFail('named_probes'));
+		$ctrl    = ORM::ctrl(static::db()->getTableOrFail('named_probes'));
 		$created = $ctrl->addItem(['probe_code' => 'to-update', 'probe_label' => 'before']);
 		$options = ORMOptions::makeFromFilters(['probe_id' => $created->id])->setFormData(['label' => 'after']);
 
@@ -315,6 +321,21 @@ abstract class ORMControllerFormNamesTestCase extends BaseTestCase
 		self::assertSame(1, $ctrl->updateAllItems(
 			ORMOptions::makeFromFilters(['probe_id' => $created->id])->setFormData(['label' => 'again'])
 		));
+	}
+
+	/**
+	 * The live connection this class runs against, which its own setup opened.
+	 *
+	 * Empty until that setup has run, and a test reaching it before then says so here rather than
+	 * as a call on null several frames away.
+	 */
+	protected static function db(): RDBMSInterface
+	{
+		$db = static::$db;
+
+		self::assertNotNull($db, 'the live database connection was not opened');
+
+		return $db;
 	}
 
 	abstract protected static function getDriverName(): string;

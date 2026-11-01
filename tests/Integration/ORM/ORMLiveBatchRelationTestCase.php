@@ -21,6 +21,9 @@ use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\ORM\ORM;
 use Gobl\ORM\ORMEntity;
 use Gobl\Tests\BaseTestCase;
+use Gobl\Tests\TestLog;
+use Gobl\Tests\TestPaths;
+use Override;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use Throwable;
 
@@ -76,6 +79,7 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 	// PHPUnit lifecycle
 	// -------------------------------------------------------------------------
 
+	#[Override]
 	public static function setUpBeforeClass(): void
 	{
 		parent::setUpBeforeClass();
@@ -95,14 +99,14 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 			$db = static::getNewDbInstance(static::getDriverName());
 		} catch (Throwable $t) {
 			static::$setupFailed = true;
-			gobl_log(\sprintf('BatchRel: error building live DB for %s: %s', static::getDriverName(), $t->getMessage()));
+			TestLog::write(\sprintf('BatchRel: error building live DB for %s: %s', static::getDriverName(), $t->getMessage()));
 
 			return;
 		}
 
 		if (null === $db) {
 			static::$setupFailed = true;
-			gobl_log(\sprintf('BatchRel: live DB not configured for %s (check env vars).', static::getDriverName()));
+			TestLog::write(\sprintf('BatchRel: live DB not configured for %s (check env vars).', static::getDriverName()));
 
 			return;
 		}
@@ -206,15 +210,16 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 			static::insertFixture($db);
 		} catch (Throwable $t) {
 			static::$setupFailed = true;
-			gobl_log(\sprintf('BatchRel: setup failed for %s: %s', static::getDriverName(), $t->getMessage()));
+			TestLog::write(\sprintf('BatchRel: setup failed for %s: %s', static::getDriverName(), $t->getMessage()));
 		}
 	}
 
+	#[Override]
 	public static function tearDownAfterClass(): void
 	{
 		if (null !== static::$db) {
 			try {
-				static::$db->executeMulti(static::buildDropAllSql(static::$db));
+				static::db()->executeMulti(static::buildDropAllSql(static::$db));
 			} catch (Throwable) {
 				// best-effort: ignore drop errors
 			}
@@ -238,6 +243,7 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 		parent::tearDownAfterClass();
 	}
 
+	#[Override]
 	protected function setUp(): void
 	{
 		parent::setUp();
@@ -249,10 +255,6 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 		}
 	}
 
-	// -------------------------------------------------------------------------
-	// Tests -- LinkColumns
-	// -------------------------------------------------------------------------
-
 	/**
 	 * LinkColumns (many-to-one): getRelativeBatch fetches one author per book.
 	 *
@@ -260,7 +262,7 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 	 */
 	public function testLinkColumnsGetRelativeBatch(): void
 	{
-		$db          = static::$db;
+		$db          = static::db();
 		$authorsCtrl = ORM::ctrl($db->getTableOrFail('bat_authors'));
 		$booksTable  = $db->getTableOrFail('bat_books');
 		$relation    = $booksTable->getRelation('author');
@@ -285,15 +287,21 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 		$bobId       = $bob->toIdentityKey();
 
 		// PHP Manual and SQL Guide both belong to Alice.
-		self::assertNotNull($map[$phpManual->toIdentityKey()], 'PHP Manual must have an author');
-		self::assertSame($aliceId, $map[$phpManual->toIdentityKey()]->toIdentityKey());
+		$found = $map[$phpManual->toIdentityKey()];
 
-		self::assertNotNull($map[$sqlGuide->toIdentityKey()], 'SQL Guide must have an author');
-		self::assertSame($aliceId, $map[$sqlGuide->toIdentityKey()]->toIdentityKey());
+		self::assertNotNull($found, 'PHP Manual must have an author');
+		self::assertSame($aliceId, $found->toIdentityKey());
+
+		$found2 = $map[$sqlGuide->toIdentityKey()];
+
+		self::assertNotNull($found2, 'SQL Guide must have an author');
+		self::assertSame($aliceId, $found2->toIdentityKey());
 
 		// Linux Primer belongs to Bob (different target from Alice's books).
-		self::assertNotNull($map[$linuxPrimer->toIdentityKey()], 'Linux Primer must have an author');
-		self::assertSame($bobId, $map[$linuxPrimer->toIdentityKey()]->toIdentityKey());
+		$found3 = $map[$linuxPrimer->toIdentityKey()];
+
+		self::assertNotNull($found3, 'Linux Primer must have an author');
+		self::assertSame($bobId, $found3->toIdentityKey());
 	}
 
 	/**
@@ -303,7 +311,7 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 	 */
 	public function testLinkColumnsGetAllRelativesBatch(): void
 	{
-		$db           = static::$db;
+		$db           = static::db();
 		$booksCtrl    = ORM::ctrl($db->getTableOrFail('bat_books'));
 		$authorsTable = $db->getTableOrFail('bat_authors');
 		$relation     = $authorsTable->getRelation('books');
@@ -341,7 +349,7 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 	 */
 	public function testLinkColumnsCountRelativesBatch(): void
 	{
-		$db           = static::$db;
+		$db           = static::db();
 		$booksCtrl    = ORM::ctrl($db->getTableOrFail('bat_books'));
 		$authorsTable = $db->getTableOrFail('bat_authors');
 		$relation     = $authorsTable->getRelation('books');
@@ -365,7 +373,7 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 	 */
 	public function testLinkThroughGetAllRelativesBatch(): void
 	{
-		$db         = static::$db;
+		$db         = static::db();
 		$genresCtrl = ORM::ctrl($db->getTableOrFail('bat_genres'));
 		$booksTable = $db->getTableOrFail('bat_books');
 		$relation   = $booksTable->getRelation('genres');
@@ -411,7 +419,7 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 	 */
 	public function testLinkThroughCountRelativesBatch(): void
 	{
-		$db         = static::$db;
+		$db         = static::db();
 		$genresCtrl = ORM::ctrl($db->getTableOrFail('bat_genres'));
 		$booksTable = $db->getTableOrFail('bat_books');
 		$relation   = $booksTable->getRelation('genres');
@@ -441,7 +449,7 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 	 */
 	public function testLinkMorphGetAllRelativesBatch(): void
 	{
-		$db           = static::$db;
+		$db           = static::db();
 		$reviewsCtrl  = ORM::ctrl($db->getTableOrFail('bat_reviews'));
 		$booksTable   = $db->getTableOrFail('bat_books');
 		$relation     = $booksTable->getRelation('reviews');
@@ -475,7 +483,7 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 	 */
 	public function testLinkMorphCountRelativesBatch(): void
 	{
-		$db          = static::$db;
+		$db          = static::db();
 		$reviewsCtrl = ORM::ctrl($db->getTableOrFail('bat_reviews'));
 		$booksTable  = $db->getTableOrFail('bat_books');
 		$relation    = $booksTable->getRelation('reviews');
@@ -505,7 +513,7 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 	 */
 	public function testLinkJoinGetAllRelativesBatch(): void
 	{
-		$db           = static::$db;
+		$db           = static::db();
 		$genresCtrl   = ORM::ctrl($db->getTableOrFail('bat_genres'));
 		$authorsTable = $db->getTableOrFail('bat_authors');
 		$relation     = $authorsTable->getRelation('genres_direct');
@@ -552,10 +560,14 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 	 */
 	public function testRelationSelectProjectionMakesEntitiesPartialViaGetRelativeBatch(): void
 	{
-		$db          = static::$db;
-		$authorsCtrl = ORM::ctrl($db->getTableOrFail('bat_authors'));
-		$booksTable  = $db->getTableOrFail('bat_books');
-		$relation    = clone $booksTable->getRelation('author');
+		$db              = static::db();
+		$authorsCtrl     = ORM::ctrl($db->getTableOrFail('bat_authors'));
+		$booksTable      = $db->getTableOrFail('bat_books');
+		$author_relation = $booksTable->getRelation('author');
+
+		self::assertNotNull($author_relation);
+
+		$relation = clone $author_relation;
 		$relation->setSelect(['id']);
 
 		$books = [static::$fixture['php_manual'], static::$fixture['sql_guide']];
@@ -583,10 +595,14 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 	 */
 	public function testRelationSelectProjectionMakesEntitiesPartialViaGetAllRelativesBatch(): void
 	{
-		$db           = static::$db;
-		$booksCtrl    = ORM::ctrl($db->getTableOrFail('bat_books'));
-		$authorsTable = $db->getTableOrFail('bat_authors');
-		$relation     = clone $authorsTable->getRelation('books');
+		$db               = static::db();
+		$booksCtrl        = ORM::ctrl($db->getTableOrFail('bat_books'));
+		$authorsTable     = $db->getTableOrFail('bat_authors');
+		$author_relation2 = $authorsTable->getRelation('books');
+
+		self::assertNotNull($author_relation2);
+
+		$relation = clone $author_relation2;
 		$relation->setSelect(['id', 'title', 'author_id']);
 
 		$authors = [static::$fixture['alice']];
@@ -611,11 +627,12 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 	 */
 	public function testRelationWithoutSelectProjectionLoadsFullEntities(): void
 	{
-		$db           = static::$db;
+		$db           = static::db();
 		$booksCtrl    = ORM::ctrl($db->getTableOrFail('bat_books'));
 		$authorsTable = $db->getTableOrFail('bat_authors');
 		$relation     = $authorsTable->getRelation('books');
 
+		self::assertNotNull($relation);
 		self::assertNull($relation->getSelect(), 'books relation must not have a select projection by default');
 
 		$authors = [static::$fixture['alice']];
@@ -626,6 +643,25 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 		foreach ($map[$aliceKey] as $book) {
 			self::assertFalse($book->isPartial(), 'entity loaded without a select projection must not be partial');
 		}
+	}
+
+	// -------------------------------------------------------------------------
+	// Tests -- LinkColumns
+	// -------------------------------------------------------------------------
+
+	/**
+	 * The live connection this class runs against, which its own setup opened.
+	 *
+	 * Empty until that setup has run, and a test reaching it before then says so here rather than
+	 * as a call on null several frames away.
+	 */
+	protected static function db(): RDBMSInterface
+	{
+		$db = static::$db;
+
+		self::assertNotNull($db, 'the live database connection was not opened');
+
+		return $db;
 	}
 
 	// -------------------------------------------------------------------------
@@ -686,7 +722,7 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 	 */
 	private static function getOrmOutDir(): string
 	{
-		return GOBL_TEST_ORM_OUTPUT . \DIRECTORY_SEPARATOR . 'BatchRel';
+		return TestPaths::ORM_OUTPUT . \DIRECTORY_SEPARATOR . 'BatchRel';
 	}
 
 	/**

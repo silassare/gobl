@@ -271,6 +271,7 @@ final class JsonOfInterfaceTest extends BaseTestCase
 
 		self::assertIsArray($result);
 		self::assertCount(2, $result);
+		self::assertNotNull($result);
 		self::assertInstanceOf(SampleJsonOf::class, $result[0]);
 		self::assertSame('A', $result[0]->name);
 		self::assertInstanceOf(SampleJsonOf::class, $result[1]);
@@ -282,6 +283,7 @@ final class JsonOfInterfaceTest extends BaseTestCase
 		$type   = new TypeList()->listOf(SampleJsonOf::class);
 		$result = $type->validate([new SampleJsonOf('X', 9)])->getCleanValue();
 
+		self::assertNotNull($result);
 		self::assertInstanceOf(SampleJsonOf::class, $result[0]);
 		self::assertSame('X', $result[0]->name);
 	}
@@ -303,6 +305,7 @@ final class JsonOfInterfaceTest extends BaseTestCase
 
 		self::assertIsArray($result);
 		self::assertCount(2, $result);
+		self::assertNotNull($result);
 		self::assertInstanceOf(SampleJsonOf::class, $result[0]);
 		self::assertSame('P', $result[0]->name);
 		self::assertInstanceOf(SampleJsonOf::class, $result[1]);
@@ -382,6 +385,7 @@ final class JsonOfInterfaceTest extends BaseTestCase
 		$type   = new TypeMap()->mapOf(SampleJsonOf::class);
 		$result = $type->validate(['x' => new SampleJsonOf('X', 9)])->getCleanValue();
 
+		self::assertNotNull($result);
 		self::assertInstanceOf(SampleJsonOf::class, $result->get('x'));
 		self::assertSame('X', $result->get('x')->name);
 	}

@@ -295,6 +295,7 @@ final class ORMOptionsTest extends BaseTestCase
 
 		$ob = $req->getOrderBy();
 
+		self::assertNotNull($ob);
 		self::assertArrayHasKey('name', $ob);
 		self::assertArrayHasKey('created_at', $ob);
 		self::assertSame('ASC', $ob['name'], '"name" implies ASC (true)');

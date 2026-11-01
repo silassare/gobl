@@ -20,6 +20,9 @@ use Gobl\ORM\ORM;
 use Gobl\ORM\ORMOptions;
 use Gobl\Tests\BaseTestCase;
 use Gobl\Tests\Fixtures\RegistryCheckedType;
+use Gobl\Tests\TestLog;
+use Gobl\Tests\TestPaths;
+use Override;
 use Throwable;
 
 /**
@@ -43,6 +46,7 @@ abstract class ORMEntitySaveRevalidationTestCase extends BaseTestCase
 	/** @var null|callable the PSR-4 autoloader of the generated classes */
 	private static mixed $autoloader = null;
 
+	#[Override]
 	public static function setUpBeforeClass(): void
 	{
 		parent::setUpBeforeClass();
@@ -55,13 +59,13 @@ abstract class ORMEntitySaveRevalidationTestCase extends BaseTestCase
 			// not declared, the expected state
 		}
 
-		$out_dir = GOBL_TEST_ORM_OUTPUT . \DIRECTORY_SEPARATOR . 'Revalidation';
+		$out_dir = TestPaths::ORM_OUTPUT . \DIRECTORY_SEPARATOR . 'Revalidation';
 
 		try {
 			$db = static::getNewDbInstance(static::getDriverName());
 		} catch (Throwable $t) {
 			static::$setupFailed = true;
-			gobl_log(\sprintf('Error building live DB for %s: %s', static::getDriverName(), $t->getMessage()));
+			TestLog::write(\sprintf('Error building live DB for %s: %s', static::getDriverName(), $t->getMessage()));
 
 			return;
 		}
@@ -108,7 +112,7 @@ abstract class ORMEntitySaveRevalidationTestCase extends BaseTestCase
 			static::$db = $db;
 		} catch (Throwable $t) {
 			static::$setupFailed = true;
-			gobl_log(\sprintf(
+			TestLog::write(\sprintf(
 				'Error setting up the revalidation DB for %s: %s',
 				static::getDriverName(),
 				$t->getMessage()
@@ -116,11 +120,12 @@ abstract class ORMEntitySaveRevalidationTestCase extends BaseTestCase
 		}
 	}
 
+	#[Override]
 	public static function tearDownAfterClass(): void
 	{
 		if (null !== static::$db) {
 			try {
-				static::$db->executeMulti('DROP TABLE IF EXISTS probes;');
+				static::db()->executeMulti('DROP TABLE IF EXISTS probes;');
 			} catch (Throwable) {
 				// best effort
 			}
@@ -144,6 +149,7 @@ abstract class ORMEntitySaveRevalidationTestCase extends BaseTestCase
 		parent::tearDownAfterClass();
 	}
 
+	#[Override]
 	protected function setUp(): void
 	{
 		parent::setUp();
@@ -155,7 +161,7 @@ abstract class ORMEntitySaveRevalidationTestCase extends BaseTestCase
 
 	public function testSavingALoadedEntityDoesNotValidateItsStoredValues(): void
 	{
-		$ctrl = ORM::ctrl(static::$db->getTableOrFail('probes'));
+		$ctrl = ORM::ctrl(static::db()->getTableOrFail('probes'));
 
 		RegistryCheckedType::reset();
 
@@ -185,7 +191,7 @@ abstract class ORMEntitySaveRevalidationTestCase extends BaseTestCase
 
 	public function testAValueTheUserSetsIsStillValidated(): void
 	{
-		$ctrl = ORM::ctrl(static::$db->getTableOrFail('probes'));
+		$ctrl = ORM::ctrl(static::db()->getTableOrFail('probes'));
 
 		RegistryCheckedType::reset();
 
@@ -199,6 +205,21 @@ abstract class ORMEntitySaveRevalidationTestCase extends BaseTestCase
 		$this->expectExceptionMessage('VALUE_ALREADY_REGISTERED');
 
 		$entity->code = 'taken';
+	}
+
+	/**
+	 * The live connection this class runs against, which its own setup opened.
+	 *
+	 * Empty until that setup has run, and a test reaching it before then says so here rather than
+	 * as a call on null several frames away.
+	 */
+	protected static function db(): RDBMSInterface
+	{
+		$db = static::$db;
+
+		self::assertNotNull($db, 'the live database connection was not opened');
+
+		return $db;
 	}
 
 	abstract protected static function getDriverName(): string;

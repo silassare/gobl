@@ -253,6 +253,8 @@ final class RelationSelectTest extends BaseTestCase
 
 		$relation = $db->getTableOrFail('owners')->getRelation('cat');
 
+		self::assertNotNull($relation);
+
 		// setSelect() just stores the value -- validation happens in resolveSelectColumns().
 		$relation->setSelect(['id', 'nonexistent_column']); // must not throw
 
@@ -291,6 +293,8 @@ final class RelationSelectTest extends BaseTestCase
 
 		$relation = $db->getTableOrFail('secret_refs')->getRelation('secret');
 
+		self::assertNotNull($relation);
+
 		// Must NOT throw: private columns are now allowed in setSelect.
 		$relation->setSelect(['id', 'token']);
 
@@ -321,6 +325,8 @@ final class RelationSelectTest extends BaseTestCase
 		$db->lock();
 
 		$relation = $db->getTableOrFail('orders_v2')->getRelation('product');
+
+		self::assertNotNull($relation);
 		$relation->setSelect(['id', 'name']); // valid - neither is private
 
 		self::assertSame(['id', 'name'], $relation->getSelect());
@@ -363,6 +369,8 @@ final class RelationSelectTest extends BaseTestCase
 		$db->lock();
 
 		$relation = $db->getTableOrFail('memberships')->getRelation('member');
+
+		self::assertNotNull($relation);
 		$relation->setSelect(['id', 'name']); // short names; table prefix is 'mbr'
 
 		$resolved = $relation->resolveSelectColumns();
@@ -400,6 +408,8 @@ final class RelationSelectTest extends BaseTestCase
 		// We cannot call setPrivate() on a locked column, so we use the original reference.
 		// Instead, verify that resolveSelectColumns() filters it out at query time.
 		$relation = $edges_table->getRelation('node');
+
+		self::assertNotNull($relation);
 
 		// setSelect after lock only accepts non-private columns.
 		// To test resolveSelectColumns filtering, set select before the column was private.
@@ -439,6 +449,8 @@ final class RelationSelectTest extends BaseTestCase
 
 		$relation = $carts_table->getRelation('item');
 
+		self::assertNotNull($relation);
+
 		// Bypass lock-time validation by setting _select directly on the Relation base class.
 		// This simulates the case where a column name was removed from the schema after
 		// the select projection was persisted (e.g. migration removed a column).
@@ -452,8 +464,11 @@ final class RelationSelectTest extends BaseTestCase
 
 	private function getRolesHasManyRelation(): Relation
 	{
-		$db = self::getSampleDB();
+		$db       = self::getSampleDB();
+		$relation = $db->getTableOrFail('users')->getRelation('roles');
 
-		return $db->getTableOrFail('users')->getRelation('roles');
+		self::assertNotNull($relation, 'the sample schema declares a "roles" relation on users');
+
+		return $relation;
 	}
 }

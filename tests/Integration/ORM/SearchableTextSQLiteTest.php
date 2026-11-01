@@ -16,6 +16,7 @@ namespace Gobl\Tests\Integration\ORM;
 use Gobl\DBAL\Drivers\SQLite\SQLite;
 use Gobl\DBAL\Drivers\SQLite\SQLiteQueryGenerator;
 use Gobl\DBAL\Search\Searchable;
+use Override;
 use PDO;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversMethod;
@@ -32,15 +33,17 @@ use PHPUnit\Framework\Attributes\CoversMethod;
 #[CoversClass(Searchable::class)]
 final class SearchableTextSQLiteTest extends SearchableTextTestCase
 {
+	#[Override]
 	protected static function getDriverName(): string
 	{
 		return SQLite::NAME;
 	}
 
+	#[Override]
 	protected function indexedColumnsOnServer(): array
 	{
-		$table = static::$db->getTableOrFail('articles')->getFullName();
-		$names = static::$db->execute(
+		$table = self::db()->getTableOrFail('articles')->getFullName();
+		$names = self::db()->execute(
 			'SELECT name FROM sqlite_master WHERE type = \'index\' AND tbl_name = :table;',
 			['table' => $table]
 		)->fetchAll(PDO::FETCH_ASSOC);
@@ -48,7 +51,7 @@ final class SearchableTextSQLiteTest extends SearchableTextTestCase
 		$columns = [];
 
 		foreach ($names as $row) {
-			$info = static::$db->execute('PRAGMA index_info(' . static::$db->getGenerator()
+			$info = self::db()->execute('PRAGMA index_info(' . self::db()->getGenerator()
 				->quoteIdentifier((string) $row['name']) . ');', [])->fetchAll(PDO::FETCH_ASSOC);
 
 			foreach ($info as $entry) {

@@ -339,19 +339,21 @@ final class JsonPatchTest extends BaseTestCase
 	 * The reading has to be the one under which the recorded path and the patched document agree,
 	 * because the UPDATE sends the first and the entity reads back the second.
 	 *
-	 * @param array            $initial  what the document holds before the write
-	 * @param list<int|string> $expected the path as it is recorded
+	 * @param array                      $initial  what the document holds before the write
+	 * @param non-empty-list<int|string> $expected the path as it is recorded, never empty
 	 */
-	#[DataProvider('digitSegmentCases')]
+	#[DataProvider('provideWhatADigitSegmentAddressesCases')]
 	public function testWhatADigitSegmentAddresses(array $initial, array $expected, array $document): void
 	{
 		$patch = new JsonPatch($initial)->set('c.1', 'v');
 
-		self::assertSame([['op' => 'set', 'path' => $expected, 'value' => 'v']], $patch->getOperations());
+		$operations = $patch->getOperations();
+
+		self::assertSame([['op' => 'set', 'path' => $expected, 'value' => 'v']], $operations);
 		self::assertSame($document, $patch->toArray());
 	}
 
-	public static function digitSegmentCases(): iterable
+	public static function provideWhatADigitSegmentAddressesCases(): iterable
 	{
 		yield 'a map already there: a member' => [
 			['c' => ['1' => 'was', 'keep' => 'me']],

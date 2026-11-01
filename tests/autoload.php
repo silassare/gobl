@@ -12,87 +12,17 @@
 declare(strict_types=1);
 
 use Blate\Blate;
+use Gobl\Tests\TestLog;
+use Gobl\Tests\TestPaths;
 
 require_once \dirname(__DIR__) . '/vendor/autoload.php';
 
+// The one global the library itself reads: `CSGeneratorORM` asks `defined()` for it, which is the
+// suite telling the library it is the suite. Every path the tests use is a constant of TestPaths.
 \define('GOBL_TEST_MODE', true);
-\define('GOBL_TEST_ROOT', __DIR__);
-\define('GOBL_TEST_ASSETS', GOBL_TEST_ROOT . \DIRECTORY_SEPARATOR . 'assets');
-\define('GOBL_TEST_SNAPSHOTS', GOBL_TEST_ASSETS . \DIRECTORY_SEPARATOR . 'snapshots');
-\define('GOBL_TEST_PROJECT_DIR', GOBL_TEST_ROOT . \DIRECTORY_SEPARATOR . 'tmp');
-\define('GOBL_TEST_OUTPUT', GOBL_TEST_PROJECT_DIR . \DIRECTORY_SEPARATOR . 'output');
-\define('GOBL_TEST_ORM_OUTPUT', GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'ORM_Db');
 
-Blate::setCacheDir(GOBL_TEST_PROJECT_DIR);
+Blate::setCacheDir(TestPaths::PROJECT_DIR);
 
-if (!\function_exists('gobl_log')) {
-	function gobl_log(mixed $value): void
-	{
-		$log_file = './gobl.test.log.txt';
-		$prev_sep = "\n========previous========\n";
-		$date     = \date('Y-m-d H:i:s');
-
-		if (\is_scalar($value)) {
-			$log = (string) $value;
-		} elseif (\is_array($value)) {
-			$log = \var_export($value, true);
-		} elseif ($value instanceof Throwable) {
-			$e   = $value;
-			$log = (string) $e;
-
-			while ($e = $e->getPrevious()) {
-				$log .= $prev_sep . \PHP_EOL . $e;
-			}
-		} elseif ($value instanceof JsonSerializable) {
-			$log = \json_encode($value, \JSON_PRETTY_PRINT);
-		} else {
-			$log = \get_debug_type($value);
-		}
-		$log = \str_replace(['\n', '\t', '\/'], ["\n", "\t", '/'], $log);
-		$log = "================================================================================\n"
-			. $date . "\n"
-			. "========================\n"
-			. $log . "\n\n";
-
-		$mode = (\file_exists($log_file) && \filesize($log_file) <= 254000) ? 'a' : 'w';
-
-		if ($fp = \fopen($log_file, $mode)) {
-			\fwrite($fp, $log);
-			\fclose($fp);
-
-			if ('w' === $mode) {
-				\chmod($log_file, 0o660);
-			}
-		}
-	}
-
-	function gobl_test_error_handler(int $code, string $message, string $file, int $line): mixed
-	{
-		gobl_log(
-			"\n\tFile    : {$file}"
-				. "\n\tLine    : {$line}"
-				. "\n\tCode    : {$code}"
-				. "\n\tMessage : {$message}"
-		);
-
-		return null;
-	}
-
-	function gobl_test_exception_handler(Exception $t): void
-	{
-		gobl_log($t);
-	}
-
-	function gobl_shutdown_function(): void
-	{
-		$error = \error_get_last();
-
-		if ($error) {
-			gobl_test_error_handler($error['type'], $error['message'], $error['file'], $error['line']);
-		}
-	}
-
-	\set_exception_handler('gobl_test_exception_handler');
-	\set_error_handler('gobl_test_error_handler');
-	\register_shutdown_function('gobl_shutdown_function');
-}
+\set_exception_handler(TestLog::exceptionHandler(...));
+\set_error_handler(TestLog::errorHandler(...));
+\register_shutdown_function(TestLog::shutdown(...));

@@ -18,6 +18,7 @@ use Gobl\DBAL\Db;
 use Gobl\DBAL\Diff\Diff;
 use Gobl\DBAL\Diff\DiffActionType;
 use Gobl\Tests\BaseTestCase;
+use Gobl\Tests\TestPaths;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProviderExternal;
 
@@ -53,14 +54,14 @@ final class DiffTest extends BaseTestCase
 		$output = (string) $diff->generateMigrationFile(1);
 
 		// Write the raw (unormalized) file so it can be require'd by other tooling
-		$actual_file = GOBL_TEST_OUTPUT . '/migration_' . $driver . '_schema_diff.php';
+		$actual_file = TestPaths::OUTPUT . '/migration_' . $driver . '_schema_diff.php';
 		\file_put_contents($actual_file, $output);
 
 		$normalized    = self::normalizeMigrationContent($output);
-		$expected_dir  = GOBL_TEST_SNAPSHOTS . \DIRECTORY_SEPARATOR . $driver . \DIRECTORY_SEPARATOR . 'diff';
+		$expected_dir  = TestPaths::SNAPSHOTS . \DIRECTORY_SEPARATOR . $driver . \DIRECTORY_SEPARATOR . 'diff';
 		$expected_file = $expected_dir . \DIRECTORY_SEPARATOR . 'schema.diff.php';
 
-		$actual_snap_dir = GOBL_TEST_OUTPUT . '/snapshots/' . $driver . '/diff';
+		$actual_snap_dir = TestPaths::OUTPUT . '/snapshots/' . $driver . '/diff';
 
 		if (!\is_dir($actual_snap_dir)) {
 			\mkdir($actual_snap_dir, 0o755, true);

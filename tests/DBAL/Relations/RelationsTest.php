@@ -153,6 +153,8 @@ final class RelationsTest extends BaseTestCase
 		$articles = $db->getTableOrFail('articles');
 		$relation = $articles->getRelation('tags');
 
+		self::assertNotNull($relation);
+
 		self::assertSame('articles', $relation->getHostTable()->getName());
 	}
 	// ----------------------------------------------------------------------

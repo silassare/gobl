@@ -15,6 +15,7 @@ namespace Gobl\Tests\ORM;
 
 use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\Tests\BaseTestCase;
+use Gobl\Tests\TestPaths;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
@@ -29,7 +30,7 @@ final class CSGeneratorORMTest extends BaseTestCase
 	{
 		$db = self::getNewDbInstanceWithSchema();
 
-		$out_dir = GOBL_TEST_ORM_OUTPUT;
+		$out_dir = TestPaths::ORM_OUTPUT;
 
 		if (!\is_dir($out_dir)) {
 			@\mkdir($out_dir, 0o777, true);

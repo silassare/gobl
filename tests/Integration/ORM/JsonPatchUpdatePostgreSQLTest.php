@@ -17,6 +17,7 @@ use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
 use Gobl\DBAL\Drivers\SQLQueryGeneratorBase;
 use Gobl\DBAL\Types\Utils\JsonPatch;
 use Gobl\ORM\ORMEntity;
+use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversMethod;
 
@@ -30,11 +31,13 @@ use PHPUnit\Framework\Attributes\CoversMethod;
 #[CoversClass(ORMEntity::class)]
 final class JsonPatchUpdatePostgreSQLTest extends JsonPatchUpdateTestCase
 {
+	#[Override]
 	protected static function getDriverName(): string
 	{
 		return PostgreSQL::NAME;
 	}
 
+	#[Override]
 	protected static function getJsonSetFunctionName(): string
 	{
 		return 'jsonb_set';

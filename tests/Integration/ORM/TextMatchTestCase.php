@@ -17,8 +17,10 @@ use Gobl\DBAL\Builders\TableBuilder;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\ORM\ORM;
-use Gobl\ORM\ORMOptions;
 use Gobl\Tests\BaseTestCase;
+use Gobl\Tests\TestLog;
+use Gobl\Tests\TestPaths;
+use Override;
 use Throwable;
 
 /**
@@ -52,6 +54,7 @@ abstract class TextMatchTestCase extends BaseTestCase
 	/** @var null|callable the PSR-4 autoloader of the generated classes */
 	private static mixed $autoloader = null;
 
+	#[Override]
 	public static function setUpBeforeClass(): void
 	{
 		parent::setUpBeforeClass();
@@ -64,13 +67,13 @@ abstract class TextMatchTestCase extends BaseTestCase
 			// not declared, the expected state
 		}
 
-		$out_dir = GOBL_TEST_ORM_OUTPUT . \DIRECTORY_SEPARATOR . 'TextMatch';
+		$out_dir = TestPaths::ORM_OUTPUT . \DIRECTORY_SEPARATOR . 'TextMatch';
 
 		try {
 			$db = static::getNewDbInstance(static::getDriverName());
 		} catch (Throwable $t) {
 			static::$setupFailed = true;
-			gobl_log(\sprintf('Error building live DB for %s: %s', static::getDriverName(), $t->getMessage()));
+			TestLog::write(\sprintf('Error building live DB for %s: %s', static::getDriverName(), $t->getMessage()));
 
 			return;
 		}
@@ -127,7 +130,7 @@ abstract class TextMatchTestCase extends BaseTestCase
 			static::$db = $db;
 		} catch (Throwable $t) {
 			static::$setupFailed = true;
-			gobl_log(\sprintf(
+			TestLog::write(\sprintf(
 				'Error setting up the text match DB for %s: %s',
 				static::getDriverName(),
 				$t->getMessage()
@@ -135,11 +138,12 @@ abstract class TextMatchTestCase extends BaseTestCase
 		}
 	}
 
+	#[Override]
 	public static function tearDownAfterClass(): void
 	{
 		if (null !== static::$db) {
 			try {
-				static::$db->executeMulti('DROP TABLE IF EXISTS ' . self::pagesTableRef(static::$db) . ';');
+				static::db()->executeMulti('DROP TABLE IF EXISTS ' . self::pagesTableRef(static::$db) . ';');
 			} catch (Throwable) {
 				// best effort
 			}
@@ -161,6 +165,7 @@ abstract class TextMatchTestCase extends BaseTestCase
 		parent::tearDownAfterClass();
 	}
 
+	#[Override]
 	protected function setUp(): void
 	{
 		parent::setUp();
@@ -172,10 +177,11 @@ abstract class TextMatchTestCase extends BaseTestCase
 		$this->addPages();
 	}
 
+	#[Override]
 	protected function tearDown(): void
 	{
 		if (null !== static::$db) {
-			static::$db->executeMulti('DELETE FROM ' . self::pagesTableRef(static::$db) . ';');
+			static::db()->executeMulti('DELETE FROM ' . self::pagesTableRef(static::$db) . ';');
 		}
 
 		parent::tearDown();
@@ -276,7 +282,27 @@ abstract class TextMatchTestCase extends BaseTestCase
 		self::assertSame([], $this->searchTitle('50%net'), 'a term was read as a pattern');
 	}
 
+	/**
+	 * The live connection this class runs against, which its own setup opened.
+	 *
+	 * Empty until that setup has run, and a test reaching it before then says so here rather than
+	 * as a call on null several frames away.
+	 */
+	protected static function db(): RDBMSInterface
+	{
+		$db = static::$db;
+
+		self::assertNotNull($db, 'the live database connection was not opened');
+
+		return $db;
+	}
+
 	abstract protected static function getDriverName(): string;
+
+	/**
+	 * Whether this engine folds accents in this shape.
+	 */
+	abstract protected static function foldsAccents(): bool;
 
 	/**
 	 * The table as a statement of its own must name it.
@@ -290,16 +316,11 @@ abstract class TextMatchTestCase extends BaseTestCase
 	}
 
 	/**
-	 * Whether this engine folds accents in this shape.
-	 */
-	abstract protected static function foldsAccents(): bool;
-
-	/**
 	 * The keys of the pages a term finds at the title's French entry, in a stable order.
 	 */
 	private function searchTitle(string $term): array
 	{
-		$query = ORM::query(static::$db->getTableOrFail('pages'));
+		$query = ORM::query(static::db()->getTableOrFail('pages'));
 
 		$query->whereTitleMatches($term, 'fr');
 
@@ -311,7 +332,7 @@ abstract class TextMatchTestCase extends BaseTestCase
 	 */
 	private function searchDocument(string $term): array
 	{
-		$query = ORM::query(static::$db->getTableOrFail('pages'));
+		$query = ORM::query(static::db()->getTableOrFail('pages'));
 
 		$query->whereTitleMatches($term);
 
@@ -323,7 +344,7 @@ abstract class TextMatchTestCase extends BaseTestCase
 	 */
 	private function searchName(string $term): array
 	{
-		$query = ORM::query(static::$db->getTableOrFail('pages'));
+		$query = ORM::query(static::db()->getTableOrFail('pages'));
 
 		$query->whereNameMatches($term);
 
@@ -359,14 +380,14 @@ abstract class TextMatchTestCase extends BaseTestCase
 	/**
 	 * The accented spelling of the same title, added only by the tests that search for it.
 	 */
-	private function addAccentedPage(): int
+	private function addAccentedPage(): void
 	{
-		return $this->addPage('accented-spelled', 'Économie sociale et solidaire', 'Un dossier de la region');
+		$this->addPage('accented-spelled', 'Économie sociale et solidaire', 'Un dossier de la region');
 	}
 
-	private function addPage(string $key, string $text, string $intro): int
+	private function addPage(string $key, string $text, string $intro): void
 	{
-		$ctrl = ORM::ctrl(static::$db->getTableOrFail('pages'));
+		$ctrl = ORM::ctrl(static::db()->getTableOrFail('pages'));
 
 		$created = $ctrl->addItem([
 			'page_title' => [
@@ -377,6 +398,6 @@ abstract class TextMatchTestCase extends BaseTestCase
 			'page_name'  => $text,
 		]);
 
-		return (int) $created->id;
+		self::assertNotNull($created->id, 'the page was not written');
 	}
 }

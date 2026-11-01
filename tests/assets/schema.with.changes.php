@@ -173,7 +173,7 @@ return [
 		'singular_name' => 'currency',
 		'column_prefix' => 'currency',
 		'relations'     => [],
-		'constraints' => [
+		'constraints'   => [
 			// DIFF: PRIMARY KEY REMOVED
 			// ['type' => 'primary_key', 'columns' => ['code']],
 			// DIFF: UNIQUE KEY ADDED
@@ -207,7 +207,7 @@ return [
 		'singular_name' => 'order',
 		'column_prefix' => 'order',
 		'relations'     => [],
-		'constraints' => [
+		'constraints'   => [
 			['type' => 'primary_key', 'columns' => ['id']],
 		],
 		'columns' => [

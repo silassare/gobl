@@ -23,6 +23,7 @@ use Gobl\DBAL\MigrationSchema;
 use Gobl\DBAL\Types\TypeEnum;
 use Gobl\Tests\BaseTestCase;
 use Gobl\Tests\Fixtures\SampleKind;
+use Gobl\Tests\TestPaths;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProviderExternal;
 use stdClass;
@@ -94,7 +95,7 @@ final class MigrationSchemaTest extends BaseTestCase
 
 	private static function writeMigration(string $name, string $code): string
 	{
-		$dir = GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'migration_schema';
+		$dir = TestPaths::OUTPUT . \DIRECTORY_SEPARATOR . 'migration_schema';
 
 		if (!\is_dir($dir)) {
 			\mkdir($dir, 0o755, true);

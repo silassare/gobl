@@ -18,6 +18,7 @@ use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\ORM\Generators\CSGeneratorDart;
 use Gobl\ORM\Generators\CSGeneratorTS;
 use Gobl\Tests\BaseTestCase;
+use Gobl\Tests\TestPaths;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
@@ -89,7 +90,7 @@ final class CSGeneratorSingleColumnPrefixTest extends BaseTestCase
 
 	private static function outDir(string $name): string
 	{
-		$dir = GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'generators' . \DIRECTORY_SEPARATOR . $name;
+		$dir = TestPaths::OUTPUT . \DIRECTORY_SEPARATOR . 'generators' . \DIRECTORY_SEPARATOR . $name;
 
 		self::rmDirRecursive($dir);
 		\mkdir($dir, 0o755, true);

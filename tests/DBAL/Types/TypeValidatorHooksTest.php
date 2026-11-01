@@ -20,6 +20,7 @@ use Gobl\DBAL\Types\Type;
 use Gobl\DBAL\Types\TypeString;
 use Gobl\DBAL\Types\Validation\ValidationStatus;
 use Gobl\Tests\BaseTestCase;
+use Override;
 use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
@@ -46,12 +47,14 @@ final class TypeValidatorHooksTest extends BaseTestCase
 		$pre = new class($called, $statusOnEntry) implements TypeValidatorInterface {
 			public function __construct(private bool &$called, private ?ValidationStatus &$statusOnEntry) {}
 
+			#[Override]
 			public function preValidate(ValidationSubjectInterface $subject): void
 			{
 				$this->called        = true;
 				$this->statusOnEntry = $subject->getStatus();
 			}
 
+			#[Override]
 			public function postValidate(ValidationSubjectInterface $subject): void {}
 		};
 
@@ -71,11 +74,13 @@ final class TypeValidatorHooksTest extends BaseTestCase
 		$coreRan = false;
 
 		$pre = new class implements TypeValidatorInterface {
+			#[Override]
 			public function preValidate(ValidationSubjectInterface $subject): void
 			{
 				$subject->accept('forced');
 			}
 
+			#[Override]
 			public function postValidate(ValidationSubjectInterface $subject): void {}
 		};
 
@@ -89,11 +94,13 @@ final class TypeValidatorHooksTest extends BaseTestCase
 	public function testPreValidatorCanRejectAndSkipCoreValidation(): void
 	{
 		$pre = new class implements TypeValidatorInterface {
+			#[Override]
 			public function preValidate(ValidationSubjectInterface $subject): void
 			{
 				$subject->reject('pre_blocked');
 			}
 
+			#[Override]
 			public function postValidate(ValidationSubjectInterface $subject): void {}
 		};
 
@@ -108,12 +115,14 @@ final class TypeValidatorHooksTest extends BaseTestCase
 		// should not run. This is enforced via the isTerminal() guard inside validate().
 		// We simulate it with a pre-validator that would reject anything:
 		$pre = new class implements TypeValidatorInterface {
+			#[Override]
 			public function preValidate(ValidationSubjectInterface $subject): void
 			{
 				// If this runs, the test fails.
 				$subject->reject('should not run');
 			}
 
+			#[Override]
 			public function postValidate(ValidationSubjectInterface $subject): void {}
 		};
 
@@ -138,8 +147,10 @@ final class TypeValidatorHooksTest extends BaseTestCase
 		$post = new class($called) implements TypeValidatorInterface {
 			public function __construct(private bool &$called) {}
 
+			#[Override]
 			public function preValidate(ValidationSubjectInterface $subject): void {}
 
+			#[Override]
 			public function postValidate(ValidationSubjectInterface $subject): void
 			{
 				$this->called = true;
@@ -158,8 +169,10 @@ final class TypeValidatorHooksTest extends BaseTestCase
 		$post = new class($postRan) implements TypeValidatorInterface {
 			public function __construct(private bool &$postRan) {}
 
+			#[Override]
 			public function preValidate(ValidationSubjectInterface $subject): void {}
 
+			#[Override]
 			public function postValidate(ValidationSubjectInterface $subject): void
 			{
 				$this->postRan = true;
@@ -180,8 +193,10 @@ final class TypeValidatorHooksTest extends BaseTestCase
 	public function testPostValidatorCanOverrideCleanValue(): void
 	{
 		$post = new class implements TypeValidatorInterface {
+			#[Override]
 			public function preValidate(ValidationSubjectInterface $subject): void {}
 
+			#[Override]
 			public function postValidate(ValidationSubjectInterface $subject): void
 			{
 				if ($subject->isValid()) {
@@ -232,20 +247,24 @@ final class TypeValidatorHooksTest extends BaseTestCase
 		$pre = new class($statuses) implements TypeValidatorInterface {
 			public function __construct(private array &$statuses) {}
 
+			#[Override]
 			public function preValidate(ValidationSubjectInterface $subject): void
 			{
 				$this->statuses[] = 'pre:' . $subject->getStatus()->value;
 				$subject->next($subject->getUnsafeValue());
 			}
 
+			#[Override]
 			public function postValidate(ValidationSubjectInterface $subject): void {}
 		};
 
 		$post = new class($statuses) implements TypeValidatorInterface {
 			public function __construct(private array &$statuses) {}
 
+			#[Override]
 			public function preValidate(ValidationSubjectInterface $subject): void {}
 
+			#[Override]
 			public function postValidate(ValidationSubjectInterface $subject): void
 			{
 				$this->statuses[] = 'post:' . $subject->getStatus()->value;
@@ -274,11 +293,13 @@ final class SpyPreValidator implements TypeValidatorInterface
 		self::$ran = false;
 	}
 
+	#[Override]
 	public function preValidate(ValidationSubjectInterface $subject): void
 	{
 		self::$ran = true;
 	}
 
+	#[Override]
 	public function postValidate(ValidationSubjectInterface $subject): void {}
 }
 
@@ -291,8 +312,10 @@ final class SpyPostValidator implements TypeValidatorInterface
 		self::$ran = false;
 	}
 
+	#[Override]
 	public function preValidate(ValidationSubjectInterface $subject): void {}
 
+	#[Override]
 	public function postValidate(ValidationSubjectInterface $subject): void
 	{
 		self::$ran = true;

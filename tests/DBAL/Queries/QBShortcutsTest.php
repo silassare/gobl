@@ -225,7 +225,7 @@ final class QBShortcutsTest extends BaseTestCase
 	{
 		$qb     = self::makeQB();
 		$called = false;
-		$sub    = $qb->sub(static function (QBSelect $s) use (&$called): void {
+		$sub    = $qb->sub(static function () use (&$called): void {
 			$called = true;
 		});
 

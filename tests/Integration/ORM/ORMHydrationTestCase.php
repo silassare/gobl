@@ -19,6 +19,9 @@ use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\ORM\ORM;
 use Gobl\ORM\ORMOptions;
 use Gobl\Tests\BaseTestCase;
+use Gobl\Tests\TestLog;
+use Gobl\Tests\TestPaths;
+use Override;
 use PHPUtils\Store\Map;
 use Throwable;
 
@@ -45,6 +48,7 @@ abstract class ORMHydrationTestCase extends BaseTestCase
 	/** @var null|callable the PSR-4 autoloader of the generated classes */
 	private static mixed $autoloader = null;
 
+	#[Override]
 	public static function setUpBeforeClass(): void
 	{
 		parent::setUpBeforeClass();
@@ -57,13 +61,13 @@ abstract class ORMHydrationTestCase extends BaseTestCase
 			// not declared, the expected state
 		}
 
-		$out_dir = GOBL_TEST_ORM_OUTPUT . \DIRECTORY_SEPARATOR . 'Hydration';
+		$out_dir = TestPaths::ORM_OUTPUT . \DIRECTORY_SEPARATOR . 'Hydration';
 
 		try {
 			$db = static::getNewDbInstance(static::getDriverName());
 		} catch (Throwable $t) {
 			static::$setupFailed = true;
-			gobl_log(\sprintf('Error building live DB for %s: %s', static::getDriverName(), $t->getMessage()));
+			TestLog::write(\sprintf('Error building live DB for %s: %s', static::getDriverName(), $t->getMessage()));
 
 			return;
 		}
@@ -124,7 +128,7 @@ abstract class ORMHydrationTestCase extends BaseTestCase
 			static::$db = $db;
 		} catch (Throwable $t) {
 			static::$setupFailed = true;
-			gobl_log(\sprintf(
+			TestLog::write(\sprintf(
 				'Error setting up the hydration DB for %s: %s',
 				static::getDriverName(),
 				$t->getMessage()
@@ -132,11 +136,12 @@ abstract class ORMHydrationTestCase extends BaseTestCase
 		}
 	}
 
+	#[Override]
 	public static function tearDownAfterClass(): void
 	{
 		if (null !== static::$db) {
 			try {
-				static::$db->executeMulti('DROP TABLE IF EXISTS crates;' . \PHP_EOL . 'DROP TABLE IF EXISTS boxes;');
+				static::db()->executeMulti('DROP TABLE IF EXISTS crates;' . \PHP_EOL . 'DROP TABLE IF EXISTS boxes;');
 			} catch (Throwable) {
 				// best effort
 			}
@@ -158,6 +163,7 @@ abstract class ORMHydrationTestCase extends BaseTestCase
 		parent::tearDownAfterClass();
 	}
 
+	#[Override]
 	protected function setUp(): void
 	{
 		parent::setUp();
@@ -174,7 +180,7 @@ abstract class ORMHydrationTestCase extends BaseTestCase
 	{
 		$this->addCrate(['label' => 'one', 'sealed' => true, 'weight' => 12, 'data' => ['k' => 'v']]);
 
-		$entity = ORM::query(static::$db->getTableOrFail('crates'))
+		$entity = ORM::query(static::db()->getTableOrFail('crates'))
 			->whereLabelIs('one')
 			->find()
 			->fetchClass();
@@ -197,7 +203,7 @@ abstract class ORMHydrationTestCase extends BaseTestCase
 	{
 		$this->addCrate(['label' => 'clean', 'data' => []]);
 
-		$entity = ORM::query(static::$db->getTableOrFail('crates'))
+		$entity = ORM::query(static::db()->getTableOrFail('crates'))
 			->whereLabelIs('clean')
 			->find()
 			->fetchClass();
@@ -216,7 +222,7 @@ abstract class ORMHydrationTestCase extends BaseTestCase
 	 */
 	public function testAReadEntityCanBeChangedAndSaved(): void
 	{
-		$table = static::$db->getTableOrFail('boxes');
+		$table = static::db()->getTableOrFail('boxes');
 
 		ORM::ctrl($table)->addItem(['box_label' => 'before', 'box_data' => ['n' => 1]]);
 
@@ -249,7 +255,7 @@ abstract class ORMHydrationTestCase extends BaseTestCase
 		$this->addCrate(['label' => 'many-a', 'weight' => 1, 'data' => ['i' => 1]]);
 		$this->addCrate(['label' => 'many-b', 'weight' => 2, 'data' => ['i' => 2]]);
 
-		$items = ORM::query(static::$db->getTableOrFail('crates'))
+		$items = ORM::query(static::db()->getTableOrFail('crates'))
 			->whereLabelIsLike('many-%')
 			->find()
 			->fetchAllClass();
@@ -269,7 +275,7 @@ abstract class ORMHydrationTestCase extends BaseTestCase
 	{
 		$this->addCrate(['label' => 'partial', 'data' => []]);
 
-		$table = static::$db->getTableOrFail('crates');
+		$table = static::db()->getTableOrFail('crates');
 
 		$full = ORM::query($table)->whereLabelIs('partial')
 			->find()
@@ -291,6 +297,21 @@ abstract class ORMHydrationTestCase extends BaseTestCase
 		self::assertFalse($partial->isColumnLoaded('data'));
 	}
 
+	/**
+	 * The live connection this class runs against, which its own setup opened.
+	 *
+	 * Empty until that setup has run, and a test reaching it before then says so here rather than
+	 * as a call on null several frames away.
+	 */
+	protected static function db(): RDBMSInterface
+	{
+		$db = static::$db;
+
+		self::assertNotNull($db, 'the live database connection was not opened');
+
+		return $db;
+	}
+
 	abstract protected static function getDriverName(): string;
 
 	/**
@@ -302,7 +323,7 @@ abstract class ORMHydrationTestCase extends BaseTestCase
 	 */
 	private function addCrate(array $values): void
 	{
-		ORM::ctrl(static::$db->getTableOrFail('crates'))
+		ORM::ctrl(static::db()->getTableOrFail('crates'))
 			->addItem($values);
 	}
 }

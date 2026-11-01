@@ -20,6 +20,8 @@ use Gobl\ORM\ORM;
 use Gobl\ORM\ORMEntity;
 use Gobl\ORM\Utils\ORMClassKind;
 use Gobl\Tests\BaseTestCase;
+use Gobl\Tests\TestPaths;
+use Override;
 use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
@@ -38,6 +40,7 @@ use PHPUnit\Framework\Attributes\CoversMethod;
 #[CoversMethod(ORMEntity::class, 'markAsPartial')]
 final class ORMEntityPartialTest extends BaseTestCase
 {
+	#[Override]
 	public static function setUpBeforeClass(): void
 	{
 		parent::setUpBeforeClass();
@@ -45,9 +48,9 @@ final class ORMEntityPartialTest extends BaseTestCase
 		$db = self::getNewDbInstance(MySQL::NAME);
 		$db->ns(self::TEST_DB_NAMESPACE)
 			->schema(self::getTablesDefinitions())
-			->enableORM(GOBL_TEST_ORM_OUTPUT);
+			->enableORM(TestPaths::ORM_OUTPUT);
 
-		$ormOutDir = GOBL_TEST_ORM_OUTPUT;
+		$ormOutDir = TestPaths::ORM_OUTPUT;
 
 		if (!\is_dir($ormOutDir . \DIRECTORY_SEPARATOR . 'Base')) {
 			$generator = new CSGeneratorORM($db);

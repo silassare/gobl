@@ -22,6 +22,8 @@ use Gobl\ORM\ORM;
 use Gobl\ORM\ORMEntity;
 use Gobl\ORM\ORMTableQuery;
 use Gobl\Tests\BaseTestCase;
+use Gobl\Tests\TestPaths;
+use Override;
 use PHPUnit\Framework\Attributes\CoversMethod;
 use Throwable;
 
@@ -54,6 +56,7 @@ final class LinkBatchTest extends BaseTestCase
 	// PHPUnit lifecycle
 	// ---------------------------------------------------------------------------
 
+	#[Override]
 	public static function setUpBeforeClass(): void
 	{
 		parent::setUpBeforeClass();
@@ -72,7 +75,7 @@ final class LinkBatchTest extends BaseTestCase
 			// not declared yet, expected
 		}
 
-		$ormOutDir = GOBL_TEST_ORM_OUTPUT;
+		$ormOutDir = TestPaths::ORM_OUTPUT;
 
 		if (!\is_dir($ormOutDir . \DIRECTORY_SEPARATOR . 'Base')) {
 			\mkdir($ormOutDir . \DIRECTORY_SEPARATOR . 'Base', 0o755, true);
@@ -90,7 +93,7 @@ final class LinkBatchTest extends BaseTestCase
 		// Also set up ORM for the sample schema (articles, tags, taggables) so that
 		// ORM::entity() can instantiate entities for morph-through batch tests.
 		$sampleDb     = self::getSampleDB(MySQL::NAME);
-		$sampleOrmDir = GOBL_TEST_ORM_OUTPUT . \DIRECTORY_SEPARATOR . 'sample';
+		$sampleOrmDir = TestPaths::ORM_OUTPUT . \DIRECTORY_SEPARATOR . 'sample';
 
 		if (!\is_dir($sampleOrmDir . \DIRECTORY_SEPARATOR . 'Base')) {
 			\mkdir($sampleOrmDir . \DIRECTORY_SEPARATOR . 'Base', 0o755, true);
@@ -120,6 +123,7 @@ final class LinkBatchTest extends BaseTestCase
 		self::$setupOk = true;
 	}
 
+	#[Override]
 	public static function tearDownAfterClass(): void
 	{
 		try {
@@ -144,6 +148,7 @@ final class LinkBatchTest extends BaseTestCase
 		parent::tearDownAfterClass();
 	}
 
+	#[Override]
 	protected function setUp(): void
 	{
 		parent::setUp();
@@ -168,11 +173,15 @@ final class LinkBatchTest extends BaseTestCase
 
 		// many-to-one: accounts.client (host=accounts, target=clients)
 		$relation = $accounts->getRelation('client');
+
+		self::assertNotNull($relation);
 		$qb       = ORM::query($clients);
 		self::assertNull($qb->selectRelativesBatch($relation, []));
 
 		// one-to-many: clients.accounts (host=clients, target=accounts)
 		$relation = $clients->getRelation('accounts');
+
+		self::assertNotNull($relation);
 		$qb       = ORM::query($accounts);
 		self::assertNull($qb->selectRelativesBatch($relation, []));
 	}
@@ -258,6 +267,8 @@ final class LinkBatchTest extends BaseTestCase
 		$clients  = $db->getTableOrFail('clients');
 
 		$relation = $accounts->getRelation('client');
+
+		self::assertNotNull($relation);
 
 		// account_client_id not provided -> coerced to 0 by bigint type; account_id = 1
 		$acct = ORM::entity($accounts, false, false);
@@ -452,6 +463,7 @@ final class LinkBatchTest extends BaseTestCase
 		$tags      = $db->getTableOrFail('tags');
 		$relation  = $taggables->getRelation('tag'); // host=taggables, target=tags
 
+		self::assertNotNull($relation);
 		self::assertInstanceOf(
 			LinkColumns::class,
 			$relation->getLink(),

@@ -16,6 +16,7 @@ namespace Gobl\Tests\Integration\ORM;
 use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
 use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQLQueryGenerator;
 use Gobl\DBAL\Search\Searchable;
+use Override;
 use PDO;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversMethod;
@@ -34,7 +35,7 @@ final class SearchableTextPostgreSQLTest extends SearchableTextTestCase
 	 */
 	public function testTheTrigramExtensionIsInstalled(): void
 	{
-		$row = static::$db->execute(
+		$row = self::db()->execute(
 			'SELECT COUNT(*) AS found FROM pg_extension WHERE extname = :name;',
 			['name' => PostgreSQLQueryGenerator::TEXT_SEARCH_EXTENSION]
 		)->fetch(PDO::FETCH_ASSOC);
@@ -42,11 +43,13 @@ final class SearchableTextPostgreSQLTest extends SearchableTextTestCase
 		self::assertSame(1, (int) ($row['found'] ?? 0));
 	}
 
+	#[Override]
 	protected static function getDriverName(): string
 	{
 		return PostgreSQL::NAME;
 	}
 
+	#[Override]
 	protected function indexedColumnsOnServer(): array
 	{
 		$sql = 'SELECT a.attname AS col
@@ -55,7 +58,7 @@ final class SearchableTextPostgreSQLTest extends SearchableTextTestCase
 			JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY (i.indkey)
 			WHERE t.relname = :table;';
 
-		$rows = static::$db->execute($sql, ['table' => static::$db->getTableOrFail('articles')->getFullName()])
+		$rows = self::db()->execute($sql, ['table' => self::db()->getTableOrFail('articles')->getFullName()])
 			->fetchAll(PDO::FETCH_ASSOC);
 
 		return \array_map(static fn (array $row): string => (string) $row['col'], $rows);

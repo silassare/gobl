@@ -28,8 +28,8 @@ final class GoblTest extends BaseTestCase
 	public function testAddTemplate(): void
 	{
 		$template_name              = 'test_template';
-		$template_path              = GOBL_TEST_ASSETS . \DIRECTORY_SEPARATOR . 'test_template.blate';
-		$non_existent_template_path = GOBL_TEST_ASSETS . \DIRECTORY_SEPARATOR . 'test_non_existent.blate';
+		$template_path              = TestPaths::ASSETS . \DIRECTORY_SEPARATOR . 'test_template.blate';
+		$non_existent_template_path = TestPaths::ASSETS . \DIRECTORY_SEPARATOR . 'test_non_existent.blate';
 
 		Gobl::addTemplate($template_name, $template_path);
 
@@ -47,7 +47,7 @@ final class GoblTest extends BaseTestCase
 
 	public function testAddTemplates(): void
 	{
-		$template = GOBL_TEST_ASSETS . \DIRECTORY_SEPARATOR . 'test_template.blate';
+		$template = TestPaths::ASSETS . \DIRECTORY_SEPARATOR . 'test_template.blate';
 
 		Gobl::addTemplates(['test_template_array'  => $template]);
 

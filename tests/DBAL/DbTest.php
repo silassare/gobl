@@ -84,7 +84,7 @@ final class DbTest extends BaseTestCase
 		$found    = [];
 		$expected = [];
 		foreach ($tables as $name => $props) {
-			$full_name            = $db->getTable($name)
+			$full_name            = $db->getTableOrFail($name)
 				->getFullName();
 			$found[$full_name]    = $db->hasTable($full_name);
 			$expected[$full_name] = true;
@@ -113,8 +113,8 @@ final class DbTest extends BaseTestCase
 		$tables = self::getTablesDefinitions();
 		$first  = \key($tables);
 
-		self::assertInstanceOf(Table::class, $table = $db->getTable($first));
-		self::assertSame($table, $db->getTable($table->getFullName()));
+		self::assertInstanceOf(Table::class, $table = $db->getTableOrFail($first));
+		self::assertSame($table, $db->getTableOrFail($table->getFullName()));
 	}
 
 	public function testGetType(): void
@@ -143,7 +143,7 @@ final class DbTest extends BaseTestCase
 		self::assertTrue($db->hasTable('members'));
 		self::assertTrue($db->hasTable($tbl_prefix . '_members'));
 
-		self::assertSame($member, $db->getTable('members'));
+		self::assertSame($member, $db->getTableOrFail('members'));
 
 		$this->expectException(DBALException::class);
 		$this->expectExceptionMessage('The table name conflict with an existing table name or full name: "members".');
@@ -201,19 +201,19 @@ final class DbTest extends BaseTestCase
 
 		self::assertSame(
 			Table::TABLE_DEFAULT_NAMESPACE,
-			$db->getTable('members')
+			$db->getTableOrFail('members')
 				->getNamespace()
 		);
 
 		self::assertSame(
 			$custom_namespace,
-			$db->getTable('users')
+			$db->getTableOrFail('users')
 				->getNamespace()
 		);
 
 		self::assertSame(
 			$foo_bar_namespace,
-			$db->getTable('posts')
+			$db->getTableOrFail('posts')
 				->getNamespace()
 		);
 

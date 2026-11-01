@@ -17,6 +17,7 @@ use Gobl\ORM\Generators\CSGenerator;
 use Gobl\ORM\Generators\CSGeneratorDart;
 use Gobl\ORM\Generators\CSGeneratorTS;
 use Gobl\Tests\BaseTestCase;
+use Gobl\Tests\TestPaths;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
@@ -49,7 +50,7 @@ final class CSGeneratorClientSnapshotTest extends BaseTestCase
 	 */
 	public function testTSFilesSnapshot(): void
 	{
-		$outDir    = GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'generators' . \DIRECTORY_SEPARATOR . 'ts';
+		$outDir    = TestPaths::OUTPUT . \DIRECTORY_SEPARATOR . 'generators' . \DIRECTORY_SEPARATOR . 'ts';
 		$generator = new CSGeneratorTS(self::getNewDbInstanceWithSchema());
 
 		$this->assertGeneratorSnapshot($generator, $outDir, 'generators/ts');
@@ -65,7 +66,7 @@ final class CSGeneratorClientSnapshotTest extends BaseTestCase
 	 */
 	public function testDartFilesSnapshot(): void
 	{
-		$outDir    = GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'generators' . \DIRECTORY_SEPARATOR . 'dart';
+		$outDir    = TestPaths::OUTPUT . \DIRECTORY_SEPARATOR . 'generators' . \DIRECTORY_SEPARATOR . 'dart';
 		$generator = new CSGeneratorDart(self::getNewDbInstanceWithSchema());
 
 		$this->assertGeneratorSnapshot($generator, $outDir, 'generators/dart');

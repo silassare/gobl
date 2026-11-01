@@ -22,6 +22,7 @@ use Gobl\ORM\ORMUniversalType;
 use Gobl\Tests\BaseTestCase;
 use JsonException;
 use JsonSerializable;
+use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUtils\Exceptions\RuntimeException as PHPUtilsRuntimeException;
 use PHPUtils\Store\Map;
@@ -152,6 +153,7 @@ final class TypeJsonTest extends BaseTestCase
 	public function testSerializeJsonValueJsonSerializable(): void
 	{
 		$obj = new class implements JsonSerializable {
+			#[Override]
 			public function jsonSerialize(): mixed
 			{
 				return ['x' => true];

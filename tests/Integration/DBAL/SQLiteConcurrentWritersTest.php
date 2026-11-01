@@ -17,6 +17,7 @@ use Gobl\DBAL\Db;
 use Gobl\DBAL\DbConfig;
 use Gobl\DBAL\Drivers\SQLite\SQLite;
 use Gobl\Tests\BaseTestCase;
+use Override;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
 
@@ -36,16 +37,22 @@ final class SQLiteConcurrentWritersTest extends BaseTestCase
 
 	private string $file = '';
 
+	#[Override]
 	protected function setUp(): void
 	{
 		parent::setUp();
 
-		$this->file = \tempnam(\sys_get_temp_dir(), 'gobl_writers_');
+		$file = \tempnam(\sys_get_temp_dir(), 'gobl_writers_');
+
+		self::assertIsString($file, 'no temporary database file could be made');
+
+		$this->file = $file;
 
 		Db::newInstanceOf(SQLite::NAME, new DbConfig(['db_host' => $this->file]))
 			->executeMulti('CREATE TABLE writes (n INTEGER NOT NULL);');
 	}
 
+	#[Override]
 	protected function tearDown(): void
 	{
 		@\unlink($this->file);

@@ -27,6 +27,7 @@ use Gobl\DBAL\Queries\QBUtils;
 use Gobl\DBAL\Relations\LinkType;
 use Gobl\Exceptions\GoblRuntimeException;
 use InvalidArgumentException;
+use Override;
 use PHPUnit\Framework\TestCase;
 use Throwable;
 
@@ -43,6 +44,7 @@ abstract class BaseTestCase extends TestCase
 	/** @var RDBMSInterface[] */
 	private static array $rdbms = [];
 
+	#[Override]
 	protected function tearDown(): void
 	{
 		parent::tearDown();
@@ -99,7 +101,7 @@ abstract class BaseTestCase extends TestCase
 				$db->ns(self::TEST_DB_NAMESPACE)
 					->schema(self::getTablesDefinitions());
 			} catch (Throwable $t) {
-				gobl_log($t);
+				TestLog::write($t);
 
 				throw new GoblRuntimeException('db init failed.', null, $t);
 			}
@@ -161,7 +163,7 @@ abstract class BaseTestCase extends TestCase
 
 	protected static function getTablesDefinitions(): array
 	{
-		return require GOBL_TEST_ASSETS . \DIRECTORY_SEPARATOR . 'schemas.php';
+		return require TestPaths::ASSETS . \DIRECTORY_SEPARATOR . 'schemas.php';
 	}
 
 	/**
@@ -241,7 +243,7 @@ abstract class BaseTestCase extends TestCase
 
 	protected static function getTablesDiffDefinitions(): array
 	{
-		return require GOBL_TEST_ASSETS . \DIRECTORY_SEPARATOR . 'schema.with.changes.php';
+		return require TestPaths::ASSETS . \DIRECTORY_SEPARATOR . 'schema.with.changes.php';
 	}
 
 	/**
@@ -277,14 +279,14 @@ abstract class BaseTestCase extends TestCase
 	protected static function normalizeGeneratedContent(string $content): string
 	{
 		// Replace ISO-8601 datetime stamps produced by date(DATE_ATOM)
-		$normalized = \preg_replace(
+		$normalized = (string) \preg_replace(
 			'/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}/',
 			'[GENERATED_AT]',
 			$content
 		);
 
 		// remove gobl version comments like `gobl v2.0.0`
-		return \preg_replace(
+		return (string) \preg_replace(
 			'/gobl v\d+\.\d+\.\d+/',
 			'gobl [GOBL_VERSION]',
 			$normalized
@@ -303,14 +305,14 @@ abstract class BaseTestCase extends TestCase
 	{
 		$normalized = self::normalizeGeneratedContent($content);
 
-		$expected_dir  = GOBL_TEST_SNAPSHOTS . \DIRECTORY_SEPARATOR
+		$expected_dir  = TestPaths::SNAPSHOTS . \DIRECTORY_SEPARATOR
 			. \str_replace('/', \DIRECTORY_SEPARATOR, \dirname($snapshotName));
-		$expected_file = GOBL_TEST_SNAPSHOTS . \DIRECTORY_SEPARATOR
+		$expected_file = TestPaths::SNAPSHOTS . \DIRECTORY_SEPARATOR
 			. \str_replace('/', \DIRECTORY_SEPARATOR, $snapshotName) . '.' . $extension;
 
-		$actual_dir  = GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'snapshots' . \DIRECTORY_SEPARATOR
+		$actual_dir  = TestPaths::OUTPUT . \DIRECTORY_SEPARATOR . 'snapshots' . \DIRECTORY_SEPARATOR
 			. \str_replace('/', \DIRECTORY_SEPARATOR, \dirname($snapshotName));
-		$actual_file = GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'snapshots' . \DIRECTORY_SEPARATOR
+		$actual_file = TestPaths::OUTPUT . \DIRECTORY_SEPARATOR . 'snapshots' . \DIRECTORY_SEPARATOR
 			. \str_replace('/', \DIRECTORY_SEPARATOR, $snapshotName) . '.' . $extension;
 
 		if (!\is_dir($actual_dir)) {
@@ -359,14 +361,14 @@ abstract class BaseTestCase extends TestCase
 		$content = 'SQL:' . \PHP_EOL . $sql . \PHP_EOL
 			. 'BOUND:' . \PHP_EOL . \json_encode($boundValues, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
 
-		$expected_dir  = GOBL_TEST_SNAPSHOTS . \DIRECTORY_SEPARATOR
+		$expected_dir  = TestPaths::SNAPSHOTS . \DIRECTORY_SEPARATOR
 			. \str_replace('/', \DIRECTORY_SEPARATOR, \dirname($snapshotName));
-		$expected_file = GOBL_TEST_SNAPSHOTS . \DIRECTORY_SEPARATOR
+		$expected_file = TestPaths::SNAPSHOTS . \DIRECTORY_SEPARATOR
 			. \str_replace('/', \DIRECTORY_SEPARATOR, $snapshotName) . '.txt';
 
-		$actual_dir  = GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'snapshots' . \DIRECTORY_SEPARATOR
+		$actual_dir  = TestPaths::OUTPUT . \DIRECTORY_SEPARATOR . 'snapshots' . \DIRECTORY_SEPARATOR
 			. \str_replace('/', \DIRECTORY_SEPARATOR, \dirname($snapshotName));
-		$actual_file = GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'snapshots' . \DIRECTORY_SEPARATOR
+		$actual_file = TestPaths::OUTPUT . \DIRECTORY_SEPARATOR . 'snapshots' . \DIRECTORY_SEPARATOR
 			. \str_replace('/', \DIRECTORY_SEPARATOR, $snapshotName) . '.txt';
 
 		if (!\is_dir($actual_dir)) {
@@ -400,7 +402,7 @@ abstract class BaseTestCase extends TestCase
 			return;
 		}
 
-		foreach (\scandir($dir) as $item) {
+		foreach (\scandir($dir) ?: [] as $item) {
 			if ('.' === $item || '..' === $item) {
 				continue;
 			}
@@ -422,7 +424,7 @@ abstract class BaseTestCase extends TestCase
 	{
 		$result = [];
 
-		foreach (\scandir($dir) as $item) {
+		foreach (\scandir($dir) ?: [] as $item) {
 			if ('.' === $item || '..' === $item) {
 				continue;
 			}

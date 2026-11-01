@@ -21,6 +21,8 @@ use Gobl\ORM\ORM;
 use Gobl\ORM\ORMEntityRelationController;
 use Gobl\ORM\ORMOptions;
 use Gobl\Tests\BaseTestCase;
+use Gobl\Tests\TestPaths;
+use Override;
 use PHPUnit\Framework\Attributes\CoversMethod;
 use ReflectionMethod;
 use ReflectionNamedType;
@@ -49,6 +51,7 @@ final class VirtualRelationBatchTest extends BaseTestCase
 	// PHPUnit lifecycle
 	// ---------------------------------------------------------------------------
 
+	#[Override]
 	public static function setUpBeforeClass(): void
 	{
 		parent::setUpBeforeClass();
@@ -60,7 +63,7 @@ final class VirtualRelationBatchTest extends BaseTestCase
 			// not declared yet, expected
 		}
 
-		$ormOutDir = GOBL_TEST_ORM_OUTPUT;
+		$ormOutDir = TestPaths::ORM_OUTPUT;
 
 		if (!\is_dir($ormOutDir . \DIRECTORY_SEPARATOR . 'Base')) {
 			\mkdir($ormOutDir . \DIRECTORY_SEPARATOR . 'Base', 0o755, true);
@@ -78,6 +81,7 @@ final class VirtualRelationBatchTest extends BaseTestCase
 		self::$setupOk = true;
 	}
 
+	#[Override]
 	public static function tearDownAfterClass(): void
 	{
 		try {
@@ -91,6 +95,7 @@ final class VirtualRelationBatchTest extends BaseTestCase
 		parent::tearDownAfterClass();
 	}
 
+	#[Override]
 	protected function setUp(): void
 	{
 		parent::setUp();
@@ -112,6 +117,8 @@ final class VirtualRelationBatchTest extends BaseTestCase
 		$db       = ORM::getDatabase(self::TEST_DB_NAMESPACE);
 		$accounts = $db->getTableOrFail('accounts');
 		$relation = $accounts->getRelation('client');
+
+		self::assertNotNull($relation);
 
 		$ctrl = new ORMEntityRelationController($relation);
 
@@ -165,6 +172,8 @@ final class VirtualRelationBatchTest extends BaseTestCase
 		$db       = ORM::getDatabase(self::TEST_DB_NAMESPACE);
 		$accounts = $db->getTableOrFail('accounts');
 		$relation = $accounts->getRelation('client');
+
+		self::assertNotNull($relation);
 		$ctrl     = new ORMEntityRelationController($relation);
 
 		self::assertTrue(
@@ -188,6 +197,8 @@ final class VirtualRelationBatchTest extends BaseTestCase
 		$db       = ORM::getDatabase(self::TEST_DB_NAMESPACE);
 		$accounts = $db->getTableOrFail('accounts');
 		$relation = $accounts->getRelation('client');
+
+		self::assertNotNull($relation);
 		$ctrl     = new ORMEntityRelationController($relation);
 
 		$options = new ORMOptions();

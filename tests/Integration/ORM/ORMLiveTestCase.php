@@ -23,6 +23,9 @@ use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\ORM\ORM;
 use Gobl\ORM\ORMOptions;
 use Gobl\Tests\BaseTestCase;
+use Gobl\Tests\TestLog;
+use Gobl\Tests\TestPaths;
+use Override;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUtils\Events\Event;
 use PHPUtils\Events\EventManager;
@@ -59,6 +62,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 	// PHPUnit lifecycle
 	// -------------------------------------------------------------------------
 
+	#[Override]
 	public static function setUpBeforeClass(): void
 	{
 		parent::setUpBeforeClass();
@@ -77,19 +81,19 @@ abstract class ORMLiveTestCase extends BaseTestCase
 			$db = static::getNewDbInstance(static::getDriverName());
 		} catch (Throwable $t) {
 			static::$setupFailed = true;
-			gobl_log(\sprintf('Error building live DB for %s: %s', static::getDriverName(), $t->getMessage()));
+			TestLog::write(\sprintf('Error building live DB for %s: %s', static::getDriverName(), $t->getMessage()));
 
 			return;
 		}
 
 		if (null === $db) {
 			static::$setupFailed = true;
-			gobl_log(\sprintf('Live DB not configured for %s (check env vars).', static::getDriverName()));
+			TestLog::write(\sprintf('Live DB not configured for %s (check env vars).', static::getDriverName()));
 
 			return;
 		}
 
-		$ormOutDir = GOBL_TEST_ORM_OUTPUT;
+		$ormOutDir = TestPaths::ORM_OUTPUT;
 
 		try {
 			// Ensure the output directory (and its Base/ sub-directory) exist
@@ -111,15 +115,16 @@ abstract class ORMLiveTestCase extends BaseTestCase
 			static::$db = $db;
 		} catch (Throwable $t) {
 			static::$setupFailed = true;
-			gobl_log(\sprintf('Error setting up live DB for %s: %s', static::getDriverName(), $t->getMessage()));
+			TestLog::write(\sprintf('Error setting up live DB for %s: %s', static::getDriverName(), $t->getMessage()));
 		}
 	}
 
+	#[Override]
 	public static function tearDownAfterClass(): void
 	{
 		if (null !== static::$db) {
 			try {
-				static::$db->executeMulti(static::buildDropAllSql(static::$db));
+				static::db()->executeMulti(static::buildDropAllSql(static::$db));
 			} catch (Throwable) {
 				// best-effort: ignore drop errors
 			}
@@ -136,6 +141,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 		parent::tearDownAfterClass();
 	}
 
+	#[Override]
 	protected function setUp(): void
 	{
 		parent::setUp();
@@ -147,16 +153,12 @@ abstract class ORMLiveTestCase extends BaseTestCase
 		}
 	}
 
-	// -------------------------------------------------------------------------
-	// Tests
-	// -------------------------------------------------------------------------
-
 	/**
 	 * addItem() persists a new entity and returns it with its generated PK.
 	 */
 	public function testAddItem(): void
 	{
-		$ctrl   = ORM::ctrl(static::$db->getTableOrFail('clients'));
+		$ctrl   = ORM::ctrl(static::db()->getTableOrFail('clients'));
 		$entity = $ctrl->addItem([
 			'client_first_name' => 'Alice',
 			'client_last_name'  => 'Smith',
@@ -176,7 +178,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 	 */
 	public function testGetItem(): void
 	{
-		$ctrl = ORM::ctrl(static::$db->getTableOrFail('clients'));
+		$ctrl = ORM::ctrl(static::db()->getTableOrFail('clients'));
 
 		$created = $ctrl->addItem([
 			'client_first_name' => 'Bob',
@@ -198,7 +200,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 	 */
 	public function testUpdateOneItem(): void
 	{
-		$ctrl = ORM::ctrl(static::$db->getTableOrFail('clients'));
+		$ctrl = ORM::ctrl(static::db()->getTableOrFail('clients'));
 
 		$created = $ctrl->addItem([
 			'client_first_name' => 'Carol',
@@ -221,7 +223,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 	 */
 	public function testDeleteOneItem(): void
 	{
-		$ctrl = ORM::ctrl(static::$db->getTableOrFail('clients'));
+		$ctrl = ORM::ctrl(static::db()->getTableOrFail('clients'));
 
 		$created = $ctrl->addItem([
 			'client_first_name' => 'Dave',
@@ -247,8 +249,8 @@ abstract class ORMLiveTestCase extends BaseTestCase
 	 */
 	public function testDeleteAllItemsNoLimit(): void
 	{
-		$ctrl    = ORM::ctrl(static::$db->getTableOrFail('clients'));
-		$channel = static::$db->getTableOrFail('clients')->getFullName();
+		$ctrl    = ORM::ctrl(static::db()->getTableOrFail('clients'));
+		$channel = static::db()->getTableOrFail('clients')->getFullName();
 		$marker  = 'DeleteAll_' . \uniqid();
 
 		$detach = EventManager::listen(
@@ -281,8 +283,8 @@ abstract class ORMLiveTestCase extends BaseTestCase
 	 */
 	public function testUpdateAllItemsNoLimit(): void
 	{
-		$ctrl    = ORM::ctrl(static::$db->getTableOrFail('clients'));
-		$channel = static::$db->getTableOrFail('clients')->getFullName();
+		$ctrl    = ORM::ctrl(static::db()->getTableOrFail('clients'));
+		$channel = static::db()->getTableOrFail('clients')->getFullName();
 		$marker  = 'UpdateAll_' . \uniqid();
 
 		$detach = EventManager::listen(
@@ -318,7 +320,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 	 */
 	public function testGetAllItems(): void
 	{
-		$ctrl = ORM::ctrl(static::$db->getTableOrFail('clients'));
+		$ctrl = ORM::ctrl(static::db()->getTableOrFail('clients'));
 
 		$suffixes = ['One', 'Two', 'Three'];
 		$ids      = [];
@@ -340,6 +342,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 		self::assertGreaterThanOrEqual(\count($suffixes), \count($all));
 
 		foreach ($all as $item) {
+			self::assertNotNull($item);
 			self::assertSame('GetAll', (string) $item->last_name);
 		}
 	}
@@ -349,8 +352,8 @@ abstract class ORMLiveTestCase extends BaseTestCase
 	 */
 	public function testTableQueryWhereFilters(): void
 	{
-		$ctrl  = ORM::ctrl(static::$db->getTableOrFail('clients'));
-		$table = static::$db->getTableOrFail('clients');
+		$ctrl  = ORM::ctrl(static::db()->getTableOrFail('clients'));
+		$table = static::db()->getTableOrFail('clients');
 
 		$created = $ctrl->addItem([
 			'client_first_name' => 'QueryTest',
@@ -377,8 +380,8 @@ abstract class ORMLiveTestCase extends BaseTestCase
 	 */
 	public function testORMResults(): void
 	{
-		$ctrl  = ORM::ctrl(static::$db->getTableOrFail('clients'));
-		$table = static::$db->getTableOrFail('clients');
+		$ctrl  = ORM::ctrl(static::db()->getTableOrFail('clients'));
+		$table = static::db()->getTableOrFail('clients');
 
 		// Insert a few entities with a unique last name for this test
 		$last  = 'ORMResultsUser_' . \uniqid();
@@ -404,6 +407,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 
 		self::assertCount($count, $collected);
 		foreach ($collected as $entity) {
+			self::assertNotNull($entity);
 			self::assertSame($last, (string) $entity->last_name);
 		}
 	}
@@ -417,7 +421,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 	 */
 	public function testACreatedEntityAnswersTheSameShapeAsOneReadBack(): void
 	{
-		$ctrl = ORM::ctrl(static::$db->getTableOrFail('clients'));
+		$ctrl = ORM::ctrl(static::db()->getTableOrFail('clients'));
 
 		// `client_valid` is not given: the column's default fills it.
 		$created = $ctrl->addItem([
@@ -448,8 +452,8 @@ abstract class ORMLiveTestCase extends BaseTestCase
 	 */
 	public function testGetItemsHonoursTheLimitOfTheQuery(): void
 	{
-		$ctrl  = ORM::ctrl(static::$db->getTableOrFail('clients'));
-		$table = static::$db->getTableOrFail('clients');
+		$ctrl  = ORM::ctrl(static::db()->getTableOrFail('clients'));
+		$table = static::db()->getTableOrFail('clients');
 		$last  = 'LazyWindow_' . \uniqid();
 
 		for ($i = 0; $i < 5; ++$i) {
@@ -502,8 +506,8 @@ abstract class ORMLiveTestCase extends BaseTestCase
 	 */
 	public function testGetItemsReadsInChunksInsideTheWindow(): void
 	{
-		$ctrl  = ORM::ctrl(static::$db->getTableOrFail('clients'));
-		$table = static::$db->getTableOrFail('clients');
+		$ctrl  = ORM::ctrl(static::db()->getTableOrFail('clients'));
+		$table = static::db()->getTableOrFail('clients');
 		$last  = 'LazyChunk_' . \uniqid();
 
 		for ($i = 0; $i < 7; ++$i) {
@@ -535,7 +539,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 	 */
 	public function testALazyReadSeesEveryRowItsBodyTakesOutOfItsOwnFilter(): void
 	{
-		$table = static::$db->getTableOrFail('clients');
+		$table = static::db()->getTableOrFail('clients');
 		$ctrl  = ORM::ctrl($table);
 		$open  = 'LazyOpen_' . \uniqid();
 		$done  = 'LazyDone_' . \uniqid();
@@ -581,7 +585,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 	 */
 	public function testALazyReadLeavesTheQueryAsItFoundIt(): void
 	{
-		$table = static::$db->getTableOrFail('clients');
+		$table = static::db()->getTableOrFail('clients');
 		$ctrl  = ORM::ctrl($table);
 		$last  = 'LazyQuery_' . \uniqid();
 
@@ -621,8 +625,8 @@ abstract class ORMLiveTestCase extends BaseTestCase
 	 */
 	public function testGetItemsWithCursorMeta(): void
 	{
-		$ctrl  = ORM::ctrl(static::$db->getTableOrFail('clients'));
-		$table = static::$db->getTableOrFail('clients');
+		$ctrl  = ORM::ctrl(static::db()->getTableOrFail('clients'));
+		$table = static::db()->getTableOrFail('clients');
 		$last  = 'CursorMeta_' . \uniqid();
 		$count = 3;
 
@@ -677,8 +681,8 @@ abstract class ORMLiveTestCase extends BaseTestCase
 	 */
 	public function testORMEntityGettersAndSetters(): void
 	{
-		$ctrl  = ORM::ctrl(static::$db->getTableOrFail('clients'));
-		$table = static::$db->getTableOrFail('clients');
+		$ctrl  = ORM::ctrl(static::db()->getTableOrFail('clients'));
+		$table = static::db()->getTableOrFail('clients');
 
 		$entity = $ctrl->addItem([
 			'client_first_name' => 'EntityTest',
@@ -712,9 +716,9 @@ abstract class ORMLiveTestCase extends BaseTestCase
 	 */
 	public function testCurrencyCRUD(): void
 	{
-		$ctrl    = ORM::ctrl(static::$db->getTableOrFail('currencies'));
+		$ctrl    = ORM::ctrl(static::db()->getTableOrFail('currencies'));
 		$code    = 'TST';
-		$channel = static::$db->getTableOrFail('currencies')->getFullName();
+		$channel = static::db()->getTableOrFail('currencies')->getFullName();
 
 		// currencies.ccy_code is a non-auto-increment string PK.
 		// CRUD requires explicit authorization to write PK columns.
@@ -775,7 +779,7 @@ abstract class ORMLiveTestCase extends BaseTestCase
 	 */
 	public function testJsonPathFilters(): void
 	{
-		$table = static::$db->getTableOrFail('clients');
+		$table = static::db()->getTableOrFail('clients');
 		$ctrl  = ORM::ctrl($table);
 
 		$marker = 'JsonPathTest_' . \uniqid();
@@ -846,6 +850,25 @@ abstract class ORMLiveTestCase extends BaseTestCase
 		// Cleanup: delete the inserted test row
 		// ------------------------------------------------------------------
 		$ctrl->deleteOneItem(ORMOptions::makeFromFilters(['client_id' => $id]));
+	}
+
+	// -------------------------------------------------------------------------
+	// Tests
+	// -------------------------------------------------------------------------
+
+	/**
+	 * The live connection this class runs against, which its own setup opened.
+	 *
+	 * Empty until that setup has run, and a test reaching it before then says so here rather than
+	 * as a call on null several frames away.
+	 */
+	protected static function db(): RDBMSInterface
+	{
+		$db = static::$db;
+
+		self::assertNotNull($db, 'the live database connection was not opened');
+
+		return $db;
 	}
 
 	// -------------------------------------------------------------------------

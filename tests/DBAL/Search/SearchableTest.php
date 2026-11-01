@@ -273,7 +273,7 @@ final class SearchableTest extends BaseTestCase
 	{
 		foreach (['e' => '%e%', '50%_net' => '%50!%!_net%', 'a b' => '%a b%'] as $term => $pattern) {
 			[$filters, $qb] = self::makeFilters(MySQL::NAME);
-			$filters->matches('t.page_title', (string) $term);
+			$filters->matches('t.page_title', $term);
 
 			self::assertMatchesRegularExpression(
 				'~^\(t\.page_title__search LIKE :\w+ ESCAPE \'!\'\)$~',

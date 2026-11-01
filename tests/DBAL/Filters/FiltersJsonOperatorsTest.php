@@ -25,6 +25,7 @@ use Gobl\Tests\BaseTestCase;
 use Gobl\Tests\DBAL\Types\Utils\JsonPathTest;
 use JsonSerializable;
 use OLIUP\CG\PHPMethod;
+use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversTrait;
 
@@ -94,6 +95,7 @@ final class FiltersJsonOperatorsTest extends BaseTestCase
 	public function testAddContainsJsonSerializableAutoSerializes(): void
 	{
 		$obj = new class implements JsonSerializable {
+			#[Override]
 			public function jsonSerialize(): mixed
 			{
 				return ['role' => 'admin'];
@@ -135,6 +137,7 @@ final class FiltersJsonOperatorsTest extends BaseTestCase
 		$this->expectExceptionMessageMatches('/CONTAINS/');
 
 		$serializable = new class implements JsonSerializable {
+			#[Override]
 			public function jsonSerialize(): mixed
 			{
 				return 'value';
@@ -183,6 +186,7 @@ final class FiltersJsonOperatorsTest extends BaseTestCase
 	public function testContainsTraitWithJsonSerializable(): void
 	{
 		$obj = new class implements JsonSerializable {
+			#[Override]
 			public function jsonSerialize(): mixed
 			{
 				return ['x' => true];

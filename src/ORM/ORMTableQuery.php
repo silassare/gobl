@@ -51,6 +51,12 @@ use Throwable;
  * Class ORMTableQuery.
  *
  * @template TEntity of \Gobl\ORM\ORMEntity
+ *
+ * The methods it answers to are named after the columns of the table it filters
+ * (`whereUserIdIs()` and the like), built by `__call()`: a generated subclass knows which, this
+ * class cannot, so they are not a list anything can seal.
+ *
+ * @psalm-no-seal-methods
  */
 abstract class ORMTableQuery extends FiltersTableScope
 {
@@ -651,63 +657,6 @@ abstract class ORMTableQuery extends FiltersTableScope
 	}
 
 	/**
-	 * Adds the folded text of every searchable column the update writes.
-	 *
-	 * An update of many rows writes no entity, so this is where the folded column keeps up with the
-	 * column it folds -- in the same statement, as everywhere else. A value it cannot fold without
-	 * reading each row first is refused by name instead: a search that quietly stops finding a row
-	 * is the failure this whole column exists to prevent.
-	 *
-	 * @throws ORMRuntimeException when a searchable column is written with a value that cannot be folded
-	 */
-	private function withSearchText(array $values): array
-	{
-		foreach ($values as $name => $value) {
-			$column = $this->table->getColumn((string) $name);
-
-			if (null === $column || !$column->getType()->isSearchable()) {
-				continue;
-			}
-
-			$search_column = $this->table->getColumn(Searchable::columnName($column->getName()));
-
-			if (null === $search_column) {
-				continue;
-			}
-
-			if (\array_key_exists($search_column->getFullName(), $values)) {
-				// An entity's own save: it folded the value when it was written, and sends the
-				// folded text beside the column -- which is how a patch reaches the database as the
-				// paths it changed and still leaves the folded text right.
-				continue;
-			}
-
-			if (
-				$value instanceof JsonPatch
-				|| $value instanceof QBExpression
-				|| $value instanceof QBInterface
-			) {
-				throw new ORMRuntimeException(\sprintf(
-					'column "%s" is searchable, and this value cannot be folded without reading each row: "%s" would be left holding what the rows used to say. Write the rows through entities instead.',
-					$column->getFullName(),
-					$search_column->getFullName()
-				), [
-					'_table'  => $this->table->getFullName(),
-					'_column' => $column->getFullName(),
-					'_value'  => \get_debug_type($value),
-				]);
-			}
-
-			$values[$search_column->getFullName()] = Searchable::foldValue(
-				$value,
-				$column->getType()->getSearchText()
-			);
-		}
-
-		return $values;
-	}
-
-	/**
 	 * Wraps a QBSelect in the table's ORMResults class.
 	 *
 	 * @return ORMResults<TEntity>
@@ -836,6 +785,63 @@ abstract class ORMTableQuery extends FiltersTableScope
 			$filter = $qb->filters()->isFalse($this->getTableAlias() . '.' . $column->getFullName());
 			$qb->andWhere($filter);
 		}
+	}
+
+	/**
+	 * Adds the folded text of every searchable column the update writes.
+	 *
+	 * An update of many rows writes no entity, so this is where the folded column keeps up with the
+	 * column it folds -- in the same statement, as everywhere else. A value it cannot fold without
+	 * reading each row first is refused by name instead: a search that quietly stops finding a row
+	 * is the failure this whole column exists to prevent.
+	 *
+	 * @throws ORMRuntimeException when a searchable column is written with a value that cannot be folded
+	 */
+	private function withSearchText(array $values): array
+	{
+		foreach ($values as $name => $value) {
+			$column = $this->table->getColumn((string) $name);
+
+			if (null === $column || !$column->getType()->isSearchable()) {
+				continue;
+			}
+
+			$search_column = $this->table->getColumn(Searchable::columnName($column->getName()));
+
+			if (null === $search_column) {
+				continue;
+			}
+
+			if (\array_key_exists($search_column->getFullName(), $values)) {
+				// An entity's own save: it folded the value when it was written, and sends the
+				// folded text beside the column -- which is how a patch reaches the database as the
+				// paths it changed and still leaves the folded text right.
+				continue;
+			}
+
+			if (
+				$value instanceof JsonPatch
+				|| $value instanceof QBExpression
+				|| $value instanceof QBInterface
+			) {
+				throw new ORMRuntimeException(\sprintf(
+					'column "%s" is searchable, and this value cannot be folded without reading each row: "%s" would be left holding what the rows used to say. Write the rows through entities instead.',
+					$column->getFullName(),
+					$search_column->getFullName()
+				), [
+					'_table'  => $this->table->getFullName(),
+					'_column' => $column->getFullName(),
+					'_value'  => \get_debug_type($value),
+				]);
+			}
+
+			$values[$search_column->getFullName()] = Searchable::foldValue(
+				$value,
+				$column->getType()->getSearchText()
+			);
+		}
+
+		return $values;
 	}
 
 	/**

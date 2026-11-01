@@ -16,11 +16,11 @@ namespace Gobl\ORM;
 use Gobl\CRUD\Exceptions\CRUDException;
 use Gobl\DBAL\Collections\CollectionFactory;
 use Gobl\DBAL\Column;
-use Gobl\DBAL\Search\Searchable;
 use Gobl\DBAL\Constraints\PrimaryKey;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
 use Gobl\DBAL\Queries\QBSelect;
+use Gobl\DBAL\Search\Searchable;
 use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\Exceptions\TypesInvalidValueException;
 use Gobl\DBAL\Types\Interfaces\ValidationSubjectInterface;
@@ -47,6 +47,12 @@ use PHPUtils\Traits\ArrayCapableTrait;
  * - `getSomething`, `setSomething` or `our_property`
  * Use instead:
  * - `_getSomething`, `_setSomething`, `doSomething` or `_our_property`
+ *
+ * The properties it answers to are the columns of the table it maps, read and written through
+ * `__get()` and `__set()`: a generated subclass knows which, this class cannot, so they are not a
+ * list anything can seal.
+ *
+ * @psalm-no-seal-properties
  */
 abstract class ORMEntity implements ArrayCapableInterface
 {
@@ -485,7 +491,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 		if ($this->isNew()) {
 			$ctrl = static::ctrl();
 
-			$ctrl->getCRUD()->trusted(fn() => $ctrl->addItem($this));
+			$ctrl->getCRUD()->trusted(fn () => $ctrl->addItem($this));
 
 			return true;
 		}
@@ -500,7 +506,7 @@ abstract class ORMEntity implements ArrayCapableInterface
 				$options->setFormData($to_update);
 
 				$ctrl  = static::ctrl();
-				$saved = $ctrl->getCRUD()->trusted(static fn() => $ctrl->updateOneItem($options));
+				$saved = $ctrl->getCRUD()->trusted(static fn () => $ctrl->updateOneItem($options));
 
 				return $saved && $this->takeSavedRow($saved)
 					->isSaved(true);
@@ -857,37 +863,6 @@ abstract class ORMEntity implements ArrayCapableInterface
 	}
 
 	/**
-	 * Writes the folded text of a searchable column beside it.
-	 *
-	 * In the same round as the column it folds, so the two reach the database in one statement and
-	 * the folded text cannot be forgotten: that is what makes it a column the ORM owns rather than
-	 * a cache somebody maintains. It is written as a value and not through a column write, because
-	 * it is private -- a request may not write it, and this is not a request.
-	 */
-	private function writeSearchText(Column $column, mixed $value): void
-	{
-		$type = $column->getType();
-
-		if (!$type->isSearchable()) {
-			return;
-		}
-
-		$search_column = $this->_oeb_table->getColumn(Searchable::columnName($column->getName()));
-
-		if (null === $search_column) {
-			return;
-		}
-
-		$name   = $search_column->getFullName();
-		$folded = Searchable::foldValue($value, $type->getSearchText());
-
-		if (($this->_oeb_row[$name] ?? null) !== $folded) {
-			$this->_oeb_row[$name]   = $folded;
-			$this->_oeb_dirty[$name] = true;
-		}
-	}
-
-	/**
 	 * Validates and returns the new value for a column.
 	 *
 	 * Only re-validates if the value actually changed from the currently stored value;
@@ -956,6 +931,37 @@ abstract class ORMEntity implements ArrayCapableInterface
 		}
 
 		return $subject->getCleanValue();
+	}
+
+	/**
+	 * Writes the folded text of a searchable column beside it.
+	 *
+	 * In the same round as the column it folds, so the two reach the database in one statement and
+	 * the folded text cannot be forgotten: that is what makes it a column the ORM owns rather than
+	 * a cache somebody maintains. It is written as a value and not through a column write, because
+	 * it is private -- a request may not write it, and this is not a request.
+	 */
+	private function writeSearchText(Column $column, mixed $value): void
+	{
+		$type = $column->getType();
+
+		if (!$type->isSearchable()) {
+			return;
+		}
+
+		$search_column = $this->_oeb_table->getColumn(Searchable::columnName($column->getName()));
+
+		if (null === $search_column) {
+			return;
+		}
+
+		$name   = $search_column->getFullName();
+		$folded = Searchable::foldValue($value, $type->getSearchText());
+
+		if (($this->_oeb_row[$name] ?? null) !== $folded) {
+			$this->_oeb_row[$name]   = $folded;
+			$this->_oeb_dirty[$name] = true;
+		}
 	}
 
 	/**

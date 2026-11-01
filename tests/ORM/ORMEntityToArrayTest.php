@@ -19,6 +19,8 @@ use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\ORM\ORM;
 use Gobl\ORM\ORMEntity;
 use Gobl\Tests\BaseTestCase;
+use Gobl\Tests\TestPaths;
+use Override;
 use PHPUnit\Framework\Attributes\CoversMethod;
 use Throwable;
 
@@ -45,6 +47,7 @@ final class ORMEntityToArrayTest extends BaseTestCase
 	// PHPUnit lifecycle
 	// -------------------------------------------------------------------------
 
+	#[Override]
 	public static function setUpBeforeClass(): void
 	{
 		parent::setUpBeforeClass();
@@ -56,7 +59,7 @@ final class ORMEntityToArrayTest extends BaseTestCase
 			// not declared yet - expected
 		}
 
-		$ormOutDir = GOBL_TEST_ORM_OUTPUT . \DIRECTORY_SEPARATOR . 'ToArray';
+		$ormOutDir = TestPaths::ORM_OUTPUT . \DIRECTORY_SEPARATOR . 'ToArray';
 
 		if (!\is_dir($ormOutDir . \DIRECTORY_SEPARATOR . 'Base')) {
 			\mkdir($ormOutDir . \DIRECTORY_SEPARATOR . 'Base', 0o755, true);
@@ -105,6 +108,7 @@ final class ORMEntityToArrayTest extends BaseTestCase
 		}
 	}
 
+	#[Override]
 	public static function tearDownAfterClass(): void
 	{
 		try {
@@ -122,6 +126,7 @@ final class ORMEntityToArrayTest extends BaseTestCase
 		parent::tearDownAfterClass();
 	}
 
+	#[Override]
 	protected function setUp(): void
 	{
 		parent::setUp();

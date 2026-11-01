@@ -15,6 +15,7 @@ namespace Gobl\Tests\DBAL;
 
 use Gobl\DBAL\DbConfig;
 use Gobl\Tests\BaseTestCase;
+use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
@@ -37,6 +38,7 @@ final class DbConfigTest extends BaseTestCase
 		'db_collate'      => 'utf8mb4_unicode_ci',
 	];
 
+	#[Override]
 	protected function setUp(): void
 	{
 		parent::setUp();

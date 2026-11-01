@@ -15,6 +15,7 @@ namespace Gobl\Tests\ORM;
 
 use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\Tests\BaseTestCase;
+use Gobl\Tests\TestPaths;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
@@ -43,7 +44,7 @@ final class CSGeneratorORMSnapshotTest extends BaseTestCase
 	public function testORMBaseFilesSnapshot(): void
 	{
 		$db     = self::getNewDbInstanceWithSchema();
-		$outDir = GOBL_TEST_OUTPUT . \DIRECTORY_SEPARATOR . 'generators' . \DIRECTORY_SEPARATOR . 'orm';
+		$outDir = TestPaths::OUTPUT . \DIRECTORY_SEPARATOR . 'generators' . \DIRECTORY_SEPARATOR . 'orm';
 
 		// Always wipe so we get a clean generation
 		self::rmDirRecursive($outDir);

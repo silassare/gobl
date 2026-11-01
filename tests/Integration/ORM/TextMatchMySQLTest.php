@@ -16,6 +16,7 @@ namespace Gobl\Tests\Integration\ORM;
 use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Drivers\SQLQueryGeneratorBase;
 use Gobl\DBAL\Filters\TextMatch;
+use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversMethod;
 
@@ -31,11 +32,13 @@ use PHPUnit\Framework\Attributes\CoversMethod;
 #[CoversClass(TextMatch::class)]
 final class TextMatchMySQLTest extends TextMatchTestCase
 {
+	#[Override]
 	protected static function getDriverName(): string
 	{
 		return MySQL::NAME;
 	}
 
+	#[Override]
 	protected static function foldsAccents(): bool
 	{
 		return true;
