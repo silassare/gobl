@@ -23,12 +23,12 @@ use Gobl\DBAL\Filters\TextMatch;
 use Gobl\DBAL\Indexes\Index;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Operator;
-use Gobl\DBAL\Search\SearchMatch;
 use Gobl\DBAL\Queries\JoinType;
 use Gobl\DBAL\Queries\QBDelete;
 use Gobl\DBAL\Queries\QBInsert;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Queries\QBUpdate;
+use Gobl\DBAL\Search\SearchMatch;
 use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\Utils\JsonContainerKind;
 use Gobl\DBAL\Types\Utils\JsonPath;
@@ -190,6 +190,36 @@ final class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 	/**
 	 * {@inheritDoc}
 	 *
+	 * SQLite has no substring index, so this is a `LIKE` over the folded column: a scan, but of one
+	 * short text column instead of a JSON document, and folded once rather than per row.
+	 */
+	#[Override]
+	public function getSearchIndexExpression(
+		Operator $operator,
+		SearchMatch $match,
+		string $column_ref,
+		string $folded_term,
+		callable $bind
+	): string {
+		return $this->getFoldedLikeExpression($operator, $column_ref, $folded_term, $bind);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * SQLite folds ASCII case and nothing else: its own `lower()` and its `LIKE` are both
+	 * ASCII-only without the ICU extension, so an accented letter is matched only as itself.
+	 */
+	#[Override]
+	public function getTextMatchExpression(string $left, string $right, ?Table $table = null): string
+	{
+		return 'lower(' . $left . ') LIKE lower(' . $right . ') ESCAPE '
+			. $this->quoteLiteral(TextMatch::ESCAPE_CHAR);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * `json()` both checks the text is JSON and marks the value as JSON for the function that
 	 * receives it, which is how SQLite tells a document from a string holding one.
 	 */
@@ -289,36 +319,6 @@ final class SQLiteQueryGenerator extends SQLQueryGeneratorBase
 		$this->defaultAndNullChunks($column, $sql);
 
 		return \implode(' ', $sql);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * SQLite has no substring index, so this is a `LIKE` over the folded column: a scan, but of one
-	 * short text column instead of a JSON document, and folded once rather than per row.
-	 */
-	#[Override]
-	public function getSearchIndexExpression(
-		Operator $operator,
-		SearchMatch $match,
-		string $column_ref,
-		string $folded_term,
-		callable $bind
-	): string {
-		return $this->getFoldedLikeExpression($operator, $column_ref, $folded_term, $bind);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * SQLite folds ASCII case and nothing else: its own `lower()` and its `LIKE` are both
-	 * ASCII-only without the ICU extension, so an accented letter is matched only as itself.
-	 */
-	#[Override]
-	public function getTextMatchExpression(string $left, string $right, ?Table $table = null): string
-	{
-		return 'lower(' . $left . ') LIKE lower(' . $right . ') ESCAPE '
-			. $this->quoteLiteral(TextMatch::ESCAPE_CHAR);
 	}
 
 	/**

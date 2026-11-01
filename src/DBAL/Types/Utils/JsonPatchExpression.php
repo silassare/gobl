@@ -55,6 +55,7 @@ final readonly class JsonPatchExpression
 	 * Whether the patch is going out as paths.
 	 *
 	 * @psalm-assert-if-true !null $this->sql
+	 *
 	 * @psalm-assert-if-false !null $this->reason
 	 */
 	public function isExpressible(): bool

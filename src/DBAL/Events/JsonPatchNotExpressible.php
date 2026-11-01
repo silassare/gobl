@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Events;
 
+use Gobl\DBAL\Types\TypeJson;
 use PHPUtils\Events\Event;
 
 /**
@@ -24,7 +25,7 @@ use PHPUtils\Events\Event;
  *
  * That is a lost update, and the one event in the patch mechanism that must never pass unnoticed:
  * it is silent in the data and visible only here. A host listens and logs it. A column that may not
- * take the risk is declared patch-only ({@see \Gobl\DBAL\Types\TypeJson::patchOnly()}) and raises
+ * take the risk is declared patch-only ({@see TypeJson::patchOnly()}) and raises
  * instead.
  */
 final class JsonPatchNotExpressible extends Event

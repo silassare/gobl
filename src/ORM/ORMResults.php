@@ -39,6 +39,11 @@ abstract class ORMResults implements PaginationAwareListInterface, Countable, It
 {
 	use ArrayCapableTrait;
 
+	/**
+	 * The name the key a chunked read resumes from is bound under ({@see self::lazy()}).
+	 */
+	private const string LAZY_CURSOR_PARAM = 'gobl_lazy_cursor';
+
 	protected RDBMSInterface $db;
 
 	protected Table $table;
@@ -59,11 +64,6 @@ abstract class ORMResults implements PaginationAwareListInterface, Countable, It
 	 * @psalm-var null|TEntity
 	 */
 	protected ?ORMEntity $current = null;
-
-	/**
-	 * The name the key a chunked read resumes from is bound under ({@see self::lazy()}).
-	 */
-	private const string LAZY_CURSOR_PARAM = 'gobl_lazy_cursor';
 
 	/**
 	 * ORMResults constructor.
@@ -208,40 +208,6 @@ abstract class ORMResults implements PaginationAwareListInterface, Countable, It
 				$this->query->limit($window_max, $window_offset);
 			}
 		}
-	}
-
-	/**
-	 * The key a chunked read can resume from: the row name to read it under, and how to name it in
-	 * the query. Null when this query gives nothing to resume from.
-	 *
-	 * All of this must hold. The table has a single primary key column, so one value says where the
-	 * read has got to. The query asks for no order of its own, since the key's order is imposed over
-	 * it and two orders at once answer a different set. The rows carry the whole table, since a
-	 * projection that leaves the key out leaves nothing to resume from. And the table is in the from
-	 * clause under an alias, which is how the key is named without ambiguity.
-	 *
-	 * @return null|array{string, string}
-	 */
-	private function lazyCursorColumn(): ?array
-	{
-		if (!$this->table->hasSinglePKColumn() || [] !== $this->query->getOptionsOrderBy()) {
-			return null;
-		}
-
-		$select = $this->query->getOptionsSelect();
-
-		if (1 !== \count($select) || !\str_ends_with((string) $select[0], '.*')) {
-			return null;
-		}
-
-		if (!$this->query->inFromClause($this->table)) {
-			return null;
-		}
-
-		$key_name = $this->table->getSinglePKColumnOrFail()
-			->getFullName();
-
-		return [$key_name, $this->query->getMainAlias($this->table) . '.' . $key_name];
 	}
 
 	/**
@@ -575,5 +541,39 @@ abstract class ORMResults implements PaginationAwareListInterface, Countable, It
 		}
 
 		return $this->statement;
+	}
+
+	/**
+	 * The key a chunked read can resume from: the row name to read it under, and how to name it in
+	 * the query. Null when this query gives nothing to resume from.
+	 *
+	 * All of this must hold. The table has a single primary key column, so one value says where the
+	 * read has got to. The query asks for no order of its own, since the key's order is imposed over
+	 * it and two orders at once answer a different set. The rows carry the whole table, since a
+	 * projection that leaves the key out leaves nothing to resume from. And the table is in the from
+	 * clause under an alias, which is how the key is named without ambiguity.
+	 *
+	 * @return null|array{string, string}
+	 */
+	private function lazyCursorColumn(): ?array
+	{
+		if (!$this->table->hasSinglePKColumn() || [] !== $this->query->getOptionsOrderBy()) {
+			return null;
+		}
+
+		$select = $this->query->getOptionsSelect();
+
+		if (1 !== \count($select) || !\str_ends_with((string) $select[0], '.*')) {
+			return null;
+		}
+
+		if (!$this->query->inFromClause($this->table)) {
+			return null;
+		}
+
+		$key_name = $this->table->getSinglePKColumnOrFail()
+			->getFullName();
+
+		return [$key_name, $this->query->getMainAlias($this->table) . '.' . $key_name];
 	}
 }

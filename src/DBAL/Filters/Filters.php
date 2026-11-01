@@ -21,13 +21,13 @@ use Gobl\DBAL\Filters\Operands\FilterLeftOperand;
 use Gobl\DBAL\Filters\Operands\FilterRightOperand;
 use Gobl\DBAL\Filters\Traits\FiltersOperatorsHelpersTrait;
 use Gobl\DBAL\Operator;
-use Gobl\DBAL\Search\Searchable;
-use Gobl\DBAL\Search\SearchMatch;
 use Gobl\DBAL\Queries\Interfaces\QBInterface;
 use Gobl\DBAL\Queries\QBExpression;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Queries\QBType;
 use Gobl\DBAL\Queries\QBUtils;
+use Gobl\DBAL\Search\Searchable;
+use Gobl\DBAL\Search\SearchMatch;
 use Gobl\DBAL\Types\TypeJson;
 use Gobl\DBAL\Types\Utils\TypeUtils;
 use JsonSerializable;
@@ -480,6 +480,55 @@ final class Filters
 	}
 
 	/**
+	 * Checks if the filters is empty.
+	 */
+	public function isEmpty(): bool
+	{
+		return empty((string) $this);
+	}
+
+	/**
+	 * Creates filters builder instance from string expression.
+	 *
+	 * ```php
+	 * <?php
+	 *   $filters = [
+	 *     ['foo', 'eq', "bla"],
+	 *     'and',
+	 *     [['bar', 'eq', 'kat']]
+	 *     'and'
+	 *     [['baz', 'eq', 8], 'or', ['baz', 'gt', 10]]
+	 *   ];
+	 *
+	 *   // same as
+	 *   $expression = 'foo eq :val1 and bar eq :val2 and (baz eq :val3 or baz gt :val4)';
+	 *   $bindings = ['val1' => 'bla', 'val2' => 'kat', 'val3' => 8, 'val4' => 10];
+	 *
+	 *   // or with strict mode off (inline static values)
+	 *   $expression = 'foo eq "bla" and bar eq "kat" and (baz eq 8 or baz gt 10)';
+	 * ```
+	 *
+	 * @param string                     $expression The filter expression string to parse
+	 * @param array                      $bindings   Map of binding name => value (e.g. `['val1' => 'bla']`)
+	 * @param QBInterface                $qb         The query builder instance to use for bindings and table/column resolution
+	 * @param null|FiltersScopeInterface $scope      Optional filters scope for validating and resolving columns in the expression
+	 * @param bool                       $strict     When `true` (default), only `:binding` references are
+	 *                                               accepted as right operands. Set to `false` to also allow
+	 *                                               inline numeric and quoted-string literals.
+	 */
+	public static function fromString(
+		string $expression,
+		array $bindings,
+		QBInterface $qb,
+		?FiltersScopeInterface $scope = null,
+		bool $strict = true
+	): self {
+		$parser = new FiltersExpressionParser($expression, $bindings, $strict);
+
+		return $parser->toFilters($qb, $scope);
+	}
+
+	/**
 	 * Appends a text search condition.
 	 *
 	 * The right operand is a term and not a value of the column's type, so no cast touches it: a
@@ -603,55 +652,6 @@ final class Filters
 			$this->qb->fullyQualifiedName($resolved->getTableOrAlias(), $search_column->getFullName()),
 			$match,
 		];
-	}
-
-	/**
-	 * Checks if the filters is empty.
-	 */
-	public function isEmpty(): bool
-	{
-		return empty((string) $this);
-	}
-
-	/**
-	 * Creates filters builder instance from string expression.
-	 *
-	 * ```php
-	 * <?php
-	 *   $filters = [
-	 *     ['foo', 'eq', "bla"],
-	 *     'and',
-	 *     [['bar', 'eq', 'kat']]
-	 *     'and'
-	 *     [['baz', 'eq', 8], 'or', ['baz', 'gt', 10]]
-	 *   ];
-	 *
-	 *   // same as
-	 *   $expression = 'foo eq :val1 and bar eq :val2 and (baz eq :val3 or baz gt :val4)';
-	 *   $bindings = ['val1' => 'bla', 'val2' => 'kat', 'val3' => 8, 'val4' => 10];
-	 *
-	 *   // or with strict mode off (inline static values)
-	 *   $expression = 'foo eq "bla" and bar eq "kat" and (baz eq 8 or baz gt 10)';
-	 * ```
-	 *
-	 * @param string                     $expression The filter expression string to parse
-	 * @param array                      $bindings   Map of binding name => value (e.g. `['val1' => 'bla']`)
-	 * @param QBInterface                $qb         The query builder instance to use for bindings and table/column resolution
-	 * @param null|FiltersScopeInterface $scope      Optional filters scope for validating and resolving columns in the expression
-	 * @param bool                       $strict     When `true` (default), only `:binding` references are
-	 *                                               accepted as right operands. Set to `false` to also allow
-	 *                                               inline numeric and quoted-string literals.
-	 */
-	public static function fromString(
-		string $expression,
-		array $bindings,
-		QBInterface $qb,
-		?FiltersScopeInterface $scope = null,
-		bool $strict = true
-	): self {
-		$parser = new FiltersExpressionParser($expression, $bindings, $strict);
-
-		return $parser->toFilters($qb, $scope);
 	}
 
 	/**
