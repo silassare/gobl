@@ -49,6 +49,19 @@ use Gobl\ORM\ORMTableQuery;
  */
 final class CRUD
 {
+	/**
+	 * How deep one entity event may be dispatched inside itself: {@see self::dispatchEntityEvent()}.
+	 */
+	public const int MAX_ENTITY_EVENT_DEPTH = 16;
+
+	/**
+	 * How many levels deep each entity event is being dispatched, right now, by entity identity and
+	 * event type.
+	 *
+	 * @var array<string, int>
+	 */
+	private static array $dispatching = [];
+
 	private Table $table;
 	private string $event_channel;
 	private string $message = 'OK';
@@ -269,9 +282,46 @@ final class CRUD
 			EntityEventType::AFTER_DELETE  => new AfterEntityDeletion($entity),
 		};
 
-		return $event->dispatch(static function ($listener) use ($entity, $event): void {
-			$listener($entity, $event);
-		}, $this->event_channel);
+		// What is in progress, by entity and event type, before the listeners run. A listener is
+		// project code called inside the controller's own transaction, and the write path has no
+		// other guard: a listener that writes a column re-dirties the entity, so `save()` writes
+		// again, which dispatches again -- one savepoint and one statement per turn, unbounded when
+		// the value it writes keeps changing (a counter, `microtime()`, a uuid). A listener that
+		// reads a relation does the same on AFTER_READ, and so does one self-referencing row whose
+		// `parent_id` chain loops.
+		//
+		// A depth and not a refusal: answering, setting a flag of one's own and letting the event go
+		// round again is a legitimate shape, and it is shallow.
+		$key = $entity->toIdentityKey() . '#' . $event_type->value;
+
+		self::$dispatching[$key] = (self::$dispatching[$key] ?? 0) + 1;
+
+		if (self::$dispatching[$key] > self::MAX_ENTITY_EVENT_DEPTH) {
+			unset(self::$dispatching[$key]);
+
+			throw new CRUDException(\sprintf(
+				'Entity event "%s" on "%s" is being dispatched more than %d levels deep: a listener'
+					. ' of it writes or reads what makes it fire.',
+				$event_type->value,
+				$entity::table()
+					->getFullName(),
+				self::MAX_ENTITY_EVENT_DEPTH
+			));
+		}
+
+		try {
+			return $event->dispatch(static function ($listener) use ($entity, $event): void {
+				$listener($entity, $event);
+			}, $this->event_channel);
+		} finally {
+			$level = self::$dispatching[$key] ?? 0;
+
+			if ($level <= 1) {
+				unset(self::$dispatching[$key]);
+			} else {
+				self::$dispatching[$key] = $level - 1;
+			}
+		}
 	}
 
 	/**

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Search;
 
+use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\DBAL\Types\TypeEnum;
 use Gobl\DBAL\Types\TypeJson;
 use Gobl\DBAL\Types\TypeList;
@@ -35,6 +36,11 @@ use PHPUtils\Str;
  */
 final class Searchable
 {
+	/**
+	 * How deep a searchable value is followed: {@see self::collectScalars()}.
+	 */
+	public const int MAX_DOCUMENT_DEPTH = 64;
+
 	/**
 	 * What a searchable column's companion is named after it.
 	 *
@@ -156,11 +162,21 @@ final class Searchable
 	 *
 	 * @param list<string> $out
 	 */
-	private static function collectScalars(array $data, array &$out): void
+	private static function collectScalars(array $data, array &$out, int $depth = 0): void
 	{
+		// A `Map` or a `JsonSerializable` can answer with something holding itself, so the depth of
+		// this walk is the value a project writes to a searchable column and nothing else. A plain
+		// decoded request body cannot be cyclic; server code can.
+		if ($depth > self::MAX_DOCUMENT_DEPTH) {
+			throw new DBALRuntimeException(\sprintf(
+				'A searchable value nests more than %d levels deep: it may hold itself.',
+				self::MAX_DOCUMENT_DEPTH
+			));
+		}
+
 		foreach ($data as $value) {
 			if (\is_array($value)) {
-				self::collectScalars($value, $out);
+				self::collectScalars($value, $out, $depth + 1);
 			} elseif (\is_string($value)) {
 				$out[] = $value;
 			} elseif (\is_int($value) || \is_float($value)) {
@@ -169,7 +185,7 @@ final class Searchable
 				$document = self::documentOf($value);
 
 				if (null !== $document) {
-					self::collectScalars($document, $out);
+					self::collectScalars($document, $out, $depth + 1);
 				}
 			}
 		}

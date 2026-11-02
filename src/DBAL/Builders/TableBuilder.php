@@ -49,6 +49,11 @@ use Throwable;
  */
 final class TableBuilder
 {
+	/**
+	 * Whether a factory of this table is running right now: {@see self::factory()}.
+	 */
+	private bool $running_factory = false;
+
 	/** @var RelationBuilder[] */
 	private array $collected_relations = [];
 
@@ -84,13 +89,34 @@ final class TableBuilder
 	 */
 	public function factory(callable $factory): static
 	{
+		// A factory is project code, and cross-table set-up inside one is supported: it may declare
+		// another table, whose factory may declare this one. `NamespaceBuilder::table()` memoises
+		// the builder but runs the factory on every call, outside that memo, so two factories that
+		// name each other used to run each other for ever -- and nothing caught it, because the
+		// duplicate checks only run once the nested call has returned.
+		if ($this->running_factory) {
+			throw new DBALRuntimeException(\sprintf(
+				'The factory of table "%s" was asked to run while it was already running: two table'
+					. ' factories declare each other.',
+				$this->table->getName()
+			))->suspectCallable($factory);
+		}
+
+		$this->running_factory = true;
+
 		try {
 			// run the factory
 			$factory($this);
 
 			$this->registerCollectedRelations();
 		} catch (Throwable $t) {
+			if ($t instanceof DBALRuntimeException) {
+				throw $t;
+			}
+
 			throw new DBALRuntimeException('Failed to build table', null, $t)->suspectCallable($factory);
+		} finally {
+			$this->running_factory = false;
 		}
 
 		return $this;

@@ -124,24 +124,38 @@ abstract class Link implements LinkInterface
 	 * - `LinkColumns` maps FK columns directly and generates no extra joins.
 	 * - `LinkMorph` adds a single polymorphic constraint, also without extra joins.
 	 *
-	 * @param int $max_depth maximum allowed composite nesting depth (0 = simple links only)
+	 * `$max_depth` is read by this call and by nothing below it: a `LinkJoin` builds its own
+	 * sub-links in its constructor, before anything could hand it a smaller budget, so each level
+	 * passes the same `1` and a composite link may nest another one. That is bounded all the same --
+	 * the steps are a finite list a developer wrote -- and the docblock used to claim a decrement
+	 * that does not happen. Changing it would mean threading a budget through every link's
+	 * constructor, for a bound the list already provides.
+	 *
+	 * @param int $max_depth composite nesting allowed at this level (0 = simple links only)
 	 *
 	 * @throws DBALException when a composite link type is used at depth 0
 	 */
 	protected function subLink(Table $host_table, Table $target_table, array $options, int $max_depth = 0): LinkInterface
 	{
-		$link = Relation::createLink($this->rdbms, $host_table, $target_table, $options);
+		// The type is read from the options before the link is built: `createLink()` constructs the
+		// whole thing -- its own sub-links, its `getTable()` calls -- and refusing it afterwards
+		// means the work a refusal exists to prevent has already been done.
+		// The option carries either the enum or its value, depending on the caller.
+		$declared = $options['type'] ?? null;
+		$type     = $declared instanceof LinkType ? $declared : LinkType::tryFrom((string) $declared);
 
-		if (0 === $max_depth && ($link instanceof LinkJoin || $link instanceof LinkThrough)) {
+		if (0 === $max_depth && (LinkType::JOIN === $type || LinkType::THROUGH === $type)) {
 			throw new DBALException(\sprintf(
 				'Link type "%s" cannot be used as a sub-link inside "%s" at this nesting depth. '
 					. 'Only "%s" and "%s" are allowed here.',
-				$link->getType()->value,
+				$type->value,
 				$this->type->value,
 				LinkType::COLUMNS->value,
 				LinkType::MORPH->value,
 			));
 		}
+
+		$link = Relation::createLink($this->rdbms, $host_table, $target_table, $options);
 
 		return $link;
 	}

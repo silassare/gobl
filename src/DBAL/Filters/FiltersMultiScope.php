@@ -51,6 +51,12 @@ final class FiltersMultiScope implements FiltersScopeInterface
 	 */
 	public function push(FiltersScopeInterface $scope, Table $table, ?string $alias = null): static
 	{
+		// Every method here delegates to each entry's scope, so a multi-scope holding itself answers
+		// by asking itself: an infinite delegation with nothing to stop it.
+		if ($scope === $this) {
+			throw new DBALRuntimeException('A multi-scope cannot hold itself.');
+		}
+
 		$entry = [
 			'table' => $table,
 			'scope' => $scope,

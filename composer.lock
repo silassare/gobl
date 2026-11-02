@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/oliup-io/code-generator.git",
-                "reference": "80e9c24c3f92b48f19891ea9e5085b05eeba76bb"
+                "reference": "ce1cd628bd40b6c4a18aedab0e37b8e75d841c52"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/oliup-io/code-generator/zipball/80e9c24c3f92b48f19891ea9e5085b05eeba76bb",
-                "reference": "80e9c24c3f92b48f19891ea9e5085b05eeba76bb",
+                "url": "https://api.github.com/repos/oliup-io/code-generator/zipball/ce1cd628bd40b6c4a18aedab0e37b8e75d841c52",
+                "reference": "ce1cd628bd40b6c4a18aedab0e37b8e75d841c52",
                 "shasum": ""
             },
             "require": {
@@ -57,7 +57,7 @@
                 "issues": "https://github.com/oliup-io/code-generator/issues",
                 "source": "https://github.com/oliup-io/code-generator/tree/main"
             },
-            "time": "2026-10-28T18:46:01+00:00"
+            "time": "2026-11-02T16:50:52+00:00"
         },
         {
             "name": "psr/http-message",
@@ -118,12 +118,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/silassare/blate.git",
-                "reference": "516b0cbbdc454c3d7188baefab28f34567fdec87"
+                "reference": "db9013e796659d89dfca74923a81dc8579e9e4e2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/silassare/blate/zipball/516b0cbbdc454c3d7188baefab28f34567fdec87",
-                "reference": "516b0cbbdc454c3d7188baefab28f34567fdec87",
+                "url": "https://api.github.com/repos/silassare/blate/zipball/db9013e796659d89dfca74923a81dc8579e9e4e2",
+                "reference": "db9013e796659d89dfca74923a81dc8579e9e4e2",
                 "shasum": ""
             },
             "require": {
@@ -171,7 +171,7 @@
                 "issues": "https://github.com/silassare/blate/issues",
                 "source": "https://github.com/silassare/blate/tree/main"
             },
-            "time": "2026-10-28T18:44:21+00:00"
+            "time": "2026-11-02T16:50:16+00:00"
         },
         {
             "name": "silassare/php-utils",
@@ -179,12 +179,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/silassare/php-utils.git",
-                "reference": "1008453e2c6abff7d4e87dcfe4139d1a495bf05f"
+                "reference": "788565e0a9d319fe11bfad73b4a0bcc15d935b23"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/silassare/php-utils/zipball/1008453e2c6abff7d4e87dcfe4139d1a495bf05f",
-                "reference": "1008453e2c6abff7d4e87dcfe4139d1a495bf05f",
+                "url": "https://api.github.com/repos/silassare/php-utils/zipball/788565e0a9d319fe11bfad73b4a0bcc15d935b23",
+                "reference": "788565e0a9d319fe11bfad73b4a0bcc15d935b23",
                 "shasum": ""
             },
             "require": {
@@ -232,7 +232,7 @@
                 "issues": "https://github.com/silassare/php-utils/issues",
                 "source": "https://github.com/silassare/php-utils/tree/main"
             },
-            "time": "2026-10-28T18:43:13+00:00"
+            "time": "2026-11-02T16:49:04+00:00"
         }
     ],
     "packages-dev": [

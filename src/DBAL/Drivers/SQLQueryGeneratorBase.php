@@ -85,6 +85,13 @@ use const GOBL_VERSION;
 abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 {
 	/**
+	 * The filter groups this generator is inside, right now, by object id.
+	 *
+	 * @var array<int, true>
+	 */
+	private array $rendering_groups = [];
+
+	/**
 	 * The smallest piece of text a MySQL `FULLTEXT` index with the `ngram` parser holds.
 	 *
 	 * MySQL's own default for `ngram_token_size`, which is server-wide and needs a restart and an
@@ -292,16 +299,34 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 		}
 
 		if ($filter instanceof FilterGroup) {
-			$filters    = $filter->getFilters(true);
-			$cond       = $filter->isAnd() ? ' AND ' : ' OR ';
-			$expression = null;
+			// A group inside itself: `Filters::where()` refuses only a *direct* self-reference, so
+			// two groups sharing a query builder and a scope can each hold the other and pass every
+			// check. Rendering one used to recurse until the stack went -- on this path and on
+			// `Filters::isEmpty()`, which renders to find out whether it is empty.
+			$id = \spl_object_id($filter);
 
-			foreach ($filters as $f) {
-				$entry_exp = $this->filterToExpression($f);
+			if (isset($this->rendering_groups[$id])) {
+				throw new DBALRuntimeException(
+					'A filter group holds itself, directly or through another group.'
+				);
+			}
 
-				if (!empty($entry_exp)) {
-					$expression = null === $expression ? $entry_exp : $expression . $cond . $entry_exp;
+			$this->rendering_groups[$id] = true;
+
+			try {
+				$filters    = $filter->getFilters(true);
+				$cond       = $filter->isAnd() ? ' AND ' : ' OR ';
+				$expression = null;
+
+				foreach ($filters as $f) {
+					$entry_exp = $this->filterToExpression($f);
+
+					if (!empty($entry_exp)) {
+						$expression = null === $expression ? $entry_exp : $expression . $cond . $entry_exp;
+					}
 				}
+			} finally {
+				unset($this->rendering_groups[$id]);
 			}
 
 			return empty($expression) ? '' : '(' . $expression . ')';

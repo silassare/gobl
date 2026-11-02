@@ -122,7 +122,7 @@ final class FiltersExpressionParser implements FilterInterface
 			return [];
 		}
 
-		$result = $this->buildArrayGroup();
+		$result = $this->buildArrayGroup(0);
 
 		if ($this->pos < \count($this->tokens)) {
 			$token = $this->tokens[$this->pos];
@@ -338,15 +338,22 @@ final class FiltersExpressionParser implements FilterInterface
 	/**
 	 * Builds a flat array group: item ( COND item )*.
 	 */
-	private function buildArrayGroup(): array
+	private function buildArrayGroup(int $depth): array
 	{
-		$result = $this->buildArrayItem();
+		if ($depth > Filters::MAX_GROUP_DEPTH) {
+			throw new DBALRuntimeException(\sprintf(
+				'Filter expression nests groups more than %d levels deep.',
+				Filters::MAX_GROUP_DEPTH
+			), [Filters::STR_EXPR_FILTER_KEY => $this->expression, '_position' => $this->pos]);
+		}
+
+		$result = $this->buildArrayItem($depth);
 
 		while (null !== ($token = $this->current()) && self::T_COND === $token['type']) {
 			++$this->pos;
 			$result[] = $token['value']; // 'AND' or 'OR'
 
-			foreach ($this->buildArrayItem() as $v) {
+			foreach ($this->buildArrayItem($depth) as $v) {
 				$result[] = $v;
 			}
 		}
@@ -358,7 +365,7 @@ final class FiltersExpressionParser implements FilterInterface
 	 * Builds: '(' group ')' -> returns `[$sub_group_array]`
 	 *      OR a filter -> returns `[$col, $op, $val]` or `[$col, $op]`.
 	 */
-	private function buildArrayItem(): array
+	private function buildArrayItem(int $depth): array
 	{
 		$token = $this->current();
 
@@ -371,7 +378,7 @@ final class FiltersExpressionParser implements FilterInterface
 
 		if (self::T_OPEN === $token['type']) {
 			++$this->pos; // consume '('
-			$sub = $this->buildArrayGroup();
+			$sub = $this->buildArrayGroup($depth + 1);
 			$this->expect(self::T_CLOSE);
 
 			return [$sub]; // nested group is a single element in the outer array

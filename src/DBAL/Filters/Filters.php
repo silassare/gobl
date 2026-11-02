@@ -41,6 +41,18 @@ final class Filters
 {
 	use FiltersOperatorsHelpersTrait;
 
+	/**
+	 * How deep filters may nest their groups, as an array or as an expression.
+	 *
+	 * Filters arrive in a request body, and both readers of them recurse: a run of `(` in an
+	 * expression is one frame per character, and a nested array is one frame per level. A megabyte
+	 * of either is a million frames and an uncatchable "Maximum call stack size reached" that ends
+	 * the worker mid-request, before anything has looked at whether the filters are even well
+	 * formed. Refused instead as a filter error, which every caller already handles. Generous: a
+	 * hand-written filter nests a handful of levels, and `json_decode()` stops at 512 anyway.
+	 */
+	public const int MAX_GROUP_DEPTH = 64;
+
 	public const string STR_EXPR_FILTER_KEY   = '_$filter';
 	public const string STR_EXPR_BINDINGS_KEY = '_$bindings';
 
@@ -669,6 +681,17 @@ final class Filters
 		?FiltersScopeInterface $scope,
 		array $position
 	): self {
+		// The position is the path to this group, so its length is how deep we are: a nested array
+		// recurses one frame per level, and the data is a request's.
+		if (\count($position) > self::MAX_GROUP_DEPTH) {
+			throw self::refused(
+				\sprintf('filters nest groups more than %d levels deep.', self::MAX_GROUP_DEPTH),
+				$position,
+				[],
+				$filters
+			);
+		}
+
 		// check new string expression format with bindings
 		if (isset($filters[self::STR_EXPR_FILTER_KEY])) {
 			$expression = $filters[self::STR_EXPR_FILTER_KEY];

@@ -246,6 +246,21 @@ Full event list in `src/CRUD/Events/`:
 
 Authorization: listener must return `false` **and** call `$action->stopPropagation()` to deny. `deleteAll` is denied by default.
 
+## Recursion, re-entrancy and depth
+
+- **Filters arrive from a request, so both readers of them are bounded**: `Filters::MAX_GROUP_DEPTH`
+  caps the expression parser's groups and the nested-array walk (whose `$position` length is the
+  depth). Past it, a refused filter -- never a stack fatal, which no caller can catch.
+- **A guard says what is *in progress*, never what is finished.** `Db::LAZY_BUILDING` is the stage
+  marker a column type provider cannot step over; `TableBuilder::factory()` refuses to run inside
+  itself; `CRUD::MAX_ENTITY_EVENT_DEPTH` bounds an entity event per entity and type (a depth, not a
+  refusal: a listener that answers, sets a flag and re-dispatches is legitimate and shallow).
+- **Anything walking a structure a caller can make cyclic carries a visited set**: the filter group
+  renderer keeps the groups it is inside; `Searchable` carries a depth; `Filters::where()`'s own
+  check catches only a *direct* self-reference, which is why the renderer needs its own.
+- **An entity is marked saved by every successful write**, insert or update, auto increment column or
+  not: `isNew()` is what `save()` and `getRelatives()` read.
+
 ## Filters
 
 Operand form: `[table.]column[#path]`. Path uses JS-like notation — see `src/DBAL/Filters/FilterFieldNotation.php`.

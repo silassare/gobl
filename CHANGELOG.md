@@ -1,5 +1,56 @@
 ### Unreleased (3.0.x-dev)
 
+- **A successful INSERT marks the entity saved, auto increment column or not.** `isSaved(true)` sat
+  inside the branch that hydrates a last insert id, so an entity whose primary key is a string, a
+  uuid or a composite stayed `isNew()` after its row was written: `save()` inserted it again --
+  a duplicate-key error with a primary key, a silently duplicated row without one -- `getRelatives()`
+  refused it as "not persisted" although the row was in the database, and an `AFTER_CREATE` listener
+  calling `save()` re-entered with nothing to stop it.
+
+- **Filters carry a nesting limit, because they arrive in a request body.**
+  `Filters::MAX_GROUP_DEPTH` (64) bounds both readers: the expression parser, where a run of `(` is
+  one frame per character and a megabyte of them was a million frames and an uncatchable "Maximum
+  call stack size reached" that ended the worker mid-request; and the nested-array walk, whose
+  `$position` already told it how deep it was. Past the limit it is a refused filter, which every
+  caller already handles.
+
+- **An entity event is bounded in depth.** `CRUD::dispatchEntityEvent()` ran project listeners inside
+  the controller's own transaction with nothing recording that this entity and event were already in
+  flight. A listener that writes a column re-dirties the entity, so `save()` writes again, which
+  dispatches again: one savepoint and one statement per turn, unbounded whenever the value it writes
+  keeps changing (a counter, `microtime()`, a uuid). The read path had the same hole, where a
+  listener verifying ownership loads the owner. `CRUD::MAX_ENTITY_EVENT_DEPTH` (16), per entity and
+  event type, names both in its message. A depth and not a refusal: answering, setting a flag of
+  one's own and letting the event go round again is a legitimate shape, and it is shallow.
+
+- **A table factory cannot run inside itself.** `NamespaceBuilder::table()` memoises the builder but
+  runs the factory on every call, outside that memo, and cross-table set-up inside a factory is the
+  documented way to declare a relation -- so two factories naming each other ran each other for
+  ever, with the duplicate checks that would have caught it running only after the nested call
+  returned.
+
+- **A column type provider cannot ask for the table it is defining.** With a lazy schema,
+  `Db::lazyStage()` built the table and wrote its memo afterwards, so a project provider that read
+  the same table found it "not done" and started the whole build again, provider calls included. The
+  stage marker now says *being built* before the build starts.
+
+- **A filter group that holds itself is refused instead of recursing.** `Filters::where()` catches
+  only a direct self-reference, and a sub-group shares the query builder and the scope, so an
+  indirect pair passed every check and recursed when rendered -- including through
+  `Filters::isEmpty()`, which renders to find out whether it is empty. A `FiltersMultiScope` also
+  refuses itself now.
+
+- **A searchable value is followed to a bounded depth** (`Searchable::MAX_DOCUMENT_DEPTH`, 64): a
+  `Map` or a `JsonSerializable` can answer with something holding itself, and the value written to a
+  searchable column is server code's.
+
+- **A composite sub-link is refused before it is built.** `Link::subLink()` constructed the whole
+  link -- its own sub-links, its table lookups -- and only then refused it for being a composite
+  type at this depth. The type is now read from the options first. Its `$max_depth` is documented as
+  what it is: read at that one level, not decremented, because a `LinkJoin` builds its sub-links in
+  its constructor before anything could hand it a smaller budget; the bound comes from the finite
+  list of steps a developer wrote.
+
 - **An entity reads and writes a column through `_read()`, `_write()` and `_hydrate()`**, renamed
   from `_oebRead()`, `_oebWrite()` and `_oebHydrate()`. A generated class is read by people, and
   three characters of prefix on every hook of every column were noise:

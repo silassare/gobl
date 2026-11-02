@@ -71,6 +71,15 @@ abstract class Db implements RDBMSInterface
 	private const int LAZY_FAILED = -1;
 
 	/**
+	 * The stage marker of a table whose columns are being built right now: {@see self::lazyStage()}.
+	 *
+	 * The other markers say what is finished. This one says what is in progress, which is what a
+	 * guard needs: the build runs a project's column type provider, so it can come back and ask for
+	 * the table it is in the middle of defining.
+	 */
+	private const int LAZY_BUILDING = -2;
+
+	/**
 	 * Gobl rdbms class setting shortcuts map.
 	 */
 	private static array $rdbms_map = [
@@ -868,6 +877,21 @@ abstract class Db implements RDBMSInterface
 
 		if (null === $this->tables[$name]) {
 			$definition = $this->lazy_tables[$name];
+
+			// Marked as being built before it is: `buildTable()` constructs the columns, and a
+			// column's type comes from a provider a project registers, so what runs in there is
+			// project code. One that asks this instance for the table whose columns are being built
+			// used to find `tables[$name]` still null -- the "not done" reading -- and start the
+			// whole build again, provider calls included, with nothing to stop it.
+			if (self::LAZY_BUILDING === ($this->lazy_partial[$name][1] ?? null)) {
+				throw new DBALException(\sprintf(
+					'The table "%s" was asked for while it was being built: a column type provider,'
+						. ' or something it calls, reads the table it is defining.',
+					$name
+				));
+			}
+
+			$this->lazy_partial[$name] = [$definition, self::LAZY_BUILDING];
 
 			try {
 				$table = $this->buildTable(

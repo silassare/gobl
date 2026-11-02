@@ -13,14 +13,17 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\Integration\ORM;
 
+use Gobl\CRUD\Events\AfterEntityUpdate;
 use Gobl\CRUD\Events\BeforeDeleteAll;
 use Gobl\CRUD\Events\BeforePKColumnWrite;
 use Gobl\CRUD\Events\BeforeUpdateAll;
+use Gobl\CRUD\Exceptions\CRUDException;
 use Gobl\DBAL\Drivers\MySQL\MySQL;
 use Gobl\DBAL\Drivers\PostgreSQL\PostgreSQL;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\ORM\ORM;
+use Gobl\ORM\ORMEntity;
 use Gobl\ORM\ORMOptions;
 use Gobl\Tests\BaseTestCase;
 use Gobl\Tests\TestLog;
@@ -709,6 +712,114 @@ abstract class ORMLiveTestCase extends BaseTestCase
 		// toIdentityFilters() returns a valid PK filter
 		$filters = $entity->toIdentityFilters();
 		self::assertNotEmpty($filters);
+	}
+
+	/**
+	 * A row written into a table with no auto increment column is a row, and the entity knows it.
+	 *
+	 * `isSaved(true)` used to be set only when there was a last insert id to hydrate, so an entity
+	 * whose primary key is a string, a uuid or a composite stayed `isNew()` after a successful
+	 * INSERT: `save()` inserted it a second time, and anything asking for its relatives refused it
+	 * as "not persisted" although the row was in the database.
+	 */
+	public function testAnInsertWithoutAnAutoIncrementColumnMarksTheEntitySaved(): void
+	{
+		$ctrl    = ORM::ctrl(static::db()->getTableOrFail('currencies'));
+		$code    = 'SVD';
+		$channel = static::db()->getTableOrFail('currencies')->getFullName();
+
+		$detach = EventManager::listen(
+			BeforePKColumnWrite::class,
+			static fn () => true,
+			Event::RUN_DEFAULT,
+			$channel
+		);
+
+		try {
+			$created = $ctrl->addItem([
+				'ccy_code'   => $code,
+				'ccy_name'   => 'Saved Currency',
+				'ccy_symbol' => 'S$',
+			]);
+
+			self::assertFalse($created->isNew(), 'the row exists, so the entity is not new');
+			self::assertTrue($created->isSaved(), 'and nothing of it is waiting to be written');
+
+			// So a second save writes nothing rather than inserting the same row again.
+			self::assertFalse($created->save(), 'a saved entity with no change writes nothing');
+
+			$rows = $ctrl->getAllItems(ORMOptions::makeFromFilters(['ccy_code' => $code]));
+
+			self::assertCount(1, $rows, 'exactly one row, not two');
+		} finally {
+			$ctrl->deleteOneItem(ORMOptions::makeFromFilters(['ccy_code' => $code]));
+			$detach();
+		}
+	}
+
+	/**
+	 * A listener that writes what makes it fire is stopped, with the event and the table named.
+	 *
+	 * Entity events run project code inside the controller's own transaction, and the write path had
+	 * no other guard: a listener that writes a column re-dirties the entity, so `save()` writes
+	 * again, which dispatches again -- one savepoint and one statement per turn, unbounded whenever
+	 * the value it writes keeps changing.
+	 */
+	public function testAListenerThatWritesWhatMakesItFireIsStopped(): void
+	{
+		$table   = static::db()->getTableOrFail('currencies');
+		$ctrl    = ORM::ctrl($table);
+		$channel = $table->getFullName();
+		$code    = 'LOP';
+
+		$allow = EventManager::listen(
+			BeforePKColumnWrite::class,
+			static fn () => true,
+			Event::RUN_DEFAULT,
+			$channel
+		);
+
+		$created = null;
+
+		$feedback = EventManager::listen(
+			AfterEntityUpdate::class,
+			static function (ORMEntity $entity): void {
+				// A new value every turn, which is what makes it unbounded: a listener writing a
+				// stable value stops by itself when there is nothing left to change.
+				// Through `hydrate()` rather than a generated setter: this listener is typed on the
+				// base entity, which has no column of its own.
+				$entity->hydrate(['ccy_name' => 'Loop ' . \microtime(true)]);
+				$entity->save();
+			},
+			Event::RUN_DEFAULT,
+			$channel
+		);
+
+		try {
+			$created = $ctrl->addItem([
+				'ccy_code'   => $code,
+				'ccy_name'   => 'Loop Currency',
+				'ccy_symbol' => 'L$',
+			]);
+
+			$options = ORMOptions::makeFromFilters(['ccy_code' => $code]);
+			$options->setFormData(['ccy_name' => 'First update']);
+
+			$ctrl->updateOneItem($options);
+
+			self::fail('A listener that feeds itself must be stopped.');
+		} catch (CRUDException $e) {
+			self::assertStringContainsString('levels deep', $e->getMessage());
+			self::assertStringContainsString($table->getFullName(), $e->getMessage());
+		} finally {
+			$feedback();
+
+			if (null !== $created) {
+				$ctrl->deleteOneItem(ORMOptions::makeFromFilters(['ccy_code' => $code]));
+			}
+
+			$allow();
+		}
 	}
 
 	/**

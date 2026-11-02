@@ -746,9 +746,15 @@ abstract class ORMController
 				}
 
 				$last_insert_id = $result;
-				$entity->hydrate([$aic_full_name => $last_insert_id])
-					->isSaved(true);
+				$entity->hydrate([$aic_full_name => $last_insert_id]);
 			}
+
+			// The row exists now, whatever its primary key is made of. This used to be inside the
+			// branch above, so an entity whose table has no auto increment column -- a string, uuid
+			// or composite primary key -- stayed `isNew()` after being written: `save()` inserted it
+			// again, `getRelatives()` refused it as "not persisted" although it was in the database,
+			// and an AFTER_CREATE listener calling `save()` re-entered with nothing to stop it.
+			$entity->isSaved(true);
 		} elseif (!$entity->isSaved()) {
 			// An update writes the columns this entity changed and no others. Writing the whole row
 			// back would carry every column as it was read, so a column another request wrote
