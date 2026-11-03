@@ -23,11 +23,21 @@
   event type, names both in its message. A depth and not a refusal: answering, setting a flag of
   one's own and letting the event go round again is a legitimate shape, and it is shallow.
 
-- **A table factory cannot run inside itself.** `NamespaceBuilder::table()` memoises the builder but
+- **Table factories are bounded in depth.** `NamespaceBuilder::table()` memoises the builder but
   runs the factory on every call, outside that memo, and cross-table set-up inside a factory is the
   documented way to declare a relation -- so two factories naming each other ran each other for
   ever, with the duplicate checks that would have caught it running only after the nested call
-  returned.
+  returned. `TableBuilder::MAX_FACTORY_DEPTH` (64, per table) bounds them.
+
+  A depth and not a refusal: a first pass refused any factory running on a table while another was
+  running on it, which also refused the documented shape -- this table's factory declares another,
+  whose factory declares this one back to add the other side of a foreign key. That is a different
+  factory doing different work and it ends. What does not end is a pair naming each other for ever,
+  and only a depth separates the two: keying on the callable would not, since a factory written
+  inline is a fresh closure on every turn.
+
+  Counted per table rather than across all of them, because a schema may legitimately declare a
+  hundred tables each from inside the last.
 
 - **A column type provider cannot ask for the table it is defining.** With a lazy schema,
   `Db::lazyStage()` built the table and wrote its memo afterwards, so a project provider that read

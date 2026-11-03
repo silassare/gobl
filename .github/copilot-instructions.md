@@ -251,10 +251,15 @@ Authorization: listener must return `false` **and** call `$action->stopPropagati
 - **Filters arrive from a request, so both readers of them are bounded**: `Filters::MAX_GROUP_DEPTH`
   caps the expression parser's groups and the nested-array walk (whose `$position` length is the
   depth). Past it, a refused filter -- never a stack fatal, which no caller can catch.
-- **A guard says what is *in progress*, never what is finished.** `Db::LAZY_BUILDING` is the stage
-  marker a column type provider cannot step over; `TableBuilder::factory()` refuses to run inside
-  itself; `CRUD::MAX_ENTITY_EVENT_DEPTH` bounds an entity event per entity and type (a depth, not a
-  refusal: a listener that answers, sets a flag and re-dispatches is legitimate and shallow).
+- **A guard says what is *in progress*, never what is finished, and a repeat is only a cycle when
+  the key is all the work there is.** `Db::LAZY_BUILDING` is the stage marker a column type provider
+  cannot step over, and one table has one set of columns, so re-entering it cannot end: refused.
+  Where the caller brings data or code of its own, the guard is a depth instead, because the repeat
+  is legitimate and ends: `CRUD::MAX_ENTITY_EVENT_DEPTH` per entity and type (a listener that
+  answers, sets a flag and re-dispatches is legitimate and shallow), and
+  `TableBuilder::MAX_FACTORY_DEPTH` per table (a factory declaring another table whose factory
+  declares this one back, to add the other side of a relation, is the documented shape -- a second
+  factory on a table whose first has not returned, doing different work, and it ends).
 - **Anything walking a structure a caller can make cyclic carries a visited set**: the filter group
   renderer keeps the groups it is inside; `Searchable` carries a depth; `Filters::where()`'s own
   check catches only a *direct* self-reference, which is why the renderer needs its own.

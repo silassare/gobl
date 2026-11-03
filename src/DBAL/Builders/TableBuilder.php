@@ -50,9 +50,23 @@ use Throwable;
 final class TableBuilder
 {
 	/**
-	 * Whether a factory of this table is running right now: {@see self::factory()}.
+	 * How deep factories of this table may nest: {@see self::factory()}.
+	 *
+	 * A depth and not a refusal, because a factory running inside another on the same table is the
+	 * documented cross-table shape: this table's factory declares another, whose factory declares
+	 * this one back to add the other side of a foreign key. That is a different factory doing
+	 * different work and it ends. What does not end is a pair naming each other for ever, and the
+	 * depth is what separates the two -- the legitimate case is a level or two deep.
+	 *
+	 * Counted per table rather than across all of them: a schema may declare a hundred tables each
+	 * from inside the last, and every one of those is finite work done once.
 	 */
-	private bool $running_factory = false;
+	public const int MAX_FACTORY_DEPTH = 64;
+
+	/**
+	 * How many factories of this table are running right now: {@see self::factory()}.
+	 */
+	private int $factory_depth = 0;
 
 	/** @var RelationBuilder[] */
 	private array $collected_relations = [];
@@ -92,17 +106,18 @@ final class TableBuilder
 		// A factory is project code, and cross-table set-up inside one is supported: it may declare
 		// another table, whose factory may declare this one. `NamespaceBuilder::table()` memoises
 		// the builder but runs the factory on every call, outside that memo, so two factories that
-		// name each other used to run each other for ever -- and nothing caught it, because the
-		// duplicate checks only run once the nested call has returned.
-		if ($this->running_factory) {
+		// name each other ran each other for ever -- and nothing caught it, because the duplicate
+		// checks only run once the nested call has returned.
+		if ($this->factory_depth >= self::MAX_FACTORY_DEPTH) {
 			throw new DBALRuntimeException(\sprintf(
-				'The factory of table "%s" was asked to run while it was already running: two table'
-					. ' factories declare each other.',
-				$this->table->getName()
+				'Factories of table "%s" are nested more than %d deep: two table factories declare'
+					. ' each other without end.',
+				$this->table->getName(),
+				self::MAX_FACTORY_DEPTH
 			))->suspectCallable($factory);
 		}
 
-		$this->running_factory = true;
+		++$this->factory_depth;
 
 		try {
 			// run the factory
@@ -116,7 +131,7 @@ final class TableBuilder
 
 			throw new DBALRuntimeException('Failed to build table', null, $t)->suspectCallable($factory);
 		} finally {
-			$this->running_factory = false;
+			--$this->factory_depth;
 		}
 
 		return $this;

@@ -118,12 +118,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/silassare/blate.git",
-                "reference": "db9013e796659d89dfca74923a81dc8579e9e4e2"
+                "reference": "37313f6901a055e570e8c67d0184ebcc4d406e1f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/silassare/blate/zipball/db9013e796659d89dfca74923a81dc8579e9e4e2",
-                "reference": "db9013e796659d89dfca74923a81dc8579e9e4e2",
+                "url": "https://api.github.com/repos/silassare/blate/zipball/37313f6901a055e570e8c67d0184ebcc4d406e1f",
+                "reference": "37313f6901a055e570e8c67d0184ebcc4d406e1f",
                 "shasum": ""
             },
             "require": {
@@ -171,7 +171,7 @@
                 "issues": "https://github.com/silassare/blate/issues",
                 "source": "https://github.com/silassare/blate/tree/main"
             },
-            "time": "2026-11-02T16:50:16+00:00"
+            "time": "2026-11-03T07:29:31+00:00"
         },
         {
             "name": "silassare/php-utils",

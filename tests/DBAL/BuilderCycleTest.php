@@ -36,7 +36,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 #[CoversClass(NamespaceBuilder::class)]
 final class BuilderCycleTest extends BaseTestCase
 {
-	public function testTwoTableFactoriesThatDeclareEachOtherAreRefused(): void
+	public function testTwoTableFactoriesThatDeclareEachOtherWithoutEndAreRefused(): void
 	{
 		// Cross-table set-up inside a factory is supported, and `NamespaceBuilder::table()`
 		// memoises the builder but runs the factory on every call -- outside that memo. So two
@@ -50,23 +50,62 @@ final class BuilderCycleTest extends BaseTestCase
 
 		$a = static function (TableBuilder $t) use ($ns, &$b): void {
 			$t->columnPrefix('ta');
-			$t->id();
 			$ns->table('tb', $b);
 		};
 
 		$b = static function (TableBuilder $t) use ($ns, &$a): void {
 			$t->columnPrefix('tb');
-			$t->id();
 			$ns->table('ta', $a);
 		};
 
 		try {
 			$ns->table('ta', $a);
 
-			self::fail('Two factories that declare each other must be refused.');
+			self::fail('Two factories that declare each other without end must be refused.');
 		} catch (DBALRuntimeException $e) {
-			self::assertStringContainsString('while it was already running', $e->getMessage());
+			self::assertStringContainsString(
+				\sprintf('nested more than %d deep', TableBuilder::MAX_FACTORY_DEPTH),
+				$e->getMessage()
+			);
 		}
+	}
+
+	public function testATableFactoryMayDeclareBackTheTableThatDeclaredIt(): void
+	{
+		// The documented cross-table shape, and the reason this is a depth and not a refusal: the
+		// table being declared names another, whose factory adds the other side of the relation to
+		// the first. That is a second factory running on a table whose first factory has not
+		// returned, it is different work, and it ends.
+		$db = self::getNewDbInstance();
+		$ns = $db->ns('test');
+
+		$ns->table('authors', static function (TableBuilder $t) use ($ns): void {
+			$t->columnPrefix('ath');
+			$t->id();
+			$t->string('name');
+
+			$ns->table('books', static function (TableBuilder $b) use ($ns): void {
+				$b->columnPrefix('bok');
+				$b->id();
+				$b->string('title');
+				$b->int('author_id');
+
+				// Back to the table whose factory is still running, to add the other side.
+				$ns->table('authors', static function (TableBuilder $a): void {
+					$a->int('books_count')
+						->nullable();
+				});
+			});
+		});
+
+		$db->lock();
+
+		$authors = $db->getTable('authors');
+
+		self::assertNotNull($authors);
+		self::assertNotNull($db->getTable('books'));
+		self::assertTrue($authors->hasColumn('books_count'));
+		self::assertTrue($authors->hasColumn('name'));
 	}
 
 	public function testAFactoryMayStillDeclareAnotherTable(): void
