@@ -14,13 +14,10 @@ declare(strict_types=1);
 namespace Gobl\Tests\DBAL\Relations;
 
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
-use Gobl\DBAL\Relations\Interfaces\RelationControllerInterface;
 use Gobl\DBAL\Relations\VirtualRelation;
-use Gobl\DBAL\Table;
-use Gobl\DBAL\Types\Interfaces\TypeInterface;
+use Gobl\Tests\DBAL\Relations\Stubs\NamedVirtualRelation;
 use Gobl\Tests\BaseTestCase;
 use InvalidArgumentException;
-use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
@@ -56,24 +53,6 @@ final class VirtualRelationNameTest extends BaseTestCase
 	 */
 	private static function virtualRelationNamed(string $name): VirtualRelation
 	{
-		return new class(self::TEST_DB_NAMESPACE, 'users', $name, false) extends VirtualRelation {
-			#[Override]
-			public function getRelativeType(): Table|TypeInterface
-			{
-				throw new DBALRuntimeException('Not reached.');
-			}
-
-			#[Override]
-			public function isPrivate(): bool
-			{
-				return false;
-			}
-
-			#[Override]
-			public function getController(): RelationControllerInterface
-			{
-				throw new DBALRuntimeException('Not reached.');
-			}
-		};
+		return new NamedVirtualRelation(self::TEST_DB_NAMESPACE, 'users', $name, false);
 	}
 }
