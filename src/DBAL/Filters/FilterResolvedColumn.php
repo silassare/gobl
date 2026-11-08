@@ -96,6 +96,17 @@ final class FilterResolvedColumn
 	/**
 	 * Get the original field notation.
 	 */
+	/**
+	 * The query builder this column was resolved against.
+	 *
+	 * A resolved column always has one, which is what makes it resolvable: a caller holding the
+	 * column therefore never has to be given one, nor to go without.
+	 */
+	public function getQb(): QBInterface
+	{
+		return $this->qb;
+	}
+
 	public function getFieldNotation(): FilterFieldNotation
 	{
 		return $this->original_fn;

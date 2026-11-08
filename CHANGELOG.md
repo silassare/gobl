@@ -1,5 +1,32 @@
 ### Unreleased (3.0.x-dev)
 
+- **A virtual relation declared with a name the ORM keeps for itself said nothing about it.** The
+  refusal read the name back from a property the constructor sets a few lines later, so what a
+  developer got was `Typed property VirtualRelation::$name must not be accessed before
+  initialization`. It names the name it was given.
+
+- **A foreign key takes "nothing said" about `nullable` as the default it declares.**
+  `TableBuilder::foreign()` accepts a null for that answer and passed it straight to the column
+  type, which does not: `foreign('author_id', 'authors', 'id', null)` was a `TypeError`.
+
+- **A field notation without a query builder is left unresolved instead of resolved with nothing.**
+  A notation may be built without one, and its scope cannot resolve a field without one: it was
+  asked anyway, with a null the interface does not take. The scope is now asked only when there is
+  a builder, and a column read from an unresolved notation is refused by the refusal that was
+  already there. `FilterResolvedColumn` answers which builder it was resolved against, so a
+  multi-scope asked to check a filter with no builder of its own uses the column's.
+
+- **The left operand of a filter with no value is the SQL `NULL`,** as the right one has always
+  been: a function-call operator (`CONTAINS`, `HAS_KEY`, a text match) was handed a null, and the
+  infix form started with nothing at all.
+
+- **Four more places read a failed replacement as a string**: a string type's whitespace
+  normalisation (which then fed a length and a pattern check), a constraint name's two
+  normalisations, and a cast hook for a value that is null. None can fail with the literal pattern
+  it uses; the type now says so. The schema loader reads the tables it has just built through an
+  accessor that answers for them, rather than through a registry whose entries are null until they
+  are built.
+
 - **A successful INSERT marks the entity saved, auto increment column or not.** `isSaved(true)` sat
   inside the branch that hydrates a last insert id, so an entity whose primary key is a string, a
   uuid or a composite stayed `isNew()` after its row was written: `save()` inserted it again --

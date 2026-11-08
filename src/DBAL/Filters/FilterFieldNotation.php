@@ -199,6 +199,12 @@ final class FilterFieldNotation
 			throw new DBALRuntimeException('Field notation is not resolved to a specific column.');
 		}
 
+		// A resolved column is read against a query builder, and a notation built without one has
+		// nothing to resolve against: said here rather than reaching the column as a type error.
+		if (null === $this->qb) {
+			throw new DBALRuntimeException('Field notation has no query builder to resolve a column against.');
+		}
+
 		return new FilterResolvedColumn($this->table_or_alias, $this->column_name, $this, $this->qb);
 	}
 
@@ -271,7 +277,10 @@ final class FilterFieldNotation
 			}
 		}
 
-		if ($this->scope) {
+		// The scope resolves a field against a query builder, so without one there is nothing to
+		// attempt: the notation stays unresolved, which is what `getResolvedColumnOrFail()` and
+		// `isResolved()` are there to answer.
+		if ($this->scope && $this->qb) {
 			$name = $this->column_name ?? $this->field;
 
 			$tmp = clone $this;

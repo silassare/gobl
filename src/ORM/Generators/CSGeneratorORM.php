@@ -1067,7 +1067,7 @@ Proudly With: {$version}{$time}";
 				)
 			);
 
-		$construct->newArgument('query')
+		$query_arg = $construct->newArgument('query')
 			->setType('\\' . (QBSelect::class));
 		$construct->comment(Str::interpolate('{class_name} constructor.', $inject));
 
@@ -1080,7 +1080,9 @@ Proudly With: {$version}{$time}";
 			)
 			->setReturnType('static');
 
-		$create_instance->addArgument($construct->getArgument('query'));
+		// The argument just created, and not the same one looked up again by name: a lookup answers
+		// nothing for a name that is not there, and this one is.
+		$create_instance->addArgument($query_arg);
 
 		$create_instance->comment(
 			Str::interpolate(

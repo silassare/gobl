@@ -111,7 +111,8 @@ final class DbTest extends BaseTestCase
 		self::assertNull($db->getTable($name));
 
 		$tables = self::getTablesDefinitions();
-		$first  = \key($tables);
+		// The first key, which an empty set does not have: the definitions are this suite's own.
+		$first  = (string) self::present(\array_key_first($tables));
 
 		self::assertInstanceOf(Table::class, $table = $db->getTableOrFail($first));
 		self::assertSame($table, $db->getTableOrFail($table->getFullName()));

@@ -468,11 +468,15 @@ final class Filters
 				$resolved = $left_operand->getResolvedColumnOrFail();
 				$_col     = $resolved->getTable()->getColumnOrFail($resolved->getColumnName());
 
+				// A null is the SQL `NULL` and carries no expression to wrap, so it is left as it is
+				// rather than handed to a cast that answers for a string.
 				if (\is_array($right_nz)) {
 					foreach ($right_nz as $k => $entry) {
-						$right_nz[$k] = TypeUtils::runCastExpressionForQuery($_col, $entry, $this->qb->getRDBMS());
+						$right_nz[$k] = null === $entry
+							? null
+							: TypeUtils::runCastExpressionForQuery($_col, $entry, $this->qb->getRDBMS());
 					}
-				} else {
+				} elseif (null !== $right_nz) {
 					$right_nz = TypeUtils::runCastExpressionForQuery($_col, $right_nz, $this->qb->getRDBMS());
 				}
 			}

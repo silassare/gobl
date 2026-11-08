@@ -53,6 +53,27 @@ abstract class BaseTestCase extends TestCase
 	}
 
 	/**
+	 * A value a test read back from the database, asserted to be there and answered as it is.
+	 *
+	 * A generated getter and a generated property carry the column's own type, and a column the
+	 * database fills is nullable until it has: a test that reads one back knows it is set, and this
+	 * is where it says so. The failure then names the test and the value, where passing the null on
+	 * would have been a type error inside the thing under test.
+	 *
+	 * @template TValue
+	 *
+	 * @param null|TValue $value
+	 *
+	 * @return TValue
+	 */
+	protected static function present(mixed $value): mixed
+	{
+		self::assertNotNull($value);
+
+		return $value;
+	}
+
+	/**
 	 * Returns the name of every registered RDBMS driver as a PHPUnit data-provider array.
 	 *
 	 * Usage: #[DataProviderExternal(BaseTestCase::class, 'allDrivers')]

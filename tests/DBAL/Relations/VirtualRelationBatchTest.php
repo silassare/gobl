@@ -220,7 +220,10 @@ final class VirtualRelationBatchTest extends BaseTestCase
 		$db      = ORM::getDatabase(self::TEST_DB_NAMESPACE);
 		$clients = $db->getTableOrFail('clients');
 		$rel     = $clients->getRelation('accounts');
-		$ctrl    = new ORMEntityRelationController($rel);
+
+		self::assertNotNull($rel);
+
+		$ctrl = new ORMEntityRelationController($rel);
 
 		$options = new ORMOptions();
 		$result  = $ctrl->getBatch([], $options);

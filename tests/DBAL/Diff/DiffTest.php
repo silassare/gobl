@@ -190,14 +190,14 @@ final class DiffTest extends BaseTestCase
 			'/(Generated on:) .+/',
 			'$1 [GENERATED_AT]',
 			$content
-		);
+		) ?? $content;
 
 		// "return 1772640455;" inside getTimestamp()
 		$content = \preg_replace(
 			'/\breturn \d{10}+;/',
 			'return 0;',
 			$content
-		);
+		) ?? $content;
 
 		return self::normalizeGeneratedContent($content);
 	}

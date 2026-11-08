@@ -91,6 +91,29 @@ final class TableBuilderTest extends BaseTestCase
 		});
 	}
 
+	/**
+	 * `nullable` is declared as an optional answer, so a caller may pass none: it used to reach the
+	 * column type as a null and raise a type error there.
+	 */
+	public function testAForeignKeyTakesNoAnswerAboutNullAsTheDefaultOne(): void
+	{
+		$db = self::getNewDbInstance();
+
+		$db->ns('App\\Db')->table('authors', static function (TableBuilder $t): void {
+			$t->id();
+		});
+
+		$db->ns('App\\Db')->table('books', static function (TableBuilder $t): void {
+			$t->id();
+			$t->foreign('author_id', 'authors', 'id', null);
+		});
+
+		$column = $db->getTableOrFail('books')
+			->getColumnOrFail('author_id');
+
+		self::assertFalse($column->getType()->isNullable());
+	}
+
 	public function testUseColumnThrowsForUnknownColumn(): void
 	{
 		$db = self::getNewDbInstance();

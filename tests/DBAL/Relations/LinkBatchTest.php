@@ -198,6 +198,8 @@ final class LinkBatchTest extends BaseTestCase
 
 		$relation = $accounts->getRelation('client'); // host=accounts, target=clients
 
+		self::assertNotNull($relation);
+
 		$acct1 = ORM::entity($accounts, false, false);
 		$acct1->hydrate(['account_id' => 1, 'account_client_id' => 10]);
 		$acct1->isSaved(true);
@@ -233,6 +235,8 @@ final class LinkBatchTest extends BaseTestCase
 		$accounts = $db->getTableOrFail('accounts');
 
 		$relation = $clients->getRelation('accounts'); // host=clients, target=accounts
+
+		self::assertNotNull($relation);
 
 		$client1 = ORM::entity($clients, false, false);
 		$client1->hydrate(['client_id' => 1]);
@@ -295,6 +299,8 @@ final class LinkBatchTest extends BaseTestCase
 		$tags     = $db->getTableOrFail('tags');
 		$relation = $articles->getRelation('tags'); // host=articles, target=tags
 
+		self::assertNotNull($relation);
+
 		$tq = ORM::query($tags);
 		self::assertNull($tq->selectRelativesBatch($relation, []));
 	}
@@ -310,6 +316,8 @@ final class LinkBatchTest extends BaseTestCase
 		$tags      = $db->getTableOrFail('tags');
 		$taggables = $db->getTableOrFail('taggables');
 		$relation  = $articles->getRelation('tags');
+
+		self::assertNotNull($relation);
 
 		$art1 = ORM::entity($articles, false, false);
 		$art1->hydrate(['id' => 1]);

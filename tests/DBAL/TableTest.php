@@ -181,8 +181,8 @@ final class TableTest extends BaseTestCase
 		self::assertSame($pk, $table->getPrimaryKeyConstraint());
 		self::assertTrue($table->isPrimaryKey(['u_id']));
 		self::assertFalse($table->isPrimaryKey(['u_name']));
-		self::assertTrue($table->isPartOfPrimaryKey($table->getColumn('id')));
-		self::assertFalse($table->isPartOfPrimaryKey($table->getColumn('name')));
+		self::assertTrue($table->isPartOfPrimaryKey($table->getColumnOrFail('id')));
+		self::assertFalse($table->isPartOfPrimaryKey($table->getColumnOrFail('name')));
 	}
 
 	public function testUniqueKeyConstraint(): void

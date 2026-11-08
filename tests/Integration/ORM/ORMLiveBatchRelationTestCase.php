@@ -265,7 +265,9 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 		$db          = static::db();
 		$authorsCtrl = ORM::ctrl($db->getTableOrFail('bat_authors'));
 		$booksTable  = $db->getTableOrFail('bat_books');
-		$relation    = $booksTable->getRelation('author');
+		$relation = $booksTable->getRelation('author');
+
+		self::assertNotNull($relation);
 
 		/** @var ORMEntity[] $books */
 		$books = [
@@ -314,7 +316,9 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 		$db           = static::db();
 		$booksCtrl    = ORM::ctrl($db->getTableOrFail('bat_books'));
 		$authorsTable = $db->getTableOrFail('bat_authors');
-		$relation     = $authorsTable->getRelation('books');
+		$relation = $authorsTable->getRelation('books');
+
+		self::assertNotNull($relation);
 
 		/** @var ORMEntity[] $authors */
 		$authors = [static::$fixture['alice'], static::$fixture['bob']];
@@ -352,7 +356,9 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 		$db           = static::db();
 		$booksCtrl    = ORM::ctrl($db->getTableOrFail('bat_books'));
 		$authorsTable = $db->getTableOrFail('bat_authors');
-		$relation     = $authorsTable->getRelation('books');
+		$relation = $authorsTable->getRelation('books');
+
+		self::assertNotNull($relation);
 
 		$authors = [static::$fixture['alice'], static::$fixture['bob']];
 
@@ -376,7 +382,9 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 		$db         = static::db();
 		$genresCtrl = ORM::ctrl($db->getTableOrFail('bat_genres'));
 		$booksTable = $db->getTableOrFail('bat_books');
-		$relation   = $booksTable->getRelation('genres');
+		$relation = $booksTable->getRelation('genres');
+
+		self::assertNotNull($relation);
 
 		$books = [
 			static::$fixture['php_manual'],
@@ -422,7 +430,9 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 		$db         = static::db();
 		$genresCtrl = ORM::ctrl($db->getTableOrFail('bat_genres'));
 		$booksTable = $db->getTableOrFail('bat_books');
-		$relation   = $booksTable->getRelation('genres');
+		$relation = $booksTable->getRelation('genres');
+
+		self::assertNotNull($relation);
 
 		$books = [
 			static::$fixture['php_manual'],
@@ -452,7 +462,9 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 		$db           = static::db();
 		$reviewsCtrl  = ORM::ctrl($db->getTableOrFail('bat_reviews'));
 		$booksTable   = $db->getTableOrFail('bat_books');
-		$relation     = $booksTable->getRelation('reviews');
+		$relation = $booksTable->getRelation('reviews');
+
+		self::assertNotNull($relation);
 
 		$books = [
 			static::$fixture['php_manual'],
@@ -486,7 +498,9 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 		$db          = static::db();
 		$reviewsCtrl = ORM::ctrl($db->getTableOrFail('bat_reviews'));
 		$booksTable  = $db->getTableOrFail('bat_books');
-		$relation    = $booksTable->getRelation('reviews');
+		$relation = $booksTable->getRelation('reviews');
+
+		self::assertNotNull($relation);
 
 		$books = [
 			static::$fixture['php_manual'],
@@ -516,7 +530,9 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 		$db           = static::db();
 		$genresCtrl   = ORM::ctrl($db->getTableOrFail('bat_genres'));
 		$authorsTable = $db->getTableOrFail('bat_authors');
-		$relation     = $authorsTable->getRelation('genres_direct');
+		$relation = $authorsTable->getRelation('genres_direct');
+
+		self::assertNotNull($relation);
 
 		$authors = [static::$fixture['alice'], static::$fixture['bob']];
 
@@ -630,7 +646,9 @@ abstract class ORMLiveBatchRelationTestCase extends BaseTestCase
 		$db           = static::db();
 		$booksCtrl    = ORM::ctrl($db->getTableOrFail('bat_books'));
 		$authorsTable = $db->getTableOrFail('bat_authors');
-		$relation     = $authorsTable->getRelation('books');
+		$relation = $authorsTable->getRelation('books');
+
+		self::assertNotNull($relation);
 
 		self::assertNotNull($relation);
 		self::assertNull($relation->getSelect(), 'books relation must not have a select projection by default');

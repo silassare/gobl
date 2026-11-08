@@ -241,13 +241,13 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 
 		$entity = $this->getBox($id);
 
-		$patch = new JsonPatch($entity->data);
+		$patch = new JsonPatch(self::present($entity->data));
 		$patch->set('one', 1)
 			->remove('drop');
 		$entity->data = $patch;
 
 		// A second patch of the same column before the save: its paths are written too.
-		$other = new JsonPatch($entity->data);
+		$other = new JsonPatch(self::present($entity->data));
 		$other->set('two.deep', 2);
 		$entity->data = $other;
 
@@ -269,7 +269,7 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 
 		$entity = $this->getBox($id);
 
-		$patch = new JsonPatch($entity->data);
+		$patch = new JsonPatch(self::present($entity->data));
 		$patch->set('a', ['b' => 9])
 			->set('a.c', 3);
 		$entity->data = $patch;
@@ -303,7 +303,7 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 
 		$entity = $this->getBox($id);
 
-		$patch = new JsonPatch($entity->data);
+		$patch = new JsonPatch(self::present($entity->data));
 		$patch->set('b', 2);
 		$entity->data = $patch;
 		$entity->data = ['c' => 3];
@@ -321,7 +321,7 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 
 		$entity = $this->getBox($id);
 
-		$patch = new JsonPatch($entity->data);
+		$patch = new JsonPatch(self::present($entity->data));
 		$patch->set('a', 1);
 		$entity->data = $patch;
 
@@ -357,12 +357,12 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 		$first  = $this->getBox($id);
 		$second = $this->getBox($id);
 
-		$patch = new JsonPatch($first->plain);
+		$patch = new JsonPatch(self::present($first->plain));
 		$patch->set('oz.lang', 'fr');
 		$first->plain = $patch;
 		self::assertTrue($first->save());
 
-		$patch = new JsonPatch($second->plain);
+		$patch = new JsonPatch(self::present($second->plain));
 		$patch->remove('uid');
 		$second->plain = $patch;
 		self::assertTrue($second->save());
@@ -434,7 +434,7 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 
 		$entity = $this->getBox($id);
 
-		$patch = new JsonPatch($entity->data);
+		$patch = new JsonPatch(self::present($entity->data));
 		$patch->setAt(['list', 0], 'entry')
 			->setAt(['map', '0'], 'member');
 		$entity->data = $patch;
@@ -480,7 +480,7 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 		);
 
 		try {
-			$patch = new JsonPatch($entity->data);
+			$patch = new JsonPatch(self::present($entity->data));
 			$patch->set('a', ['b' => 9])
 				->set('a.c', 3);
 			$entity->data = $patch;
@@ -506,7 +506,7 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 
 		$entity = $this->getBox($id);
 
-		$patch = new JsonPatch($entity->guarded);
+		$patch = new JsonPatch(self::present($entity->guarded));
 		$patch->set('a', ['b' => 9])
 			->set('a.c', 3);
 
@@ -530,12 +530,12 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 
 		// A store keeping entries under a name says so, rather than leaving a digit to be read
 		// off a document that has nothing there yet: a string segment is a member, always.
-		$patch = new JsonPatch($first->guarded);
+		$patch = new JsonPatch(self::present($first->guarded));
 		$patch->setAt(['refs', '12'], 'a');
 		$first->guarded = $patch;
 		self::assertTrue($first->save());
 
-		$patch = new JsonPatch($second->guarded);
+		$patch = new JsonPatch(self::present($second->guarded));
 		$patch->setAt(['refs', '13'], 'b');
 		$second->guarded = $patch;
 		self::assertTrue($second->save());
@@ -734,7 +734,7 @@ abstract class JsonPatchUpdateTestCase extends BaseTestCase
 	 */
 	private function patch(ORMEntity $entity, callable $operations): void
 	{
-		$patch = new JsonPatch($entity->data);
+		$patch = new JsonPatch(self::present($entity->data));
 
 		$operations($patch);
 

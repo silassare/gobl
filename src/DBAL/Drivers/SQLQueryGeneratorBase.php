@@ -1736,7 +1736,11 @@ abstract class SQLQueryGeneratorBase implements QueryGeneratorInterface
 	 */
 	protected function operatorFilterToExpression(Filter $filter): string
 	{
-		$left  = $filter->getLeftOperand()->getValueForQuery();
+		// An operand with no value is the SQL `NULL`, which is how the right one has always been
+		// spelled here. Spelled the same way on the left, a function-call expression gets a valid
+		// argument rather than a type error, and the infix form below reads `NULL = x` instead of
+		// starting with nothing at all.
+		$left  = $filter->getLeftOperand()->getValueForQuery() ?? 'NULL';
 		$right = $filter->getRightOperand()?->getValueForQuery();
 		$op    = $filter->getOperator();
 

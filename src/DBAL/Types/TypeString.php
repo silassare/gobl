@@ -324,7 +324,9 @@ final class TypeString extends BaseType
 		}
 
 		if (false === $this->getOption('multiline')) {
-			$value = \preg_replace('~\s+~', ' ', $value);
+			// Kept only when there is a result: a literal pattern has no compilation to fail, and a
+			// value whose whitespace was left as it is still has a length and a pattern to check.
+			$value = \preg_replace('~\s+~', ' ', $value) ?? $value;
 		}
 
 		if (true === $this->getOption('trim')) {

@@ -416,7 +416,9 @@ final class TableBuilder
 		$ref_table = $this->rdbms->getTableOrFail($foreign_table);
 		$column    = $this->referenceColumn($column_name, $foreign_table, $foreign_column);
 
-		$column->getType()->nullable($nullable);
+		// The column type's own default when the caller passed no answer, which is what the
+		// parameter's default says too.
+		$column->getType()->nullable($nullable ?? false);
 
 		if ($callable) {
 			$callable($column);

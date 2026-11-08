@@ -489,7 +489,8 @@ final class PostgreSQLQueryGenerator extends SQLQueryGeneratorBase
 	protected function operatorFilterToExpression(Filter $filter): string
 	{
 		if (Operator::CONTAINS === $filter->getOperator()) {
-			$left  = $filter->getLeftOperand()->getValueForQuery();
+			// The SQL `NULL` for an operand with no value, on both sides: see the base generator.
+			$left  = $filter->getLeftOperand()->getValueForQuery() ?? 'NULL';
 			$right = $filter->getRightOperand()?->getValueForQuery();
 
 			return $this->getJsonContainsExpression($left, $right ?? 'NULL');

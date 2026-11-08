@@ -63,7 +63,7 @@ abstract class VirtualRelation implements VirtualRelationInterface
 			throw new DBALRuntimeException(
 				\sprintf(
 					'Virtual relation name "%s" is not allowed.',
-					$this->name
+					$name
 				)
 			);
 		}

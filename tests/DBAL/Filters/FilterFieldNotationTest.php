@@ -14,9 +14,13 @@ declare(strict_types=1);
 namespace Gobl\Tests\DBAL\Filters;
 
 use Gobl\DBAL\Exceptions\DBALRuntimeException;
+use Gobl\DBAL\Filters\Filter;
 use Gobl\DBAL\Filters\FilterFieldNotation;
+use Gobl\DBAL\Filters\Interfaces\FiltersScopeInterface;
+use Gobl\DBAL\Queries\Interfaces\QBInterface;
 use Gobl\Tests\BaseTestCase;
 use InvalidArgumentException;
+use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
@@ -27,6 +31,51 @@ use PHPUnit\Framework\Attributes\CoversClass;
 #[CoversClass(FilterFieldNotation::class)]
 final class FilterFieldNotationTest extends BaseTestCase
 {
+	// -------------------------------------------------------------------
+	// A notation with no query builder
+	// -------------------------------------------------------------------
+
+	/**
+	 * A field is resolved against a query builder, and a notation may be built without one: the
+	 * scope was then asked to resolve it with a null, which its interface does not take.
+	 */
+	public function testANotationWithNoQueryBuilderIsNotResolvedByItsScope(): void
+	{
+		$scope = new class implements FiltersScopeInterface {
+			public bool $asked = false;
+
+			#[Override]
+			public function assertFilterAllowed(Filter $filter, ?QBInterface $qb = null): void {}
+
+			#[Override]
+			public function tryResolveFieldNotation(FilterFieldNotation $fn, QBInterface $qb): void
+			{
+				$this->asked = true;
+			}
+
+			#[Override]
+			public function shouldAllowFiltersScope(FiltersScopeInterface $scope): bool
+			{
+				return true;
+			}
+		};
+
+		$ffn = FilterFieldNotation::fromString('users.email', null, $scope);
+
+		self::assertFalse($ffn->isResolved());
+		self::assertFalse($scope->asked, 'a scope cannot resolve a field without a query builder');
+	}
+
+	public function testAColumnIsNotReadFromANotationWithNoQueryBuilder(): void
+	{
+		$ffn = FilterFieldNotation::fromString('users.email');
+
+		$this->expectException(DBALRuntimeException::class);
+		$this->expectExceptionMessage('Field notation is not resolved to a specific column.');
+
+		$ffn->getResolvedColumnOrFail();
+	}
+
 	// -------------------------------------------------------------------
 	// fromString: field only
 	// -------------------------------------------------------------------

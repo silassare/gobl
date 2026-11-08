@@ -153,7 +153,7 @@ final class TypeMapTest extends BaseTestCase
 	{
 		$db     = self::getNewDbInstanceWithSchema($driver);
 		$t      = new TypeMap();
-		$result = $t->phpToDb(['foo' => 'bar', 'n' => 42], $db);
+		$result = self::present($t->phpToDb(['foo' => 'bar', 'n' => 42], $db));
 		self::assertJson($result);
 		self::assertSame(['foo' => 'bar', 'n' => 42], \json_decode($result, true));
 	}

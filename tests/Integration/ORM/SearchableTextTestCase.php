@@ -261,7 +261,7 @@ abstract class SearchableTextTestCase extends BaseTestCase
 		$id = $this->addArticle(['fr' => self::ACCENTED], self::ACCENTED);
 
 		$entity = $this->getArticle($id);
-		$patch  = new JsonPatch($entity->title);
+		$patch  = new JsonPatch(self::present($entity->title));
 		$patch->set('en', 'Social Économy');
 		$entity->title = $patch;
 		self::assertTrue($entity->save());
@@ -295,7 +295,7 @@ abstract class SearchableTextTestCase extends BaseTestCase
 		$id     = $this->addArticle(['fr' => self::ACCENTED], self::ACCENTED);
 		$entity = $this->getArticle($id);
 
-		$patch = new JsonPatch($entity->title);
+		$patch = new JsonPatch(self::present($entity->title));
 		$patch->set('en', 'Social Economy');
 
 		$this->expectException(ORMRuntimeException::class);
@@ -419,7 +419,7 @@ abstract class SearchableTextTestCase extends BaseTestCase
 	 */
 	private function storedRow(int $id): array
 	{
-		$sql  = 'SELECT * FROM ' . self::tableRef(static::$db) . ' WHERE article_id = ' . $id;
+		$sql  = 'SELECT * FROM ' . self::tableRef(self::present(static::$db)) . ' WHERE article_id = ' . $id;
 		$stmt = static::db()->execute($sql, []);
 
 		$row = $stmt->fetch(PDO::FETCH_ASSOC);

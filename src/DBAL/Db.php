@@ -379,17 +379,17 @@ abstract class Db implements RDBMSInterface
 
 		// we add constraints after
 		foreach ($built as $table_name => $table_options) {
-			$this->applyConstraints($this->tables[$table_name], $table_name, $table_options['constraints'] ?? []);
+			$this->applyConstraints($this->tableJustBuilt($table_name), $table_name, $table_options['constraints'] ?? []);
 		}
 
 		// we add indexes after constraints
 		foreach ($built as $table_name => $table_options) {
-			$this->applyIndexes($this->tables[$table_name], $table_name, $table_options['indexes'] ?? []);
+			$this->applyIndexes($this->tableJustBuilt($table_name), $table_name, $table_options['indexes'] ?? []);
 		}
 
 		// we could now add relations
 		foreach ($built as $table_name => $table_options) {
-			$this->applyRelations($this->tables[$table_name], $table_name, $table_options['relations'] ?? []);
+			$this->applyRelations($this->tableJustBuilt($table_name), $table_name, $table_options['relations'] ?? []);
 		}
 
 		return $this;
@@ -1561,5 +1561,23 @@ abstract class Db implements RDBMSInterface
 				);
 			}
 		}
+	}
+
+	/**
+	 * A table this load has just built, by its real name.
+	 *
+	 * The registry holds a null for a table that was declared and not built yet, so an entry reads
+	 * as nullable, and every name the loader passes here was built a few lines above. Not read
+	 * through {@see self::getTable()}: that resolves aliases and runs the lazy stages, which is not
+	 * something to start in the middle of a load.
+	 *
+	 * @throws DBALRuntimeException when the name was declared and never built
+	 */
+	private function tableJustBuilt(string $name): Table
+	{
+		return $this->tables[$name] ?? throw new DBALRuntimeException(\sprintf(
+			'The table "%s" was declared and never built.',
+			$name
+		));
 	}
 }

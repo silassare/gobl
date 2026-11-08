@@ -95,6 +95,11 @@ final class FiltersMultiScope implements FiltersScopeInterface
 
 		$dfn = $resolved->getFieldNotation();
 
+		// The column was resolved against a query builder of its own, and that is the one to
+		// resolve its notation against when the caller named none: a scope cannot resolve a field
+		// without one, and this method's parameter is optional.
+		$qb ??= $resolved->getQb();
+
 		foreach ($this->entries as $entry) {
 			$entry['scope']->tryResolveFieldNotation($dfn, $qb);
 

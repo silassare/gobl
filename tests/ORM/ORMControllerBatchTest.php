@@ -134,6 +134,8 @@ final class ORMControllerBatchTest extends BaseTestCase
 		$ctrl    = ORM::ctrl($clients);
 		$rel     = $clients->getRelation('accounts');
 
+		self::assertNotNull($rel);
+
 		$result = $ctrl->getAllRelativesBatch([], $rel);
 
 		self::assertSame([], $result, 'getAllRelativesBatch([]) must return []');
@@ -148,6 +150,8 @@ final class ORMControllerBatchTest extends BaseTestCase
 		$clients = $db->getTableOrFail('clients');
 		$ctrl    = ORM::ctrl($clients);
 		$rel     = $clients->getRelation('accounts');
+
+		self::assertNotNull($rel);
 
 		$result = $ctrl->countRelativesBatch([], $rel);
 

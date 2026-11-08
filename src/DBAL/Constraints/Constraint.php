@@ -99,8 +99,10 @@ abstract class Constraint implements ArrayCapableInterface, LockableInterface
 	 */
 	public static function normalizeName(string $name): string
 	{
-		$name = \preg_replace('~[^a-zA-Z0-9_]+~', '_', $name);
-		$name = \preg_replace('~_+~', '_', $name);
+		// Each replacement keeps its result when there is one: both patterns are literal and have
+		// no compilation to fail, and a name that went through neither is still a name to cut.
+		$name = \preg_replace('~[^a-zA-Z0-9_]+~', '_', $name) ?? $name;
+		$name = \preg_replace('~_+~', '_', $name) ?? $name;
 		$name = \trim($name, '_');
 
 		return \substr($name, 0, self::MAX_CONSTRAINT_NAME_LENGTH);

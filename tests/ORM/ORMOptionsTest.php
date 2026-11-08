@@ -249,10 +249,12 @@ final class ORMOptionsTest extends BaseTestCase
 			ORMOptions::RELATIONS_PARAM => ['accounts', 'currency', 'accounts'], // duplicate
 		]);
 
+		$relations = self::present($req->getRequestedRelations());
+
 		// Duplicates must be removed
-		self::assertCount(2, $req->getRequestedRelations());
-		self::assertContains('accounts', $req->getRequestedRelations());
-		self::assertContains('currency', $req->getRequestedRelations());
+		self::assertCount(2, $relations);
+		self::assertContains('accounts', $relations);
+		self::assertContains('currency', $relations);
 	}
 
 	/**
@@ -264,7 +266,7 @@ final class ORMOptionsTest extends BaseTestCase
 		$req->addRequestedRelation('currency');
 		$req->addRequestedRelation('accounts'); // duplicate
 
-		$relations = $req->getRequestedRelations();
+		$relations = self::present($req->getRequestedRelations());
 
 		self::assertCount(2, $relations);
 		self::assertContains('currency', $relations);
