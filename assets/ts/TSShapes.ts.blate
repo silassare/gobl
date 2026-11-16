@@ -8,6 +8,9 @@
 {@if gobl_time} * Time: {= gobl_time}
 {/if} */
 {/if}
+{@raw}
+import type { EntityRegistry } from '@oweb-io/schema';
+{/raw}
 {@each shape:name in shapes}import {='{'} {= shape.const}_ENTITY, {= shape.const}_SHAPE, {= shape.const}_WRITE_SHAPE {='}'} from './{= name}Shape';
 {/each}
 
@@ -20,9 +23,17 @@ export {='{'}
 /**
  * Every entity of this schema, by the name gobl knows it as: its morph type.
  *
- * Nothing imports this into a page. It is what a build reads -- a checker holding a definition to
- * what the tables really hold, an editor completing a column's name, a form generated for one --
- * and a page is handed the data and the view, never the structure behind them.
+ * What reads it is a build and the tools: a checker holding a definition to what the tables really
+ * hold, an editor completing a column's name, a form generated for one, a dashboard that lets a
+ * person work on the records themselves. A page that only draws data imports none of it -- not
+ * because any of it is a secret, since the generated entity classes carry the same column names
+ * already, but because a page is handed what it needs and the structure of every table is not that.
+ * Which is why these live in a directory of their own, with their own index, and nothing in the
+ * bundle every page imports reaches them.
+ *
+ * `satisfies` and not an annotation: the literal types stay, so a tool can see which entities exist
+ * and what each column is called, while a mapping that stopped being one `@oweb-io/schema` can read
+ * fails this file instead of surfacing where it is used.
  */
 export const ENTITY_SHAPES = {='{'}
 {@each shape:name in shapes}	'{= shape.name}': {='{'}
@@ -30,4 +41,4 @@ export const ENTITY_SHAPES = {='{'}
 		read: {= shape.const}_SHAPE,
 		write: {= shape.const}_WRITE_SHAPE,
 	{='}'},
-{/each}{='}'} as const;
+{/each}{='}'} as const satisfies EntityRegistry;

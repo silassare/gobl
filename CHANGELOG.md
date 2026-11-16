@@ -9,6 +9,15 @@
   **bytes** as `TypeString` counts them, bounds as text where a number would lose digits, an
   enum's cases, and a scale.
 
+  The properties are the **prefixed** column names (`account_label`), and so are the key, the label
+  and the keys of the type map: that is what `ORMEntity::toArray()` answers, what a form submits and
+  what a client's `$record` holds. The unprefixed name belongs to the generated entity class's
+  accessors and appears nowhere on the wire, so a shape keyed that way would have refused every
+  property of every real row. A **sensitive** column is left out of the read shape, since reading
+  one answers the redacted value its declaration names and not what it holds; writing one is
+  ordinary, so it stays in the write shape. That is the one place the two halves hold different
+  columns rather than different rules about the same ones.
+
   A type Gobl does not know is mapped by **what it is stored as**: every custom type has a base
   type among the seven `TypeUtils::getBaseTypes()` allows, which is already checked when the type is
   built and already carries the constraints, because that is what validates the value. So nothing
@@ -17,8 +26,11 @@
 
   `CSGeneratorTS::generateShapes()` writes them to `gobl/db/shapes/`, **off unless asked**, because
   the files import a `Shape` type from the client's schema package and a project without it would be
-  handed TypeScript it cannot compile. Nothing in the generated bundle imports them, so what reads a
-  table's structure is a build and never a served page.
+  handed TypeScript it cannot compile. Their own index declares every entity of the schema as one
+  registry, held to that package's `EntityRegistry` with `satisfies`, so a mapping the other side can
+  no longer read fails the generated file instead of surfacing where it is used, while the literal
+  entity names survive for a tool. Nothing in the generated bundle imports any of it: a page is
+  handed the rows and the view, and the structure of every table is not that.
 
   Two things a date column has to be honest about here: one with a `format` other than `timestamp`
   is read back as that text (`dbToPhp()`), so it is a string and not a date; and a pattern carrying

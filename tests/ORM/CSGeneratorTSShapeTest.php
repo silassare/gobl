@@ -83,6 +83,15 @@ final class CSGeneratorTSShapeTest extends BaseTestCase
 		self::assertStringContainsString("'accounts': {", $index);
 		self::assertStringContainsString('read: ACCOUNT_SHAPE,', $index);
 		self::assertStringContainsString('write: ACCOUNT_WRITE_SHAPE,', $index);
+
+		// Held to the type the other side reads it as, so a mapping this file can no longer
+		// satisfy stops the build that generated it rather than the code that uses it. `satisfies`
+		// and not an annotation, so the literal types of the entity names survive for a tool.
+		self::assertStringContainsString(
+			"import type { EntityRegistry } from '@oweb-io/schema';",
+			$index
+		);
+		self::assertStringContainsString('} as const satisfies EntityRegistry;', $index);
 	}
 
 	/**
