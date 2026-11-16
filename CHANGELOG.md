@@ -1,5 +1,32 @@
 ### Unreleased (3.0.x-dev)
 
+- **A table can answer what its values are, as a shape**, and the TypeScript generator can write
+  those shapes beside the entities it already writes. `Gobl\ORM\ORMShape` answers a table's
+  **read** and **write** shapes -- reading a row and writing one are different contracts, and they
+  differ exactly where the generated accessors differ -- with its morph type, its primary key, the
+  column its meta names as a label (`shape.label`) and each column's own type name. A column's
+  constraints travel with it: a pattern as JavaScript reads one, a list of values, lengths in
+  **bytes** as `TypeString` counts them, bounds as text where a number would lose digits, an
+  enum's cases, and a scale.
+
+  A type Gobl does not know is mapped by **what it is stored as**: every custom type has a base
+  type among the seven `TypeUtils::getBaseTypes()` allows, which is already checked when the type is
+  built and already carries the constraints, because that is what validates the value. So nothing
+  is registered and there is no second list to keep -- the type's own name travels beside the
+  shape, for whoever draws a control for it or makes a plausible value of it.
+
+  `CSGeneratorTS::generateShapes()` writes them to `gobl/db/shapes/`, **off unless asked**, because
+  the files import a `Shape` type from the client's schema package and a project without it would be
+  handed TypeScript it cannot compile. Nothing in the generated bundle imports them, so what reads a
+  table's structure is a build and never a served page.
+
+  Two things a date column has to be honest about here: one with a `format` other than `timestamp`
+  is read back as that text (`dbToPhp()`), so it is a string and not a date; and a pattern carrying
+  a flag is not carried at all, since a shape's pattern is a source read in Unicode mode and
+  JavaScript has no inline flags -- the shape says in prose that the server still checks it.
+
+  Needs `silassare/php-utils` with `PortablePattern::toJavaScript()`.
+
 - **A virtual relation declared with a name the ORM keeps for itself said nothing about it.** The
   refusal read the name back from a property the constructor sets a few lines later, so what a
   developer got was `Typed property VirtualRelation::$name must not be accessed before

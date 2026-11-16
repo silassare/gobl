@@ -1,0 +1,519 @@
+<?php
+
+/**
+ * Copyright (c) Emile Silas Sare.
+ *
+ * This file is part of the Gobl package.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+namespace Gobl\ORM;
+
+use Gobl\DBAL\Column;
+use Gobl\DBAL\Constraints\PrimaryKey;
+use Gobl\DBAL\Table;
+use Gobl\DBAL\Types\Interfaces\TypeInterface;
+use Gobl\DBAL\Types\TypeBigint;
+use Gobl\DBAL\Types\TypeBool;
+use Gobl\DBAL\Types\TypeDate;
+use Gobl\DBAL\Types\TypeDecimal;
+use Gobl\DBAL\Types\TypeEnum;
+use Gobl\DBAL\Types\TypeFloat;
+use Gobl\DBAL\Types\TypeInt;
+use Gobl\DBAL\Types\TypeJson;
+use Gobl\DBAL\Types\TypeList;
+use Gobl\DBAL\Types\TypeMap;
+use Gobl\DBAL\Types\TypeString;
+use InvalidArgumentException;
+use PHPUtils\PortablePattern;
+
+/**
+ * What a table holds, as a shape: the declaration a client checks a value against, generates a form
+ * from, and wires one step of a graph to another with.
+ *
+ * A shape is JSON, so this answers arrays and nothing else: what reads them is a TypeScript
+ * package, a template, a seeder and whatever comes next, and a value object in the middle would
+ * only have to be unwrapped by each of them.
+ *
+ * **Two shapes, not one.** Reading a row and writing one are not the same contract: a saved row
+ * carries every column it was asked for, while creating one may leave out whatever the database or
+ * the type fills in, and an auto-incremented column is nothing until it is saved. So a table
+ * answers a read shape and a write shape, and they differ exactly where the generated entity's own
+ * accessors differ ({@see Generators\CSGenerator::getReadTypeHintString()} and its write twin).
+ * The read one describes a **full** row: a projection that selected three columns is a subset of
+ * it, which is a different and narrower shape.
+ *
+ * **A type this does not know is mapped by what it is stored as.** A project declares its own
+ * column types (OZone has `email`, `phone`, `password`, ... and says a project may add more), and
+ * every one of them has a base type among the seven {@see Types\Utils\TypeUtils::getBaseTypes()}
+ * allows -- which is already checked when the type is built, and which already carries the
+ * constraints, since that is what validates the value. So there is nothing to register and no
+ * second list to keep: the base answers the shape, and the type's own name travels beside it, for
+ * the form control and the seed provider that know what an `email` is.
+ */
+final class ORMShape
+{
+	/** Reading a row: every column it holds, as the API answers them. */
+	public const string SIDE_READ = 'read';
+
+	/** Writing one: what creating or updating it takes. */
+	public const string SIDE_WRITE = 'write';
+
+	/**
+	 * The table meta naming the column whose value stands for a record: what a picker shows.
+	 *
+	 * Read where it is declared and left out where it is not, rather than guessed from a column
+	 * called `name` or `label`: a guess that is wrong shows a list of the wrong thing, and a table
+	 * whose records have no one readable column is ordinary.
+	 */
+	public const string META_LABEL = 'shape.label';
+
+	/** The column meta a prop's prose comes from, which is where a schema's documentation lives. */
+	public const string META_DOC = 'api.doc.description';
+
+	/**
+	 * Everything a client needs of one table: its name, what identifies a record, and the two shapes.
+	 *
+	 * @param Table $table            the table
+	 * @param bool  $ignore_private   skip private columns, as the generators do by default
+	 * @param bool  $ignore_sensitive skip sensitive ones
+	 *
+	 * @return array{
+	 *     name: string,
+	 *     table: string,
+	 *     prefix: string,
+	 *     key: list<string>,
+	 *     label: null|string,
+	 *     types: array<string, string>,
+	 *     read: array<string, mixed>,
+	 *     write: array<string, mixed>,
+	 * }
+	 */
+	public static function ofTable(
+		Table $table,
+		bool $ignore_private = true,
+		bool $ignore_sensitive = false
+	): array {
+		$columns = [];
+
+		foreach ($table->getColumns() as $column) {
+			if ($ignore_private && $column->isPrivate()) {
+				continue;
+			}
+
+			if ($ignore_sensitive && $column->isSensitive()) {
+				continue;
+			}
+
+			$columns[] = $column;
+		}
+
+		$label = $table->getMeta()
+			->get(self::META_LABEL);
+		$label = \is_string($label) && $table->hasColumn($label)
+			? $table->getColumnOrFail($label)
+				->getName()
+			: null;
+
+		$types = [];
+
+		foreach ($columns as $column) {
+			$types[$column->getName()] = $column->getType()
+				->getName();
+		}
+
+		// The prefix every column of the table shares, which is what the API answers a row with
+		// (`account_id`), while the shape's own properties are the unprefixed names the generated
+		// entity's accessors use. Read off a column, as the generator reads it: the table's own
+		// prefix is the one on its name.
+		$first = $columns[0] ?? null;
+
+		return [
+			// The morph type, which gobl keeps unique across the database (it refuses one another
+			// table uses, and one that collides with a table's name), and already looks up.
+			'name'   => $table->getMorphType(),
+			'table'  => $table->getName(),
+			'prefix' => null === $first ? '' : $first->getPrefix(),
+			'key'    => self::keyOf($table),
+			'label'  => $label,
+			'types'  => $types,
+			'read'   => self::objectOf($columns, self::SIDE_READ),
+			'write'  => self::objectOf($columns, self::SIDE_WRITE),
+		];
+	}
+
+	/**
+	 * One column's shape, for one half of its contract.
+	 *
+	 * @return array<string, mixed>
+	 */
+	public static function ofColumn(Column $column, string $side): array
+	{
+		$type  = $column->getType();
+		$shape = self::ofType($type, $side);
+
+		// An auto-incremented column is given on write or left to the database, and a saved row
+		// has it: the same rule the generated accessors are written with.
+		if ($type->isNullable() || (self::SIDE_WRITE === $side && $type->isAutoIncremented())) {
+			$shape['nullable'] = true;
+		}
+
+		$doc = $column->getMeta()
+			->get(self::META_DOC);
+
+		if (\is_string($doc) && '' !== $doc) {
+			$shape['doc'] = $doc;
+		}
+
+		return $shape;
+	}
+
+	/**
+	 * What a value of a type is, without what only a column knows (nullable, its prose).
+	 *
+	 * @return array<string, mixed>
+	 */
+	public static function ofType(TypeInterface $type, string $side): array
+	{
+		switch ($type->getName()) {
+			case TypeString::NAME:
+				return self::ofString($type);
+
+			case TypeBigint::NAME:
+				return self::ofExact($type, 0);
+
+			case TypeDecimal::NAME:
+				$scale = $type->getOption('scale');
+
+				return self::ofExact($type, \is_int($scale) ? $scale : null);
+
+			case TypeInt::NAME:
+				return self::ofNumber($type, true);
+
+			case TypeFloat::NAME:
+				return self::ofNumber($type, false);
+
+			case TypeBool::NAME:
+				return ['t' => 'boolean'];
+
+			case TypeDate::NAME:
+				return self::ofDate($type);
+
+			case TypeEnum::NAME:
+				return self::ofEnum($type);
+
+			case TypeList::NAME:
+				return [
+					't'     => 'array',
+					'items' => self::ofUniversal(
+						$type instanceof TypeList ? $type->getListOfUniversalType() : null
+					),
+				];
+
+			case TypeMap::NAME:
+				return [
+					't'      => 'record',
+					'values' => self::ofUniversal(
+						$type instanceof TypeMap ? $type->getMapOfUniversalType() : null
+					),
+				];
+
+			case TypeJson::NAME:
+				return self::ofUniversal(
+					$type instanceof TypeJson && null === $type->getJsonOfClass()
+						? $type->getJsonOfUniversalType()
+						: null
+				);
+
+			default:
+				break;
+		}
+
+		$base = $type->getBaseType();
+
+		// A type whose base is itself is one of gobl's own, and every one of those is named above:
+		// so this is a base type a project subclassed, and what it is stored as is all that is
+		// known about it here.
+		return $base === $type ? ['t' => 'json'] : self::ofType($base, $side);
+	}
+
+	/**
+	 * The columns of a primary key, unprefixed, or none.
+	 *
+	 * @return list<string>
+	 */
+	private static function keyOf(Table $table): array
+	{
+		if (!$table->hasPrimaryKeyConstraint()) {
+			return [];
+		}
+
+		/** @var PrimaryKey $pk */
+		$pk   = $table->getPrimaryKeyConstraint();
+		$list = [];
+
+		foreach ($pk->getColumns() as $name) {
+			$list[] = $table->getColumnOrFail($name)
+				->getName();
+		}
+
+		return $list;
+	}
+
+	/**
+	 * An object of those columns, by their **unprefixed** names, with what one half of the
+	 * contract requires.
+	 *
+	 * @param list<Column> $columns
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function objectOf(array $columns, string $side): array
+	{
+		$props    = [];
+		$required = [];
+
+		foreach ($columns as $column) {
+			$name         = $column->getName();
+			$type         = $column->getType();
+			$props[$name] = self::ofColumn($column, $side);
+
+			// Reading, every column of a row is there. Writing, what the type or the database
+			// fills in may be left out -- which `hasDefault()` answers for an `auto` date too,
+			// since it is its own default.
+			if (
+				self::SIDE_READ === $side
+				|| (!$type->isNullable() && !$type->hasDefault() && !$type->isAutoIncremented())
+			) {
+				$required[] = $name;
+			}
+		}
+
+		return ['t' => 'object', 'props' => $props, 'required' => $required];
+	}
+
+	/**
+	 * Text: its length in bytes, whether it is cut rather than refused, its pattern and its list.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function ofString(TypeInterface $type): array
+	{
+		$shape = ['t' => 'string'];
+		$min   = $type->getOption('min');
+		$max   = $type->getOption('max');
+		$one_of = $type->getOption('one_of');
+
+		if (\is_array($one_of) && [] !== $one_of) {
+			$shape['values'] = \array_values($one_of);
+		}
+
+		$pattern = $type->getOption('pattern');
+
+		if (\is_string($pattern) && '' !== $pattern) {
+			try {
+				[$source, $flags] = PortablePattern::toJavaScript($pattern);
+
+				// A pattern's flags have nowhere to go: a shape's pattern is a source read in
+				// Unicode mode and nothing else, and JavaScript has no inline flags. So a flagged
+				// pattern is not carried, and the shape says what still checks it rather than
+				// claiming a rule it would not apply.
+				if ('' === $flags) {
+					$shape['pattern'] = $source;
+				} else {
+					$shape['doc'] = \sprintf(
+						'The server also checks this against the pattern %s.',
+						$pattern
+					);
+				}
+			} catch (InvalidArgumentException) {
+				// Declaring one already refuses a pattern that is not portable, so this is a type
+				// built another way: nothing is claimed about it.
+				$shape['doc'] = 'The server also checks this against a pattern.';
+			}
+		}
+
+		if (\is_int($min)) {
+			$shape['min'] = $min;
+		}
+
+		if (\is_int($max)) {
+			$shape['max'] = $max;
+		}
+
+		if ($type->getOption('truncate')) {
+			$shape['truncate'] = true;
+		}
+
+		return $shape;
+	}
+
+	/**
+	 * A number held exactly, as a bigint or a decimal column travels: its scale and its bounds.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function ofExact(TypeInterface $type, ?int $scale): array
+	{
+		$shape = ['t' => 'exact'];
+
+		if (null !== $scale) {
+			$shape['scale'] = $scale;
+		}
+
+		$min = $type->getOption('min');
+		$max = $type->getOption('max');
+
+		// Unsigned is a bound and not a flag of its own here: the column refuses a negative value,
+		// which `min` says in the one way the language has.
+		if (null === $min && $type->getOption('unsigned')) {
+			$min = '0';
+		}
+
+		if (null !== $min) {
+			$shape['min'] = (string) $min;
+		}
+
+		if (null !== $max) {
+			$shape['max'] = (string) $max;
+		}
+
+		return $shape;
+	}
+
+	/**
+	 * A number a JSON number holds: an `int` or a `float` column.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function ofNumber(TypeInterface $type, bool $integer): array
+	{
+		$shape = ['t' => 'number'];
+
+		if ($integer) {
+			$shape['integer'] = true;
+		}
+
+		$min = $type->getOption('min');
+		$max = $type->getOption('max');
+
+		if (null === $min && $type->getOption('unsigned')) {
+			$min = 0;
+		}
+
+		if (null !== $min) {
+			$shape['min'] = $integer ? (int) $min : (float) $min;
+		}
+
+		if (null !== $max) {
+			$shape['max'] = $integer ? (int) $max : (float) $max;
+		}
+
+		return $shape;
+	}
+
+	/**
+	 * A moment: the timestamp the column stores, with the bounds as timestamps too.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function ofDate(TypeInterface $type): array
+	{
+		$format = $type->getOption('format', TypeDate::FORMAT_DEFAULT);
+
+		// A column that asked to be read back formatted answers that text and not a timestamp
+		// ({@see TypeDate::dbToPhp()}), so it is text here. The kind means a timestamp, and
+		// saying it of a value that reads `2024-01-15` would be a lie about both halves.
+		if (TypeDate::FORMAT_TIMESTAMP !== $format) {
+			return [
+				't'   => 'string',
+				'doc' => \sprintf('A date, as the column asks to be read: %s.', (string) $format),
+			];
+		}
+
+		$micros = $type instanceof TypeDate && $type->isMicroseconds();
+		$shape  = ['t' => 'date'];
+
+		if ($micros) {
+			$shape['precision'] = 'microseconds';
+		}
+
+		// The declared bounds are whatever was written (`'2024-01-01'`, a timestamp); the base
+		// type holds what they parsed to, which is what a timestamp is compared against.
+		$base = $type->getBaseType();
+		$min  = $base->getOption('min');
+		$max  = $base->getOption('max');
+
+		if (null !== $min) {
+			$shape['min'] = $micros ? (float) $min : (int) $min;
+		}
+
+		if (null !== $max) {
+			$shape['max'] = $micros ? (float) $max : (int) $max;
+		}
+
+		return $shape;
+	}
+
+	/**
+	 * An enum: the values of its cases, which the type keeps whether or not its class is still there.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function ofEnum(TypeInterface $type): array
+	{
+		$cases = $type->getOption(TypeEnum::OPTION_ENUM_CASES);
+
+		if (!\is_array($cases) || [] === $cases) {
+			return ['t' => 'string'];
+		}
+
+		$values = \array_values($cases);
+
+		return 'int' === $type->getOption(TypeEnum::OPTION_ENUM_BACKING)
+			? ['t' => 'number', 'integer' => true, 'values' => \array_map('intval', $values)]
+			: ['t' => 'string', 'values' => \array_map('strval', $values)];
+	}
+
+	/**
+	 * What one element of a list, one value of a map or a whole json column is.
+	 *
+	 * A universal type says what the far side **accepts**, and for a big number that is the text
+	 * or the number alike ({@see ORMUniversalType::isValidValue()}), unlike a column of its own
+	 * where the wire form is settled. So that one is written as the alternative it really is.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function ofUniversal(?ORMUniversalType $of): array
+	{
+		if (null === $of) {
+			return ['t' => 'json'];
+		}
+
+		return match ($of) {
+			ORMUniversalType::STRING => ['t' => 'string'],
+			ORMUniversalType::INT    => ['t' => 'number', 'integer' => true],
+			ORMUniversalType::FLOAT  => ['t' => 'number'],
+			ORMUniversalType::BOOL   => ['t' => 'boolean'],
+			ORMUniversalType::BIGINT => [
+				't'        => 'oneOf',
+				'of'       => [['t' => 'exact', 'scale' => 0], ['t' => 'number', 'integer' => true]],
+				'expected' => 'a whole number',
+			],
+			ORMUniversalType::DECIMAL => [
+				't'        => 'oneOf',
+				'of'       => [['t' => 'exact'], ['t' => 'number']],
+				'expected' => 'an exact number',
+			],
+			ORMUniversalType::LIST => ['t' => 'array', 'items' => ['t' => 'json']],
+			ORMUniversalType::MAP  => ['t' => 'record', 'values' => ['t' => 'json']],
+			ORMUniversalType::NULL, ORMUniversalType::ANY, ORMUniversalType::UNKNOWN => [
+				't' => 'json',
+			],
+		};
+	}
+}

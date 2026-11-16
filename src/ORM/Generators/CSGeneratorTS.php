@@ -16,6 +16,7 @@ namespace Gobl\ORM\Generators;
 use Exception;
 use Gobl\DBAL\Table;
 use Gobl\Gobl;
+use Gobl\ORM\ORMShape;
 use Gobl\ORM\ORMTypeHint;
 use Gobl\ORM\ORMUniversalType;
 use OLIUP\CG\PHPEnum;
@@ -27,6 +28,29 @@ use Override;
 final class CSGeneratorTS extends CSGenerator
 {
 	protected static bool $templates_registered = false;
+
+	/**
+	 * Whether a shape is written beside each entity ({@see ORMShape}).
+	 *
+	 * Off unless asked, because the files it writes import a type from `@oweb-io/schema`: a
+	 * project that does not have that package would be handed TypeScript it cannot compile, and
+	 * the entities themselves have never needed it.
+	 */
+	protected bool $generate_shapes = false;
+
+	/**
+	 * Writes a shape beside each generated entity: what a row of it is, what writing one takes,
+	 * and what identifies one.
+	 *
+	 * They go in their own directory and nothing in the bundle imports them, so what reads a
+	 * table's structure is a build and never a page.
+	 */
+	public function generateShapes(bool $generate = true): static
+	{
+		$this->generate_shapes = $generate;
+
+		return $this;
+	}
 
 	/**
 	 * @throws Exception
@@ -42,6 +66,8 @@ final class CSGeneratorTS extends CSGenerator
 				'ts.enums'             => 'ts/TSEnums.ts.blate',
 				'ts.entity.base.class' => 'ts/MyEntityBase.ts.blate',
 				'ts.entity.class'      => 'ts/MyEntity.ts.blate',
+				'ts.entity.shape'      => 'ts/MyEntityShape.ts.blate',
+				'ts.shapes'            => 'ts/TSShapes.ts.blate',
 			]);
 		}
 
@@ -60,6 +86,12 @@ final class CSGeneratorTS extends CSGenerator
 		$ts_enums_tpl             = Gobl::getTemplateCompiler('ts.enums');
 		$bundle_inject            = [];
 		$time                     = Gobl::getGeneratedAtDate();
+		$shapes_inject            = [];
+		$path_shapes              = $path_db . $ds . 'shapes';
+
+		if ($this->generate_shapes) {
+			$fs->mkdir($path_shapes);
+		}
 
 		foreach ($tables as $table) {
 			if ($this->ignore_private_tables && $table->isPrivate()) {
@@ -90,6 +122,19 @@ final class CSGeneratorTS extends CSGenerator
 			$bundle_inject['rows'][$entity_class]     = $entity_base_class;
 			$this->writeFile($path_db_base . $ds . $entity_base_class . '.ts', $entity_base_content);
 			$this->writeFile($path_db . $ds . $entity_class . '.ts', $entity_content, false);
+
+			if (!$this->generate_shapes) {
+				continue;
+			}
+
+			$shape                           = $this->describeTableShape($table);
+			$inject['shape']                 = $shape;
+			$shapes_inject[$entity_class]    = $shape;
+			$this->writeFile(
+				$path_shapes . $ds . $entity_class . 'Shape.ts',
+				Gobl::getTemplateCompiler('ts.entity.shape')
+					->runGet($inject)
+			);
 		}
 
 		$bundle_inject['gobl_header']  = $header;
@@ -99,6 +144,18 @@ final class CSGeneratorTS extends CSGenerator
 
 		$this->writeFile($path_gobl . $ds . 'enums.ts', $ts_enums_tpl->runGet($bundle_inject));
 		$this->writeFile($path_gobl . $ds . 'index.ts', $ts_bundle_tpl->runGet($bundle_inject));
+
+		if ([] !== $shapes_inject) {
+			$shapes_bundle = $bundle_inject;
+
+			$shapes_bundle['shapes'] = $shapes_inject;
+
+			$this->writeFile(
+				$path_shapes . $ds . 'index.ts',
+				Gobl::getTemplateCompiler('ts.shapes')
+					->runGet($shapes_bundle)
+			);
+		}
 
 		return $this;
 	}
@@ -145,6 +202,56 @@ final class CSGeneratorTS extends CSGenerator
 		}
 
 		return \implode('|', $ts_types);
+	}
+
+	/**
+	 * A table's shapes, written out as the TypeScript the template prints.
+	 *
+	 * A shape **is** JSON, and JSON is a TypeScript object literal: there is nothing to translate,
+	 * only to indent. So the mapping has one owner ({@see ORMShape}) and this is the printer.
+	 *
+	 * @return array{const: string, name: string, read: string, write: string, entity: string}
+	 */
+	private function describeTableShape(Table $table): array
+	{
+		$described = ORMShape::ofTable(
+			$table,
+			$this->ignore_private_columns,
+			$this->ignore_sensitive_columns
+		);
+
+		$entity = $described;
+
+		unset($entity['read'], $entity['write']);
+
+		return [
+			// `ACCOUNT`: the singular name the entity class is itself built from
+			// ({@see ORMClassKind::ENTITY}), so the two always agree.
+			'const'  => \strtoupper($table->getSingularName()),
+			'name'   => $described['name'],
+			'read'   => self::toTSLiteral($described['read']),
+			'write'  => self::toTSLiteral($described['write']),
+			'entity' => self::toTSLiteral($entity),
+		];
+	}
+
+	/**
+	 * A JSON-ready value as a TypeScript literal, indented with tabs as the generated files are.
+	 */
+	private static function toTSLiteral(array $value): string
+	{
+		$written = \json_encode(
+			$value,
+			\JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE | \JSON_THROW_ON_ERROR
+		);
+
+		// `json_encode()` indents with four spaces and the generated TypeScript uses tabs; only the
+		// indent is touched, never four spaces inside a value.
+		return (string) \preg_replace_callback(
+			'~^(?: {4})+~m',
+			static fn (array $m): string => \str_repeat("\t", \intdiv(\strlen($m[0]), 4)),
+			$written
+		);
 	}
 
 	/**

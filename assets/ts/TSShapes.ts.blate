@@ -1,0 +1,33 @@
+{@if $length(gobl_header)}{= gobl_header}{:else}
+/**
+ * Auto generated file
+ *
+ * WARNING: please don't edit.
+ *
+ * Proudly With: {= gobl_version}
+{@if gobl_time} * Time: {= gobl_time}
+{/if} */
+{/if}
+{@each shape:name in shapes}import {='{'} {= shape.const}_ENTITY, {= shape.const}_SHAPE, {= shape.const}_WRITE_SHAPE {='}'} from './{= name}Shape';
+{/each}
+
+export {='{'}
+{@each shape:_ in shapes}	{= shape.const}_ENTITY,
+	{= shape.const}_SHAPE,
+	{= shape.const}_WRITE_SHAPE,
+{/each}{='}'};
+
+/**
+ * Every entity of this schema, by the name gobl knows it as: its morph type.
+ *
+ * Nothing imports this into a page. It is what a build reads -- a checker holding a definition to
+ * what the tables really hold, an editor completing a column's name, a form generated for one --
+ * and a page is handed the data and the view, never the structure behind them.
+ */
+export const ENTITY_SHAPES = {='{'}
+{@each shape:name in shapes}	'{= shape.name}': {='{'}
+		entity: {= shape.const}_ENTITY,
+		read: {= shape.const}_SHAPE,
+		write: {= shape.const}_WRITE_SHAPE,
+	{='}'},
+{/each}{='}'} as const;
