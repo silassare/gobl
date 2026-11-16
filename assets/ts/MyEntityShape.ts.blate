@@ -13,28 +13,31 @@ import type { Shape } from '@oweb-io/schema';
 {/raw}
 
 /**
- * What a row of `{= class.entity}` is, as the API answers one: every column, by the name the entity's
- * own accessors use rather than the prefixed one a row carries.
+ * What a row of `{= class.entity}` is, as the API answers one: every column it answers, by the
+ * prefixed name a row carries it under.
  *
  * A **full** row. A query that selected some of the columns answers a subset of this, which is a
- * narrower shape and not this one.
+ * narrower shape and not this one. A sensitive column is not here at all: reading one answers the
+ * redacted value its declaration names, and not what it holds.
  */
 export const {= shape.const}_SHAPE: Shape = {= shape.read};
 
 /**
  * What creating or updating a `{= class.entity}` takes.
  *
- * The same columns, the laxer half: what the type or the database fills in may be left out, an
- * auto-incremented key is nothing until it is saved, and a value that is read as text may be
- * written as a number where the far side converts.
+ * The laxer half: what the type or the database fills in may be left out, an auto-incremented key
+ * is nothing until it is saved, and a value that is read as text may be written as a number where
+ * the far side converts. A sensitive column is writable and so it is here, which is the one place
+ * the two halves hold different columns rather than different rules about the same ones.
  */
 export const {= shape.const}_WRITE_SHAPE: Shape = {= shape.write};
 
 /**
  * What identifies a `{= class.entity}`, what stands for one, and what each of its columns is.
  *
- * `name` is the morph type, unique across the database. `types` names each column's gobl type, for
- * whoever draws a control for it or makes a plausible value of it: a `string` and an `email` have
- * the same shape and are not the same thing.
+ * `name` is the morph type, unique across the database. `key`, `label` and the keys of `types` are
+ * the prefixed names, as the shapes are, so each of them reads straight off a row. `types` names
+ * each column's gobl type, for whoever draws a control for it or makes a plausible value of it: a
+ * `string` and an `email` have the same shape and are not the same thing.
  */
 export const {= shape.const}_ENTITY = {= shape.entity} as const;

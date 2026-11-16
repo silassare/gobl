@@ -45,7 +45,14 @@ use PHPUtils\PortablePattern;
  * answers a read shape and a write shape, and they differ exactly where the generated entity's own
  * accessors differ ({@see Generators\CSGenerator::getReadTypeHintString()} and its write twin).
  * The read one describes a **full** row: a projection that selected three columns is a subset of
- * it, which is a different and narrower shape.
+ * it, which is a different and narrower shape. The one place the two hold different **columns** and
+ * not different rules about the same ones is a sensitive column: reading it answers the redacted
+ * value its declaration names, so the read half leaves it out, while writing it is ordinary.
+ *
+ * **Keyed as a row is keyed.** The properties are the prefixed column names (`account_label`),
+ * because a REST answer, a form submission and a definition's `$record` all carry them that way.
+ * The unprefixed name belongs to the generated entity class's accessors and appears nowhere on the
+ * wire; the prefix travels beside the shape for whoever wants the short name.
  *
  * **A type this does not know is mapped by what it is stored as.** A project declares its own
  * column types (OZone has `email`, `phone`, `password`, ... and says a project may add more), and
@@ -80,7 +87,9 @@ final class ORMShape
 	 *
 	 * @param Table $table            the table
 	 * @param bool  $ignore_private   skip private columns, as the generators do by default
-	 * @param bool  $ignore_sensitive skip sensitive ones
+	 * @param bool  $ignore_sensitive skip sensitive ones on **both** halves; a sensitive column is
+	 *                                left out of the read half either way, since reading one
+	 *                                answers its redacted value and not what it holds
 	 *
 	 * @return array{
 	 *     name: string,
@@ -112,24 +121,26 @@ final class ORMShape
 			$columns[] = $column;
 		}
 
+		// The column a record is shown as, by the same name a row carries it under, so that whoever
+		// draws a picker reads it off a row without knowing the prefix. The meta names the column as
+		// the schema declares it, which is the unprefixed name a developer writes.
 		$label = $table->getMeta()
 			->get(self::META_LABEL);
 		$label = \is_string($label) && $table->hasColumn($label)
 			? $table->getColumnOrFail($label)
-				->getName()
+				->getFullName()
 			: null;
 
 		$types = [];
 
 		foreach ($columns as $column) {
-			$types[$column->getName()] = $column->getType()
+			$types[$column->getFullName()] = $column->getType()
 				->getName();
 		}
 
-		// The prefix every column of the table shares, which is what the API answers a row with
-		// (`account_id`), while the shape's own properties are the unprefixed names the generated
-		// entity's accessors use. Read off a column, as the generator reads it: the table's own
-		// prefix is the one on its name.
+		// The prefix every column of the table shares, carried beside the shape for whoever wants
+		// the short name of a property. Read off a column, as the generator reads it: the table's
+		// own prefix is the one on its name, which is a different thing.
 		$first = $columns[0] ?? null;
 
 		return [
@@ -242,7 +253,7 @@ final class ORMShape
 	}
 
 	/**
-	 * The columns of a primary key, unprefixed, or none.
+	 * The columns of a primary key, by the name a row carries them under, or none.
 	 *
 	 * @return list<string>
 	 */
@@ -258,15 +269,20 @@ final class ORMShape
 
 		foreach ($pk->getColumns() as $name) {
 			$list[] = $table->getColumnOrFail($name)
-				->getName();
+				->getFullName();
 		}
 
 		return $list;
 	}
 
 	/**
-	 * An object of those columns, by their **unprefixed** names, with what one half of the
+	 * An object of those columns, by the names a row carries them under, with what one half of the
 	 * contract requires.
+	 *
+	 * The names are the **prefixed** ones (`account_label`), because that is what a REST answer, a
+	 * form submission and a definition's `$record` hold -- the unprefixed name is the generated
+	 * entity class's accessor and nothing on the wire. A shape keyed the other way would refuse
+	 * every property of every real row.
 	 *
 	 * @param list<Column> $columns
 	 *
@@ -278,8 +294,17 @@ final class ORMShape
 		$required = [];
 
 		foreach ($columns as $column) {
-			$name         = $column->getName();
-			$type         = $column->getType();
+			$type = $column->getType();
+
+			// Reading a sensitive column answers the redacted value its declaration names, which is
+			// nothing by default: so there is nothing truthful for the read half to say about it,
+			// and a shape describing what it holds would be refused by every row that carries it.
+			// Writing it is ordinary, and stays.
+			if (self::SIDE_READ === $side && $column->isSensitive()) {
+				continue;
+			}
+
+			$name         = $column->getFullName();
 			$props[$name] = self::ofColumn($column, $side);
 
 			// Reading, every column of a row is there. Writing, what the type or the database

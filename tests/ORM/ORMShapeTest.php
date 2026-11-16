@@ -53,7 +53,8 @@ final class ORMShapeTest extends BaseTestCase
 		self::assertSame('accounts', $described['table']);
 		// The prefix a row's keys carry, while the shape's properties are the unprefixed names.
 		self::assertSame('account', $described['prefix']);
-		self::assertSame(['id'], $described['key']);
+		// Prefixed, as a row carries them: the key reads straight off one.
+		self::assertSame(['account_id'], $described['key']);
 		self::assertNull($described['label']);
 		self::assertSame('object', $described['read']['t']);
 		self::assertSame('object', $described['write']['t']);
@@ -70,20 +71,23 @@ final class ORMShapeTest extends BaseTestCase
 		);
 
 		self::assertSame([
-			'id',
-			'client_id',
-			'label',
-			'balance',
-			'currency_code',
-			'data',
-			'created_at',
-			'updated_at',
-			'valid',
+			'account_id',
+			'account_client_id',
+			'account_label',
+			'account_balance',
+			'account_currency_code',
+			'account_data',
+			'account_created_at',
+			'account_updated_at',
+			'account_valid',
 		], $described['read']['required']);
 
 		// Left out: the key the database gives, the decimal and the boolean with a default, the
 		// map with one, and the two `auto` dates -- which are their own default.
-		self::assertSame(['client_id', 'label', 'currency_code'], $described['write']['required']);
+		self::assertSame(
+			['account_client_id', 'account_label', 'account_currency_code'],
+			$described['write']['required']
+		);
 	}
 
 	public function testAnAutoIncrementedKeyIsNothingUntilItIsSaved(): void
@@ -93,8 +97,8 @@ final class ORMShapeTest extends BaseTestCase
 				->getTableOrFail('accounts')
 		);
 
-		self::assertArrayNotHasKey('nullable', $described['read']['props']['id']);
-		self::assertTrue($described['write']['props']['id']['nullable']);
+		self::assertArrayNotHasKey('nullable', $described['read']['props']['account_id']);
+		self::assertTrue($described['write']['props']['account_id']['nullable']);
 	}
 
 	/**
@@ -107,13 +111,13 @@ final class ORMShapeTest extends BaseTestCase
 
 		// A bigint travels as text, so it is held exactly rather than as a number: `unsigned` is
 		// said as the bound it is.
-		self::assertSame(['t' => 'exact', 'scale' => 0, 'min' => '0'], $props['id']);
+		self::assertSame(['t' => 'exact', 'scale' => 0, 'min' => '0'], $props['account_id']);
 		// A decimal that declared no scale keeps any number of places, as its validation does.
-		self::assertSame(['t' => 'exact', 'min' => '0'], $props['balance']);
-		self::assertSame(['t' => 'string', 'min' => 1, 'max' => 60], $props['label']);
-		self::assertSame(['t' => 'date'], $props['created_at']);
-		self::assertSame(['t' => 'boolean'], $props['valid']);
-		self::assertSame(['t' => 'record', 'values' => ['t' => 'json']], $props['data']);
+		self::assertSame(['t' => 'exact', 'min' => '0'], $props['account_balance']);
+		self::assertSame(['t' => 'string', 'min' => 1, 'max' => 60], $props['account_label']);
+		self::assertSame(['t' => 'date'], $props['account_created_at']);
+		self::assertSame(['t' => 'boolean'], $props['account_valid']);
+		self::assertSame(['t' => 'record', 'values' => ['t' => 'json']], $props['account_data']);
 
 		$clients = ORMShape::ofTable($db->getTableOrFail('clients'))['read']['props'];
 
@@ -122,7 +126,7 @@ final class ORMShapeTest extends BaseTestCase
 			'values' => ['male', 'female', 'unknown'],
 			'min'    => 1,
 			'max'    => 60,
-		], $clients['gender']);
+		], $clients['client_gender']);
 
 		$percent = ORMShape::ofType(new TypeFloat(null, 100, true), ORMShape::SIDE_READ);
 
@@ -153,11 +157,11 @@ final class ORMShapeTest extends BaseTestCase
 
 		$described = ORMShape::ofTable($table);
 
-		self::assertSame('registry_checked', $described['types']['token']);
-		self::assertSame('bigint', $described['types']['id']);
-		self::assertSame('date', $described['types']['at']);
+		self::assertSame('registry_checked', $described['types']['thing_token']);
+		self::assertSame('bigint', $described['types']['thing_id']);
+		self::assertSame('date', $described['types']['thing_at']);
 		// And the shape beside it is the one its base type answers.
-		self::assertSame('string', $described['read']['props']['token']['t']);
+		self::assertSame('string', $described['read']['props']['thing_token']['t']);
 	}
 
 	public function testAnEnumBecomesTheValuesOfItsCases(): void
@@ -235,7 +239,8 @@ final class ORMShapeTest extends BaseTestCase
 
 		$named->setMetaKey(ORMShape::META_LABEL, 'full_name');
 
-		self::assertSame('full_name', ORMShape::ofTable($named)['label']);
+		// Named as the schema declares it, answered as a row carries it.
+		self::assertSame('person_full_name', ORMShape::ofTable($named)['label']);
 
 		$missing = new Table('people', 'tb')
 			->addColumn(new Column('full_name', 'person', new TypeString()));
@@ -249,6 +254,40 @@ final class ORMShapeTest extends BaseTestCase
 			new Table('people', 'tb')
 				->addColumn(new Column('name', 'person', new TypeString()))
 		)['label']);
+	}
+
+	/**
+	 * A sensitive column answers its redacted value and not what it holds, so the read half says
+	 * nothing about it; writing one is ordinary, and the write half takes it like any other column.
+	 * A private column is in neither, as it is in no generated entity.
+	 */
+	public function testASensitiveColumnIsWrittenAndNotRead(): void
+	{
+		$table = new Table('users', 'tb')
+			->addColumn(new Column('name', 'user', new TypeString(1, 60)))
+			->addColumn(new Column('pass', 'user', new TypeString(8, 60)))
+			->addColumn(new Column('note', 'user', new TypeString()));
+
+		$table->getColumnOrFail('pass')
+			->setSensitive();
+		$table->getColumnOrFail('note')
+			->setPrivate();
+
+		$described = ORMShape::ofTable($table);
+
+		self::assertSame(['user_name'], \array_keys($described['read']['props']));
+		self::assertSame(['user_name'], $described['read']['required']);
+		self::assertSame(['user_name', 'user_pass'], \array_keys($described['write']['props']));
+		self::assertSame(['user_name', 'user_pass'], $described['write']['required']);
+
+		// Its type travels either way: whoever draws the form that sets it needs to know what it is.
+		self::assertSame('string', $described['types']['user_pass']);
+		self::assertArrayNotHasKey('user_note', $described['types']);
+
+		// And a generation that asks for them out of both halves gets that.
+		$without = ORMShape::ofTable($table, true, true);
+
+		self::assertSame(['user_name'], \array_keys($without['write']['props']));
 	}
 
 	/**
