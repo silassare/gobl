@@ -54,6 +54,13 @@ use PHPUtils\PortablePattern;
  * The unprefixed name belongs to the generated entity class's accessors and appears nowhere on the
  * wire; the prefix travels beside the shape for whoever wants the short name.
  *
+ * **The relations travel beside the shapes, never inside them.** A row carries no relation until a
+ * caller asks for one, and what may be asked for is the table's list: each name, the morph type it
+ * points at, and whether it is one row or many. That is what lets a reader of a reference read the
+ * record it points at -- `$record.event.event_title` rather than an id and a hope, by the prefixed
+ * name that record really carries -- and what lets one
+ * that asks for a to-many relation beside the row be told it cannot have it.
+ *
  * **A type this does not know is mapped by what it is stored as.** A project declares its own
  * column types (OZone has `email`, `phone`, `password`, ... and says a project may add more), and
  * every one of them has a base type among the seven {@see Types\Utils\TypeUtils::getBaseTypes()}
@@ -98,6 +105,7 @@ final class ORMShape
 	 *     key: list<string>,
 	 *     label: null|string,
 	 *     types: array<string, string>,
+	 *     relations: array<string, array{target: string, multiple: bool}>,
 	 *     read: array<string, mixed>,
 	 *     write: array<string, mixed>,
 	 * }
@@ -146,14 +154,15 @@ final class ORMShape
 		return [
 			// The morph type, which gobl keeps unique across the database (it refuses one another
 			// table uses, and one that collides with a table's name), and already looks up.
-			'name'   => $table->getMorphType(),
-			'table'  => $table->getName(),
-			'prefix' => null === $first ? '' : $first->getPrefix(),
-			'key'    => self::keyOf($table),
-			'label'  => $label,
-			'types'  => $types,
-			'read'   => self::objectOf($columns, self::SIDE_READ),
-			'write'  => self::objectOf($columns, self::SIDE_WRITE),
+			'name'      => $table->getMorphType(),
+			'table'     => $table->getName(),
+			'prefix'    => null === $first ? '' : $first->getPrefix(),
+			'key'       => self::keyOf($table),
+			'label'     => $label,
+			'types'     => $types,
+			'relations' => self::relationsOf($table, $ignore_private),
+			'read'      => self::objectOf($columns, self::SIDE_READ),
+			'write'     => self::objectOf($columns, self::SIDE_WRITE),
 		];
 	}
 
@@ -273,6 +282,39 @@ final class ORMShape
 		}
 
 		return $list;
+	}
+
+	/**
+	 * The relations of a table, by name: what each points at, and whether it is one row or many.
+	 *
+	 * Beside the shape and not in it, because a relation is not a column: a row carries none of
+	 * them until a caller asks for it, and what a caller may ask for is exactly this list. The
+	 * target is the **morph type**, so a reader joins it to another table's shape with the one word
+	 * that is unique across the database.
+	 *
+	 * `multiple` is what decides whether a relation can be read with the row at all: a to-many one
+	 * is paginated and has its own endpoint, so whoever asks for it beside the row is asking for
+	 * something no answer can carry. A private relation is left out, as a private column is, since
+	 * asking for one is refused.
+	 *
+	 * Virtual relations are left out too. What one answers is a method of the project's own, so
+	 * nothing here can say its shape, and listing it would invite a reader to type what it cannot.
+	 *
+	 * @return array<string, array{target: string, multiple: bool}>
+	 */
+	private static function relationsOf(Table $table, bool $ignore_private): array
+	{
+		$relations = [];
+
+		foreach ($table->getRelations(!$ignore_private) as $relation) {
+			$relations[$relation->getName()] = [
+				'target'   => $relation->getTargetTable()
+					->getMorphType(),
+				'multiple' => $relation->isPaginated(),
+			];
+		}
+
+		return $relations;
 	}
 
 	/**

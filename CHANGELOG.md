@@ -1,5 +1,16 @@
 ### Unreleased (3.0.x-dev)
 
+- **A table's relations travel beside its shapes.** `ORMShape::ofTable()` now answers a `relations`
+  map: each relation's name, the **morph type** of the table it points at, and whether it answers
+  many records. Beside the shapes and not inside them, because a row carries no relation until a
+  caller asks for one -- a reference holds an id and nothing more.
+  What it is for is the reader of a reference: with the target's morph type, a client can read an
+  account's `client` as the record it points at rather than as an id and a hope, and an expression
+  over `$record.client.email` is checkable. `multiple` is what decides whether a relation can be
+  read **with** the row at all, since a to-many one is paginated and has an endpoint of its own.
+  A private relation is left out, as a private column is, and so are virtual relations: what one
+  answers is a method of the project's own, so nothing here can say its shape.
+
 - **A table can answer what its values are, as a shape**, and the TypeScript generator can write
   those shapes beside the entities it already writes. `Gobl\ORM\ORMShape` answers a table's
   **read** and **write** shapes -- reading a row and writing one are different contracts, and they

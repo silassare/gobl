@@ -291,6 +291,97 @@ final class ORMShapeTest extends BaseTestCase
 	}
 
 	/**
+	 * The relations travel beside the shapes: each name, what it points at, and one row or many.
+	 *
+	 * What they are for is the reader of a reference: an account's `client` can be read as the
+	 * record it points at rather than as an id and a hope, and the one word that joins the two is
+	 * the target's morph type. `multiple` is what decides whether a relation can be read **with**
+	 * the row at all, since a to-many one is paginated and has its own endpoint.
+	 */
+	public function testTheRelationsTravelBesideTheShapes(): void
+	{
+		$described = ORMShape::ofTable(
+			self::getNewDbInstanceWithSchema()
+				->getTableOrFail('accounts')
+		);
+
+		self::assertSame([
+			'transactions' => ['target' => 'transactions', 'multiple' => true],
+			'client'       => ['target' => 'clients', 'multiple' => false],
+		], $described['relations']);
+
+		// A table with no relation answers none, and not something missing: every reader holds a
+		// map and an absent key would be a second case for each of them to handle.
+		$currencies = ORMShape::ofTable(
+			self::getNewDbInstanceWithSchema()
+				->getTableOrFail('currencies')
+		);
+
+		self::assertSame([], $currencies['relations']);
+	}
+
+	/**
+	 * The target is the **morph type** and not the table's name, and a private one is left out.
+	 *
+	 * Two things the shared test schema cannot show, since none of its tables renames itself and
+	 * none is private: a reader joins a relation to another table's shape by the one word that is
+	 * unique across the database, and a relation to a table nobody may read is not offered.
+	 */
+	public function testARelationNamesItsTargetAsItsMorphTypeAndSkipsAPrivateOne(): void
+	{
+		$db = self::getNewDbInstance();
+
+		$db->ns('rel_test')
+			->schema([
+				'posts' => [
+					'column_prefix' => 'post',
+					'morph_type'    => 'articles',
+					'constraints'   => [['type' => 'primary_key', 'columns' => ['id']]],
+					'columns'       => [
+						'id' => ['type' => 'bigint', 'auto_increment' => true, 'unsigned' => true],
+					],
+				],
+				'secrets' => [
+					'private'       => true,
+					'column_prefix' => 'secret',
+					'constraints'   => [['type' => 'primary_key', 'columns' => ['id']]],
+					'columns'       => [
+						'id' => ['type' => 'bigint', 'auto_increment' => true, 'unsigned' => true],
+					],
+				],
+				'comments' => [
+					'column_prefix' => 'comment',
+					'relations'     => [
+						'post'  => ['type' => 'many-to-one', 'target' => 'posts'],
+						'audit' => ['type' => 'many-to-one', 'target' => 'secrets'],
+					],
+					'constraints' => [
+						['type' => 'primary_key', 'columns' => ['id']],
+						['type' => 'foreign_key', 'reference' => 'posts', 'columns' => ['post_id' => 'id']],
+						['type' => 'foreign_key', 'reference' => 'secrets', 'columns' => ['audit_id' => 'id']],
+					],
+					'columns' => [
+						'id'       => ['type' => 'bigint', 'auto_increment' => true, 'unsigned' => true],
+						'post_id'  => 'ref:posts.id',
+						'audit_id' => 'ref:secrets.id',
+					],
+				],
+			]);
+
+		$described = ORMShape::ofTable($db->getTableOrFail('comments'));
+
+		self::assertSame(
+			['post' => ['target' => 'articles', 'multiple' => false]],
+			$described['relations']
+		);
+
+		// And a generation that asks for the private ones gets them, as it does private columns.
+		$with = ORMShape::ofTable($db->getTableOrFail('comments'), false);
+
+		self::assertSame(['post', 'audit'], \array_keys($with['relations']));
+	}
+
+	/**
 	 * The bounds of an exact number are text, because a bound of twenty digits does not fit a
 	 * number either.
 	 */

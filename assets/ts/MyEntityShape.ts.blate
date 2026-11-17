@@ -39,5 +39,9 @@ export const {= shape.const}_WRITE_SHAPE: Shape = {= shape.write};
  * the prefixed names, as the shapes are, so each of them reads straight off a row. `types` names
  * each column's gobl type, for whoever draws a control for it or makes a plausible value of it: a
  * `string` and an `email` have the same shape and are not the same thing.
+ *
+ * `relations` is what may be read **beside** a row: each name, the morph type it points at, and
+ * whether it is one row or many. A to-many one is paginated and has its own endpoint, so asking for
+ * it with the row is asking for something no answer can carry.
  */
 export const {= shape.const}_ENTITY = {= shape.entity} as const;

@@ -220,9 +220,18 @@ final class CSGeneratorTS extends CSGenerator
 			$this->ignore_sensitive_columns
 		);
 
-		$entity = $described;
-
-		unset($entity['read'], $entity['write']);
+		// The two maps are cast to objects because `json_encode()` writes an empty PHP array as
+		// `[]`: a table with no relation would answer a list where every reader holds a map, and
+		// the generated file would fail the type-check it exists to pass.
+		$entity = [
+			'name'      => $described['name'],
+			'table'     => $described['table'],
+			'prefix'    => $described['prefix'],
+			'key'       => $described['key'],
+			'label'     => $described['label'],
+			'types'     => (object) $described['types'],
+			'relations' => (object) $described['relations'],
+		];
 
 		return [
 			// `ACCOUNT`: the singular name the entity class is itself built from
