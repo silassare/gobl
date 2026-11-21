@@ -1,5 +1,17 @@
 ### Unreleased (3.0.x-dev)
 
+- **Security: an update through a relation no longer writes a private or sensitive column from its
+  payload.** `ORMEntityRelationController::update()` hydrated the relative with the payload and
+  saved it through `ORMEntity::save()`, which is server code and trusted to write private and
+  sensitive columns -- so a nested update a client sends (OZone's REST services forward one per
+  relation) could write a column the client may not. It now updates through the controller, as a
+  request's own update does, and the key that identifies the relative is not part of what is
+  written.
+- **A create through a relation no longer refuses a table that has a private column.** It handed
+  the create an entity, and a create checks every column an entity holds, so a private column the
+  payload never named -- still its table's default -- was refused as a write. It now creates from
+  what the link fills and what the payload names, and nothing else.
+
 - **A relation says which columns carry it.** Each entry of `ORMShape::ofTable()`'s `relations`
   may carry `columns`, this table's columns to the target's by their prefixed names
   (`{account_client_id: client_id}`), read off the foreign key the relation was built from; and a

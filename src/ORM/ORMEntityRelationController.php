@@ -78,16 +78,17 @@ class ORMEntityRelationController implements RelationControllerInterface
 	{
 		Helpers::assertCanManageRelatives($this->table, $this->relation, [$host_entity]);
 
-		$link          = $this->relation->getLink();
-		$target_entity = ORM::entity($this->relation->getTargetTable());
+		$link   = $this->relation->getLink();
+		$filled = ORM::entity($this->relation->getTargetTable());
 
-		if (!$link->fillRelation($host_entity, $target_entity)) {
+		if (!$link->fillRelation($host_entity, $filled)) {
 			throw new ORMException('Unable to fill relation.');
 		}
 
-		$target_entity->hydrate($payload);
-
-		return $this->controller->addItem($target_entity);
+		// Created from what the link wrote and what the payload names, and nothing else: handed an
+		// entity, the create checks every column it holds, so a private column the request never
+		// touched -- still its table's default -- was refused as a write the request made.
+		return $this->controller->addItem(\array_merge($filled->toRowChanges(), $payload));
 	}
 
 	/**
@@ -118,11 +119,33 @@ class ORMEntityRelationController implements RelationControllerInterface
 	#[Override]
 	public function update(ORMEntity $host_entity, array $payload): ORMEntity
 	{
-		$target = $this->identify($host_entity, $payload)->hydrate($payload);
+		$target = $this->identify($host_entity, $payload);
 
-		$target->save();
+		// Through the controller, as a request's own update is, and not through the entity's save:
+		// that one is server code, trusted to write private and sensitive columns, and the payload
+		// here is a request's.
+		$identity = $target->toIdentityFilters();
+		$form     = ORM::formByFullNames($this->table, $payload);
 
-		return $target;
+		// The identity is how the payload names its relative, not a write of it: it found that very
+		// row, and a key is never written by an update.
+		foreach ($identity as $filter) {
+			if (\is_array($filter)) {
+				unset($form[$filter[0]]);
+			}
+		}
+
+		$options = new ORMOptions();
+		$options->setFilters($identity);
+		$options->setFormData($form);
+
+		$updated = $this->controller->updateOneItem($options);
+
+		if (null === $updated) {
+			throw new ORMException('Unable to identify relative.');
+		}
+
+		return $updated;
 	}
 
 	/**
