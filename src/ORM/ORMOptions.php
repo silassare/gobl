@@ -39,6 +39,12 @@ class ORMOptions implements ORMOptionsInterface
 	public const string EXPECTED_COLUMNS_PARAM         = '_columns';
 	public const string DELETE_PARAM                   = '_delete';
 
+	/**
+	 * Beside `_delete` in an entry of a relation written with its row: the entry names an existing
+	 * record by its identity, to be linked, not created.
+	 */
+	public const string ATTACH_PARAM = '_attach';
+
 	public const string PAGE_PARAM          = 'page';
 	public const string RELATIONS_PARAM     = 'relations';
 	public const string RELATIONS_DELIMITER = '|';

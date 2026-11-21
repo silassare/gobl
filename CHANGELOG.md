@@ -1,5 +1,9 @@
 ### Unreleased (3.0.x-dev)
 
+- **`ORMOptions::ATTACH_PARAM`** (`_attach`), beside `DELETE_PARAM` (`_delete`): what an entry of a
+  relation written with its row carries to say it names an existing record to link, for a request
+  layer to route it to `RelationControllerInterface::attach()`.
+
 - **A relation's candidates are checked on write.** Where a relation declares candidates and the
   row holds its key, a create or update that sets the key must name one of them
   (`GOBL_ORM_RELATION_NOT_A_CANDIDATE`, with the `field`), checked against the final row --
