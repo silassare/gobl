@@ -88,10 +88,15 @@ final class CSGeneratorTSShapeTest extends BaseTestCase
 		// satisfy stops the build that generated it rather than the code that uses it. `satisfies`
 		// and not an annotation, so the literal types of the entity names survive for a tool.
 		self::assertStringContainsString(
-			"import type { EntityRegistry } from '@oweb-io/schema';",
+			"import type { EntityDescriptions, EntityRegistry } from '@oweb-io/schema';",
 			$index
 		);
 		self::assertStringContainsString('} as const satisfies EntityRegistry;', $index);
+
+		// And the descriptions alone, which a page takes to draw a picker: the same constants, so a
+		// bundler keeping only these leaves the shapes out.
+		self::assertStringContainsString("'accounts': ACCOUNT_ENTITY,", $index);
+		self::assertStringContainsString('} as const satisfies EntityDescriptions;', $index);
 	}
 
 	/**

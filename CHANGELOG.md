@@ -1,5 +1,10 @@
 ### Unreleased (3.0.x-dev)
 
+- **The shapes index exports `ENTITY_DESCRIPTIONS`**: each entity's description (table, key, label
+  column, column types, relations) by its morph type, without the shapes of its rows, `satisfies
+  EntityDescriptions` from `@oweb-io/schema`. What a page takes to draw a picker of records; the
+  same constants `ENTITY_SHAPES` holds, so a bundler keeping only these leaves the shapes out.
+
 - **`ORMOptions::ATTACH_PARAM`** (`_attach`), beside `DELETE_PARAM` (`_delete`): what an entry of a
   relation written with its row carries to say it names an existing record to link, for a request
   layer to route it to `RelationControllerInterface::attach()`.
