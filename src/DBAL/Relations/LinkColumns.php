@@ -31,6 +31,12 @@ final class LinkColumns extends Link
 	private array $columns_mapping;
 
 	/**
+	 * Whether the host's columns hold the key (the host points at the target), rather than the
+	 * target's (the target points at the host).
+	 */
+	private bool $host_holds_key;
+
+	/**
 	 * LinkColumns constructor.
 	 *
 	 * Use columns to link the tables.
@@ -58,9 +64,11 @@ final class LinkColumns extends Link
 			if ($this->target_table->hasDefaultForeignKeyConstraint($this->host_table)) {
 				$this->columns_mapping = \array_flip($this->target_table->getDefaultForeignKeyConstraintFrom($this->host_table)
 					->getColumnsMapping());
+				$this->host_holds_key = false;
 			} elseif ($this->host_table->hasDefaultForeignKeyConstraint($this->target_table)) {
 				$this->columns_mapping = $this->host_table->getDefaultForeignKeyConstraintFrom($this->target_table)
 					->getColumnsMapping();
+				$this->host_holds_key = true;
 			} else {
 				throw new DBALException(\sprintf(
 					'There is no columns to link the table "%s" to the table "%s".',
@@ -79,7 +87,47 @@ final class LinkColumns extends Link
 			}
 
 			$this->columns_mapping = $cols;
+			$this->host_holds_key  = $this->hostHoldsKeyOf($cols);
 		}
+	}
+
+	/**
+	 * Whether the host's columns hold the key: the host points at the target, as an account at its
+	 * client, rather than the target at the host, as a transaction at its account.
+	 *
+	 * What decides which row a write through the relation sets the key on. A one-to-one may go
+	 * either way, so the relation's kind does not say it, the columns do.
+	 */
+	public function isHostHoldingKey(): bool
+	{
+		return $this->host_holds_key;
+	}
+
+	/**
+	 * For columns given by hand: the side whose foreign key they are, else the side that points at
+	 * the other's primary key.
+	 *
+	 * @param array<string, string> $mapping host full names to target full names
+	 */
+	private function hostHoldsKeyOf(array $mapping): bool
+	{
+		foreach ($this->host_table->getForeignKeyConstraints() as $fk) {
+			if ($fk->getReferenceTable() === $this->target_table && $fk->getColumnsMapping() === $mapping) {
+				return true;
+			}
+		}
+
+		foreach ($this->target_table->getForeignKeyConstraints() as $fk) {
+			if ($fk->getReferenceTable() === $this->host_table && $fk->getColumnsMapping() === \array_flip($mapping)) {
+				return false;
+			}
+		}
+
+		// No key declared either way: the host holds it when what it points at is the target's
+		// primary key and its own columns are not its primary key. Two primary keys shared one to
+		// one are the target's to copy, as a profile keyed by its user's id.
+		return $this->target_table->isPrimaryKey(\array_values($mapping))
+			&& !$this->host_table->isPrimaryKey(\array_keys($mapping));
 	}
 
 	/**

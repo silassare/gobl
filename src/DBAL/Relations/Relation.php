@@ -54,6 +54,12 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface, Loc
 	 */
 	private ?array $_select = null;
 
+	private RelationOnRemove $on_remove = RelationOnRemove::UNLINK;
+
+	private RelationOnAttach $on_attach = RelationOnAttach::REFUSE;
+
+	private RelationJoinWrites $join_writes = RelationJoinWrites::REFUSE;
+
 	/**
 	 * Relation constructor.
 	 */
@@ -239,7 +245,87 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface, Loc
 			$options['select'] = $this->_select;
 		}
 
+		// Written only where they are not the default, so a schema that never declared one reads
+		// back as it was written.
+		if (RelationOnRemove::UNLINK !== $this->on_remove) {
+			$options['on_remove'] = $this->on_remove->value;
+		}
+
+		if (RelationOnAttach::REFUSE !== $this->on_attach) {
+			$options['on_attach'] = $this->on_attach->value;
+		}
+
+		if (RelationJoinWrites::REFUSE !== $this->join_writes) {
+			$options['join_writes'] = $this->join_writes->value;
+		}
+
 		return $options;
+	}
+
+	/**
+	 * What removing a relative through this relation does.
+	 */
+	public function getOnRemove(): RelationOnRemove
+	{
+		return $this->on_remove;
+	}
+
+	/**
+	 * Declares what removing a relative through this relation does.
+	 *
+	 * @return $this
+	 */
+	public function onRemove(RelationOnRemove $strategy): static
+	{
+		$this->assertNotLocked();
+
+		$this->on_remove = $strategy;
+
+		return $this;
+	}
+
+	/**
+	 * What attaching a record another row holds does.
+	 */
+	public function getOnAttach(): RelationOnAttach
+	{
+		return $this->on_attach;
+	}
+
+	/**
+	 * Declares what attaching a record another row holds does.
+	 *
+	 * @return $this
+	 */
+	public function onAttach(RelationOnAttach $strategy): static
+	{
+		$this->assertNotLocked();
+
+		$this->on_attach = $strategy;
+
+		return $this;
+	}
+
+	/**
+	 * What a write through this relation does when it is a join.
+	 */
+	public function getJoinWrites(): RelationJoinWrites
+	{
+		return $this->join_writes;
+	}
+
+	/**
+	 * Declares what a write through this relation does when it is a join.
+	 *
+	 * @return $this
+	 */
+	public function joinWrites(RelationJoinWrites $strategy): static
+	{
+		$this->assertNotLocked();
+
+		$this->join_writes = $strategy;
+
+		return $this;
 	}
 
 	/**

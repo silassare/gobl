@@ -1,5 +1,41 @@
 ### Unreleased (3.0.x-dev)
 
+- **Writing a row's relatives covers every kind of link, and removing is declared on the relation**
+  (behaviour change, breaking).
+  - **Removing a relative removes the link by default** (`RelationOnRemove::UNLINK`): the link-table
+    row, or the key that points from one row to the other set to null -- refused
+    (`GOBL_ORM_RELATION_CANNOT_UNLINK`, with the `field`) where that key cannot be null. It used to
+    delete the relative itself, which through a link table deleted a tag every other article still
+    used, and through the host's key deleted a client other accounts pointed at. **Breaking**: a
+    relation whose removal should delete the record declares `->onRemove(RelationOnRemove::DELETE)`
+    (`'on_remove' => 'delete'` in a schema array), as a child owned by its parent usually does.
+  - **`attach()`**, new on `RelationControllerInterface` (**breaking** for a class implementing it):
+    links an existing record, named by its identity -- the relative's key pointed at the host, the
+    host's key pointed at the record, or a link row written. A record already a relative is
+    answered as is; one whose own key names another row is refused
+    (`GOBL_ORM_RELATION_ATTACH_HELD_ELSEWHERE`) unless the relation declares
+    `->onAttach(RelationOnAttach::MOVE)`. What the relation's filters ask is checked, not written.
+  - **Creating through a link table writes the link row**, and creating what the host points at (an
+    account's client, a morph child's parent) creates it and points the host at it. Both failed
+    with "Unable to fill relation".
+  - **A join relation refuses writes** (`GOBL_ORM_RELATION_REFUSES_WRITES`) unless it declares
+    `->joinWrites(RelationJoinWrites::LAST_STEP)`, which writes a join of two steps as a relation
+    through its link table is. `LinkJoin::getSteps()` answers its steps.
+  - An update through a relation whose host or a link table holds the link refuses changing what
+    the relation's filters fix, as one whose relative holds it does.
+
+- **A write through a relation keeps the link it is made through** (behaviour change). Where the
+  relative holds the link -- a child's key, a morph child's key and type -- the relation's
+  controller now writes what the relation fixes on it: the key it fills and the `eq` conditions
+  its filters ask of the relative's columns (`pending_transactions` creates a pending one). A
+  payload naming one of those columns with another value is refused
+  (`GOBL_ORM_RELATION_FIXES_THIS_FIELD`, with the `field`) instead of moving the row under another
+  host, the same value is accepted, and a write leaving a row the relation would not count as its
+  own -- a filter that is not an equality -- is refused (`GOBL_ORM_RELATION_WRITE_NOT_A_RELATIVE`)
+  and rolled back.
+  `LinkColumns::isHostHoldingKey()` says which side holds the key, read off the foreign key either
+  side declares, so a one-to-one that may go either way is written on the right row.
+
 - **Security: an update through a relation no longer writes a private or sensitive column from its
   payload.** `ORMEntityRelationController::update()` hydrated the relative with the payload and
   saved it through `ORMEntity::save()`, which is server code and trusted to write private and

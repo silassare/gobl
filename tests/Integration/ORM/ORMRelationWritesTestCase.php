@@ -16,8 +16,12 @@ namespace Gobl\Tests\Integration\ORM;
 use Gobl\DBAL\Builders\TableBuilder;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\QBSelect;
+use Gobl\DBAL\Relations\RelationJoinWrites;
+use Gobl\DBAL\Relations\RelationOnAttach;
+use Gobl\DBAL\Relations\RelationOnRemove;
 use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\ORM\ORM;
+use Gobl\ORM\Exceptions\ORMQueryException;
 use Gobl\ORM\ORMEntity;
 use Gobl\ORM\ORMOptions;
 use Gobl\Tests\BaseTestCase;
@@ -127,6 +131,14 @@ abstract class ORMRelationWritesTestCase extends BaseTestCase
 				$t->useColumn('internal')->setPrivate();
 			});
 
+			// Tasks may belong to no account, so they can be attached, and moved.
+			$ns->table('rw_tasks', static function (TableBuilder $t): void {
+				$t->plural('rw_tasks')->singular('rw_task')->columnPrefix('task');
+				$t->id();
+				$t->foreign('account_id', 'rw_accounts', 'id', true);
+				$t->string('state')->max(20);
+			});
+
 			$articles = $ns->table('rw_articles', static function (TableBuilder $t): void {
 				$t->plural('rw_articles')->singular('rw_article')->columnPrefix('article');
 				$t->id();
@@ -159,14 +171,36 @@ abstract class ORMRelationWritesTestCase extends BaseTestCase
 			$accounts->factory(static function (TableBuilder $t): void {
 				$t->hasMany('transactions')->from('rw_transactions');
 				$t->hasMany('notes')->from('rw_notes');
+				$t->hasMany('owned_transactions')
+					->from('rw_transactions')
+					->usingColumns()
+					->onRemove(RelationOnRemove::DELETE);
+				$t->hasMany('tasks')->from('rw_tasks');
+				$t->hasMany('claimed_tasks')
+					->from('rw_tasks')
+					->usingColumns()
+					->onAttach(RelationOnAttach::MOVE);
+				$t->hasMany('open_tasks')
+					->from('rw_tasks')
+					->usingColumns([], ['state', 'eq', 'open']);
 				$t->hasMany('pending_transactions')
 					->from('rw_transactions')
 					->usingColumns([], ['state', 'eq', 'pending']);
+				$t->hasMany('live_transactions')
+					->from('rw_transactions')
+					->usingColumns([], ['state', 'neq', 'void']);
 			});
 
 			$articles->factory(static function (TableBuilder $t): void {
 				$t->hasMany('tags')->from('rw_tags')->through('rw_taggings');
 				$t->hasMany('comments')->from('rw_comments')->usingMorph('commentable');
+				$t->hasMany('tags_joined')
+					->from('rw_tags')
+					->usingJoin(['steps' => [['join' => 'rw_taggings', 'link' => ['type' => 'columns']]]]);
+				$t->hasMany('tags_joined_writable')
+					->from('rw_tags')
+					->usingJoin(['steps' => [['join' => 'rw_taggings', 'link' => ['type' => 'columns']]]])
+					->joinWrites(RelationJoinWrites::LAST_STEP);
 			});
 
 			$ns->enableORM($out_dir);
@@ -198,7 +232,7 @@ abstract class ORMRelationWritesTestCase extends BaseTestCase
 							'DROP TABLE IF EXISTS %s;',
 							static::db()->getTableOrFail($name)->getFullName()
 						),
-						['rw_comments', 'rw_taggings', 'rw_tags', 'rw_articles', 'rw_notes', 'rw_transactions', 'rw_accounts', 'rw_clients']
+						['rw_comments', 'rw_taggings', 'rw_tags', 'rw_articles', 'rw_tasks', 'rw_notes', 'rw_transactions', 'rw_accounts', 'rw_clients']
 					))
 				);
 			} catch (Throwable) {
@@ -230,6 +264,85 @@ abstract class ORMRelationWritesTestCase extends BaseTestCase
 		if (static::$setupFailed || null === static::$db) {
 			self::markTestSkipped(\sprintf('Live DB not available for %s.', static::getDriverName()));
 		}
+	}
+
+	/**
+	 * A child created through a relation belongs to the row it was created from: a payload naming
+	 * another host is refused, by the column it names, and nothing is created.
+	 */
+	public function testACreateNamingAnotherHostIsRefused(): void
+	{
+		$a = $this->add('rw_accounts', ['account_label' => 'a']);
+		$b = $this->add('rw_accounts', ['account_label' => 'b']);
+
+		$this->assertRefused('GOBL_ORM_RELATION_FIXES_THIS_FIELD', 'transaction_account_id', function () use ($a, $b): void {
+			$this->relation('rw_accounts', 'transactions')
+				->create($a, ['transaction_account_id' => $b->id, 'transaction_state' => 'x1']);
+		});
+
+		self::assertNull($this->find('rw_transactions', ['transaction_state' => 'x1']));
+	}
+
+	/**
+	 * Naming the very host the relation fills is not a conflict, though the payload says it as a number and the key is stored as text.
+	 */
+	public function testACreateNamingItsOwnHostIsAccepted(): void
+	{
+		$a = $this->add('rw_accounts', ['account_label' => 'a']);
+
+		$this->relation('rw_accounts', 'transactions')
+			->create($a, ['transaction_account_id' => (int) $a->id, 'transaction_state' => 'x1b']);
+
+		self::assertSame((string) $a->id, (string) $this->one('rw_transactions', ['transaction_state' => 'x1b'])->account_id);
+	}
+
+	/**
+	 * Updating a child through a relation edits it and leaves it where it is: moving it to another
+	 * host is refused, and the child is unchanged.
+	 */
+	public function testAnUpdateMovingAChildToAnotherHostIsRefused(): void
+	{
+		$a = $this->add('rw_accounts', ['account_label' => 'a']);
+		$b = $this->add('rw_accounts', ['account_label' => 'b']);
+		$t = $this->add('rw_transactions', ['transaction_account_id' => $a->id, 'transaction_state' => 'x2']);
+
+		$this->assertRefused('GOBL_ORM_RELATION_FIXES_THIS_FIELD', 'transaction_account_id', function () use ($a, $b, $t): void {
+			$this->relation('rw_accounts', 'transactions')
+				->update($a, ['transaction_id' => $t->id, 'transaction_account_id' => $b->id]);
+		});
+
+		self::assertSame((string) $a->id, (string) $this->one('rw_transactions', ['transaction_id' => $t->id])->account_id);
+	}
+
+	/**
+	 * What a relation's equality fixes is not the payload's to change through it either.
+	 */
+	public function testAnUpdateChangingWhatAFilterFixesIsRefused(): void
+	{
+		$a = $this->add('rw_accounts', ['account_label' => 'a']);
+		$t = $this->add('rw_transactions', ['transaction_account_id' => $a->id, 'transaction_state' => 'pending']);
+
+		$this->assertRefused('GOBL_ORM_RELATION_FIXES_THIS_FIELD', 'transaction_state', function () use ($a, $t): void {
+			$this->relation('rw_accounts', 'pending_transactions')
+				->update($a, ['transaction_id' => $t->id, 'transaction_state' => 'done']);
+		});
+
+		self::assertSame('pending', (string) $this->one('rw_transactions', ['transaction_id' => $t->id])->state);
+	}
+
+	/**
+	 * A filter that is not an equality cannot be written, so what a write leaves is checked: a row
+	 * the relation would not count is refused, and not left behind.
+	 */
+	public function testACreateTheRelationWouldNotCountIsRefusedAndNotKept(): void
+	{
+		$a = $this->add('rw_accounts', ['account_label' => 'a']);
+
+		$this->assertRefused('GOBL_ORM_RELATION_WRITE_NOT_A_RELATIVE', null, function () use ($a): void {
+			$this->relation('rw_accounts', 'live_transactions')->create($a, ['transaction_state' => 'void']);
+		});
+
+		self::assertNull($this->find('rw_transactions', ['transaction_state' => 'void']));
 	}
 
 	/**
@@ -282,6 +395,256 @@ abstract class ORMRelationWritesTestCase extends BaseTestCase
 	}
 
 	/**
+	 * A relation filtered on an equality writes that value on what it creates, or what it created
+	 * would not be one of its relatives.
+	 */
+	public function testAFilteredRelationWritesItsEqualityOnWhatItCreates(): void
+	{
+		$a = $this->add('rw_accounts', ['account_label' => 'a']);
+
+		$this->relation('rw_accounts', 'pending_transactions')->create($a, []);
+
+		$listed = ORM::ctrl($this->table('rw_transactions'))
+			->getAllRelatives($a, $this->relationOf('rw_accounts', 'pending_transactions'), new ORMOptions());
+
+		self::assertNotNull($listed);
+		self::assertCount(1, \iterator_to_array($listed->getItems(), false));
+	}
+
+	/**
+	 * Creating the record a row points at (the key on the row's side) creates that record and points
+	 * the row at it -- not a record carrying the row's old key as its own.
+	 */
+	public function testCreatingWhatARowPointsAtPointsTheRowAtIt(): void
+	{
+		$a = $this->add('rw_accounts', ['account_label' => 'a']);
+
+		$this->relation('rw_accounts', 'client')->create($a, ['client_name' => 'new client']);
+
+		$client = $this->one('rw_clients', ['client_name' => 'new client']);
+		$after  = $this->one('rw_accounts', ['account_id' => $a->id]);
+
+		self::assertSame((string) $client->id, (string) $after->client_id);
+	}
+
+	/**
+	 * Removing what a row points at, through that row, unlinks it: another row still points at the
+	 * same record, which must stay.
+	 */
+	public function testRemovingWhatARowPointsAtKeepsARecordOthersShare(): void
+	{
+		$c = $this->add('rw_clients', ['client_name' => 'shared']);
+		$a = $this->add('rw_accounts', ['account_label' => 'a', 'account_client_id' => $c->id]);
+
+		$this->add('rw_accounts', ['account_label' => 'b', 'account_client_id' => $c->id]);
+
+		$this->relation('rw_accounts', 'client')->delete($a, ['client_id' => $c->id]);
+
+		self::assertNotNull(
+			ORM::ctrl($this->table('rw_clients'))->getItem(ORMOptions::makeFromFilters(['client_id' => $c->id])),
+			'the client another account points at is still there'
+		);
+	}
+
+	/**
+	 * Creating through a morph relation from the child side creates the parent and points the child
+	 * at it, type and key.
+	 */
+	public function testAMorphChildCreatesItsParentAndPointsAtIt(): void
+	{
+		$first   = $this->add('rw_articles', ['article_title' => 'first']);
+		$comment = $this->add('rw_comments', [
+			'comment_body'             => 'c',
+			'comment_commentable_id'   => (string) $first->id,
+			'comment_commentable_type' => 'rw_articles',
+		]);
+
+		$this->relation('rw_comments', 'article')->create($comment, ['article_title' => 'second']);
+
+		$second = $this->one('rw_articles', ['article_title' => 'second']);
+		$after  = $this->one('rw_comments', ['comment_id' => $comment->id]);
+
+		self::assertSame((string) $second->id, (string) $after->commentable_id);
+	}
+
+	/**
+	 * Creating through a relation that goes through a link table creates the record and the link
+	 * row that makes it a relative.
+	 */
+	public function testCreatingThroughALinkTableWritesTheLinkRow(): void
+	{
+		$article = $this->add('rw_articles', ['article_title' => 'a']);
+
+		$this->relation('rw_articles', 'tags')->create($article, ['tag_label' => 'new tag']);
+
+		$tag = $this->one('rw_tags', ['tag_label' => 'new tag']);
+
+		self::assertNotFalse($this->linked($article->id, $tag->id));
+	}
+
+	/**
+	 * Removing a relative that goes through a link table removes the link row: the record itself is
+	 * shared, and another row still links to it.
+	 */
+	public function testRemovingThroughALinkTableRemovesTheLinkAndKeepsTheRecord(): void
+	{
+		$tag   = $this->add('rw_tags', ['tag_label' => 'shared']);
+		$one   = $this->add('rw_articles', ['article_title' => 'one']);
+		$other = $this->add('rw_articles', ['article_title' => 'other']);
+
+		$this->add('rw_taggings', ['tagging_article_id' => $one->id, 'tagging_tag_id' => $tag->id]);
+		$this->add('rw_taggings', ['tagging_article_id' => $other->id, 'tagging_tag_id' => $tag->id]);
+
+		$this->relation('rw_articles', 'tags')->delete($one, ['tag_id' => $tag->id]);
+
+		self::assertNotNull(
+			ORM::ctrl($this->table('rw_tags'))->getItem(ORMOptions::makeFromFilters(['tag_id' => $tag->id])),
+			'the tag the other article links to is still there'
+		);
+		self::assertFalse($this->linked($one->id, $tag->id), 'the link of the first article is gone');
+	}
+
+	/**
+	 * Removing a child whose key cannot be null is refused by default: the link cannot go without
+	 * the child, and deleting it is the relation's to declare.
+	 */
+	public function testRemovingAChildThatCannotBeUnlinkedIsRefusedByDefault(): void
+	{
+		$a = $this->add('rw_accounts', ['account_label' => 'a']);
+		$t = $this->add('rw_transactions', ['transaction_account_id' => $a->id, 'transaction_state' => 'r1']);
+
+		$this->assertRefused('GOBL_ORM_RELATION_CANNOT_UNLINK', 'transaction_account_id', function () use ($a, $t): void {
+			$this->relation('rw_accounts', 'transactions')->delete($a, ['transaction_id' => $t->id]);
+		});
+
+		self::assertNotNull($this->find('rw_transactions', ['transaction_id' => $t->id]));
+	}
+
+	/**
+	 * A relation declared to delete what it removes deletes it.
+	 */
+	public function testARelationDeclaredToDeleteDeletesTheChild(): void
+	{
+		$a = $this->add('rw_accounts', ['account_label' => 'a']);
+		$t = $this->add('rw_transactions', ['transaction_account_id' => $a->id, 'transaction_state' => 'r2']);
+
+		$this->relation('rw_accounts', 'owned_transactions')->delete($a, ['transaction_id' => $t->id]);
+
+		self::assertNull($this->find('rw_transactions', ['transaction_id' => $t->id]));
+	}
+
+	/**
+	 * Removing a child whose key may be null unlinks it, and keeps it.
+	 */
+	public function testRemovingAChildThatMayBeUnlinkedKeepsIt(): void
+	{
+		$a    = $this->add('rw_accounts', ['account_label' => 'a']);
+		$task = $this->add('rw_tasks', ['task_account_id' => $a->id, 'task_state' => 'open']);
+
+		$this->relation('rw_accounts', 'tasks')->delete($a, ['task_id' => $task->id]);
+
+		self::assertNull($this->one('rw_tasks', ['task_id' => $task->id])->account_id);
+	}
+
+	/**
+	 * Attaching a child no row holds points it at the host, and only that.
+	 */
+	public function testAttachingAFreeChildPointsItAtTheHost(): void
+	{
+		$a    = $this->add('rw_accounts', ['account_label' => 'a']);
+		$task = $this->add('rw_tasks', ['task_state' => 'open']);
+
+		$this->relation('rw_accounts', 'tasks')->attach($a, ['task_id' => $task->id]);
+
+		self::assertSame((string) $a->id, (string) $this->one('rw_tasks', ['task_id' => $task->id])->account_id);
+	}
+
+	/**
+	 * A child another row holds is not taken by default, and is moved where the relation says so.
+	 */
+	public function testAttachingAChildHeldElsewhereIsRefusedUnlessDeclaredToMove(): void
+	{
+		$a    = $this->add('rw_accounts', ['account_label' => 'a']);
+		$b    = $this->add('rw_accounts', ['account_label' => 'b']);
+		$task = $this->add('rw_tasks', ['task_account_id' => $b->id, 'task_state' => 'open']);
+
+		$this->assertRefused('GOBL_ORM_RELATION_ATTACH_HELD_ELSEWHERE', null, function () use ($a, $task): void {
+			$this->relation('rw_accounts', 'tasks')->attach($a, ['task_id' => $task->id]);
+		});
+
+		self::assertSame((string) $b->id, (string) $this->one('rw_tasks', ['task_id' => $task->id])->account_id);
+
+		$this->relation('rw_accounts', 'claimed_tasks')->attach($a, ['task_id' => $task->id]);
+
+		self::assertSame((string) $a->id, (string) $this->one('rw_tasks', ['task_id' => $task->id])->account_id);
+	}
+
+	/**
+	 * What a relation's filters ask is checked on attach, not written: a record that is not one of
+	 * its relatives is refused, and left as it was.
+	 */
+	public function testAttachingARecordTheRelationWouldNotCountIsRefusedAndRolledBack(): void
+	{
+		$a    = $this->add('rw_accounts', ['account_label' => 'a']);
+		$task = $this->add('rw_tasks', ['task_state' => 'closed']);
+
+		$this->assertRefused('GOBL_ORM_RELATION_WRITE_NOT_A_RELATIVE', null, function () use ($a, $task): void {
+			$this->relation('rw_accounts', 'open_tasks')->attach($a, ['task_id' => $task->id]);
+		});
+
+		$after = $this->one('rw_tasks', ['task_id' => $task->id]);
+
+		self::assertNull($after->account_id);
+		self::assertSame('closed', (string) $after->state);
+	}
+
+	/**
+	 * Attaching through a link table writes the link row, once.
+	 */
+	public function testAttachingThroughALinkTableWritesOneLinkRow(): void
+	{
+		$article = $this->add('rw_articles', ['article_title' => 'a']);
+		$tag     = $this->add('rw_tags', ['tag_label' => 'existing']);
+
+		$this->relation('rw_articles', 'tags')->attach($article, ['tag_id' => $tag->id]);
+		$this->relation('rw_articles', 'tags')->attach($article, ['tag_id' => $tag->id]);
+
+		$links = ORM::ctrl($this->table('rw_taggings'))->getAllItems(ORMOptions::makeFromFilters([
+			'tagging_article_id' => $article->id,
+			'tagging_tag_id'     => $tag->id,
+		]));
+
+		self::assertCount(1, \iterator_to_array($links->getItems(), false));
+	}
+
+	/**
+	 * Attaching what a row points at points the row at it.
+	 */
+	public function testAttachingWhatARowPointsAtPointsTheRow(): void
+	{
+		$client = $this->add('rw_clients', ['client_name' => 'existing']);
+		$a      = $this->add('rw_accounts', ['account_label' => 'a']);
+
+		$this->relation('rw_accounts', 'client')->attach($a, ['client_id' => $client->id]);
+
+		self::assertSame((string) $client->id, (string) $this->one('rw_accounts', ['account_id' => $a->id])->client_id);
+	}
+
+	/**
+	 * A join writes nothing unless it declares so.
+	 */
+	public function testAJoinRefusesWritesByDefault(): void
+	{
+		$article = $this->add('rw_articles', ['article_title' => 'a']);
+
+		$this->assertRefused('GOBL_ORM_RELATION_REFUSES_WRITES', null, function () use ($article): void {
+			$this->relation('rw_articles', 'tags_joined')->create($article, ['tag_label' => 'refused']);
+		});
+
+		self::assertNull($this->find('rw_tags', ['tag_label' => 'refused']));
+	}
+
+	/**
 	 * The live connection this class runs against, which its own setup opened.
 	 */
 	protected static function db(): RDBMSInterface
@@ -313,11 +676,47 @@ abstract class ORMRelationWritesTestCase extends BaseTestCase
 	 */
 	private function one(string $table, array $filters): ORMEntity
 	{
-		$found = ORM::ctrl($this->table($table))->getItem(ORMOptions::makeFromFilters($filters));
+		$found = $this->find($table, $filters);
 
 		self::assertNotNull($found, \sprintf('a row of %s matching the filters', $table));
 
 		return $found;
+	}
+
+	/**
+	 * @param array<string, mixed> $filters
+	 */
+	private function find(string $table, array $filters): ?ORMEntity
+	{
+		return ORM::ctrl($this->table($table))->getItem(ORMOptions::makeFromFilters($filters));
+	}
+
+	/**
+	 * Runs a write expected to be refused with this message, naming this field when one is given.
+	 *
+	 * @param callable():void $write
+	 */
+	private function assertRefused(string $message, ?string $field, callable $write): void
+	{
+		try {
+			$write();
+		} catch (ORMQueryException $e) {
+			self::assertSame($message, $e->getMessage());
+
+			if (null !== $field) {
+				self::assertSame($field, $e->getData()['field'] ?? null);
+			}
+
+			return;
+		}
+
+		self::fail(\sprintf('The write was not refused with %s.', $message));
+	}
+
+	/** The link row between an article and a tag, or `false`. */
+	private function linked(mixed $article_id, mixed $tag_id): mixed
+	{
+		return $this->row('rw_taggings', ['tagging_article_id' => $article_id, 'tagging_tag_id' => $tag_id]);
 	}
 
 	/**

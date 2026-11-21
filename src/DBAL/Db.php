@@ -33,6 +33,9 @@ use Gobl\DBAL\Relations\ManyToOne;
 use Gobl\DBAL\Relations\OneToMany;
 use Gobl\DBAL\Relations\OneToOne;
 use Gobl\DBAL\Relations\Relation;
+use Gobl\DBAL\Relations\RelationJoinWrites;
+use Gobl\DBAL\Relations\RelationOnAttach;
+use Gobl\DBAL\Relations\RelationOnRemove;
 use Gobl\DBAL\Relations\RelationType;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
 use Gobl\DBAL\Types\Type;
@@ -1550,6 +1553,20 @@ abstract class Db implements RDBMSInterface
 				// Apply optional per-relation column projection (Feature 5).
 				if (!empty($rel_options['select']) && \is_array($rel_options['select'])) {
 					$r->setSelect($rel_options['select']);
+				}
+
+				// The write strategies, by their written values: an unknown one is refused here, by
+				// the enum, rather than read as the default.
+				if (isset($rel_options['on_remove'])) {
+					$r->onRemove(RelationOnRemove::from($rel_options['on_remove']));
+				}
+
+				if (isset($rel_options['on_attach'])) {
+					$r->onAttach(RelationOnAttach::from($rel_options['on_attach']));
+				}
+
+				if (isset($rel_options['join_writes'])) {
+					$r->joinWrites(RelationJoinWrites::from($rel_options['join_writes']));
 				}
 
 				$tbl->addRelation($r);

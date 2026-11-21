@@ -124,6 +124,16 @@ final class LinkJoin extends Link
 	}
 
 	/**
+	 * The links of its steps, from the host to the target.
+	 *
+	 * @return list<LinkInterface>
+	 */
+	public function getSteps(): array
+	{
+		return \array_values($this->links);
+	}
+
+	/**
 	 * {@inheritDoc}
 	 *
 	 * Always returns `false` - multi-step join links span several intermediate tables,

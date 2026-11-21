@@ -92,6 +92,19 @@ interface RelationControllerInterface
 	public function delete(ORMEntity $host_entity, array $payload): mixed;
 
 	/**
+	 * Links an existing record to a given item, named by its identity in the payload.
+	 *
+	 * What a request does to pick a record it did not create: point the relative at the item,
+	 * point the item at the record, or write the link row between them.
+	 *
+	 * @psalm-param ORMEntity $host_entity the host entity
+	 * @psalm-param TRelativeIdentityPayload $payload the identity of the record to link
+	 *
+	 * @return TRelative
+	 */
+	public function attach(ORMEntity $host_entity, array $payload): mixed;
+
+	/**
 	 * Link a child entity to a parent entity using the relation.
 	 *
 	 * @param ORMEntity $parent_entity the parent entity
