@@ -18,6 +18,8 @@ use Gobl\CRUD\Enums\EntityEventType;
 use Gobl\DBAL\Exceptions\DBALException;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\QBSelect;
+use Gobl\DBAL\Relations\LinkColumns;
+use Gobl\DBAL\Relations\LinkMorph;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Table;
 use Gobl\Exceptions\GoblException;
@@ -154,6 +156,9 @@ abstract class ORMController
 				$instance->hydrate($values);
 			}
 
+			// Every column of a new row is written, defaults and hooks included.
+			$this->assertCandidates($instance, \array_keys($instance->toRow()));
+
 			$this->persistItem($instance);
 
 			$this->crud->dispatchEntityEvent($instance, EntityEventType::AFTER_CREATE);
@@ -186,6 +191,8 @@ abstract class ORMController
 				$this->crud->dispatchEntityEvent($entity, EntityEventType::BEFORE_UPDATE);
 
 				$entity->hydrate($payload);
+
+				$this->assertCandidates($entity, \array_keys($payload));
 
 				$this->persistItem($entity);
 
@@ -834,5 +841,109 @@ abstract class ORMController
 		}
 
 		return false;
+	}
+
+	/**
+	 * Refuses a row pointing at a record its relation does not offer: where a relation declares
+	 * candidates and this row holds its key, a key the write set must name one of them.
+	 *
+	 * Checked against the final row -- defaults and hooks included -- with the same rule that finds
+	 * the candidates, so what a picker offered and what a write may set are one rule. A trusted write
+	 * is server code, not a request picking, and is not checked. A key held by a link table or by
+	 * the relative is set through the relation, which checks it there.
+	 *
+	 * @param list<string> $written the full names of the columns the write set
+	 *
+	 * @throws GoblException
+	 */
+	private function assertCandidates(ORMEntity $entity, array $written): void
+	{
+		if ($this->crud->isTrusted()) {
+			return;
+		}
+
+		foreach ($this->table->getRelations() as $relation) {
+			if (!$relation->hasCandidates()) {
+				continue;
+			}
+
+			$key = self::keyOnHost($relation, $entity);
+
+			if (null === $key || empty(\array_intersect(\array_keys($key['written']), $written))) {
+				continue;
+			}
+
+			$options = new ORMOptions();
+			$options->setFilters($key['filters']);
+
+			$found = ORM::query($relation->getTargetTable())
+				->findCandidates($relation, $entity, $options)
+				->fetchClass();
+
+			if (null === $found) {
+				throw new ORMQueryException('GOBL_ORM_RELATION_NOT_A_CANDIDATE', [
+					'relation' => $relation->getName(),
+					'field'    => \array_key_first($key['written']),
+				]);
+			}
+		}
+	}
+
+	/**
+	 * The key a row holds for a relation, when it holds one and it names a record: the columns it
+	 * writes, and the filters finding that record among the target's rows. `null` where the key is
+	 * held elsewhere, is empty, or -- for a morph pair -- names another type than this relation's.
+	 *
+	 * @return null|array{written: array<string, mixed>, filters: list<array|string>}
+	 */
+	private static function keyOnHost(Relation $relation, ORMEntity $entity): ?array
+	{
+		$link    = $relation->getLink();
+		$pairs   = [];
+		$written = [];
+
+		if ($link instanceof LinkColumns && $link->isHostHoldingKey()) {
+			$pairs = $link->getColumnsMapping();
+		} elseif ($link instanceof LinkMorph && !$link->isHostParent()) {
+			$host = $link->getHostTable();
+			$type = $host->getColumnOrFail($link->getMorphChildTypeColumn())->getFullName();
+
+			if ($entity->{$type} !== $link->getMorphParentType()) {
+				return null;
+			}
+
+			$pairs = [
+				$host->getColumnOrFail($link->getMorphChildKeyColumn())->getFullName() => $link->getTargetTable()
+					->getColumnOrFail($link->getMorphParentKeyColumn())
+					->getFullName(),
+			];
+		} else {
+			return null;
+		}
+
+		$filters = [];
+
+		foreach ($pairs as $host_column => $target_column) {
+			$value = $entity->{$host_column};
+
+			if (null === $value) {
+				return null;
+			}
+
+			if (!empty($filters)) {
+				$filters[] = 'and';
+			}
+
+			$filters[]               = [$target_column, 'eq', $value];
+			$written[$host_column] = $value;
+		}
+
+		// The type after the key, so a refusal names the key a picker sets.
+		if ($link instanceof LinkMorph) {
+			$type           = $link->getHostTable()->getColumnOrFail($link->getMorphChildTypeColumn())->getFullName();
+			$written[$type] = $entity->{$type};
+		}
+
+		return ['written' => $written, 'filters' => $filters];
 	}
 }

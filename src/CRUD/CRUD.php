@@ -325,6 +325,14 @@ final class CRUD
 	}
 
 	/**
+	 * Whether the write being checked is the server's own, run through {@see trusted()}.
+	 */
+	public function isTrusted(): bool
+	{
+		return $this->trusted;
+	}
+
+	/**
 	 * Runs a write made by server code, not asked by a request: a private or sensitive column may be
 	 * written (an entity's own data, its soft delete flag). Every other check and event still runs.
 	 *

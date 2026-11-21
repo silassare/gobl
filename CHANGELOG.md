@@ -1,5 +1,13 @@
 ### Unreleased (3.0.x-dev)
 
+- **A relation's candidates are checked on write.** Where a relation declares candidates and the
+  row holds its key, a create or update that sets the key must name one of them
+  (`GOBL_ORM_RELATION_NOT_A_CANDIDATE`, with the `field`), checked against the final row --
+  defaults and hooks included -- with the rule that finds them, so what a picker offers and what a
+  request may set are one rule. Where a link table or the relative holds the key, `attach()` checks
+  it. A trusted write (`CRUD::trusted()`, now answered by `CRUD::isTrusted()`) is server code and
+  is not checked.
+
 - **A relation can offer its candidates**: the records a row may be linked to through it, found by
   the server. `->candidates()` (`'candidates' => true` in a schema array) has the relation find
   them by itself, which only a safe relation may: the host holds the key, on one column, and its

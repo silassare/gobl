@@ -113,14 +113,17 @@ abstract class ORMRelationWritesTestCase extends BaseTestCase
 				$t->id();
 				$t->string('label')->max(60);
 				$t->foreign('client_id', 'rw_clients', 'id', true);
-				$t->belongsTo('client')->from('rw_clients');
+				// One column per relation offering candidates: each checks the key it carries.
+				$t->foreign('open_client_id', 'rw_clients', 'id', true);
+				$t->foreign('scoped_client_id', 'rw_clients', 'id', true);
+				$t->belongsTo('client')->from('rw_clients')->usingColumns(['client_id' => 'id']);
 				$t->belongsTo('open_client')
 					->from('rw_clients')
-					->usingColumns(['client_id' => 'id'], ['name', 'neq', 'blocked'])
+					->usingColumns(['open_client_id' => 'id'], ['name', 'neq', 'blocked'])
 					->candidates();
 				$t->belongsTo('scoped_client')
 					->from('rw_clients')
-					->usingColumns(['client_id' => 'id'])
+					->usingColumns(['scoped_client_id' => 'id'])
 					->candidates(ScopedClientCandidates::class);
 			});
 
@@ -210,6 +213,10 @@ abstract class ORMRelationWritesTestCase extends BaseTestCase
 
 			$articles->factory(static function (TableBuilder $t): void {
 				$t->hasMany('tags')->from('rw_tags')->through('rw_taggings');
+				$t->hasMany('pickable_tags')
+					->from('rw_tags')
+					->through('rw_taggings', null, null, ['label', 'neq', 'hidden'])
+					->candidates();
 				$t->hasMany('comments')->from('rw_comments')->usingMorph('commentable');
 				$t->hasMany('tags_joined')
 					->from('rw_tags')
@@ -791,6 +798,85 @@ abstract class ORMRelationWritesTestCase extends BaseTestCase
 	}
 
 	/**
+	 * A write setting a key a relation offers candidates for must name one of them: a request
+	 * cannot set what a picker would not have offered.
+	 */
+	public function testAWriteSettingAKeyToANonCandidateIsRefused(): void
+	{
+		$blocked = $this->add('rw_clients', ['client_name' => 'blocked']);
+		$open    = $this->add('rw_clients', ['client_name' => 'open']);
+		$account = $this->add('rw_accounts', ['account_label' => 'a']);
+
+		$this->assertRefused('GOBL_ORM_RELATION_NOT_A_CANDIDATE', 'account_open_client_id', function () use ($account, $blocked): void {
+			$this->updateAccount($account, ['account_open_client_id' => $blocked->id]);
+		});
+
+		self::assertNull($this->one('rw_accounts', ['account_id' => $account->id])->open_client_id);
+
+		$this->updateAccount($account, ['account_open_client_id' => $open->id]);
+
+		self::assertSame((string) $open->id, (string) $this->one('rw_accounts', ['account_id' => $account->id])->open_client_id);
+	}
+
+	/**
+	 * A write is checked with the caller's context, which the resolver hands in where no call does.
+	 */
+	public function testACreateIsCheckedWithTheCallersContext(): void
+	{
+		$wanted = $this->add('rw_clients', ['client_name' => 'wanted']);
+		$other  = $this->add('rw_clients', ['client_name' => 'other']);
+
+		ORM::setCandidatesContext(static fn (): ArrayObject => new ArrayObject(['name' => 'wanted']));
+
+		try {
+			$this->add('rw_accounts', ['account_label' => 'ok', 'account_scoped_client_id' => $wanted->id]);
+
+			$this->assertRefused('GOBL_ORM_RELATION_NOT_A_CANDIDATE', 'account_scoped_client_id', function () use ($other): void {
+				$this->add('rw_accounts', ['account_label' => 'refused', 'account_scoped_client_id' => $other->id]);
+			});
+		} finally {
+			ORM::setCandidatesContext(null);
+		}
+
+		self::assertNotNull($this->find('rw_accounts', ['account_label' => 'ok']));
+		self::assertNull($this->find('rw_accounts', ['account_label' => 'refused']));
+	}
+
+	/**
+	 * A trusted write is server code, not a request picking: it is not checked.
+	 */
+	public function testATrustedWriteIsNotChecked(): void
+	{
+		$blocked = $this->add('rw_clients', ['client_name' => 'blocked']);
+		$account = $this->add('rw_accounts', ['account_label' => 'a']);
+
+		$account->open_client_id = $blocked->id;
+		$account->save();
+
+		self::assertSame((string) $blocked->id, (string) $this->one('rw_accounts', ['account_id' => $account->id])->open_client_id);
+	}
+
+	/**
+	 * Attaching through a link table checks the record is a candidate, as setting a key does.
+	 */
+	public function testAttachingANonCandidateThroughALinkTableIsRefused(): void
+	{
+		$article = $this->add('rw_articles', ['article_title' => 'a']);
+		$hidden  = $this->add('rw_tags', ['tag_label' => 'hidden']);
+		$shown   = $this->add('rw_tags', ['tag_label' => 'shown']);
+
+		$this->assertRefused('GOBL_ORM_RELATION_NOT_A_CANDIDATE', null, function () use ($article, $hidden): void {
+			$this->relation('rw_articles', 'pickable_tags')->attach($article, ['tag_id' => $hidden->id]);
+		});
+
+		self::assertFalse($this->linked($article->id, $hidden->id));
+
+		$this->relation('rw_articles', 'pickable_tags')->attach($article, ['tag_id' => $shown->id]);
+
+		self::assertNotFalse($this->linked($article->id, $shown->id));
+	}
+
+	/**
 	 * The live connection this class runs against, which its own setup opened.
 	 */
 	protected static function db(): RDBMSInterface
@@ -873,6 +959,19 @@ abstract class ORMRelationWritesTestCase extends BaseTestCase
 			static fn (ORMEntity $client): string => (string) $client->name,
 			\iterator_to_array($found->getItems(), false)
 		);
+	}
+
+	/**
+	 * Updates an account as a request does: through its controller, not trusted.
+	 *
+	 * @param array<string, mixed> $form
+	 */
+	private function updateAccount(ORMEntity $account, array $form): void
+	{
+		$options = ORMOptions::makeFromFilters(['account_id' => $account->id]);
+		$options->setFormData($form);
+
+		ORM::ctrl($this->table('rw_accounts'))->updateOneItem($options);
 	}
 
 	/** The link row between an article and a tag, or `false`. */

@@ -173,6 +173,13 @@ class ORMEntityRelationController implements RelationControllerInterface
 				return $record;
 			}
 
+			// Where the host holds the key, writing it checks the candidates; elsewhere, here.
+			if (self::ON_HOST !== $holder && $this->relation->hasCandidates() && !$this->isCandidate($host_entity, $record)) {
+				throw new ORMQueryException('GOBL_ORM_RELATION_NOT_A_CANDIDATE', [
+					'relation' => $this->relation->getName(),
+				]);
+			}
+
 			if (self::ON_RELATIVE === $holder && $this->isHeldElsewhere($record)
 				&& RelationOnAttach::MOVE !== $this->relation->getOnAttach()
 			) {
@@ -561,6 +568,21 @@ class ORMEntityRelationController implements RelationControllerInterface
 		}
 
 		$row->isSaved(true);
+	}
+
+	/**
+	 * Whether a record is one of the relation's candidates for this host.
+	 *
+	 * @throws GoblException
+	 */
+	private function isCandidate(ORMEntity $host_entity, ORMEntity $record): bool
+	{
+		$options = new ORMOptions();
+		$options->setFilters($record->toIdentityFilters());
+
+		return null !== ORM::query($this->table)
+			->findCandidates($this->relation, $host_entity, $options)
+			->fetchClass();
 	}
 
 	/**
