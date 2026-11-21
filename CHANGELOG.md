@@ -1,5 +1,14 @@
 ### Unreleased (3.0.x-dev)
 
+- **A join relation is read from a row.** `LinkJoin` applied its steps from the host forward when
+  given a host row, so the first step's condition named the link table by its own name before the
+  next step joined it under an alias: every database refused the query ("unknown column", "missing
+  FROM-clause entry"), and a longer join failed before reaching it ("has no main alias"). Reading an
+  entity's join relation -- `getRelative()`, `getAllRelatives()`, a REST relation endpoint -- never
+  worked; the batch read, which builds its own query, did. The steps are now applied from the
+  target back, the host's condition last, as without a host row and as a relation through a link
+  table does.
+
 - **Writing a row's relatives covers every kind of link, and removing is declared on the relation**
   (behaviour change, breaking).
   - **Removing a relative removes the link by default** (`RelationOnRemove::UNLINK`): the link-table

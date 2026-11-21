@@ -146,10 +146,17 @@ abstract class ORMRelationWritesTestCase extends BaseTestCase
 				$t->softDeletable();
 			});
 
+			$ns->table('rw_groups', static function (TableBuilder $t): void {
+				$t->plural('rw_groups')->singular('rw_group')->columnPrefix('group');
+				$t->id();
+				$t->string('name')->max(60);
+			});
+
 			$ns->table('rw_tags', static function (TableBuilder $t): void {
 				$t->plural('rw_tags')->singular('rw_tag')->columnPrefix('tag');
 				$t->id();
 				$t->string('label')->max(60);
+				$t->foreign('group_id', 'rw_groups', 'id', true);
 				$t->softDeletable();
 			});
 
@@ -197,6 +204,12 @@ abstract class ORMRelationWritesTestCase extends BaseTestCase
 				$t->hasMany('tags_joined')
 					->from('rw_tags')
 					->usingJoin(['steps' => [['join' => 'rw_taggings', 'link' => ['type' => 'columns']]]]);
+				$t->hasMany('groups_joined')
+					->from('rw_groups')
+					->usingJoin(['steps' => [
+						['join' => 'rw_taggings', 'link' => ['type' => 'columns']],
+						['join' => 'rw_tags', 'link' => ['type' => 'columns']],
+					]]);
 				$t->hasMany('tags_joined_writable')
 					->from('rw_tags')
 					->usingJoin(['steps' => [['join' => 'rw_taggings', 'link' => ['type' => 'columns']]]])
@@ -232,7 +245,7 @@ abstract class ORMRelationWritesTestCase extends BaseTestCase
 							'DROP TABLE IF EXISTS %s;',
 							static::db()->getTableOrFail($name)->getFullName()
 						),
-						['rw_comments', 'rw_taggings', 'rw_tags', 'rw_articles', 'rw_tasks', 'rw_notes', 'rw_transactions', 'rw_accounts', 'rw_clients']
+						['rw_comments', 'rw_taggings', 'rw_tags', 'rw_groups', 'rw_articles', 'rw_tasks', 'rw_notes', 'rw_transactions', 'rw_accounts', 'rw_clients']
 					))
 				);
 			} catch (Throwable) {
@@ -631,6 +644,52 @@ abstract class ORMRelationWritesTestCase extends BaseTestCase
 	}
 
 	/**
+	 * A join relation is read from a row: a tag linked to an article through the link table is
+	 * found through the join, as through the relation that goes through that table.
+	 */
+	public function testAJoinRelationIsReadFromARow(): void
+	{
+		$article = $this->add('rw_articles', ['article_title' => 'probe']);
+
+		$tag = $this->add('rw_tags', ['tag_label' => 'probe']);
+
+		$this->add('rw_taggings', ['tagging_article_id' => $article->id, 'tagging_tag_id' => $tag->id]);
+
+		$found = ORM::ctrl($this->table('rw_tags'))
+			->getRelative($article, $this->relationOf('rw_articles', 'tags_joined'), ORMOptions::makeFromFilters(['tag_id' => $tag->id]));
+
+		self::assertNotNull($found);
+	}
+
+	/**
+	 * A join of three steps is read from a row too: an article's tag groups, through its links and
+	 * its tags, and not the group of a tag it does not carry.
+	 */
+	public function testAJoinOfThreeStepsIsReadFromARow(): void
+	{
+		$mine   = $this->add('rw_groups', ['group_name' => 'mine']);
+		$other  = $this->add('rw_groups', ['group_name' => 'other']);
+		$tag    = $this->add('rw_tags', ['tag_label' => 'grouped', 'tag_group_id' => $mine->id]);
+		$stray  = $this->add('rw_tags', ['tag_label' => 'stray', 'tag_group_id' => $other->id]);
+		$article = $this->add('rw_articles', ['article_title' => 'three steps']);
+
+		$this->add('rw_taggings', ['tagging_article_id' => $article->id, 'tagging_tag_id' => $tag->id]);
+
+		$found = ORM::ctrl($this->table('rw_groups'))
+			->getAllRelatives($article, $this->relationOf('rw_articles', 'groups_joined'), new ORMOptions());
+
+		self::assertNotNull($found);
+
+		$names = \array_map(
+			static fn (ORMEntity $group): string => (string) $group->name,
+			\iterator_to_array($found->getItems(), false)
+		);
+
+		self::assertSame(['mine'], $names);
+		self::assertNotNull($stray);
+	}
+
+	/**
 	 * A join writes nothing unless it declares so.
 	 */
 	public function testAJoinRefusesWritesByDefault(): void
@@ -642,6 +701,21 @@ abstract class ORMRelationWritesTestCase extends BaseTestCase
 		});
 
 		self::assertNull($this->find('rw_tags', ['tag_label' => 'refused']));
+	}
+
+	/**
+	 * A join of two steps declared to write its last one is written as a relation through that link
+	 * table is.
+	 */
+	public function testAJoinDeclaredToWriteItsLastStepWritesTheLinkRow(): void
+	{
+		$article = $this->add('rw_articles', ['article_title' => 'a']);
+
+		$this->relation('rw_articles', 'tags_joined_writable')->create($article, ['tag_label' => 'joined']);
+
+		$tag = $this->one('rw_tags', ['tag_label' => 'joined']);
+
+		self::assertNotFalse($this->linked($article->id, $tag->id));
 	}
 
 	/**

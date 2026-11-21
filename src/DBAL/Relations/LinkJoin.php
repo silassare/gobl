@@ -182,14 +182,18 @@ final class LinkJoin extends Link
 				}
 			}
 		} else {
-			$host_to_first_pivot = true;
+			// The same order, from the target back to the host: each step joins the table the step
+			// before it names, so the first step -- the condition the host's values decide -- comes
+			// last, once its table is joined under the alias it names it by. Applied first, it named
+			// the table by its own name while the join registered an alias, and no database found
+			// the column (a relation through a link table does it in this order too).
+			$steps = \array_reverse($this->links);
+			$first = \count($steps) - 1;
 
-			foreach ($this->links as $link) {
-				if (!$link->apply($target_qb, $host_to_first_pivot ? $host_entity : null)) {
+			foreach ($steps as $index => $link) {
+				if (!$link->apply($target_qb, $first === $index ? $host_entity : null)) {
 					return false;
 				}
-
-				$host_to_first_pivot = false;
 			}
 		}
 
