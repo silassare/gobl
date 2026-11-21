@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\DBAL\Relations\Interfaces;
 
+use Gobl\DBAL\Filters\Filters;
 use Gobl\DBAL\Queries\QBSelect;
 use Gobl\DBAL\Relations\LinkType;
 use Gobl\DBAL\Table;
@@ -51,6 +52,16 @@ interface LinkInterface extends ArrayCapableInterface
 	 * @return bool returns true if the relation link was applied, false otherwise
 	 */
 	public function apply(QBSelect $target_qb, ?ORMEntity $host_entity = null): bool;
+
+	/**
+	 * Adds the link's own filters to a query, and nothing else of the link.
+	 */
+	public function applyFilters(QBSelect $target_qb): void;
+
+	/**
+	 * The link's own filters, parsed as applying it parses them, to be read rather than run.
+	 */
+	public function getFilters(): Filters;
 
 	/**
 	 * Fill the target entity with the relation data from the host entity.

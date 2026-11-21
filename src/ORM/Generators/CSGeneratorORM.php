@@ -25,6 +25,7 @@ use Gobl\DBAL\Types\TypeList;
 use Gobl\DBAL\Types\Utils\JsonPatch;
 use Gobl\Exceptions\GoblException;
 use Gobl\Gobl;
+use Gobl\ORM\Candidates\CandidatesContext;
 use Gobl\ORM\Events\ORMTableFilesGenerated;
 use Gobl\ORM\Interfaces\ORMOptionsInterface;
 use Gobl\ORM\Interfaces\PaginationAwareListInterface;
@@ -37,6 +38,7 @@ use Gobl\ORM\ORMResults;
 use Gobl\ORM\ORMTableQuery;
 use Gobl\ORM\ORMTypeHint;
 use Gobl\ORM\ORMUniversalType;
+use Gobl\ORM\Utils\ORMCandidatesClass;
 use Gobl\ORM\Utils\ORMClassKind;
 use OLIUP\CG\PHPArgument;
 use OLIUP\CG\PHPClass;
@@ -57,6 +59,9 @@ final class CSGeneratorORM extends CSGenerator
 	private string $editable_body_comment;
 	private string $not_editable_header;
 	private string $editable_header;
+
+	/** @var null|class-string the class a candidates provider's context is */
+	private ?string $candidates_context_type = null;
 
 	/**
 	 * CSGeneratorORM constructor.
@@ -89,6 +94,23 @@ Proudly With: {$version}{$time}";
 	}
 
 	/**
+	 * The class a candidates provider's context is, typed in each generated candidates context.
+	 *
+	 * Gobl has no request of its own: the framework that has one says what it hands a provider.
+	 * Left unset, the context is not typed.
+	 *
+	 * @param null|class-string $class
+	 *
+	 * @return $this
+	 */
+	public function candidatesContextType(?string $class): static
+	{
+		$this->candidates_context_type = $class;
+
+		return $this;
+	}
+
+	/**
 	 * @throws Exception
 	 */
 	#[Override]
@@ -116,6 +138,25 @@ Proudly With: {$version}{$time}";
 				$is_base    = $kind->isBaseClass();
 
 				$this->writeFile(($is_base ? $path_base : $path) . $ds . $class_name . '.php', $code, $is_base);
+			}
+
+			// A typed context for each relation whose candidates a provider narrows.
+			foreach ($table->getRelations() as $relation) {
+				if (null === $relation->getCandidatesProvider()) {
+					continue;
+				}
+
+				$dir = $path_base . $ds . ORMCandidatesClass::SUB_NAMESPACE;
+
+				$fs->mkdir($dir);
+
+				$file = $this->getCandidatesContext($relation);
+
+				if (!\defined('GOBL_TEST_MODE')) {
+					$file->setComment($this->not_editable_header);
+				}
+
+				$this->writeFile($dir . $ds . ORMCandidatesClass::name($relation) . '.php', (string) $file, true);
 			}
 		}
 
@@ -1093,6 +1134,60 @@ Proudly With: {$version}{$time}";
 				$inject
 			)
 		);
+
+		$file->setContent($namespace);
+
+		return $file;
+	}
+
+	/**
+	 * The candidates context of a relation, typed: the target's query, the host's entity and, where
+	 * one is configured, the caller's context ({@see candidatesContextType()}).
+	 *
+	 * Each method narrows its parent's answer with a check rather than a cast: an answer of another
+	 * class is a fault of the caller, said where it happens.
+	 */
+	private function getCandidatesContext(Relation $relation): PHPFile
+	{
+		$host       = $relation->getHostTable();
+		$class_name = ORMCandidatesClass::name($relation);
+		$file       = new PHPFile();
+		$namespace  = new PHPNamespace(\sprintf('%s\Base\%s', $host->getNamespace(), ORMCandidatesClass::SUB_NAMESPACE));
+		$class      = $namespace->newClass($class_name);
+
+		$class->extends(new PHPClass(CandidatesContext::class))
+			->final()
+			->setComment(\sprintf(
+				'Class %s.' . \PHP_EOL . \PHP_EOL . 'The candidates context of the relation `%s` of `%s`.',
+				$class_name,
+				$relation->getName(),
+				$host->getName()
+			));
+
+		$typed = [
+			'selector' => ORMClassKind::QUERY->getClassFQN($relation->getTargetTable()),
+			'host'     => ORMClassKind::ENTITY->getClassFQN($host),
+		];
+
+		if (null !== $this->candidates_context_type) {
+			$typed['context'] = '\\' . \ltrim($this->candidates_context_type, '\\');
+		}
+
+		foreach ($typed as $method => $type) {
+			$class->newMethod($method)
+				->public()
+				->addAttribute('\\' . Override::class)
+				->setReturnType($type)
+				->addChild(\sprintf(
+					'$answer = parent::%1$s();' . \PHP_EOL . \PHP_EOL
+						. 'if (!$answer instanceof %2$s) {' . \PHP_EOL
+						. '	throw new \\LogicException(\\sprintf(\'The %1$s of this context is not a %%s.\', %2$s::class));' . \PHP_EOL
+						. '}' . \PHP_EOL . \PHP_EOL
+						. 'return $answer;',
+					$method,
+					$type
+				));
+		}
 
 		$file->setContent($namespace);
 

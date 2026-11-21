@@ -1569,6 +1569,23 @@ abstract class Db implements RDBMSInterface
 					$r->joinWrites(RelationJoinWrites::from($rel_options['join_writes']));
 				}
 
+				// `true` for candidates the relation finds itself, a provider's class for others.
+				if (isset($rel_options['candidates'])) {
+					$candidates = $rel_options['candidates'];
+
+					if (true === $candidates) {
+						$r->candidates();
+					} elseif (\is_string($candidates) && '' !== $candidates) {
+						$r->candidates($candidates);
+					} elseif (false !== $candidates) {
+						throw new DBALException(\sprintf(
+							'The "candidates" of relation "%s" in table "%s" is true or the class of a provider.',
+							$relation_name,
+							$table_name
+						));
+					}
+				}
+
 				$tbl->addRelation($r);
 			} catch (Throwable $t) {
 				throw new DBALException(

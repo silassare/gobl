@@ -40,7 +40,9 @@ use Gobl\ORM\Interfaces\ORMUpdateOptionsInterface;
 use Gobl\ORM\Interfaces\WithExpectedColumnsInterface;
 use Gobl\ORM\Interfaces\WithFiltersInterface;
 use Gobl\ORM\Interfaces\WithPaginationInterface;
+use Gobl\ORM\Candidates\CandidatesContext;
 use Gobl\ORM\Utils\Helpers;
+use Gobl\ORM\Utils\ORMCandidatesClass;
 use Gobl\ORM\Utils\ORMClassKind;
 use Override;
 use PHPUtils\Interfaces\RichExceptionInterface;
@@ -519,6 +521,67 @@ abstract class ORMTableQuery extends FiltersTableScope
 		}
 
 		return null;
+	}
+
+	/**
+	 * Finds a relation's candidates: the records a host may be linked to through it.
+	 *
+	 * Without a provider, the relation's own filters decide them, which only a relation whose
+	 * filters are about its target may have ({@see Relation::automaticCandidatesRefusal()}). With
+	 * one, the provider narrows this query, typed for the relation by the generated context class,
+	 * and nothing else is applied: a relation that needs a provider is one whose filters could not be
+	 * applied without the host. The options -- a search, filters, a page -- narrow either.
+	 *
+	 * @param ORMEntity $host    the host: its stored row under what a form sent, or what it sent
+	 * @param mixed     $context the caller's, handed to the provider; {@see ORM::candidatesContext()} when null
+	 *
+	 * @throws ORMRuntimeException when the relation offers no candidates, or the context class of
+	 *                             its provider was not generated
+	 */
+	public function findCandidates(
+		Relation $relation,
+		ORMEntity $host,
+		?ORMSelectOptionsInterface $options = null,
+		mixed $context = null,
+	): ORMResults {
+		if ($relation->getTargetTable() !== $this->table) {
+			throw new ORMRuntimeException(\sprintf(
+				'The candidates of the relation "%s" are rows of "%s", not of "%s".',
+				$relation->getName(),
+				$relation->getTargetTable()->getName(),
+				$this->table->getName()
+			));
+		}
+
+		if (!$relation->hasCandidates()) {
+			throw new ORMRuntimeException(\sprintf('The relation "%s" offers no candidates.', $relation->getName()));
+		}
+
+		$provider = $relation->getCandidatesProvider();
+
+		if (null !== $provider) {
+			$class = ORMCandidatesClass::fqn($relation);
+
+			if (!\class_exists($class) || !\is_subclass_of($class, CandidatesContext::class)) {
+				throw new ORMRuntimeException(\sprintf(
+					'The candidates context "%s" of the relation "%s" was not generated: generate the ORM classes.',
+					$class,
+					$relation->getName()
+				));
+			}
+
+			// Called by its method, which the interface cannot declare: its parameter is the class
+			// generated for this relation, checked when the table was locked.
+			\call_user_func([new $provider(), '__invoke'], new $class($relation, $this, $host, $context ?? ORM::candidatesContext()));
+		}
+
+		$sel = $this->select($options, $relation->resolveSelectColumns());
+
+		if (null === $provider) {
+			$relation->getLink()->applyFilters($sel);
+		}
+
+		return $this->wrapResults($sel);
 	}
 
 	/**

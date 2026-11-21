@@ -1,5 +1,25 @@
 ### Unreleased (3.0.x-dev)
 
+- **A relation can offer its candidates**: the records a row may be linked to through it, found by
+  the server. `->candidates()` (`'candidates' => true` in a schema array) has the relation find
+  them by itself, which only a safe relation may: the host holds the key, on one column, and its
+  filters name only the target's columns against written values; or a link table holds both links
+  and its filters are equalities on it. Any other is refused when its table is locked, naming why,
+  never at the first request. `->candidates(Provider::class)` names a class implementing
+  `CandidatesProviderInterface` whose `__invoke()` narrows them, given the context the ORM
+  generator now writes for that relation (`Base\Candidates\AccountManagerCandidates`), which
+  types the target's query (`selector()`), the host's entity (`host()`) and the caller's context
+  (`context()`, as `CSGeneratorORM::candidatesContextType()` says; `ORM::setCandidatesContext()`
+  supplies it where no call passes one). A class and never a closure, since migration snapshots
+  carry a relation as an array. `ORMController::getCandidates()` finds them, searched and paged by
+  the usual options, read as a list of the target's rows is.
+- **A link's filters can be read before any query.** `LinkInterface::getFilters()` parses them as
+  applying the link does -- target, then host -- and `applyFilters()` adds them alone to a query.
+  `Filters::getConditions()` and `getRequiredConditions()` answer what a parsed filter list is
+  made of and which conditions every match satisfies, and `LinkFilters` reads them: what the
+  candidates check and a write through a relation (its required equalities) both use, so the
+  three filter forms are read alike and as a query resolves them.
+
 - **A join relation is read from a row.** `LinkJoin` applied its steps from the host forward when
   given a host row, so the first step's condition named the link table by its own name before the
   next step joined it under an alias: every database refused the query ("unknown column", "missing
@@ -48,7 +68,7 @@
 - **Security: an update through a relation no longer writes a private or sensitive column from its
   payload.** `ORMEntityRelationController::update()` hydrated the relative with the payload and
   saved it through `ORMEntity::save()`, which is server code and trusted to write private and
-  sensitive columns -- so a nested update a client sends (OZone's REST services forward one per
+  sensitive columns -- so a nested update a client sends (a REST layer forwards one per
   relation) could write a column the client may not. It now updates through the controller, as a
   request's own update does, and the key that identifies the relative is not part of what is
   written.
@@ -504,8 +524,8 @@ array`, `public const string`, ...), which PHP 8.3 allows: a constant says
   file's header -- it still said v2. **Not a release**: no tag is cut and this
   section stays `Unreleased`.
 
-- **PHP 8.5 is the minimum** (`"php": ">=8.5"`), the version OZone requires, so
-  that every package of the suite answers for one floor. A branch below it
+- **PHP 8.5 is the minimum** (`"php": ">=8.5"`), the version the packages built
+  on this one require, so that every one of them answers for one floor. A branch below it
   cannot satisfy the advisory database `roave/security-advisories` carries
   either: 8.1 and 8.2 are end of life and their security fixes are source
   backports rather than releases, and for the live branches the advisory set
@@ -598,7 +618,7 @@ array`, `public const string`, ...), which PHP 8.3 allows: a constant says
   loaded.** Their constructors, and the CRUD class's, read the entity's
   `TABLE_NAMESPACE` and `TABLE_NAME`, which loaded the entity. A framework that
   declares the ORM namespace from its autoloader and constructs the CRUD classes
-  then (OZone, registering its listeners) did so while the first class was still
+  then (registering its listeners, say) did so while the first class was still
   loading, and the entity's `qb()`, `ctrl()` or `results()` names that class: PHP
   stopped with a compile error no handler can catch ("Could not check
   compatibility between ...Base::qb() ... because class ...Query is not
@@ -797,7 +817,7 @@ kept per change.
 
 - ORMRequestBase bug fix
 - ORMController db write/delete are now in transaction
-- OZone service class bug fix
+- A service class bug fix, met by a framework built on the ORM
 
 ### v1.1.0 (2019-24-12)
 

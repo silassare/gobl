@@ -26,7 +26,9 @@ use Gobl\ORM\ORMEntityRelationController;
 use InvalidArgumentException;
 use Override;
 use PHPUtils\Interfaces\ArrayCapableInterface;
+use Gobl\ORM\Candidates\CandidatesProviderInterface;
 use PHPUtils\Lock\Interfaces\LockableInterface;
+use ReflectionMethod;
 use PHPUtils\Lock\Traits\PermanentlyLockableTrait;
 use PHPUtils\Str;
 use PHPUtils\Traits\ArrayCapableTrait;
@@ -59,6 +61,12 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface, Loc
 	private RelationOnAttach $on_attach = RelationOnAttach::REFUSE;
 
 	private RelationJoinWrites $join_writes = RelationJoinWrites::REFUSE;
+
+	/** Whether the relation offers the records a row may be linked to through it. */
+	private bool $candidates = false;
+
+	/** @var null|class-string<CandidatesProviderInterface> */
+	private ?string $candidates_provider = null;
 
 	/**
 	 * Relation constructor.
@@ -259,7 +267,118 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface, Loc
 			$options['join_writes'] = $this->join_writes->value;
 		}
 
+		if ($this->candidates) {
+			$options['candidates'] = $this->candidates_provider ?? true;
+		}
+
 		return $options;
+	}
+
+	/**
+	 * Declares that the relation offers its candidates: the records a row may be linked to through
+	 * it, found by the server.
+	 *
+	 * Without a provider they are found by the relation itself, which only the safe cases allow
+	 * ({@see automaticCandidatesRefusal()}): another relation is refused when its table is locked. A
+	 * provider is a class, never a closure, so a schema array and a migration snapshot carry it.
+	 *
+	 * @param null|class-string<CandidatesProviderInterface> $provider
+	 *
+	 * @return $this
+	 */
+	public function candidates(?string $provider = null): static
+	{
+		$this->assertNotLocked();
+
+		$this->candidates          = true;
+		$this->candidates_provider = $provider;
+
+		return $this;
+	}
+
+	/**
+	 * Whether the relation offers its candidates.
+	 */
+	public function hasCandidates(): bool
+	{
+		return $this->candidates;
+	}
+
+	/**
+	 * The class narrowing the candidates, or `null` where the relation finds them itself.
+	 *
+	 * @return null|class-string<CandidatesProviderInterface>
+	 */
+	public function getCandidatesProvider(): ?string
+	{
+		return $this->candidates_provider;
+	}
+
+	/**
+	 * Why the relation cannot find its candidates by itself, or `null` when it can.
+	 *
+	 * It can when nothing but the target decides them: the host holds the key, on one column, and
+	 * the relation's filters name only the target's columns against values written in them; or a
+	 * link table holds both links and its filters are equalities on it, which a new link row is
+	 * written with. Anything else depends on the host -- a filter on its column, a second key column
+	 * -- or has no single row to pick, and needs a provider.
+	 */
+	public function automaticCandidatesRefusal(): ?string
+	{
+		$link   = $this->link;
+		$target = $this->getTargetTable();
+
+		if ($link instanceof LinkColumns) {
+			if (!$link->isHostHoldingKey()) {
+				return 'the relative holds the key, so a candidate is a row another host may hold';
+			}
+
+			if (1 !== \count($link->getColumnsMapping())) {
+				return 'it links on more than one column, and the others depend on the host';
+			}
+
+			return LinkFilters::onlyOn($link, $target)
+				? null
+				: 'its filters name a column that is not the target\'s, or compare with what is not a value';
+		}
+
+		if ($link instanceof LinkMorph) {
+			if ($link->isHostParent()) {
+				return 'the relative holds the link, so a candidate is a row another host may hold';
+			}
+
+			return LinkFilters::onlyOn($link, $target)
+				? null
+				: 'its filters name a column that is not the target\'s, or compare with what is not a value';
+		}
+
+		if ($link instanceof LinkThrough) {
+			$pivot     = $link->getPivotTable();
+			$to_pivot  = $link->getHostToThroughLink();
+			$to_target = $link->getThroughToTargetLink();
+
+			$holds_both = (($to_pivot instanceof LinkColumns && !$to_pivot->isHostHoldingKey())
+					|| ($to_pivot instanceof LinkMorph && $to_pivot->isHostParent()))
+				&& (($to_target instanceof LinkColumns && $to_target->isHostHoldingKey())
+					|| ($to_target instanceof LinkMorph && !$to_target->isHostParent()));
+
+			if (!$holds_both) {
+				return 'the link table does not hold both links';
+			}
+
+			if (
+				!LinkFilters::onlyEqualitiesOn($to_pivot, $pivot)
+				|| !LinkFilters::onlyEqualitiesOn($to_target, $pivot)
+			) {
+				return 'a filter of the link table is not an equality on it, which a new link row could be written with';
+			}
+
+			return LinkFilters::onlyOn($link, $target)
+				? null
+				: 'its filters name a column that is not the target\'s, or compare with what is not a value';
+		}
+
+		return 'a join has no single row a candidate would be linked through';
 	}
 
 	/**
@@ -407,6 +526,10 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface, Loc
 	 */
 	protected function assertIsValid(): void
 	{
+		if ($this->candidates) {
+			$this->assertCandidatesAreFound();
+		}
+
 		if (null !== $this->_select && !empty($this->_select)) {
 			$target = $this->getTargetTable();
 
@@ -425,6 +548,46 @@ abstract class Relation implements RelationInterface, ArrayCapableInterface, Loc
 					);
 				}
 			}
+		}
+	}
+
+	/**
+	 * Refuses candidates that cannot be found: automatic ones where the relation is not a safe case,
+	 * a provider that is not a class implementing the interface with an `__invoke` of one argument.
+	 */
+	private function assertCandidatesAreFound(): void
+	{
+		$provider = $this->candidates_provider;
+
+		if (null === $provider) {
+			$refusal = $this->automaticCandidatesRefusal();
+
+			if (null !== $refusal) {
+				throw new DBALRuntimeException(\sprintf(
+					'The relation "%s" cannot find its candidates by itself: %s. Name a provider class: ->candidates(Provider::class).',
+					$this->name,
+					$refusal
+				));
+			}
+
+			return;
+		}
+
+		if (!\class_exists($provider) || !\is_subclass_of($provider, CandidatesProviderInterface::class)) {
+			throw new DBALRuntimeException(\sprintf(
+				'The candidates provider "%s" of the relation "%s" is not a class implementing "%s".',
+				$provider,
+				$this->name,
+				CandidatesProviderInterface::class
+			));
+		}
+
+		if (!\method_exists($provider, '__invoke') || 1 !== new ReflectionMethod($provider, '__invoke')->getNumberOfParameters()) {
+			throw new DBALRuntimeException(\sprintf(
+				'The candidates provider "%s" of the relation "%s" must define __invoke() taking the context the ORM generates for it.',
+				$provider,
+				$this->name
+			));
 		}
 	}
 }

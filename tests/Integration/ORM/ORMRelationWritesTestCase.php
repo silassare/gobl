@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\Integration\ORM;
 
+use ArrayObject;
 use Gobl\DBAL\Builders\TableBuilder;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
 use Gobl\DBAL\Queries\QBSelect;
@@ -25,6 +26,7 @@ use Gobl\ORM\Exceptions\ORMQueryException;
 use Gobl\ORM\ORMEntity;
 use Gobl\ORM\ORMOptions;
 use Gobl\Tests\BaseTestCase;
+use Gobl\Tests\Fixtures\ScopedClientCandidates;
 use Gobl\Tests\TestLog;
 use Gobl\Tests\TestPaths;
 use Override;
@@ -112,6 +114,14 @@ abstract class ORMRelationWritesTestCase extends BaseTestCase
 				$t->string('label')->max(60);
 				$t->foreign('client_id', 'rw_clients', 'id', true);
 				$t->belongsTo('client')->from('rw_clients');
+				$t->belongsTo('open_client')
+					->from('rw_clients')
+					->usingColumns(['client_id' => 'id'], ['name', 'neq', 'blocked'])
+					->candidates();
+				$t->belongsTo('scoped_client')
+					->from('rw_clients')
+					->usingColumns(['client_id' => 'id'])
+					->candidates(ScopedClientCandidates::class);
 			});
 
 			$ns->table('rw_transactions', static function (TableBuilder $t): void {
@@ -218,7 +228,9 @@ abstract class ORMRelationWritesTestCase extends BaseTestCase
 
 			$ns->enableORM($out_dir);
 
-			new CSGeneratorORM($db)->generate($db->getTables(static::NAMESPACE), $out_dir);
+			new CSGeneratorORM($db)
+				->candidatesContextType(ArrayObject::class)
+				->generate($db->getTables(static::NAMESPACE), $out_dir);
 
 			$db->lock();
 			$db->executeMulti($db->getGenerator()->buildDatabase());
@@ -719,6 +731,66 @@ abstract class ORMRelationWritesTestCase extends BaseTestCase
 	}
 
 	/**
+	 * A relation whose filters are about its target finds its candidates by itself: every client
+	 * but the one its filter excludes.
+	 */
+	public function testARelationFindsItsOwnCandidates(): void
+	{
+		$this->add('rw_clients', ['client_name' => 'open one']);
+		$this->add('rw_clients', ['client_name' => 'blocked']);
+
+		$account = $this->add('rw_accounts', ['account_label' => 'a']);
+		$names   = $this->candidateNames($account, 'open_client', new ORMOptions());
+
+		self::assertContains('open one', $names);
+		self::assertNotContains('blocked', $names);
+
+		// A search the picker sends narrows them further.
+		$options = ORMOptions::makeFromFilters(['client_name' => 'open one']);
+
+		self::assertSame(['open one'], \array_values(\array_unique($this->candidateNames($account, 'open_client', $options))));
+	}
+
+	/**
+	 * A provider narrows them with the caller's context, and is handed the context class generated
+	 * for its relation.
+	 */
+	public function testAProviderNarrowsTheCandidatesWithTheCallersContext(): void
+	{
+		$this->add('rw_clients', ['client_name' => 'wanted']);
+		$this->add('rw_clients', ['client_name' => 'not wanted']);
+
+		$account = $this->add('rw_accounts', ['account_label' => 'a']);
+
+		ScopedClientCandidates::forget();
+
+		$names = $this->candidateNames($account, 'scoped_client', new ORMOptions(), new ArrayObject(['name' => 'wanted']));
+
+		self::assertSame(['wanted'], \array_values(\array_unique($names)));
+		self::assertSame(
+			[\ltrim(\Gobl\ORM\Utils\ORMCandidatesClass::fqn($this->relationOf('rw_accounts', 'scoped_client')), '\\')],
+			ScopedClientCandidates::handed()
+		);
+	}
+
+	/**
+	 * The generated context types what the provider reads: the target's query, the host's entity,
+	 * and the caller's context as the generation was told.
+	 */
+	public function testTheGeneratedContextIsTypedForItsRelation(): void
+	{
+		$class = \ltrim(\Gobl\ORM\Utils\ORMCandidatesClass::fqn($this->relationOf('rw_accounts', 'scoped_client')), '\\');
+
+		self::assertTrue(\class_exists($class));
+
+		$type = static fn (string $method): string => (string) new \ReflectionMethod($class, $method)->getReturnType();
+
+		self::assertSame(\ltrim(\Gobl\ORM\Utils\ORMClassKind::QUERY->getClassFQN($this->table('rw_clients')), '\\'), $type('selector'));
+		self::assertSame(\ltrim(\Gobl\ORM\Utils\ORMClassKind::ENTITY->getClassFQN($this->table('rw_accounts')), '\\'), $type('host'));
+		self::assertSame(ArrayObject::class, $type('context'));
+	}
+
+	/**
 	 * The live connection this class runs against, which its own setup opened.
 	 */
 	protected static function db(): RDBMSInterface
@@ -785,6 +857,22 @@ abstract class ORMRelationWritesTestCase extends BaseTestCase
 		}
 
 		self::fail(\sprintf('The write was not refused with %s.', $message));
+	}
+
+	/**
+	 * The names of a relation's candidates for this account.
+	 *
+	 * @return list<string>
+	 */
+	private function candidateNames(ORMEntity $host, string $relation, ORMOptions $options, mixed $context = null): array
+	{
+		$found = ORM::ctrl($this->table('rw_clients'))
+			->getCandidates($this->relationOf('rw_accounts', $relation), $host, $options, $context);
+
+		return \array_map(
+			static fn (ORMEntity $client): string => (string) $client->name,
+			\iterator_to_array($found->getItems(), false)
+		);
 	}
 
 	/** The link row between an article and a tag, or `false`. */

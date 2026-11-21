@@ -32,6 +32,14 @@ final class ORM
 	private static array $namespaces = [];
 
 	/**
+	 * What hands a candidates provider its caller's context where no call passed one: a write, which
+	 * checks its candidates with the request's context, and has none of its own.
+	 *
+	 * @var null|callable():mixed
+	 */
+	private static mixed $candidates_context = null;
+
+	/**
 	 * Registers a database namespace with the ORM.
 	 *
 	 * Associates `$namespace` with a database instance and an on-disk output directory
@@ -79,6 +87,26 @@ final class ORM
 	{
 		return self::getDatabase($namespace)
 			->getTableOrFail($table_name);
+	}
+
+	/**
+	 * Sets what hands a candidates provider its caller's context where no call passed one.
+	 *
+	 * Set once, by the framework that has a request, to answer that request's context.
+	 *
+	 * @param null|callable():mixed $resolver
+	 */
+	public static function setCandidatesContext(?callable $resolver): void
+	{
+		self::$candidates_context = $resolver;
+	}
+
+	/**
+	 * The caller's context for a candidates provider, or `null` where nothing sets one.
+	 */
+	public static function candidatesContext(): mixed
+	{
+		return null === self::$candidates_context ? null : (self::$candidates_context)();
 	}
 
 	/**

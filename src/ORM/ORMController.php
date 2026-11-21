@@ -360,6 +360,33 @@ abstract class ORMController
 	}
 
 	/**
+	 * Gets a relation's candidates: the records the host may be linked to through it.
+	 *
+	 * Read as a list of the target's rows is, so the reader may read them or not.
+	 *
+	 * @param mixed $context the caller's, handed to the relation's provider
+	 *
+	 * @return TResults
+	 *
+	 * @throws GoblException
+	 */
+	public function getCandidates(
+		Relation $relation,
+		ORMEntity $host_entity,
+		?ORMSelectOptionsInterface $options = null,
+		mixed $context = null
+	): ORMResults {
+		return $this->db->runInTransaction(function () use ($relation, $host_entity, $options, $context): ORMResults {
+			/** @var TQuery $tq */
+			$tq = ORM::query($this->table);
+
+			$this->crud->assertReadAll($tq);
+
+			return $tq->findCandidates($relation, $host_entity, $options, $context);
+		});
+	}
+
+	/**
 	 * Gets a given item relative.
 	 *
 	 * @return null|TEntity

@@ -496,6 +496,30 @@ final class Filters
 	}
 
 	/**
+	 * Every condition, at any depth, whatever joins it: what the filters are made of.
+	 *
+	 * A raw condition is answered as it is: what it says is SQL, which nothing here reads.
+	 *
+	 * @return list<Filter|FilterRaw>
+	 */
+	public function getConditions(): array
+	{
+		return self::conditionsOf($this->group, false);
+	}
+
+	/**
+	 * The conditions every row these filters match satisfies: those reached through `and` alone.
+	 *
+	 * A condition inside an `or` of two or more is required by none of them, so it is not one.
+	 *
+	 * @return list<Filter|FilterRaw>
+	 */
+	public function getRequiredConditions(): array
+	{
+		return self::conditionsOf($this->group, true);
+	}
+
+	/**
 	 * Checks if the filters is empty.
 	 */
 	public function isEmpty(): bool
@@ -1058,5 +1082,34 @@ final class Filters
 		}
 
 		return $instance;
+	}
+
+	/**
+	 * The conditions of a group, at any depth; only those every match satisfies when `$required`.
+	 *
+	 * @return list<Filter|FilterRaw>
+	 */
+	private static function conditionsOf(FilterGroup $group, bool $required): array
+	{
+		$children = $group->getFilters();
+
+		// A group of one is that one, whatever word was set to join it.
+		if ($required && !$group->isAnd() && \count($children) > 1) {
+			return [];
+		}
+
+		$out = [];
+
+		foreach ($children as $child) {
+			if ($child instanceof FilterGroup) {
+				$out = [...$out, ...self::conditionsOf($child, $required)];
+			} elseif ($child instanceof self) {
+				$out = [...$out, ...self::conditionsOf($child->group, $required)];
+			} elseif ($child instanceof Filter || $child instanceof FilterRaw) {
+				$out[] = $child;
+			}
+		}
+
+		return $out;
 	}
 }

@@ -20,6 +20,7 @@ use Gobl\DBAL\Operator;
 use Gobl\DBAL\Relations\Interfaces\LinkInterface;
 use Gobl\DBAL\Relations\Interfaces\RelationControllerInterface;
 use Gobl\DBAL\Relations\LinkColumns;
+use Gobl\DBAL\Relations\LinkFilters;
 use Gobl\DBAL\Relations\LinkJoin;
 use Gobl\DBAL\Relations\LinkMorph;
 use Gobl\DBAL\Relations\LinkThrough;
@@ -488,8 +489,8 @@ class ORMEntityRelationController implements RelationControllerInterface
 		}
 
 		return $from_host['values'] + $from_target['values']
-			+ self::equalitiesIn(self::filtersOf($to_pivot), $pivot)
-			+ self::equalitiesIn(self::filtersOf($to_target), $pivot);
+			+ LinkFilters::requiredEqualities($to_pivot, $pivot)
+			+ LinkFilters::requiredEqualities($to_target, $pivot);
 	}
 
 	/**
@@ -607,88 +608,7 @@ class ORMEntityRelationController implements RelationControllerInterface
 	 */
 	private function equalities(): array
 	{
-		return self::equalitiesIn(self::filtersOf($this->relation->getLink()), $this->table);
-	}
-
-	/**
-	 * A link's filters, as declared.
-	 */
-	private static function filtersOf(LinkInterface $link): array
-	{
-		$filters = $link->toArray()['filters'] ?? [];
-
-		return \is_array($filters) ? $filters : [];
-	}
-
-	/**
-	 * The columns of `$table` a filter list requires a single value of: its `eq` conditions, when
-	 * every condition is required -- joined by `and` -- and the column is that table's.
-	 *
-	 * A condition on another table's column is not a value of this one. An `or` requires no one
-	 * value, and the expression and legacy forms are keyed, so not a list, and not read here: what is
-	 * not written is still checked, by {@see assertRelative()}, once the row is written.
-	 *
-	 * @return array<string, mixed>
-	 */
-	private static function equalitiesIn(array $filters, Table $table): array
-	{
-		if (!\array_is_list($filters)) {
-			return [];
-		}
-
-		$out   = [];
-		$i     = 0;
-		$count = \count($filters);
-
-		while ($i < $count) {
-			$current = $filters[$i];
-
-			if (\is_array($current)) {
-				$out += self::equalitiesIn($current, $table);
-				++$i;
-
-				continue;
-			}
-
-			if (!\is_string($current)) {
-				return [];
-			}
-
-			$word = \strtolower($current);
-
-			if ('or' === $word) {
-				return [];
-			}
-
-			if ('and' === $word) {
-				++$i;
-
-				continue;
-			}
-
-			$given    = $filters[$i + 1] ?? null;
-			$operator = $given instanceof Operator ? $given : (\is_string($given) ? Operator::tryFrom($given) : null);
-
-			if (null === $operator) {
-				return [];
-			}
-
-			if ($operator->isUnary()) {
-				$i += 2;
-
-				continue;
-			}
-
-			$column = $table->getColumn($current);
-
-			if (Operator::EQ === $operator && null !== $column) {
-				$out[$column->getFullName()] = $filters[$i + 2] ?? null;
-			}
-
-			$i += 3;
-		}
-
-		return $out;
+		return LinkFilters::requiredEqualities($this->relation->getLink(), $this->table);
 	}
 
 	/**

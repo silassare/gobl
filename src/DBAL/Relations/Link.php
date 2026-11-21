@@ -79,31 +79,62 @@ abstract class Link implements LinkInterface
 	final public function apply(QBSelect $target_qb, ?ORMEntity $host_entity = null): bool
 	{
 		if ($this->runLinkTypeApplyLogic($target_qb, $host_entity)) {
-			$link_filters = $this->options['filters'] ?? [];
-
-			if (!empty($link_filters)) {
-				// Use declare=true so that getMainAlias never throws even if the host
-				// table is not yet registered (the filter may only reference target columns).
-				$target_alias = $target_qb->getMainAlias($this->target_table, true);
-				$host_alias   = $target_qb->getMainAlias($this->host_table, true);
-
-				$t_scope = new FiltersTableScope($this->target_table, $target_alias);
-				$h_scope = new FiltersTableScope($this->host_table, $host_alias);
-
-				$scope_bundle = new FiltersMultiScope();
-
-				// target has highest priority
-				$scope_bundle->push($t_scope, $this->target_table, $target_alias);
-				// host has second priority (allows referencing host columns, e.g. pivot columns, in filters)
-				$scope_bundle->push($h_scope, $this->host_table, $host_alias);
-
-				$target_qb->andWhere(Filters::fromArray($link_filters, $target_qb, $scope_bundle));
-			}
+			$this->applyFilters($target_qb);
 
 			return true;
 		}
 
 		return false;
+	}
+
+	/**
+	 * Adds the link's own filters to a query, and nothing else of the link: what a relative must be,
+	 * without saying whose -- what finding a relation's candidates asks of its target.
+	 */
+	#[Override]
+	public function applyFilters(QBSelect $target_qb): void
+	{
+		$link_filters = $this->options['filters'] ?? [];
+
+		if (!empty($link_filters)) {
+			$target_qb->andWhere(Filters::fromArray($link_filters, $target_qb, $this->filtersScope($target_qb)));
+		}
+	}
+
+	/**
+	 * The link's own filters, parsed as {@see apply()} parses them -- each name resolved against
+	 * the target, then the host -- on a query of their own: to be read, never run.
+	 *
+	 * What tells which table each condition is about, and which ones every relative satisfies,
+	 * with the same resolution a query makes and whichever form the filters were written in.
+	 *
+	 * @throws DBALException when a filter cannot be read, which applying the link would meet too
+	 */
+	#[Override]
+	public function getFilters(): Filters
+	{
+		$qb = new QBSelect($this->rdbms);
+
+		return Filters::fromArray($this->options['filters'] ?? [], $qb, $this->filtersScope($qb));
+	}
+
+	/**
+	 * The scope a link's filters are read in: the target first, then the host -- so a filter may
+	 * name a host column, as a pivot column in a link table's own link.
+	 */
+	private function filtersScope(QBSelect $qb): FiltersMultiScope
+	{
+		// Declared, so an alias is answered even for a table the query has not registered yet: the
+		// filter may name only target columns.
+		$target_alias = $qb->getMainAlias($this->target_table, true);
+		$host_alias   = $qb->getMainAlias($this->host_table, true);
+
+		$scope = new FiltersMultiScope();
+
+		$scope->push(new FiltersTableScope($this->target_table, $target_alias), $this->target_table, $target_alias);
+		$scope->push(new FiltersTableScope($this->host_table, $host_alias), $this->host_table, $host_alias);
+
+		return $scope;
 	}
 
 	/**

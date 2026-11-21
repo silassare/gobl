@@ -66,7 +66,7 @@ use PHPUtils\PortablePattern;
  * foreign key and with nothing declared again.
  *
  * **A type this does not know is mapped by what it is stored as.** A project declares its own
- * column types (OZone has `email`, `phone`, `password`, ... and says a project may add more), and
+ * column types (`email`, `phone`, `password`, ..., and a project may add more), and
  * every one of them has a base type among the seven {@see Types\Utils\TypeUtils::getBaseTypes()}
  * allows -- which is already checked when the type is built, and which already carries the
  * constraints, since that is what validates the value. So there is nothing to register and no

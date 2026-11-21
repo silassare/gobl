@@ -23,7 +23,10 @@ use Gobl\DBAL\Relations\OneToMany;
 use Gobl\DBAL\Relations\Relation;
 use Gobl\DBAL\Relations\RelationType;
 use Gobl\DBAL\Table;
+use Gobl\DBAL\Exceptions\DBALRuntimeException;
 use Gobl\Tests\BaseTestCase;
+use Gobl\Tests\Fixtures\AnyCandidates;
+use Gobl\Tests\Fixtures\NotCandidates;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
@@ -271,6 +274,148 @@ final class RelationsTest extends BaseTestCase
 		$this->expectException(DBALException::class);
 
 		self::getNewDbInstance()->ns('strategies')->schema($schema(['on_remove' => 'shred']));
+	}
+
+	/**
+	 * A relation finds its candidates by itself only where nothing but the target decides them.
+	 */
+	public function testOnlyASafeRelationFindsItsCandidatesByItself(): void
+	{
+		// The host holds the key, on one column, no filter: a role's user.
+		self::assertNull($this->getTable('roles')->getRelation('user')?->automaticCandidatesRefusal());
+		// A link table holding both links, no filter: an article's tags.
+		self::assertNull($this->getTable('articles')->getRelation('tags')?->automaticCandidatesRefusal());
+
+		// The relative holds the key: a user's roles are rows other users may hold.
+		self::assertStringContainsString(
+			'the relative holds the key',
+			(string) $this->getTable('users')->getRelation('roles')?->automaticCandidatesRefusal()
+		);
+		// A link-table filter that is not an equality: no new link row could be written to hold it.
+		self::assertStringContainsString(
+			'not an equality',
+			(string) $this->getTable('articles')->getRelation('recently_added_tags')?->automaticCandidatesRefusal()
+		);
+	}
+
+	/**
+	 * A filter naming a column of the host, or a key on two columns, depends on the host.
+	 */
+	public function testARelationThatDependsOnTheHostNeedsAProvider(): void
+	{
+		$db = $this->candidatesDb(static function (TableBuilder $t): void {
+			$t->belongsTo('vip_client')->from('clients')->usingColumns(['client_id' => 'id'], ['account_kind', 'eq', 'vip']);
+			$t->belongsTo('active_client')->from('clients')->usingColumns(['client_id' => 'id'], ['client_active', 'eq', true]);
+		});
+
+		$accounts = $db->getTableOrFail('accounts');
+
+		self::assertStringContainsString(
+			'not the target',
+			(string) $accounts->getRelation('vip_client')?->automaticCandidatesRefusal()
+		);
+		self::assertNull($accounts->getRelation('active_client')?->automaticCandidatesRefusal());
+	}
+
+	/**
+	 * Automatic candidates a relation cannot find are refused when its table is locked, never at
+	 * the first request; a provider that is not one is refused the same way.
+	 */
+	public function testCandidatesThatCannotBeFoundAreRefusedAtLock(): void
+	{
+		$this->candidatesDb(static function (TableBuilder $t): void {
+			$t->belongsTo('client')->from('clients')->usingColumns(['client_id' => 'id'])->candidates();
+			$t->belongsTo('any_client')->from('clients')->usingColumns(['client_id' => 'id'])->candidates(AnyCandidates::class);
+		}, true);
+
+		try {
+			$this->candidatesDb(static function (TableBuilder $t): void {
+				$t->belongsTo('vip_client')
+					->from('clients')
+					->usingColumns(['client_id' => 'id'], ['account_kind', 'eq', 'vip'])
+					->candidates();
+			}, true);
+			self::fail('Automatic candidates depending on the host were accepted.');
+		} catch (DBALRuntimeException $e) {
+			self::assertStringContainsString('cannot find its candidates by itself', $e->getMessage());
+		}
+
+		// Named in a schema array, where a provider is a string like any other.
+		$db = self::getNewDbInstance();
+		$db->ns('candidates_odd')->schema([
+			'clients' => [
+				'column_prefix' => 'client',
+				'constraints'   => [['type' => 'primary_key', 'columns' => ['id']]],
+				'columns'       => ['id' => ['type' => 'bigint', 'auto_increment' => true, 'unsigned' => true]],
+			],
+			'accounts' => [
+				'column_prefix' => 'account',
+				'constraints'   => [
+					['type' => 'primary_key', 'columns' => ['id']],
+					['type' => 'foreign_key', 'reference' => 'clients', 'columns' => ['client_id' => 'id']],
+				],
+				'columns' => [
+					'id'        => ['type' => 'bigint', 'auto_increment' => true, 'unsigned' => true],
+					'client_id' => 'ref:clients.id',
+				],
+				'relations' => [
+					'client' => ['type' => 'many-to-one', 'target' => 'clients', 'candidates' => NotCandidates::class],
+				],
+			],
+		]);
+
+		$this->expectException(DBALRuntimeException::class);
+		$this->expectExceptionMessage('is not a class implementing');
+
+		$db->lock();
+	}
+
+	/**
+	 * A schema array names candidates as `true` or a provider's class, and reads back as written.
+	 */
+	public function testCandidatesRoundTripThroughASchema(): void
+	{
+		$db = $this->candidatesDb(static function (TableBuilder $t): void {
+			$t->belongsTo('client')->from('clients')->usingColumns(['client_id' => 'id'])->candidates();
+			$t->belongsTo('any_client')->from('clients')->usingColumns(['client_id' => 'id'])->candidates(AnyCandidates::class);
+		});
+
+		$accounts = $db->getTableOrFail('accounts');
+
+		self::assertTrue($accounts->getRelation('client')?->toArray()['candidates'] ?? null);
+		self::assertSame(AnyCandidates::class, $accounts->getRelation('any_client')?->toArray()['candidates'] ?? null);
+		self::assertArrayNotHasKey('candidates', $this->getTable('roles')->getRelation('user')?->toArray() ?? []);
+	}
+
+	/**
+	 * Clients and their accounts, the accounts' relations given by the test.
+	 *
+	 * @param callable(TableBuilder):void $relations
+	 */
+	private function candidatesDb(callable $relations, bool $lock = false): \Gobl\DBAL\Interfaces\RDBMSInterface
+	{
+		$db = self::getNewDbInstance();
+		$ns = $db->ns('candidates_test');
+
+		$ns->table('clients', static function (TableBuilder $t): void {
+			$t->columnPrefix('client');
+			$t->id();
+			$t->bool('active');
+		});
+
+		$ns->table('accounts', static function (TableBuilder $t) use ($relations): void {
+			$t->columnPrefix('account');
+			$t->id();
+			$t->string('kind');
+			$t->foreign('client_id', 'clients', 'id');
+			$relations($t);
+		});
+
+		if ($lock) {
+			$db->lock();
+		}
+
+		return $db;
 	}
 
 	/** The link of a relation of the sample DB, which these tests know to be one of columns. */
