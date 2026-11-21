@@ -1,5 +1,15 @@
 ### Unreleased (3.0.x-dev)
 
+- **A relation says which columns carry it.** Each entry of `ORMShape::ofTable()`'s `relations`
+  may carry `columns`, this table's columns to the target's by their prefixed names
+  (`{account_client_id: client_id}`), read off the foreign key the relation was built from; and a
+  morph relation carries `morph` beside it: `type_column`, the `{prefix}_type` column on the child
+  side, and `parent_type`, what that column holds for this target. A relation through another table
+  or a join has neither, since no column of either side holds it.
+  What it is for is a form: a foreign column becomes a reference to pick, to the right table, from
+  the declaration that already says so strictly -- with nothing declared a second time -- and the
+  morph relations over one pair of columns are the list of what that pair may point at.
+
 - **A table's relations travel beside its shapes.** `ORMShape::ofTable()` now answers a `relations`
   map: each relation's name, the **morph type** of the table it points at, and whether it answers
   many records. Beside the shapes and not inside them, because a row carries no relation until a

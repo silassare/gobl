@@ -15,6 +15,8 @@ namespace Gobl\ORM;
 
 use Gobl\DBAL\Column;
 use Gobl\DBAL\Constraints\PrimaryKey;
+use Gobl\DBAL\Relations\LinkColumns;
+use Gobl\DBAL\Relations\LinkMorph;
 use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\Interfaces\TypeInterface;
 use Gobl\DBAL\Types\TypeBigint;
@@ -59,7 +61,9 @@ use PHPUtils\PortablePattern;
  * points at, and whether it is one row or many. That is what lets a reader of a reference read the
  * record it points at -- `$record.event.event_title` rather than an id and a hope, by the prefixed
  * name that record really carries -- and what lets one
- * that asks for a to-many relation beside the row be told it cannot have it.
+ * that asks for a to-many relation beside the row be told it cannot have it. Where a column carries
+ * the relation, it says which: a form then knows a foreign column is a reference to pick, from the
+ * foreign key and with nothing declared again.
  *
  * **A type this does not know is mapped by what it is stored as.** A project declares its own
  * column types (OZone has `email`, `phone`, `password`, ... and says a project may add more), and
@@ -105,7 +109,12 @@ final class ORMShape
 	 *     key: list<string>,
 	 *     label: null|string,
 	 *     types: array<string, string>,
-	 *     relations: array<string, array{target: string, multiple: bool}>,
+	 *     relations: array<string, array{
+	 *         target: string,
+	 *         multiple: bool,
+	 *         columns?: array<string, string>,
+	 *         morph?: array{type_column: string, parent_type: string}
+	 *     }>,
 	 *     read: array<string, mixed>,
 	 *     write: array<string, mixed>,
 	 * }
@@ -300,21 +309,73 @@ final class ORMShape
 	 * Virtual relations are left out too. What one answers is a method of the project's own, so
 	 * nothing here can say its shape, and listing it would invite a reader to type what it cannot.
 	 *
-	 * @return array<string, array{target: string, multiple: bool}>
+	 * `columns` is which column carries the relation, this table's to the target's, by the prefixed
+	 * names rows carry: what tells a form that `account_client_id` **is** a client, read off the
+	 * foreign key the relation was built from rather than declared a second time. A morph relation
+	 * carries it too, with `morph` beside it: the column holding the type and what it holds for this
+	 * target, so the morph relations over one pair of columns are the list of what it may point at.
+	 * A relation through another table or a join has neither, since no column of either side holds
+	 * it.
+	 *
+	 * @return array<string, array{
+	 *     target: string,
+	 *     multiple: bool,
+	 *     columns?: array<string, string>,
+	 *     morph?: array{type_column: string, parent_type: string}
+	 * }>
 	 */
 	private static function relationsOf(Table $table, bool $ignore_private): array
 	{
 		$relations = [];
 
 		foreach ($table->getRelations(!$ignore_private) as $relation) {
-			$relations[$relation->getName()] = [
+			$described = [
 				'target'   => $relation->getTargetTable()
 					->getMorphType(),
 				'multiple' => $relation->isPaginated(),
 			];
+
+			$link = $relation->getLink();
+
+			if ($link instanceof LinkColumns) {
+				$described['columns'] = $link->getColumnsMapping();
+			} elseif ($link instanceof LinkMorph) {
+				$described += self::morphOf($link);
+			}
+
+			$relations[$relation->getName()] = $described;
 		}
 
 		return $relations;
+	}
+
+	/**
+	 * A morph link's columns, as a columns link writes its mapping, and what makes it a morph one.
+	 *
+	 * The link keeps its columns by the names a schema declares them under (`taggable_id`), and a
+	 * row carries the prefixed ones, so each is looked up on the side that owns it: the key and the
+	 * type on the child, the key it points at on the parent.
+	 *
+	 * @return array{columns: array<string, string>, morph: array{type_column: string, parent_type: string}}
+	 */
+	private static function morphOf(LinkMorph $link): array
+	{
+		$host_is_parent = $link->isHostParent();
+		$parent         = $host_is_parent ? $link->getHostTable() : $link->getTargetTable();
+		$child          = $host_is_parent ? $link->getTargetTable() : $link->getHostTable();
+		$child_key      = $child->getColumnOrFail($link->getMorphChildKeyColumn())
+			->getFullName();
+		$parent_key = $parent->getColumnOrFail($link->getMorphParentKeyColumn())
+			->getFullName();
+
+		return [
+			'columns' => $host_is_parent ? [$parent_key => $child_key] : [$child_key => $parent_key],
+			'morph'   => [
+				'type_column' => $child->getColumnOrFail($link->getMorphChildTypeColumn())
+					->getFullName(),
+				'parent_type' => $link->getMorphParentType(),
+			],
+		];
 	}
 
 	/**

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\ORM;
 
+use Gobl\DBAL\Builders\TableBuilder;
 use Gobl\DBAL\Column;
 use Gobl\DBAL\Table;
 use Gobl\DBAL\Types\TypeBigint;
@@ -305,9 +306,20 @@ final class ORMShapeTest extends BaseTestCase
 				->getTableOrFail('accounts')
 		);
 
+		// And which column carries each, this table's to the target's: the account's own column for
+		// its client, the transaction's for the account's transactions, read off the foreign key
+		// whichever side declared it.
 		self::assertSame([
-			'transactions' => ['target' => 'transactions', 'multiple' => true],
-			'client'       => ['target' => 'clients', 'multiple' => false],
+			'transactions' => [
+				'target'   => 'transactions',
+				'multiple' => true,
+				'columns'  => ['account_id' => 'transaction_account_id'],
+			],
+			'client' => [
+				'target'   => 'clients',
+				'multiple' => false,
+				'columns'  => ['account_client_id' => 'client_id'],
+			],
 		], $described['relations']);
 
 		// A table with no relation answers none, and not something missing: every reader holds a
@@ -371,7 +383,7 @@ final class ORMShapeTest extends BaseTestCase
 		$described = ORMShape::ofTable($db->getTableOrFail('comments'));
 
 		self::assertSame(
-			['post' => ['target' => 'articles', 'multiple' => false]],
+			['post' => ['target' => 'articles', 'multiple' => false, 'columns' => ['comment_post_id' => 'post_id']]],
 			$described['relations']
 		);
 
@@ -379,6 +391,91 @@ final class ORMShapeTest extends BaseTestCase
 		$with = ORMShape::ofTable($db->getTableOrFail('comments'), false);
 
 		self::assertSame(['post', 'audit'], \array_keys($with['relations']));
+	}
+
+	/**
+	 * A morph relation says its columns too, and the column naming the type, and what that column
+	 * holds for its target -- so the morph relations over one pair are what the pair may point at.
+	 *
+	 * The link keeps its columns by their declared names (`commentable_id`) and a row carries the
+	 * prefixed ones, so this is where a column looked up on the wrong side, or not prefixed at all,
+	 * would show. A relation through another table has no column that carries it, and says none.
+	 */
+	public function testAMorphRelationSaysItsColumnsAndTheTypeItHolds(): void
+	{
+		$db = self::getNewDbInstance();
+		$ns = $db->ns('morph_test');
+
+		$posts = $ns->table('posts', static function (TableBuilder $t): void {
+			$t->columnPrefix('post');
+			$t->id();
+			$t->softDeletable();
+		});
+
+		$ns->table('videos', static function (TableBuilder $t): void {
+			$t->columnPrefix('video');
+			$t->morphType('clips');
+			$t->id();
+			$t->softDeletable();
+		});
+
+		$ns->table('comments', static function (TableBuilder $t): void {
+			$t->columnPrefix('comment');
+			$t->id();
+			$t->morph('commentable');
+			$t->belongsTo('post')
+				->from('posts')
+				->usingMorph('commentable');
+			$t->belongsTo('video')
+				->from('videos')
+				->usingMorph('commentable');
+		});
+
+		$ns->table('post_links', static function (TableBuilder $t): void {
+			$t->columnPrefix('link');
+			$t->id();
+			$t->foreign('post_id', 'posts', 'id');
+			$t->foreign('video_id', 'videos', 'id');
+		});
+
+		$posts->factory(static function (TableBuilder $t): void {
+			$t->hasMany('comments')
+				->from('comments')
+				->usingMorph('commentable');
+			$t->hasMany('videos')
+				->from('videos')
+				->through('post_links');
+		});
+
+		$db->lock();
+
+		// The child names its own columns, and each target the type the column holds for it --
+		// the morph type, `clips`, and not the table's name.
+		self::assertSame([
+			'post' => [
+				'target'   => 'posts',
+				'multiple' => false,
+				'columns'  => ['comment_commentable_id' => 'post_id'],
+				'morph'    => ['type_column' => 'comment_commentable_type', 'parent_type' => 'posts'],
+			],
+			'video' => [
+				'target'   => 'clips',
+				'multiple' => false,
+				'columns'  => ['comment_commentable_id' => 'video_id'],
+				'morph'    => ['type_column' => 'comment_commentable_type', 'parent_type' => 'clips'],
+			],
+		], ORMShape::ofTable($db->getTableOrFail('comments'))['relations']);
+
+		// From the parent, the same pair the other way round; through another table, nothing.
+		self::assertSame([
+			'comments' => [
+				'target'   => 'comments',
+				'multiple' => true,
+				'columns'  => ['post_id' => 'comment_commentable_id'],
+				'morph'    => ['type_column' => 'comment_commentable_type', 'parent_type' => 'posts'],
+			],
+			'videos' => ['target' => 'clips', 'multiple' => true],
+		], ORMShape::ofTable($db->getTableOrFail('posts'))['relations']);
 	}
 
 	/**
