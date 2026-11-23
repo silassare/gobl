@@ -20,6 +20,7 @@ use Gobl\DBAL\Operator;
 use Gobl\ORM\Exceptions\ORMQueryException;
 use Gobl\ORM\Generators\CSGeneratorORM;
 use Gobl\ORM\ORM;
+use Gobl\ORM\ORMEntity;
 use Gobl\ORM\ORMOptions;
 use Gobl\Tests\BaseTestCase;
 use Gobl\Tests\TestLog;
@@ -305,6 +306,114 @@ abstract class ORMControllerFormNamesTestCase extends BaseTestCase
 		yield 'an order' => [ORMOptions::makePaginated(10, 1, ['probe_trusted' => 'ASC']), 'GOBL_ORM_REQUEST_INVALID_ORDER_BY'];
 
 		yield 'a cursor' => [ORMOptions::makeCursorBased('probe_deleted_at', 10), 'GOBL_ORM_REQUEST_INVALID_CURSOR_COLUMN'];
+	}
+
+	/**
+	 * A request orders by a column's name or its full name, as it filters by either: the short name
+	 * of a prefixed column is no column the database knows, so it must not reach the SQL as written.
+	 */
+	public function testARequestOrdersByEitherName(): void
+	{
+		$ctrl  = ORM::ctrl(static::db()->getTableOrFail('named_probes'));
+		$codes = ['ordered-b', 'ordered-c', 'ordered-a'];
+
+		foreach ($codes as $code) {
+			$ctrl->addItem(['code' => $code]);
+		}
+
+		$ordered = static function (string $order_by) use ($ctrl, $codes): array {
+			$options = new ORMOptions([
+				ORMOptions::FILTERS_PARAM  => ['probe_code', Operator::IN->value, $codes],
+				ORMOptions::ORDER_BY_PARAM => $order_by,
+			]);
+
+			return \array_map(
+				static fn (ORMEntity $entity): string => (string) $entity->code,
+				$ctrl->getAllItems($options)->fetchAllClass()
+			);
+		};
+
+		self::assertSame(['ordered-c', 'ordered-b', 'ordered-a'], $ordered('code:desc'));
+		self::assertSame($ordered('code:desc'), $ordered('probe_code:desc'));
+
+		// Inserted b, c, a: the newest first.
+		self::assertSame(['ordered-a', 'ordered-c', 'ordered-b'], $ordered('id:desc'));
+		self::assertSame($ordered('id:desc'), $ordered('probe_id:desc'));
+	}
+
+	/**
+	 * A name that is no column of the table is refused as a bad order, never sent to the database.
+	 */
+	#[DataProvider('provideAnOrderByNoColumnIsRefusedCases')]
+	public function testAnOrderByNoColumnIsRefused(ORMOptions $options): void
+	{
+		$ctrl = ORM::ctrl(static::db()->getTableOrFail('named_probes'));
+
+		$ctrl->addItem(['code' => 'unordered']);
+
+		try {
+			$ctrl->getAllItems($options);
+			self::fail('an order by a name that is no column must be refused');
+		} catch (ORMQueryException $e) {
+			self::assertSame('GOBL_ORM_REQUEST_INVALID_ORDER_BY', $e->getMessage());
+			self::assertSame('not_a_column', $e->getData(true)['_why'] ?? null);
+		}
+	}
+
+	/**
+	 * @return iterable<string, array{ORMOptions}>
+	 */
+	public static function provideAnOrderByNoColumnIsRefusedCases(): iterable
+	{
+		yield 'from a request' => [new ORMOptions([ORMOptions::ORDER_BY_PARAM => 'nothing:desc'])];
+
+		yield 'from the server' => [ORMOptions::makePaginated(10, 1, ['nothing' => 'ASC'])];
+
+		yield 'the prefix alone' => [ORMOptions::makePaginated(10, 1, ['probe' => 'ASC'])];
+	}
+
+	/**
+	 * A cursor column that is no column of the table is refused as a bad cursor column.
+	 */
+	#[DataProvider('provideACursorOnNoColumnIsRefusedCases')]
+	public function testACursorOnNoColumnIsRefused(ORMOptions $options): void
+	{
+		$ctrl = ORM::ctrl(static::db()->getTableOrFail('named_probes'));
+
+		$ctrl->addItem(['code' => 'uncursored']);
+
+		try {
+			$ctrl->getAllItems($options);
+			self::fail('a cursor on a name that is no column must be refused');
+		} catch (ORMQueryException $e) {
+			self::assertSame('GOBL_ORM_REQUEST_INVALID_CURSOR_COLUMN', $e->getMessage());
+			self::assertSame('not_a_column', $e->getData(true)['_why'] ?? null);
+		}
+	}
+
+	/**
+	 * @return iterable<string, array{ORMOptions}>
+	 */
+	public static function provideACursorOnNoColumnIsRefusedCases(): iterable
+	{
+		yield 'from a request' => [new ORMOptions([
+			ORMOptions::CURSOR_COLUMN_PARAM => 'nothing',
+			ORMOptions::MAX_PARAM           => 10,
+		])];
+
+		yield 'from the server' => [ORMOptions::makeCursorBased('nothing', 10)];
+
+		yield 'the prefix alone' => [ORMOptions::makeCursorBased('probe', 10)];
+	}
+
+	public function testACursorByEitherNameIsAccepted(): void
+	{
+		$ctrl = ORM::ctrl(static::db()->getTableOrFail('named_probes'));
+
+		$ctrl->addItem(['code' => 'cursored']);
+
+		self::assertGreaterThan(0, $ctrl->getAllItems(ORMOptions::makeCursorBased('code', 10))->count());
+		self::assertGreaterThan(0, $ctrl->getAllItems(ORMOptions::makeCursorBased('probe_code', 10))->count());
 	}
 
 	public function testAnUpdateByColumnNamesWritesTheRow(): void

@@ -251,7 +251,7 @@ an object where an entry is written gets an array, as `set()` on such an interme
 use Gobl\ORM\ORMOptions;
 
 // Paginated request
-$request = ORMOptions::makePaginated(max: 20, page: 1, order_by: ['user_name ASC']);
+$request = ORMOptions::makePaginated(max: 20, page: 1, order_by: ['user_name' => 'ASC']);
 $results = $userController->getAllItems($request);
 
 foreach ($results as $user) {
@@ -261,6 +261,13 @@ foreach ($results as $user) {
 echo $results->count();       // rows in this page
 echo $results->getTotal($request);  // total matched rows (ignores LIMIT)
 ```
+
+`order_by` maps a column to `'ASC'` or `'DESC'`, the column named by its name (`name`) or its
+full name (`user_name`), as a request's `order_by=name:desc` does. Each reaches the SQL as the
+column's full name under the query's table alias. A key that is no column of the table is refused
+with `GOBL_ORM_REQUEST_INVALID_ORDER_BY` (an `ORMQueryException`, `_why` `not_a_column`) before
+any query runs. An order on an expression or a computed value is not an option: add it to the
+`QBSelect` that `select()` answers (see [Computed values](#computed-values) below).
 
 `ORMResults` carries metadata alongside the rows:
 
@@ -293,7 +300,7 @@ $tq->where(
 );
 
 // find() returns ORMResults directly
-$request = ORMOptions::makePaginated(max: 10, order_by: ['user_name ASC']);
+$request = ORMOptions::makePaginated(max: 10, order_by: ['user_name' => 'ASC']);
 $results = $tq->find($request);
 
 foreach ($results as $user) { /* ... */ }
@@ -342,7 +349,9 @@ request is in use.
 
 `cursor_column` is the full column name (including table prefix) used for pagination, or `null` when `$max` is not set. It is useful when building generic API layers that need to relay pagination metadata to clients.
 
-Throws `ORMQueryException` when `$direction` is not `'ASC'`/`'DESC'`.
+Throws `ORMQueryException` when `$direction` is not `'ASC'`/`'DESC'`, and
+`GOBL_ORM_REQUEST_INVALID_CURSOR_COLUMN` (an `ORMQueryException`, `_why` `not_a_column`) when the
+cursor column, given by its name or its full name, is no column of the table.
 
 ---
 

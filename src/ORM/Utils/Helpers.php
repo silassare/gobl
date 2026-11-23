@@ -32,6 +32,9 @@ final class Helpers
 	 * When using cursor-based pagination, this method returns the cursor column as a `Column` instance.
 	 *
 	 * If the cursor column is not explicitly provided in the options, it defaults to the single primary key column of the table.
+	 *
+	 * @throws ORMQueryException when none is given and the table has no single primary key column, or
+	 *                           the one given is no column of the table
 	 */
 	public static function requireCursorColumn(Table $table, WithPaginationInterface $options): Column
 	{
@@ -49,7 +52,18 @@ final class Helpers
 			return $table->getSinglePKColumnOrFail();
 		}
 
-		return $table->getColumnOrFail($cursor_column);
+		$column = $table->getColumn($cursor_column);
+
+		// The name comes from a request: one that is no column of the table is refused as a bad
+		// cursor column, as a bad order is.
+		if (null === $column) {
+			throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_CURSOR_COLUMN', [
+				'field' => $cursor_column,
+				'_why'  => 'not_a_column',
+			]);
+		}
+
+		return $column;
 	}
 
 	/**

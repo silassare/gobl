@@ -778,17 +778,25 @@ abstract class ORMTableQuery extends FiltersTableScope
 			}
 		}
 
+		// Each key names a column of this table, by its name or its full name, and reaches the SQL as
+		// the column's full name under the table alias: a name the SQL would read as written is the
+		// short name of a prefixed table, unknown to the database, or ambiguous once a join is added.
+		// An order on anything else (an expression, a computed alias) is server code's, and goes on
+		// the query builder `select()` answers.
 		$order_by = $options->getOrderBy() ?? [];
-		if (!empty($order_by)) {
-			foreach ($order_by as $name => $_) {
-				$column = \is_string($name) ? $this->table->getColumn($name) : null;
+		foreach ($order_by as $name => $direction) {
+			$column = \is_string($name) ? $this->table->getColumn($name) : null;
 
-				if (null !== $column) {
-					$this->assertRequestColumn($column, 'GOBL_ORM_REQUEST_INVALID_ORDER_BY');
-				}
+			if (null === $column) {
+				throw new ORMQueryException('GOBL_ORM_REQUEST_INVALID_ORDER_BY', [
+					'field' => $name,
+					'_why'  => 'not_a_column',
+				]);
 			}
 
-			$qb->orderBy($order_by);
+			$this->assertRequestColumn($column, 'GOBL_ORM_REQUEST_INVALID_ORDER_BY');
+
+			$qb->orderBy([$this->getTableAlias() . '.' . $column->getFullName() => $direction]);
 		}
 	}
 

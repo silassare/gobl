@@ -1,5 +1,22 @@
 ### Unreleased (3.0.x-dev)
 
+- **An order names a column by its name or its full name, and only a column.** `ORMTableQuery`
+  resolved each `order_by` key only to check it, then wrote the key into the SQL as given: on a
+  table with a column prefix, `order_by=id` failed in the database (`no such column: id`) though a
+  filter takes the short name, and a name that is no column of the table reached the database too.
+  Each key now reaches the SQL as the column's full name under the table alias, as the cursor
+  column already did, and a key that is no column is refused with
+  `GOBL_ORM_REQUEST_INVALID_ORDER_BY` (`_why` `not_a_column`) before any query runs.
+  **Breaking**: the raw-clause form, an integer key holding a clause
+  (`order_by: ['user_name ASC']`), is refused now. The type never allowed it, but the guide
+  showed it and it reached the SQL as written. Write `['user_name' => 'ASC']`; for an order on an
+  expression or a computed value, call `QBSelect::orderBy()` on the query `select()` answers.
+- **A cursor column that is no column of the table is refused as a bad cursor column.**
+  `Helpers::requireCursorColumn()` threw the `DBALRuntimeException` of `Table::getColumnOrFail()`
+  for a `cursor_column` naming no column, where every other bad request is an `ORMQueryException`.
+  It now throws `GOBL_ORM_REQUEST_INVALID_CURSOR_COLUMN` (`_why` `not_a_column`), as it does for a
+  private or sensitive one.
+
 - **The shapes index exports `ENTITY_DESCRIPTIONS`**: each entity's description (table, key, label
   column, column types, relations) by its morph type, without the shapes of its rows, `satisfies
   EntityDescriptions` from `@oweb-io/schema`. What a page takes to draw a picker of records; the

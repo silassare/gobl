@@ -188,7 +188,8 @@ final class ORMTableQueryCursorTest extends BaseTestCase
 		$table = ORM::getDatabase(self::TEST_DB_NAMESPACE)->getTableOrFail('clients');
 		$qb    = ORM::query($table);
 
-		$this->expectException(DBALRuntimeException::class);
+		$this->expectException(ORMQueryException::class);
+		$this->expectExceptionMessage('GOBL_ORM_REQUEST_INVALID_CURSOR_COLUMN');
 		$qb->find(ORMOptions::makeCursorBased('non_existent_column', 10));
 	}
 
