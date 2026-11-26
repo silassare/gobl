@@ -19,6 +19,7 @@ use Gobl\CRUD\Events\AfterEntityRead;
 use Gobl\CRUD\Events\AfterEntityUpdate;
 use Gobl\CRUD\Events\BeforeColumnUpdate;
 use Gobl\CRUD\Events\BeforeCreate;
+use Gobl\CRUD\Events\BeforeCreateBulk;
 use Gobl\CRUD\Events\BeforeCreateFlush;
 use Gobl\CRUD\Events\BeforeDelete;
 use Gobl\CRUD\Events\BeforeDeleteAll;
@@ -93,6 +94,17 @@ class CRUDEventProducer
 	public function onBeforeCreate(callable $listener): void
 	{
 		$this->addListener(BeforeCreate::class, $listener);
+	}
+
+	/**
+	 * Called to allow CREATE_BULK action on a table: several rows created together, asked once with
+	 * all their forms. Denied when no listener allows it.
+	 *
+	 * @param callable(BeforeCreateBulk):bool $listener
+	 */
+	public function onBeforeCreateBulk(callable $listener): void
+	{
+		$this->addListener(BeforeCreateBulk::class, $listener);
 	}
 
 	/**

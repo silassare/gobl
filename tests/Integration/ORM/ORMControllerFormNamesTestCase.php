@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Gobl\Tests\Integration\ORM;
 
+use Gobl\CRUD\Events\BeforeCreateBulk;
 use Gobl\CRUD\Exceptions\CRUDException;
 use Gobl\DBAL\Builders\TableBuilder;
 use Gobl\DBAL\Interfaces\RDBMSInterface;
@@ -25,7 +26,10 @@ use Gobl\ORM\ORMOptions;
 use Gobl\Tests\BaseTestCase;
 use Gobl\Tests\TestLog;
 use Gobl\Tests\TestPaths;
+use Closure;
 use Override;
+use PHPUtils\Events\Event;
+use PHPUtils\Events\EventManager;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Throwable;
 
@@ -45,7 +49,10 @@ abstract class ORMControllerFormNamesTestCase extends BaseTestCase
 
 	protected static bool $setupFailed = false;
 
-	/** @var null|callable the PSR-4 autoloader of the generated classes */
+	/** @var list<Closure> the bulk listeners a test added, detached when it ends */
+	private static array $detach = [];
+
+		/** @var null|callable the PSR-4 autoloader of the generated classes */
 	private static mixed $autoloader = null;
 
 	#[Override]
@@ -153,6 +160,18 @@ abstract class ORMControllerFormNamesTestCase extends BaseTestCase
 	}
 
 	#[Override]
+	protected function tearDown(): void
+	{
+		foreach (self::$detach as $detach) {
+			$detach();
+		}
+
+		self::$detach = [];
+
+		parent::tearDown();
+	}
+
+	#[Override]
 	protected function setUp(): void
 	{
 		parent::setUp();
@@ -160,6 +179,51 @@ abstract class ORMControllerFormNamesTestCase extends BaseTestCase
 		if (static::$setupFailed || null === static::$db) {
 			self::markTestSkipped(\sprintf('Live DB not available for %s.', static::getDriverName()));
 		}
+	}
+
+	public function testABulkCreateIsRefusedUnlessAListenerAllowsIt(): void
+	{
+		$table = static::db()->getTableOrFail('named_probes');
+
+		try {
+			ORM::ctrl($table)->addItems([['code' => 'bulk-refused-1'], ['code' => 'bulk-refused-2']]);
+			self::fail('a bulk create no listener allows must be refused');
+		} catch (CRUDException $e) {
+			self::assertSame('CREATE_BULK_REFUSED', $e->getMessage());
+		}
+
+		self::assertSame(0, self::countCodes('bulk-refused-'));
+	}
+
+	public function testAnAllowedBulkCreateAsksOnceWithEveryFormThenEachRow(): void
+	{
+		$table = static::db()->getTableOrFail('named_probes');
+		$asked = [];
+
+		self::allowBulk(static function (BeforeCreateBulk $action) use (&$asked): bool {
+			$asked[] = \array_map(static fn (array $form): mixed => $form['probe_code'] ?? null, $action->getForms());
+
+			return true;
+		});
+
+		$created = ORM::ctrl($table)->addItems([['code' => 'bulk-a'], ['probe_code' => 'bulk-b']]);
+
+		self::assertCount(2, $created);
+		self::assertSame([['bulk-a', 'bulk-b']], $asked);
+		self::assertSame(2, self::countCodes('bulk-'));
+
+		// Each row is still a create of its own: one writing a private column refuses the batch, and
+		// none of it is written.
+		try {
+			ORM::ctrl($table)->addItems([['code' => 'bulk-atomic-1'], ['code' => 'bulk-atomic-2', 'trusted' => true]]);
+			self::fail('a row a create refuses must refuse the whole batch');
+		} catch (CRUDException $e) {
+			self::assertSame('column_is_private', $e->getData(true)['_why'] ?? null);
+			// Where in the batch: the second form.
+			self::assertSame(1, $e->getData(true)['bulk_index'] ?? null);
+		}
+
+		self::assertSame(0, self::countCodes('bulk-atomic-'));
 	}
 
 	public function testAFormByColumnNamesCreatesTheRow(): void
@@ -448,4 +512,30 @@ abstract class ORMControllerFormNamesTestCase extends BaseTestCase
 	}
 
 	abstract protected static function getDriverName(): string;
+
+	/**
+	 * Lets bulk creates of the table through, as a listener of the caller's would, until the test
+	 * ends: listeners are process-wide, and every driver's class shares the table's channel.
+	 *
+	 * @param callable(BeforeCreateBulk):bool $listener
+	 */
+	private static function allowBulk(callable $listener): void
+	{
+		$channel = static::db()->getTableFullName('named_probes');
+
+		self::$detach[] = EventManager::listen(BeforeCreateBulk::class, $listener, Event::RUN_DEFAULT, $channel);
+	}
+
+	/**
+	 * How many rows have a code starting with a prefix.
+	 */
+	private static function countCodes(string $prefix): int
+	{
+		$table = static::db()->getTableOrFail('named_probes');
+
+		return \count(\array_filter(
+			ORM::ctrl($table)->getAllItems()->fetchAllClass(),
+			static fn (ORMEntity $row): bool => \str_starts_with((string) $row->code, $prefix)
+		));
+	}
 }

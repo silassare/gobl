@@ -20,6 +20,7 @@ use Gobl\CRUD\Events\AfterEntityRead;
 use Gobl\CRUD\Events\AfterEntityUpdate;
 use Gobl\CRUD\Events\BeforeColumnUpdate;
 use Gobl\CRUD\Events\BeforeCreate;
+use Gobl\CRUD\Events\BeforeCreateBulk;
 use Gobl\CRUD\Events\BeforeCreateFlush;
 use Gobl\CRUD\Events\BeforeDelete;
 use Gobl\CRUD\Events\BeforeDeleteAll;
@@ -121,6 +122,31 @@ final class CRUD
 		$this->checkFormColumnsForCreate($action);
 
 		return new BeforeCreateFlush($this->table, $form)->dispatch(null, $this->event_channel);
+	}
+
+	/**
+	 * Bulk create assertion: several rows the caller gives, created together.
+	 *
+	 * Dispatches a `BeforeCreateBulk` event with every form, once, before any row. **Denied when no
+	 * listener allows it**, as `deleteAll` is: a request creating many rows at once is not what a
+	 * table opens by default. Each row is still asserted as a create of its own
+	 * ({@see self::assertCreate()}), its columns included.
+	 *
+	 * @param list<array<string, mixed>> $forms
+	 *
+	 * @throws CRUDException
+	 */
+	public function assertCreateBulk(array $forms): BeforeCreateBulk
+	{
+		$action = new BeforeCreateBulk($this->table, $forms);
+
+		if (!$this->authorize($action, false)) {
+			throw new CRUDException($action, $this->debug);
+		}
+
+		$this->message = $action->getSuccessMessage();
+
+		return $action;
 	}
 
 	/**

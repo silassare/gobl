@@ -19,6 +19,10 @@ namespace Gobl\CRUD\Enums;
 enum ActionType: string
 {
 	case CREATE                 = 'CREATE';
+	/**
+	 * Several rows the caller gives, created together: each is a `CREATE` too.
+	 */
+	case CREATE_BULK            = 'CREATE_BULK';
 	case UPDATE                 = 'UPDATE';
 	case UPDATE_ALL             = 'UPDATE_ALL';
 	case DELETE                 = 'DELETE';
@@ -36,7 +40,7 @@ enum ActionType: string
 	public function getDefaultSuccessMessage(): string
 	{
 		return match ($this) {
-			self::CREATE                                                                                         => 'CREATED',
+			self::CREATE, self::CREATE_BULK                                                                      => 'CREATED',
 			self::UPDATE, self::UPDATE_ALL                                                                       => 'UPDATED',
 			self::DELETE, self::DELETE_ALL                                                                       => 'DELETED',
 			self::READ, self::READ_ALL                                                                           => 'READ',

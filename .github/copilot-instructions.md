@@ -238,13 +238,15 @@ $crud->listen($myListener);
 ```
 
 Full event list in `src/CRUD/Events/`:
-`BeforeCreate`, `BeforeCreateFlush`, `AfterEntityCreation`,
+`BeforeCreate`, `BeforeCreateBulk`, `BeforeCreateFlush`, `AfterEntityCreation`,
 `BeforeRead`, `BeforeReadAll`, `AfterEntityRead`,
 `BeforeUpdate`, `BeforeUpdateAll`, `BeforeUpdateFlush`, `BeforeUpdateAllFlush`, `BeforeColumnUpdate`, `BeforeEntityUpdate`, `AfterEntityUpdate`,
 `BeforeDelete`, `BeforeDeleteAll`, `BeforeDeleteFlush`, `BeforeDeleteAllFlush`, `BeforeEntityDeletion`, `AfterEntityDeletion`,
 `BeforePKColumnWrite`, `BeforePrivateColumnWrite`, `BeforeSensitiveColumnWrite`.
 
-Authorization: listener must return `false` **and** call `$action->stopPropagation()` to deny. `deleteAll` is denied by default.
+Authorization: listener must return `false` **and** call `$action->stopPropagation()` to deny. `deleteAll` and
+`createBulk` are denied by default. `ORMController::addItems()` asks `BeforeCreateBulk` once with every form, then
+adds each row as `addItem()` does (its `BeforeCreate`, its columns), all in one transaction.
 
 ## Recursion, re-entrancy and depth
 

@@ -19,6 +19,7 @@ use Gobl\CRUD\Events\AfterEntityRead;
 use Gobl\CRUD\Events\AfterEntityUpdate;
 use Gobl\CRUD\Events\BeforeColumnUpdate;
 use Gobl\CRUD\Events\BeforeCreate;
+use Gobl\CRUD\Events\BeforeCreateBulk;
 use Gobl\CRUD\Events\BeforeCreateFlush;
 use Gobl\CRUD\Events\BeforeDelete;
 use Gobl\CRUD\Events\BeforeDeleteAll;
@@ -50,6 +51,14 @@ interface CRUDEventListenerInterface
 	 * @return bool true to allow or false to reject
 	 */
 	public function onBeforeCreate(BeforeCreate $action): bool;
+
+	/**
+	 * Called to allow CREATE_BULK action on a table: several rows created together, asked once with
+	 * all their forms before any row is asked for as a create.
+	 *
+	 * @return bool true to allow or false to reject
+	 */
+	public function onBeforeCreateBulk(BeforeCreateBulk $action): bool;
 
 	/**
 	 * Called after we allow CREATE action on a table and before the flush.

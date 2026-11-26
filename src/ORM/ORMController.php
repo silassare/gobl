@@ -29,6 +29,7 @@ use Gobl\ORM\Interfaces\ORMCreateOptionsInterface;
 use Gobl\ORM\Interfaces\ORMDeleteOptionsInterface;
 use Gobl\ORM\Interfaces\ORMSelectOptionsInterface;
 use Gobl\ORM\Interfaces\ORMUpdateOptionsInterface;
+use PHPUtils\Interfaces\RichExceptionInterface;
 
 /**
  * Class ORMController.
@@ -111,6 +112,45 @@ abstract class ORMController
 	public function getCRUD(): CRUD
 	{
 		return $this->crud;
+	}
+
+	/**
+	 * Adds several items to the table together, from one form each.
+	 *
+	 * The batch is asked for once ({@see CRUD::assertCreateBulk()}, denied unless a listener allows
+	 * it), then each row is added as {@see self::addItem()} adds one, its create and its columns
+	 * checked. All in one transaction: a row refused leaves none written, and its exception carries
+	 * the row's position in `$forms` as `bulk_index`.
+	 *
+	 * @param list<array<string, mixed>> $forms
+	 *
+	 * @return list<TEntity>
+	 *
+	 * @throws GoblException
+	 */
+	public function addItems(array $forms): array
+	{
+		return $this->db->runInTransaction(function () use ($forms): array {
+			$forms = \array_map(
+				fn (array $form): array => ORM::formByFullNames($this->table, $form),
+				$forms
+			);
+
+			$this->crud->assertCreateBulk($forms);
+
+			$created = [];
+
+			foreach ($forms as $index => $form) {
+				try {
+					$created[] = $this->addItem($form);
+				} catch (RichExceptionInterface $e) {
+					// Which row was refused, so the caller can say where.
+					throw $e->mergeData(['bulk_index' => $index]);
+				}
+			}
+
+			return $created;
+		});
 	}
 
 	/**

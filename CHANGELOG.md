@@ -1,5 +1,13 @@
 ### Unreleased (3.0.x-dev)
 
+- **A bulk create: several rows the caller gives, created together.** `ActionType::CREATE_BULK`,
+  `CRUD::assertCreateBulk()` dispatching `BeforeCreateBulk` (the table and every form, asked once
+  before any row), `CRUDEventProducer::onBeforeCreateBulk()`, and `ORMController::addItems()`,
+  which asks for the batch, then adds each row as `addItem()` does, its create and its columns
+  checked, all in one transaction: a row refused leaves none written, its exception carrying the
+  row's position as `bulk_index`. **Denied when no listener
+  allows it**, as `deleteAll` is. `CRUDEventListenerInterface` gains `onBeforeCreateBulk()`: an
+  implementation adds it (breaking for a class implementing the interface whole).
 - **An order names a column by its name or its full name, and only a column.** `ORMTableQuery`
   resolved each `order_by` key only to check it, then wrote the key into the SQL as given: on a
   table with a column prefix, `order_by=id` failed in the database (`no such column: id`) though a
